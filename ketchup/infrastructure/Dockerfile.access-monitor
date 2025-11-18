@@ -10,8 +10,8 @@ RUN apt-get update && apt-get install -y \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements - use main app requirements since monitor uses same dependencies
-COPY infrastructure/requirements-app.txt /tmp/requirements.txt
+# Copy requirements
+COPY infrastructure/requirements.txt /tmp/requirements.txt
 
 # Install Python packages
 RUN pip install --upgrade pip && \

@@ -11,7 +11,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements
-COPY infrastructure/requirements-maintenance-fetcher.txt /tmp/requirements.txt
+COPY infrastructure/requirements.txt /tmp/requirements.txt
 
 # Install Python packages
 RUN pip install --upgrade pip && \
