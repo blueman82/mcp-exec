@@ -1,6 +1,6 @@
 # TypedDI Dependency Injection Resolution Flow
 
-This flowchart shows the modern TypedDI dependency injection system introduced in September 2025, replacing the legacy string-based DI system. TypedDI provides type-safe, protocol-first dependency management with compile-time validation and topological sorting for dependency resolution.
+This flowchart shows the TypedDI dependency injection system. TypedDI provides type-safe, protocol-first dependency management with compile-time validation and topological sorting for dependency resolution.
 
 ```mermaid
 graph TB
@@ -58,15 +58,7 @@ graph TB
     ReturnInstance --> TypeCheck["✅ Type checker validates:<br/>Instance implements protocol"]
     
     TypeCheck --> UsageComplete([Service Used])
-    
-    subgraph LegacyComparison["❌ LEGACY STRING-BASED DI (Deprecated)"]
-        LegacyStart["registry.get('slack_client')"]
-        LegacyStart --> LegacyLookup["String-based lookup"]
-        LegacyLookup --> LegacyNoType["❌ No type checking"]
-        LegacyNoType --> LegacyNoValidation["❌ No compile-time validation"]
-        LegacyNoValidation --> LegacyRuntimeError["❌ Runtime errors possible"]
-    end
-    
+
     subgraph ModernAdvantages["✅ TYPEDDI ADVANTAGES"]
         Adv1["✅ Type-safe (Protocol-based)"]
         Adv2["✅ Compile-time validation"]
@@ -93,7 +85,6 @@ graph TB
     classDef resolveNode fill:#16A085,stroke:#138D75,stroke-width:2px,color:#fff
     classDef errorNode fill:#E74C3C,stroke:#A93226,stroke-width:3px,color:#fff
     classDef successNode fill:#27AE60,stroke:#1E8449,stroke-width:3px,color:#fff
-    classDef legacyNode fill:#95A5A6,stroke:#7F8C8D,stroke-width:2px,color:#fff,stroke-dasharray: 5 5
     classDef advNode fill:#D5F4E6,stroke:#27AE60,stroke-width:2px
     classDef exampleNode fill:#EBF5FB,stroke:#3498DB,stroke-width:1px
     
@@ -104,7 +95,6 @@ graph TB
     class RuntimeUse,GetRequest,Lookup,ReturnInstance,TypeCheck resolveNode
     class CycleError,NotFoundError errorNode
     class Ready,UsageComplete successNode
-    class LegacyStart,LegacyLookup,LegacyNoType,LegacyNoValidation,LegacyRuntimeError legacyNode
 ```
 
 ## TypedDI Architecture Overview
@@ -127,19 +117,18 @@ graph TB
 - `service_registration.py` - Master registration orchestrator
 - `service_registrations/` - Modular registration files by domain
 
-### Migration Timeline
+### Production Services Using TypedDI
 
-**September 2025**: Complete migration from legacy string-based DI to TypedDI
-- All 7 production services migrated: ✅
-  - ketchup-app (FastAPI)
-  - ketchup-status-updater
-  - ketchup-jira-reporter
-  - ketchup-metadata-updater
-  - ketchup-maintenance-fetcher
-  - ketchup-access-monitor
-  - mcp-jira
-- Legacy DI system: ❌ Removed
-- Test coverage: 100% TypedDI validation tests
+All 7 production services use TypedDI:
+- ketchup-app (FastAPI)
+- ketchup-status-updater
+- ketchup-jira-reporter
+- ketchup-metadata-updater
+- ketchup-maintenance-fetcher
+- ketchup-access-monitor
+- mcp-jira
+
+Test coverage: 100% TypedDI validation tests
 
 ---
 
@@ -336,23 +325,7 @@ async def handle_status_command(event: dict):
 
 ---
 
-## Legacy vs Modern Comparison
-
-### Legacy String-Based DI (❌ Deprecated)
-
-```python
-# String-based lookup
-slack_client = registry.get('slack_client')
-
-# Problems:
-# ❌ No type checking
-# ❌ Typos cause runtime errors
-# ❌ No IDE autocomplete
-# ❌ No dependency validation
-# ❌ Manual initialization order
-```
-
-### Modern TypedDI (✅ Current)
+## TypedDI Usage Pattern
 
 ```python
 # Protocol-based lookup

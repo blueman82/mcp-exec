@@ -112,11 +112,11 @@ graph TD
     Cache -->|Is 'FEATURE_X'<br/>enabled?| IsEnabled{{"Enabled<br/>?"}}
 
     IsEnabled -->|true| NewPath["Execute new<br/>code path"]
-    IsEnabled -->|false| LegacyPath["Execute legacy<br/>code path"]
+    IsEnabled -->|false| FallbackPath["Execute fallback<br/>code path"]
 
     NewPath -->|Run| NewLogic["New feature<br/>logic<br/>- New algorithms<br/>- New API calls<br/>- New data models"]
 
-    LegacyPath -->|Run| OldLogic["Original logic<br/>- Proven code<br/>- Backward compatible<br/>- Safe fallback"]
+    FallbackPath -->|Run| OldLogic["Fallback logic<br/>- Proven code<br/>- Backward compatible<br/>- Safe rollback"]
 
     NewLogic -->|Result| Response["Generate<br/>response"]
 
@@ -127,7 +127,7 @@ graph TD
     style Handler fill:#36c5f0
     style IsEnabled fill:#ffcc99
     style NewPath fill:#99ff99
-    style LegacyPath fill:#99ff99
+    style FallbackPath fill:#99ff99
     style Response fill:#00cc99
 
     Note["Both code paths<br/>coexist in<br/>production code"]
@@ -148,7 +148,7 @@ graph LR
     Phase0 -->|Tested locally<br/>and staging| Phase1
     Phase1 -->|No errors<br/>for 24h| Phase2
     Phase2 -->|No errors<br/>for 48h| Phase3
-    Phase3 -->|Ready| Cleanup["Remove legacy<br/>code path"]
+    Phase3 -->|Ready| Cleanup["Remove fallback<br/>code path"]
 
     style Phase0 fill:#ff9999
     style Phase1 fill:#ffcc99
@@ -277,7 +277,7 @@ sequenceDiagram
 
     Note over Dev,Prod: Production stable
 
-    Dev->>Git: 15. Remove<br/>legacy code path
+    Dev->>Git: 15. Remove<br/>original code path
 
     Dev->>Git: 16. Remove<br/>flag checks
 
@@ -312,8 +312,8 @@ if self.feature_flag_service.is_enabled(FeatureFlagConfig.MY_NEW_FEATURE):
     # New code path
     result = new_implementation()
 else:
-    # Legacy code path
-    result = legacy_implementation()
+    # Original code path
+    result = original_implementation()
 ```
 
 ### Step 3: Add to docker-compose.yml
@@ -336,7 +336,7 @@ environment:
 # Monitor for 48h
 
 # Stage 4: Remove old code path
-# Delete legacy implementation
+# Delete original implementation
 ```
 
 ---
@@ -347,9 +347,9 @@ environment:
 ✅ **Test extensively** - Both enabled and disabled paths
 ✅ **Monitor metrics** - Error rates, latency, throughput
 ✅ **Gradual rollout** - Staging → prod2 canary → prod1
-✅ **Keep legacy code** - Until 100% stable in production
+✅ **Keep original code** - Until 100% stable in production
 ✅ **Document decisions** - Why feature exists, when to remove
-✅ **Timeline awareness** - Remove legacy code after 2-4 weeks stable
+✅ **Timeline awareness** - Remove original code after 2-4 weeks stable
 
 ---
 

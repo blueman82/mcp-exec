@@ -236,4 +236,4 @@ packages/db/
 
 ---
 
-**Migration Status**: 100% complete - all 7 production services use pure TypedDI (no legacy string-based DI)
+**Status**: All 7 production services use pure TypedDI
