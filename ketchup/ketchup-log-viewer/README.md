@@ -1,4 +1,4 @@
-# 🥫 Ketchup Log Viewer
+# Ketchup Log Viewer
 
 A Next.js 15 web application for monitoring Docker container logs across multiple Ketchup production servers with Okta 2FA SSH authentication.
 

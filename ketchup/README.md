@@ -15,6 +15,7 @@ A multi-service Slack application providing automated workflows, JIRA integratio
 - [Deployment](#deployment)
 - [Configuration](#configuration)
 - [Documentation](#documentation)
+  - [Technical Diagrams](#-technical-diagrams)
 - [Key Components](#key-components)
 - [Support](#support)
 
@@ -196,6 +197,33 @@ Ketchup has comprehensive architecture and implementation documentation:
 - **[Code Walkthrough Documentation](./code_docs/ketchup_code_walkthrough_documentation.md)** - Detailed component-by-component reference (595KB)
 
 **🔑 Important**: When updating architecture, services, or features, refer to `infrastructure/docker-compose.yml` as the source of truth for deployed services and enabled feature flags.
+
+### 📊 Technical Diagrams
+
+Visual documentation of Ketchup's infrastructure, event processing, and workflows. All diagrams are in Mermaid format and render natively in GitHub.
+
+**[📁 View All Diagrams](./docs/diagrams/)** | **[📋 Diagram Index & Navigation](./docs/diagrams/README.md)**
+
+**Core Architecture Diagrams:**
+- **[Infrastructure Architecture](./docs/diagrams/01-infrastructure-architecture.md)** - AWS infrastructure, ALB, prod1/prod2 servers, 14 containers, singleton services
+- **[Slack Event Flow](./docs/diagrams/02-slack-event-flow.md)** - Complete request-response lifecycle from Slack webhooks to service responses
+- **[Slash Command Processing](./docs/diagrams/03-slash-command-processing.md)** - Command routing, authorization, parameter extraction, all 10 subcommands
+- **[Background Services](./docs/diagrams/04-background-services.md)** - 5 scheduled services: status updater, JIRA reporter, metadata scanner, maintenance fetcher, access monitor
+- **[TypedDI Resolution](./docs/diagrams/05-typeddi-resolution.md)** - Modern dependency injection with protocol-first design and topological sorting
+- **[Feature Flag Decision Tree](./docs/diagrams/06-feature-flag-decision.md)** - 3-tier flag evaluation: environment → global → channel/user specific
+- **[Interactive Components](./docs/diagrams/07-interactive-components.md)** - Button interactions, access requests, trust endorsements, modals
+
+**Additional System Diagrams:**
+- **[System Architecture](./docs/diagrams/1-system-architecture.md)** - Complete AWS topology with container distribution
+- **[Container Topology](./docs/diagrams/5-container-topology.md)** - What runs where: prod1 (9 containers) vs prod2 (5 containers)
+- **[Two-Phase Processing](./docs/diagrams/6-two-phase-processing.md)** - How Ketchup meets Slack's 3-second response requirement
+- **[Service Data Flows](./docs/diagrams/7-service-data-flows.md)** - Data models, DynamoDB structure, service interactions
+
+**Quick Navigation:**
+- **New to Ketchup?** Start with [System Architecture](./docs/diagrams/1-system-architecture.md) → [Slack Event Flow](./docs/diagrams/02-slack-event-flow.md)
+- **Adding a feature?** Review [Command Routing](./docs/diagrams/03-slash-command-processing.md) → [Service Data Flows](./docs/diagrams/7-service-data-flows.md)
+- **Debugging?** Check [Two-Phase Processing](./docs/diagrams/6-two-phase-processing.md) → [Event Flow](./docs/diagrams/02-slack-event-flow.md)
+- **Deploying?** See [Container Topology](./docs/diagrams/5-container-topology.md) → [Feature Flags](./docs/diagrams/8-feature-flags.md)
 
 ## Key Components
 

@@ -1,0 +1,205 @@
+# Local development docker-compose - focuses on core Python services
+# Excludes: mcp-jira (Node.js, source not available), ngrok (optional for local testing)
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ketchup-app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  ketchup-app:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.app-multistage
+    image: ketchup-app:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - OPENAI_API_VERSION=2025-01-01-preview
+      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - JIRA_TOOL_PERSIST_CORRECTIONS=true
+      - JIRA_TOOL_CORRECTIONS_FILE=/tmp/jira_corrections_cache.json
+      - KETCHUP_STATUS_UPDATER_FEATURE=true
+      - KETCHUP_STATUS_UPDATER_GLOBAL=true
+      - KETCHUP_JIRA_REPORTER_FEATURE=false  # Disabled without MCP JIRA
+      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
+      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
+      - KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true
+      - KETCHUP_ACCESS_REQUEST_AUTOMATION_GLOBAL=true
+      - KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE=true
+      - KETCHUP_USER_JOIN_NOTIFICATIONS_GLOBAL=true
+      - KETCHUP_MAINTENANCE_DETECTION=true
+      - USE_PIPELINE_PROCESSING=true
+      - KETCHUP_USE_ASYNC_MCP=false  # Disabled without MCP JIRA
+    volumes:
+      - ~/.aws:/home/ketchup/.aws:ro
+      - ./logs:/var/log
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ketchup-metadata-updater:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.updater
+    image: ketchup-metadata-updater:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - KETCHUP_USE_ASYNC_MCP=false
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs:/var/log
+    restart: unless-stopped
+
+  ketchup-status-updater:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.status-updater
+    image: ketchup-status-updater:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - OPENAI_API_VERSION=2025-01-01-preview
+      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+      - KETCHUP_STATUS_UPDATER_FEATURE=true
+      - KETCHUP_STATUS_UPDATER_GLOBAL=false  # Don't process all channels in test
+      - KETCHUP_STATUS_UPDATER_ENABLED=true
+      - KETCHUP_USE_ASYNC_MCP=false
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs:/var/log
+    restart: unless-stopped
+
+  ketchup-access-monitor:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.access-monitor
+    image: ketchup-access-monitor:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - TZ=Europe/London
+      - ACCESS_REQUEST_MONITOR_INTERVAL=300
+      - ACCESS_REQUEST_ALERT_COOLDOWN=3600
+      - MAX_CONCURRENT_REQUESTS=20
+      - KETCHUP_USE_ASYNC_MCP=false
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs/access_monitor:/var/log/access_monitor
+    restart: unless-stopped
+
+  ketchup-jira-reporter:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.jira-reporter
+    image: ketchup-jira-reporter:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=INFO
+      - CHECK_INTERVAL_MINUTES=15
+      - LOOKBACK_HOURS=24
+      - BATCH_SIZE=5
+      - PYTHONPATH=/app
+      - OPENAI_API_VERSION=2025-01-01-preview
+      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+      - KETCHUP_JIRA_REPORTER_FEATURE=true
+      - KETCHUP_JIRA_REPORTER_GLOBAL=false  # Test mode
+      - USE_PIPELINE_PROCESSING=true
+      - KETCHUP_USE_ASYNC_MCP=false
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs:/var/log
+    restart: unless-stopped
+
+  ketchup-maintenance-fetcher:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.maintenance_fetcher
+    image: ketchup-maintenance-fetcher:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
+      - KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START=true
+      - TZ=UTC
+      - KETCHUP_USE_ASYNC_MCP=false
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs:/var/log
+    restart: unless-stopped
+
+  # ==============================================================================
+  # LOCAL TEST SERVICES
+  # ==============================================================================
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"
+      - "4510-4530:4510-4530"
+    environment:
+      - SERVICES=s3,sqs,secretsmanager
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOST_TMP_FOLDER=${TMPDIR}
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

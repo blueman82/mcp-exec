@@ -321,18 +321,31 @@ class SlackEventHandler:
         else:
             # No active prompt, but check if user is providing a late JIRA ticket
             jira_ticket = JiraPromptHandler.extract_jira_ticket(text)
-            
+
             if jira_ticket:
-                # User provided JIRA ticket but prompt workflow already completed
+                # User provided JIRA ticket but DynamoDB prompt record expired/was deleted
+                # This happens when user responds after 120-second per-attempt timeout
                 logger.info(
                     f"Late JIRA ticket reply detected: {jira_ticket} in {channel_id} "
-                    "(no active prompt)"
+                    "(no active prompt - likely timed out)"
                 )
+
+                # IMPROVEMENT: Store the late response so we don't lose it
+                # The user provided the info they were asked for - we should use it!
+                try:
+                    await self.dynamodb_store.store_maintenance_reply(
+                        channel_id, jira_ticket
+                    )
+                    logger.info(f"Stored late reply {jira_ticket} for {channel_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to store late reply: {e}")
+
                 await self.posting_handler.post_message(
                     channel_id=channel_id,
                     message=(
-                        f"<@{user_id}> I see you provided {jira_ticket}, but the "
-                        "maintenance check workflow has already completed."
+                        f"<@{user_id}> I see you provided {jira_ticket}, but I didn't catch "
+                        "it within the expected timeframe. The maintenance check workflow has completed. "
+                        "If you need to re-run this, please ask me to join the channel again."
                     )
                 )
                 return

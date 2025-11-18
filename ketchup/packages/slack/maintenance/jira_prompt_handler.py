@@ -30,7 +30,18 @@ class JiraPromptHandler:
     """
 
     MAX_ATTEMPTS = 3
-    RETRY_DELAY_SECONDS = 120  # 2 minutes
+    RETRY_DELAY_SECONDS = 120  # 2 minutes per attempt
+
+    # WORKFLOW TIMEOUT BEHAVIOR:
+    # - Each attempt allows 120 seconds (2 minutes) for user to respond
+    # - Total workflow timeout: 3 attempts × 120 seconds = 6 minutes max
+    # - If user responds AFTER the 120-second window:
+    #   1. DynamoDB record has expired and been deleted
+    #   2. Event handler detects "late response" (no active prompt found)
+    #   3. User receives message: "I didn't catch it within the expected timeframe"
+    #   4. Late JIRA ticket is still stored for audit/recovery purposes
+    # - Why 120s? Slack message delivery is reliable, but users need time to notice
+    #   and respond. 2 minutes balances prompt visibility with retrying efficiently.
 
     def __init__(
         self,
@@ -184,9 +195,23 @@ class JiraPromptHandler:
         Instead of polling message history, we store state in DynamoDB and the
         app_mention event handler will detect replies and store them.
 
+        FLOW:
+        1. Store "MAINTENANCE_PROMPT#{channel_id}" in DynamoDB with attempt #
+        2. Event handler (app_mention) detects user @mention with JIRA ticket
+        3. Event handler stores reply in DynamoDB under same key
+        4. This method polls DynamoDB every 5 seconds to check for reply
+        5. If reply found before timeout, return the JIRA ticket
+        6. If timeout expires, delete DynamoDB record and return None
+
+        TIMEOUT BEHAVIOR:
+        - Timeout = 120 seconds (RETRY_DELAY_SECONDS)
+        - After 120s expires, DynamoDB record is deleted
+        - Any @mention AFTER 120s is treated as "late response" by event handler
+        - Late responses are logged but not processed (see events.py:325-351)
+
         Args:
             channel_id: Slack channel ID
-            timeout_seconds: How long to wait (seconds)
+            timeout_seconds: How long to wait (seconds) - always 120 for maintenance
             prompt_ts: Timestamp of prompt message
 
         Returns:
@@ -201,8 +226,9 @@ class JiraPromptHandler:
             else 1,
         )
 
-        # Poll DynamoDB for reply (much less frequent - every 5 seconds)
-        # This is just checking if app_mention event stored a reply
+        # Poll DynamoDB for reply (every 5 seconds is efficient + responsive)
+        # The app_mention event handler will update the same DynamoDB record
+        # when it detects a user response with a JIRA ticket
         for i in range(timeout_seconds // 5):
             await asyncio.sleep(5)
 
@@ -210,18 +236,24 @@ class JiraPromptHandler:
             prompt_state = await self.db_store.get_maintenance_prompt(channel_id)
 
             if not prompt_state:
-                # State not found - might have expired or been deleted
-                # Continue waiting in case it was just a race condition
+                # State not found - might be race condition, continue waiting
+                # (DynamoDB might be slightly lagged or record might be in transition)
                 continue
 
             if prompt_state.get("jira_ticket"):
-                # Reply received!
+                # Reply received! User provided JIRA ticket in time
                 jira_ticket = prompt_state["jira_ticket"]
                 await self.db_store.delete_maintenance_prompt(channel_id)
+                logger.info(f"JIRA reply received within timeout window: {jira_ticket}")
                 return jira_ticket
 
-        # Timeout - no reply received
+        # Timeout - no reply received within 120 seconds
+        # Delete the DynamoDB record so app_mention knows to treat future responses as "late"
         await self.db_store.delete_maintenance_prompt(channel_id)
+        logger.info(
+            f"No JIRA reply within {timeout_seconds}s for {channel_id}, "
+            "moving to next attempt or final timeout"
+        )
         return None
 
     async def _check_recent_messages_for_jira(

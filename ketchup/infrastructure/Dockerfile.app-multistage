@@ -47,7 +47,6 @@ WORKDIR /app
 
 # Copy application code
 COPY --chown=ketchup:ketchup packages/ ./packages/
-COPY --chown=ketchup:ketchup analysis/ ./analysis/
 COPY --chown=ketchup:ketchup ketchup-app/ ./
 
 # Set environment variables
