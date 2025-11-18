@@ -478,5 +478,937 @@
       "exceeds_200k_tokens": false
     },
     "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"woah /Users/harrison/Documents...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m89k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m110k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 11dd8dab-d3c0-474d-af4a-cf12e349a901\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:29:25.032704",
+    "version": "v4",
+    "input_data": {
+      "session_id": "9c4201c7-f6a0-4481-8255-3316a5ded44c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/9c4201c7-f6a0-4481-8255-3316a5ded44c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 6.784056050000004,
+        "total_duration_ms": 11872453,
+        "total_api_duration_ms": 1768906,
+        "total_lines_added": 406,
+        "total_lines_removed": 222
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m53 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m167k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m32k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m53 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m3k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m16%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 9c4201c7-f6a0-4481-8255-3316a5ded44c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:29:51.674951",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 1827,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.44\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/0ce20938-a4eb-4fd7-9541-965341c68401.json not found"
+  },
+  {
+    "timestamp": "2025-11-18T16:29:53.647820",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.010201,
+        "total_duration_ms": 3809,
+        "total_api_duration_ms": 1209,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.44\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/0ce20938-a4eb-4fd7-9541-965341c68401.json not found"
+  },
+  {
+    "timestamp": "2025-11-18T16:29:54.083647",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.010201,
+        "total_duration_ms": 4239,
+        "total_api_duration_ms": 1209,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m0 used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m0 left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:29:58.143146",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.057145,
+        "total_duration_ms": 8291,
+        "total_api_duration_ms": 12400,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m36k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m163k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m36k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m82%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:29:58.146228",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.057145,
+        "total_duration_ms": 8302,
+        "total_api_duration_ms": 12400,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m36k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m163k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m36k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m82%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:10.837056",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.14688425000000002,
+        "total_duration_ms": 20993,
+        "total_api_duration_ms": 39131,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m55k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m144k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m55k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m72%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:31.441122",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.18498210000000004,
+        "total_duration_ms": 41607,
+        "total_api_duration_ms": 44258,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m55k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m144k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m27k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m72%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:34.879060",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.19261855000000003,
+        "total_duration_ms": 45049,
+        "total_api_duration_ms": 46740,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m56k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m143k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m28k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m72%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:38.394355",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.20062915000000003,
+        "total_duration_ms": 48553,
+        "total_api_duration_ms": 49671,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m57k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m142k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m28k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m71%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:44.026721",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.23120205000000005,
+        "total_duration_ms": 54192,
+        "total_api_duration_ms": 54911,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m78k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m121k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m39k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m61%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:44.027704",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.23120205000000005,
+        "total_duration_ms": 54196,
+        "total_api_duration_ms": 54911,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m78k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m121k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m39k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m61%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:48.006561",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.25734005000000004,
+        "total_duration_ms": 58165,
+        "total_api_duration_ms": 58761,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m80k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m119k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m40k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m60%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:53.378545",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.26828745000000004,
+        "total_duration_ms": 63538,
+        "total_api_duration_ms": 64102,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m81k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m118k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m40k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m59%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:57.210046",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.28516220000000003,
+        "total_duration_ms": 67381,
+        "total_api_duration_ms": 67891,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m88k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m111k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m44k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m56%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:30:57.233413",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.28516220000000003,
+        "total_duration_ms": 67389,
+        "total_api_duration_ms": 67891,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m88k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m111k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m44k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m56%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:31:10.378235",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.30018865,
+        "total_duration_ms": 80531,
+        "total_api_duration_ms": 82051,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"what uses the ketchup annoucem...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m89k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m110k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m44k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:31:45.647392",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.3762013,
+        "total_duration_ms": 115806,
+        "total_api_duration_ms": 86170,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m88k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m111k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m56%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:31:51.876968",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.38974415,
+        "total_duration_ms": 122038,
+        "total_api_duration_ms": 93142,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m89k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m110k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:32:01.734164",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.4080712,
+        "total_duration_ms": 131907,
+        "total_api_duration_ms": 105852,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m89k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m110k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:32:01.759557",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.4080712,
+        "total_duration_ms": 131914,
+        "total_api_duration_ms": 105852,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m89k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m110k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:32:14.027461",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.42409769999999997,
+        "total_duration_ms": 144191,
+        "total_api_duration_ms": 118187,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m90k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m109k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:32:44.060097",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.42409769999999997,
+        "total_duration_ms": 174152,
+        "total_api_duration_ms": 118187,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m90k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m109k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:32:44.293443",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.42409769999999997,
+        "total_duration_ms": 174453,
+        "total_api_duration_ms": 118187,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"you do that for verfication :)...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m90k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m109k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m55%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:32:53.173087",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.43750504999999995,
+        "total_duration_ms": 183331,
+        "total_api_duration_ms": 121053,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m4 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"  Test Results\n\n  | Test Suite...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m91k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m108k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m4 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m22k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m54%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:35:05.499303",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5680044999999998,
+        "total_duration_ms": 315658,
+        "total_api_duration_ms": 148310,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task create a bug branch firs...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m98k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m101k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m51%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:35:10.839245",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5834267499999998,
+        "total_duration_ms": 320997,
+        "total_api_duration_ms": 158634,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task create a bug branch firs...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m98k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m101k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m51%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:35:13.679550",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5958135499999998,
+        "total_duration_ms": 323811,
+        "total_api_duration_ms": 161691,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task create a bug branch firs...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m99k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m100k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m50%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:35:48.020518",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6303828999999999,
+        "total_duration_ms": 358190,
+        "total_api_duration_ms": 196007,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task create a bug branch firs...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m105k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m94k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m21k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m47%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:44:22.903744",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.020511949999997,
+        "total_duration_ms": 873066,
+        "total_api_duration_ms": 1820395,
+        "total_lines_added": 433,
+        "total_lines_removed": 1359
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task create a bug branch firs...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m112k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m87k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m22k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-18T16:44:22.911021",
+    "version": "v4",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.44",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.020511949999997,
+        "total_duration_ms": 873072,
+        "total_api_duration_ms": 1820395,
+        "total_lines_added": 433,
+        "total_lines_removed": 1359
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m5 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task create a bug branch firs...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m112k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m87k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m5 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m22k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
   }
 ]

@@ -22,14 +22,15 @@ async def test_step_1_basic_jira_mcp_tool():
     print("🔧 STEP 1: Testing JIRA MCP tool...")
 
     try:
-        from packages.core.di_container import get_container
+        from packages.core.typed_di_integration import get_container
+        from packages.integrations.mcp_client import MCPClient
 
         print("🔧 Initializing DI Container...")
         container = await get_container()
         print("✅ DI Container initialized")
 
         print("🔧 Getting MCP client from container...")
-        mcp_client = container.get_by_name("mcp_client")
+        mcp_client = await container.aget(MCPClient)
         print("✅ MCP client retrieved")
 
         target_ticket = TEST_JIRA_TICKETS["CSOPM"]  # CPGNREQ-180375
@@ -50,7 +51,7 @@ This is a test comment from the Ketchup JIRA Reporter integration test using MCP
 
 h3. Test Details
 - Channel ID: C094DQY7HLH
-- Channel Name: test_acc_cso_12345  
+- Channel Name: test_acc_cso_12345
 - Exigence ID: 12345
 - Test Timestamp: {int(time.time())}
 
@@ -111,7 +112,7 @@ Integration test for JIRA reporter functionality using real channel C094DQY7HLH.
 
 h3. People Involved
 - Test User 1: Reported authentication issues
-- Test User 2: Identified certificate problems  
+- Test User 2: Identified certificate problems
 - Test User 3: Implemented certificate fix
 
 h3. Incident Timeline

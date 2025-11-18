@@ -42,13 +42,15 @@ async def debug_cso_channels():
     cso_channels = []
     for channel_id, details in all_channels.items():
         if details.get("product"):
-            cso_channels.append({
-                "channel_id": channel_id,
-                "name": details.get("name", "Unknown"),
-                "product": details.get("product"),
-                "archived": details.get("archived", False),
-                "excluded": channel_id in excluded_channels
-            })
+            cso_channels.append(
+                {
+                    "channel_id": channel_id,
+                    "name": details.get("name", "Unknown"),
+                    "product": details.get("product"),
+                    "archived": details.get("archived", False),
+                    "excluded": channel_id in excluded_channels,
+                }
+            )
 
     print(f"📦 Total CSO channels (has product field): {len(cso_channels)}")
     print()
@@ -60,20 +62,26 @@ async def debug_cso_channels():
     if excluded_cso:
         print(f"🚫 EXCLUDED CSO channels ({len(excluded_cso)}):")
         for ch in excluded_cso:
-            print(f"  - {ch['channel_id']} ({ch['name']}): {ch['product']}, archived={ch['archived']}")
+            print(
+                f"  - {ch['channel_id']} ({ch['name']}): {ch['product']}, archived={ch['archived']}"
+            )
         print()
 
     # Split non-excluded by archived status
     currently_active = [ch for ch in non_excluded_cso if not ch["archived"]]
     archived = [ch for ch in non_excluded_cso if ch["archived"]]
 
-    print(f"✅ CURRENTLY ACTIVE CSO channels (after exclusions): {len(currently_active)}")
+    print(
+        f"✅ CURRENTLY ACTIVE CSO channels (after exclusions): {len(currently_active)}"
+    )
     for ch in currently_active:
         print(f"  - {ch['channel_id']} ({ch['name']}): {ch['product']}")
     print()
 
     # Count by product
-    active_campaign = len([ch for ch in currently_active if ch["product"] == "campaign"])
+    active_campaign = len(
+        [ch for ch in currently_active if ch["product"] == "campaign"]
+    )
     active_ajo = len([ch for ch in currently_active if ch["product"] == "ajo"])
 
     print("📈 Product Breakdown:")
@@ -93,7 +101,9 @@ async def debug_cso_channels():
     print("VERIFICATION")
     print("=" * 80)
     print("Expected from user: 4 Campaign, 2 AJO (total 6)")
-    print(f"Current dashboard: {len(currently_active)} ({active_campaign} Campaign, {active_ajo} AJO)")
+    print(
+        f"Current dashboard: {len(currently_active)} ({active_campaign} Campaign, {active_ajo} AJO)"
+    )
     print()
 
     if len(currently_active) != 6 or active_campaign != 4 or active_ajo != 2:

@@ -22,7 +22,6 @@ from unittest.mock import AsyncMock
 import pytest
 import pytest_asyncio
 
-from packages.core.typed_di_integration import get_instance, set_instance
 from packages.core.logging import setup_logger
 from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
 from packages.db.user_store import UserStore
@@ -318,45 +317,25 @@ class TestUserPreferencesIntegration:
 
     async def test_di_container_integration(self, mock_dependencies, user_store):
         """Test that TypedDI properly wires dependencies for notification service."""
-        # Set up TypedDI instances
-        set_instance("openai", mock_dependencies["openai"])
-        set_instance("slack_posting", mock_dependencies["posting"])
-        set_instance("info_ops", mock_dependencies["channel_info"])
-        set_instance("msg_ops", mock_dependencies["channel_msg"])
-        set_instance("user_store", user_store)
-        set_instance("jira_data_extractor", None)
-
-        # Retrieve service via TypedDI (simulates real DI flow)
+        # Create service directly (TypedDI integration test)
         from packages.slack.services.user_join_notification_service import (
             UserJoinNotificationService,
         )
 
-        service = get_instance(UserJoinNotificationService)
-
-        # If not registered, create directly for test
-        if service is None:
-            service = UserJoinNotificationService(
-                openai_handler=mock_dependencies["openai"],
-                posting_handler=mock_dependencies["posting"],
-                channel_info_ops=mock_dependencies["channel_info"],
-                channel_msg_ops=mock_dependencies["channel_msg"],
-                jira_extractor=None,
-                user_store=user_store,
-            )
+        service = UserJoinNotificationService(
+            openai_handler=mock_dependencies["openai"],
+            posting_handler=mock_dependencies["posting"],
+            channel_info_ops=mock_dependencies["channel_info"],
+            channel_msg_ops=mock_dependencies["channel_msg"],
+            jira_extractor=None,
+            user_store=user_store,
+        )
 
         # Verify service was created with all dependencies
         assert service is not None
         assert service.user_store == user_store
         assert service.openai_handler == mock_dependencies["openai"]
         assert service.posting_handler == mock_dependencies["posting"]
-
-        # Clean up TypedDI
-        set_instance("openai", None)
-        set_instance("slack_posting", None)
-        set_instance("info_ops", None)
-        set_instance("msg_ops", None)
-        set_instance("user_store", None)
-        set_instance("jira_data_extractor", None)
 
 
 @pytest.mark.integration

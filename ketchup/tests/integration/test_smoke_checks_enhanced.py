@@ -2,10 +2,10 @@
 """
 Enhanced Smoke Checks Tests - Phase 3, Subtask 3.4
 
-Tests full smoke test with extracted protocols.
+Tests full smoke test with proper TypedDI integration.
 
-Production Issue: Smoke checks were failing causing fallback to legacy DI
-Expected Fix: All smoke checks should pass with proper protocol extraction
+Production Issue: Smoke checks were failing
+Expected Fix: All smoke checks should pass with proper TypedDI setup
 """
 
 import asyncio
@@ -14,20 +14,20 @@ from unittest.mock import Mock, patch
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di_integration import _run_startup_smoke_checks
-from packages.core.typed_di.registry import TypedServiceRegistry
+from packages.core.typed_di import TypedServiceRegistry
 
 logger = setup_logger(__name__)
 
 
 class TestSmokeChecksEnhanced(unittest.IsolatedAsyncioTestCase):
-    """Test enhanced smoke checks with extracted protocols."""
+    """Test enhanced smoke checks with TypedDI."""
 
-    async def test_full_smoke_checks_with_extracted_protocols(self):
+    async def test_full_smoke_checks_with_typed_di(self):
         """
-        Test full smoke test with extracted protocols.
+        Test full smoke test with TypedDI.
 
-        Production Issue: Smoke checks were failing causing fallback to legacy DI
-        Expected Fix: All smoke checks should pass with proper protocol extraction
+        Production Issue: Smoke checks were failing
+        Expected Fix: All smoke checks should pass with proper service registration
         """
         # Mock all critical service classes that smoke checks test
         mock_services = self._create_mock_services()
@@ -51,7 +51,7 @@ class TestSmokeChecksEnhanced(unittest.IsolatedAsyncioTestCase):
             )
             logger.info("✓ Full smoke checks passed successfully")
 
-        logger.info("✓ Full smoke test with extracted protocols completed successfully")
+        logger.info("✓ Full smoke test with TypedDI completed successfully")
 
     async def test_smoke_checks_failure_scenario(self):
         """Test smoke check failure when services are not registered."""

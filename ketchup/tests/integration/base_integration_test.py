@@ -8,13 +8,16 @@ access to real services like DynamoDB, Slack API, OpenAI, etc.
 import os
 import sys
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from packages.core.di_container import DIContainer
 from packages.core.logging import setup_logger
+from packages.core.typed_di.registry import TypedServiceRegistry
+from packages.core.typed_di_integration import get_unified_container
+
+T = TypeVar("T")
 
 
 class BaseIntegrationTest(ABC):
@@ -40,10 +43,10 @@ class BaseIntegrationTest(ABC):
         self.aws_profile = aws_profile
         self.aws_region = aws_region
         self.env_vars = env_vars or {}
-        self.container: Optional[DIContainer] = None
+        self.container: Optional[TypedServiceRegistry] = None
         self.logger = setup_logger(f"integration.{test_name}")
 
-    async def setup_environment(self):
+    async def setup_environment(self) -> None:
         """Set up environment variables for the test."""
         # Set AWS credentials
         os.environ["AWS_PROFILE"] = self.aws_profile
@@ -54,39 +57,44 @@ class BaseIntegrationTest(ABC):
             os.environ[key] = value
             self.logger.info(f"Set environment variable: {key}")
 
-    async def initialize_container(self) -> DIContainer:
-        """Initialize the DI container with all dependencies."""
-        self.logger.info("Initializing DI container...")
-        self.container = DIContainer()
-        await self.container.initialize()
-        self.logger.info("DI container initialized successfully")
+    async def initialize_container(self) -> TypedServiceRegistry:
+        """Initialize the TypedDI container with all dependencies."""
+        self.logger.info("Initializing TypedDI container...")
+        self.container = await get_unified_container()
+        self.logger.info("TypedDI container initialized successfully")
         return self.container
 
-    def get_service(self, service_name: str) -> Any:
+    def get_service(self, service_type: Type[T]) -> T:
         """
-        Get a single service from the container.
+        Get a single service from the container by type.
 
         Args:
-            service_name: Name of the service to retrieve
+            service_type: Type of the service to retrieve
 
         Returns:
             The requested service instance
+
+        Raises:
+            RuntimeError: If container not initialized
         """
         if not self.container:
             raise RuntimeError(
                 "Container not initialized. Call initialize_container() first."
             )
-        return self.container.get_by_name(service_name)
+        return self.container.get(service_type)
 
-    def get_services(self, service_names: List[str]) -> Dict[str, Any]:
+    def get_services(self, service_types: List[Type]) -> Dict[Type, Any]:
         """
-        Get multiple services from the container.
+        Get multiple services from the container by type.
 
         Args:
-            service_names: List of service names to retrieve
+            service_types: List of service types to retrieve
 
         Returns:
-            Dictionary mapping service names to instances
+            Dictionary mapping service types to instances
+
+        Raises:
+            RuntimeError: If container not initialized
         """
         if not self.container:
             raise RuntimeError(
@@ -94,8 +102,8 @@ class BaseIntegrationTest(ABC):
             )
 
         services = {}
-        for name in service_names:
-            services[name] = self.container.get_by_name(name)
+        for service_type in service_types:
+            services[service_type] = self.container.get(service_type)
         return services
 
     @abstractmethod
@@ -148,7 +156,9 @@ class BaseIntegrationTest(ABC):
             # Clean up container resources
             if self.container:
                 try:
-                    await self.container.cleanup()
+                    # TypedServiceRegistry cleanup is handled by typed_di_integration
+                    # No explicit cleanup method needed for individual instances
+                    self.logger.info("Container cleanup completed")
                 except Exception as e:
                     self.logger.error(f"Error during container cleanup: {e}")
 
@@ -164,7 +174,7 @@ class SimpleIntegrationTest(BaseIntegrationTest):
         self,
         test_name: str,
         test_func: Callable,
-        required_services: List[str],
+        required_services: List[Type],
         aws_profile: str = "campaign_prod_v7",
         aws_region: str = "eu-west-1",
         env_vars: Optional[Dict[str, str]] = None,
@@ -175,7 +185,7 @@ class SimpleIntegrationTest(BaseIntegrationTest):
         Args:
             test_name: Name of the test
             test_func: Async function to run as the test
-            required_services: List of service names needed by the test
+            required_services: List of service types needed by the test
             aws_profile: AWS profile to use
             aws_region: AWS region
             env_vars: Additional environment variables
@@ -196,7 +206,7 @@ class SimpleIntegrationTest(BaseIntegrationTest):
 async def run_simple_integration_test(
     test_name: str,
     test_func: Callable,
-    required_services: List[str],
+    required_services: List[Type],
     env_vars: Optional[Dict[str, str]] = None,
 ) -> bool:
     """
@@ -205,7 +215,7 @@ async def run_simple_integration_test(
     Args:
         test_name: Name of the test
         test_func: Async function to run as the test
-        required_services: List of service names needed
+        required_services: List of service types needed
         env_vars: Additional environment variables
 
     Returns:

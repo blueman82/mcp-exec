@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from jira_reporter.jira_service import JiraService
-from packages.core.di_container import cleanup_container, get_container
+from packages.core.typed_di_integration import cleanup_container, get_container
 
 
 @pytest.mark.asyncio
@@ -18,9 +18,12 @@ async def test_jira_service_with_ims_authentication():
         # Initialize container
         container = await get_container()
 
-        # Get required services
-        secrets_manager = container.get_by_name("secrets_manager")
-        ims_token_manager = container.get_by_name("ims_token_manager")
+        # Get required services using TypedDI
+        from packages.integrations.ims_token_manager import IMSTokenManager
+        from packages.secrets.manager import SecretsManager
+
+        secrets_manager = await container.aget(SecretsManager)
+        ims_token_manager = await container.aget(IMSTokenManager)
 
         # Create JIRA service
         jira_service = JiraService(
@@ -85,9 +88,12 @@ async def test_jira_reporter_full_integration():
     try:
         container = await get_container()
 
-        # Get required services
-        secrets_manager = container.get_by_name("secrets_manager")
-        ims_token_manager = container.get_by_name("ims_token_manager")
+        # Get required services using TypedDI
+        from packages.integrations.ims_token_manager import IMSTokenManager
+        from packages.secrets.manager import SecretsManager
+
+        secrets_manager = await container.aget(SecretsManager)
+        ims_token_manager = await container.aget(IMSTokenManager)
 
         # Create JIRA service
         jira_service = JiraService(

@@ -53,5 +53,49 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "woah /Users/harrison/Documents/Github/camp-ops-emea/ketchup is our repo, i've just updated it with the contents from ketchup_final so clean up whatever you've just done with git for ketchup_final and only focus on pwd"
     }
+  },
+  {
+    "timestamp": "2025-11-18T16:29:54.036489",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/prime "
+    }
+  },
+  {
+    "timestamp": "2025-11-18T16:30:27.408400",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "what uses the ketchup annoucement scripts and should they have been deployed to production? Investigate. For example when a new user is approved access using /ketchup access, the admin approves it they get a welcome message, I think thats from the ketchup_annoucements folder on prod1 or 2 can't recall which. "
+    }
+  },
+  {
+    "timestamp": "2025-11-18T16:31:41.896354",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "you do that for verfication :) "
+    }
+  },
+  {
+    "timestamp": "2025-11-18T16:32:50.770078",
+    "input_data": {
+      "session_id": "0ce20938-a4eb-4fd7-9541-965341c68401",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/0ce20938-a4eb-4fd7-9541-965341c68401.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "  Test Results\n\n  | Test Suite                         | Result | Time  | Count     |\n  |------------------------------------|--------|-------|-----------|\n  | Core (DI, Async, Utils)            | ✅ PASS | 1.48s | 161 tests |\n  | Slack (Events, Commands, Services) | ✅ PASS | 8.11s | 940 tests |\n\n  Total: 1,101 tests passed in 9.59 seconds!\n\n  ---\n  Run Tests By Service\n\n  Now you can run individual service tests instead of the full suite. Here's the command pattern:\n\n  cd /Users/harrison/Documents/Github/camp-ops-emea/ketchup/tests/setup\n  . .venv/bin/activate\n  python -m pytest ../../tests/unit/SERVICE_NAME -v\n\n  Available services:\n  - ai                     (Azure OpenAI integration)\n  - slack                  (Slack API, 940 tests) ✅\n  - core                   (DI, async, 161 tests) ✅\n  - db                     (DynamoDB operations)\n  - integrations           (Third-party services)\n  - secrets                (AWS Secrets Manager)\n  - cloud                  (AWS operations)\n  - infrastructure         (Docker, deployment)\n  - channel_metadata_updater\n  - maintenance_fetcher\n  - test_jira_reporter\n  - test_ketchup_status_updater\n  - test_utils\n\n  Examples:\n  # Run AI service tests\n  python -m pytest ../../tests/unit/ai -v\n\n  # Run database tests\n  python -m pytest ../../tests/unit/db -v\n\n  # Run integration tests\n  python -m pytest ../../tests/unit/integrations -v\n\n  # Run specific test file\n  python -m pytest ../../tests/unit/secrets/test_manager.py -v\nthose were unit, what about integration tests?"
+    }
   }
 ]

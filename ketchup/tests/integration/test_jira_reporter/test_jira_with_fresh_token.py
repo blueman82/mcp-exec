@@ -27,15 +27,17 @@ async def test_jira_posting_with_fresh_token():
 
     # Import after skip check to avoid unnecessary imports
     from jira_reporter.jira_service import JiraService
-    from packages.core.di_container import cleanup_container, get_container
+    from packages.core.typed_di_integration import cleanup_container, get_container
+    from packages.integrations.ims_token_manager import IMSTokenManager
+    from packages.secrets.manager import SecretsManager
 
     try:
         logger.info("Initializing DI container...")
         container = await get_container()
 
-        # Get services from container
-        secrets_manager = container.get_by_name("secrets_manager")
-        ims_token_manager = container.get_by_name("ims_token_manager")
+        # Get services from container using TypedDI
+        secrets_manager = await container.aget(SecretsManager)
+        ims_token_manager = await container.aget(IMSTokenManager)
 
         logger.info("Getting fresh IMS token...")
         fresh_token = await ims_token_manager.get_valid_token()
@@ -77,11 +79,12 @@ async def test_mcp_with_fresh_token():
     if not os.getenv("RUN_JIRA_INTEGRATION_TESTS"):
         pytest.skip("Set RUN_JIRA_INTEGRATION_TESTS=true to run this test")
 
-    from packages.core.di_container import cleanup_container, get_container
+    from packages.core.typed_di_integration import cleanup_container, get_container
+    from packages.integrations.ims_token_manager import IMSTokenManager
 
     try:
         container = await get_container()
-        ims_token_manager = container.get_by_name("ims_token_manager")
+        ims_token_manager = await container.aget(IMSTokenManager)
 
         # Get fresh token
         fresh_token = await ims_token_manager.get_valid_token()

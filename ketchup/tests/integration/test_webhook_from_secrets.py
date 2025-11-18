@@ -35,13 +35,10 @@ async def test_webhook_from_secrets():
 
     # Test 2: Retrieval via TypedDI
     print("\n📌 Test 2: Retrieval via TypedDI")
-    from packages.core.typed_di_integration import get_container
-    from packages.core.typed_di.service_registrations.protocols.core_protocols import (
-        SecretsManagerProtocol,
-    )
+    from packages.core.typed_di_integration import get_unified_container
 
-    container = await get_container()
-    secrets_from_di = await container.aget(SecretsManagerProtocol)
+    container = await get_unified_container()
+    secrets_from_di = await container.aget(SecretsManager)
     if secrets_from_di:
         webhook_from_di = await secrets_from_di.get_ketchup_alerts_webhook_url()
         if webhook_from_di:
