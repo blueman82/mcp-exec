@@ -239,4 +239,7 @@ Ketchup has comprehensive architecture and implementation documentation:
 
 ## Support
 
-For issues and feature requests, contact the development team or check the internal documentation at the Adobe knowledge base.
+For issues and feature requests:
+
+- **Slack**: [#ketchup_feedback](https://adobe.enterprise.slack.com/archives/C08CQN1JCSC)
+- **Email**: [org-omeara-all@adobe.com](mailto:org-omeara-all@adobe.com)
