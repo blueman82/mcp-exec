@@ -21,7 +21,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements
-COPY infrastructure/requirements-updater.txt /tmp/requirements.txt
+COPY infrastructure/requirements.txt /tmp/requirements.txt
 
 # Install Python packages (this will compile tiktoken with Rust)
 RUN pip install --upgrade pip && \
