@@ -1,0 +1,955 @@
+[
+  {
+    "session_id": "30ea9f27-1826-41f5-bce3-aa24fdde4ece",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/30ea9f27-1826-41f5-bce3-aa24fdde4ece.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "a33668df-9acf-4964-a4e6-2204c0fc7bc9",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/a33668df-9acf-4964-a4e6-2204c0fc7bc9.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "9d3b4d8c-66f5-4c77-a93e-6a5c9045d3dc",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/9d3b4d8c-66f5-4c77-a93e-6a5c9045d3dc.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "9d3b4d8c-66f5-4c77-a93e-6a5c9045d3dc",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/9d3b4d8c-66f5-4c77-a93e-6a5c9045d3dc.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": true
+  },
+  {
+    "session_id": "1cdfec2c-72ec-4b52-b866-1ac833a27004",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/1cdfec2c-72ec-4b52-b866-1ac833a27004.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "60d24228-a793-4aa4-8447-5242c6da9f49",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/60d24228-a793-4aa4-8447-5242c6da9f49.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "912d7339-54a3-40b1-9483-9720eda5f7fa",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/912d7339-54a3-40b1-9483-9720eda5f7fa.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "b2e12c9c-03c2-4ed5-a13e-872c71359b98",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/b2e12c9c-03c2-4ed5-a13e-872c71359b98.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "1c0f8a14-4127-46f5-85c4-77428ad2470b",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/1c0f8a14-4127-46f5-85c4-77428ad2470b.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "1c0f8a14-4127-46f5-85c4-77428ad2470b",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/1c0f8a14-4127-46f5-85c4-77428ad2470b.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0811d716-3fc7-4d3f-b3db-29e168a52083",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0811d716-3fc7-4d3f-b3db-29e168a52083.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0811d716-3fc7-4d3f-b3db-29e168a52083",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0811d716-3fc7-4d3f-b3db-29e168a52083.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0811d716-3fc7-4d3f-b3db-29e168a52083",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0811d716-3fc7-4d3f-b3db-29e168a52083.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "6bb02e54-f8d0-4c52-ad55-2d9149744e91",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "6bb02e54-f8d0-4c52-ad55-2d9149744e91",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "6bb02e54-f8d0-4c52-ad55-2d9149744e91",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0577c4f3-05c6-4ee6-b830-e43c01539933",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0577c4f3-05c6-4ee6-b830-e43c01539933.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0577c4f3-05c6-4ee6-b830-e43c01539933",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0577c4f3-05c6-4ee6-b830-e43c01539933.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0577c4f3-05c6-4ee6-b830-e43c01539933",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0577c4f3-05c6-4ee6-b830-e43c01539933.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "77a74e3f-213f-4c18-8346-95a2da9d8e24",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/77a74e3f-213f-4c18-8346-95a2da9d8e24.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "77a74e3f-213f-4c18-8346-95a2da9d8e24",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/77a74e3f-213f-4c18-8346-95a2da9d8e24.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "007b39b6-5055-4a60-984a-211b69bd0e40",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/007b39b6-5055-4a60-984a-211b69bd0e40.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "007b39b6-5055-4a60-984a-211b69bd0e40",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/007b39b6-5055-4a60-984a-211b69bd0e40.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "007b39b6-5055-4a60-984a-211b69bd0e40",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/007b39b6-5055-4a60-984a-211b69bd0e40.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "007b39b6-5055-4a60-984a-211b69bd0e40",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/007b39b6-5055-4a60-984a-211b69bd0e40.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "007b39b6-5055-4a60-984a-211b69bd0e40",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/007b39b6-5055-4a60-984a-211b69bd0e40.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "c79c4d39-b4c7-44b2-82d2-c879fd94ee91",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/c79c4d39-b4c7-44b2-82d2-c879fd94ee91.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "c1ece204-4b3d-4306-abf6-eed4082365d8",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/c1ece204-4b3d-4306-abf6-eed4082365d8.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3682e71c-8d68-46c9-9cbb-42e496266821",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/3682e71c-8d68-46c9-9cbb-42e496266821.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3682e71c-8d68-46c9-9cbb-42e496266821",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/3682e71c-8d68-46c9-9cbb-42e496266821.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3682e71c-8d68-46c9-9cbb-42e496266821",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/3682e71c-8d68-46c9-9cbb-42e496266821.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3682e71c-8d68-46c9-9cbb-42e496266821",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/3682e71c-8d68-46c9-9cbb-42e496266821.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3682e71c-8d68-46c9-9cbb-42e496266821",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/3682e71c-8d68-46c9-9cbb-42e496266821.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "68b9661d-0486-4a6b-90b0-cf6db04f661b",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/68b9661d-0486-4a6b-90b0-cf6db04f661b.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "e31b3a58-959e-4333-918a-f34f6dad73af",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/e31b3a58-959e-4333-918a-f34f6dad73af.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "233a9555-66ae-4c28-8b65-c6a73182cf4e",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/233a9555-66ae-4c28-8b65-c6a73182cf4e.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "5bf3ee85-219f-4759-90ab-3ac32167bd05",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/5bf3ee85-219f-4759-90ab-3ac32167bd05.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "5bf3ee85-219f-4759-90ab-3ac32167bd05",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/5bf3ee85-219f-4759-90ab-3ac32167bd05.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "5bf3ee85-219f-4759-90ab-3ac32167bd05",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/5bf3ee85-219f-4759-90ab-3ac32167bd05.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "5bf3ee85-219f-4759-90ab-3ac32167bd05",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/5bf3ee85-219f-4759-90ab-3ac32167bd05.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "5bf3ee85-219f-4759-90ab-3ac32167bd05",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/5bf3ee85-219f-4759-90ab-3ac32167bd05.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "8d1f7a3a-8a68-4ad4-9d8c-2832fdc3089d",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/8d1f7a3a-8a68-4ad4-9d8c-2832fdc3089d.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "8d1f7a3a-8a68-4ad4-9d8c-2832fdc3089d",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/8d1f7a3a-8a68-4ad4-9d8c-2832fdc3089d.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "8d1f7a3a-8a68-4ad4-9d8c-2832fdc3089d",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/8d1f7a3a-8a68-4ad4-9d8c-2832fdc3089d.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "2ffe63dc-8165-40cd-8778-23e6a25454bb",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/2ffe63dc-8165-40cd-8778-23e6a25454bb.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "daa9540f-b13c-43cc-9f9d-17085f7df044",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/daa9540f-b13c-43cc-9f9d-17085f7df044.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "daa9540f-b13c-43cc-9f9d-17085f7df044",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/daa9540f-b13c-43cc-9f9d-17085f7df044.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3129a06a-c69e-4a5d-8958-b8e5ccb6ca54",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/3129a06a-c69e-4a5d-8958-b8e5ccb6ca54.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "3129a06a-c69e-4a5d-8958-b8e5ccb6ca54",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/3129a06a-c69e-4a5d-8958-b8e5ccb6ca54.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0a3f1e35-d2fa-4c13-bde6-ef5ae8c14798",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/0a3f1e35-d2fa-4c13-bde6-ef5ae8c14798.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "a2dbeef5-5819-4e71-b3b2-40a3b083453f",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/a2dbeef5-5819-4e71-b3b2-40a3b083453f.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "a2dbeef5-5819-4e71-b3b2-40a3b083453f",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/a2dbeef5-5819-4e71-b3b2-40a3b083453f.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "95b1fa44-f6ee-4459-9026-9b1032325eb8",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/95b1fa44-f6ee-4459-9026-9b1032325eb8.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "95b1fa44-f6ee-4459-9026-9b1032325eb8",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/95b1fa44-f6ee-4459-9026-9b1032325eb8.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "95b1fa44-f6ee-4459-9026-9b1032325eb8",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/95b1fa44-f6ee-4459-9026-9b1032325eb8.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "95b1fa44-f6ee-4459-9026-9b1032325eb8",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/95b1fa44-f6ee-4459-9026-9b1032325eb8.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "95b1fa44-f6ee-4459-9026-9b1032325eb8",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/95b1fa44-f6ee-4459-9026-9b1032325eb8.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "8fd7d539-61db-445c-8478-7a07d040c174",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/8fd7d539-61db-445c-8478-7a07d040c174.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "e59e4375-01ad-4406-9839-a0f0ce0d1e65",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/e59e4375-01ad-4406-9839-a0f0ce0d1e65.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "32b144c5-f9ec-4db9-84f5-4a77885fa7e1",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/32b144c5-f9ec-4db9-84f5-4a77885fa7e1.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "32b144c5-f9ec-4db9-84f5-4a77885fa7e1",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/32b144c5-f9ec-4db9-84f5-4a77885fa7e1.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "32b144c5-f9ec-4db9-84f5-4a77885fa7e1",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/32b144c5-f9ec-4db9-84f5-4a77885fa7e1.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "32b144c5-f9ec-4db9-84f5-4a77885fa7e1",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/32b144c5-f9ec-4db9-84f5-4a77885fa7e1.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "32b144c5-f9ec-4db9-84f5-4a77885fa7e1",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/32b144c5-f9ec-4db9-84f5-4a77885fa7e1.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "32b144c5-f9ec-4db9-84f5-4a77885fa7e1",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/32b144c5-f9ec-4db9-84f5-4a77885fa7e1.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "2992fff5-b2da-4d3f-a9df-a5c8c3845753",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/2992fff5-b2da-4d3f-a9df-a5c8c3845753.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "f1698845-d37b-418f-8741-6e24365ca1f5",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/f1698845-d37b-418f-8741-6e24365ca1f5.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "44fb3554-e647-49bb-9d00-4bc0a6fb6774",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/44fb3554-e647-49bb-9d00-4bc0a6fb6774.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "44fb3554-e647-49bb-9d00-4bc0a6fb6774",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/44fb3554-e647-49bb-9d00-4bc0a6fb6774.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "44fb3554-e647-49bb-9d00-4bc0a6fb6774",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/44fb3554-e647-49bb-9d00-4bc0a6fb6774.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "abe44e6a-193a-45dd-9c2b-dd327007b363",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-maintenance-detection-implementation/abe44e6a-193a-45dd-9c2b-dd327007b363.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup-maintenance-detection-implementation/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "abe44e6a-193a-45dd-9c2b-dd327007b363",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-maintenance-detection-implementation/abe44e6a-193a-45dd-9c2b-dd327007b363.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup-maintenance-detection-implementation/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "abe44e6a-193a-45dd-9c2b-dd327007b363",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-maintenance-detection-implementation/abe44e6a-193a-45dd-9c2b-dd327007b363.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup-maintenance-detection-implementation/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "ff1c92d4-fac4-419a-aa10-264bacd4d564",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/ff1c92d4-fac4-419a-aa10-264bacd4d564.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "6f8a11f8-3c2d-4394-afc8-f33b1b306705",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/6f8a11f8-3c2d-4394-afc8-f33b1b306705.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  }
+]

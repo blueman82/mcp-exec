@@ -1,0 +1,1292 @@
+[
+  {
+    "timestamp": "2025-08-22T00:09:37.180132",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "find /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor -name \"*langchain*\" -type d",
+      "description": "Find any langchain directories that exist"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:09:44.537212",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git status | grep -i langchain",
+      "description": "Check git status for langchain changes"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:09:55.088085",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "# Slack tools are now located in `packages.langchain.tools.slack`\n# from packages.langchain.tools.slack import (\n#     SlackTool,\n#     IntelligentSlackToolWrapper,\n# )\nfrom packages.langchain.agents.incident_analyzer import IncidentAnalyzer\nfrom packages.langchain.agents.message_analyzer import MessageAnalyzer",
+      "new_string": "# Slack tools previously located in `packages.langchain.tools.slack` - REMOVED\n# LangChain agents previously imported here - REMOVED (packages cleaned up)\n# No longer importing: SlackTool, IntelligentSlackToolWrapper, IncidentAnalyzer, MessageAnalyzer"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:10:00.806252",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"SlackTool\\|IncidentAnalyzer\\|MessageAnalyzer\\|IntelligentSlackToolWrapper\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "description": "Find any remaining references to deleted langchain classes"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:10:07.286739",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && PYTHONPATH=. tests/setup/.venv/bin/python tests/integration/test_di_container_localmetrics_migration.py",
+      "description": "Test again now that langchain imports are removed"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:10:15.493867",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/prompts/analyze.py",
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:10:26.138816",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"CRITICAL_RULES\\|TOOL_FORMATS\\|SEARCH_STRATEGIES\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ --type py",
+      "description": "Find where these constants are defined or used"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:10:31.976831",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"get_analyze_prompt\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ --type py -C 2",
+      "description": "Find where get_analyze_prompt is used"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:10:57.044296",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/model_prompts.py",
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:03.569330",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/model_prompts.py",
+      "old_string": "from packages.ai.prompts.analyze import get_analyze_prompt",
+      "new_string": "# from packages.ai.prompts.analyze import get_analyze_prompt  # REMOVED - analyze command deleted"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:08.999051",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/model_prompts.py",
+      "offset": 35,
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:14.502608",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/model_prompts.py",
+      "old_string": "# from packages.ai.prompts.analyze import get_analyze_prompt  # REMOVED - analyze command deleted",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:20.149896",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"analyze\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/model_prompts.py -C 3",
+      "description": "Find any remaining analyze command references"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:25.888316",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/ai/model_prompts.py",
+      "old_string": "    elif command.startswith(\"/ketchup analyze\"):\n        logger.info(\"Setting instructions for a analyze command.\")\n        analyze_prompt_text = get_analyze_prompt(query_text or \"\")\n        return f\"{COMMON_GUIDELINES_PROMPT}\\n{analyze_prompt_text}\"",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:42.165513",
+    "hook": "pre-tool-use",
+    "tool_name": "TodoWrite",
+    "tool_input": {
+      "todos": [
+        {
+          "content": "Get test_di_container_localmetrics_migration.py working",
+          "status": "in_progress",
+          "id": "1"
+        },
+        {
+          "content": "Fixed missing packages.langchain imports",
+          "status": "completed",
+          "id": "2"
+        },
+        {
+          "content": "Run the single test successfully",
+          "status": "in_progress",
+          "id": "3"
+        }
+      ]
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:49.256001",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && PYTHONPATH=. tests/setup/.venv/bin/python tests/integration/test_di_container_localmetrics_migration.py",
+      "description": "Run the single test file to verify FULL DI container production replica"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:11:57.172869",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/langchain_utils_factory.py",
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:03.636037",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"langchain_utils_factory\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py -C 2",
+      "description": "Find langchain_utils_factory usage in DI container"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:11.430940",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "# LangChain-specific utilities (recovery engine, pattern tracker, etc.)\nfrom packages.core.client_factory.langchain_utils_factory import (\n    initialize_langchain_utils,\n    cleanup_langchain_utils,\n)",
+      "new_string": "# LangChain-specific utilities REMOVED (recovery engine, pattern tracker, etc.)\n# from packages.core.client_factory.langchain_utils_factory import (\n#     initialize_langchain_utils,\n#     cleanup_langchain_utils,\n# )"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:16.678448",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/langchain_llm_factory.py",
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:23.504952",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"initialize_langchain_utils\\|cleanup_langchain_utils\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py -C 2",
+      "description": "Find usage of langchain_utils functions in DI container"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:37.366378",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "# LangChain-specific utilities REMOVED (recovery engine, pattern tracker, etc.)\n# from packages.core.client_factory.langchain_utils_factory import (\n#     initialize_langchain_utils,\n#     cleanup_langchain_utils,\n# )",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:43.543061",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "# LangChain LLM factory (Azure OpenAI wrapper etc.)\nfrom packages.core.client_factory.langchain_llm_factory import (\n    initialize_langchain_llm,\n    cleanup_langchain_llm,\n)",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:50.161607",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "offset": 95,
+      "limit": 30
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:12:55.850187",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"langchain\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py -n",
+      "description": "Find all remaining langchain references in DI container"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:02.792066",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "                # Initialize LangChain LLM instances after AI clients\n                deps.update(await initialize_langchain_llm())",
+      "new_string": "                # LangChain LLM instances REMOVED"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:09.267326",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "                # Utilities that LangChain tools depend on (pattern tracker, recovery engine, etc.)\n                deps.update(await initialize_langchain_utils())\n                \n                # Initialize LangChain tools that depend on multiple client types\n                deps.update(await self._initialize_langchain_tools())",
+      "new_string": "                # LangChain utilities and tools REMOVED"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:14.668673",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "                # LangChain LLM instances REMOVED",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:20.227241",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "                # LangChain utilities and tools REMOVED",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:27.288764",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "offset": 125,
+      "limit": 15
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:33.223132",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "offset": 115,
+      "limit": 15
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:41.496320",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "                for cleanup_func, domain in [\n                    (cleanup_slack_clients, \"Slack\"),\n                    (cleanup_integration_clients, \"Integration\"),  # NEW\n                    (cleanup_langchain_utils, \"LangChain Utils\"),  # NEW\n                    (cleanup_langchain_llm, \"LangChain LLM\"),  # NEW\n                    (cleanup_db_clients, \"DB\"),\n                    (cleanup_ai_clients, \"AI\"),\n                    (cleanup_cloud_clients, \"Cloud\"),\n                ]:",
+      "new_string": "                for cleanup_func, domain in [\n                    (cleanup_slack_clients, \"Slack\"),\n                    (cleanup_integration_clients, \"Integration\"),\n                    (cleanup_db_clients, \"DB\"),\n                    (cleanup_ai_clients, \"AI\"),\n                    (cleanup_cloud_clients, \"Cloud\"),\n                ]:"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:47.603504",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"_initialize_langchain_tools\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py -A 20",
+      "description": "Find the _initialize method to remove"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:13:54.125251",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "offset": 180,
+      "limit": 50
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:01.018784",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "offset": 230,
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:11.890102",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "    async def _initialize_langchain_tools(self) -> Dict[str, Any]:\n        \"\"\"Initialize LangChain tools that depend on multiple client types.\"\"\"\n        logger.info(\"Initializing LangChain tools\")\n        \n        tools = {}\n        \n        # Initialize slack_tool\n        logger.info(\"Creating SlackTool (raw)\")\n        msg_ops = get_instance(\"msg_ops\")\n        info_ops = get_instance(\"info_ops\")\n        slack_tool_raw = SlackTool(msg_ops=msg_ops, info_ops=info_ops)\n\n        # Wrap the raw SlackTool with intelligent failure-tracking wrapper\n        logger.info(\"Wrapping SlackTool with IntelligentSlackToolWrapper\")\n        slack_tool = IntelligentSlackToolWrapper(slack_tool=slack_tool_raw)\n\n        set_instance(\"slack_tool\", slack_tool)\n        tools[\"slack_tool\"] = slack_tool\n        \n        \n        # Initialize incident_analyzer\n        logger.info(\"Creating IncidentAnalyzer\")\n        jira_tool = get_instance(\"jira_mcp_tool\")\n        openai_handler = get_instance(\"openai\")\n        metrics_collector = get_instance(\"local_metrics_collector\")\n        # Retrieve the default LangChain LLM (injected earlier via langchain_llm_factory)\n        llm = get_instance(\"langchain_llm_default\")\n        incident_analyzer = IncidentAnalyzer(\n            jira_tool=jira_tool,\n            slack_tool=slack_tool,\n            openai_handler=openai_handler,\n            metrics_collector=metrics_collector,\n            llm=llm\n        )\n        set_instance(\"incident_analyzer\", incident_analyzer)\n        tools[\"incident_analyzer\"] = incident_analyzer\n        \n        # Initialize message_analyzer\n        logger.info(\"Creating MessageAnalyzer\")\n        secrets_manager = get_instance(\"secrets_manager\")\n        message_analyzer = MessageAnalyzer(\n            openai_handler=openai_handler,\n            secrets_manager=secrets_manager\n        )\n        set_instance(\"message_analyzer\", message_analyzer)\n        tools[\"message_analyzer\"] = message_analyzer\n        \n        \n        logger.info(\"LangChain tools initialized successfully\")\n        return tools",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:19.413825",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "old_string": "# Slack tools previously located in `packages.langchain.tools.slack` - REMOVED\n# LangChain agents previously imported here - REMOVED (packages cleaned up)\n# No longer importing: SlackTool, IntelligentSlackToolWrapper, IncidentAnalyzer, MessageAnalyzer",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:26.343858",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && PYTHONPATH=. tests/setup/.venv/bin/python tests/integration/test_di_container_localmetrics_migration.py",
+      "description": "Run the single test with fully cleaned DI container"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:39.066928",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py",
+      "limit": 30
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:45.754475",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py",
+      "old_string": "from packages.langchain.tools.jira.jira_mcp_tool import JIRAMCPTool",
+      "new_string": ""
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:14:52.014159",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"JIRAMCPTool\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py -C 3",
+      "description": "Find JIRAMCPTool usage in integration factory"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:15:11.488123",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py",
+      "old_string": "from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig\n\nlogger = setup_logger(__name__)",
+      "new_string": "from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig\n# from packages.langchain.tools.jira.jira_mcp_tool import JIRAMCPTool\n\nlogger = setup_logger(__name__)"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:15:17.837140",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py",
+      "offset": 160,
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:15:23.611523",
+    "hook": "pre-tool-use",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py",
+      "old_string": "    \"jira_mcp_tool\": (JIRAMCPTool, _create_jira_mcp_tool, True),",
+      "new_string": "    # \"jira_mcp_tool\": (JIRAMCPTool, _create_jira_mcp_tool, True),"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:15:30.998720",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && PYTHONPATH=. tests/setup/.venv/bin/python tests/integration/test_di_container_localmetrics_migration.py",
+      "description": "Run the single test after fixing all langchain imports"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:15:38.540317",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"jira_mcp_tool\" /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py -n",
+      "description": "Find all jira_mcp_tool references"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:13.129788",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git branch -a | grep safety",
+      "description": "Check if safety branch exists"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:18.079259",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git log safety/cloudwatch-reversion-complete --oneline -5",
+      "description": "Check safety branch commit history"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:22.021063",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git status",
+      "description": "Check current git status"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:32.239229",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git checkout safety/cloudwatch-reversion-complete",
+      "description": "Emergency recovery to safety branch"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:36.998581",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git reset --hard HEAD",
+      "description": "Force reset to safety branch state, discarding all changes"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:44.885814",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git status",
+      "description": "Check current status after hard reset"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:50.672044",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "ls -la ../../packages/slack/interactive_elements/feedback_reactions.py",
+      "description": "Verify feedback_reactions.py exists"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:54.707440",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"cloudwatch_metrics.*CloudWatchMetrics\" ../../packages/slack/interactive_elements/feedback_reactions.py",
+      "description": "Verify CloudWatch is still there"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:18:59.451641",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"get_instance.*cloudwatch_metrics\" ../../packages/core/client_factory/slack_factory.py",
+      "description": "Verify DI registration is correct"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:20:17.753711",
+    "hook": "pre-tool-use",
+    "tool_name": "TodoWrite",
+    "tool_input": {
+      "todos": [
+        {
+          "content": "Find who uses JIRAMCPTool in the codebase",
+          "status": "in_progress",
+          "id": "1"
+        },
+        {
+          "content": "Investigate analyze command deprecation message",
+          "status": "pending",
+          "id": "2"
+        },
+        {
+          "content": "Trace dependency chain from analyze command to JIRAMCPTool",
+          "status": "pending",
+          "id": "3"
+        }
+      ]
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:20:22.699817",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"JIRAMCPTool\" --type py -A 2 -B 2",
+      "description": "Find all JIRAMCPTool usage in codebase"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:03.552482",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"jira_mcp_tool\" --type py -A 2 -B 2",
+      "description": "Find jira_mcp_tool references in codebase"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:09.575569",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"jira_mcp_tool\" --type py -A 2 -B 2",
+      "description": "Find jira_mcp_tool references"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:16.180704",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"jira.*tool\" --type py -A 1 -B 1",
+      "description": "Find JIRA tool references broadly"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:24.835764",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"jira.*mcp\" --type py -A 1 -B 1",
+      "description": "Find jira mcp references"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:30.726580",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/di_container.py",
+      "offset": 206,
+      "limit": 30
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:35.147717",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"IncidentAnalyzer\" --type py -A 3 -B 3",
+      "description": "Find IncidentAnalyzer usage"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:39.739114",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"incident_analyzer\" --type py -A 2 -B 2",
+      "description": "Find incident_analyzer usage"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:44.887784",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"analyze.*command\\|/ketchup analyze\" --type py -A 3 -B 3",
+      "description": "Find analyze command implementation"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:22:50.019619",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"analyze\" --type py -A 2 -B 2 | head -20",
+      "description": "Find analyze command references"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:24:54.427375",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "find ../../packages -name \"*analyze*\" -type f",
+      "description": "Find analyze-related files"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:25:00.643859",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/slack/command_processing/analyze_command.py",
+      "limit": 50
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:25:07.672355",
+    "hook": "pre-tool-use",
+    "tool_name": "TodoWrite",
+    "tool_input": {
+      "todos": [
+        {
+          "content": "Find who uses JIRAMCPTool in the codebase",
+          "status": "completed",
+          "id": "1"
+        },
+        {
+          "content": "Investigate analyze command deprecation message",
+          "status": "in_progress",
+          "id": "2"
+        },
+        {
+          "content": "Trace dependency chain from analyze command to JIRAMCPTool",
+          "status": "completed",
+          "id": "3"
+        }
+      ]
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:25:13.232991",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"deprecat\" --type py -A 2 -B 2",
+      "description": "Find deprecation messages"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:25:17.875466",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"no longer.*support\\|not.*available\\|disabled\" --type py -A 2 -B 2",
+      "description": "Find command availability messages"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:25:24.795992",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/core/client_factory/integration_factory.py",
+      "offset": 115,
+      "limit": 20
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:32:11.651201",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "ls -la ../../packages/langchain/tools/jira/jira_mcp_tool.py",
+      "description": "Check if JIRAMCPTool file exists"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:32:17.019859",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"analyze.*Command\\|AnalyzeCommand\" --type py -A 1 -B 1",
+      "description": "Find AnalyzeCommand registration"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:32:22.198552",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "find ../../packages -name \"*command*router*\" -o -name \"*router*\" | head -5",
+      "description": "Find command routing files"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:32:27.001094",
+    "hook": "pre-tool-use",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages/slack/command_processing/command_router.py",
+      "limit": 50
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:33:32.473925",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"analyze\" ../../packages/slack/command_processing/command_router.py -A 2 -B 2",
+      "description": "Find analyze routing in command router"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:33:38.396843",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"command_handlers\\|AnalyzeCommand\" ../../packages/core/client_factory/slack_factory.py -A 3 -B 3",
+      "description": "Find command handler registration"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:33:42.571126",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"AnalyzeCommand\" --type py -A 1 -B 1",
+      "description": "Find AnalyzeCommand usage"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:33:49.122249",
+    "hook": "pre-tool-use",
+    "tool_name": "TodoWrite",
+    "tool_input": {
+      "todos": [
+        {
+          "content": "Find who uses JIRAMCPTool in the codebase",
+          "status": "completed",
+          "id": "1"
+        },
+        {
+          "content": "Investigate analyze command deprecation message",
+          "status": "completed",
+          "id": "2"
+        },
+        {
+          "content": "Trace dependency chain from analyze command to JIRAMCPTool",
+          "status": "completed",
+          "id": "3"
+        }
+      ]
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:33:58.384766",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "find ../../packages -name \"*command*handler*factory*\" -o -name \"*handler*factory*\"",
+      "description": "Find command handler factory files"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:34:04.110271",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "rg \"analyze.*command\\|AnalyzeCommand\" ../../packages/core/client_factory/slack_factory.py",
+      "description": "Check if AnalyzeCommand is in slack factory"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:34:12.066369",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "python3 -c \"\nimport sys\nsys.path.append('../../packages')\ntry:\n    from packages.langchain.agents.incident_analyzer import IncidentAnalyzer\n    print('\u2705 IncidentAnalyzer imports successfully')\nexcept Exception as e:\n    print(f'\u274c IncidentAnalyzer import failed: {e}')\n\ntry:\n    from packages.langchain.tools.jira.jira_mcp_tool import JIRAMCPTool\n    print('\u2705 JIRAMCPTool imports successfully')\nexcept Exception as e:\n    print(f'\u274c JIRAMCPTool import failed: {e}')\n\ntry:\n    from packages.slack.command_processing.analyze_command import AnalyzeCommand\n    print('\u2705 AnalyzeCommand imports successfully')\nexcept Exception as e:\n    print(f'\u274c AnalyzeCommand import failed: {e}')\n\"",
+      "description": "Test if key classes can be imported"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T00:34:19.532369",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd ../../ && python3 -c \"\ntry:\n    from packages.langchain.agents.incident_analyzer import IncidentAnalyzer\n    print('\u2705 IncidentAnalyzer imports successfully')\nexcept Exception as e:\n    print(f'\u274c IncidentAnalyzer import failed: {e}')\n\ntry:\n    from packages.langchain.tools.jira.jira_mcp_tool import JIRAMCPTool\n    print('\u2705 JIRAMCPTool imports successfully')\nexcept Exception as e:\n    print(f'\u274c JIRAMCPTool import failed: {e}')\n\ntry:\n    from packages.slack.command_processing.analyze_command import AnalyzeCommand\n    print('\u2705 AnalyzeCommand imports successfully')\nexcept Exception as e:\n    print(f'\u274c AnalyzeCommand import failed: {e}')\n\"",
+      "description": "Test imports from correct directory"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:12:30.864709",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "make setup",
+      "description": "Set up Python virtual environment and dependencies"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:12:42.270891",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=INFO && .venv/bin/python test_di_container_baseline.py",
+      "description": "Run baseline test using project venv"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:12:51.475803",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=INFO && tests/setup/.venv/bin/python test_di_container_baseline.py",
+      "description": "Run baseline test using tests/setup venv as specified in CLAUDE.md"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:13:02.804804",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/.claude/commands/aws-refresh",
+      "description": "Refresh AWS credentials"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:13:06.731430",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/.claude/commands/aws-refresh campaign_prod_v7",
+      "description": "Refresh AWS credentials for campaign_prod_v7"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:13:35.989289",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=INFO && tests/setup/.venv/bin/python test_di_container_baseline.py",
+      "description": "Run baseline test with refreshed AWS credentials"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T11:13:48.587283",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=WARNING && tests/setup/.venv/bin/python test_di_container_baseline.py 2>&1 | tail -50",
+      "description": "Run baseline test with less verbose logging and show only the last 50 lines"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:03:56.808199",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "python -c \"\nimport sys\nsys.path.insert(0, '.')\ntry:\n    from packages.slack.command_processing.query_command import SlackQueryHandler\n    from packages.core.di_container import DIContainer\n    print('\u2705 Core imports working')\n    print('\u2705 SlackQueryHandler import successful') \n    print('\u2705 DIContainer import successful')\n    print('\u2705 No incident_analyzer references found in imports')\nexcept ImportError as e:\n    print(f'\u274c Import error: {e}')\n    sys.exit(1)\n\"",
+      "description": "Test core imports to verify cleanup didn't break anything"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:04.622076",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=ERROR && tests/setup/.venv/bin/python test_di_container_baseline.py",
+      "timeout": 180000,
+      "description": "Run DI container baseline test with full environment"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:12.470517",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "ls /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup/ | grep venv",
+      "description": "Check for virtual environment"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:13.135793",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=ERROR && python test_di_container_baseline.py",
+      "timeout": 180000,
+      "description": "Run DI container test with system Python"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:22.006048",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && export AWS_PROFILE=campaign_prod_v7 && export PYTHONPATH=. && export AWS_REGION=eu-west-1 && export DYNAMODB_TABLE_NAME=ketchup_channel_information && export AWS_SECRET_NAME=Ketchup_Token_Secrets && export LOG_LEVEL=ERROR && python test_di_container_baseline.py",
+      "timeout": 180000,
+      "description": "Run DI container baseline test from root directory"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:36.312742",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && python -c \"\nimport sys\nsys.path.insert(0, '.')\n\n# Test that key files can be imported without incident_analyzer references\ntry:\n    print('Testing imports after incident_analyzer cleanup...')\n    \n    # Test DI container import\n    from packages.core.di_container import DIContainer\n    print('\u2705 DIContainer import successful')\n    \n    # Test query command import  \n    from packages.slack.command_processing.query_command import SlackQueryHandler\n    print('\u2705 SlackQueryHandler import successful')\n    \n    # Test dependency setup import\n    from packages.slack.channel_events.request_processing.dependency_setup import setup_dependencies\n    print('\u2705 dependency_setup import successful')\n    \n    # Test integration factory import\n    from packages.core.client_factory.integration_factory import initialize_integration_clients\n    print('\u2705 integration_factory import successful')\n    \n    # Verify no incident_analyzer attributes in SlackQueryHandler\n    handler_attrs = dir(SlackQueryHandler)\n    has_incident_analyzer = any('incident_analyzer' in attr.lower() for attr in handler_attrs)\n    if has_incident_analyzer:\n        print('\u274c Found incident_analyzer references in SlackQueryHandler')\n        sys.exit(1)\n    else:\n        print('\u2705 No incident_analyzer references in SlackQueryHandler')\n    \n    print('\\\\n\ud83c\udf89 ALL VERIFICATION TESTS PASSED!')\n    print('\u2705 incident_analyzer cleanup successful')\n    print('\u2705 All imports working correctly')\n    print('\u2705 No broken references found')\n    \nexcept ImportError as e:\n    print(f'\u274c Import error: {e}')\n    sys.exit(1)\nexcept Exception as e:\n    print(f'\u274c Unexpected error: {e}')\n    sys.exit(1)\n\"",
+      "description": "Verify incident_analyzer cleanup is successful"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:46.438687",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "find /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor -name \".venv\" -type d",
+      "description": "Find the virtual environment directory"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:48.656425",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/.venv/bin/python -c \"\nimport sys\nsys.path.insert(0, '.')\n\nprint('Testing imports after incident_analyzer cleanup with venv...')\n\ntry:\n    # Test key imports\n    from packages.core.di_container import DIContainer\n    print('\u2705 DIContainer import successful')\n    \n    from packages.slack.command_processing.query_command import SlackQueryHandler\n    print('\u2705 SlackQueryHandler import successful')\n    \n    # Verify no incident_analyzer in SlackQueryHandler\n    handler = SlackQueryHandler.__new__(SlackQueryHandler)\n    handler_attrs = dir(handler)\n    has_incident_analyzer = any('incident_analyzer' in attr.lower() for attr in handler_attrs)\n    if has_incident_analyzer:\n        print('\u274c Found incident_analyzer references')\n        sys.exit(1)\n    else:\n        print('\u2705 No incident_analyzer references in SlackQueryHandler')\n    \n    print('\\\\n\ud83c\udf89 INCIDENT_ANALYZER CLEANUP VERIFICATION PASSED!')\n    \nexcept Exception as e:\n    print(f'\u274c Error: {e}')\n    sys.exit(1)\n\"",
+      "description": "Test imports with virtual environment"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  },
+  {
+    "timestamp": "2025-08-22T14:04:56.259987",
+    "hook": "pre-tool-use",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor && .venv/bin/pip install langchain_core orjson",
+      "timeout": 120000,
+      "description": "Install missing dependencies in venv"
+    },
+    "checks_performed": [],
+    "blocked": false,
+    "reason": null
+  }
+]

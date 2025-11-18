@@ -1,0 +1,1391 @@
+plan:
+  # Metadata about the implementation plan
+  metadata:
+    feature_name: "JIRA PAT Migration with Automated Rotation"
+    created: "2025-11-12"
+    file_sequence: 3
+    total_files: 4
+    tasks_in_file: [14, 15, 16, 17, 19]
+    previous_file: "plan-02-pat-rotator.yaml"
+    next_file: "plan-04-strategy.yaml"
+  # Worktree groups for parallel execution while respecting dependencies
+  worktree_groups:
+    - group_id: "chain-3"
+      description: "Infrastructure & Deployment - Tasks 14→15→19"
+      tasks: [14, 15, 19]
+      branch: "feature/jira-pat-migration/chain-3"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      estimated_time: "2-3 hours"
+      rationale: "Infrastructure configuration that depends on code from chain-1 (Task 3) and chain-2 (Task 11) being complete"
+      cross_dependencies:
+        - "Task 14 depends on Task 11 (main.py exists)"
+        - "Task 15 depends on Task 14 (Dockerfile exists)"
+        - "Task 15 depends on Task 3 (env-aws.ts for environment variable names)"
+        - "Task 19 depends on all previous tasks (comprehensive deployment guide)"
+      setup_commands: |
+        # Wait for Task 3 from chain-1 and Task 11 from chain-2 to be merged to main
+        git checkout main
+        git pull origin main
+
+        # Create worktree for infrastructure
+        git worktree add ../ketchup-chain-3 -b feature/jira-pat-migration/chain-3
+        cd ../ketchup-chain-3
+
+        # Tasks 14, 15, 19 will be implemented sequentially
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/chain-3
+        git push origin main
+    - group_id: "chain-1-continuation"
+      description: "MCP JIRA Integration Tests - Task 17"
+      tasks: [17]
+      branch: "feature/jira-pat-migration/chain-1"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      estimated_time: "1 hour"
+      rationale: "Integration tests for MCP JIRA Service depend on Tasks 1-4 being complete"
+      cross_dependencies:
+        - "Task 17 depends on Tasks 1-4 (MCP JIRA Service updates)"
+      setup_commands: |
+        # This task continues work in chain-1 worktree
+        cd ../ketchup-chain-1
+
+        # Task 17 will be implemented after Tasks 1-4
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/chain-1
+        git push origin main
+    - group_id: "independent-1"
+      description: "AWS Secrets Update - Task 16 only"
+      tasks: [16]
+      branch: "feature/jira-pat-migration/independent-1"
+      execution_model: "parallel"
+      isolation: "separate-worktree"
+      estimated_time: "15-30 minutes"
+      rationale: "AWS Secrets Manager schema update can run immediately in parallel with all other work"
+      setup_commands: |
+        # This task can start immediately, no dependencies
+        cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup
+        git worktree add ../ketchup-independent-1 -b feature/jira-pat-migration/independent-1
+        cd ../ketchup-independent-1
+
+        # Task 16: Update AWS Secrets Manager
+        # [Implement Task 16]
+        git add [relevant files]
+        git commit -m "chore(secrets): update AWS Secrets Manager schema for PAT tokens"
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/independent-1
+        git push origin main
+  # Context for the engineer implementing this
+  context:
+    framework: "Docker, docker-compose, AWS Secrets Manager, AWS ECR"
+    architecture: "Multi-stage Docker builds, EC2 deployment with singleton services"
+    test_framework: "pytest (Python), Jest (Node.js)"
+    other_context:
+      - "Critical deadline: November 30, 2025 - Adobe JIRA basic auth deprecated"
+      - "Singleton services: Only run on prod1 (ketchup-prod1.campaign.adobe.com)"
+      - "Non-singleton services: Run on both prod1 and prod2"
+      - "Zero-downtime deployment: Feature flags allow gradual rollout"
+      - "Health checks: All services must implement health check scripts"
+      - "Logging: json-file driver with 10m max-size, 3 max files"
+      - "Image versioning: Auto-incremented by deploy-ketchup.sh script"
+    expectations:
+      - "Follow existing Dockerfile patterns (check Dockerfile.app-multistage, Dockerfile.status-updater)"
+      - "Health checks must be testable and reliable"
+      - "docker-compose.yml follows established service structure"
+      - "Singleton services explicitly stopped on prod2 in deploy-ketchup.sh"
+      - "Documentation must be deployment-ready with copy-paste commands"
+      - "Commit after each completed task"
+  # Prerequisites checklist
+  prerequisites:
+    - item: "Git Branch - Working on correct branch for worktree group"
+      details: "Verify with 'git worktree list' and 'git branch'"
+      verified: false
+    - item: "AWS Access - Configured with campaign_prod_v7 profile"
+      details: "Region: eu-west-1, verify with 'aws sts get-caller-identity --profile campaign_prod_v7'"
+      verified: false
+    - item: "AWS Credentials - Can access Secrets Manager and ECR"
+      details: "Test with 'aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1'"
+      verified: false
+    - item: "Docker - Docker and docker-compose installed"
+      details: "Verify with 'docker --version' and 'docker-compose --version'"
+      verified: false
+    - item: "Chain-1 Merged - Tasks 1-4 completed and merged to main"
+      details: "Required for Task 15 (env var names) and Task 17 (integration tests)"
+      verified: false
+    - item: "Chain-2 Merged - Tasks 5-13 completed and merged to main"
+      details: "Required for Task 14 (ketchup_pat_rotator/main.py must exist)"
+      verified: false
+    - item: "JIRA PAT - Have valid JIRA PAT for testing"
+      details: "Create manually via JIRA UI before Task 16"
+      verified: false
+    - item: "Existing Patterns - Reviewed similar infrastructure"
+      details: "Check infrastructure/Dockerfile.status-updater, Dockerfile.jira-reporter for patterns"
+      verified: false
+  # Detailed task breakdown
+  tasks:
+    - task_number: 14
+      name: "Create Dockerfile for PAT Rotator"
+      agent: "deployment-engineer"
+      worktree_group: "chain-3"
+      files:
+        - "infrastructure/Dockerfile.pat-rotator"
+        - "infrastructure/healthcheck-pat-rotator.sh"
+        - "ketchup_pat_rotator/scheduler.py" # Add health status writing
+      depends_on: [11] # Task 11: main.py for PAT rotator
+      estimated_time: "30m"
+      description: |
+        Multi-stage Dockerfile for ketchup-pat-rotator service following existing Ketchup Dockerfile patterns
+        with Python 3.12-slim, minimal dependencies, and health check support.
+
+        This Dockerfile enables containerized deployment of the PAT rotation service with automatic health
+        monitoring via Docker's HEALTHCHECK instruction.
+      test_first:
+        test_file: "N/A (infrastructure file)"
+        structure:
+          - "No unit tests for Dockerfile itself"
+          - "Testing via docker build and manual container execution"
+        mocks: []
+        fixtures: []
+        assertions:
+          - "Docker image builds successfully without errors"
+          - "Health check script executes and returns 0 on healthy service"
+          - "Container starts and scheduler initializes"
+        edge_cases:
+          - "Missing health file (container should report unhealthy)"
+          - "Stale health file (> 6 minutes old, should report unhealthy)"
+          - "Invalid health status in file (should report unhealthy)"
+        example_skeleton: |
+          # Build the image
+          cd infrastructure
+          docker build -f Dockerfile.pat-rotator -t ketchup-pat-rotator:test .
+
+          # Run container
+          docker run -d --name test-pat-rotator ketchup-pat-rotator:test
+
+          # Wait for service to start
+          sleep 10
+
+          # Check health
+          docker exec test-pat-rotator /app/infrastructure/healthcheck-pat-rotator.sh
+          # Should exit 0
+
+          # Cleanup
+          docker rm -f test-pat-rotator
+      implementation:
+        approach: |
+          Create multi-stage Dockerfile following the pattern from Dockerfile.status-updater and
+          Dockerfile.jira-reporter. Stage 1 handles dependency compilation, Stage 2 creates minimal
+          runtime image.
+
+          Health check script monitors /tmp/pat_rotator_health file which is written by the scheduler
+          after each successful health check job execution.
+        code_structure: |
+          # infrastructure/Dockerfile.pat-rotator
+
+          # Multi-stage build for ketchup-pat-rotator
+          # Stage 1: Builder
+          FROM python:3.12-slim as builder
+
+          WORKDIR /app
+
+          # Install build dependencies
+          RUN apt-get update && apt-get install -y --no-install-recommends \
+              gcc \
+              g++ \
+              && rm -rf /var/lib/apt/lists/*
+
+          # Copy requirements
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir --user -r requirements.txt
+
+          # Stage 2: Runtime
+          FROM python:3.12-slim
+
+          WORKDIR /app
+
+          # Copy Python packages from builder
+          COPY --from=builder /root/.local /root/.local
+
+          # Copy application code
+          COPY packages/ ./packages/
+          COPY ketchup_pat_rotator/ ./ketchup_pat_rotator/
+          COPY infrastructure/healthcheck-pat-rotator.sh ./infrastructure/
+
+          # Make health check script executable
+          RUN chmod +x ./infrastructure/healthcheck-pat-rotator.sh
+
+          # Set Python path
+          ENV PYTHONPATH=/app
+          ENV PATH=/root/.local/bin:$PATH
+
+          # Health check
+          HEALTHCHECK --interval=5m --timeout=10s --retries=3 --start-period=30s \
+              CMD ["/app/infrastructure/healthcheck-pat-rotator.sh"]
+
+          # Entry point
+          CMD ["python", "/app/ketchup_pat_rotator/main.py"]
+
+          ---
+
+          # infrastructure/healthcheck-pat-rotator.sh
+
+          #!/bin/bash
+          # Health check for ketchup-pat-rotator service
+
+          HEALTH_FILE="/tmp/pat_rotator_health"
+          MAX_AGE_SECONDS=360  # 6 minutes (scheduler runs hourly)
+
+          # Check if health file exists
+          if [ ! -f "$HEALTH_FILE" ]; then
+              echo "Health file not found"
+              exit 1
+          fi
+
+          # Check file age
+          FILE_AGE=$(( $(date +%s) - $(stat -f %m "$HEALTH_FILE" 2>/dev/null || stat -c %Y "$HEALTH_FILE") ))
+          if [ $FILE_AGE -gt $MAX_AGE_SECONDS ]; then
+              echo "Health file is stale (${FILE_AGE}s old)"
+              exit 1
+          fi
+
+          # Check health status
+          STATUS=$(cat "$HEALTH_FILE")
+          if [ "$STATUS" != "healthy" ]; then
+              echo "Service unhealthy: $STATUS"
+              exit 1
+          fi
+
+          echo "Service healthy"
+          exit 0
+        key_points:
+          - point: "Multi-stage build reduces final image size"
+            details: "Builder stage includes gcc/g++ for compiling dependencies, runtime stage omits build tools"
+          - point: "Follow existing Dockerfile patterns exactly"
+            reference: "infrastructure/Dockerfile.status-updater, infrastructure/Dockerfile.jira-reporter"
+          - point: "Health check interval matches scheduler frequency"
+            details: "5-minute interval with 6-minute max age allows for job execution time"
+          - point: "Health file written by scheduler after each successful health check job"
+            details: "Requires updating ketchup_pat_rotator/scheduler.py with _write_health_status() method"
+          - point: "Start period 30s allows service to initialize before health checks begin"
+            details: "TypedDI container initialization and scheduler setup take ~10-15 seconds"
+        integration:
+          imports: []
+          services_to_inject: []
+          config_values: []
+          error_handling:
+            - "Health check script uses robust stat command (tries macOS -f format, falls back to Linux -c)"
+            - "Missing health file results in container unhealthy status (triggers alerts)"
+            - "Stale health file indicates scheduler stuck (requires investigation)"
+      success_criteria:
+        - "Dockerfile builds without errors"
+        - "Health check script is executable"
+        - "Multi-stage build reduces image size"
+        - "Python dependencies installed correctly"
+      test_commands:
+        - "docker build -f infrastructure/Dockerfile.pat-rotator -t ketchup-pat-rotator:test .."
+        - "docker run -d --name test-pat-rotator ketchup-pat-rotator:test && sleep 15 && docker logs test-pat-rotator"
+        - "docker exec test-pat-rotator /app/infrastructure/healthcheck-pat-rotator.sh"
+        - "docker images ketchup-pat-rotator:test --format '{{.Size}}'"
+      verification:
+        manual_testing:
+          - step: "Build Docker image locally"
+            command: "cd infrastructure && docker build -f Dockerfile.pat-rotator -t ketchup-pat-rotator:test .."
+            expected: "Build completes successfully, no errors"
+          - step: "Run container with environment variables"
+            command: |
+              docker run -d --name test-pat-rotator \
+                -e AWS_REGION=eu-west-1 \
+                -e DYNAMODB_TABLE_NAME=ketchup_channel_information \
+                -e AWS_SECRET_NAME=Ketchup_Token_Secrets \
+                ketchup-pat-rotator:test
+          - step: "Wait for scheduler to start"
+            command: "sleep 15 && docker logs test-pat-rotator"
+            expected: "Logs show: PAT rotation scheduler started, Jobs registered: pat_rotation, expiry_warning, health_check"
+          - step: "Test health check script"
+            command: "docker exec test-pat-rotator /app/infrastructure/healthcheck-pat-rotator.sh"
+            expected: "Exit code 0, output: Service healthy"
+          - step: "Clean up"
+            command: "docker rm -f test-pat-rotator"
+        automated_tests:
+          command: "N/A (infrastructure testing done via manual verification)"
+          expected_output: "N/A"
+        success_criteria:
+          - "Docker image builds without errors"
+          - "Container starts and logs show scheduler initialization"
+          - "Health check script passes after scheduler writes health file"
+          - "Image size is reasonable (< 500MB)"
+      commit:
+        type: "feat"
+        message: "add Dockerfile for PAT rotator service"
+        body: |
+          Multi-stage Dockerfile with Python 3.12-slim:
+          - Builder stage with gcc/g++ for compilation
+          - Runtime stage with minimal footprint
+          - Health check script monitoring scheduler health
+          - Entry point: python ketchup_pat_rotator/main.py
+
+          Follows existing Ketchup Dockerfile patterns.
+        files:
+          - "infrastructure/Dockerfile.pat-rotator"
+          - "infrastructure/healthcheck-pat-rotator.sh"
+          - "ketchup_pat_rotator/scheduler.py"
+    - task_number: 15
+      name: "Update docker-compose.yml"
+      agent: "deployment-engineer"
+      worktree_group: "chain-3"
+      files:
+        - "infrastructure/docker-compose.yml"
+        - "infrastructure/deploy-ketchup.sh"
+      depends_on: [14, 3] # Task 14: Dockerfile exists, Task 3: env var names defined
+      estimated_time: "45m"
+      description: |
+        Add ketchup-pat-rotator service to docker-compose.yml with proper environment variables, volume mounts,
+        health checks, and logging configuration. Service runs as singleton on prod1 only.
+
+        Also update deploy-ketchup.sh to explicitly stop ketchup-pat-rotator on prod2 (same as other singletons).
+      test_first:
+        test_file: "N/A (infrastructure file)"
+        structure:
+          - "No unit tests for docker-compose.yml"
+          - "Testing via docker-compose config validation"
+        mocks: []
+        fixtures: []
+        assertions:
+          - "docker-compose config validates without errors"
+          - "Environment variables match expectations from Task 3"
+          - "Volume paths are correct"
+          - "Health check configuration is valid"
+        edge_cases:
+          - "Service starts on prod1 successfully"
+          - "Service is stopped on prod2 by deploy script"
+          - "Logs directory is created if it doesn't exist"
+        example_skeleton: |
+          # Validate docker-compose syntax
+          cd infrastructure
+          docker-compose config
+
+          # Verify singleton services listed in deploy script
+          grep "ketchup-pat-rotator" deploy-ketchup.sh
+      implementation:
+        approach: |
+          Add ketchup-pat-rotator service definition to docker-compose.yml after ketchup-maintenance-fetcher
+          service. Follow the exact pattern of other singleton services (status-updater, jira-reporter).
+
+          Update deploy-ketchup.sh around line 505-506 to include ketchup-pat-rotator in the list of
+          singleton services that are stopped on prod2.
+        code_structure: |
+          # infrastructure/docker-compose.yml
+          # Add after ketchup-maintenance-fetcher service:
+
+          ketchup-pat-rotator:
+            build:
+              context: .
+              dockerfile: Dockerfile.pat-rotator
+              platforms:
+                - linux/amd64
+            image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-pat-rotator:v2.360.346
+            environment:
+              - AWS_REGION=eu-west-1
+              - DYNAMODB_TABLE_NAME=ketchup_channel_information
+              - AWS_SECRET_NAME=Ketchup_Token_Secrets
+              - LOG_LEVEL=INFO
+              - PYTHONPATH=/app
+              - TZ=Europe/London
+              - PAT_ROTATION_INTERVAL_DAYS=60
+              - PAT_IPAAS_BASE_URL=https://ipaas-proxy.adobe.com
+              # Feature flag for PAT auth (default: false, can enable after deployment)
+              - JIRA_USE_PAT_AUTH=false
+              # HTTP/2 support
+              - KETCHUP_USE_HTTPX=true
+              - KETCHUP_HTTP2_ENABLED=true
+              - KETCHUP_HTTPX_POOL_LIMITS=50
+            volumes:
+              - ./logs/pat_rotator:/var/log/pat_rotator
+            restart: unless-stopped
+            healthcheck:
+              test: ["CMD", "/app/infrastructure/healthcheck-pat-rotator.sh"]
+              interval: 300s  # 5 minutes
+              timeout: 10s
+              retries: 3
+              start_period: 60s
+            logging:
+              driver: json-file
+              options:
+                max-size: "10m"
+                max-file: "3"
+
+          ---
+
+          # infrastructure/deploy-ketchup.sh
+          # Around line 505-506, update to:
+
+          # Stop and remove singleton services on prod2
+          docker-compose stop ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher ketchup-pat-rotator
+          docker-compose rm -f ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher ketchup-pat-rotator
+        key_points:
+          - point: "Service is singleton - runs on prod1 only"
+            details: "Similar to ketchup-status-updater, ketchup-jira-reporter, ketchup-maintenance-fetcher"
+          - point: "Feature flag JIRA_USE_PAT_AUTH defaults to false"
+            details: "Allows deployment without immediately switching to PAT auth (Phase 1 of deployment)"
+          - point: "Environment variable names match Task 3 (env-aws.ts)"
+            details: "JIRA_PAT, JIRA_PAT_BACKUP, JIRA_USE_PAT_AUTH defined in env-aws.ts mappings"
+          - point: "Health check interval 5 minutes matches scheduler frequency"
+            details: "Scheduler runs hourly jobs, health check every 5 minutes provides quick failure detection"
+          - point: "HTTP/2 support enabled for performance"
+            details: "Consistent with ketchup-app performance optimizations (PR #201)"
+          - point: "Logging follows standard Ketchup pattern"
+            details: "json-file driver with 10m max-size, 3 max files (30MB total per service)"
+        integration:
+          imports: []
+          services_to_inject: []
+          config_values:
+            - "PAT_ROTATION_INTERVAL_DAYS=60 (configurable rotation schedule)"
+            - "PAT_IPAAS_BASE_URL=https://ipaas-proxy.adobe.com (iPaaS proxy endpoint)"
+            - "JIRA_USE_PAT_AUTH=false (feature flag, enable in Phase 2)"
+          error_handling:
+            - "restart: unless-stopped ensures service restarts on failure"
+            - "Health check retries: 3 attempts before marking unhealthy"
+            - "Start period 60s allows initialization before health checks begin"
+      success_criteria:
+        - "Container configuration valid"
+        - "Environment variables set correctly"
+        - "Singleton service runs only on prod1"
+        - "Health check endpoint configured"
+      test_commands:
+        - "cd infrastructure && docker-compose config"
+        - "grep -A 2 'Stop and remove singleton services' infrastructure/deploy-ketchup.sh | grep ketchup-pat-rotator"
+        - "grep JIRA_USE_PAT_AUTH infrastructure/docker-compose.yml"
+        - "grep 'healthcheck:' infrastructure/docker-compose.yml | wc -l"
+      verification:
+        manual_testing:
+          - step: "Validate docker-compose configuration"
+            command: "cd infrastructure && docker-compose config"
+            expected: "No errors, YAML is valid"
+          - step: "Verify singleton handling in deploy script"
+            command: "grep -A 2 'Stop and remove singleton services' infrastructure/deploy-ketchup.sh"
+            expected: "ketchup-pat-rotator listed in both stop and rm commands"
+          - step: "Test local deployment"
+            command: "cd infrastructure && docker-compose up -d ketchup-pat-rotator"
+            expected: "Service starts, logs show scheduler initialization"
+          - step: "Verify health check"
+            command: "docker ps --format 'table {{.Names}}\t{{.Status}}' | grep pat-rotator"
+            expected: "Status shows (healthy) after 60 seconds"
+          - step: "Clean up local test"
+            command: "docker-compose down"
+        automated_tests:
+          command: "N/A (infrastructure testing done via manual verification)"
+          expected_output: "N/A"
+        success_criteria:
+          - "docker-compose config validates successfully"
+          - "Service starts and reaches healthy status"
+          - "deploy-ketchup.sh correctly handles singleton on prod2"
+          - "Environment variables correctly passed to container"
+      commit:
+        type: "feat"
+        message: "add PAT rotator service to docker-compose"
+        body: |
+          Add ketchup-pat-rotator as singleton service (prod1 only):
+          - 60-day rotation interval (configurable)
+          - iPaaS proxy URL configuration
+          - JIRA_USE_PAT_AUTH feature flag (default: false)
+          - HTTP/2 support enabled
+          - Health check every 5 minutes
+          - Logs to ./logs/pat_rotator
+
+          Update deploy-ketchup.sh to handle singleton on prod2.
+        files:
+          - "infrastructure/docker-compose.yml"
+          - "infrastructure/deploy-ketchup.sh"
+    - task_number: 16
+      name: "Update AWS Secrets Manager Schema"
+      agent: "deployment-engineer"
+      worktree_group: "independent-1"
+      files:
+        - "N/A (manual AWS CLI commands, document in commit message)"
+      depends_on: [] # Independent task
+      estimated_time: "15m"
+      description: |
+        Populate ketchup_jira_pat and ketchup_jira_pat_backup keys in AWS Secrets Manager with initial PAT
+        values, and add expiry metadata fields.
+
+        This task can run in parallel with all other tasks - it has no dependencies and nothing depends on it
+        until deployment time.
+      test_first:
+        test_file: "N/A (AWS operations)"
+        structure:
+          - "No unit tests for AWS Secrets Manager operations"
+          - "Verification via AWS CLI queries"
+        mocks: []
+        fixtures: []
+        assertions:
+          - "AWS Secrets Manager contains ketchup_jira_pat key"
+          - "AWS Secrets Manager contains ketchup_jira_pat_backup key"
+          - "AWS Secrets Manager contains ketchup_jira_pat_expiry key"
+          - "AWS Secrets Manager contains ketchup_jira_pat_backup_expiry key"
+          - "PAT token is valid (manually test JIRA API call)"
+        edge_cases:
+          - "PAT token is invalid or expired (should detect before deployment)"
+          - "Secret update fails due to permissions (check IAM role)"
+        example_skeleton: |
+          # Verify PAT keys present
+          aws secretsmanager get-secret-value \
+            --secret-id Ketchup_Token_Secrets \
+            --profile campaign_prod_v7 \
+            --region eu-west-1 \
+            --query SecretString --output text | \
+            jq 'has("ketchup_jira_pat") and has("ketchup_jira_pat_backup") and has("ketchup_jira_pat_expiry")'
+          # Should output: true
+      implementation:
+        approach: |
+          Manually create initial PAT via JIRA UI, then update AWS Secrets Manager with new keys using AWS CLI.
+
+          The PAT is created with 60-day expiry. Both primary and backup start with the same value - they will
+          diverge after the first rotation when the rotator service creates a new primary PAT.
+        code_structure: |
+          # STEP 1: Create initial PAT manually via JIRA UI
+
+          1. Log into https://jira.corp.adobe.com with Ketchup service account
+          2. Navigate to Profile → Personal Access Tokens
+          3. Create new PAT: "ketchup-prod-initial" with 60-day expiry
+          4. Save the token value securely (will only be shown once)
+
+          # STEP 2: Update AWS Secrets Manager
+
+          # Get current secrets
+          aws secretsmanager get-secret-value \
+            --secret-id Ketchup_Token_Secrets \
+            --profile campaign_prod_v7 \
+            --region eu-west-1 \
+            --query SecretString --output text > /tmp/secrets.json
+
+          # Edit /tmp/secrets.json to add these keys:
+          # - "ketchup_jira_pat": "<PAT_TOKEN_FROM_JIRA>"
+          # - "ketchup_jira_pat_backup": "<SAME_TOKEN>" (initially same, will diverge after first rotation)
+          # - "ketchup_jira_pat_expiry": "2025-01-12T00:00:00Z" (60 days from now)
+          # - "ketchup_jira_pat_backup_expiry": "2025-01-12T00:00:00Z"
+
+          # Update secrets
+          aws secretsmanager update-secret \
+            --secret-id Ketchup_Token_Secrets \
+            --secret-string file:///tmp/secrets.json \
+            --profile campaign_prod_v7 \
+            --region eu-west-1
+
+          # Verify update
+          aws secretsmanager get-secret-value \
+            --secret-id Ketchup_Token_Secrets \
+            --profile campaign_prod_v7 \
+            --region eu-west-1 \
+            --query SecretString --output text | \
+            jq -r '.ketchup_jira_pat' | head -c 30
+
+          # Should show first 30 characters of PAT token
+
+          # Clean up temp file
+          rm /tmp/secrets.json
+        key_points:
+          - point: "PAT created manually via JIRA UI first"
+            details: "Automated PAT creation happens later via ketchup-pat-rotator service"
+          - point: "60-day expiry aligns with rotation schedule"
+            details: "Rotation service will create new PAT before this one expires"
+          - point: "Primary and backup start identical"
+            details: "After first rotation, backup will be the old primary (providing fallback)"
+          - point: "Expiry timestamps in ISO8601 format"
+            details: "Format: YYYY-MM-DDTHH:MM:SSZ (UTC timezone)"
+          - point: "Secrets are flat key-value pairs"
+            details: "Not nested JSON - matches existing Ketchup secrets pattern"
+        integration:
+          imports: []
+          services_to_inject: []
+          config_values: []
+          error_handling:
+            - "If PAT creation fails, check JIRA permissions for service account"
+            - "If AWS update fails, verify IAM permissions for secrets:UpdateSecret"
+            - "Always verify PAT works before deployment (test JIRA API call)"
+      success_criteria:
+        - "Secret schema updated successfully"
+        - "Backup PAT field added"
+        - "Existing secrets preserved"
+        - "Schema validation passes"
+      test_commands:
+        - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq 'has(\"ketchup_jira_pat\") and has(\"ketchup_jira_pat_backup\") and has(\"ketchup_jira_pat_expiry\")'"
+        - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq -r '.ketchup_jira_pat' | wc -c"
+        - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq -r 'keys | length'"
+      verification:
+        manual_testing:
+          - step: "Verify all PAT keys present in AWS Secrets"
+            command: |
+              aws secretsmanager get-secret-value \
+                --secret-id Ketchup_Token_Secrets \
+                --profile campaign_prod_v7 \
+                --region eu-west-1 \
+                --query SecretString --output text | \
+                jq 'has("ketchup_jira_pat") and has("ketchup_jira_pat_backup") and has("ketchup_jira_pat_expiry")'
+            expected: "Output: true"
+          - step: "Verify PAT token format"
+            command: |
+              aws secretsmanager get-secret-value \
+                --secret-id Ketchup_Token_Secrets \
+                --profile campaign_prod_v7 \
+                --region eu-west-1 \
+                --query SecretString --output text | \
+                jq -r '.ketchup_jira_pat' | wc -c
+            expected: "Output: > 50 (PAT tokens are long alphanumeric strings)"
+          - step: "Test PAT works with JIRA API"
+            command: |
+              PAT=$(aws secretsmanager get-secret-value \
+                --secret-id Ketchup_Token_Secrets \
+                --profile campaign_prod_v7 \
+                --region eu-west-1 \
+                --query SecretString --output text | jq -r '.ketchup_jira_pat')
+
+              curl -X GET https://jira.corp.adobe.com/rest/api/2/myself \
+                -H "Authorization: Bearer $PAT" \
+                -H "Content-Type: application/json"
+            expected: "HTTP 200, JSON response with user details"
+        automated_tests:
+          command: "N/A (AWS Secrets Manager operations)"
+          expected_output: "N/A"
+        success_criteria:
+          - "All four keys present in AWS Secrets Manager"
+          - "PAT token validates successfully against JIRA API"
+          - "Expiry dates are in the future (60 days from creation)"
+          - "Backup PAT matches primary PAT (for initial state)"
+      commit:
+        type: "ops"
+        message: "add initial PAT tokens to AWS Secrets Manager"
+        body: |
+          Updated Ketchup_Token_Secrets with:
+          - ketchup_jira_pat: Initial PAT token (60-day expiry)
+          - ketchup_jira_pat_backup: Same token initially
+          - ketchup_jira_pat_expiry: Expiry timestamp
+          - ketchup_jira_pat_backup_expiry: Expiry timestamp
+
+          Ready for automated rotation service.
+
+          Created PAT manually via JIRA UI:
+          - Token name: ketchup-prod-initial
+          - Expiry: 60 days
+          - Tested successfully against JIRA API
+        files: []
+    - task_number: 17
+      name: "MCP JIRA Integration Tests"
+      agent: "test-automator"
+      worktree_group: "chain-1"
+      files:
+        - "tests/integration/mcp_jira/test_pat_authentication.py"
+      depends_on: [1, 2, 3, 4] # All MCP JIRA Service updates
+      estimated_time: "1h"
+      description: |
+        Integration tests that verify MCP JIRA Service correctly authenticates using PAT via iPaaS proxy
+        with x-authorization header. Test both feature flag states (PAT enabled/disabled).
+
+        These tests validate the entire authentication chain: config loading → header construction → JIRA API calls.
+      test_first:
+        test_file: "tests/integration/mcp_jira/test_pat_authentication.py"
+        structure:
+          - "class TestMCPJiraPATAuthentication:"
+          - "  test_pat_authentication_with_feature_flag_enabled()"
+          - "  test_username_password_authentication_with_feature_flag_disabled()"
+          - "  test_pat_backup_fallback()"
+        mocks:
+          - "os.environ for setting environment variables"
+        fixtures:
+          - "JIRA_PAT from AWS Secrets Manager (real PAT for integration tests)"
+          - "JIRA_IMS_TOKEN and JIRA_API_KEY for iPaaS authentication"
+        assertions:
+          - "config.auth.usePat is True when JIRA_USE_PAT_AUTH='true'"
+          - "config.auth.usePat is False when JIRA_USE_PAT_AUTH='false'"
+          - "headers['x-authorization'] starts with 'Bearer ' when PAT enabled"
+          - "headers['Username'] and headers['Password'] present when PAT disabled"
+          - "Backup PAT used when primary is invalid"
+        edge_cases:
+          - "Feature flag enabled but PAT missing (should fail)"
+          - "Primary PAT invalid, backup valid (should use backup)"
+          - "Both PATs invalid (should fail with clear error)"
+        example_skeleton: |
+          import pytest
+          import os
+          from unittest.mock import patch
+
+          class TestMCPJiraPATAuthentication:
+              @pytest.mark.integration
+              @pytest.mark.skipif(not os.getenv('JIRA_PAT'), reason="Requires JIRA_PAT")
+              def test_pat_authentication_with_feature_flag_enabled(self):
+                  """Test MCP JIRA authenticates with PAT when flag enabled."""
+                  with patch.dict(os.environ, {
+                      'JIRA_USE_PAT_AUTH': 'true',
+                      'JIRA_PAT': os.getenv('JIRA_PAT'),
+                      'JIRA_IMS_TOKEN': os.getenv('JIRA_IMS_TOKEN'),
+                      'JIRA_API_KEY': os.getenv('JIRA_API_KEY')
+                  }):
+                      # Import config after env vars set
+                      from corp_jira_mcp.common.config import loadConfig
+                      config = loadConfig()
+
+                      assert config.auth.usePat is True
+                      assert config.auth.pat != ''
+
+                      # Test actual API call with PAT
+                      from corp_jira_mcp.common.utils import constructIpaasHeaders
+                      headers = constructIpaasHeaders(
+                          config.auth.imsToken,
+                          config.auth.apiKey,
+                          config
+                      )
+
+                      assert 'x-authorization' in headers
+                      assert headers['x-authorization'].startswith('Bearer ')
+      implementation:
+        approach: |
+          Python integration tests that import the Node.js MCP JIRA Service config and utils modules to verify
+          PAT authentication works correctly. Tests use real PAT from AWS Secrets Manager.
+
+          Tests validate:
+          1. Feature flag behavior (PAT enabled vs disabled)
+          2. Header construction (x-authorization vs Username/Password)
+          3. Backup PAT fallback logic
+        code_structure: |
+          # tests/integration/mcp_jira/test_pat_authentication.py
+
+          import pytest
+          import os
+          from unittest.mock import patch
+
+          class TestMCPJiraPATAuthentication:
+              @pytest.mark.integration
+              @pytest.mark.skipif(not os.getenv('JIRA_PAT'), reason="Requires JIRA_PAT")
+              def test_pat_authentication_with_feature_flag_enabled(self):
+                  """Test MCP JIRA authenticates with PAT when flag enabled."""
+                  with patch.dict(os.environ, {
+                      'JIRA_USE_PAT_AUTH': 'true',
+                      'JIRA_PAT': os.getenv('JIRA_PAT'),
+                      'JIRA_IMS_TOKEN': os.getenv('JIRA_IMS_TOKEN'),
+                      'JIRA_API_KEY': os.getenv('JIRA_API_KEY')
+                  }):
+                      # Import config after env vars set
+                      from corp_jira_mcp.common.config import loadConfig
+                      config = loadConfig()
+
+                      assert config.auth.usePat is True
+                      assert config.auth.pat != ''
+
+                      # Test actual API call with PAT
+                      from corp_jira_mcp.common.utils import constructIpaasHeaders
+                      headers = constructIpaasHeaders(
+                          config.auth.imsToken,
+                          config.auth.apiKey,
+                          config
+                      )
+
+                      assert 'x-authorization' in headers
+                      assert headers['x-authorization'].startswith('Bearer ')
+
+              @pytest.mark.integration
+              def test_username_password_authentication_with_feature_flag_disabled(self):
+                  """Test MCP JIRA uses username/password when PAT flag disabled."""
+                  with patch.dict(os.environ, {
+                      'JIRA_USE_PAT_AUTH': 'false',
+                      'JIRA_USERNAME': os.getenv('JIRA_USERNAME'),
+                      'JIRA_PASSWORD': os.getenv('JIRA_PASSWORD')
+                  }):
+                      from corp_jira_mcp.common.config import loadConfig
+                      config = loadConfig()
+
+                      assert config.auth.usePat is False
+
+                      from corp_jira_mcp.common.utils import constructIpaasHeaders
+                      headers = constructIpaasHeaders(
+                          config.auth.imsToken,
+                          config.auth.apiKey,
+                          config
+                      )
+
+                      assert 'Username' in headers
+                      assert 'Password' in headers
+                      assert 'x-authorization' not in headers
+
+              @pytest.mark.integration
+              @pytest.mark.skipif(not os.getenv('JIRA_PAT'), reason="Requires JIRA_PAT")
+              async def test_pat_backup_fallback(self):
+                  """Test MCP JIRA falls back to backup PAT if primary invalid."""
+                  with patch.dict(os.environ, {
+                      'JIRA_USE_PAT_AUTH': 'true',
+                      'JIRA_PAT': 'invalid_token',
+                      'JIRA_PAT_BACKUP': os.getenv('JIRA_PAT'),  # Valid backup
+                  }):
+                      from corp_jira_mcp.common.config import loadConfig
+                      config = loadConfig()
+
+                      # Verify backup is used
+                      from corp_jira_mcp.common.utils import constructIpaasHeaders
+                      headers = constructIpaasHeaders(
+                          config.auth.imsToken,
+                          config.auth.apiKey,
+                          config
+                      )
+
+                      # Should use backup PAT
+                      assert headers['x-authorization'] == f"Bearer {os.getenv('JIRA_PAT')}"
+        key_points:
+          - point: "Tests import Node.js modules (requires Node.js installed)"
+            details: "Use subprocess or node-gyp bindings to call Node.js code from Python tests"
+          - point: "Real PAT from AWS Secrets Manager"
+            details: "Set JIRA_PAT env var before running tests"
+          - point: "pytest.mark.integration for slow tests"
+            details: "Allows skipping integration tests with -m 'not integration'"
+          - point: "pytest.mark.skipif for missing credentials"
+            details: "Tests skip gracefully if JIRA_PAT not set"
+        integration:
+          imports:
+            - "import pytest"
+            - "import os"
+            - "from unittest.mock import patch"
+            - "from corp_jira_mcp.common.config import loadConfig (Node.js module)"
+            - "from corp_jira_mcp.common.utils import constructIpaasHeaders (Node.js module)"
+          services_to_inject: []
+          config_values:
+            - "JIRA_PAT from AWS Secrets Manager"
+            - "JIRA_IMS_TOKEN for iPaaS authentication"
+            - "JIRA_API_KEY for iPaaS authentication"
+          error_handling:
+            - "Skip tests if JIRA_PAT not set (pytest.mark.skipif)"
+            - "Use patch.dict to safely manipulate environment variables"
+            - "Restore original env vars after each test (afterEach cleanup)"
+      success_criteria:
+        - "All MCP integration tests pass"
+        - "PAT authentication works end-to-end"
+        - "Feature flag switching works"
+        - "Backward compatibility maintained"
+      test_commands:
+        - "cd tests/setup && make test-integration ARGS='-k test_pat_authentication -v'"
+        - "cd tests/setup && make test-integration ARGS='-k test_username_password_authentication -v'"
+        - "cd tests/setup && make test-integration ARGS='-k test_pat_backup_fallback -v'"
+      verification:
+        manual_testing:
+          - step: "Load JIRA PAT from AWS Secrets"
+            command: |
+              export JIRA_PAT=$(aws secretsmanager get-secret-value \
+                --secret-id Ketchup_Token_Secrets \
+                --profile campaign_prod_v7 \
+                --region eu-west-1 \
+                --query SecretString --output text | jq -r '.ketchup_jira_pat')
+          - step: "Run integration tests"
+            command: "cd tests/setup && make test-integration ARGS='-k test_pat_authentication -v'"
+            expected: "All 3 integration tests pass"
+          - step: "Verify test output shows correct authentication method"
+            expected: "Logs confirm PAT used when flag enabled, username/password when disabled"
+        automated_tests:
+          command: "cd tests/setup && make test-integration ARGS='-k test_pat_authentication -v'"
+          expected_output: |
+            tests/integration/mcp_jira/test_pat_authentication.py::TestMCPJiraPATAuthentication::test_pat_authentication_with_feature_flag_enabled PASSED
+            tests/integration/mcp_jira/test_pat_authentication.py::TestMCPJiraPATAuthentication::test_username_password_authentication_with_feature_flag_disabled PASSED
+            tests/integration/mcp_jira/test_pat_authentication.py::TestMCPJiraPATAuthentication::test_pat_backup_fallback PASSED
+
+            ====== 3 passed in 5.23s ======
+        success_criteria:
+          - "All 3 integration tests pass"
+          - "PAT authentication works when feature flag enabled"
+          - "Username/password fallback works when feature flag disabled"
+          - "Backup PAT fallback logic works correctly"
+      commit:
+        type: "test"
+        message: "add PAT authentication integration tests"
+        body: |
+          Integration tests for MCP JIRA PAT support:
+          - PAT authentication with feature flag enabled
+          - Username/password fallback when flag disabled
+          - Backup PAT fallback on primary failure
+          - iPaaS header construction validation
+
+          Requires JIRA_PAT environment variable for execution.
+        files:
+          - "tests/integration/mcp_jira/test_pat_authentication.py"
+    - task_number: 19
+      name: "Create Deployment Runbook"
+      agent: "technical-documentation-specialist"
+      worktree_group: "chain-3"
+      files:
+        - "docs/deployment_runbooks/jira_pat_migration_runbook.md"
+      depends_on: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18] # All previous tasks
+      estimated_time: "1h"
+      description: |
+        Comprehensive step-by-step deployment runbook for production rollout including pre-deployment checklist,
+        deployment steps, validation procedures, rollback procedures, and troubleshooting guide.
+
+        This runbook will be used by the deployment engineer during the actual production rollout on
+        November 25, 2025 (5 days before JIRA basic auth deprecation deadline).
+      test_first:
+        test_file: "N/A (documentation)"
+        structure:
+          - "No unit tests for documentation"
+          - "Verification via manual review and deployment dry-run"
+        mocks: []
+        fixtures: []
+        assertions:
+          - "All commands are copy-paste ready"
+          - "Rollback procedures are clear and tested"
+          - "Troubleshooting guide covers common failure scenarios"
+        edge_cases:
+          - "Deployment fails during Phase 1 (rollback to previous version)"
+          - "PAT authentication fails during Phase 2 (rollback feature flag)"
+          - "Rotation service fails to start (troubleshooting guide)"
+        example_skeleton: |
+          # Review runbook structure
+          cat docs/deployment_runbooks/jira_pat_migration_runbook.md
+
+          # Test commands locally (dry-run)
+          # ... verify all commands work as documented
+      implementation:
+        approach: |
+          Create comprehensive deployment runbook following the structure:
+          1. Overview and key components
+          2. Pre-deployment checklist (verify prerequisites)
+          3. Deployment steps (3 phases: deploy with flag off, enable flag, verify rotation)
+          4. Post-deployment verification (smoke tests, monitoring, first rotation)
+          5. Rollback procedures (quick rollback, full rollback)
+          6. Troubleshooting guide (common issues and resolutions)
+
+          All commands must be production-ready and copy-paste executable.
+        code_structure: |
+          # docs/deployment_runbooks/jira_pat_migration_runbook.md
+
+          # JIRA PAT Migration Deployment Runbook
+
+          **Date Created**: 2025-11-12
+          **Target Deployment**: November 25, 2025 (5 days before deprecation deadline)
+          **Rollback Time**: < 2 minutes
+          **Estimated Downtime**: Zero (feature flag enabled deployment)
+
+          ## Overview
+
+          This runbook guides the deployment of JIRA Personal Access Token (PAT) authentication to replace username/password authentication (deprecated November 30, 2025).
+
+          **Key Components**:
+          - MCP JIRA Service: Updated to support PAT in x-authorization header
+          - ketchup-pat-rotator: New singleton service for automated 60-day rotation
+          - Feature Flag: JIRA_USE_PAT_AUTH enables zero-downtime cutover
+
+          ---
+
+          ## Pre-Deployment Checklist
+
+          ### 1. AWS Secrets Verification
+          - [ ] Verify `ketchup_jira_pat` exists in AWS Secrets Manager
+          - [ ] Verify `ketchup_jira_pat_backup` exists
+          - [ ] Verify `ketchup_jira_pat_expiry` is set correctly
+          - [ ] Test PAT works via manual JIRA API call
+
+          **Command**:
+          ```bash
+          aws secretsmanager get-secret-value \
+            --secret-id Ketchup_Token_Secrets \
+            --profile campaign_prod_v7 \
+            --region eu-west-1 \
+            --query SecretString --output text | \
+            jq '{pat: .ketchup_jira_pat | .[0:30], backup: .ketchup_jira_pat_backup | .[0:30], expiry: .ketchup_jira_pat_expiry}'
+          ```
+
+          ### 2. Code Verification
+          - [ ] All tests passing: `cd tests/setup && make test-unit && make test-integration`
+          - [ ] Code review approved on PR
+          - [ ] TypedDI registrations verified
+
+          ### 3. Docker Images Built
+          - [ ] ECR login successful
+          - [ ] All images built and pushed to ECR with version tag
+          - [ ] Version tag incremented correctly
+
+          ---
+
+          ## Deployment Steps
+
+          ### Phase 1: Deploy with Feature Flag Disabled (30 minutes)
+
+          **Goal**: Deploy new code with PAT support but keep using username/password.
+
+          **Steps**:
+
+          1. **Build and push Docker images**:
+             ```bash
+             cd infrastructure
+             ./deploy-ketchup.sh
+             # Version will auto-increment (e.g., v2.360.347)
+             ```
+
+          2. **Verify feature flag is FALSE in docker-compose.yml**:
+             ```bash
+             grep JIRA_USE_PAT_AUTH infrastructure/docker-compose.yml
+             # Should show: JIRA_USE_PAT_AUTH=false
+             ```
+
+          3. **Deploy to prod1**:
+             ```bash
+             ssh ketchup-prod1.campaign.adobe.com
+             cd /opt/ketchup
+             sudo docker-compose pull
+             sudo docker-compose up -d
+             ```
+
+          4. **Verify prod1 services**:
+             ```bash
+             sudo docker ps | grep ketchup
+             # Should show 10 containers (added ketchup-pat-rotator)
+             sudo docker logs ketchup-pat-rotator --tail 50
+             # Should show: "PAT rotation scheduler started"
+             ```
+
+          5. **Deploy to prod2**:
+             ```bash
+             ssh ketchup-prod2.campaign.adobe.com
+             cd /opt/ketchup
+             sudo docker-compose pull
+             sudo docker-compose up -d
+             ```
+
+          6. **Verify prod2 (no pat-rotator, singleton stopped)**:
+             ```bash
+             sudo docker ps | grep ketchup
+             # Should show 5 containers (NO ketchup-pat-rotator)
+             ```
+
+          7. **Test JIRA functionality still works**:
+             - Create test JIRA ticket via Slack `/jira-test`
+             - Verify ticket creation successful
+             - Verify using username/password auth (check logs)
+
+          **Validation**:
+          - All services healthy
+          - JIRA integration working
+          - No errors in logs
+          - PAT rotator running on prod1 but not executing rotations yet
+
+          **Rollback** (if issues):
+          ```bash
+          # On both servers
+          cd /opt/ketchup
+          sudo docker-compose down
+          git checkout v2.360.346  # Previous version
+          sudo docker-compose up -d
+          ```
+
+          ---
+
+          ### Phase 2: Enable PAT Authentication (15 minutes)
+
+          **Goal**: Switch from username/password to PAT authentication.
+
+          **Steps**:
+
+          1. **Update feature flag on both servers**:
+             ```bash
+             # On ketchup-prod1
+             sudo vi /opt/ketchup/docker-compose.yml
+             # Change: JIRA_USE_PAT_AUTH=false → JIRA_USE_PAT_AUTH=true
+
+             # On ketchup-prod2
+             sudo vi /opt/ketchup/docker-compose.yml
+             # Change: JIRA_USE_PAT_AUTH=false → JIRA_USE_PAT_AUTH=true
+             ```
+
+          2. **Restart MCP JIRA service (both servers)**:
+             ```bash
+             # On both prod1 and prod2
+             sudo docker-compose restart mcp-jira ketchup-app
+             ```
+
+          3. **Verify PAT authentication in logs**:
+             ```bash
+             # On prod1
+             sudo docker logs mcp-jira --tail 100 | grep -i "pat\|x-authorization"
+             # Should show: "Using PAT authentication" or similar
+             ```
+
+          4. **Test JIRA functionality with PAT**:
+             - Create test JIRA ticket via Slack
+             - Verify ticket creation successful
+             - Check logs confirm PAT used (not username/password)
+
+          5. **Monitor for errors (10 minutes)**:
+             ```bash
+             # Watch logs on both servers
+             sudo docker-compose logs -f mcp-jira ketchup-app | grep -i "error\|fail"
+             ```
+
+          **Validation**:
+          - JIRA operations successful
+          - Logs show PAT authentication
+          - No 401/403 errors
+          - Performance unchanged
+
+          **Rollback** (if issues):
+          ```bash
+          # Quick rollback: Disable feature flag (< 2 minutes)
+          # On both servers
+          sudo vi /opt/ketchup/docker-compose.yml
+          # Change: JIRA_USE_PAT_AUTH=true → JIRA_USE_PAT_AUTH=false
+          sudo docker-compose restart mcp-jira ketchup-app
+
+          # Wait 30 seconds, verify JIRA working
+          sudo docker logs mcp-jira --tail 50
+          ```
+
+          ---
+
+          ### Phase 3: Verify PAT Rotation Service (15 minutes)
+
+          **Goal**: Ensure automated rotation service is operational.
+
+          **Steps**:
+
+          1. **Check scheduler status**:
+             ```bash
+             # On prod1 only (singleton)
+             ssh ketchup-prod1
+             sudo docker logs ketchup-pat-rotator --tail 100
+             # Should show: "PAT rotation scheduler started"
+             # Should show: "Jobs registered: pat_rotation, expiry_warning, health_check"
+             ```
+
+          2. **Verify health check job running**:
+             ```bash
+             # Wait for hourly health check to execute (or trigger manually)
+             sudo docker exec ketchup-pat-rotator cat /tmp/pat_rotator_health
+             # Should show: "healthy"
+             ```
+
+          3. **Check #ketchup_alerts for notifications** (if rotation triggered):
+             - Navigate to Slack #ketchup_alerts channel
+             - Look for "✅ PAT Rotation Successful" or "⏰ PAT Expiring Soon"
+
+          **Validation**:
+          - ketchup-pat-rotator running on prod1 only
+          - Health check passing
+          - Scheduler jobs registered
+          - Service writing health file
+
+          ---
+
+          ## Post-Deployment Verification
+
+          ### 1. Smoke Tests (30 minutes after deployment)
+
+          - [ ] Create JIRA ticket via Slack - Success
+          - [ ] Query JIRA ticket via Slack - Success
+          - [ ] Update JIRA ticket via Slack - Success
+          - [ ] Check #ketchup_alerts for errors - None
+          - [ ] Verify PAT not expired: Check `ketchup_jira_pat_expiry` in AWS Secrets
+
+          ### 2. Monitoring (24 hours)
+
+          - [ ] Monitor #ketchup_alerts for rotation failures
+          - [ ] Check Docker logs for errors: `sudo docker-compose logs --tail 1000 | grep -i "error\|fail"`
+          - [ ] Verify JIRA operations continue working
+          - [ ] Confirm PAT rotator health checks passing
+
+          ### 3. First Rotation Event (60 days)
+
+          - [ ] Monitor #ketchup_alerts for "✅ PAT Rotation Successful"
+          - [ ] Verify new PAT in AWS Secrets Manager
+          - [ ] Confirm old PAT moved to backup
+          - [ ] Test JIRA operations with new PAT
+
+          ---
+
+          ## Rollback Procedures
+
+          ### Quick Rollback (< 2 minutes)
+
+          **Scenario**: JIRA operations failing after PAT enabled
+
+          **Steps**:
+          1. Disable PAT feature flag on both servers
+          2. Restart affected services
+          3. Verify JIRA working with username/password
+
+          ```bash
+          # On both prod1 and prod2
+          sudo vi /opt/ketchup/docker-compose.yml
+          # Change: JIRA_USE_PAT_AUTH=true → JIRA_USE_PAT_AUTH=false
+          sudo docker-compose restart mcp-jira ketchup-app
+          ```
+
+          ### Full Rollback (< 5 minutes)
+
+          **Scenario**: Deployment has critical issues, revert entire codebase
+
+          **Steps**:
+          ```bash
+          # On both servers
+          cd /opt/ketchup
+          sudo docker-compose down
+          git checkout v2.360.346  # Previous stable version
+          sudo docker-compose up -d
+
+          # Verify all services healthy
+          sudo docker ps
+          ```
+
+          ---
+
+          ## Troubleshooting Guide
+
+          ### Issue 1: PAT Authentication Fails (401 Unauthorized)
+
+          **Symptoms**: JIRA operations return 401 errors after enabling PAT
+
+          **Diagnosis**:
+          ```bash
+          # Check PAT in AWS Secrets
+          aws secretsmanager get-secret-value \
+            --secret-id Ketchup_Token_Secrets \
+            --profile campaign_prod_v7 \
+            --region eu-west-1 \
+            --query SecretString --output text | \
+            jq -r '.ketchup_jira_pat' | wc -c
+          # Should be > 50 characters
+
+          # Check PAT expiry
+          aws secretsmanager get-secret-value \
+            --secret-id Ketchup_Token_Secrets \
+            --profile campaign_prod_v7 \
+            --region eu-west-1 \
+            --query SecretString --output text | \
+            jq -r '.ketchup_jira_pat_expiry'
+          # Should be future date
+          ```
+
+          **Resolution**:
+          1. Verify PAT not expired
+          2. Try backup PAT: Check if backup works
+          3. Regenerate PAT manually in JIRA UI
+          4. Update AWS Secrets with new PAT
+          5. Restart services
+
+          ### Issue 2: PAT Rotator Not Running
+
+          **Symptoms**: ketchup-pat-rotator container not showing on prod1
+
+          **Diagnosis**:
+          ```bash
+          sudo docker ps -a | grep pat-rotator
+          sudo docker logs ketchup-pat-rotator
+          ```
+
+          **Resolution**:
+          1. Check if container stopped: `sudo docker-compose restart ketchup-pat-rotator`
+          2. Verify Dockerfile built correctly
+          3. Check dependency resolution in logs
+          4. Verify TypedDI registrations: Look for "Dependencies resolved via TypedDI"
+
+          ### Issue 3: Rotation Fails with API Error
+
+          **Symptoms**: #ketchup_alerts shows "⚠️ PAT Rotation Failed"
+
+          **Diagnosis**:
+          ```bash
+          sudo docker logs ketchup-pat-rotator --tail 200 | grep -i "error\|fail"
+          # Look for iPaaS API error codes
+          ```
+
+          **Resolution**:
+          1. Check iPaaS proxy status: Verify https://ipaas-proxy.adobe.com is accessible
+          2. Verify IMS token not expired: Check JIRA_IMS_TOKEN in AWS Secrets
+          3. Manually trigger rotation: Use backup PAT if needed
+          4. Check JIRA service account permissions
+
+          ---
+
+          ## Success Criteria
+
+          **Deployment Complete When**:
+          - [ ] All services running on prod1 and prod2
+          - [ ] JIRA operations working with PAT authentication
+          - [ ] PAT rotator service healthy on prod1
+          - [ ] No errors in #ketchup_alerts channel
+          - [ ] Smoke tests passed
+          - [ ] Documentation updated
+          - [ ] Team notified of successful deployment
+
+          **Timeline**:
+          - Phase 1: 30 minutes (deploy with flag off)
+          - Phase 2: 15 minutes (enable PAT auth)
+          - Phase 3: 15 minutes (verify rotation service)
+          - Post-deployment: 30 minutes (smoke tests)
+          - **Total**: ~90 minutes
+
+          **Risk Level**: LOW
+          - Zero-downtime deployment via feature flag
+          - Quick rollback (< 2 minutes)
+          - Backward compatible (username/password fallback)
+          - Tested in integration environment
+        key_points:
+          - point: "All commands are production-ready and copy-paste executable"
+            details: "No placeholders - actual commands that work in production"
+          - point: "Three-phase deployment minimizes risk"
+            details: "Phase 1: Deploy code, Phase 2: Enable flag, Phase 3: Verify rotation"
+          - point: "Quick rollback (< 2 minutes) via feature flag"
+            details: "Can revert to username/password auth without code changes"
+          - point: "Comprehensive troubleshooting guide"
+            details: "Covers common failure scenarios with diagnosis and resolution steps"
+          - point: "Clear success criteria and timeline"
+            details: "Deployment team knows exactly what 'done' looks like"
+        integration:
+          imports: []
+          services_to_inject: []
+          config_values: []
+          error_handling:
+            - "Rollback procedures for each phase"
+            - "Troubleshooting guide for common issues"
+            - "Clear escalation path if rollback fails"
+      success_criteria:
+        - "Runbook is comprehensive"
+        - "Rollback procedures documented"
+        - "Feature flag cutover steps clear"
+        - "Monitoring checkpoints defined"
+      test_commands:
+        - "cat docs/deployment_runbooks/jira_pat_migration_runbook.md | head -100"
+        - "grep -c '## Phase' docs/deployment_runbooks/jira_pat_migration_runbook.md"
+        - "grep -c 'Rollback' docs/deployment_runbooks/jira_pat_migration_runbook.md"
+        - "grep -c 'JIRA_USE_PAT_AUTH' docs/deployment_runbooks/jira_pat_migration_runbook.md"
+      verification:
+        manual_testing:
+          - step: "Review runbook for completeness"
+            command: "cat docs/deployment_runbooks/jira_pat_migration_runbook.md"
+            expected: "All sections present, commands are valid"
+          - step: "Dry-run deployment commands locally"
+            command: "Test each command in staging/local environment"
+            expected: "All commands execute successfully"
+          - step: "Review with deployment engineer"
+            expected: "Deployment engineer confirms runbook is clear and actionable"
+        automated_tests:
+          command: "N/A (documentation review)"
+          expected_output: "N/A"
+        success_criteria:
+          - "Runbook is comprehensive and deployment-ready"
+          - "All commands are copy-paste executable"
+          - "Rollback procedures are clear and tested"
+          - "Troubleshooting guide covers common failure scenarios"
+          - "Success criteria are well-defined"
+      commit:
+        type: "docs"
+        message: "add JIRA PAT migration deployment runbook"
+        body: |
+          Comprehensive deployment runbook for JIRA PAT migration:
+          - Pre-deployment checklist (AWS secrets, code verification, images)
+          - Three-phase deployment (deploy with flag off, enable flag, verify rotation)
+          - Post-deployment verification (smoke tests, monitoring, first rotation)
+          - Rollback procedures (quick rollback < 2 min, full rollback < 5 min)
+          - Troubleshooting guide (common issues and resolutions)
+
+          Target deployment: November 25, 2025 (5 days before deprecation)
+          Estimated downtime: Zero (feature flag enabled deployment)
+          Total deployment time: ~90 minutes
+        files:
+          - "docs/deployment_runbooks/jira_pat_migration_runbook.md"

@@ -1,0 +1,16 @@
+{
+  "token": "test-token",
+  "team_id": "T1234567890",
+  "api_app_id": "A1234567890",
+  "event": {
+    "type": "app_mention",
+    "user": "U1234567890",
+    "text": "<@U0987654321> what's the status of this channel?",
+    "ts": "1234567890.123456",
+    "channel": "C1234567890",
+    "event_ts": "1234567890.123456"
+  },
+  "type": "event_callback",
+  "event_id": "Ev1234567890",
+  "event_time": 1234567890
+}

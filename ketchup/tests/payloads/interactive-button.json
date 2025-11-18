@@ -1,0 +1,38 @@
+{
+  "type": "block_actions",
+  "user": {
+    "id": "U1234567890",
+    "username": "testuser",
+    "name": "testuser",
+    "team_id": "T1234567890"
+  },
+  "api_app_id": "A1234567890",
+  "token": "test-token",
+  "container": {
+    "type": "message",
+    "message_ts": "1234567890.123456"
+  },
+  "trigger_id": "1234567890.1234567890.abcdefghijklmnopqrstuvwxyz",
+  "team": {
+    "id": "T1234567890",
+    "domain": "test-workspace"
+  },
+  "channel": {
+    "id": "C1234567890",
+    "name": "test-channel"
+  },
+  "response_url": "https://hooks.slack.com/actions/T1234567890/1234567890/abcdefghijklmnop",
+  "actions": [
+    {
+      "type": "button",
+      "action_id": "thumbs_up",
+      "block_id": "feedback_block",
+      "text": {
+        "type": "plain_text",
+        "text": "👍"
+      },
+      "value": "positive",
+      "action_ts": "1234567890.123456"
+    }
+  ]
+}

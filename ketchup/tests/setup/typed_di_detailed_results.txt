@@ -1,0 +1,31 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0 -- /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests
+configfile: pytest.ini
+plugins: asyncio-1.1.0, anyio-4.10.0, cov-6.2.1, mock-3.14.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 10 items
+
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_fallback_flag_default_behavior PASSED [ 10%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_fallback_flag_gating_disabled PASSED [ 20%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_fallback_flag_gating_enabled PASSED [ 30%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_fallback_manager_critical_service_mappings PASSED [ 40%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_legacy_fallback_drill_success PASSED [ 50%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_smoke_checks_fail_scenario PASSED [ 60%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_smoke_checks_pass_scenario PASSED [ 70%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeChecks::test_typeddi_container_adapter_fallback_integration PASSED [ 80%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeCheckIntegration::test_smoke_check_implementation_failure PASSED [ 90%]
+test_typed_di_smoke_checks.py::TestTypedDISmokeCheckIntegration::test_smoke_check_implementation_with_mocks FAILED [100%]
+
+=================================== FAILURES ===================================
+_ TestTypedDISmokeCheckIntegration.test_smoke_check_implementation_with_mocks __
+test_typed_di_smoke_checks.py:386: in test_smoke_check_implementation_with_mocks
+    self.assertTrue(result)
+E   AssertionError: False is not true
+----------------------------- Captured stdout call -----------------------------
+2025-09-15 15:05:19,865 - packages.core.typed_di_integration - INFO - Running TypedDI startup smoke checks for essential services + critical service chain validation
+2025-09-15 15:05:19,865 - packages.core.typed_di_integration - ERROR - Smoke check failed: DynamoDBConfig resolution error: Service packages.db.config.dynamodb_config.DynamoDBConfig not found or not initialized
+=========================== short test summary info ============================
+FAILED test_typed_di_smoke_checks.py::TestTypedDISmokeCheckIntegration::test_smoke_check_implementation_with_mocks
+========================= 1 failed, 9 passed in 0.80s ==========================

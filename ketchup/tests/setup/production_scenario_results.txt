@@ -1,0 +1,268 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.3, pytest-8.4.1, pluggy-1.6.0
+rootdir: /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests
+configfile: pytest.ini
+plugins: asyncio-1.1.0, anyio-4.10.0, cov-6.2.1, mock-3.14.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 3 items
+
+tests/integration/test_production_scenarios_fixed.py FFF                 [100%]
+
+=================================== FAILURES ===================================
+_ TestProductionScenariosFailed.test_dependency_setup_line_190_exact_reproduction _
+tests/integration/test_production_scenarios_fixed.py:130: in test_dependency_setup_line_190_exact_reproduction
+    container = await get_unified_container()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/core/typed_di_integration.py:355: in get_unified_container
+    await get_unified_container()
+packages/core/typed_di_integration.py:372: in get_unified_container
+    _legacy_container = await get_container()
+                        ^^^^^^^^^^^^^^^^^^^^^
+packages/core/di_container.py:228: in get_container
+    await _container.initialize()
+packages/core/di_container.py:87: in initialize
+    deps.update(await initialize_slack_clients())
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/core/client_factory/slack_factory.py:956: in initialize_slack_clients
+    instance = await factory()
+               ^^^^^^^^^^^^^^^
+packages/core/client_factory/slack_factory.py:73: in _create_slack_config
+    instance = await SlackConfig.create(secrets_manager=secrets_manager)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/slack/config/slack_config.py:41: in create
+    api_token = await secrets_manager.get_slack_api_token_async()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/secrets/manager.py:184: in get_slack_api_token_async
+    secrets = await self.get_app_secrets()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/secrets/manager.py:99: in get_app_secrets
+    secrets_async = await self.get_secret_async(self.APP_SECRETS_NAME)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/secrets/manager.py:63: in get_secret_async
+    get_secret_value_response = await client.get_secret_value(
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/context.py:36: in wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/client.py:406: in _make_api_call
+    http, parsed_response = await self._make_request(
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/client.py:432: in _make_request
+    return await self._endpoint.make_request(
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/endpoint.py:116: in _send_request
+    request = await self.create_request(request_dict, operation_model)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/endpoint.py:104: in create_request
+    await self._event_emitter.emit(
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/hooks.py:68: in _emit
+    response = await resolve_awaitable(handler(**kwargs))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/_helpers.py:6: in resolve_awaitable
+    return await obj
+           ^^^^^^^^^
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/signers.py:26: in handler
+    return await self.sign(operation_name, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/signers.py:92: in sign
+    auth.add_auth(request)
+tests/setup/.venv/lib/python3.13/site-packages/botocore/auth.py:422: in add_auth
+    raise NoCredentialsError()
+E   botocore.exceptions.NoCredentialsError: Unable to locate credentials
+----------------------------- Captured stdout call -----------------------------
+2025-09-15 15:05:17,795 - packages.core.typed_di.service_registrations - INFO - Protocol definitions loaded successfully from analysis module (including DB protocols)
+2025-09-15 15:05:17,797 - packages.core.typed_di_integration - INFO - Initializing TypedServiceRegistry
+2025-09-15 15:05:17,798 - packages.core.typed_di_integration - INFO - TypedDI fallback configured: enabled=True
+2025-09-15 15:05:17,798 - packages.core.typed_di_integration - INFO - Running TypedDI startup smoke checks for essential services + critical service chain validation
+2025-09-15 15:05:17,798 - packages.core.typed_di_integration - ERROR - Smoke check failed: SecretsManager resolution error: Service packages.secrets.manager.SecretsManager not found or not initialized
+2025-09-15 15:05:17,798 - packages.core.typed_di_integration - ERROR - TypedDI startup smoke checks failed - disabling TypedDI
+2025-09-15 15:05:17,798 - packages.core.typed_di_integration - WARNING - TypedDI disabled due to smoke check failures - falling back to legacy DI
+2025-09-15 15:05:17,798 - packages.core.di_container - INFO - Initializing DIContainer with all modular clients
+2025-09-15 15:05:17,798 - packages.core.client_factory.secrets_factory - INFO - Initializing core/global client instances (e.g., secrets_manager)
+2025-09-15 15:05:17,798 - packages.core.client_factory.secrets_factory - INFO - Initialized core client: secrets_manager
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing all DB-related client instances using DB_CLIENT_MAP
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing DB client: dynamodb_config (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Creating DynamoDBConfig instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - DynamoDBConfig instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Successfully initialized DB client: dynamodb_config
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing DB client: dynamodb_async_client (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Creating DynamoDBAsyncClient instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - DynamoDBAsyncClient instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Successfully initialized DB client: dynamodb_async_client
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing DB client: dynamodb_store (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Creating DynamoDBStore instance via factory function.
+2025-09-15 15:05:17,798 - packages.db.operations.restore_state_operations - INFO - RestoreStateOperations initialized for table ketchup_channel_information with SK RESTORE_STATE
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - DynamoDBStore instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Successfully initialized DB client: dynamodb_store
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing DB client: user_store (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Creating UserStore instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - UserStore instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Successfully initialized DB client: user_store
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing DB client: command_tracking_ops (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Creating CommandTrackingOperations instance via factory function.
+2025-09-15 15:05:17,798 - packages.db.operations.command_tracking_operations - INFO - CommandTrackingOperations initialized with table: ketchup_channel_information
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - CommandTrackingOperations instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Successfully initialized DB client: command_tracking_ops
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Initializing DB client: channel_operations (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Creating ChannelOperations instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - ChannelOperations instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - Successfully initialized DB client: channel_operations
+2025-09-15 15:05:17,798 - packages.core.client_factory.db_factory - INFO - All DB client instances initialized successfully: ['dynamodb_config', 'dynamodb_async_client', 'dynamodb_store', 'user_store', 'command_tracking_ops', 'channel_operations']
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Initializing all integration-related client instances using INTEGRATION_CLIENT_MAP
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: ims_token_manager (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - IMSTokenManager instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: ims_token_manager
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: mcp_client (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - MCPAsyncClient instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: mcp_client
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: jira_cache (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - JIRACache instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: jira_cache
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: jira_data_extractor (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - JIRADataExtractor instance created successfully.
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: jira_data_extractor
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: access_request_monitor (Singleton: True)
+2025-09-15 15:05:17,798 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,799 - packages.core.local_metrics - ERROR - Failed to create metrics directory /var/log/ketchup: [Errno 13] Permission denied: '/var/log/ketchup'
+2025-09-15 15:05:17,799 - packages.core.local_metrics - WARNING - Using fallback metrics directory: /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup_metrics
+2025-09-15 15:05:17,799 - packages.core.local_metrics - INFO - MetricsStorage initialized with namespace='AccessRequests', storage_dir='/var/log/ketchup'
+2025-09-15 15:05:17,799 - packages.slack.metrics.access_request_monitor - ERROR - Failed to create legacy stats directory: [Errno 13] Permission denied: '/var/log/ketchup'
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - AccessRequestMonitor instance created successfully.
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: access_request_monitor
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: distributed_lock (Singleton: True)
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - DistributedLock instance created successfully.
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: distributed_lock
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Initializing integration client: access_request_operations (Singleton: True)
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Creating instance via factory function.
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - AccessRequestOperations instance created successfully.
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - Successfully initialized client: access_request_operations
+2025-09-15 15:05:17,799 - packages.core.client_factory.integration_factory - INFO - All integration client instances initialized successfully: ['ims_token_manager', 'mcp_client', 'jira_cache', 'jira_data_extractor', 'access_request_monitor', 'distributed_lock', 'access_request_operations']
+2025-09-15 15:05:17,799 - packages.core.client_factory.cloud_factory - INFO - Initializing all Cloud-related client instances using CLOUD_CLIENT_MAP
+2025-09-15 15:05:17,799 - packages.core.client_factory.cloud_factory - INFO - Initializing Cloud client: metrics (Singleton: True)
+2025-09-15 15:05:17,799 - packages.core.client_factory.cloud_factory - INFO - Creating MetricsStorage service
+2025-09-15 15:05:17,799 - packages.core.local_metrics - ERROR - Failed to create metrics directory /var/log/ketchup: [Errno 13] Permission denied: '/var/log/ketchup'
+2025-09-15 15:05:17,799 - packages.core.local_metrics - WARNING - Using fallback metrics directory: /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup_metrics
+2025-09-15 15:05:17,799 - packages.core.local_metrics - INFO - MetricsStorage initialized with namespace='Ketchup/Feedback', storage_dir='/var/log/ketchup'
+2025-09-15 15:05:17,799 - packages.core.client_factory.cloud_factory - INFO - MetricsStorage service created successfully
+2025-09-15 15:05:17,799 - packages.core.client_factory.cloud_factory - INFO - Successfully initialized client: metrics
+2025-09-15 15:05:17,799 - packages.core.client_factory.cloud_factory - INFO - All Cloud client instances initialized successfully: ['metrics']
+2025-09-15 15:05:17,799 - packages.core.client_factory.slack_factory - INFO - Initializing all Slack-related client instances using SLACK_CLIENT_MAP
+2025-09-15 15:05:17,799 - packages.core.client_factory.slack_factory - INFO - Initializing Slack client: slack_config (Singleton: True)
+2025-09-15 15:05:17,799 - packages.core.client_factory.slack_factory - INFO - Creating SlackConfig instance via async factory function.
+2025-09-15 15:05:17,799 - packages.secrets.manager - INFO - Starting get_slack_api_token_async function.
+2025-09-15 15:05:17,799 - packages.secrets.manager - INFO - Starting get_app_secrets function.
+2025-09-15 15:05:17,799 - packages.secrets.manager - INFO - Starting get_secret_async function.
+2025-09-15 15:05:19,866 - packages.secrets.manager - ERROR - Unable to retrieve secret asynchronously: Unable to locate credentials
+2025-09-15 15:05:19,866 - packages.secrets.manager - ERROR - Failed to retrieve application secrets: Unable to locate credentials
+2025-09-15 15:05:19,866 - packages.slack.config.slack_config - ERROR - Error initializing SlackConfig: Unable to locate credentials
+2025-09-15 15:05:19,866 - packages.core.di_container - ERROR - Failed to initialize DIContainer: Unable to locate credentials
+Traceback (most recent call last):
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/core/di_container.py", line 87, in initialize
+    deps.update(await initialize_slack_clients())
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/core/client_factory/slack_factory.py", line 956, in initialize_slack_clients
+    instance = await factory()
+               ^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/core/client_factory/slack_factory.py", line 73, in _create_slack_config
+    instance = await SlackConfig.create(secrets_manager=secrets_manager)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/slack/config/slack_config.py", line 41, in create
+    api_token = await secrets_manager.get_slack_api_token_async()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/secrets/manager.py", line 184, in get_slack_api_token_async
+    secrets = await self.get_app_secrets()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/secrets/manager.py", line 99, in get_app_secrets
+    secrets_async = await self.get_secret_async(self.APP_SECRETS_NAME)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/packages/secrets/manager.py", line 63, in get_secret_async
+    get_secret_value_response = await client.get_secret_value(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        SecretId=secret_name
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/context.py", line 36, in wrapper
+    return await func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/client.py", line 406, in _make_api_call
+    http, parsed_response = await self._make_request(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+        operation_model, request_dict, request_context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/client.py", line 432, in _make_request
+    return await self._endpoint.make_request(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        operation_model, request_dict
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/endpoint.py", line 116, in _send_request
+    request = await self.create_request(request_dict, operation_model)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/endpoint.py", line 104, in create_request
+    await self._event_emitter.emit(
+    ...<3 lines>...
+    )
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/hooks.py", line 68, in _emit
+    response = await resolve_awaitable(handler(**kwargs))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/_helpers.py", line 6, in resolve_awaitable
+    return await obj
+           ^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/signers.py", line 26, in handler
+    return await self.sign(operation_name, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/aiobotocore/signers.py", line 92, in sign
+    auth.add_auth(request)
+    ~~~~~~~~~~~~~^^^^^^^^^
+  File "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/.venv/lib/python3.13/site-packages/botocore/auth.py", line 422, in add_auth
+    raise NoCredentialsError()
+botocore.exceptions.NoCredentialsError: Unable to locate credentials
+___ TestProductionScenariosFailed.test_home_tab_access_user_store_resolution ___
+tests/integration/test_production_scenarios_fixed.py:76: in test_home_tab_access_user_store_resolution
+    user_store_result = container.get_by_name("user_store")
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/core/di_container.py:176: in get_by_name
+    raise RuntimeError("DIContainer not initialized")
+E   RuntimeError: DIContainer not initialized
+
+During handling of the above exception, another exception occurred:
+tests/integration/test_production_scenarios_fixed.py:81: in test_home_tab_access_user_store_resolution
+    self.fail(f"Production failure reproduced: {e}")
+E   AssertionError: Production failure reproduced: DIContainer not initialized
+----------------------------- Captured stdout call -----------------------------
+2025-09-15 15:05:19,952 - packages.core.typed_di_integration - INFO - Initializing TypedServiceRegistry
+2025-09-15 15:05:19,952 - packages.core.typed_di_integration - INFO - TypedDI fallback configured: enabled=True
+2025-09-15 15:05:19,953 - packages.core.typed_di_integration - INFO - Running TypedDI startup smoke checks for essential services + critical service chain validation
+2025-09-15 15:05:19,953 - packages.core.typed_di_integration - ERROR - Smoke check failed: SecretsManager resolution error: Service packages.secrets.manager.SecretsManager not found or not initialized
+2025-09-15 15:05:19,953 - packages.core.typed_di_integration - ERROR - TypedDI startup smoke checks failed - disabling TypedDI
+2025-09-15 15:05:19,953 - packages.core.typed_di_integration - WARNING - TypedDI disabled due to smoke check failures - falling back to legacy DI
+_____ TestProductionScenariosFailed.test_status_command_user_store_access ______
+tests/integration/test_production_scenarios_fixed.py:106: in test_status_command_user_store_access
+    user_store=container.get_by_name("user_store"), **mock_deps
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/core/di_container.py:176: in get_by_name
+    raise RuntimeError("DIContainer not initialized")
+E   RuntimeError: DIContainer not initialized
+
+During handling of the above exception, another exception occurred:
+tests/integration/test_production_scenarios_fixed.py:112: in test_status_command_user_store_access
+    self.fail(f"Status command user_store access failed: {e}")
+E   AssertionError: Status command user_store access failed: DIContainer not initialized
+----------------------------- Captured stdout call -----------------------------
+2025-09-15 15:05:19,958 - packages.core.typed_di_integration - INFO - Initializing TypedServiceRegistry
+2025-09-15 15:05:19,958 - packages.core.typed_di_integration - INFO - TypedDI fallback configured: enabled=True
+2025-09-15 15:05:19,958 - packages.core.typed_di_integration - INFO - Running TypedDI startup smoke checks for essential services + critical service chain validation
+2025-09-15 15:05:19,958 - packages.core.typed_di_integration - ERROR - Smoke check failed: SecretsManager resolution error: Service packages.secrets.manager.SecretsManager not found or not initialized
+2025-09-15 15:05:19,958 - packages.core.typed_di_integration - ERROR - TypedDI startup smoke checks failed - disabling TypedDI
+2025-09-15 15:05:19,958 - packages.core.typed_di_integration - WARNING - TypedDI disabled due to smoke check failures - falling back to legacy DI
+=========================== short test summary info ============================
+FAILED tests/integration/test_production_scenarios_fixed.py::TestProductionScenariosFailed::test_dependency_setup_line_190_exact_reproduction
+FAILED tests/integration/test_production_scenarios_fixed.py::TestProductionScenariosFailed::test_home_tab_access_user_store_resolution
+FAILED tests/integration/test_production_scenarios_fixed.py::TestProductionScenariosFailed::test_status_command_user_store_access
+============================== 3 failed in 2.88s ===============================

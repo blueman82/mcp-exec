@@ -1,0 +1,120 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+*.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Documentation
+*.md
+docs/
+plan/
+code_docs/
+
+# Build artifacts
+build/
+dist/
+!corp_jira_mcp/dist/  # Allow MCP JIRA dist directory
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.bak
+.cache/
+tmp/
+
+# Docker files we don't need in image
+docker-compose*.yml
+Dockerfile*
+docker-archive-*/
+
+# Scripts
+scripts/
+
+# Terraform
+terraform/
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# AWS
+.aws/
+
+# Archives
+*.zip
+*.tar.gz
+
+# Local development
+.env
+.env.*
+
+# Ketchup specific
+ketchup_announcement_scripts/
+archived_cmd_not_re_archiving.txt
+jira_ticket_migration_*.json
+lambda_package.zip
+scan_env/
+ketchup_logo.jpeg
+*.jpeg
+*.jpg
+*.png
+*.gif
+
+# Large directories not needed for MCP build
+terraform/
+tests/
+ketchup_announcement_scripts/
+
+# Migration and deployment scripts
+deploy_*.sh
+migrate_*.py
+verify_*.py
+test_*.py
+replace_*.py
+
+# Various config and documentation files
+*.html
+*.code-workspace
+Untitled-*
+CLAUDE.*
+*_SUMMARY.md
+*_NOTES.md
+*_REQUIREMENTS.md
+*_PLAN.md
+
+# Rules and channel metadata (not needed for Docker build)
+rules/
+
+# Lambda and deployment artifacts
+lambda_function.py
+deploy_*.sh
+add-*.sh
+update_*.sh
+sync_*.sh

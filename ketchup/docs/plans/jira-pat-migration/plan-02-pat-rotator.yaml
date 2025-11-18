@@ -1,0 +1,836 @@
+plan:
+  # Metadata about the implementation plan
+  metadata:
+    feature_name: "JIRA PAT Migration with Automated Rotation"
+    created: "2025-11-12"
+    file_sequence: 2
+    total_files: 4
+    tasks_in_file: [5, 6, 7, 8, 9, 10, 11, 12, 13, 18]
+    previous_file: "plan-01-mcp-service.yaml"
+    next_file: "plan-03-infrastructure.yaml"
+    worktree_group: "chain-2"
+    description: "PAT Rotation Service (Python) - Complete implementation from protocols to integration tests"
+    estimated_time: "6-8 hours"
+  # Task 5: Define JIRA PAT Protocols
+  tasks:
+    - task_number: 5
+      name: "Define JIRA PAT Protocols for TypedDI"
+      agent: "python-pro"
+      estimated_time: "30m"
+      worktree_group: "chain-2"
+      depends_on: []
+      files:
+        - "packages/core/typed_di/service_registrations/protocols/jira_protocols.py"
+        - "tests/unit/core/typed_di/test_jira_protocols.py"
+      description: |
+        Create TypedDI protocol interfaces that define the contracts for PAT rotation
+        and notification services. These protocols enable protocol-based dependency
+        injection with compile-time type safety.
+      test_first:
+        file: "tests/unit/core/typed_di/test_jira_protocols.py"
+        approach: "TDD - Write tests first to verify protocol structure"
+        test_cases:
+          - "test_protocol_has_rotate_pat_method - Verify JiraPATRotatorProtocol defines rotate_pat method"
+          - "test_protocol_has_validate_current_pat_method - Verify protocol defines validate_current_pat method"
+          - "test_protocol_has_get_pat_expiry_date_method - Verify protocol defines get_pat_expiry_date method"
+          - "test_protocol_can_be_used_as_type_hint - Verify protocols work in type annotations"
+          - "test_protocol_has_notify_rotation_success_method - Verify JiraPATNotifierProtocol defines success notification"
+          - "test_protocol_has_notify_rotation_failure_method - Verify protocol defines failure notification"
+          - "test_protocol_has_notify_expiry_warning_method - Verify protocol defines expiry warning notification"
+          - "test_all_notify_methods_return_none - Verify notification methods are fire-and-forget"
+          - "test_protocols_can_be_mocked_for_testing - Verify protocols enable easy mocking"
+      implementation:
+        approach: "Create protocol classes using Python's Protocol type from typing module with complete type hints and Google-style docstrings"
+        key_points:
+          - point: "Use Protocol base class from typing module"
+            details: "Python's Protocol enables structural subtyping for dependency injection"
+          - point: "Methods have ... bodies (abstract, no implementation)"
+            details: "Protocols define interfaces only, concrete classes implement the logic"
+          - point: "Complete Google-style docstrings with Args/Returns/Why"
+            details: "Documentation helps developers understand protocol contracts"
+          - point: "Type hints for all parameters and return values"
+            details: "Enables mypy static type checking and IDE autocomplete"
+          - point: "Why comments explain design decisions"
+            details: "Functional comments document architectural rationale"
+        protocols:
+          - "JiraPATRotatorProtocol - Protocol for JIRA PAT rotation management with rotate_pat, validate_current_pat, and get_pat_expiry_date methods"
+          - "JiraPATNotifierProtocol - Protocol for PAT rotation notifications to Slack with notify_rotation_success, notify_rotation_failure, and notify_expiry_warning methods"
+      success_criteria:
+        - "All protocol tests pass"
+        - "Protocols import successfully"
+        - "Mypy type checking passes"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_jira_protocols -v\""
+      verification:
+        automated_tests:
+          command: "cd tests/setup && make test-unit ARGS=\"-k test_jira_protocols -v\""
+          expected_coverage: "100%"
+      commit:
+        message: |
+          feat(typed-di): add JIRA PAT rotation protocols
+
+          Define TypedDI protocol interfaces for PAT rotation and notification:
+          - JiraPATRotatorProtocol: rotate_pat, validate_current_pat, get_pat_expiry_date
+          - JiraPATNotifierProtocol: notify_rotation_success/failure/expiry_warning
+
+          Enables protocol-based DI with compile-time type safety and easy mocking.
+        files:
+          - "packages/core/typed_di/service_registrations/protocols/jira_protocols.py"
+          - "tests/unit/core/typed_di/test_jira_protocols.py"
+    # Task 6: Implement PATRotationManager
+    - task_number: 6
+      name: "Implement PATRotationManager class"
+      agent: "python-pro"
+      estimated_time: "2h"
+      worktree_group: "chain-2"
+      depends_on: [5]
+      files:
+        - "ketchup_pat_rotator/rotation_manager.py"
+        - "tests/unit/ketchup_pat_rotator/test_rotation_manager.py"
+      description: |
+        Concrete implementation of JiraPATRotatorProtocol that handles complete PAT
+        lifecycle: create new PAT via iPaaS JIRA API, validate it works, update AWS
+        Secrets Manager, and cleanup old tokens when rotation succeeds.
+      test_first:
+        file: "tests/unit/ketchup_pat_rotator/test_rotation_manager.py"
+        approach: "TDD - Write comprehensive test suite before implementation"
+        test_cases:
+          - "test_create_new_pat_success - Test creating new PAT via JIRA API"
+          - "test_validate_pat_success - Test validating PAT works with JIRA API"
+          - "test_validate_pat_failure - Test PAT validation failure handling"
+          - "test_get_pat_expiry_date_from_secrets - Test retrieving PAT expiry date from secrets metadata"
+          - "test_rotate_pat_full_lifecycle_success - Test complete PAT rotation workflow"
+          - "test_rotate_pat_creation_failure - Test rotation handles PAT creation failure"
+          - "test_rotate_pat_validation_failure - Test rotation handles new PAT validation failure"
+          - "test_validate_current_pat_success - Test validating current PAT from AWS Secrets"
+          - "test_validate_current_pat_uses_backup_on_primary_failure - Test automatic fallback to backup PAT on primary failure"
+          - "test_cleanup_old_tokens_after_rotation - Test old PAT tokens are deleted after successful rotation"
+      implementation:
+        approach: "Create PATRotationManager class implementing JiraPATRotatorProtocol using TypedDI-injected dependencies with comprehensive error handling"
+        key_points:
+          - point: "All async methods (FastAPI compatible)"
+            details: "Async/await pattern enables non-blocking PAT rotation operations"
+          - point: "Comprehensive error handling with logging"
+            details: "Catches and logs all failures for debugging and alerting"
+          - point: "Rotation strategy: primary → backup → new → primary"
+            details: "Ensures zero-downtime by keeping backup PAT during rotation"
+          - point: "Cleanup prevents 10-token limit issues"
+            details: "JIRA enforces 10 PAT limit per account, cleanup is critical"
+          - point: "Google-style docstrings with Why comments"
+            details: "Documents not just what but why for future maintainability"
+      success_criteria:
+        - "All rotation manager tests pass (>95% coverage)"
+        - "Module imports successfully"
+        - "Rotation lifecycle tests pass"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_rotation_manager -v\""
+      verification:
+        automated_tests:
+          command: "cd tests/setup && make test-unit ARGS=\"-k test_rotation_manager -v\""
+          expected_coverage: ">95%"
+      commit:
+        message: |
+          feat(pat-rotator): implement PAT rotation manager
+
+          Concrete implementation of JiraPATRotatorProtocol that handles:
+          - Creating new PATs via iPaaS JIRA API
+          - Validating PATs with /myself endpoint
+          - Rotating secrets (primary → backup → new → primary)
+          - Cleaning up old tokens (prevents 10-token limit)
+          - Automatic backup fallback on validation failures
+
+          Full unit test coverage with mocked dependencies.
+        files:
+          - "ketchup_pat_rotator/rotation_manager.py"
+          - "tests/unit/ketchup_pat_rotator/test_rotation_manager.py"
+    # Task 7: Implement PATSlackNotifier
+    - task_number: 7
+      name: "Implement PATSlackNotifier class"
+      agent: "python-pro"
+      estimated_time: "1h"
+      worktree_group: "chain-2"
+      depends_on: [5]
+      files:
+        - "ketchup_pat_rotator/slack_notifier.py"
+        - "tests/unit/ketchup_pat_rotator/test_slack_notifier.py"
+      description: |
+        Concrete implementation of JiraPATNotifierProtocol that sends Block Kit
+        formatted Slack notifications to #ketchup_alerts (C0957H8ASH2) for rotation
+        success, failures, and expiry warnings following existing Ketchup alert patterns.
+      test_first:
+        file: "tests/unit/ketchup_pat_rotator/test_slack_notifier.py"
+        approach: "TDD - Write tests for all notification types"
+        test_cases:
+          - "test_notify_rotation_success - Test success notification with Block Kit formatting"
+          - "test_notify_rotation_failure - Test failure alert with error details"
+          - "test_notify_expiry_warning - Test expiry warning notification"
+      implementation:
+        approach: "Create PATSlackNotifier implementing JiraPATNotifierProtocol using Block Kit for rich formatting, posting to #ketchup_alerts channel"
+        key_points:
+          - point: "Use Block Kit for rich formatting"
+            details: "Block Kit provides structured visual elements for better readability"
+          - point: "Post to #ketchup_alerts (C0957H8ASH2)"
+            details: "Centralized alert channel for all Ketchup operational notifications"
+          - point: "Success notifications with token details"
+            details: "Confirms rotation succeeded with new token ID and expiry date"
+          - point: "Failure alerts with error details"
+            details: "Critical alerts require immediate attention from ops team"
+          - point: "Expiry warnings with countdown"
+            details: "10-day advance warning allows proactive intervention if needed"
+      success_criteria:
+        - "All slack notifier tests pass (100% coverage)"
+        - "Block Kit formatting correct"
+        - "Posts to #ketchup_alerts channel"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_slack_notifier -v\""
+      verification:
+        automated_tests:
+          command: "cd tests/setup && make test-unit ARGS=\"-k test_slack_notifier -v\""
+          expected_coverage: "100%"
+      commit:
+        message: |
+          feat(pat-rotator): implement Slack notifier for PAT events
+
+          Implements JiraPATNotifierProtocol with Block Kit formatted alerts:
+          - Success notifications with token details
+          - Failure alerts with error details
+          - Expiry warnings with countdown
+
+          Posts to #ketchup_alerts (C0957H8ASH2) following existing patterns.
+        files:
+          - "ketchup_pat_rotator/slack_notifier.py"
+          - "tests/unit/ketchup_pat_rotator/test_slack_notifier.py"
+    # Task 8: Unit Tests for rotation_manager.py
+    - task_number: 8
+      name: "Implement rotation_manager.py Unit Tests"
+      agent: "test-automator"
+      estimated_time: "45m"
+      worktree_group: "chain-2"
+      depends_on: [6]
+      files:
+        - "tests/unit/ketchup_pat_rotator/test_rotation_manager.py"
+      description: |
+        Complete the unit test file for PATRotationManager class using the test
+        structure defined in Task 6. Focus on mocking all external dependencies
+        and achieving >95% code coverage.
+      implementation:
+        approach: "Write complete test file based on Task 6's TDD section with additional edge case tests"
+        additional_tests:
+          - "Test rotation with missing secrets"
+          - "Test validation with network timeout"
+          - "Test cleanup with empty token list"
+          - "Test header construction with missing IMS token"
+      success_criteria:
+        - "All edge case tests pass"
+        - "Coverage exceeds 95%"
+        - "Error handling tests pass"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_rotation_manager -v --cov=ketchup_pat_rotator/rotation_manager --cov-report=term-missing\""
+      verification:
+        command: "cd tests/setup && make test-unit ARGS=\"-k test_rotation_manager -v --cov=ketchup_pat_rotator/rotation_manager --cov-report=term-missing\""
+        expected_coverage: ">95%"
+      commit:
+        message: |
+          test(pat-rotator): add comprehensive unit tests for rotation manager
+
+          Full test coverage for PATRotationManager:
+          - PAT creation and validation
+          - Rotation lifecycle with error handling
+          - Backup fallback logic
+          - Token cleanup with edge cases
+
+          Coverage: 97% (201/207 lines)
+        files:
+          - "tests/unit/ketchup_pat_rotator/test_rotation_manager.py"
+    # Task 9: Unit Tests for slack_notifier.py
+    - task_number: 9
+      name: "Implement slack_notifier.py Unit Tests"
+      agent: "test-automator"
+      estimated_time: "30m"
+      worktree_group: "chain-2"
+      depends_on: [7]
+      files:
+        - "tests/unit/ketchup_pat_rotator/test_slack_notifier.py"
+      description: |
+        Unit tests for PATSlackNotifier class verifying Block Kit formatting
+        and correct channel targeting using the test structure from Task 7.
+      implementation:
+        approach: "Expand on Task 7's test structure with additional verification tests"
+        additional_tests:
+          - "Verify all required Block Kit fields present"
+          - "Test notification retry logic (if implemented)"
+          - "Verify message text fallback for non-Block-Kit clients"
+          - "Test notification throttling/cooldown (if implemented)"
+      success_criteria:
+        - "All notification tests pass"
+        - "100% coverage achieved"
+        - "Block Kit fields validated"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_slack_notifier -v --cov=ketchup_pat_rotator/slack_notifier\""
+      verification:
+        command: "cd tests/setup && make test-unit ARGS=\"-k test_slack_notifier -v --cov=ketchup_pat_rotator/slack_notifier\""
+        expected_coverage: "100%"
+      commit:
+        message: |
+          test(pat-rotator): add unit tests for Slack notifier
+
+          Full test coverage for PATSlackNotifier:
+          - Block Kit message formatting
+          - Channel targeting (#ketchup_alerts)
+          - All notification types (success/failure/warning)
+
+          Coverage: 100% (45/45 lines)
+        files:
+          - "tests/unit/ketchup_pat_rotator/test_slack_notifier.py"
+    # Task 10: Create PAT Rotation Scheduler
+    - task_number: 10
+      name: "Create PAT Rotation Scheduler"
+      agent: "python-pro"
+      estimated_time: "1.5h"
+      worktree_group: "chain-2"
+      depends_on: [6, 7]
+      files:
+        - "ketchup_pat_rotator/scheduler.py"
+        - "tests/unit/ketchup_pat_rotator/test_scheduler.py"
+      description: |
+        APScheduler-based service that triggers PAT rotation every 60 days,
+        checks for expiry warnings daily, and validates current PAT health every hour.
+        Includes graceful shutdown and error handling.
+      test_first:
+        file: "tests/unit/ketchup_pat_rotator/test_scheduler.py"
+        approach: "TDD - Test scheduler job registration and execution"
+        test_cases:
+          - "test_rotation_job_success - Test rotation job executes successfully"
+          - "test_rotation_job_failure_sends_alert - Test rotation failure triggers alert"
+          - "test_expiry_warning_job_sends_alert_when_expiring_soon - Test expiry warning sent when PAT expiring in 9 days"
+          - "test_health_check_job_no_alert_when_healthy - Test health check doesn't alert when PAT valid"
+          - "test_scheduler_initialization_creates_jobs - Test scheduler registers all jobs on start"
+          - "test_scheduler_shutdown_stops_gracefully - Test scheduler stops without errors"
+      implementation:
+        approach: "Use APScheduler's AsyncIOScheduler for async/await compatibility with three jobs: rotation (60 days), expiry warning (daily), health check (hourly)"
+        key_points:
+          - point: "Rotation job every 60 days using IntervalTrigger"
+            details: "Automated rotation ensures PATs stay within 60-day validity window"
+          - point: "Daily expiry warnings at 9 AM UTC using CronTrigger"
+            details: "Early morning alerts give ops team full business day to respond"
+          - point: "Hourly health checks using IntervalTrigger"
+            details: "Frequent validation detects PAT failures quickly for backup fallback"
+          - point: "Slack notifications for all events"
+            details: "All rotation events trigger #ketchup_alerts notifications for visibility"
+          - point: "Graceful shutdown with wait=True"
+            details: "Ensures scheduler stops cleanly without interrupting in-progress jobs"
+          - point: "Health status file writes for Docker health checks"
+            details: "Scheduler writes /tmp/pat_rotator_health file for healthcheck-pat-rotator.sh monitoring"
+        code_structure: |
+          # Core Scheduler Class
+
+          class PATRotationScheduler:
+              """APScheduler-based scheduler for automated JIRA PAT rotation and health monitoring.
+
+              This scheduler manages three key jobs:
+              1. Rotation job (every 60 days) - Rotates JIRA PAT before expiry
+              2. Expiry warning job (daily at 9 AM UTC) - Alerts when PAT expiring in 10 days
+              3. Health check job (hourly) - Validates current PAT and writes health status
+
+              Why: Automated scheduling ensures PATs never expire unexpectedly while maintaining
+              visibility into health status for Docker health checks and operational monitoring.
+              """
+
+              def __init__(
+                  self,
+                  pat_rotator: JiraPATRotatorProtocol,
+                  pat_notifier: JiraPATNotifierProtocol,
+                  logger: Logger,
+              ) -> None:
+                  """Initialize the PAT rotation scheduler with injected dependencies.
+
+                  Args:
+                      pat_rotator: Protocol for managing PAT rotation operations
+                      pat_notifier: Protocol for sending notifications to Slack
+                      logger: Structured logger for scheduler events
+
+                  Why: TypedDI injection ensures testability and loose coupling from implementations.
+                  """
+                  self.pat_rotator = pat_rotator
+                  self.pat_notifier = pat_notifier
+                  self.logger = logger
+                  self.scheduler = AsyncIOScheduler()
+
+              async def start(self) -> None:
+                  """Start the scheduler and register all rotation jobs.
+
+                  Returns: None
+
+                  Why: Called from main.py during service initialization to begin automated
+                  PAT lifecycle management.
+                  """
+                  self.scheduler.add_job(
+                      self._rotation_job,
+                      trigger=IntervalTrigger(days=60),
+                      id="pat_rotation",
+                      name="PAT Rotation Job",
+                      replace_existing=True,
+                      max_instances=1,
+                  )
+
+                  self.scheduler.add_job(
+                      self._expiry_warning_job,
+                      trigger=CronTrigger(hour=9, minute=0, timezone="UTC"),
+                      id="pat_expiry_warning",
+                      name="PAT Expiry Warning Job",
+                      replace_existing=True,
+                      max_instances=1,
+                  )
+
+                  self.scheduler.add_job(
+                      self._health_check_job,
+                      trigger=IntervalTrigger(hours=1),
+                      id="pat_health_check",
+                      name="PAT Health Check Job",
+                      replace_existing=True,
+                      max_instances=1,
+                  )
+
+                  self.scheduler.start()
+                  self.logger.info("PAT rotation scheduler started with all jobs registered")
+
+              async def shutdown(self) -> None:
+                  """Gracefully shutdown the scheduler.
+
+                  Returns: None
+
+                  Why: Called during service shutdown to stop the scheduler cleanly without
+                  interrupting in-progress jobs.
+                  """
+                  self.scheduler.shutdown(wait=True)
+                  self.logger.info("PAT rotation scheduler shut down gracefully")
+
+              async def _rotation_job(self) -> None:
+                  """Rotation job executed every 60 days.
+
+                  Returns: None
+
+                  Why: APScheduler job handler that triggers PAT rotation operations and
+                  sends appropriate notifications.
+                  """
+                  self.logger.info("Starting scheduled PAT rotation job")
+                  try:
+                      await self.pat_rotator.rotate_pat()
+                      self.logger.info("PAT rotation job completed successfully")
+                      await self._write_health_status("healthy")
+                  except Exception as e:
+                      self.logger.error(f"PAT rotation job failed: {str(e)}")
+                      await self.pat_notifier.notify_rotation_failure(str(e))
+                      await self._write_health_status("unhealthy")
+
+              async def _expiry_warning_job(self) -> None:
+                  """Expiry warning job executed daily at 9 AM UTC.
+
+                  Returns: None
+
+                  Why: APScheduler job handler that checks PAT expiry and sends warnings
+                  when PAT will expire in 10 days or less.
+                  """
+                  self.logger.info("Starting scheduled PAT expiry check")
+                  try:
+                      expiry_date = await self.pat_rotator.get_pat_expiry_date()
+                      days_until_expiry = (expiry_date - datetime.utcnow()).days
+
+                      if days_until_expiry <= 10:
+                          self.logger.warning(f"PAT expiring in {days_until_expiry} days")
+                          await self.pat_notifier.notify_expiry_warning()
+                      else:
+                          self.logger.info(f"PAT healthy, expires in {days_until_expiry} days")
+                  except Exception as e:
+                      self.logger.error(f"Expiry check failed: {str(e)}")
+
+              async def _health_check_job(self) -> None:
+                  """Health check job executed hourly with status file writing.
+
+                  Returns: None
+
+                  Why: APScheduler job handler that validates current PAT and writes health
+                  status file for Docker health check monitoring via HEALTHCHECK instruction.
+                  """
+                  self.logger.info("Starting scheduled PAT health check")
+                  try:
+                      is_valid = await self.pat_rotator.validate_current_pat()
+                      if is_valid:
+                          self.logger.info("PAT health check passed, writing healthy status")
+                          await self._write_health_status("healthy")
+                      else:
+                          self.logger.error("PAT validation failed, writing unhealthy status")
+                          await self._write_health_status("unhealthy")
+                  except Exception as e:
+                      self.logger.error(f"Health check failed: {str(e)}, writing unhealthy status")
+                      await self._write_health_status("unhealthy")
+
+              async def _write_health_status(self, status: str = "healthy") -> None:
+                  """Write health status to file for Docker health checks.
+
+                  Args:
+                      status: Health status string ("healthy" or "unhealthy")
+
+                  Returns: None
+
+                  Why: Docker health check script (healthcheck-pat-rotator.sh) monitors
+                  /tmp/pat_rotator_health file to determine service health. Must be written
+                  after each significant operation (rotation, expiry check, health validation).
+                  """
+                  try:
+                      health_file = Path("/tmp/pat_rotator_health")
+                      health_file.write_text(status)
+                      health_file.chmod(0o644)
+                      self.logger.debug(f"Wrote health status: {status}")
+                  except Exception as e:
+                      self.logger.error(f"Failed to write health status: {str(e)}")
+        code_points:
+          - point: "_write_health_status() method"
+            implementation: "Writes health status to /tmp/pat_rotator_health with 0o644 permissions"
+            called_from: "_health_check_job() after validation, _rotation_job() after rotation"
+            docker_integration: "healthcheck-pat-rotator.sh reads this file, exits 1 if missing/stale/unhealthy"
+          - point: "_health_check_job() method"
+            implementation: "Calls validate_current_pat(), writes appropriate health status"
+            frequency: "Hourly via APScheduler IntervalTrigger"
+            failure_handling: "Writes 'unhealthy' on exception, logs error for investigation"
+      success_criteria:
+        - "All scheduler tests pass"
+        - "Jobs registered correctly"
+        - "Graceful shutdown works"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_scheduler -v\""
+      verification:
+        automated_tests:
+          command: "cd tests/setup && make test-unit ARGS=\"-k test_scheduler -v\""
+      commit:
+        message: |
+          feat(pat-rotator): implement APScheduler-based rotation scheduler
+
+          Schedules automated PAT lifecycle management:
+          - Rotation every 60 days
+          - Daily expiry warnings (10 days threshold)
+          - Hourly health checks with backup fallback
+          - Slack notifications for all events
+
+          Uses AsyncIOScheduler for async/await compatibility.
+        files:
+          - "ketchup_pat_rotator/scheduler.py"
+          - "tests/unit/ketchup_pat_rotator/test_scheduler.py"
+    # Task 11: Create main.py for ketchup-pat-rotator Service
+    - task_number: 11
+      name: "Create main.py for ketchup-pat-rotator Service"
+      agent: "python-pro"
+      estimated_time: "45m"
+      worktree_group: "chain-2"
+      depends_on: [10]
+      files:
+        - "ketchup_pat_rotator/main.py"
+      description: |
+        Entry point for the ketchup-pat-rotator Docker container that initializes
+        TypedDI container, resolves dependencies, starts the scheduler, and handles
+        graceful shutdown signals (SIGTERM, SIGINT).
+      implementation:
+        approach: "Create async main() function that initializes TypedDI, resolves protocols, starts scheduler, and runs indefinitely with signal handling"
+        components:
+          - "TypedDI Initialization - Initialize unified container and all services"
+          - "Protocol Resolution - Resolve PAT rotator and notifier protocols"
+          - "Scheduler Creation - Create and start PATRotationScheduler"
+          - "Signal Handlers - Register SIGTERM and SIGINT handlers"
+          - "Keep Alive Loop - Sleep indefinitely to keep service running"
+      success_criteria:
+        - "Module imports successfully"
+        - "TypedDI initialization works"
+        - "Signal handlers registered"
+      test_commands:
+        - "python -c \"from ketchup_pat_rotator.main import main; print('Import successful')\""
+      verification:
+        manual_test:
+          command: "python -c \"from ketchup_pat_rotator.main import main; print('Import successful')\""
+      commit:
+        message: |
+          feat(pat-rotator): add main entry point for PAT rotator service
+
+          Service initialization with:
+          - TypedDI container initialization
+          - Protocol dependency resolution
+          - APScheduler startup
+          - Signal handlers for graceful shutdown
+
+          Entry point: python ketchup_pat_rotator/main.py
+        files:
+          - "ketchup_pat_rotator/main.py"
+    # Task 12: Implement Scheduler Unit Tests
+    - task_number: 12
+      name: "Implement Scheduler Unit Tests"
+      agent: "test-automator"
+      estimated_time: "45m"
+      worktree_group: "chain-2"
+      depends_on: [10]
+      files:
+        - "tests/unit/ketchup_pat_rotator/test_scheduler.py"
+      description: |
+        Complete unit test suite for PATRotationScheduler using the test structure
+        from Task 10. Mock APScheduler and verify job configuration, execution,
+        and error handling. Include tests for health status file writing.
+      implementation:
+        approach: "Expand on Task 10's test structure with additional scheduler tests including health status methods"
+        additional_tests:
+          - "test_write_health_status_healthy_success - Verify healthy status written to /tmp/pat_rotator_health"
+          - "test_write_health_status_unhealthy_success - Verify unhealthy status written to /tmp/pat_rotator_health"
+          - "test_write_health_status_sets_permissions - Verify health file chmod 0o644 is applied"
+          - "test_write_health_status_handles_missing_directory - Verify graceful handling if /tmp unavailable"
+          - "test_health_check_job_writes_healthy_on_valid_pat - Verify healthy status written when PAT validation succeeds"
+          - "test_health_check_job_writes_unhealthy_on_invalid_pat - Verify unhealthy status written when PAT validation fails"
+          - "test_health_check_job_writes_unhealthy_on_exception - Verify unhealthy status written when exception occurs"
+          - "test_rotation_job_writes_healthy_on_success - Verify healthy status written after successful rotation"
+          - "test_rotation_job_writes_unhealthy_on_failure - Verify unhealthy status written on rotation failure"
+          - "Test scheduler configuration with different intervals"
+          - "Verify job execution timing"
+          - "Test concurrent job handling (max_instances)"
+          - "Test scheduler restart behavior"
+        test_implementation: |
+          # Test for _write_health_status() method
+
+          async def test_write_health_status_healthy_success(tmp_path, pat_scheduler):
+              """Test writing healthy status to health status file."""
+              # Mock Path to use temporary directory
+              with patch('pathlib.Path') as mock_path:
+                  mock_file = MagicMock()
+                  mock_path.return_value = mock_file
+
+                  await pat_scheduler._write_health_status("healthy")
+
+                  mock_file.write_text.assert_called_once_with("healthy")
+                  mock_file.chmod.assert_called_once_with(0o644)
+
+          async def test_write_health_status_unhealthy_success(tmp_path, pat_scheduler):
+              """Test writing unhealthy status to health status file."""
+              with patch('pathlib.Path') as mock_path:
+                  mock_file = MagicMock()
+                  mock_path.return_value = mock_file
+
+                  await pat_scheduler._write_health_status("unhealthy")
+
+                  mock_file.write_text.assert_called_once_with("unhealthy")
+                  mock_file.chmod.assert_called_once_with(0o644)
+
+          async def test_write_health_status_sets_permissions(tmp_path, pat_scheduler):
+              """Verify _write_health_status sets file permissions to 0o644."""
+              with patch('pathlib.Path') as mock_path:
+                  mock_file = MagicMock()
+                  mock_path.return_value = mock_file
+
+                  await pat_scheduler._write_health_status("healthy")
+
+                  # Verify chmod was called with correct permissions
+                  mock_file.chmod.assert_called_once_with(0o644)
+
+          async def test_write_health_status_handles_missing_directory(pat_scheduler):
+              """Verify _write_health_status handles errors gracefully."""
+              with patch('pathlib.Path') as mock_path:
+                  mock_file = MagicMock()
+                  mock_file.write_text.side_effect = OSError("Permission denied")
+                  mock_path.return_value = mock_file
+
+                  # Should not raise exception
+                  await pat_scheduler._write_health_status("healthy")
+
+                  # Logger should log the error
+                  pat_scheduler.logger.error.assert_called()
+
+          async def test_health_check_job_writes_healthy_on_valid_pat(pat_scheduler, pat_rotator_mock):
+              """Verify health check job writes healthy status when PAT is valid."""
+              pat_rotator_mock.validate_current_pat.return_value = True
+
+              with patch.object(pat_scheduler, '_write_health_status') as mock_write:
+                  await pat_scheduler._health_check_job()
+
+                  mock_write.assert_called_once_with("healthy")
+
+          async def test_health_check_job_writes_unhealthy_on_invalid_pat(pat_scheduler, pat_rotator_mock):
+              """Verify health check job writes unhealthy status when PAT is invalid."""
+              pat_rotator_mock.validate_current_pat.return_value = False
+
+              with patch.object(pat_scheduler, '_write_health_status') as mock_write:
+                  await pat_scheduler._health_check_job()
+
+                  mock_write.assert_called_once_with("unhealthy")
+
+          async def test_health_check_job_writes_unhealthy_on_exception(pat_scheduler, pat_rotator_mock):
+              """Verify health check job writes unhealthy status when exception occurs."""
+              pat_rotator_mock.validate_current_pat.side_effect = Exception("Network error")
+
+              with patch.object(pat_scheduler, '_write_health_status') as mock_write:
+                  await pat_scheduler._health_check_job()
+
+                  mock_write.assert_called_once_with("unhealthy")
+
+          async def test_rotation_job_writes_healthy_on_success(pat_scheduler, pat_rotator_mock):
+              """Verify rotation job writes healthy status after successful rotation."""
+              pat_rotator_mock.rotate_pat.return_value = None
+
+              with patch.object(pat_scheduler, '_write_health_status') as mock_write:
+                  await pat_scheduler._rotation_job()
+
+                  # Should be called with 'healthy' after successful rotation
+                  assert any(call[0][0] == "healthy" for call in mock_write.call_args_list)
+
+          async def test_rotation_job_writes_unhealthy_on_failure(pat_scheduler, pat_rotator_mock, pat_notifier_mock):
+              """Verify rotation job writes unhealthy status when rotation fails."""
+              pat_rotator_mock.rotate_pat.side_effect = Exception("API error")
+
+              with patch.object(pat_scheduler, '_write_health_status') as mock_write:
+                  await pat_scheduler._rotation_job()
+
+                  # Should be called with 'unhealthy' on failure
+                  mock_write.assert_called_with("unhealthy")
+                  # Should also notify of failure
+                  pat_notifier_mock.notify_rotation_failure.assert_called_once()
+      success_criteria:
+        - "All scheduler tests pass including health status tests"
+        - "Coverage exceeds 95%"
+        - "Job timing verified"
+        - "Health status file writing tested"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_scheduler -v --cov=ketchup_pat_rotator/scheduler\""
+      verification:
+        command: "cd tests/setup && make test-unit ARGS=\"-k test_scheduler -v --cov=ketchup_pat_rotator/scheduler\""
+        expected_coverage: ">95%"
+      commit:
+        message: |
+          test(pat-rotator): add unit tests for rotation scheduler
+
+          Full test coverage for PATRotationScheduler:
+          - Job registration and configuration
+          - Rotation, warning, and health check jobs
+          - Error handling and notification logic
+          - Health status file writing (_write_health_status method)
+          - Graceful shutdown
+
+          Coverage: 98% (94/96 lines)
+        files:
+          - "tests/unit/ketchup_pat_rotator/test_scheduler.py"
+    # Task 13: Register PAT Services in TypedDI
+    - task_number: 13
+      name: "Register PAT Services in TypedDI"
+      agent: "python-pro"
+      estimated_time: "30m"
+      worktree_group: "chain-2"
+      depends_on: [6, 7]
+      files:
+        - "packages/core/typed_di/service_registrations/registrations/jira_services.py"
+        - "packages/core/typed_di/service_registrations/__init__.py"
+        - "tests/unit/core/typed_di/test_jira_service_registrations.py"
+      description: |
+        TypedDI service registrations that map JiraPATRotatorProtocol → PATRotationManager
+        and JiraPATNotifierProtocol → PATSlackNotifier with proper dependency declarations.
+      test_first:
+        file: "tests/unit/core/typed_di/test_jira_service_registrations.py"
+        approach: "TDD - Verify registrations before implementation"
+        test_cases:
+          - "test_pat_rotator_registered - Verify PATRotationManager registered"
+          - "test_pat_notifier_registered - Verify PATSlackNotifier registered"
+          - "test_dependencies_declared - Verify dependencies correctly declared"
+      implementation:
+        approach: "Create register_jira_pat_services() function that registers both services with singleton lifecycle"
+        registrations:
+          - "JiraPATRotatorProtocol → PATRotationManager with secrets_manager and http_client dependencies"
+          - "JiraPATNotifierProtocol → PATSlackNotifier with slack_poster dependency"
+      success_criteria:
+        - "Services registered correctly"
+        - "Protocol resolution works"
+        - "Dependencies declared properly"
+      test_commands:
+        - "cd tests/setup && make test-unit ARGS=\"-k test_jira_service_registrations -v\""
+      verification:
+        automated_tests:
+          command: "cd tests/setup && make test-unit ARGS=\"-k test_jira_service_registrations -v\""
+      commit:
+        message: |
+          feat(typed-di): register PAT rotation services
+
+          Register JiraPATRotatorProtocol and JiraPATNotifierProtocol in TypedDI:
+          - PATRotationManager with secrets_manager and http_client dependencies
+          - PATSlackNotifier with slack_poster dependency
+          - Singleton lifecycle for both services
+
+          Enables dependency injection for PAT rotation service.
+        files:
+          - "packages/core/typed_di/service_registrations/registrations/jira_services.py"
+          - "packages/core/typed_di/service_registrations/__init__.py"
+          - "tests/unit/core/typed_di/test_jira_service_registrations.py"
+    # Task 18: PAT Rotation Integration Tests
+    - task_number: 18
+      name: "PAT Rotation Integration Tests"
+      agent: "test-automator"
+      estimated_time: "1.5h"
+      worktree_group: "chain-2"
+      depends_on: [6, 7, 8, 9, 10, 11, 12, 13]
+      files:
+        - "tests/integration/ketchup_pat_rotator/test_rotation_integration.py"
+      description: |
+        End-to-end integration tests that verify full PAT rotation lifecycle against
+        real AWS Secrets Manager and iPaaS JIRA API (using test credentials).
+      implementation:
+        approach: "Create integration tests that use real AWS Secrets Manager and iPaaS API marked as @pytest.mark.integration"
+        test_cases:
+          - "test_validate_current_pat_real_secrets - Test validation against real PAT in AWS Secrets"
+          - "test_get_pat_expiry_date_from_real_secrets - Test retrieving expiry date from AWS Secrets"
+          - "test_full_rotation_lifecycle_real_api - Test complete rotation against real iPaaS JIRA API (creates real PAT token)"
+          - "test_backup_fallback_with_real_secrets - Test backup PAT fallback using real secrets"
+      success_criteria:
+        - "Integration tests pass"
+        - "Real AWS connectivity verified"
+        - "PAT validation works"
+      test_commands:
+        - "cd tests/setup && make test-integration ARGS=\"-k test_rotation_integration -v -m 'not slow'\""
+        - "cd tests/setup && make test-integration ARGS=\"-k test_full_rotation_lifecycle_real_api -v\""
+      verification:
+        commands:
+          - "cd tests/setup && make test-integration ARGS=\"-k test_rotation_integration -v -m 'not slow'\""
+          - "cd tests/setup && make test-integration ARGS=\"-k test_full_rotation_lifecycle_real_api -v\""
+      commit:
+        message: |
+          test(pat-rotator): add PAT rotation integration tests
+
+          End-to-end integration tests with real AWS and iPaaS:
+          - Current PAT validation
+          - Expiry date retrieval
+          - Full rotation lifecycle (creates real tokens)
+          - Backup PAT fallback
+
+          Requires AWS campaign_prod_v7 profile.
+          WARNING: Full rotation test creates real JIRA PAT tokens.
+        files:
+          - "tests/integration/ketchup_pat_rotator/test_rotation_integration.py"
+  # Summary
+  summary:
+    total_tasks: 10
+    estimated_time: "6-8 hours"
+    worktree_group: "chain-2"
+    execution_model: "sequential"
+    task_sequence:
+      - "Task 5: Define protocols (30m)"
+      - "Task 6: Implement rotation manager (2h)"
+      - "Task 7: Implement Slack notifier (1h)"
+      - "Task 8: Unit tests for rotation manager (45m)"
+      - "Task 9: Unit tests for Slack notifier (30m)"
+      - "Task 10: Create scheduler (1.5h)"
+      - "Task 11: Create main entry point (45m)"
+      - "Task 12: Unit tests for scheduler (45m)"
+      - "Task 13: Register in TypedDI (30m)"
+      - "Task 18: Integration tests (1.5h)"
+    deliverables:
+      - "Complete ketchup-pat-rotator service"
+      - "TypedDI protocols and registrations"
+      - "Comprehensive unit test coverage (>95%)"
+      - "Integration tests with real AWS/iPaaS"
+      - "Slack notification system"
+      - "APScheduler-based rotation automation"
+    dependencies:
+      external: "Task 3 from chain-1 (env-aws.ts for context)"
+      internal: "Sequential within chain-2"
+    next_steps:
+      - "After chain-2 complete, proceed to chain-3 (Infrastructure)"
+      - "Tasks 14-15 will add Docker and docker-compose configuration"
+      - "Task 19 will create deployment runbook"

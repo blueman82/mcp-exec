@@ -1,0 +1,385 @@
+#!/usr/bin/env python3
+"""
+Slack Channel Summarization Tester
+
+Reads messages from a Slack channel using aiohttp, formats them as a single input,
+and sends them to an Azure OpenAI-compatible API endpoint across 47 concurrent connections.
+
+Handles:
+- Slack API retries (no slack_sdk required)
+- OpenAI endpoint retries (with exponential backoff)
+- Downloads Slack snippet contents if available
+- Detailed success/failure/timing/token metrics
+
+Requirements:
+- aiohttp
+- asyncio
+- tiktoken
+- tabulate
+- client.py (custom retry client)
+"""
+
+import asyncio
+import json
+import os
+import time
+import traceback
+
+# Set AWS environment variables for the script's execution context
+os.environ["AWS_PROFILE"] = "campaign_prod_v7"
+os.environ["AWS_DEFAULT_REGION"] = "eu-west-1"
+
+import tiktoken
+from tabulate import tabulate
+
+# Potentially add a mock for TokenTracker if OpenAIHandler needs it
+from packages.ai.cost_calculator import TokenTracker
+
+# Re-import the real cleanup_resources
+from packages.core.cleanup_utils import cleanup_resources
+
+# from client import AsyncRetryingClient  # our custom retrying client
+from packages.core.client_factory.ai_factory import _create_openai_handler
+from packages.core.client_factory.slack_factory import initialize_slack_clients
+from packages.core.client_factory_utils import set_instance
+
+# Re-import the real SecretsManager
+from packages.secrets.manager import SecretsManager
+
+# Potentially add a mock for TokenTracker if OpenAIHandler needs it
+# from packages.ai.cost_calculator import TokenTracker
+
+# --- Configuration ---
+SLACK_TOKEN = "<obtain this from Ketchup's Slack App>"
+SLACK_CHANNEL_ID = "C08REBAU0TC"  # Replace with your test channel ID
+API_URL = "https://ketchup-dev-lb.azure-api.net/ketchup-api/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview"
+API_KEY = "<obtain this from Ketchup's Azure API Management>"
+MAX_RETRIES = 5
+NUM_CONNECTIONS = 1
+MAX_TOKENS = 1024
+ENCODING = tiktoken.get_encoding("o200k_base")
+
+HEADERS = {"Content-Type": "application/json", "api-key": API_KEY}
+
+# Use the real SecretsManager, assuming AWS credentials are configured in the environment
+set_instance("secrets_manager", SecretsManager())
+
+
+# Define a basic mock for DynamoDB store if its methods are called
+class MockDynamoDBStore:
+    def __init__(self):
+        # Assign a mock for restore_ops. This might need to be a more specific mock
+        # if RestoreStateManager calls methods on self._restore_ops
+        class MockRestoreOps:
+            # async def get_item(self, key):
+            #     print(f"MockRestoreOps: get_item for {key}")
+            #     return None
+            # async def put_item(self, item):
+            #     print(f"MockRestoreOps: put_item with {item}")
+            #     return True
+            pass
+
+        self.restore_ops = MockRestoreOps()
+
+        # Mock for get_channel_details needed by BlockKitBuilder if archive_command is initialized
+        async def mock_get_channel_details(channel_id: str):
+            print(f"MockDynamoDBStore: get_channel_details called for {channel_id}")
+            return {"name": "mock_channel", "id": channel_id}
+
+        self.get_channel_details = mock_get_channel_details
+
+
+set_instance("dynamodb_store", MockDynamoDBStore())
+
+
+# Define a basic mock for SlackPostingHandler
+class MockSlackPostingHandler:
+    # Add mock methods here if any are actually called by the client factories
+    # async def post_message(self, channel_id, text):
+    #     print(f"MockSlackPostingHandler: post_message to {channel_id} with {text}")
+    #     return {"ok": True, "ts": "mock_ts"}
+    pass
+
+
+set_instance("slack_posting", MockSlackPostingHandler())
+
+
+# Define a basic mock for UserStore
+class MockUserStore:
+    async def get_users(self, user_ids: list[str]) -> dict:
+        print(
+            f"MockUserStore: get_users called for IDs: {user_ids}. Returning empty dict."
+        )
+        return {}
+
+    async def batch_store_users(self, users_data: list[dict]) -> tuple[int, int]:
+        print(
+            f"MockUserStore: batch_store_users called with {len(users_data)} users. Simulating success."
+        )
+        # Return (success_count, failure_count)
+        return len(users_data), 0
+
+    # Add other mock methods here if any are actually called by the client factories
+
+
+set_instance("user_store", MockUserStore())
+
+
+class MockTokenTracker(TokenTracker):
+    def __init__(self):
+        super().__init__()
+        print("MockTokenTracker initialized")
+
+    # Override methods if needed, e.g., to prevent actual tracking
+    def track_tokens(self, model: str, input_tokens: int, output_tokens: int) -> None:
+        print(
+            f"MockTokenTracker: track_tokens called for {model} with {input_tokens} in, {output_tokens} out. Not actually tracking."
+        )
+        # super().track_tokens(model, input_tokens, output_tokens)
+
+
+set_instance("token_tracker", MockTokenTracker())
+
+
+# Define a mock for CloudWatchMetrics
+class MockCloudWatchMetrics:
+    # async def put_metric_data(self, namespace, metric_name, value, dimensions):
+    #     print(f"MockCloudWatchMetrics: put_metric_data for {namespace}/{metric_name}")
+    pass
+
+
+set_instance("cloudwatch_metrics", MockCloudWatchMetrics())
+
+
+async def fetch_slack_messages(slack_clients, channel_id: str) -> str:
+    msg_ops = slack_clients["msg_ops"]
+    all_messages = await msg_ops.fetch_channel_messages(channel_id)
+    return "\n".join(all_messages)
+
+
+async def openai_request(openai_handler, idx, input_text, input_tokens):
+    """
+    Makes a single request to the OpenAI handler and returns a result tuple.
+    The OpenAIHandler is expected to perform its own retries.
+    """
+    start_time = time.time()
+    messages = [
+        {
+            "role": "user",
+            "content": f"Generate a detailed timeline of the Slack discussion. Include every significant event, comment, and mention, in bullet points. {input_text}",
+        }
+    ]
+    try:
+        # Single call to the handler, trusting its internal retry logic
+        result = await openai_handler.call_openai_endpoint(messages=messages)
+
+        # Process successful response
+        if (
+            "choices" in result
+            and result["choices"]
+            and result["choices"][0].get("message")
+        ):
+            output_text = result["choices"][0]["message"]["content"]
+            output_tokens = len(ENCODING.encode(output_text))
+            # OpenAIHandler's internal retries are not directly visible here for 'status'
+            # We assume if it returns without error, it's a success from this function's perspective.
+            # The handler itself would have logged its retries.
+            status = "Success (Handler)"
+            return (
+                idx,
+                status,
+                time.time() - start_time,
+                0.0,  # Retry delay is handled within OpenAIHandler
+                input_tokens,
+                output_tokens,
+            )
+        else:
+            # Handle cases where the handler returns but it's not a structured success
+            # (e.g., error in response structure, or an error object returned by the handler)
+            error_detail = str(
+                result.get("error", "Unknown error structure from handler")
+            )
+            # --- DIAGNOSTIC PRINT --- #
+            print(
+                f"\n--- DIAGNOSTIC: OpenAIHandler returned (idx: {idx}, deemed failure by test_con) ---"
+            )
+            print(f"Result type: {type(result)}")
+            print(f"Result content: {result}")
+            print(
+                "------------------------------------------------------------------------------------\n"
+            )
+            # --- END DIAGNOSTIC PRINT --- #
+            return (
+                idx,
+                f"Failed (Handler - No Choices/Error: {error_detail[:100]})",  # Truncate error
+                time.time() - start_time,
+                0.0,
+                input_tokens,
+                0,
+            )
+    except Exception as e:
+        # Catch any exception raised by openai_handler.call_openai_endpoint
+        # after its internal retries are exhausted.
+        return (
+            idx,
+            f"Failed (Handler - Exception: {type(e).__name__})",
+            time.time() - start_time,
+            0.0,  # Retry delay is handled within OpenAIHandler
+            input_tokens,
+            0,
+        )
+
+
+async def main():
+    slack_clients = None
+    openai_handler = None
+    result_path = None
+    results = []
+    error_info = None
+    container_id = os.uname()[1]  # Hostname is container id
+    result_path = f"/app/results/result-{container_id}.json"
+    try:
+        slack_clients = await initialize_slack_clients()
+        openai_handler = await _create_openai_handler()
+        print("Fetching messages from Slack...")
+        input_text = await fetch_slack_messages(slack_clients, SLACK_CHANNEL_ID)
+        input_tokens = len(ENCODING.encode(input_text))
+        print(f"Fetched {input_tokens:,} input tokens from Slack.")
+        start_time_all = time.time()
+        tasks = [
+            openai_request(openai_handler, i, input_text, input_tokens)
+            for i in range(1, NUM_CONNECTIONS + 1)
+        ]
+        results = await asyncio.gather(*tasks)
+        total_time = time.time() - start_time_all
+        results = sorted(results, key=lambda x: x[0])
+
+        total = len(results)
+        total_successes = sum(1 for _, s, *_ in results if s == "Success (Handler)")
+        failures = sum(
+            1
+            for _, s, *_ in results
+            if isinstance(s, str) and s.startswith("Failed (Handler")
+        )
+        total_input_tokens = sum(inp for *_, inp, _ in results if inp is not None)
+        total_output_tokens = sum(out for *_, _, out in results if out is not None)
+        avg_time = sum(r[2] for r in results) / total if total > 0 else 0
+        max_time = max(r[2] for r in results) if total > 0 else 0
+        min_time = min(r[2] for r in results) if total > 0 else 0
+        avg_retry_sleep = sum(r[3] for r in results) / total if total > 0 else 0
+
+        table_data = [
+            [idx, status, f"{elapsed:.2f}s", f"{sleep:.2f}s"]
+            for idx, status, elapsed, sleep, _, _ in results
+        ]
+        print("\nConnection Results:")
+        print(
+            tabulate(
+                table_data,
+                headers=[
+                    "Connection #",
+                    "Status",
+                    "Total Request Time",
+                    "Retry Sleep Time",
+                ],
+                tablefmt="grid",
+            )
+        )
+
+        print("\nSummary Table:")
+        summary_table = [
+            ["Total Successful", total_successes],
+            ["Total Failed", failures],
+            ["Total execution time", f"{total_time:.2f}s"],
+            ["Average request time", f"{avg_time:.2f}s"],
+            ["Fastest request", f"{min_time:.2f}s"],
+            ["Slowest request", f"{max_time:.2f}s"],
+            ["Average retry sleep time", f"{avg_retry_sleep:.2f}s"],
+            ["Total input tokens", f"{total_input_tokens:,}"],
+            ["Total output tokens", f"{total_output_tokens:,}"],
+            ["Total tokens used", f"{total_input_tokens + total_output_tokens:,}"],
+            [
+                "Average total tokens per request",
+                f"{(total_input_tokens + total_output_tokens) / total:,.2f}",
+            ],
+            ["Average input tokens per request", f"{total_input_tokens / total:,.2f}"],
+            [
+                "Average output tokens per request",
+                f"{total_output_tokens / total:,.2f}",
+            ],
+        ]
+        print(tabulate(summary_table, headers=["Metric", "Value"], tablefmt="grid"))
+
+        print("\nSuccess Metrics Summary:")
+        print(
+            tabulate(
+                [
+                    ["Total Requests", total],
+                    [
+                        "Success Rate",
+                        (
+                            f"{(total_successes / total) * 100:.2f}%"
+                            if total > 0
+                            else "0.00%"
+                        ),
+                    ],
+                    [
+                        "Failure Rate",
+                        f"{(failures / total) * 100:.2f}%" if total > 0 else "0.00%",
+                    ],
+                ],
+                headers=["Metric", "Value"],
+                tablefmt="grid",
+            )
+        )
+
+        # Write results to file (success path)
+        with open(result_path, "w") as f:
+            json.dump(
+                {
+                    "container_id": container_id,
+                    "results": results,
+                    "summary": {
+                        "total": total,
+                        "total_successes": total_successes,
+                        "failures": failures,
+                        "total_time": total_time,
+                        "avg_time": avg_time,
+                        "max_time": max_time,
+                        "min_time": min_time,
+                        "avg_retry_sleep": avg_retry_sleep,
+                        "total_input_tokens": total_input_tokens,
+                        "total_output_tokens": total_output_tokens,
+                    },
+                },
+                f,
+                indent=2,
+            )
+    except Exception as e:
+        # On any error, write a result file with error info
+        error_info = {
+            "container_id": container_id,
+            "status": "error",
+            "exception": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        with open(result_path, "w") as f:
+            json.dump(error_info, f, indent=2)
+        raise
+    finally:
+        if openai_handler:
+            print("Cleaning up OpenAI handler...")
+            await openai_handler.cleanup()
+            print("OpenAI handler cleanup complete.")
+        if slack_clients and slack_clients.get("session"):
+            print("Closing Slack client session...")
+            await slack_clients["session"].close()
+            print("Slack client session closed.")
+        try:
+            await cleanup_resources()
+        except Exception as e:
+            print(f"[WARN] Error during fallback aiohttp cleanup: {e}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

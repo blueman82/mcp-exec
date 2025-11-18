@@ -1,0 +1,7 @@
+{
+  "session_id": "cc45d09b-127d-45cb-84c5-3172384e08ee",
+  "prompts": [
+    "we should be deploying like this\n./infrastructure/deploy-auto.sh --skip-git-checks --no-tag --force --type patch",
+    "deploy\n./deploy-auto.sh --skip-git-checks --no-tag --force --type patch"
+  ]
+}

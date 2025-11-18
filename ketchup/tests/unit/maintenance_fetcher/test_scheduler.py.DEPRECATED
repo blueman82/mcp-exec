@@ -1,0 +1,448 @@
+"""Unit tests for maintenance fetcher scheduler module."""
+
+import asyncio
+import signal
+from datetime import datetime
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+
+# Import scheduler module at the top
+from maintenance_fetcher.scheduler import (
+    MaintenanceFetcherScheduler,
+    async_main,
+    main,
+)
+
+
+def test_scheduler_init():
+    """Test scheduler initialization."""
+    with patch("signal.signal") as mock_signal, patch("os.getenv") as mock_getenv:
+
+        mock_getenv.return_value = "false"
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Assert
+        assert scheduler.running is True
+        assert scheduler.TARGET_HOUR == 1
+        assert scheduler.TARGET_MINUTE == 30
+        assert scheduler.run_on_start is False
+        assert str(scheduler.health_file) == "/app/health/maintenance_fetcher_health"
+        assert (
+            str(scheduler.last_run_file) == "/app/health/maintenance_fetcher_last_run"
+        )
+
+        # Verify signal handlers registered
+        assert mock_signal.call_count == 2
+        mock_signal.assert_any_call(signal.SIGTERM, scheduler._signal_handler)
+        mock_signal.assert_any_call(signal.SIGINT, scheduler._signal_handler)
+
+
+def test_scheduler_init_with_run_on_start():
+    """Test scheduler initialization with RUN_ON_START=true."""
+    with patch("signal.signal"), patch("os.getenv") as mock_getenv:
+
+        mock_getenv.return_value = "true"
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        assert scheduler.run_on_start is True
+
+
+def test_signal_handler_sigterm():
+    """Test SIGTERM signal handler."""
+    with patch("signal.signal"), patch("os.getenv"):
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler.running = True
+
+        # Call signal handler
+        scheduler._signal_handler(signal.SIGTERM, None)
+
+        # Assert
+        assert scheduler.running is False
+
+
+def test_signal_handler_sigint():
+    """Test SIGINT signal handler."""
+    with patch("signal.signal"), patch("os.getenv"):
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler.running = True
+
+        # Call signal handler
+        scheduler._signal_handler(signal.SIGINT, None)
+
+        # Assert
+        assert scheduler.running is False
+
+
+def test_update_health_status():
+    """Test health status file writing."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "time.time"
+    ) as mock_time, patch("pathlib.Path.write_text") as mock_write, patch(
+        "pathlib.Path.mkdir"
+    ):
+
+        mock_time.return_value = 1696464000.0
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler._update_health_status("idle")
+
+        # Assert
+        mock_write.assert_called_once_with("1696464000:idle")
+
+
+def test_update_health_status_exception_handling():
+    """Test health status update handles exceptions gracefully."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "pathlib.Path.write_text"
+    ) as mock_write:
+
+        mock_write.side_effect = OSError("Permission denied")
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Should not raise exception
+        scheduler._update_health_status("idle")
+
+
+def test_update_last_run():
+    """Test last run timestamp file writing."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "time.time"
+    ) as mock_time, patch("pathlib.Path.write_text") as mock_write, patch(
+        "pathlib.Path.mkdir"
+    ):
+
+        mock_time.return_value = 1696464000.0
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler._update_last_run()
+
+        # Assert
+        mock_write.assert_called_once_with("1696464000")
+
+
+def test_update_last_run_exception_handling():
+    """Test last run update handles exceptions gracefully."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "pathlib.Path.write_text"
+    ) as mock_write:
+
+        mock_write.side_effect = OSError("Permission denied")
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Should not raise exception
+        scheduler._update_last_run()
+
+
+def test_seconds_until_target_time_before():
+    """Test time calculation when before 1:30 AM today."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "maintenance_fetcher.scheduler.datetime"
+    ) as mock_datetime:
+
+        # Mock current time: 2025-10-06 00:00:00 UTC (before 1:30 AM)
+        mock_now = datetime(2025, 10, 6, 0, 0, 0)
+        mock_datetime.utcnow.return_value = mock_now
+
+        scheduler = MaintenanceFetcherScheduler()
+        seconds = scheduler._seconds_until_target_time()
+
+        # Assert - should be 1.5 hours = 5400 seconds
+        assert seconds == 5400
+
+
+def test_seconds_until_target_time_after():
+    """Test time calculation when after 1:30 AM (should be tomorrow)."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "maintenance_fetcher.scheduler.datetime"
+    ) as mock_datetime:
+
+        # Mock current time: 2025-10-06 02:00:00 UTC (after 1:30 AM)
+        mock_now = datetime(2025, 10, 6, 2, 0, 0)
+        mock_datetime.utcnow.return_value = mock_now
+
+        scheduler = MaintenanceFetcherScheduler()
+        seconds = scheduler._seconds_until_target_time()
+
+        # Assert - should be 23.5 hours = 84600 seconds
+        assert seconds == 84600
+
+
+def test_seconds_until_target_time_exact():
+    """Test time calculation when exactly at 1:30 AM (should be tomorrow)."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "maintenance_fetcher.scheduler.datetime"
+    ) as mock_datetime:
+
+        # Mock current time: 2025-10-06 01:30:00 UTC (exactly at 1:30 AM)
+        mock_now = datetime(2025, 10, 6, 1, 30, 0)
+        mock_datetime.utcnow.return_value = mock_now
+
+        scheduler = MaintenanceFetcherScheduler()
+        seconds = scheduler._seconds_until_target_time()
+
+        # Assert - should be 24 hours = 86400 seconds
+        assert seconds == 86400
+
+
+def test_seconds_until_target_time_month_boundary():
+    """Test time calculation across month boundary (Jan 31 -> Feb 1)."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "maintenance_fetcher.scheduler.datetime"
+    ) as mock_datetime:
+
+        # Mock current time: 2025-01-31 02:00:00 UTC (after 1:30 AM on Jan 31)
+        mock_now = datetime(2025, 1, 31, 2, 0, 0)
+        mock_datetime.utcnow.return_value = mock_now
+
+        scheduler = MaintenanceFetcherScheduler()
+        seconds = scheduler._seconds_until_target_time()
+
+        # Assert - should be 23.5 hours until Feb 1 01:30:00
+        # Uses timedelta to handle month boundary correctly
+        assert seconds == 84600
+
+
+@pytest.mark.asyncio
+async def test_run_maintenance_fetch_success():
+    """Test successful maintenance fetch execution."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "maintenance_fetcher.scheduler.fetch_and_store_maintenance_data"
+    ) as mock_fetch, patch("time.time") as mock_time:
+
+        mock_fetch.return_value = {"status": "success", "records": 10}
+        mock_time.side_effect = [1000.0, 1005.5]  # start and end time
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Mock update methods
+        scheduler._update_health_status = Mock()
+        scheduler._update_last_run = Mock()
+
+        await scheduler.run_maintenance_fetch()
+
+        # Assert
+        mock_fetch.assert_called_once()
+        assert scheduler._update_health_status.call_count == 2
+        scheduler._update_health_status.assert_any_call("running")
+        scheduler._update_health_status.assert_any_call("idle")
+        scheduler._update_last_run.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_run_maintenance_fetch_failure():
+    """Test maintenance fetch handles exceptions."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "maintenance_fetcher.scheduler.fetch_and_store_maintenance_data"
+    ) as mock_fetch:
+
+        mock_fetch.side_effect = Exception("Fetch failed")
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Mock update methods
+        scheduler._update_health_status = Mock()
+        scheduler._update_last_run = Mock()
+
+        # Should not raise exception
+        await scheduler.run_maintenance_fetch()
+
+        # Assert
+        scheduler._update_health_status.assert_any_call("error")
+        scheduler._update_last_run.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_run_initial_fetch_if_enabled_true():
+    """Test initial fetch runs when RUN_ON_START=true."""
+    with patch("signal.signal"), patch("os.getenv") as mock_getenv:
+
+        mock_getenv.return_value = "true"
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler.run_maintenance_fetch = AsyncMock()
+
+        await scheduler._run_initial_fetch_if_enabled()
+
+        # Assert
+        scheduler.run_maintenance_fetch.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_run_initial_fetch_if_enabled_false():
+    """Test initial fetch skipped when RUN_ON_START=false."""
+    with patch("signal.signal"), patch("os.getenv") as mock_getenv:
+
+        mock_getenv.return_value = "false"
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler.run_maintenance_fetch = AsyncMock()
+
+        await scheduler._run_initial_fetch_if_enabled()
+
+        # Assert
+        scheduler.run_maintenance_fetch.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_start_with_immediate_shutdown():
+    """Test scheduler start with immediate shutdown signal."""
+    with patch("signal.signal"), patch("os.getenv"):
+
+        scheduler = MaintenanceFetcherScheduler()
+        scheduler.running = False  # Simulate immediate shutdown
+
+        # Mock methods
+        scheduler._update_health_status = Mock()
+        scheduler._run_initial_fetch_if_enabled = AsyncMock()
+        scheduler._seconds_until_target_time = Mock(return_value=100)
+
+        await scheduler.start()
+
+        # Assert
+        scheduler._update_health_status.assert_any_call("starting")
+        scheduler._update_health_status.assert_any_call("stopped")
+
+
+@pytest.mark.asyncio
+async def test_start_with_short_wait():
+    """Test scheduler with short wait time (less than 60 seconds)."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "asyncio.sleep"
+    ) as mock_sleep:
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Mock methods
+        scheduler._update_health_status = Mock()
+        scheduler._run_initial_fetch_if_enabled = AsyncMock()
+        scheduler.run_maintenance_fetch = AsyncMock()
+
+        # Return 45 seconds, then trigger shutdown
+        call_count = [0]
+
+        def seconds_side_effect():
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return 45  # First call: 45 seconds until run
+            scheduler.running = False  # Shutdown after first iteration
+            return 0
+
+        scheduler._seconds_until_target_time = Mock(side_effect=seconds_side_effect)
+
+        await scheduler.start()
+
+        # Assert - should sleep 45 seconds (no 60s chunks)
+        mock_sleep.assert_called_once_with(45)
+        scheduler.run_maintenance_fetch.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_start_with_cancelled_error():
+    """Test scheduler handles asyncio.CancelledError."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "asyncio.sleep"
+    ) as mock_sleep:
+
+        mock_sleep.side_effect = asyncio.CancelledError()
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Mock methods
+        scheduler._update_health_status = Mock()
+        scheduler._run_initial_fetch_if_enabled = AsyncMock()
+        scheduler._seconds_until_target_time = Mock(return_value=3600)
+
+        await scheduler.start()
+
+        # Assert - should handle cancellation gracefully
+        scheduler._update_health_status.assert_any_call("stopped")
+
+
+@pytest.mark.asyncio
+async def test_start_with_exception_in_loop():
+    """Test scheduler handles exceptions in main loop."""
+    with patch("signal.signal"), patch("os.getenv"), patch(
+        "asyncio.sleep"
+    ) as mock_sleep:
+
+        # First call raises exception, second call succeeds, third call stops
+        call_count = [0]
+
+        async def sleep_side_effect(seconds):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                raise Exception("Network error")
+            elif call_count[0] == 2:
+                return  # Normal sleep
+            else:
+                raise asyncio.CancelledError()  # Stop after recovery
+
+        mock_sleep.side_effect = sleep_side_effect
+
+        scheduler = MaintenanceFetcherScheduler()
+
+        # Mock methods
+        scheduler._update_health_status = Mock()
+        scheduler._run_initial_fetch_if_enabled = AsyncMock()
+        scheduler._seconds_until_target_time = Mock(return_value=60)
+
+        await scheduler.start()
+
+        # Assert - should recover from exception
+        assert call_count[0] >= 2  # At least 2 attempts
+
+
+@pytest.mark.asyncio
+async def test_async_main():
+    """Test async_main entry point."""
+    with patch(
+        "maintenance_fetcher.scheduler.MaintenanceFetcherScheduler"
+    ) as MockScheduler:
+
+        mock_scheduler_instance = Mock()
+        mock_scheduler_instance.start = AsyncMock()
+        MockScheduler.return_value = mock_scheduler_instance
+
+        await async_main()
+
+        # Assert
+        MockScheduler.assert_called_once()
+        mock_scheduler_instance.start.assert_called_once()
+
+
+def test_main_entry_point_success():
+    """Test main() entry point successful execution."""
+    with patch("asyncio.run") as mock_run:
+
+        main()
+
+        # Assert
+        mock_run.assert_called_once()
+
+
+def test_main_entry_point_keyboard_interrupt():
+    """Test main() handles KeyboardInterrupt gracefully."""
+    with patch("asyncio.run") as mock_run:
+
+        mock_run.side_effect = KeyboardInterrupt()
+
+        # Should not raise exception
+        main()
+
+
+def test_main_entry_point_exception():
+    """Test main() raises exceptions from async_main."""
+    with patch("asyncio.run") as mock_run:
+
+        mock_run.side_effect = RuntimeError("Fatal error")
+
+        # Should raise the exception
+        with pytest.raises(RuntimeError, match="Fatal error"):
+            main()

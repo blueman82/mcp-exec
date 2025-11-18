@@ -1,0 +1,898 @@
+{
+  "total_call_sites": 118,
+  "unique_services": [
+    "slack_async_client",
+    "secrets_manager",
+    "slack_posting",
+    "restore_state",
+    "bot_membership_ops",
+    "distributed_lock",
+    "jira_data_extractor",
+    "user_ops",
+    "slack_config",
+    "ims_token_manager",
+    "access_request_operations",
+    "channel_operations",
+    "dynamodb_async_client",
+    "feature_service",
+    "metrics",
+    "csv_generator",
+    "msg_ops",
+    "openai",
+    "access_request_monitor",
+    "usage_export_handler",
+    "info_ops",
+    "feedback_reactions_handler",
+    "feedback_report_handler",
+    "dynamodb_config",
+    "channel_name_resolver",
+    "membership_ops",
+    "jira_cache",
+    "dynamodb_store",
+    "mcp_client",
+    "archive_ops",
+    "command_tracking_ops",
+    "user_store",
+    "restore_ops",
+    "block_kit_builder"
+  ],
+  "call_sites_by_file": {
+    "packages/core/client_factory/ai_factory.py": [
+      {
+        "line_number": 31,
+        "function_name": "_create_openai_handler",
+        "service_key": "info_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 32,
+        "function_name": "_create_openai_handler",
+        "service_key": "membership_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 33,
+        "function_name": "_create_openai_handler",
+        "service_key": "msg_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 34,
+        "function_name": "_create_openai_handler",
+        "service_key": "archive_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 53,
+        "function_name": "_create_openai_handler",
+        "service_key": "jira_data_extractor",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 91,
+        "function_name": "_create_user_join_notification_service",
+        "service_key": "openai",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 92,
+        "function_name": "_create_user_join_notification_service",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 93,
+        "function_name": "_create_user_join_notification_service",
+        "service_key": "info_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 94,
+        "function_name": "_create_user_join_notification_service",
+        "service_key": "msg_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 116,
+        "function_name": "_create_user_join_notification_service",
+        "service_key": "jira_data_extractor",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      },
+      {
+        "line_number": 126,
+        "function_name": "_create_user_join_notification_service",
+        "service_key": "user_store",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      }
+    ],
+    "packages/core/client_factory/secrets_factory.py": [
+      {
+        "line_number": 37,
+        "function_name": "initialize_secrets_clients",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      }
+    ],
+    "packages/core/client_factory/slack_factory.py": [
+      {
+        "line_number": 68,
+        "function_name": "_create_slack_config",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 80,
+        "function_name": "_create_archive_ops",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 81,
+        "function_name": "_create_archive_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 82,
+        "function_name": "_create_archive_ops",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 83,
+        "function_name": "_create_archive_ops",
+        "service_key": "restore_state",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 84,
+        "function_name": "_create_archive_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 118,
+        "function_name": "_create_info_ops",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 119,
+        "function_name": "_create_info_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 120,
+        "function_name": "_create_info_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 143,
+        "function_name": "_create_membership_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 144,
+        "function_name": "_create_membership_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 162,
+        "function_name": "_create_name_resolver",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 176,
+        "function_name": "_create_user_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 177,
+        "function_name": "_create_user_ops",
+        "service_key": "user_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 178,
+        "function_name": "_create_user_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 201,
+        "function_name": "_create_msg_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 202,
+        "function_name": "_create_msg_ops",
+        "service_key": "user_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 203,
+        "function_name": "_create_msg_ops",
+        "service_key": "archive_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 223,
+        "function_name": "_create_msg_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 238,
+        "function_name": "_create_restore_state",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 250,
+        "function_name": "_create_bot_membership_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 251,
+        "function_name": "_create_bot_membership_ops",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 252,
+        "function_name": "_create_bot_membership_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 276,
+        "function_name": "_create_restore_ops",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 277,
+        "function_name": "_create_restore_ops",
+        "service_key": "archive_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 278,
+        "function_name": "_create_restore_ops",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 279,
+        "function_name": "_create_restore_ops",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 280,
+        "function_name": "_create_restore_ops",
+        "service_key": "restore_state",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 281,
+        "function_name": "_create_restore_ops",
+        "service_key": "bot_membership_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 282,
+        "function_name": "_create_restore_ops",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 322,
+        "function_name": "_create_slack_posting",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 323,
+        "function_name": "_create_slack_posting",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 342,
+        "function_name": "_create_slack_auth",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 354,
+        "function_name": "_create_feedback_reactions_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 355,
+        "function_name": "_create_feedback_reactions_handler",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 356,
+        "function_name": "_create_feedback_reactions_handler",
+        "service_key": "metrics",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 380,
+        "function_name": "_create_feedback_report_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 381,
+        "function_name": "_create_feedback_report_handler",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 400,
+        "function_name": "_create_trust_endorsement_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 401,
+        "function_name": "_create_trust_endorsement_handler",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 402,
+        "function_name": "_create_trust_endorsement_handler",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 430,
+        "function_name": "_create_flag_review_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 431,
+        "function_name": "_create_flag_review_handler",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 432,
+        "function_name": "_create_flag_review_handler",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 459,
+        "function_name": "_create_access_request_handler",
+        "service_key": "slack_async_client",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 460,
+        "function_name": "_create_access_request_handler",
+        "service_key": "access_request_operations",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 461,
+        "function_name": "_create_access_request_handler",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 462,
+        "function_name": "_create_access_request_handler",
+        "service_key": "access_request_monitor",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 463,
+        "function_name": "_create_access_request_handler",
+        "service_key": "distributed_lock",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 499,
+        "function_name": "_create_channel_metadata_edit_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 500,
+        "function_name": "_create_channel_metadata_edit_handler",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 501,
+        "function_name": "_create_channel_metadata_edit_handler",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 525,
+        "function_name": "_create_shortcut_handler",
+        "service_key": "feedback_report_handler",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 526,
+        "function_name": "_create_shortcut_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 545,
+        "function_name": "_create_user_verifier",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 546,
+        "function_name": "_create_user_verifier",
+        "service_key": "user_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 547,
+        "function_name": "_create_user_verifier",
+        "service_key": "user_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 568,
+        "function_name": "_create_block_kit_builder",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 569,
+        "function_name": "_create_block_kit_builder",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 570,
+        "function_name": "_create_block_kit_builder",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 571,
+        "function_name": "_create_block_kit_builder",
+        "service_key": "feedback_reactions_handler",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 599,
+        "function_name": "_create_archive_command",
+        "service_key": "info_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 600,
+        "function_name": "_create_archive_command",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 601,
+        "function_name": "_create_archive_command",
+        "service_key": "archive_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 602,
+        "function_name": "_create_archive_command",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 603,
+        "function_name": "_create_archive_command",
+        "service_key": "block_kit_builder",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 604,
+        "function_name": "_create_archive_command",
+        "service_key": "restore_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 606,
+        "function_name": "_create_archive_command",
+        "service_key": "user_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 667,
+        "function_name": "_create_usage_export_handler",
+        "service_key": "command_tracking_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 668,
+        "function_name": "_create_usage_export_handler",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 669,
+        "function_name": "_create_usage_export_handler",
+        "service_key": "csv_generator",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 700,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 703,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "command_tracking_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 704,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "usage_export_handler",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 743,
+        "function_name": "get_channel_info_ops",
+        "service_key": "info_ops",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      },
+      {
+        "line_number": 748,
+        "function_name": "get_channel_membership_ops",
+        "service_key": "membership_ops",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      },
+      {
+        "line_number": 753,
+        "function_name": "get_channel_msg_ops",
+        "service_key": "msg_ops",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      },
+      {
+        "line_number": 757,
+        "function_name": "_create_slack_async_client",
+        "service_key": "slack_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 775,
+        "function_name": "_create_feature_service",
+        "service_key": "user_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 781,
+        "function_name": "_create_feature_service",
+        "service_key": "channel_operations",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 802,
+        "function_name": "_create_feature_command",
+        "service_key": "feature_service",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 803,
+        "function_name": "_create_feature_command",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 804,
+        "function_name": "_create_feature_command",
+        "service_key": "user_ops",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 805,
+        "function_name": "_create_feature_command",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 731,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "user_store",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      },
+      {
+        "line_number": 732,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "slack_async_client",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      },
+      {
+        "line_number": 733,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "user_ops",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      },
+      {
+        "line_number": 734,
+        "function_name": "_create_home_tab_handler",
+        "service_key": "feedback_report_handler",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      }
+    ],
+    "packages/core/client_factory/db_factory.py": [
+      {
+        "line_number": 45,
+        "function_name": "_create_dynamodb_async_client",
+        "service_key": "dynamodb_config",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 57,
+        "function_name": "_create_dynamodb_store",
+        "service_key": "dynamodb_async_client",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 69,
+        "function_name": "_create_user_store",
+        "service_key": "dynamodb_async_client",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 82,
+        "function_name": "_create_command_tracking_ops",
+        "service_key": "dynamodb_async_client",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 96,
+        "function_name": "_create_channel_operations",
+        "service_key": "dynamodb_async_client",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 108,
+        "function_name": "get_dynamodb_store",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "direct_usage",
+        "error_handling": false
+      }
+    ],
+    "packages/core/client_factory/integration_factory.py": [
+      {
+        "line_number": 31,
+        "function_name": "_create_ims_token_manager",
+        "service_key": "secrets_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 44,
+        "function_name": "_create_mcp_client",
+        "service_key": "ims_token_manager",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 72,
+        "function_name": "_create_jira_data_extractor",
+        "service_key": "mcp_client",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 73,
+        "function_name": "_create_jira_data_extractor",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 74,
+        "function_name": "_create_jira_data_extractor",
+        "service_key": "jira_cache",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 111,
+        "function_name": "_create_distributed_lock",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      },
+      {
+        "line_number": 127,
+        "function_name": "_create_access_request_operations",
+        "service_key": "dynamodb_store",
+        "usage_pattern": "assignment",
+        "error_handling": false
+      }
+    ],
+    "packages/ai/core/operations/token_management.py": [
+      {
+        "line_number": 121,
+        "function_name": "_send_truncation_notification",
+        "service_key": "slack_posting",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      }
+    ],
+    "packages/slack/command_processing/short_long_command.py": [
+      {
+        "line_number": 84,
+        "function_name": "_resolve_channel_parameter",
+        "service_key": "channel_name_resolver",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      }
+    ],
+    "packages/slack/command_processing/status_report_command.py": [
+      {
+        "line_number": 153,
+        "function_name": "_resolve_channel_parameter",
+        "service_key": "channel_name_resolver",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      }
+    ],
+    "packages/slack/command_processing/command_decorators.py": [
+      {
+        "line_number": 22,
+        "function_name": "_resolve_channel_parameter_in_decorator",
+        "service_key": "channel_name_resolver",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      }
+    ],
+    "packages/slack/command_processing/query_command.py": [
+      {
+        "line_number": 150,
+        "function_name": "_resolve_channel_parameter",
+        "service_key": "channel_name_resolver",
+        "usage_pattern": "assignment",
+        "error_handling": true
+      }
+    ]
+  },
+  "critical_handlers": [],
+  "missing_from_mapping": [
+    "access_request_monitor",
+    "access_request_operations",
+    "distributed_lock",
+    "ims_token_manager",
+    "jira_cache",
+    "jira_data_extractor",
+    "metrics",
+    "openai"
+  ]
+}

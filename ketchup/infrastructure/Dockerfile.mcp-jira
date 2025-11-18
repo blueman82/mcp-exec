@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1
+# MCP JIRA Server Dockerfile - Optimized with BuildKit caching
+FROM --platform=linux/amd64 node:22-alpine AS base
+
+# Install system dependencies in a single layer
+RUN apk add --no-cache \
+    wget \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -S nodejs -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Dependencies stage - optimized for caching
+FROM base AS deps
+
+# Copy package files first for better layer caching
+COPY corp_jira_mcp/package*.json ./
+
+# Install dependencies with cache mount for faster rebuilds
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --production --prefer-offline
+
+# Production stage
+FROM base AS runner
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy pre-built JavaScript files
+COPY corp_jira_mcp/dist ./dist
+
+# Set environment variables for iPaaS mode
+ENV USE_IPAAS=true \
+    TOKEN_ENDPOINT=http://ketchup-app:8001/internal/token \
+    PORT=8081 \
+    NODE_ENV=production
+
+# Create logs directory with proper permissions
+RUN mkdir -p /app/logs && \
+    chown -R nodejs:nodejs /app
+
+USER nodejs
+
+# Expose MCP server port
+EXPOSE 8081
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8081/health || exit 1
+
+# Run the MCP server
+ENTRYPOINT ["node", "dist/index.js"]

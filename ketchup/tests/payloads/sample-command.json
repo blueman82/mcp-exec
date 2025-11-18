@@ -1,0 +1,13 @@
+{
+  "token": "test-token",
+  "team_id": "T1234567890",
+  "team_domain": "test-workspace",
+  "channel_id": "C1234567890",
+  "channel_name": "test-channel",
+  "user_id": "U1234567890",
+  "user_name": "testuser",
+  "command": "/ketchup",
+  "text": "status C1234567890",
+  "response_url": "https://hooks.slack.com/commands/T1234567890/1234567890/abcdefghijklmnop",
+  "trigger_id": "1234567890.1234567890.abcdefghijklmnopqrstuvwxyz"
+}

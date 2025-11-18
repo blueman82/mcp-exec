@@ -1,0 +1,15 @@
+aioboto3
+aiohttp
+defusedxml
+fastapi
+httpx[http2]
+networkx
+openai
+orjson
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+tiktoken
+uvicorn[standard]
+zeep

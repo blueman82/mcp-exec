@@ -1,0 +1,950 @@
+plan:
+  # Metadata about the implementation plan
+  metadata:
+    feature_name: "JIRA PAT Migration with Automated Rotation"
+    created: "2025-11-12"
+    target: "Migrate Ketchup from JIRA username/password authentication to Personal Access Token (PAT) authentication with automated 60-day rotation lifecycle"
+    estimated_tasks: 19
+    deadline: "2025-11-30"
+    days_remaining: 18
+    file_sequence: 1
+    total_files: 4
+    tasks_in_file: [1, 2, 3, 4]
+    next_file: "plan-02-pat-rotator.yaml"
+  # Worktree groups for parallel execution while respecting dependencies
+  worktree_groups:
+    - group_id: "chain-1"
+      description: "MCP JIRA Service Updates (Node.js) - Tasks 1→2→3→4→17"
+      tasks: [1, 2, 3, 4, 17]
+      branch: "feature/jira-pat-migration/chain-1"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      estimated_time: "3-4 hours"
+      rationale: "These tasks modify the MCP JIRA Service (Node.js) codebase and must execute in order (config → utils → env mapping → tests → integration tests)"
+      setup_commands: |
+        # Create worktree for this dependency chain
+        cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup
+        git worktree add ../ketchup-chain-1 -b feature/jira-pat-migration/chain-1
+        cd ../ketchup-chain-1
+
+        # Task 1: Update MCP JIRA config.ts for PAT Support
+        # [Implement Task 1]
+        git add corp_jira_mcp/src/config.ts corp_jira_mcp/tests/config.test.ts
+        git commit -m "feat(mcp-jira): add PAT configuration support"
+
+        # Task 2: Update MCP JIRA utils.js for PAT Header Logic
+        # [Implement Task 2]
+        git add corp_jira_mcp/src/utils.js corp_jira_mcp/tests/utils.test.js
+        git commit -m "feat(mcp-jira): implement PAT header logic for iPaaS"
+
+        # Task 3: Update env-aws.ts for PAT Secret Mapping
+        # [Implement Task 3]
+        git add corp_jira_mcp/env-aws.ts corp_jira_mcp/tests/env-aws.test.ts
+        git commit -m "feat(mcp-jira): add PAT secret mappings for AWS Secrets Manager"
+
+        # Task 4: MCP JIRA PAT Authentication Tests
+        # [Implement Task 4]
+        git add corp_jira_mcp/tests/auth-pat.integration.test.js
+        git commit -m "test(mcp-jira): add PAT authentication integration tests"
+
+        # Task 17 will be implemented later in this worktree
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/chain-1
+        git push origin main
+    - group_id: "chain-2"
+      description: "PAT Rotation Service (Python) - Tasks 5→6→7→8→9→10→11→12→13→18"
+      tasks: [5, 6, 7, 8, 9, 10, 11, 12, 13, 18]
+      branch: "feature/jira-pat-migration/chain-2"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      estimated_time: "6-8 hours"
+      rationale: "New ketchup-pat-rotator service implementation from protocols → managers → scheduler → main → TypedDI registration → tests → documentation"
+      setup_commands: |
+        # Create worktree for PAT rotation service
+        cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup
+        git worktree add ../ketchup-chain-2 -b feature/jira-pat-migration/chain-2
+        cd ../ketchup-chain-2
+
+        # Tasks 5-13, 18 will be implemented sequentially
+        # Each task will have its own commit
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/chain-2
+        git push origin main
+    - group_id: "chain-3"
+      description: "Infrastructure & Deployment - Tasks 14→15→19"
+      tasks: [14, 15, 19]
+      branch: "feature/jira-pat-migration/chain-3"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      estimated_time: "2-3 hours"
+      rationale: "Infrastructure configuration that depends on code from chain-1 (Task 3) being complete"
+      cross_dependencies:
+        - "Task 15 depends on Task 3 (env-aws.ts) and Task 14 (Dockerfile)"
+      setup_commands: |
+        # Wait for Task 3 from chain-1 to be merged to main
+        git checkout main
+        git pull origin main
+
+        # Create worktree for infrastructure
+        git worktree add ../ketchup-chain-3 -b feature/jira-pat-migration/chain-3
+        cd ../ketchup-chain-3
+
+        # Tasks 14, 15, 19 will be implemented sequentially
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/chain-3
+        git push origin main
+    - group_id: "independent-1"
+      description: "AWS Secrets Update - Task 16 only"
+      tasks: [16]
+      branch: "feature/jira-pat-migration/independent-1"
+      execution_model: "parallel"
+      isolation: "separate-worktree"
+      estimated_time: "15-30 minutes"
+      rationale: "AWS Secrets Manager schema update can run immediately in parallel with all other work"
+      setup_commands: |
+        # This task can start immediately, no dependencies
+        cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup
+        git worktree add ../ketchup-independent-1 -b feature/jira-pat-migration/independent-1
+        cd ../ketchup-independent-1
+
+        # Task 16: Update AWS Secrets Manager
+        # [Implement Task 16]
+        git add [relevant files]
+        git commit -m "chore(secrets): update AWS Secrets Manager schema for PAT tokens"
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/independent-1
+        git push origin main
+  # Context for the engineer implementing this
+  context:
+    framework: "Python 3.12 (FastAPI) + Node.js 18+ (MCP JIRA Service)"
+    architecture: "Microservices on AWS EC2 with Docker, TypedDI dependency injection"
+    test_framework: "pytest (Python), Jest (Node.js)"
+    other_context:
+      - "Critical deadline: November 30, 2025 - Adobe JIRA basic auth deprecated"
+      - "iPaaS Proxy: Ketchup uses iPaaS, NOT direct JIRA API - PAT goes in x-authorization header"
+      - "Feature Flag: JIRA_USE_PAT_AUTH enables zero-downtime cutover"
+      - "Existing PAT: AWS Secrets already has ketchup_jira_pat (unused) - we'll use it!"
+      - "Zero-downtime deployment: Feature flags allow gradual rollout"
+      - "Monitoring: Slack alerts to #ketchup_alerts (C0957H8ASH2), local Docker logging"
+      - "Repository: Monorepo with shared packages/ directory used by all services"
+      - "TypedDI: All services use protocol-based dependency injection"
+    expectations:
+      - "Write tests BEFORE implementation (strict TDD)"
+      - "Follow Google-style docstrings with functional comments"
+      - "Use TypedDI protocols for all services"
+      - "Commit after each completed task"
+      - "Follow existing Ketchup patterns (check similar services)"
+      - "Avoid duplication (DRY) and unnecessary abstractions (YAGNI)"
+      - "Run make pylint and make test-unit after code changes"
+      - "Use worktrees for parallel development when tasks are independent"
+  # Prerequisites checklist
+  prerequisites:
+    - item: "Git Branch - Working on correct branch for worktree group"
+      details: "Verify with 'git worktree list' and 'git branch'"
+      verified: false
+    - item: "AWS Access - Configured with campaign_prod_v7 profile"
+      details: "Region: eu-west-1, verify with 'aws sts get-caller-identity --profile campaign_prod_v7'"
+      verified: false
+    - item: "AWS Credentials - Can access Secrets Manager and ECR"
+      details: "Test with 'aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1'"
+      verified: false
+    - item: "Python Environment - Python 3.12 installed"
+      details: "Verify with 'python --version' (should be 3.12+)"
+      verified: false
+    - item: "Node.js Environment - Node.js 18+ installed"
+      details: "Verify with 'node --version' (should be 18+)"
+      verified: false
+    - item: "Docker - Docker and docker-compose installed"
+      details: "Verify with 'docker --version' and 'docker-compose --version'"
+      verified: false
+    - item: "Test Environment - Setup completed successfully"
+      details: "Run 'cd tests/setup && make setup' to create venv and install dependencies"
+      verified: false
+    - item: "MCP Access - Can run MCP JIRA service locally"
+      details: "cd corp_jira_mcp && npm install && npm run build"
+      verified: false
+    - item: "JIRA Access - Have valid JIRA PAT for testing"
+      details: "Check AWS Secrets Manager for ketchup_jira_pat value"
+      verified: false
+    - item: "Research Read - Read docs/ketchup_pat_research.md for context"
+      details: "Understand iPaaS proxy requirements and PAT lifecycle"
+      verified: false
+    - item: "Similar Services - Reviewed patterns"
+      details: "Check ketchup_status_updater/ and ketchup_access_request_monitor/ for similar service patterns"
+      verified: false
+  # Detailed task breakdown
+  tasks:
+    - task_number: 1
+      name: "Update MCP JIRA config.ts for PAT Support"
+      agent: "javascript-pro"
+      worktree_group: "chain-1"
+      files:
+        - "corp_jira_mcp/src/config.ts"
+        - "corp_jira_mcp/tests/config.test.ts"
+      depends_on: []
+      estimated_time: "30m"
+      description: |
+        Add PAT configuration to the MCP JIRA Service config object, enabling the service to accept PAT tokens
+        from environment variables while maintaining backward compatibility with username/password auth.
+
+        This is the foundation task for the MCP service updates - all subsequent tasks in chain-1 depend on
+        these config fields being available.
+      test_first:
+        test_file: "corp_jira_mcp/tests/config.test.ts"
+        structure:
+          - "describe('Config - PAT Support', () => { ... })"
+          - "test: should load PAT from environment variable"
+          - "test: should load backup PAT from environment variable"
+          - "test: should default usePat to false when JIRA_USE_PAT_AUTH not set"
+          - "test: should enable usePat when JIRA_USE_PAT_AUTH is true"
+          - "test: should maintain backward compatibility with username/password"
+        mocks: []
+        fixtures:
+          - "Use process.env manipulation to set environment variables"
+        assertions:
+          - "config.auth.pat equals expected PAT value"
+          - "config.auth.patBackup equals expected backup PAT value"
+          - "config.auth.usePat is boolean and reflects feature flag"
+          - "config.auth.username and password still exist (backward compat)"
+        edge_cases:
+          - "Missing environment variables (should default to empty string)"
+          - "Feature flag variations (true, false, undefined)"
+          - "All three auth methods present simultaneously"
+        example_skeleton: |
+          describe('Config - PAT Support', () => {
+            it('should load PAT from environment variable', () => {
+              process.env.JIRA_PAT = 'test_pat_token_12345';
+              const config = loadConfig();
+              expect(config.auth.pat).toBe('test_pat_token_12345');
+            });
+
+            it('should load backup PAT from environment variable', () => {
+              process.env.JIRA_PAT_BACKUP = 'backup_pat_67890';
+              const config = loadConfig();
+              expect(config.auth.patBackup).toBe('backup_pat_67890');
+            });
+
+            it('should default usePat to false when JIRA_USE_PAT_AUTH not set', () => {
+              delete process.env.JIRA_USE_PAT_AUTH;
+              const config = loadConfig();
+              expect(config.auth.usePat).toBe(false);
+            });
+
+            it('should enable usePat when JIRA_USE_PAT_AUTH is true', () => {
+              process.env.JIRA_USE_PAT_AUTH = 'true';
+              const config = loadConfig();
+              expect(config.auth.usePat).toBe(true);
+            });
+
+            it('should maintain backward compatibility with username/password', () => {
+              process.env.JIRA_USERNAME = 'testuser';
+              process.env.JIRA_PASSWORD = 'testpass';
+              const config = loadConfig();
+              expect(config.auth.username).toBe('testuser');
+              expect(config.auth.password).toBe('testpass');
+            });
+          });
+      implementation:
+        approach: |
+          Extend the existing auth configuration object in config.ts by adding three new fields: pat, patBackup,
+          and usePat. These fields read from environment variables set by the deployment infrastructure.
+
+          The approach maintains backward compatibility - all existing username/password fields remain unchanged.
+          The usePat boolean feature flag controls which authentication method is active at runtime.
+        code_structure: |
+          // Around line 40-46 in corp_jira_mcp/src/config.ts
+          auth: {
+            email: process.env.JIRA_EMAIL || '',
+            token: process.env.JIRA_PERSONAL_ACCESS_TOKEN || '',
+            // NEW: PAT authentication fields
+            pat: process.env.JIRA_PAT || '',
+            patBackup: process.env.JIRA_PAT_BACKUP || '',
+            usePat: process.env.JIRA_USE_PAT_AUTH === 'true',
+            // Existing fields (keep for backward compatibility)
+            imsToken: process.env.JIRA_IMS_TOKEN || '',
+            apiKey: process.env.JIRA_API_KEY || '',
+            username: process.env.JIRA_USERNAME || '',
+            password: process.env.JIRA_PASSWORD || ''
+          }
+        key_points:
+          - point: "Add fields after existing token field for logical grouping"
+            details: "Keeps PAT-related fields together for maintainability"
+          - point: "Use strict equality (=== 'true') for boolean feature flag"
+            details: "Prevents truthy values like '1' or 'yes' from being treated as true"
+          - point: "Keep existing username/password fields (deprecated but needed until Nov 30)"
+            details: "Backward compatibility ensures no disruption during migration"
+          - point: "Empty string defaults maintain TypeScript compatibility"
+            details: "TypeScript expects string types, not undefined"
+          - point: "No validation needed - will fail fast if misconfigured"
+            details: "JIRA API will return 401 if PAT is invalid, providing clear error signal"
+        integration:
+          imports: []
+          services_to_inject: []
+          config_values: []
+          error_handling:
+            - "No error handling needed at config level - fail fast approach"
+            - "Downstream utils.js will handle authentication failures from JIRA API"
+      success_criteria:
+        - "All unit tests pass (5/5)"
+        - "No TypeScript errors (npm run type-check passes)"
+        - "Config object structure matches expectations"
+      test_commands:
+        - "cd corp_jira_mcp && npm test -- config.test.ts"
+      verification:
+        manual_testing:
+          - step: "Set environment variables for testing"
+            command: "export JIRA_PAT='test_token' && export JIRA_USE_PAT_AUTH='true'"
+          - step: "Run config tests"
+            command: "cd corp_jira_mcp && npm test -- config.test.ts"
+            expected: "All config tests pass, showing PAT fields populated correctly"
+          - step: "Verify test output shows correct values"
+            expected: "Test output displays PAT values loaded from environment"
+        automated_tests:
+          command: "cd corp_jira_mcp && npm test -- config.test.ts"
+          expected_output: |
+            PASS  tests/config.test.ts
+              Config - PAT Support
+                ✓ should load PAT from environment variable (3 ms)
+                ✓ should load backup PAT from environment variable (2 ms)
+                ✓ should default usePat to false when JIRA_USE_PAT_AUTH not set (2 ms)
+                ✓ should enable usePat when JIRA_USE_PAT_AUTH is true (1 ms)
+                ✓ should maintain backward compatibility with username/password (2 ms)
+
+            Test Suites: 1 passed, 1 total
+            Tests:       5 passed, 5 total
+        success_criteria:
+          - "All unit tests pass (5/5)"
+          - "No TypeScript errors (npm run type-check passes)"
+          - "Config object structure matches expectations"
+      commit:
+        type: "feat"
+        message: "add PAT configuration support"
+        body: |
+          Add pat, patBackup, and usePat fields to MCP JIRA Service configuration
+          to support Personal Access Token authentication. Maintains backward
+          compatibility with username/password auth via feature flag.
+
+          Related to JIRA basic auth deprecation (Nov 30, 2025).
+        files:
+          - "corp_jira_mcp/src/config.ts"
+          - "corp_jira_mcp/tests/config.test.ts"
+    - task_number: 2
+      name: "Update MCP JIRA utils.js for PAT Header Logic"
+      agent: "javascript-pro"
+      worktree_group: "chain-1"
+      files:
+        - "corp_jira_mcp/src/utils.js"
+        - "corp_jira_mcp/tests/utils.test.js"
+      depends_on: [1]
+      estimated_time: "45m"
+      description: |
+        Modify the iPaaS header construction logic to send PAT tokens in the x-authorization header when
+        the feature flag is enabled, while falling back to username/password headers when disabled.
+        This enables zero-downtime migration by allowing runtime switching between auth methods.
+      test_first:
+        test_file: "corp_jira_mcp/tests/utils.test.js"
+        structure:
+          - "describe('constructIpaasHeaders - PAT Support', () => { ... })"
+          - "test: should add x-authorization header when usePat is true"
+          - "test: should use username/password when usePat is false"
+          - "test: should use backup PAT if primary is empty"
+          - "test: should always include IMS token and API key"
+          - "test: should handle missing PAT gracefully when usePat is true"
+          - "describe('jiraRequest - PAT Support', () => { ... })"
+          - "test: should pass config to constructIpaasHeaders"
+        mocks:
+          - "config object with various PAT/auth combinations"
+          - "httpx client (if testing full jiraRequest flow)"
+        fixtures:
+          - "Mock config objects with different auth field combinations"
+          - "Sample PAT tokens and backup tokens"
+        assertions:
+          - "headers['x-authorization'] equals 'Bearer <PAT>' when usePat is true"
+          - "headers['Username'] and headers['Password'] are undefined when usePat is true"
+          - "headers['Username'] and headers['Password'] are set when usePat is false"
+          - "headers['Authorization'] always contains IMS token (iPaaS requirement)"
+          - "headers['Api_key'] always present (iPaaS requirement)"
+        edge_cases:
+          - "Empty primary PAT with valid backup PAT (should use backup)"
+          - "Both primary and backup PAT empty (should not add x-authorization header)"
+          - "Feature flag false but PAT present (should use username/password)"
+          - "Feature flag true but username/password also present (should use PAT)"
+        example_skeleton: |
+          describe('constructIpaasHeaders - PAT Support', () => {
+            const mockConfig = {
+              auth: {
+                pat: 'test_pat_token_123',
+                patBackup: 'backup_pat_456',
+                usePat: true,
+                username: 'test_user',
+                password: 'test_pass',
+                apiKey: 'test_api_key'
+              },
+              useIpaas: true
+            };
+
+            it('should add x-authorization header when usePat is true', () => {
+              const headers = constructIpaasHeaders('ims_token_xyz', 'api_key_123', mockConfig);
+
+              expect(headers['x-authorization']).toBe('Bearer test_pat_token_123');
+              expect(headers['Username']).toBeUndefined();
+              expect(headers['Password']).toBeUndefined();
+            });
+
+            it('should use username/password when usePat is false', () => {
+              const configWithoutPat = { ...mockConfig, auth: { ...mockConfig.auth, usePat: false } };
+              const headers = constructIpaasHeaders('ims_token_xyz', 'api_key_123', configWithoutPat);
+
+              expect(headers['Username']).toBe('test_user');
+              expect(headers['Password']).toBe('test_pass');
+              expect(headers['x-authorization']).toBeUndefined();
+            });
+
+            it('should use backup PAT if primary is empty', () => {
+              const configWithBackup = {
+                ...mockConfig,
+                auth: { ...mockConfig.auth, pat: '', patBackup: 'backup_pat_456', usePat: true }
+              };
+              const headers = constructIpaasHeaders('ims_token_xyz', 'api_key_123', configWithBackup);
+
+              expect(headers['x-authorization']).toBe('Bearer backup_pat_456');
+            });
+          });
+      implementation:
+        approach: |
+          Update constructIpaasHeaders() function (lines ~108-123) to accept config parameter and implement
+          conditional logic based on config.auth.usePat flag. When enabled, add x-authorization: Bearer <PAT>
+          header. When disabled, use existing Username/Password headers.
+
+          The approach uses a simple if/else based on the feature flag, with backup PAT fallback using
+          the OR operator for simplicity.
+        code_structure: |
+          // Line ~108: Update function signature to accept config
+          function constructIpaasHeaders(imsToken, apiKey, config) {
+            const headers = {
+              "Authorization": `${imsToken}`,        // IMS token (always required for iPaaS)
+              "Api_key": apiKey,                     // API key (always required for iPaaS)
+              "Content-Type": "application/json"
+            };
+
+            // Feature flag: Use PAT or fallback to username/password
+            if (config.auth.usePat) {
+              // PAT authentication (new method)
+              const pat = config.auth.pat || config.auth.patBackup;  // Fallback to backup if primary empty
+              if (pat) {
+                headers["x-authorization"] = `Bearer ${pat}`;
+              }
+              // Note: If no PAT available, headers will be incomplete - request will fail fast
+            } else {
+              // Username/password authentication (deprecated, fallback until Nov 30)
+              if (config.auth.username) headers["Username"] = config.auth.username;
+              if (config.auth.password) headers["Password"] = config.auth.password;
+            }
+
+            return headers;
+          }
+
+          // Line ~127: Update jiraRequest to pass config
+          export async function jiraRequest(path, options = {}) {
+            let headers;
+
+            if (config.useIpaas) {
+              const imsToken = currentAuthToken ?
+                (currentAuthToken.startsWith('Bearer ') ?
+                  currentAuthToken.substring(7) : currentAuthToken) :
+                config.auth.imsToken;
+
+              // Pass config to header constructor
+              headers = {
+                ...constructIpaasHeaders(imsToken, config.auth.apiKey, config),
+                ...options.headers
+              };
+            } else {
+              // Direct JIRA mode (not used by Ketchup, but support PAT here too)
+              const pat = config.auth.pat || config.auth.patBackup;
+              headers = {
+                "Authorization": `Bearer ${pat}`,
+                "Content-Type": "application/json",
+                ...options.headers
+              };
+            }
+
+            // ... rest of function unchanged
+          }
+        key_points:
+          - point: "Follow pattern from existing username/password logic"
+            reference: "corp_jira_mcp/src/utils.js:108-123"
+          - point: "Backup PAT fallback uses OR operator for simplicity"
+            details: "JavaScript's || operator naturally handles empty string and undefined"
+          - point: "No error if PAT missing - let JIRA API return 401 (fail fast)"
+            details: "Clear error signal from JIRA is better than obscure config error"
+          - point: "IMS token and API key always included (iPaaS requirements)"
+            details: "iPaaS proxy requires these headers regardless of JIRA auth method"
+          - point: "Direct mode also updated for consistency (though Ketchup doesn't use it)"
+            details: "Future-proofing in case Ketchup ever needs direct JIRA API access"
+        integration:
+          imports:
+            - "import config from './config.ts' (already imported)"
+          services_to_inject: []
+          config_values:
+            - "config.auth.pat - Primary PAT token"
+            - "config.auth.patBackup - Backup PAT token"
+            - "config.auth.usePat - Feature flag boolean"
+          error_handling:
+            - "No explicit error handling - rely on JIRA API 401 responses"
+            - "Missing PAT results in incomplete headers, JIRA returns clear auth error"
+      success_criteria:
+        - "All unit tests pass (6/6)"
+        - "Manual curl test succeeds with PAT authentication"
+        - "Logs confirm correct header format (x-authorization present, Username/Password absent)"
+      test_commands:
+        - "cd corp_jira_mcp && npm test -- utils.test.js"
+      verification:
+        manual_testing:
+          - step: "Start MCP service locally with PAT auth enabled"
+            command: "cd corp_jira_mcp && export JIRA_USE_PAT_AUTH=true && export JIRA_PAT='<your_test_pat>' && npm start"
+          - step: "Test auth endpoint with curl"
+            command: |
+              curl -X POST http://localhost:8081/message \
+                -H "Authorization: Bearer test_ims_token" \
+                -H "Content-Type: application/json" \
+                -d '{"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "test_jira_auth"}, "id": "test-1"}'
+            expected: "Response shows successful authentication, logs display x-authorization header"
+          - step: "Verify logs show correct header (not Username/Password)"
+            expected: "Logs contain 'x-authorization: Bearer ...' but NOT 'Username:' or 'Password:'"
+        automated_tests:
+          command: "cd corp_jira_mcp && npm test -- utils.test.js"
+          expected_output: |
+            PASS  tests/utils.test.js
+              constructIpaasHeaders - PAT Support
+                ✓ should add x-authorization header when usePat is true
+                ✓ should use username/password when usePat is false
+                ✓ should use backup PAT if primary is empty
+                ✓ should always include IMS token and API key
+                ✓ should handle missing PAT gracefully when usePat is true
+              jiraRequest - PAT Support
+                ✓ should pass config to constructIpaasHeaders
+
+            Test Suites: 1 passed, 1 total
+            Tests:       6 passed, 6 total
+        success_criteria:
+          - "All unit tests pass (6/6)"
+          - "Manual curl test succeeds with PAT authentication"
+          - "Logs confirm correct header format (x-authorization present, Username/Password absent)"
+      commit:
+        type: "feat"
+        message: "implement PAT header logic for iPaaS"
+        body: |
+          Update constructIpaasHeaders() to send PAT in x-authorization header
+          when JIRA_USE_PAT_AUTH feature flag is enabled. Falls back to
+          username/password headers when disabled.
+
+          Supports backup PAT fallback for resilience during rotation.
+
+          Related to JIRA basic auth deprecation (Nov 30, 2025).
+        files:
+          - "corp_jira_mcp/src/utils.js"
+          - "corp_jira_mcp/tests/utils.test.js"
+    - task_number: 3
+      name: "Update env-aws.ts for PAT Secret Mapping"
+      agent: "typescript-pro"
+      worktree_group: "chain-1"
+      files:
+        - "corp_jira_mcp/env-aws.ts"
+        - "corp_jira_mcp/tests/env-aws.test.ts"
+      depends_on: [1]
+      estimated_time: "20m"
+      description: |
+        Add AWS Secrets Manager key mappings for PAT tokens so the MCP JIRA Service can load PAT values
+        from AWS Secrets and expose them as environment variables at runtime. This completes the
+        configuration chain: AWS Secrets → env-aws.ts → process.env → config.ts
+      test_first:
+        test_file: "corp_jira_mcp/tests/env-aws.test.ts"
+        structure:
+          - "describe('AWS Secrets Mapping - PAT Support', () => { ... })"
+          - "test: should map ketchup_jira_pat to JIRA_PAT environment variable"
+          - "test: should map ketchup_jira_pat_backup to JIRA_PAT_BACKUP"
+          - "test: should continue to map existing secrets (backward compat)"
+          - "test: should handle missing PAT keys gracefully"
+        mocks:
+          - "AWS SecretsManager client with getSecretValue method"
+        fixtures:
+          - "JSON secret strings with various key combinations"
+          - "Secrets with and without PAT keys"
+        assertions:
+          - "process.env.JIRA_PAT equals value from ketchup_jira_pat secret key"
+          - "process.env.JIRA_PAT_BACKUP equals value from ketchup_jira_pat_backup"
+          - "Existing secret mappings still work (ipaas_username, etc.)"
+          - "Missing PAT keys don't throw errors"
+        edge_cases:
+          - "Secrets missing PAT keys (should not throw, leave env vars undefined)"
+          - "Empty string PAT values (should set env var to empty string)"
+          - "Secrets with only backup PAT, no primary"
+        example_skeleton: |
+          import { loadSecretsFromAWS } from '../env-aws';
+
+          describe('AWS Secrets Mapping - PAT Support', () => {
+            const mockSecretsManager = {
+              getSecretValue: jest.fn()
+            };
+
+            beforeEach(() => {
+              jest.clearAllMocks();
+            });
+
+            it('should map ketchup_jira_pat to JIRA_PAT environment variable', async () => {
+              mockSecretsManager.getSecretValue.mockResolvedValue({
+                SecretString: JSON.stringify({
+                  ketchup_jira_pat: 'primary_pat_token_123',
+                  ipaas_api_key: 'api_key_xyz'
+                })
+              });
+
+              await loadSecretsFromAWS(mockSecretsManager);
+
+              expect(process.env.JIRA_PAT).toBe('primary_pat_token_123');
+            });
+
+            it('should map ketchup_jira_pat_backup to JIRA_PAT_BACKUP', async () => {
+              mockSecretsManager.getSecretValue.mockResolvedValue({
+                SecretString: JSON.stringify({
+                  ketchup_jira_pat_backup: 'backup_pat_token_456'
+                })
+              });
+
+              await loadSecretsFromAWS(mockSecretsManager);
+
+              expect(process.env.JIRA_PAT_BACKUP).toBe('backup_pat_token_456');
+            });
+          });
+      implementation:
+        approach: |
+          Add two new key-value pairs to the mappings object (lines ~29-33) that map AWS secret keys to
+          environment variable names. The secret loading logic will automatically apply these mappings
+          without any additional code changes.
+        code_structure: |
+          // Around line 29-33: Update the mappings object
+          const mappings: Record<string, string> = {
+            'ipaas_username': 'JIRA_USERNAME',
+            'ipaas_password': 'JIRA_PASSWORD',
+            'ipaas_api_key': 'JIRA_API_KEY',
+            'ims_access_token': 'JIRA_IMS_TOKEN',
+            // NEW: PAT token mappings
+            'ketchup_jira_pat': 'JIRA_PAT',
+            'ketchup_jira_pat_backup': 'JIRA_PAT_BACKUP'
+          };
+        key_points:
+          - point: "Add mappings at the end for clarity (new vs existing)"
+            details: "Logical grouping makes it clear which mappings are PAT-related"
+          - point: "Key names match AWS Secrets Manager schema"
+            details: "Will be verified in Task 16 when updating AWS Secrets"
+          - point: "Environment variable names match config.ts expectations"
+            details: "Task 1 defined JIRA_PAT and JIRA_PAT_BACKUP in config.ts"
+          - point: "No code changes needed - existing loop handles new mappings automatically"
+            details: "The env-aws.ts secret loading loop iterates over mappings object"
+          - point: "Flat structure (not nested JSON) matches existing secrets pattern"
+            details: "Ketchup stores all secrets as flat key-value pairs, not nested objects"
+        integration:
+          imports: []
+          services_to_inject: []
+          config_values: []
+          error_handling:
+            - "No error handling needed - missing keys result in undefined env vars"
+            - "config.ts handles undefined env vars with empty string defaults"
+      success_criteria:
+        - "All unit tests pass (4/4)"
+        - "AWS Secrets Manager query confirms ketchup_jira_pat key exists"
+        - "No TypeScript errors (npm run type-check passes)"
+      test_commands:
+        - "cd corp_jira_mcp && npm test -- env-aws.test.ts"
+      verification:
+        manual_testing:
+          - step: "Check AWS Secrets Manager has the required keys"
+            command: |
+              aws secretsmanager get-secret-value \
+                --secret-id Ketchup_Token_Secrets \
+                --profile campaign_prod_v7 \
+                --region eu-west-1 \
+                --query SecretString --output text | \
+                jq 'has("ketchup_jira_pat")'
+            expected: "Should return: true"
+          - step: "Test secret loading locally"
+            command: "cd corp_jira_mcp && npm test -- env-aws.test.ts"
+            expected: "All tests pass, confirming mappings work correctly"
+        automated_tests:
+          command: "cd corp_jira_mcp && npm test -- env-aws.test.ts"
+          expected_output: |
+            PASS  tests/env-aws.test.ts
+              AWS Secrets Mapping - PAT Support
+                ✓ should map ketchup_jira_pat to JIRA_PAT environment variable
+                ✓ should map ketchup_jira_pat_backup to JIRA_PAT_BACKUP
+                ✓ should continue to map existing secrets (backward compat)
+                ✓ should handle missing PAT keys gracefully
+
+            Test Suites: 1 passed, 1 total
+            Tests:       4 passed, 4 total
+        success_criteria:
+          - "All unit tests pass (4/4)"
+          - "AWS Secrets Manager query confirms ketchup_jira_pat key exists"
+          - "No TypeScript errors (npm run type-check passes)"
+      commit:
+        type: "feat"
+        message: "add PAT secret mappings for AWS Secrets Manager"
+        body: |
+          Map ketchup_jira_pat and ketchup_jira_pat_backup from AWS Secrets
+          Manager to JIRA_PAT and JIRA_PAT_BACKUP environment variables.
+
+          Enables MCP JIRA Service to load PAT tokens at runtime from AWS
+          Secrets without code changes.
+        files:
+          - "corp_jira_mcp/env-aws.ts"
+          - "corp_jira_mcp/tests/env-aws.test.ts"
+    - task_number: 4
+      name: "MCP JIRA PAT Authentication Tests"
+      agent: "test-automator"
+      worktree_group: "chain-1"
+      files:
+        - "corp_jira_mcp/tests/auth-pat.integration.test.js"
+      depends_on: [2, 3]
+      estimated_time: "45m"
+      description: |
+        Integration tests that verify PAT authentication works end-to-end with the MCP JIRA Service.
+        Tests include both primary and backup PAT fallback, feature flag behavior, and actual JIRA API
+        calls through the iPaaS proxy. These tests provide confidence that the entire auth flow works.
+      test_first:
+        test_file: "corp_jira_mcp/tests/auth-pat.integration.test.js"
+        structure:
+          - "describe('MCP JIRA PAT Authentication Integration', () => { ... })"
+          - "describe('Feature Flag Behavior', () => { ... })"
+          - "  test: should use PAT when JIRA_USE_PAT_AUTH is true"
+          - "  test: should use username/password when JIRA_USE_PAT_AUTH is false"
+          - "describe('PAT Fallback Logic', () => { ... })"
+          - "  test: should use backup PAT when primary is empty"
+          - "  test: should fail gracefully when no PAT available"
+          - "describe('Real JIRA API Calls', () => { ... })"
+          - "  test: should successfully call JIRA /myself endpoint with real PAT"
+          - "  test: should successfully search JIRA issues with PAT"
+          - "  test: should reject invalid PAT with 401"
+          - "describe('iPaaS Header Format', () => { ... })"
+          - "  test: should send IMS token in Authorization header"
+          - "  test: should send API key in Api_key header"
+          - "  test: should send all three headers for iPaaS + PAT"
+        mocks: []
+        fixtures:
+          - "Environment variable combinations for different auth scenarios"
+          - "Real PAT from AWS Secrets Manager (for integration tests)"
+        assertions:
+          - "HTTP status codes (200 for success, 401 for invalid PAT)"
+          - "Response structure (JIRA API response format)"
+          - "Header format (x-authorization present, Username/Password absent)"
+          - "Backup fallback works correctly"
+        edge_cases:
+          - "Missing PAT with feature flag enabled (should fail with clear error)"
+          - "Invalid PAT token (should return 401)"
+          - "Primary PAT empty but backup valid (should succeed with backup)"
+        example_skeleton: |
+          describe('MCP JIRA PAT Authentication Integration', () => {
+            let originalEnv;
+
+            beforeEach(() => {
+              originalEnv = { ...process.env };
+            });
+
+            afterEach(() => {
+              process.env = originalEnv;
+            });
+
+            describe('Feature Flag Behavior', () => {
+              it('should use PAT when JIRA_USE_PAT_AUTH is true', async () => {
+                process.env.JIRA_USE_PAT_AUTH = 'true';
+                process.env.JIRA_PAT = 'test_pat_primary';
+                process.env.JIRA_IMS_TOKEN = 'test_ims_token';
+                process.env.JIRA_API_KEY = 'test_api_key';
+
+                const result = await makeTestJiraRequest('/rest/api/2/myself');
+
+                expect(result.requestHeaders['x-authorization']).toBe('Bearer test_pat_primary');
+                expect(result.requestHeaders['Username']).toBeUndefined();
+              });
+            });
+
+            describe('Real JIRA API Calls', () => {
+              it('should successfully call JIRA /myself endpoint with real PAT', async () => {
+                const realPat = await getSecretFromAWS('ketchup_jira_pat');
+                process.env.JIRA_USE_PAT_AUTH = 'true';
+                process.env.JIRA_PAT = realPat;
+
+                const result = await makeTestJiraRequest('/rest/api/2/myself');
+
+                expect(result.statusCode).toBe(200);
+                expect(result.data).toHaveProperty('name');
+                expect(result.data).toHaveProperty('emailAddress');
+              });
+            });
+          });
+
+          // Helper functions
+          async function makeTestJiraRequest(path) {
+            // Call MCP service with given path, capture headers and response
+          }
+
+          async function getSecretFromAWS(key) {
+            // Load secret from AWS Secrets Manager for integration tests
+          }
+      implementation:
+        approach: |
+          These are integration tests, not unit tests. They start the MCP JIRA Service locally, make real
+          HTTP calls to it, and verify the service correctly formats headers and receives responses from JIRA.
+
+          The tests use real AWS credentials and real JIRA PAT from Secrets Manager, so they validate the
+          entire authentication chain works in practice.
+        code_structure: |
+          // Test helpers in auth-pat.integration.test.js
+          const axios = require('axios');
+          const { SecretsManager } = require('@aws-sdk/client-secrets-manager');
+
+          // Start MCP service for testing
+          async function startMCPService() {
+            const { spawn } = require('child_process');
+            const service = spawn('npm', ['start'], {
+              cwd: __dirname + '/..',
+              env: { ...process.env, PORT: 8081 },
+              detached: true
+            });
+
+            // Wait for health check
+            await waitForHealth('http://localhost:8081/health');
+            return service;
+          }
+
+          async function waitForHealth(url, maxAttempts = 30) {
+            for (let i = 0; i < maxAttempts; i++) {
+              try {
+                await axios.get(url);
+                return;
+              } catch (e) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+            throw new Error('Service did not start');
+          }
+
+          async function makeTestJiraRequest(path) {
+            const response = await axios.post('http://localhost:8081/message', {
+              jsonrpc: '2.0',
+              id: 'test-' + Date.now(),
+              method: 'tools/call',
+              params: {
+                name: 'search_jira_issues',
+                arguments: { jql: 'project = CPGNREQ', maxResults: 1 }
+              }
+            }, {
+              headers: {
+                'Authorization': 'Bearer ' + process.env.JIRA_IMS_TOKEN,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            return {
+              statusCode: response.status,
+              data: response.data,
+              requestHeaders: response.config.headers
+            };
+          }
+
+          async function getSecretFromAWS(key) {
+            const client = new SecretsManager({
+              region: 'eu-west-1'
+            });
+
+            const response = await client.getSecretValue({
+              SecretId: 'Ketchup_Token_Secrets'
+            });
+
+            const secrets = JSON.parse(response.SecretString);
+            return secrets[key];
+          }
+        key_points:
+          - point: "Tests require AWS credentials (DON'T SKIP IF NOT AVAILABLE)"
+            details: "These are true integration tests that validate against real services"
+          - point: "Use jest.setTimeout(30000) for longer test duration"
+            details: "Integration tests take longer than unit tests due to service startup and API calls"
+          - point: "Clean up: Stop MCP service after tests (afterAll hook)"
+            details: "Prevent orphaned processes by killing service in afterAll"
+          - point: "Real JIRA calls - verify with CPGNREQ project (test data)"
+            details: "CPGNREQ is a test project that's safe to query"
+        integration:
+          imports:
+            - "import axios from 'axios'"
+            - "import { SecretsManager } from '@aws-sdk/client-secrets-manager'"
+          services_to_inject: []
+          config_values:
+            - "AWS_PROFILE=campaign_prod_v7 (from environment)"
+            - "JIRA_PAT from AWS Secrets Manager"
+          error_handling:
+            - "Catch service startup failures with clear error messages"
+            - "Handle AWS credential errors gracefully"
+            - "Report JIRA API errors with full response details"
+      success_criteria:
+        - "All integration tests pass (10/10)"
+        - "Real JIRA API calls succeed with PAT authentication"
+        - "Header format matches iPaaS proxy requirements"
+        - "Backup PAT fallback works as expected"
+      test_commands:
+        - "cd corp_jira_mcp && npm test -- auth-pat.integration.test.js"
+      verification:
+        manual_testing:
+          - step: "Build MCP service"
+            command: "cd corp_jira_mcp && npm run build"
+          - step: "Run integration tests with AWS profile"
+            command: "cd corp_jira_mcp && AWS_PROFILE=campaign_prod_v7 npm test -- auth-pat.integration.test.js"
+            expected: "All integration tests pass, real JIRA API calls succeed"
+        automated_tests:
+          command: "cd corp_jira_mcp && npm test -- auth-pat.integration.test.js"
+          expected_output: |
+            PASS  tests/auth-pat.integration.test.js (10.234 s)
+              MCP JIRA PAT Authentication Integration
+                Feature Flag Behavior
+                  ✓ should use PAT when JIRA_USE_PAT_AUTH is true (523 ms)
+                  ✓ should use username/password when JIRA_USE_PAT_AUTH is false (312 ms)
+                PAT Fallback Logic
+                  ✓ should use backup PAT when primary is empty (234 ms)
+                  ✓ should fail gracefully when no PAT available (156 ms)
+                Real JIRA API Calls
+                  ✓ should successfully call JIRA /myself endpoint with real PAT (1234 ms)
+                  ✓ should successfully search JIRA issues with PAT (2341 ms)
+                  ✓ should reject invalid PAT with 401 (891 ms)
+                iPaaS Header Format
+                  ✓ should send IMS token in Authorization header (234 ms)
+                  ✓ should send API key in Api_key header (198 ms)
+                  ✓ should send all three headers for iPaaS + PAT (267 ms)
+
+            Test Suites: 1 passed, 1 total
+            Tests:       10 passed, 10 total
+            Time:        10.234 s
+        success_criteria:
+          - "All integration tests pass (10/10)"
+          - "Real JIRA API calls succeed with PAT authentication"
+          - "Header format matches iPaaS proxy requirements"
+          - "Backup PAT fallback works as expected"
+      commit:
+        type: "test"
+        message: "add PAT authentication integration tests"
+        body: |
+          Add comprehensive integration tests for PAT authentication including:
+          - Feature flag behavior (usePat true/false)
+          - Backup PAT fallback logic
+          - Real JIRA API calls with PAT
+          - iPaaS header format validation
+
+          Tests verify end-to-end PAT authentication works with MCP service.
+        files:
+          - "corp_jira_mcp/tests/auth-pat.integration.test.js"

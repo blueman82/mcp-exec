@@ -1,0 +1,50 @@
+[
+  {
+    "session_id": "a3fc703f-67ae-4bfd-abb2-90275063d154",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/a3fc703f-67ae-4bfd-abb2-90275063d154.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup-log-viewer",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "a3fc703f-67ae-4bfd-abb2-90275063d154",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/a3fc703f-67ae-4bfd-abb2-90275063d154.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup-log-viewer",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "a3fc703f-67ae-4bfd-abb2-90275063d154",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/a3fc703f-67ae-4bfd-abb2-90275063d154.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup-log-viewer",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "457f11d4-0174-4cd7-9cd8-9bc82e10b9be",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup/457f11d4-0174-4cd7-9cd8-9bc82e10b9be.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup-log-viewer",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "91ad7767-7484-4f42-beeb-fe12b9f632dc",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-ketchup-log-viewer/91ad7767-7484-4f42-beeb-fe12b9f632dc.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup-log-viewer",
+    "permission_mode": "default",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  },
+  {
+    "session_id": "0d761a52-aaf6-4771-a5a9-0a7f75cb9cef",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-ketchup-log-viewer/0d761a52-aaf6-4771-a5a9-0a7f75cb9cef.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/ketchup-log-viewer",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false
+  }
+]

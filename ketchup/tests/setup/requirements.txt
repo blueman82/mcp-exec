@@ -1,0 +1,48 @@
+# Core dependencies
+aioboto3
+aiobotocore
+slack_sdk
+pydantic
+python-dotenv
+httpx
+defusedxml
+
+# Testing
+pytest
+pytest-asyncio
+pytest-mock
+faiss-cpu  # Vector similarity search for KB
+
+# Linting & formatting
+ruff
+black
+isort
+
+# Type checking
+mypy
+types-python-dateutil
+types-requests
+types-PyYAML
+
+# Coverage reporting
+pytest-cov
+
+# YAML config support
+PyYAML
+
+# AWS mocking for tests
+moto[server]
+tiktoken
+tabulate
+
+# Additional dependencies
+moto[server]
+
+
+# JSON performance
+orjson
+
+# Visualization & performance monitoring
+matplotlib
+seaborn
+psutil

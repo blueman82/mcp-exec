@@ -1,0 +1,83 @@
+{
+  "report_metadata": {
+    "generated_at": 1758961326.428056,
+    "generator": "TypedDI Test Result Aggregator",
+    "version": "1.0"
+  },
+  "validation_summary": {
+    "timestamp": 1758961326.377464,
+    "total_services_tested": 316,
+    "services_with_issues": 0,
+    "dependency_validation_passed": false,
+    "performance_validation_passed": true,
+    "cross_service_validation_passed": true,
+    "zero_errors_achieved": false,
+    "critical_issues": [
+      "Dependency validation failure: Traceback (most recent call last):\n  File \"/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/unit/core/typed_di/test_dependency_coverage.py\", line 211, in test_required_constructor_types_are_declared_as_dependencies\n    self.fail(\n    ~~~~~~~~~^\n        \"Missing required DependencySpec for constructor params:\\n\"\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        + \"\\n\".join(sorted(set(errors)))\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nAssertionError: Missing required DependencySpec for constructor params:\nCommandRouter: missing DependencySpec for required param 'slack_posting_handler' type 'SlackPostingHandler'\nCommandRouter: missing DependencySpec for required param 'user_store' type 'UserStore'\nCommandRouter: missing DependencySpec for required param 'user_verifier' type 'UserVerifier'\nCompatibilityBridge: missing DependencySpec for required param 'registry' type 'TypedServiceRegistry'\nEventProcessor: missing DependencySpec for required param 'command_router' type 'CommandRouter'\nSlackEventHandler: missing DependencySpec for required param 'posting_handler' type 'SlackPostingHandler'\nTypedDIContainerAdapter: missing DependencySpec for required param 'compatibility_bridge' type 'CompatibilityBridge'\nTypedDIContainerAdapter: missing DependencySpec for required param 'typed_registry' type 'TypedServiceRegistry'\n"
+    ],
+    "warnings": [],
+    "recommendations": [
+      "Performance validation: No significant regressions detected",
+      "Cross-service validation: 0 services validated successfully",
+      "\u274c Critical issues detected - immediate action required",
+      "Priority 1: Fix dependency validation issues",
+      "- Review service registrations and constructor dependencies"
+    ]
+  },
+  "detailed_results": {
+    "dependency_validation": {
+      "tests_run": 1,
+      "failures": 1,
+      "errors": 0,
+      "success": false,
+      "failure_details": [
+        "Traceback (most recent call last):\n  File \"/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/unit/core/typed_di/test_dependency_coverage.py\", line 211, in test_required_constructor_types_are_declared_as_dependencies\n    self.fail(\n    ~~~~~~~~~^\n        \"Missing required DependencySpec for constructor params:\\n\"\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        + \"\\n\".join(sorted(set(errors)))\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nAssertionError: Missing required DependencySpec for constructor params:\nCommandRouter: missing DependencySpec for required param 'slack_posting_handler' type 'SlackPostingHandler'\nCommandRouter: missing DependencySpec for required param 'user_store' type 'UserStore'\nCommandRouter: missing DependencySpec for required param 'user_verifier' type 'UserVerifier'\nCompatibilityBridge: missing DependencySpec for required param 'registry' type 'TypedServiceRegistry'\nEventProcessor: missing DependencySpec for required param 'command_router' type 'CommandRouter'\nSlackEventHandler: missing DependencySpec for required param 'posting_handler' type 'SlackPostingHandler'\nTypedDIContainerAdapter: missing DependencySpec for required param 'compatibility_bridge' type 'CompatibilityBridge'\nTypedDIContainerAdapter: missing DependencySpec for required param 'typed_registry' type 'TypedServiceRegistry'\n"
+      ],
+      "error_details": []
+    },
+    "performance_validation": {
+      "timestamp": 1758961326.427958,
+      "total_services": 316,
+      "performance_metrics": [],
+      "regressions_detected": 0,
+      "summary": {
+        "avg_resolution_time_ms": 0.0,
+        "services_with_regressions": []
+      }
+    },
+    "cross_service_validation": {
+      "timestamp": 1758961326.4279912,
+      "total_services": 316,
+      "dependency_results": [],
+      "interaction_results": [],
+      "failure_scenario_results": [],
+      "summary": {
+        "services_with_valid_dependencies": 0,
+        "services_with_circular_dependencies": 0,
+        "services_with_missing_dependencies": 0,
+        "average_resolution_time": 0.0,
+        "failure_scenario_coverage": {
+          "services_tested": 0,
+          "thread_safe_services": 0,
+          "memory_efficient_services": 0,
+          "graceful_degradation_services": 0
+        }
+      },
+      "failure_scenarios": {
+        "missing_dependency_tests": [],
+        "malformed_config_tests": [],
+        "concurrent_access_tests": [],
+        "memory_pressure_tests": []
+      }
+    }
+  },
+  "compliance_status": {
+    "zero_errors_achieved": false,
+    "compliance_score": 56.66666666666666,
+    "next_actions": [
+      "Performance validation: No significant regressions detected",
+      "Cross-service validation: 0 services validated successfully",
+      "\u274c Critical issues detected - immediate action required"
+    ]
+  }
+}

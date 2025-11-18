@@ -1,0 +1,20 @@
+[
+  {
+    "timestamp": "2025-08-22T11:05:34.401195",
+    "urgency": "low",
+    "message": "Claude is waiting for your input",
+    "extracted_command": null,
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/packages",
+      "aws_profile": null,
+      "user": "harrison"
+    },
+    "hook": "notification",
+    "auto_approve_eligible": false,
+    "analysis": {
+      "urgency": "low",
+      "extracted_command": null,
+      "message_length": 32
+    }
+  }
+]

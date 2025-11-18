@@ -1,0 +1,452 @@
+[
+  {
+    "timestamp": "2025-08-20T20:34:47.937283",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-20T20:35:43.771478",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-20T20:36:47.344898",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-20T21:23:10.133290",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-20T21:46:10.277622",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-20T23:32:53.402265",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T08:13:51.149040",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T08:16:26.864853",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T08:19:18.080867",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T08:19:54.879389",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T09:11:48.304934",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T09:35:29.577847",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/93a0c2c2-56ed-40a9-a8fa-eb55a2e26881.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 10372)"
+  },
+  {
+    "timestamp": "2025-08-21T09:39:38.221125",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/93a0c2c2-56ed-40a9-a8fa-eb55a2e26881.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 10372)"
+  },
+  {
+    "timestamp": "2025-08-21T09:43:04.164919",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/93a0c2c2-56ed-40a9-a8fa-eb55a2e26881.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 10372)"
+  },
+  {
+    "timestamp": "2025-08-21T09:55:33.014973",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:01:30.778998",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:07:22.352818",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:18:21.287890",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:25:00.108365",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:27:41.338733",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:29:43.278170",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:38:50.939975",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:43:26.171434",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:45:52.803200",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T10:48:04.124423",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T11:01:35.321399",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T11:03:13.992924",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T11:05:17.946845",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T11:27:06.178595",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T11:28:12.555409",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T12:45:28.415518",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T12:50:37.646425",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T14:03:12.554047",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/93a0c2c2-56ed-40a9-a8fa-eb55a2e26881.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 10372)"
+  },
+  {
+    "timestamp": "2025-08-21T14:05:44.911335",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T14:06:05.987847",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T14:13:23.401391",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T14:34:49.388394",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/93a0c2c2-56ed-40a9-a8fa-eb55a2e26881.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 10372)"
+  },
+  {
+    "timestamp": "2025-08-21T14:37:24.880566",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T14:59:25.185090",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/0d2d8b3e-cbf0-415b-b839-d48b8c9aeae4.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 123)"
+  },
+  {
+    "timestamp": "2025-08-21T18:11:30.384794",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T18:14:45.721531",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/89146532-da10-44de-b06a-0877bee7f6fe.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T18:17:22.771575",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/89146532-da10-44de-b06a-0877bee7f6fe.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T18:32:48.492401",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T18:46:05.922844",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T18:47:22.316894",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T22:33:47.651466",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T23:07:46.923909",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-21T23:10:51.990811",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-22T00:06:03.049023",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  },
+  {
+    "timestamp": "2025-08-22T00:19:12.898858",
+    "hook": "stop",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/6bb02e54-f8d0-4c52-ad55-2d9149744e91.jsonl",
+    "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+    "user": "harrison",
+    "aws_profile": null,
+    "transcript_error": "Extra data: line 2 column 1 (char 682)"
+  }
+]

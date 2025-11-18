@@ -1,0 +1,597 @@
+[
+  {
+    "timestamp": "2025-08-19T19:55:21.774614",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-19T23:46:51.306803",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T10:42:49.609101",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T14:47:19.326560",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T14:49:50.126676",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T14:53:33.411411",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T14:55:48.753075",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T15:07:09.694010",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T15:13:59.908030",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T15:31:10.398296",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T15:35:19.363243",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T15:40:22.772825",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T15:46:46.552513",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T16:09:24.072681",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T16:54:43.112037",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T17:01:19.474198",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T20:17:50.887247",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T20:19:31.593293",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T20:25:27.510902",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-20T20:27:14.977332",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T09:31:31.548278",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T09:45:23.062174",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T10:05:56.175722",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T10:24:36.953738",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T10:53:28.640408",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T10:55:32.487558",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T10:59:08.831752",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T12:00:06.306904",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T12:20:51.165843",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T12:28:58.145959",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T12:38:39.628186",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T13:06:21.486240",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T18:44:51.026056",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T21:52:11.358837",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  },
+  {
+    "timestamp": "2025-08-21T22:32:09.635669",
+    "hook": "sub-agent-stop",
+    "agent_id": "unknown",
+    "task_types": [
+      "general"
+    ],
+    "result_analysis": {},
+    "context": {
+      "working_directory": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests/setup",
+      "user": "harrison",
+      "aws_profile": null
+    },
+    "has_errors": false,
+    "result_length": 0,
+    "success_indicators": []
+  }
+]
