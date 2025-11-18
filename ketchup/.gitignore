@@ -1,0 +1,4 @@
+# Ignore docs directory except for internal_documentation
+docs/
+!docs/internal_documentation/
+!docs/internal_documentation/**
