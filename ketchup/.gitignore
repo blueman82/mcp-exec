@@ -1,5 +1,6 @@
-# Ignore docs directory except for internal_documentation
+# Ignore docs directory except for internal_documentation and diagrams
 docs/
 !docs/internal_documentation/
 !docs/internal_documentation/**
 !docs/diagrams
+!docs/diagrams/**
