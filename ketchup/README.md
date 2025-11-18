@@ -165,7 +165,7 @@ The deployment script:
 - **Database**: ketchup_channel_information (DynamoDB)
 - **Secrets**: Ketchup_Token_Secrets (AWS Secrets Manager)
 - **Queue**: ketchup-events-queue (SQS)
-- **Current Version**: v2.360.346
+- **Current Version**: v2.360.347
 
 ## Configuration
 
@@ -192,11 +192,14 @@ Common feature flags:
 
 Ketchup has comprehensive architecture and implementation documentation:
 
-- **[High-Level Architecture Guide](./code_docs/ketchup_high_level.md)** - Complete system design, event flow, feature flags, and common development tasks (83KB detailed reference)
-- **[TypedDI Migration & Dependency Injection](./docs/TYPEDDI_MIGRATION_SUMMARY.md)** - Modern type-safe DI system architecture and 271+ service registrations (400+ lines)
-- **[Code Walkthrough Documentation](./code_docs/ketchup_code_walkthrough_documentation.md)** - Detailed component-by-component reference (595KB)
+- **[High-Level Architecture Guide](./docs/internal_documentation/ketchup_high_level.md)** - Complete system design, event flow, and feature flags
+- **[Code Walkthrough Documentation](./docs/internal_documentation/ketchup_code_walkthrough_documentation.md)** - Detailed component-by-component reference
+- **[Diagram Index & Navigation](./docs/diagrams/README.md)** - Visual documentation of infrastructure, event flows, services, and workflows
+- **[Feature Flags Reference](./docs/FEATURE_FLAGS.md)** - Comprehensive guide to all 40+ environment variables and feature controls
 
 **🔑 Important**: When updating architecture, services, or features, refer to `infrastructure/docker-compose.yml` as the source of truth for deployed services and enabled feature flags.
+
+**📋 Documentation Maintenance**: Review and update documentation links and version numbers during each deployment cycle to maintain accuracy with production configuration.
 
 ### 📊 Technical Diagrams
 

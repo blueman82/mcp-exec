@@ -28,7 +28,7 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 
 **Total Containers**: 14 across 2 servers
 
-**prod1 (ketchup-prod1.campaign.adobe.com)** - 7 containers:
+**prod1 (ketchup-prod1.campaign.adobe.com)** - 9 containers:
 1. `nginx` - Reverse proxy (port 80)
 2. `ketchup-app-1` - FastAPI app replica 1 (port 8001)
 3. `ketchup-app-2` - FastAPI app replica 2 (port 8001)
@@ -159,7 +159,7 @@ ketchup/
 - Modern type-safe dependency injection replacing legacy string-based DI
 - Protocol-first design with compile-time validation
 - All 7 production services use pure TypedDI (no legacy DI)
-- See `docs/TYPEDDI_MIGRATION_SUMMARY.md` for complete migration details
+- See `docs/diagrams/05-typeddi-resolution.md` and `docs/diagrams/3-typed-di-architecture.md` for visual reference
 
 **Key Files**:
 - `typed_service_registry.py` - Main DI container with topological sorting
@@ -235,11 +235,14 @@ Unit → Integration → E2E → Manual
 
 ## Important Documentation
 
-- **[High-Level Architecture Guide](./code_docs/ketchup_high_level.md)** - Complete system design and event flow (83KB)
-- **[TypedDI Migration Summary](./docs/TYPEDDI_MIGRATION_SUMMARY.md)** - Modern DI system architecture (400+ lines)
-- **[Code Walkthrough](./code_docs/ketchup_code_walkthrough_documentation.md)** - Component-by-component reference (595KB)
+- **[High-Level Architecture Guide](./docs/internal_documentation/ketchup_high_level.md)** - Complete system design and event flow
+- **[Code Walkthrough](./docs/internal_documentation/ketchup_code_walkthrough_documentation.md)** - Component-by-component reference
+- **[Diagram Index & Navigation](./docs/diagrams/README.md)** - Visual documentation of infrastructure, services, and workflows
+- **[Feature Flags Reference](./docs/FEATURE_FLAGS.md)** - Comprehensive guide to all environment variables and feature controls
 
 **When updating architecture or features**: Always check `infrastructure/docker-compose.yml` as the source of truth for deployed services and enabled feature flags.
+
+**Documentation Maintenance**: During each release cycle, review and update CLAUDE.md and README.md to ensure all references remain accurate and aligned with production docker-compose.yml.
 
 ## Common Tasks
 
