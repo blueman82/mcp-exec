@@ -4,3 +4,7 @@ docs/
 !docs/internal_documentation/**
 !docs/diagrams
 !docs/diagrams/**
+
+# Ignore .env.test files (each developer uses their own AWS profile)
+# Copy .env.test.example to .env.test and update with your profile
+.env.test

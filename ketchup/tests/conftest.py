@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -12,6 +13,21 @@ sys.path.insert(0, project_root)
 
 # Import all AWS mocking fixtures to make them available to all tests
 from packages.core.testing.aws_mocks import *  # noqa: F401,F403
+
+# Load AWS configuration from .env.test (optional)
+# Each developer can use their own AWS profile without committing to git
+env_test = Path(__file__).parent.parent / ".env.test"
+if env_test.exists():
+    with open(env_test) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                key, value = line.split("=", 1)
+                os.environ[key.strip()] = value.strip()
+
+# Set defaults if not loaded from .env.test
+os.environ.setdefault("AWS_PROFILE", "campaign_prod_v7")
+os.environ.setdefault("AWS_REGION", "eu-west-1")
 
 
 def _reset_mock_recursive(obj: Any) -> None:
