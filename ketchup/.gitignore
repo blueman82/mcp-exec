@@ -2,3 +2,4 @@
 docs/
 !docs/internal_documentation/
 !docs/internal_documentation/**
+!docs/diagrams
