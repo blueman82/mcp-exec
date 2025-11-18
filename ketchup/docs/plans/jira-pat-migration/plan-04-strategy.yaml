@@ -25,7 +25,7 @@ testing_strategy:
         - "PATSlackNotifier message formatting and alert logic"
         - "PATRotationScheduler job scheduling and trigger conditions"
         - "MCP config.ts PAT configuration loading"
-        - "MCP utils.js header construction with PAT vs username/password"
+        - "MCP utils.ts header construction with PAT vs username/password"
         - "AWS Secrets Manager interactions (mocked)"
         - "iPaaS HTTP client calls (mocked)"
       setup_required:
@@ -752,7 +752,7 @@ resources:
       note: |
         Node.js service architecture:
         - common/config.ts - configuration loading
-        - common/utils.js - header construction
+        - common/utils.ts - header construction
         - env-aws.ts - AWS Secrets mapping
         - tools/jira.ts - MCP tool definitions
 
@@ -931,8 +931,8 @@ resources:
       - "PAT rotation manager: ketchup_pat_rotator/rotation_manager.py"
       - "PAT scheduler: ketchup_pat_rotator/scheduler.py"
       - "PAT main entry: ketchup_pat_rotator/main.py"
-      - "MCP config: corp_jira_mcp/src/config.ts"
-      - "MCP utils: corp_jira_mcp/src/utils.js"
+      - "MCP config: corp_jira_mcp/common/config.ts"
+      - "MCP utils: corp_jira_mcp/common/utils.ts"
       - "MCP AWS secrets: corp_jira_mcp/env-aws.ts"
       - "Docker compose: infrastructure/docker-compose.yml"
       - "PAT Dockerfile: infrastructure/Dockerfile.pat-rotator"

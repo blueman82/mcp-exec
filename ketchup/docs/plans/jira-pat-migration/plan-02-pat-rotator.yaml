@@ -20,7 +20,7 @@ plan:
       worktree_group: "chain-2"
       depends_on: []
       files:
-        - "packages/core/typed_di/service_registrations/protocols/jira_protocols.py"
+        - "packages/core/typed_di/protocols/jira_protocols.py"
         - "tests/unit/core/typed_di/test_jira_protocols.py"
       description: |
         Create TypedDI protocol interfaces that define the contracts for PAT rotation
@@ -75,7 +75,7 @@ plan:
 
           Enables protocol-based DI with compile-time type safety and easy mocking.
         files:
-          - "packages/core/typed_di/service_registrations/protocols/jira_protocols.py"
+          - "packages/core/typed_di/protocols/jira_protocols.py"
           - "tests/unit/core/typed_di/test_jira_protocols.py"
     # Task 6: Implement PATRotationManager
     - task_number: 6
