@@ -29,12 +29,12 @@ plan:
 
         # Task 1: Update MCP JIRA config.ts for PAT Support
         # [Implement Task 1]
-        git add corp_jira_mcp/src/config.ts corp_jira_mcp/tests/config.test.ts
+        git add corp_jira_mcp/common/config.ts corp_jira_mcp/tests/config.test.ts
         git commit -m "feat(mcp-jira): add PAT configuration support"
 
-        # Task 2: Update MCP JIRA utils.js for PAT Header Logic
+        # Task 2: Update MCP JIRA utils.ts for PAT Header Logic
         # [Implement Task 2]
-        git add corp_jira_mcp/src/utils.js corp_jira_mcp/tests/utils.test.js
+        git add corp_jira_mcp/common/utils.ts corp_jira_mcp/tests/utils.test.ts
         git commit -m "feat(mcp-jira): implement PAT header logic for iPaaS"
 
         # Task 3: Update env-aws.ts for PAT Secret Mapping
@@ -44,7 +44,7 @@ plan:
 
         # Task 4: MCP JIRA PAT Authentication Tests
         # [Implement Task 4]
-        git add corp_jira_mcp/tests/auth-pat.integration.test.js
+        git add corp_jira_mcp/tests/auth-pat.integration.test.ts
         git commit -m "test(mcp-jira): add PAT authentication integration tests"
 
         # Task 17 will be implemented later in this worktree
@@ -187,7 +187,7 @@ plan:
       agent: "javascript-pro"
       worktree_group: "chain-1"
       files:
-        - "corp_jira_mcp/src/config.ts"
+        - "corp_jira_mcp/common/config.ts"
         - "corp_jira_mcp/tests/config.test.ts"
       depends_on: []
       estimated_time: "30m"
@@ -337,12 +337,12 @@ plan:
           - "corp_jira_mcp/src/config.ts"
           - "corp_jira_mcp/tests/config.test.ts"
     - task_number: 2
-      name: "Update MCP JIRA utils.js for PAT Header Logic"
+      name: "Update MCP JIRA utils.ts for PAT Header Logic"
       agent: "javascript-pro"
       worktree_group: "chain-1"
       files:
-        - "corp_jira_mcp/src/utils.js"
-        - "corp_jira_mcp/tests/utils.test.js"
+        - "corp_jira_mcp/common/utils.ts"
+        - "corp_jira_mcp/tests/utils.test.ts"
       depends_on: [1]
       estimated_time: "45m"
       description: |
@@ -427,7 +427,7 @@ plan:
           The approach uses a simple if/else based on the feature flag, with backup PAT fallback using
           the OR operator for simplicity.
         code_structure: |
-          // Line ~108: Update function signature to accept config
+          // corp_jira_mcp/common/utils.ts - Line ~108: Update function signature to accept config
           function constructIpaasHeaders(imsToken, apiKey, config) {
             const headers = {
               "Authorization": `${imsToken}`,        // IMS token (always required for iPaaS)
@@ -551,8 +551,8 @@ plan:
 
           Related to JIRA basic auth deprecation (Nov 30, 2025).
         files:
-          - "corp_jira_mcp/src/utils.js"
-          - "corp_jira_mcp/tests/utils.test.js"
+          - "corp_jira_mcp/common/utils.ts"
+          - "corp_jira_mcp/tests/utils.test.ts"
     - task_number: 3
       name: "Update env-aws.ts for PAT Secret Mapping"
       agent: "typescript-pro"
@@ -712,7 +712,7 @@ plan:
       agent: "test-automator"
       worktree_group: "chain-1"
       files:
-        - "corp_jira_mcp/tests/auth-pat.integration.test.js"
+        - "corp_jira_mcp/tests/auth-pat.integration.test.ts"
       depends_on: [2, 3]
       estimated_time: "45m"
       description: |
@@ -947,4 +947,4 @@ plan:
 
           Tests verify end-to-end PAT authentication works with MCP service.
         files:
-          - "corp_jira_mcp/tests/auth-pat.integration.test.js"
+          - "corp_jira_mcp/tests/auth-pat.integration.test.ts"
