@@ -33,6 +33,8 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
 
 from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
 from ketchup_jira_pat_rotator.rotator import PATRotator
+from ketchup_jira_pat_rotator.metrics_collector import MetricsCollectorService
+from ketchup_jira_pat_rotator.metrics_schema import MetricsStorage
 
 logger = setup_logger(__name__)
 
@@ -86,13 +88,56 @@ async def async_main():
 
         logger.info("All required services initialized successfully")
 
+        # Initialize metrics collector
+        logger.info("Initializing metrics collector service...")
+        try:
+            # Get configuration from secrets manager or environment
+            config = {
+                "pat": "primary-token",  # In production, retrieve from secrets
+                "patExpiry": datetime.utcnow(),  # In production, retrieve from secrets
+                "backupPat": None,  # In production, retrieve from secrets if available
+                "backupPatExpiry": None,  # In production, retrieve from secrets if available
+            }
+
+            # Initialize metrics storage
+            dynamodb_resource = await container.aget(DynamoDBStoreProtocol)
+            metrics_storage = MetricsStorage(dynamodb_resource)
+
+            # Create metrics collector
+            metrics_collector = MetricsCollectorService(
+                metrics_storage=metrics_storage,
+                config=config,
+                rotation_service=None,  # Could integrate with rotator if needed
+            )
+            logger.info("Metrics collector service initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize metrics collector: {e}")
+            # Don't fail if metrics collector can't start; continue with rotation service
+            metrics_collector = None
+
         # Initialize scheduler
         logger.info("Initializing PAT rotation scheduler...")
         scheduler = PatRotationScheduler()
 
+        # Start metrics collector as background task if available
+        metrics_collector_task = None
+        if metrics_collector:
+            logger.info("Starting metrics collector service...")
+            metrics_collector_task = asyncio.create_task(metrics_collector.start())
+
         # Start the scheduler
         logger.info("Starting scheduler loop...")
-        await scheduler.start()
+        try:
+            await scheduler.start()
+        finally:
+            # Stop metrics collector when scheduler stops
+            if metrics_collector_task and not metrics_collector_task.done():
+                logger.info("Stopping metrics collector service...")
+                await metrics_collector.stop()
+                try:
+                    await metrics_collector_task
+                except asyncio.CancelledError:
+                    pass
 
     except Exception as e:
         logger.error(f"Fatal error in PAT rotation service: {e}", exc_info=True)
