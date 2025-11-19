@@ -195,7 +195,7 @@ Ketchup has comprehensive architecture and implementation documentation:
 - **[High-Level Architecture Guide](./docs/internal_documentation/ketchup_high_level.md)** - Complete system design, event flow, and feature flags
 - **[Code Walkthrough Documentation](./docs/internal_documentation/ketchup_code_walkthrough_documentation.md)** - Detailed component-by-component reference
 - **[Diagram Index & Navigation](./docs/diagrams/README.md)** - Visual documentation of infrastructure, event flows, services, and workflows
-- **[Feature Flags Reference](./docs/FEATURE_FLAGS.md)** - Comprehensive guide to all 40+ environment variables and feature controls
+- **[Feature Flags Reference](./docs/feature_flags.md)** - Comprehensive guide to all 40+ environment variables and feature controls
 
 **🔑 Important**: When updating architecture, services, or features, refer to `infrastructure/docker-compose.yml` as the source of truth for deployed services and enabled feature flags.
 

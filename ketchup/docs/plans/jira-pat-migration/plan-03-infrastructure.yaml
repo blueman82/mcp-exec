@@ -434,7 +434,7 @@ plan:
           - point: "Feature flag JIRA_USE_PAT_AUTH defaults to false"
             details: "Allows deployment without immediately switching to PAT auth (Phase 1 of deployment)"
           - point: "Environment variable names match Task 3 (env-aws.ts)"
-            details: "JIRA_PAT, JIRA_PAT_BACKUP, JIRA_USE_PAT_AUTH defined in env-aws.ts mappings"
+            details: "JIRA_PAT, JIRA_USE_PAT_AUTH defined in env-aws.ts mappings"
           - point: "Health check interval 5 minutes matches scheduler frequency"
             details: "Scheduler runs hourly jobs, health check every 5 minutes provides quick failure detection"
           - point: "HTTP/2 support enabled for performance"
@@ -506,13 +506,15 @@ plan:
       name: "Update AWS Secrets Manager Schema"
       agent: "deployment-engineer"
       worktree_group: "independent-1"
+      status: "completed"
+      completed_at: "2025-11-19T00:00:00Z"
       files:
         - "N/A (manual AWS CLI commands, document in commit message)"
       depends_on: [] # Independent task
       estimated_time: "15m"
       description: |
-        Populate ketchup_jira_pat and ketchup_jira_pat_backup keys in AWS Secrets Manager with initial PAT
-        values, and add expiry metadata fields.
+        Populate ketchup_jira_pat key in AWS Secrets Manager with initial PAT
+        value, and add expiry metadata field (expiry: 2026-02-09T09:33:14Z).
 
         This task can run in parallel with all other tasks - it has no dependencies and nothing depends on it
         until deployment time.
@@ -525,9 +527,7 @@ plan:
         fixtures: []
         assertions:
           - "AWS Secrets Manager contains ketchup_jira_pat key"
-          - "AWS Secrets Manager contains ketchup_jira_pat_backup key"
           - "AWS Secrets Manager contains ketchup_jira_pat_expiry key"
-          - "AWS Secrets Manager contains ketchup_jira_pat_backup_expiry key"
           - "PAT token is valid (manually test JIRA API call)"
         edge_cases:
           - "PAT token is invalid or expired (should detect before deployment)"
@@ -539,14 +539,13 @@ plan:
             --profile campaign_prod_v7 \
             --region eu-west-1 \
             --query SecretString --output text | \
-            jq 'has("ketchup_jira_pat") and has("ketchup_jira_pat_backup") and has("ketchup_jira_pat_expiry")'
+            jq 'has("ketchup_jira_pat") and has("ketchup_jira_pat_expiry")'
           # Should output: true
       implementation:
         approach: |
-          Manually create initial PAT via JIRA UI, then update AWS Secrets Manager with new keys using AWS CLI.
+          Manually create initial PAT via JIRA UI, then update AWS Secrets Manager with new key using AWS CLI.
 
-          The PAT is created with 60-day expiry. Both primary and backup start with the same value - they will
-          diverge after the first rotation when the rotator service creates a new primary PAT.
+          The PAT is created with 60-day expiry.
         code_structure: |
           # STEP 1: Create initial PAT manually via JIRA UI
 
@@ -566,9 +565,7 @@ plan:
 
           # Edit /tmp/secrets.json to add these keys:
           # - "ketchup_jira_pat": "<PAT_TOKEN_FROM_JIRA>"
-          # - "ketchup_jira_pat_backup": "<SAME_TOKEN>" (initially same, will diverge after first rotation)
-          # - "ketchup_jira_pat_expiry": "2025-01-12T00:00:00Z" (60 days from now)
-          # - "ketchup_jira_pat_backup_expiry": "2025-01-12T00:00:00Z"
+          # - "ketchup_jira_pat_expiry": "2026-02-09T09:33:14Z" (60 days from now)
 
           # Update secrets
           aws secretsmanager update-secret \
@@ -594,9 +591,7 @@ plan:
             details: "Automated PAT creation happens later via ketchup-pat-rotator service"
           - point: "60-day expiry aligns with rotation schedule"
             details: "Rotation service will create new PAT before this one expires"
-          - point: "Primary and backup start identical"
-            details: "After first rotation, backup will be the old primary (providing fallback)"
-          - point: "Expiry timestamps in ISO8601 format"
+          - point: "Expiry timestamp in ISO8601 format"
             details: "Format: YYYY-MM-DDTHH:MM:SSZ (UTC timezone)"
           - point: "Secrets are flat key-value pairs"
             details: "Not nested JSON - matches existing Ketchup secrets pattern"
@@ -610,11 +605,10 @@ plan:
             - "Always verify PAT works before deployment (test JIRA API call)"
       success_criteria:
         - "Secret schema updated successfully"
-        - "Backup PAT field added"
         - "Existing secrets preserved"
         - "Schema validation passes"
       test_commands:
-        - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq 'has(\"ketchup_jira_pat\") and has(\"ketchup_jira_pat_backup\") and has(\"ketchup_jira_pat_expiry\")'"
+        - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq 'has(\"ketchup_jira_pat\") and has(\"ketchup_jira_pat_expiry\")'"
         - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq -r '.ketchup_jira_pat' | wc -c"
         - "aws secretsmanager get-secret-value --secret-id Ketchup_Token_Secrets --profile campaign_prod_v7 --region eu-west-1 --query SecretString --output text | jq -r 'keys | length'"
       verification:
@@ -626,7 +620,7 @@ plan:
                 --profile campaign_prod_v7 \
                 --region eu-west-1 \
                 --query SecretString --output text | \
-                jq 'has("ketchup_jira_pat") and has("ketchup_jira_pat_backup") and has("ketchup_jira_pat_expiry")'
+                jq 'has("ketchup_jira_pat") and has("ketchup_jira_pat_expiry")'
             expected: "Output: true"
           - step: "Verify PAT token format"
             command: |
@@ -653,19 +647,16 @@ plan:
           command: "N/A (AWS Secrets Manager operations)"
           expected_output: "N/A"
         success_criteria:
-          - "All four keys present in AWS Secrets Manager"
+          - "All two keys present in AWS Secrets Manager"
           - "PAT token validates successfully against JIRA API"
-          - "Expiry dates are in the future (60 days from creation)"
-          - "Backup PAT matches primary PAT (for initial state)"
+          - "Expiry date is in the future (60 days from creation)"
       commit:
         type: "ops"
-        message: "add initial PAT tokens to AWS Secrets Manager"
+        message: "add initial PAT token to AWS Secrets Manager"
         body: |
           Updated Ketchup_Token_Secrets with:
           - ketchup_jira_pat: Initial PAT token (60-day expiry)
-          - ketchup_jira_pat_backup: Same token initially
           - ketchup_jira_pat_expiry: Expiry timestamp
-          - ketchup_jira_pat_backup_expiry: Expiry timestamp
 
           Ready for automated rotation service.
 
@@ -693,7 +684,6 @@ plan:
           - "class TestMCPJiraPATAuthentication:"
           - "  test_pat_authentication_with_feature_flag_enabled()"
           - "  test_username_password_authentication_with_feature_flag_disabled()"
-          - "  test_pat_backup_fallback()"
         mocks:
           - "os.environ for setting environment variables"
         fixtures:
@@ -704,11 +694,9 @@ plan:
           - "config.auth.usePat is False when JIRA_USE_PAT_AUTH='false'"
           - "headers['x-authorization'] starts with 'Bearer ' when PAT enabled"
           - "headers['Username'] and headers['Password'] present when PAT disabled"
-          - "Backup PAT used when primary is invalid"
         edge_cases:
           - "Feature flag enabled but PAT missing (should fail)"
-          - "Primary PAT invalid, backup valid (should use backup)"
-          - "Both PATs invalid (should fail with clear error)"
+          - "PAT invalid (should fail with clear error)"
         example_skeleton: |
           import pytest
           import os
@@ -750,7 +738,6 @@ plan:
           Tests validate:
           1. Feature flag behavior (PAT enabled vs disabled)
           2. Header construction (x-authorization vs Username/Password)
-          3. Backup PAT fallback logic
         code_structure: |
           # tests/integration/mcp_jira/test_pat_authentication.py
 
@@ -810,29 +797,6 @@ plan:
                       assert 'Username' in headers
                       assert 'Password' in headers
                       assert 'x-authorization' not in headers
-
-              @pytest.mark.integration
-              @pytest.mark.skipif(not os.getenv('JIRA_PAT'), reason="Requires JIRA_PAT")
-              async def test_pat_backup_fallback(self):
-                  """Test MCP JIRA falls back to backup PAT if primary invalid."""
-                  with patch.dict(os.environ, {
-                      'JIRA_USE_PAT_AUTH': 'true',
-                      'JIRA_PAT': 'invalid_token',
-                      'JIRA_PAT_BACKUP': os.getenv('JIRA_PAT'),  # Valid backup
-                  }):
-                      from corp_jira_mcp.common.config import loadConfig
-                      config = loadConfig()
-
-                      # Verify backup is used
-                      from corp_jira_mcp.common.utils import constructIpaasHeaders
-                      headers = constructIpaasHeaders(
-                          config.auth.imsToken,
-                          config.auth.apiKey,
-                          config
-                      )
-
-                      # Should use backup PAT
-                      assert headers['x-authorization'] == f"Bearer {os.getenv('JIRA_PAT')}"
         key_points:
           - point: "Tests import Node.js modules (requires Node.js installed)"
             details: "Use subprocess or node-gyp bindings to call Node.js code from Python tests"
@@ -859,14 +823,13 @@ plan:
             - "Use patch.dict to safely manipulate environment variables"
             - "Restore original env vars after each test (afterEach cleanup)"
       success_criteria:
-        - "All MCP integration tests pass"
+        - "All 2 MCP integration tests pass"
         - "PAT authentication works end-to-end"
         - "Feature flag switching works"
         - "Backward compatibility maintained"
       test_commands:
         - "cd tests/setup && make test-integration ARGS='-k test_pat_authentication -v'"
         - "cd tests/setup && make test-integration ARGS='-k test_username_password_authentication -v'"
-        - "cd tests/setup && make test-integration ARGS='-k test_pat_backup_fallback -v'"
       verification:
         manual_testing:
           - step: "Load JIRA PAT from AWS Secrets"
@@ -886,14 +849,12 @@ plan:
           expected_output: |
             tests/integration/mcp_jira/test_pat_authentication.py::TestMCPJiraPATAuthentication::test_pat_authentication_with_feature_flag_enabled PASSED
             tests/integration/mcp_jira/test_pat_authentication.py::TestMCPJiraPATAuthentication::test_username_password_authentication_with_feature_flag_disabled PASSED
-            tests/integration/mcp_jira/test_pat_authentication.py::TestMCPJiraPATAuthentication::test_pat_backup_fallback PASSED
 
-            ====== 3 passed in 5.23s ======
+            ====== 2 passed in 5.23s ======
         success_criteria:
-          - "All 3 integration tests pass"
+          - "All 2 integration tests pass"
           - "PAT authentication works when feature flag enabled"
           - "Username/password fallback works when feature flag disabled"
-          - "Backup PAT fallback logic works correctly"
       commit:
         type: "test"
         message: "add PAT authentication integration tests"
@@ -901,7 +862,6 @@ plan:
           Integration tests for MCP JIRA PAT support:
           - PAT authentication with feature flag enabled
           - Username/password fallback when flag disabled
-          - Backup PAT fallback on primary failure
           - iPaaS header construction validation
 
           Requires JIRA_PAT environment variable for execution.

@@ -112,7 +112,6 @@ testing_strategy:
         - "MCP JIRA service end-to-end JIRA API calls"
         - "Feature flag toggles (JIRA_USE_PAT_AUTH=true/false)"
         - "PAT validation against live JIRA instance"
-        - "Backup PAT fallback mechanism"
         - "Old token cleanup (list/delete operations)"
       setup_required:
         - "AWS profile configured: campaign_prod_v7"
@@ -172,13 +171,10 @@ testing_strategy:
             - "Check Ketchup logs show 'Using PAT authentication' (not username/password)"
             - "Verify ticket appears in JIRA with correct data"
 
-        - flow: "JIRA query with PAT fallback"
+        - flow: "JIRA query with PAT"
           steps:
             - "Run: /jira_query project=TEST status=Open assignee=currentUser()"
             - "Verify results returned"
-            - "Temporarily invalidate primary PAT in AWS Secrets"
-            - "Run same query - should auto-fallback to backup PAT"
-            - "Verify results still returned with warning logged"
 
         - flow: "PAT rotation triggered manually"
           steps:
@@ -378,7 +374,6 @@ testing_strategy:
               mock = MagicMock()
               mock.get_secret.return_value = {
                   'ketchup_jira_pat': 'primary_pat_123',
-                  'ketchup_jira_pat_backup': 'backup_pat_456',
                   'ketchup_jira_pat_expiry': '2026-01-11T00:00:00Z'
               }
               mock.update_secret.return_value = {'VersionId': 'v123'}
@@ -506,8 +501,7 @@ commit_strategy:
           feat(mcp-jira): add PAT authentication support to config
 
           Extends config.ts with PAT fields:
-          - auth.pat (primary PAT from env)
-          - auth.patBackup (backup PAT from env)
+          - auth.pat (PAT from env)
           - auth.usePat (feature flag toggle)
 
           Maintains backward compatibility with existing username/password auth.
@@ -525,7 +519,7 @@ commit_strategy:
 
           Comprehensive test coverage:
           - rotate_pat() full lifecycle (create → validate → update → cleanup)
-          - validate_current_pat() with backup fallback
+          - validate_current_pat()
           - get_pat_expiry_date() date parsing
           - Error handling for API failures
           - Mocked AWS Secrets and iPaaS HTTP client
@@ -542,9 +536,8 @@ commit_strategy:
           Core PAT lifecycle management:
           - Creates new PAT via iPaaS /rest/pat/latest/tokens
           - Validates PAT with /rest/api/3/myself
-          - Updates AWS Secrets (primary → backup → primary strategy)
+          - Updates AWS Secrets
           - Cleans up old tokens (keeps last 2)
-          - Automatic backup fallback on validation failure
 
           Implements JiraPATRotatorProtocol for TypedDI integration.
 
@@ -619,12 +612,6 @@ common_pitfalls:
       file: "corp_jira_mcp/src/config.ts"
       line: "usePat: process.env.JIRA_USE_PAT_AUTH === 'true'"
 
-  - pitfall: "Not implementing backup PAT fallback"
-    why: "Single PAT failure causes complete JIRA outage during rotation"
-    how_to_avoid: "Always try backup PAT if primary fails, log warning to Slack"
-    reference:
-      file: "ketchup_pat_rotator/rotation_manager.py"
-      method: "validate_current_pat() - shows backup fallback pattern"
 
   - pitfall: "Creating integration tests that don't clean up JIRA tokens"
     why: "JIRA has 10-token limit per user, leaked test tokens block production rotation"
@@ -855,8 +842,8 @@ resources:
       verify: "PAT rotation success/failure alerts render correctly"
       checked: false
 
-    - item: "AWS Secrets Manager schema updated with backup PAT field"
-      verify: "ketchup_jira_pat_backup and ketchup_jira_pat_expiry fields exist"
+    - item: "AWS Secrets Manager schema updated with PAT field"
+      verify: "ketchup_jira_pat and ketchup_jira_pat_expiry fields exist"
       checked: false
 
     - item: "Manual smoke tests completed in #ketchup_testing"
@@ -947,8 +934,7 @@ resources:
 
     key_environment_variables:
       - "JIRA_USE_PAT_AUTH=true/false - Feature flag to enable PAT authentication"
-      - "JIRA_PAT - Primary JIRA Personal Access Token (from AWS Secrets)"
-      - "JIRA_PAT_BACKUP - Backup PAT for failover (from AWS Secrets)"
+      - "JIRA_PAT - JIRA Personal Access Token (from AWS Secrets)"
       - "JIRA_USERNAME - Legacy username (fallback when PAT disabled)"
       - "JIRA_PASSWORD - Legacy password (fallback when PAT disabled)"
       - "AWS_PROFILE=campaign_prod_v7 - AWS profile for Secrets Manager access"
