@@ -1,31 +1,42 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-// Mock the config module before any other imports
-jest.mock('../common/config.js', () => ({
-  getConfig: () => ({
+// Create the mock function before jest.mock() is hoisted
+const mockJiraRequestFn = jest.fn();
+
+// Mock the config module
+jest.mock('../common/config', () => ({
+  config: {
     auth: {
       email: 'test@adobe.com',
-      token: 'test_token'
+      token: 'test_token',
+      imsToken: 'test_ims_token',
+      apiKey: 'test_api_key'
     },
-    jira: {
-      baseUrl: 'https://test.atlassian.net'
-    }
-  })
+    apiBaseUrl: 'https://test.atlassian.net/rest/api/3',
+    useIpaas: false,
+    timeout: 30000,
+    logFile: '/tmp/test-jira.log'
+  }
 }));
 
-// Mock the jiraRequest function
-const mockJiraRequest = jest.fn();
-jest.mock('../common/utils.js', () => ({
-  jiraRequest: mockJiraRequest,
-  buildUrl: jest.fn(),
+// Mock utils WITHOUT .js extension to match moduleNameMapper
+jest.mock('../common/utils', () => ({
+  jiraRequest: mockJiraRequestFn,
+  buildUrl: jest.fn((path) => `https://test.atlassian.net/rest/api/3/${path}`),
   verifyAuthentication: jest.fn(),
-  buildJiraAuthHeaders: jest.fn(),
   setCurrentAuthToken: jest.fn()
 }));
 
+// Import mocked utils module
+import * as utils from '../common/utils.js';
+
+// Import operations AFTER setting up mocks
 import { createPAT, CreatePATSchema } from '../operations/createPAT.js';
 import { revokePAT, RevokePATSchema } from '../operations/revokePAT.js';
 import { validatePAT, ValidatePATSchema } from '../operations/validatePAT.js';
+
+// Use the same mock reference we created earlier
+const mockJiraRequest = mockJiraRequestFn;
 
 describe('createPAT Operation', () => {
   beforeEach(() => {

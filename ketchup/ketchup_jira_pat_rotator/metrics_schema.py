@@ -111,7 +111,7 @@ class HealthCheckMetrics:
 class MetricsStorage:
     """DynamoDB storage for rotation metrics."""
 
-    def __init__(self, dynamodb_resource: Any, table_name: str = "pat-rotation-metrics"):
+    def __init__(self, dynamodb_resource: Any, table_name: str = "ketchup_jira_pat_rotations"):
         """
         Initialize metrics storage.
 
