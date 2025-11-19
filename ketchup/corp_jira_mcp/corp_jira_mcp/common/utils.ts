@@ -156,9 +156,35 @@ function constructIpaasHeaders(
 }
 
 /**
+ * Helper function to check if a PAT is valid (not expired)
+ * @param expiryDate The expiry date of the PAT
+ * @returns true if PAT is valid (not expired), false otherwise
+ */
+function isPATValid(expiryDate?: Date): boolean {
+  if (!expiryDate || !(expiryDate instanceof Date)) {
+    return true; // If no expiry date, consider it valid
+  }
+  return expiryDate > new Date();
+}
+
+/**
+ * Helper function to calculate days remaining until PAT expiry
+ * @param expiryDate The expiry date of the PAT
+ * @returns Number of days until expiry, or -1 if no expiry date
+ */
+function calculateDaysUntilExpiry(expiryDate?: Date): number {
+  if (!expiryDate || !(expiryDate instanceof Date)) {
+    return -1; // No expiry
+  }
+  const now = new Date();
+  const diffMs = expiryDate.getTime() - now.getTime();
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
  * Builds appropriate authentication headers based on configuration
  * This is the centralized source of truth for all auth header construction.
- * Priority order: iPaaS > PAT > Basic Auth
+ * Priority order: iPaaS > PAT (with fallback to backup) > Basic Auth
  *
  * @param cfg The Jira configuration object
  * @returns Headers object with appropriate authentication
@@ -190,18 +216,36 @@ export function buildJiraAuthHeaders(cfg: typeof config): Record<string, string>
     };
   }
 
-  // Priority 2: PAT (Personal Access Token) authentication
+  // Priority 2: PAT (Personal Access Token) authentication with fallback logic
   if (cfg.auth.usePat) {
-    const { pat } = cfg.auth;
+    let authToken: string;
+    let source: 'primary' | 'backup';
 
-    if (!pat) {
-      throw new Error('PAT authentication is enabled but no PAT token is configured');
+    // Decision logic for which PAT to use
+    if (cfg.auth.useBackupPat && cfg.auth.backupPat) {
+      // Explicitly using backup
+      authToken = cfg.auth.backupPat;
+      source = 'backup';
+      logToFile('Using backup PAT (explicitly enabled)');
+    } else if (cfg.auth.pat && isPATValid(cfg.auth.patExpiry)) {
+      // Primary PAT still valid
+      authToken = cfg.auth.pat;
+      source = 'primary';
+    } else if (cfg.auth.backupPat && isPATValid(cfg.auth.backupPatExpiry)) {
+      // Primary expired but backup available - automatic fallback
+      authToken = cfg.auth.backupPat;
+      source = 'backup';
+      const daysRemaining = calculateDaysUntilExpiry(cfg.auth.backupPatExpiry);
+      logToFile(`Falling back to backup PAT (primary expired or missing). Backup expires in ${daysRemaining} days.`);
+    } else {
+      // Neither PAT available
+      throw new Error('No PAT available (primary and backup missing or expired)');
     }
 
     logToFile('Building PAT authentication headers');
     return {
       ...baseHeaders,
-      "Authorization": `Bearer ${pat}`
+      "Authorization": `Bearer ${authToken}`
     };
   }
 

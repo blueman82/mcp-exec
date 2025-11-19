@@ -67,11 +67,13 @@ describe('buildJiraAuthHeaders', () => {
   it('should throw error when PAT is required but missing', async () => {
     process.env.JIRA_USE_PAT_AUTH = 'true';
     delete process.env.JIRA_PAT;
+    delete process.env.JIRA_BACKUP_PAT;
 
     const { buildJiraAuthHeaders } = await import('../dist/corp_jira_mcp/common/utils.js');
     const { config } = await import('../dist/corp_jira_mcp/common/config.js');
 
-    expect(() => buildJiraAuthHeaders(config)).toThrow('PAT authentication is enabled but no PAT token is configured');
+    // When PAT is required but missing and no backup available, should throw error
+    expect(() => buildJiraAuthHeaders(config)).toThrow('No PAT available (primary and backup missing or expired)');
   });
 
   it('should throw error when iPaaS requires API key but missing', async () => {
