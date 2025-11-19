@@ -86,20 +86,14 @@ fi
 mkdir -p /home/admin/.ssh
 chmod 700 /home/admin/.ssh
 
-# Get public key from EC2 instance metadata (with timeout)
-PUBLIC_KEY=$(timeout 5 curl -s http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key/ || echo "")
-
+# Use SSH public key passed from launch-ec2.sh
 if [ -n "$PUBLIC_KEY" ]; then
     echo "$PUBLIC_KEY" > /home/admin/.ssh/authorized_keys
     chmod 600 /home/admin/.ssh/authorized_keys
     chown admin:admin /home/admin/.ssh/authorized_keys
     echo "✓ SSH public key installed for admin user"
 else
-    # If metadata fails, create empty authorized_keys (key will be added manually)
-    touch /home/admin/.ssh/authorized_keys
-    chmod 600 /home/admin/.ssh/authorized_keys
-    chown admin:admin /home/admin/.ssh/authorized_keys
-    echo "⚠ Could not retrieve SSH key from metadata - manual setup required"
+    echo "ERROR: SSH public key not provided - instance will not be accessible via SSH"
 fi
 
 # Ensure admin owns home directory

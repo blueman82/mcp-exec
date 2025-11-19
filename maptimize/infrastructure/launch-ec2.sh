@@ -130,9 +130,22 @@ else
     log_message "Key pair already exists: $KEY_PAIR_NAME"
 fi
 
-# Prepare user-data script
+# Prepare user-data script with SSH public key
 log_message "Preparing user-data script"
-USER_DATA=$(cat infrastructure/user-data.sh | base64 | tr -d '\n')
+
+# Extract public key from PEM file
+if [ -f "${KEY_PAIR_NAME}.pem" ]; then
+    log_message "Extracting public key from ${KEY_PAIR_NAME}.pem"
+    PUBLIC_KEY=$(ssh-keygen -y -f "${KEY_PAIR_NAME}.pem")
+    log_message "✓ Public key extracted"
+else
+    log_message "ERROR: PEM file not found: ${KEY_PAIR_NAME}.pem"
+    exit 1
+fi
+
+# Create temporary user-data with public key injected
+TEMP_USER_DATA=$(mktemp)
+cat infrastructure/user-data.sh | sed "s|PUBLIC_KEY=\$(timeout.*echo \"\"|PUBLIC_KEY=\"$PUBLIC_KEY\"|" > "$TEMP_USER_DATA"
 
 # Launch EC2 instance with asksplunk-prod mirroring
 log_message "Launching EC2 instance: $INSTANCE_NAME"
@@ -144,13 +157,16 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --subnet-id "$SUBNET_ID" \
     --security-group-ids "$SG_PRODUCTION" "$SG_PUBLIC_WEB" \
     --iam-instance-profile "Name=$IAM_INSTANCE_PROFILE" \
-    --user-data "file://infrastructure/user-data.sh" \
+    --user-data "file://$TEMP_USER_DATA" \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME},{Key=Environment,Value=production},{Key=CostCenter,Value=MSIO-EMEA},{Key=ManagedBy,Value=MSIO-EMEA},{Key=Owner,Value=harrison},{Key=Project,Value=maptimize-slack-bot}]" \
     --region "$AWS_REGION" \
     --query 'Instances[0].InstanceId' \
     --output text)
 
 log_message "EC2 instance launched: $INSTANCE_ID"
+
+# Cleanup temporary user-data file
+rm -f "$TEMP_USER_DATA"
 
 # Wait for instance to be running
 log_message "Waiting for instance to reach running state"
