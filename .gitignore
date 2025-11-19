@@ -43,6 +43,10 @@ env/
 *.swp
 *.swo
 
+# Claude Code
+.claude/
+docs/
+
 # Node
 node_modules/
 npm-debug.log
