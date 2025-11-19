@@ -4,6 +4,13 @@ from typing import Any, Optional
 
 import structlog
 
+__all__ = [
+    "setup_logging",
+    "validate_slack_event",
+    "handle_validation_error",
+    "safe_get_nested",
+]
+
 
 def setup_logging() -> structlog.BoundLogger:
     """Initialize structlog for structured logging.
