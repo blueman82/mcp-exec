@@ -1,0 +1,47 @@
+[Unit]
+Description=Maptimize Slack Bot Service
+Documentation=https://github.com/camp-ops-emea/maptimize
+After=network.target docker.service
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=ec2-user
+WorkingDirectory=/opt/maptimize/app
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=maptimize
+
+# Environment variables for ECR access and deployment
+EnvironmentFile=/etc/maptimize/maptimize.env
+
+# Pre-start: ECR authentication and image pull
+ExecStartPre=/bin/bash -c 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com'
+ExecStartPre=/bin/bash -c 'docker pull ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/maptimize:latest'
+
+# Start: Docker compose up
+ExecStart=/usr/bin/docker-compose -f docker-compose.yml up -d
+
+# Post-start: Health check verification
+ExecStartPost=/bin/bash -c 'for i in {1..30}; do docker-compose ps | grep -q "Up" && echo "Container is running" && exit 0; sleep 2; done; echo "Container failed to start"; exit 1'
+
+# Stop: Docker compose down
+ExecStop=/usr/bin/docker-compose -f docker-compose.yml down
+
+# Restart policy
+Restart=on-failure
+RestartSec=30s
+StartLimitInterval=300s
+StartLimitBurst=5
+
+# Security settings
+PrivateTmp=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/maptimize /var/log/maptimize
+
+[Install]
+WantedBy=multi-user.target
