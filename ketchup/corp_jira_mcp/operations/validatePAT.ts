@@ -2,7 +2,7 @@ import { z } from "zod";
 import { jiraRequest } from "../common/utils.js";
 
 export const ValidatePATSchema = z.object({
-  token: z.string().describe("PAT token to validate"),
+  token: z.string().min(1, "Token cannot be empty").describe("PAT token to validate"),
 });
 
 export type ValidatePATRequest = z.infer<typeof ValidatePATSchema>;
