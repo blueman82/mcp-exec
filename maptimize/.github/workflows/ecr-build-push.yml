@@ -35,6 +35,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: infrastructure/Dockerfile
           push: true
           tags: |
             483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:latest
