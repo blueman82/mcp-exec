@@ -69,7 +69,7 @@ fi
 
 # Stop existing containers if running
 log_message "Stopping existing containers"
-docker-compose down || true
+docker-compose -f "$APP_DIR/docker-compose.yml" down || true
 
 # Pull latest image
 log_message "Pulling Docker image: $ECR_IMAGE"
@@ -84,7 +84,7 @@ log_message "Successfully pulled Docker image"
 
 # Start containers
 log_message "Starting containers with docker-compose"
-docker-compose up -d
+docker-compose -f "$APP_DIR/docker-compose.yml" up -d
 
 if [ $? -eq 0 ]; then
     log_message "Containers started successfully"
@@ -98,10 +98,10 @@ log_message "Waiting for containers to become healthy"
 sleep 10
 
 # Check container status
-docker-compose ps | tee -a "$LOG_FILE"
+docker-compose -f "$APP_DIR/docker-compose.yml" ps | tee -a "$LOG_FILE"
 
 # Verify containers are running
-RUNNING_CONTAINERS=$(docker-compose ps -q)
+RUNNING_CONTAINERS=$(docker-compose -f "$APP_DIR/docker-compose.yml" ps -q)
 if [ -z "$RUNNING_CONTAINERS" ]; then
     log_message "ERROR: No containers are running after deployment"
     exit 1

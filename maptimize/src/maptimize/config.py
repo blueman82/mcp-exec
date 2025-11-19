@@ -8,6 +8,7 @@ Supports both EC2 (IAM role) and local development (AWS CLI profiles).
 
 import json
 import os
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Tuple
 
@@ -78,11 +79,17 @@ def get_slack_tokens() -> Tuple[str, str, str]:
         raise RuntimeError(f"Failed to fetch Slack tokens: {e}")
 
 
+@lru_cache(maxsize=1)
 def load_processes() -> dict[Any, Any]:
-    """Load process configuration from JSON file.
+    """Load process configuration from JSON file (cached).
 
     Loads the process configuration from a hardcoded JSON file that defines
-    the structure and metadata for various business processes.
+    the structure and metadata for various business processes. Results are
+    cached in memory to avoid repeated disk I/O.
+
+    The cache is LRU-based with a size of 1 (only one configuration cached).
+    For configuration updates, the cache can be cleared with:
+        load_processes.cache_clear()
 
     Returns:
         Dictionary containing process configuration
@@ -93,6 +100,7 @@ def load_processes() -> dict[Any, Any]:
     Example:
         >>> processes = load_processes()
         >>> print(processes["Service Review Process"])
+        >>> load_processes.cache_clear()  # Clear cache if config updated
     """
     try:
         # Construct path to processes.json (relative to this module)
