@@ -9,12 +9,26 @@ plan_index:
   files:
     - sequence: 1
       filename: "plan-01-pat-authentication.yaml"
-      phase: "Phase 1: PAT Authentication Migration & Phase 2: Automated Rotation Service"
+      phase: "Phase 1: PAT Authentication Migration & Automated Rotation Service"
       tasks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
       line_count: "2100+"
-      description: "Complete JIRA PAT migration plan with authentication setup, MCP operations, and Python rotation service"
+      description: "Core JIRA PAT migration with authentication setup, MCP operations, and Python rotation service"
 
-  worktree_groups:
+    - sequence: 2
+      filename: "plan-02-advanced-rotation-features.yaml"
+      phase: "Phase 2: Backup PAT & Metrics Collection (Tasks 1-5)"
+      tasks: [1, 2, 3, 4, 5]
+      line_count: "2280"
+      description: "Backup PAT management, metrics schema, and metrics collector service"
+
+    - sequence: 3
+      filename: "plan-03-phase2-advanced-features.yaml"
+      phase: "Phase 2: Slack Dashboard, Monitoring & Operations (Tasks 6-10)"
+      tasks: [6, 7, 8, 9, 10]
+      line_count: "1800"
+      description: "Slack metrics dashboard, advanced health monitoring, operational runbooks, and team training"
+
+  phase_1_worktree_groups:
     - group_id: "chain-1"
       description: "MCP PAT authentication foundation"
       tasks: [1, 2, 3, 4]
@@ -37,10 +51,10 @@ plan_index:
 
   execution_strategy:
     parallel_groups:
-      - ["chain-1", "independent-3"] # These can start immediately in parallel
+      - ["chain-1", "independent-3"]  # These can start immediately in parallel
     sequential_dependencies:
-      - chain-1 → chain-2 # Chain-2 waits for chain-1
-      - ["chain-2", "independent-3"] → chain-4 # Chain-4 waits for both
+      - "chain-1 then chain-2 (Chain-2 waits for chain-1)"
+      - "chain-2 and independent-3 then chain-4 (Chain-4 waits for both)"
 
     optimal_flow: |
       1. Start chain-1 and independent-3 in parallel
@@ -119,22 +133,39 @@ plan_index:
       description: "Production-ready PAT rotation service"
       validation: "Service starts, runs daily checks, sends alerts"
 
-  next_phases:
-    - phase: "Phase 2 Continuation (After Task 14)"
-      description: "Additional rotation features and monitoring"
-      tasks:
-        - "Add backup PAT strategy"
-        - "Implement comprehensive rotation metrics"
-        - "Create Slack dashboard for PAT status"
-      estimated_effort: "3-4 additional days"
+  phase_2_summary:
+    description: "Advanced rotation features, monitoring, and operational readiness"
+    total_phase_2_tasks: 10
+    phase_2_files: 2
+    phase_2_location: "plan-02-advanced-rotation-features.yaml and plan-03-phase2-advanced-features.yaml"
+    execution_flow: |
+      Phase 2 execution after Phase 1 completion:
+      1. chain-1 (backup PAT): Tasks 1-3, 2h
+      2. chain-2 (metrics): Tasks 4-5, 1.5h (depends on Phase 1)
+      3. chain-3 (dashboard): Tasks 6-7, 2.5h (depends on chain-2)
+      4. independent-1 (monitoring): Task 8, 1h
+      5. independent-2 (runbook): Task 9, 2h
+      6. independent-3 (training): Task 10, 2h
+      Total duration: ~3 days wall-clock time (with 2-3 developers working in parallel)
 
-    - phase: "Operations & Monitoring"
+  next_phases:
+    - phase: "Phase 3 (Optional - Post-Deployment Enhancements)"
+      description: "Additional features based on production usage"
+      tasks:
+        - "Automated PAT backup and recovery"
+        - "Predictive rotation scheduling (AI-based)"
+        - "Slack bot commands for manual operations"
+        - "Cross-region PAT failover"
+      estimated_effort: "1-2 weeks after Phase 2"
+
+    - phase: "Operations & Support"
       description: "Post-deployment ongoing work"
       items:
         - "Monitor rotation service health"
-        - "Test fallback scenarios"
-        - "Document runbook for manual intervention"
-        - "Train ops team on new rotation process"
+        - "Test fallback scenarios regularly"
+        - "Run quarterly backup recovery drills"
+        - "Update runbooks based on incidents"
+        - "Measure PAT rotation success rate"
 
   success_criteria_final:
     must_have:
