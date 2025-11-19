@@ -39,6 +39,7 @@ dev = [
     "black",
     "ruff",
     "isort",
+    "pyyaml",
 ]
 
 [tool.pytest.ini_options]
