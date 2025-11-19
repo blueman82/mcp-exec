@@ -370,8 +370,8 @@ plan:
           - step: "Run test suite for this change"
             command: "npx jest tests/config.test.ts --testNamePattern='PAT mappings'"
         automated_tests:
-          - command: "npx jest tests/config.test.ts"
-            expected_output: "All tests passing"
+          command: "npx jest tests/config.test.ts"
+          expected_output: "All tests passing"
         success_criteria:
           - "Tests pass"
           - "JIRA_PAT environment variable populated from secrets"
