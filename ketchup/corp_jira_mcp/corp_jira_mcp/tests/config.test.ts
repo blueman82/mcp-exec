@@ -31,7 +31,7 @@ describe('Config - PAT Support', () => {
   });
 
   it('should load backup PAT from environment variable', async () => {
-    process.env.JIRA_PAT_BACKUP = 'backup_pat_67890';
+    process.env.JIRA_BACKUP_PAT = 'backup_pat_67890';
     const { config } = await import('../common/config.js');
     expect(config.auth.backupPat).toBe('backup_pat_67890');
   });
@@ -69,7 +69,7 @@ describe('Config - PAT Support', () => {
   });
 
   it('should default backup PAT to empty string when not set', async () => {
-    delete process.env.JIRA_PAT_BACKUP;
+    delete process.env.JIRA_BACKUP_PAT;
     const { config } = await import('../common/config.js');
     expect(config.auth.backupPat).toBe('');
   });

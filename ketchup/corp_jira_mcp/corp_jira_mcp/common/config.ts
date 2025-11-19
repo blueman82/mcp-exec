@@ -3,28 +3,31 @@ import { homedir } from 'os';
 import { mkdirSync, existsSync } from 'fs';
 import '../env.js';
 
+// Configuration auth type definition
+export interface JiraAuthConfig {
+  email: string;
+  token: string;
+  // iPaaS specific auth fields
+  imsToken?: string;
+  apiKey?: string;
+  username?: string;
+  password?: string;
+  // PAT (Personal Access Token) fields
+  pat?: string;                    // Primary PAT for JIRA authentication
+  patExpiry?: Date;                // When primary PAT expires
+  usePat?: boolean;                // Flag to use PAT instead of token (default false)
+  // Backup PAT fields for rotation/fallback
+  backupPat?: string;              // Secondary PAT for fallback when primary is near expiry
+  backupPatExpiry?: Date;          // When backup PAT expires
+  useBackupPat?: boolean;          // Currently using backup PAT (default false)
+  backupPatCreatedAt?: Date;       // When backup PAT was created
+}
+
 // Configuration type definition
-interface JiraConfig {
+export interface JiraConfig {
   apiBaseUrl: string;
   logFile: string;
-  auth: {
-    email: string;
-    token: string;
-    // iPaaS specific auth fields
-    imsToken?: string;
-    apiKey?: string;
-    username?: string;
-    password?: string;
-    // PAT (Personal Access Token) fields
-    pat?: string;                    // Primary PAT for JIRA authentication
-    patExpiry?: Date;                // When primary PAT expires
-    usePat?: boolean;                // Flag to use PAT instead of token (default false)
-    // Backup PAT fields for rotation/fallback
-    backupPat?: string;              // Secondary PAT for fallback when primary is near expiry
-    backupPatExpiry?: Date;          // When backup PAT expires
-    useBackupPat?: boolean;          // Currently using backup PAT (default false)
-    backupPatCreatedAt?: Date;       // When backup PAT was created
-  };
+  auth: JiraAuthConfig;
   defaultProject?: string;
   maxResults?: number;
   timeout?: number;

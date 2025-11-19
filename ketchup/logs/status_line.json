@@ -118,5 +118,35 @@
       "exceeds_200k_tokens": false
     },
     "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m6 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"quite a few in there! \n    \nPe...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m135k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m64k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m6 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m22k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m32%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 6bf6c26b-e50d-451c-ae19-92b83fc8172c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T13:15:54.240507",
+    "version": "v4",
+    "input_data": {
+      "session_id": "6bf6c26b-e50d-451c-ae19-92b83fc8172c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/6bf6c26b-e50d-451c-ae19-92b83fc8172c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 1.1967642000000005,
+        "total_duration_ms": 1700999,
+        "total_api_duration_ms": 419052,
+        "total_lines_added": 954,
+        "total_lines_removed": 5
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m6 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"quite a few in there! \n    \nPe...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m137k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m62k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m6 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m22k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m31%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 6bf6c26b-e50d-451c-ae19-92b83fc8172c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
   }
 ]
