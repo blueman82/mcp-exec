@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -15,13 +19,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::483013340174:role/github-actions-maptimize
+          aws-region: eu-west-1
+
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login-action@v1
-        env:
-          AWS_REGION: eu-west-1
+        uses: aws-actions/amazon-ecr-login-action@v2
         with:
-          registry-type: public
+          registries: "483013340174"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
