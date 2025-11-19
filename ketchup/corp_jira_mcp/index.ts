@@ -23,6 +23,8 @@ import * as status from './operations/status.js';
 import * as getComments from './operations/getComments.js';
 import * as addComment from './operations/addComment.js';
 import * as getFields from './operations/getFields.js';
+import * as createPAT from './operations/createPAT.js';
+import * as revokePAT from './operations/revokePAT.js';
 import { VERSION } from "./common/version.js";
 import { isJiraError } from "./common/errors.js";
 import { setCurrentAuthToken } from "./common/utils.js";
@@ -117,6 +119,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "get_jira_fields",
         description: "Get all available Jira fields including custom fields",
         inputSchema: zodToJsonSchema(getFields.GetFieldsSchema),
+      },
+      {
+        name: "create_pat",
+        description: "Create a new JIRA Personal Access Token (PAT)",
+        inputSchema: zodToJsonSchema(createPAT.CreatePATSchema),
+      },
+      {
+        name: "revoke_pat",
+        description: "Revoke (delete) a JIRA Personal Access Token (PAT) by token ID",
+        inputSchema: zodToJsonSchema(revokePAT.RevokePATSchema),
       },
     ],
   };
@@ -259,6 +271,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "get_jira_fields": {
         const result = await getFields.getJiraFields();
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "create_pat": {
+        const args = createPAT.CreatePATSchema.parse(request.params.arguments);
+        const result = await createPAT.createPAT(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to create PAT');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "revoke_pat": {
+        const args = revokePAT.RevokePATSchema.parse(request.params.arguments);
+        const result = await revokePAT.revokePAT(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to revoke PAT');
+        }
+
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
