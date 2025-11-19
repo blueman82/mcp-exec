@@ -63,6 +63,22 @@ EOF
 
 chmod 600 /etc/sssd/sssd.conf.template
 
+# Set up SSH key for admin user (from EC2 instance metadata)
+log_message "Setting up SSH key for admin user"
+mkdir -p /home/admin/.ssh
+chmod 700 /home/admin/.ssh
+
+# Get public key from instance metadata
+PUBLIC_KEY=$(curl -s http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key/)
+if [ -n "$PUBLIC_KEY" ]; then
+    echo "$PUBLIC_KEY" > /home/admin/.ssh/authorized_keys
+    chmod 600 /home/admin/.ssh/authorized_keys
+    chown admin:admin /home/admin/.ssh/authorized_keys
+    log_message "SSH public key installed for admin user"
+else
+    log_message "WARNING: Could not retrieve SSH public key from instance metadata"
+fi
+
 # Harden SSH configuration
 log_message "Hardening SSH configuration"
 cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
