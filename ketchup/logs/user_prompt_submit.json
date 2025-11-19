@@ -262,5 +262,27 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "the branch should be renamed to feature/jira-pat-migration-branch\n"
     }
+  },
+  {
+    "timestamp": "2025-11-19T12:14:47.091740",
+    "input_data": {
+      "session_id": "8465af34-63f2-4f1e-a482-65c716320961",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/8465af34-63f2-4f1e-a482-65c716320961.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "the document feature_flags is still in the root of dcos/ i thought we discussed moving it to internal_documentation. If you do that are you going to have to update the referfence points to its location?"
+    }
+  },
+  {
+    "timestamp": "2025-11-19T12:15:07.385273",
+    "input_data": {
+      "session_id": "8465af34-63f2-4f1e-a482-65c716320961",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/8465af34-63f2-4f1e-a482-65c716320961.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "yes you should go ahead"
+    }
   }
 ]
