@@ -1,8 +1,8 @@
 # Ignore docs directory except for internal_documentation and diagrams
-docs/
+docs/*
 !docs/internal_documentation/
 !docs/internal_documentation/**
-!docs/diagrams
+!docs/diagrams/
 !docs/diagrams/**
 
 # Ignore .env.test files (each developer uses their own AWS profile)
