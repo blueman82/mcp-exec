@@ -72,3 +72,7 @@ build/
 # Git worktrees
 ketchup-*/
 *-worktree/
+
+# EC2 deployment artifacts
+*-ec2-keypair.pem
+instance-config.json
