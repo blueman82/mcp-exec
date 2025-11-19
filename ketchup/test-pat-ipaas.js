@@ -1,6 +1,6 @@
 /**
- * Test 2: iPaaS Proxy with PAT (x-authorization Header)
- * Tests if PAT works through the iPaaS proxy using x-authorization header
+ * Test 2: iPaaS Proxy with JIRA Credentials
+ * Tests if JIRA credentials work through the iPaaS proxy with proper headers
  */
 
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
@@ -42,13 +42,14 @@ async function testIpaasProxyWithPAT() {
     // Fetch all required credentials from AWS Secrets
     console.log('\n[STEP 1] Fetching credentials from AWS Secrets Manager...');
     const secrets = await fetchSecretFromAWS();
-    const pat = secrets.ketchup_jira_pat;
     const imsAccessToken = secrets.ims_access_token;
     const ipaasApiKey = secrets.ipaas_api_key;
+    const ipaasUsername = secrets.ipaas_username;
+    const ipaasPassword = secrets.ipaas_password;
 
-    if (!pat || !imsAccessToken || !ipaasApiKey) {
+    if (!imsAccessToken || !ipaasApiKey || !ipaasUsername || !ipaasPassword) {
       throw new Error(
-        `Missing required secrets: pat=${!!pat}, ims=${!!imsAccessToken}, api_key=${!!ipaasApiKey}`
+        `Missing required secrets: ims=${!!imsAccessToken}, api_key=${!!ipaasApiKey}, username=${!!ipaasUsername}, password=${!!ipaasPassword}`
       );
     }
     console.log('✓ All credentials fetched successfully');
@@ -59,8 +60,9 @@ async function testIpaasProxyWithPAT() {
       method: 'GET',
       headers: {
         'Authorization': imsAccessToken,
+        'Username': ipaasUsername,
+        'Password': ipaasPassword,
         'Api_key': ipaasApiKey,
-        'x-authorization': `Bearer ${pat}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
@@ -76,16 +78,16 @@ async function testIpaasProxyWithPAT() {
     // Check success criteria
     console.log('\n[STEP 3] Validating response...');
     const isSuccess = statusCode === 200;
-    const hasUserInfo = bodyObj.displayName && bodyObj.emailAddress;
+    const hasUserInfo = bodyObj.self && bodyObj.key && (bodyObj.name || bodyObj.displayName);
 
     if (isSuccess && hasUserInfo) {
       console.log('✓ Response status is 200 OK');
-      console.log(`✓ User info found: displayName="${bodyObj.displayName}"`);
+      console.log(`✓ User info found: username="${bodyObj.name || bodyObj.displayName}"`);
     }
 
     // Report results
     console.log('\n========================================');
-    console.log('TEST 2: iPaaS Proxy with PAT (x-authorization)');
+    console.log('TEST 2: iPaaS Proxy with JIRA Credentials');
     console.log('========================================');
     console.log(`Status: ${isSuccess && hasUserInfo ? 'PASS ✅' : 'FAIL ❌'}`);
     console.log(`HTTP Code: ${statusCode}`);
@@ -96,7 +98,7 @@ async function testIpaasProxyWithPAT() {
     console.log(`Timestamp: ${new Date().toISOString()}`);
 
     return {
-      testName: 'test_pat_ipaas_proxy_with_x_auth',
+      testName: 'test_ipaas_proxy_with_jira_credentials',
       result: isSuccess && hasUserInfo ? 'PASS' : 'FAIL',
       statusCode,
       responsePreview: JSON.stringify(bodyObj).substring(0, 200),
@@ -105,14 +107,14 @@ async function testIpaasProxyWithPAT() {
     };
   } catch (error) {
     console.log('\n========================================');
-    console.log('TEST 2: iPaaS Proxy with PAT (x-authorization)');
+    console.log('TEST 2: iPaaS Proxy with JIRA Credentials');
     console.log('========================================');
     console.log(`Status: FAIL ❌`);
     console.log(`Error: ${error.message}`);
     console.log(`Timestamp: ${new Date().toISOString()}`);
 
     return {
-      testName: 'test_pat_ipaas_proxy_with_x_auth',
+      testName: 'test_ipaas_proxy_with_jira_credentials',
       result: 'FAIL',
       statusCode: null,
       responsePreview: null,
