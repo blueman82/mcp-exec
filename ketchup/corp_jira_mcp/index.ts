@@ -24,6 +24,7 @@ import * as getComments from './operations/getComments.js';
 import * as addComment from './operations/addComment.js';
 import * as getFields from './operations/getFields.js';
 import * as revokePAT from './operations/revokePAT.js';
+import * as validatePAT from './operations/validatePAT.js';
 import { VERSION } from "./common/version.js";
 import { isJiraError } from "./common/errors.js";
 import { setCurrentAuthToken } from "./common/utils.js";
@@ -123,6 +124,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "revoke_pat",
         description: "Revoke (delete) a JIRA Personal Access Token (PAT) by token ID",
         inputSchema: zodToJsonSchema(revokePAT.RevokePATSchema),
+      },
+      {
+        name: "validate_pat",
+        description: "Validate a PAT token by testing authentication with Jira API",
+        inputSchema: zodToJsonSchema(validatePAT.ValidatePATSchema),
       },
     ],
   };
@@ -276,6 +282,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         if (result && typeof result === 'object' && 'success' in result && !result.success) {
           throw new Error('Failed to revoke PAT');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "validate_pat": {
+        const args = validatePAT.ValidatePATSchema.parse(request.params.arguments);
+        const result = await validatePAT.validatePAT(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to validate PAT');
         }
 
         return {
