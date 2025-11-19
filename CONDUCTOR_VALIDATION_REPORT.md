@@ -72,7 +72,7 @@ The Maptimize Slack Bot MVP has been **VALIDATED AS PRODUCTION-READY** by compre
 | Category | Score | Status | Notes |
 |----------|-------|--------|-------|
 | **Code Quality** | 8.8/10 | ✅ READY | Minor formatting/linting issues |
-| **Infrastructure** | 9.4/10 | ✅ READY | GitHub Actions Dockerfile path fixed |
+| **Infrastructure** | 9.6/10 | ✅ READY | ✅ EC2/VPC/SG/SSH/IAM all corrected to mirror asksplunk-prod |
 | **Testing** | 9.5/10 | ✅ READY | 400+ tests, 89% coverage |
 | **Security** | 9.2/10 | ✅ READY | Token verification enabled with signing secret (TDD) |
 | **Operations** | 7.5/10 | ⚠️ READY | No SLOs/metrics, manual alerting |
@@ -80,11 +80,27 @@ The Maptimize Slack Bot MVP has been **VALIDATED AS PRODUCTION-READY** by compre
 | **Documentation** | 9.0/10 | ✅ READY | Comprehensive, 2600+ lines |
 | **Compliance** | 8.7/10 | ✅ READY | 87% standards compliant |
 | | | | |
-| **OVERALL** | **9.4/10** | **✅ PRODUCTION-READY** | 2 blockers remaining (Dockerfile path, IMDSv2) |
+| **OVERALL** | **9.3/10** | **✅ PRODUCTION-READY** | ✅ Infrastructure corrected, minimal blockers |
 
 ---
 
 ## Critical Findings Summary
+
+### 🔧 **Infrastructure Corrections Applied**
+
+**EC2 Instance Provisioning (FIXED)**:
+- ✅ Instance type corrected: t3.xlarge (was planned as t3.micro in original script)
+- ✅ VPC/Subnet aligned: vpc-0853eb6d / subnet-ce8e12b9 (production VPC)
+- ✅ Security groups correct: sg-7997a71c + sg-7633b010 (mirrored from asksplunk-prod)
+- ✅ SSH access restricted: 98 corporate CIDR ranges (not 0.0.0.0/0)
+- ✅ Tags mirrored: Name, Environment, CostCenter, ManagedBy, Owner, Project
+- ✅ IAM instance profile attached: maptimize-instance-profile
+- ✅ Instance ID: i-0caaef1a98cc3a919 (running, production-ready)
+
+**Script Corrections**:
+- ✅ Fixed `launch-ec2.sh` to use correct instance profile names
+- ✅ Removed technical debt (eliminated duplicate setup-maptimize-prod.sh)
+- ✅ All AWS CLI commands now include AWS_PROFILE support
 
 ### ✅ **Verified Implementations** (Not Just Claims)
 
@@ -734,11 +750,24 @@ bot.py:          84% (50 lines, 42 covered)
 | Metrics implementation | MEDIUM | 4 hours | Observability |
 | Automated alerting | MEDIUM | 4 hours | Incident response |
 
+### Infrastructure Corrections Applied
+
+| Issue | Status | Commit |
+|-------|--------|--------|
+| EC2 instance type (t3.xlarge) | ✅ FIXED | 4b87f06 |
+| VPC/Subnet mirroring (asksplunk-prod) | ✅ FIXED | 4b87f06 |
+| Security groups (sg-7997a71c, sg-7633b010) | ✅ FIXED | 4b87f06 |
+| SSH CIDR restriction (98 ranges) | ✅ FIXED | 4b87f06 |
+| Tags mirrored (Environment, CostCenter, etc) | ✅ FIXED | 4b87f06 |
+| IAM instance profile attachment | ✅ FIXED | 9066424 |
+| launch-ec2.sh script names | ✅ FIXED | 9066424 |
+| Technical debt (duplicate scripts) | ✅ REMOVED | 4b87f06 |
+
 ### Production Parity (Not Blockers)
 
 | Issue | Status | Reason |
 |-------|--------|--------|
-| IMDSv2 enforcement | ✅ NOT REQUIRED | Matches ketchup-prod1/prod2 (both use IMDSv1) |
+| IMDSv2 enforcement | ⚠️ OPTIONAL | Recommended but matches ketchup-prod1/prod2 (both use IMDSv1) |
 
 ---
 
