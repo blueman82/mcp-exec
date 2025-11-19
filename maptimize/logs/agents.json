@@ -1,0 +1,37 @@
+[
+  {
+    "agent_id": "ed29af8c",
+    "session_id": "c480dc71-b8af-4def-acf3-5233db8a76da",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/agent-ed29af8c.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "712f7791",
+    "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/agent-712f7791.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "6712af7a",
+    "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/agent-6712af7a.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "8b2321d4",
+    "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/agent-8b2321d4.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "0d606adb",
+    "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/agent-0d606adb.jsonl",
+    "status": "completed"
+  }
+]

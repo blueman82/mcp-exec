@@ -1,0 +1,1533 @@
+[
+  {
+    "timestamp": "2025-11-19T15:40:45.460283",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1507736,
+        "total_duration_ms": 7539832,
+        "total_api_duration_ms": 1383622,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m18 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"merge that.\nthen add MSIO-EMEA...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m160k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m39k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m18 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m20%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:40:45.764668",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1507736,
+        "total_duration_ms": 7540133,
+        "total_api_duration_ms": 1383622,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m18 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"merge that.\nthen add MSIO-EMEA...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m160k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m39k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m18 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m20%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:40:50.710631",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1691257499999996,
+        "total_duration_ms": 7545098,
+        "total_api_duration_ms": 1389102,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m18 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"merge that.\nthen add MSIO-EMEA...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m18 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:40:50.722938",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1691257499999996,
+        "total_duration_ms": 7545112,
+        "total_api_duration_ms": 1389102,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m18 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"merge that.\nthen add MSIO-EMEA...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m18 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:40:50.730710",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1691257499999996,
+        "total_duration_ms": 7545121,
+        "total_api_duration_ms": 1389102,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m18 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"merge that.\nthen add MSIO-EMEA...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m18 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:09.613115",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1905443999999994,
+        "total_duration_ms": 7563969,
+        "total_api_duration_ms": 1396927,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m19 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no should be under camp-ops-em...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m19 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:09.616577",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1905443999999994,
+        "total_duration_ms": 7563984,
+        "total_api_duration_ms": 1396927,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m19 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no should be under camp-ops-em...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m19 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:09.618932",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.1905443999999994,
+        "total_duration_ms": 7563993,
+        "total_api_duration_ms": 1396927,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m19 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no should be under camp-ops-em...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m19 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:14.538753",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2089756999999994,
+        "total_duration_ms": 7568918,
+        "total_api_duration_ms": 1400889,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m19 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no should be under camp-ops-em...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m19 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:39.947772",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2089756999999994,
+        "total_duration_ms": 7594278,
+        "total_api_duration_ms": 1400889,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m19 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no should be under camp-ops-em...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m19 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:40.234045",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2089756999999994,
+        "total_duration_ms": 7594614,
+        "total_api_duration_ms": 1400889,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m19 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no should be under camp-ops-em...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m19 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:44.939119",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2275317499999994,
+        "total_duration_ms": 7599314,
+        "total_api_duration_ms": 1405707,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:49.508603",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2474765999999997,
+        "total_duration_ms": 7603892,
+        "total_api_duration_ms": 1411733,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m161k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m38k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:52.637385",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2659373499999997,
+        "total_duration_ms": 7607015,
+        "total_api_duration_ms": 1415607,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m162k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m37k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:55.813692",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.2832711499999996,
+        "total_duration_ms": 7610197,
+        "total_api_duration_ms": 1418607,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m162k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m37k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m19%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:59.946205",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3016053999999997,
+        "total_duration_ms": 7614325,
+        "total_api_duration_ms": 1423726,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:41:59.949105",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3016053999999997,
+        "total_duration_ms": 7614336,
+        "total_api_duration_ms": 1423726,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:10.356318",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3016053999999997,
+        "total_duration_ms": 7624702,
+        "total_api_duration_ms": 1423726,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:10.663417",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3016053999999997,
+        "total_duration_ms": 7625003,
+        "total_api_duration_ms": 1423726,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m20 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"this is in camp-ops-emea and n...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m20 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:29.494265",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.32172675,
+        "total_duration_ms": 7643875,
+        "total_api_duration_ms": 1431760,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m21 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"are you not getting it? in the...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m21 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:29.494930",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.32172675,
+        "total_duration_ms": 7643867,
+        "total_api_duration_ms": 1431760,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m21 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"are you not getting it? in the...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m21 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:33.131996",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3397166499999997,
+        "total_duration_ms": 7647524,
+        "total_api_duration_ms": 1435251,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m21 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"are you not getting it? in the...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m21 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:33.137278",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3397166499999997,
+        "total_duration_ms": 7647534,
+        "total_api_duration_ms": 1435251,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m21 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"are you not getting it? in the...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m21 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:42:56.812889",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.35899455,
+        "total_duration_ms": 7671184,
+        "total_api_duration_ms": 1442460,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m22 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no no no no no no,just delete ...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m163k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m36k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m22 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:03.279890",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3771453,
+        "total_duration_ms": 7677651,
+        "total_api_duration_ms": 1447373,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m22 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no no no no no no,just delete ...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m164k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m35k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m22 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:03.294949",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3771453,
+        "total_duration_ms": 7677672,
+        "total_api_duration_ms": 1447373,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m22 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no no no no no no,just delete ...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m164k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m35k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m22 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:19.446309",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3771453,
+        "total_duration_ms": 7693814,
+        "total_api_duration_ms": 1447373,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m22 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no no no no no no,just delete ...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m164k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m35k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m22 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:19.786686",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.3771453,
+        "total_duration_ms": 7694114,
+        "total_api_duration_ms": 1447373,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m22 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"no no no no no no,just delete ...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m164k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m35k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m22 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:28.034477",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.39735205,
+        "total_duration_ms": 7702408,
+        "total_api_duration_ms": 1454351,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m23 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"let me be clear you are just r...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m164k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m35k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m23 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m18%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:31.180008",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.4151822,
+        "total_duration_ms": 7705555,
+        "total_api_duration_ms": 1457306,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m23 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"let me be clear you are just r...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m165k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m34k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m23 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m17%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:37.980694",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.4353038000000002,
+        "total_duration_ms": 7712368,
+        "total_api_duration_ms": 1463578,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m23 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"let me be clear you are just r...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m166k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m33k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m23 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m17%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:45.461774",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.4552405000000004,
+        "total_duration_ms": 7719824,
+        "total_api_duration_ms": 1468218,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m23 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"let me be clear you are just r...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m166k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m33k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m23 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m17%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:45.466182",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.4552405000000004,
+        "total_duration_ms": 7719834,
+        "total_api_duration_ms": 1468218,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m23 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"let me be clear you are just r...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m166k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m33k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m23 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m17%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:43:55.097656",
+    "version": "v4",
+    "input_data": {
+      "session_id": "7d65a4a4-cc45-441c-bac0-e9353550f247",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/7d65a4a4-cc45-441c-bac0-e9353550f247.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 3.4748332000000004,
+        "total_duration_ms": 7729480,
+        "total_api_duration_ms": 1473635,
+        "total_lines_added": 5787,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m23 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"let me be clear you are just r...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m167k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m32k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m23 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m16%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 7d65a4a4-cc45-441c-bac0-e9353550f247\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:06.350967",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 1104,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mmaptimize\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.46\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94ma75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/a75c8879-7454-4b8f-8ab5-6e481643112d.json not found"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:18.108460",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.12639505,
+        "total_duration_ms": 12999,
+        "total_api_duration_ms": 18819,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"commit and push (git), just do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m32k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:20.199600",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.13073865,
+        "total_duration_ms": 15096,
+        "total_api_duration_ms": 22343,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"commit and push (git), just do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m32k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:20.202404",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.13073865,
+        "total_duration_ms": 15100,
+        "total_api_duration_ms": 22343,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"commit and push (git), just do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m32k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:32.143709",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.13073865,
+        "total_duration_ms": 27011,
+        "total_api_duration_ms": 22343,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"commit and push (git), just do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m32k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:32.433068",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.13073865,
+        "total_duration_ms": 27312,
+        "total_api_duration_ms": 22343,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"commit and push (git), just do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m32k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:43.014925",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.13684475000000001,
+        "total_duration_ms": 37899,
+        "total_api_duration_ms": 28028,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"force it, otherwise https://gi...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m16k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:44:46.915454",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.14278350000000004,
+        "total_duration_ms": 41792,
+        "total_api_duration_ms": 32521,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"force it, otherwise https://gi...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m16k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:00.174634",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.14715750000000005,
+        "total_duration_ms": 55060,
+        "total_api_duration_ms": 36394,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m10k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:02.226967",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.15148985000000006,
+        "total_duration_ms": 57104,
+        "total_api_duration_ms": 38278,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m32k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m167k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m10k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m84%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:06.057265",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.15795620000000005,
+        "total_duration_ms": 60939,
+        "total_api_duration_ms": 47932,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m33k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m166k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m83%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:08.468358",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.16350285000000003,
+        "total_duration_ms": 63350,
+        "total_api_duration_ms": 51373,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m33k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m166k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m83%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:11.858815",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.16901125000000003,
+        "total_duration_ms": 66735,
+        "total_api_duration_ms": 55958,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m33k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m166k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m83%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:14.001824",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.17425595000000002,
+        "total_duration_ms": 68879,
+        "total_api_duration_ms": 59234,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m34k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m165k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m83%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:16.263483",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.17996695000000001,
+        "total_duration_ms": 71144,
+        "total_api_duration_ms": 62300,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m34k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m165k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m83%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:18.643405",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.18474880000000002,
+        "total_duration_ms": 73518,
+        "total_api_duration_ms": 66225,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m34k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m165k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m83%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-19T15:45:21.598213",
+    "version": "v4",
+    "input_data": {
+      "session_id": "a75c8879-7454-4b8f-8ab5-6e481643112d",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-maptimize/a75c8879-7454-4b8f-8ab5-6e481643112d.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/maptimize"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "Ultra Concise"
+      },
+      "cost": {
+        "total_cost_usd": 0.18990800000000002,
+        "total_duration_ms": 76479,
+        "total_api_duration_ms": 69134,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mmaptimize\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"NOTHING THERE\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m35k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m164k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m11k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m82%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 a75c8879-7454-4b8f-8ab5-6e481643112d\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  }
+]
