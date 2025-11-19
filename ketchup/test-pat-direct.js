@@ -69,11 +69,11 @@ async function testDirectJiraAPI() {
     // Check success criteria
     console.log('\n[STEP 3] Validating response...');
     const isSuccess = statusCode === 200;
-    const hasUserInfo = bodyObj.displayName && bodyObj.emailAddress;
+    const hasUserInfo = bodyObj.self && bodyObj.key && (bodyObj.name || bodyObj.displayName);
 
     if (isSuccess && hasUserInfo) {
       console.log('✓ Response status is 200 OK');
-      console.log(`✓ User info found: displayName="${bodyObj.displayName}"`);
+      console.log(`✓ User info found: username="${bodyObj.name || bodyObj.displayName}"`);
     }
 
     // Report results
