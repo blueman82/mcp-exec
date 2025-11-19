@@ -88,84 +88,15 @@ rm -rf aws awscliv2.zip
 # Verify AWS CLI installation
 aws --version
 
-# Install SSSD for LDAP authentication
-echo "[6/12] Installing SSSD..."
+# Install SSSD for LDAP authentication (packages only, config is manual post-deployment)
+echo "[6/12] Installing SSSD packages..."
 apt-get install -y sssd sssd-tools libnss-sss libpam-sss libsss-sudo
 
 # Create SSSD configuration directory
 mkdir -p /etc/sssd
 chmod 700 /etc/sssd
 
-# Deploy SSSD configuration (embedded, matching asksplunk-prod)
-echo "[6.1/12] Deploying SSSD configuration..."
-cat > /etc/sssd/sssd.conf <<'SSSDEOF'
-[sssd]
-debug_level = 0
-config_file_version = 2
-services = nss, pam, ssh, sudo
-domains = default
-
-[domain/default]
-debug_level = 0
-ldap_disable_paging = True
-ldap_id_use_start_tls = True
-ldap_schema = rfc2307bis
-ldap_search_base = o=adbe
-ldap_deref_threshold = 0
-id_provider = ldap
-auth_provider = ldap
-chpass_provider = ldap
-
-ldap_uri = ldaps://ldap-proxy.camp-infra.adobe.net:10636
-ldap_backup_uri = ldaps://camp-infra.adobe.net:636
-
-ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
-cache_credentials = True
-ldap_tls_reqcert = demand
-ldap_group_member = uniqueMember
-enumerate = False
-ldap_enumeration_refresh_timeout = 18000
-entry_cache_timeout = 14400
-entry_cache_user_timeout = 14400
-entry_cache_group_timeout = 14400
-entry_cache_netgroup_timeout = 14400
-entry_cache_service_timeout = 14400
-
-sudo_provider = ldap
-ldap_sudo_search_base = ou=SUDOers,o=adbe
-ldap_user_ssh_public_key = sshPublicKey
-
-[nss]
-filter_users = root,neolane,nobody,ntp,named,smtp,postgres,postfix,nagios,nrpe,httpd,hadoop,nssagent,ssh-authkeys,asc-bkaccess,asc-oit,asc-setup,asc-rundeck,asc-airflow,mbplc,mabadhoc,mabRelay
-filter_groups = chrooted,asc-users
-default_shell = /bin/bash
-
-[pam]
-
-[ssh]
-
-[sudo]
-SSSDEOF
-
-chmod 600 /etc/sssd/sssd.conf
-chown root:root /etc/sssd/sssd.conf
-
-# Configure NSS to use SSSD for sudo rules
-echo "[7/12] Configuring SSSD sudo integration..."
-if ! grep -q "^sudoers:" /etc/nsswitch.conf; then
-    echo 'sudoers:        files sss' >> /etc/nsswitch.conf
-    echo "    ✓ Added sudoers to nsswitch.conf"
-else
-    echo "    ✓ sudoers already configured in nsswitch.conf"
-fi
-
-# Configure SSH (keep defaults, no LDAP key retrieval needed for MVP)
-echo "[7.1/12] SSH configuration (using EC2 key metadata)..."
-
-# Enable and start SSSD service
-echo "[7.2/12] Enabling and starting SSSD..."
-systemctl enable sssd
-systemctl start sssd
+echo "[6.1/12] SSSD packages installed - manual configuration required post-deployment"
 
 # Set up SSH key for admin user (from EC2 instance metadata)
 echo "[8/12] Setting up SSH key for admin user..."
@@ -183,42 +114,23 @@ else
     echo "WARNING: Could not retrieve SSH public key from instance metadata"
 fi
 
-# Apply minimal SSH configuration (matching asksplunk-prod)
-echo "[8.1/12] Configuring SSH..."
-sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
-    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
-fi
-
-# Disable UsePAM to prevent SSSD access control from blocking pubkey auth
-sed -i 's/^#UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
-if ! grep -q "^UsePAM no" /etc/ssh/sshd_config; then
-    echo "UsePAM no" >> /etc/ssh/sshd_config
-fi
-
-# Test SSH configuration
-if sshd -t; then
-    echo "SSH configuration valid"
-    systemctl restart sshd
-else
-    echo "ERROR: SSH configuration invalid"
-    exit 1
-fi
+# SSH uses default Debian configuration with EC2 key authentication
+echo "[7/12] SSH key authentication ready (using EC2 instance metadata keys)"
 
 # Create application directory
-echo "[9/12] Creating application directory..."
+echo "[8/12] Creating application directory..."
 mkdir -p /opt/maptimize/logs
 chown -R admin:admin /opt/maptimize
 chmod 755 /opt/maptimize
 
 # Login to ECR
-echo "[10/12] Logging into ECR..."
+echo "[9/12] Logging into ECR..."
 aws ecr get-login-password --region eu-west-1 | \
     docker login --username AWS --password-stdin \
     483013340174.dkr.ecr.eu-west-1.amazonaws.com
 
 # Create ECR login refresh cron job (12-hour validity)
-echo "[10.1/12] Setting up ECR credential refresh..."
+echo "[9.1/12] Setting up ECR credential refresh..."
 cat > /etc/cron.hourly/ecr-login <<'EOF'
 #!/bin/bash
 # Refresh ECR credentials every hour (they expire after 12 hours)
@@ -229,7 +141,7 @@ EOF
 chmod +x /etc/cron.hourly/ecr-login
 
 # Set timezone to UTC
-echo "[11/12] Configuring system settings..."
+echo "[10/12] Configuring system settings..."
 timedatectl set-timezone UTC
 
 # Enable automatic security updates
