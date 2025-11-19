@@ -149,6 +149,7 @@ services:
       - JIRA_USERNAME=
       - JIRA_PASSWORD=
       - JIRA_IMS_TOKEN=
+      - JIRA_USE_PAT_AUTH=false  # PAT authentication feature flag (default: false for safety)
       - TZ=Europe/London
       - MAX_CONCURRENT_REQUESTS=20
       # HTTP/2 Migration Settings (Phase 2 - ENABLED for deployment)
