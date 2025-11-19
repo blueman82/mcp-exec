@@ -2,8 +2,8 @@ plan_index:
   metadata:
     feature_name: "JIRA PAT Migration with Automated Rotation"
     created: "2025-11-19"
-    total_tasks: 14
-    total_files: 1
+    total_tasks: 20
+    total_files: 2
     status: "Generated and ready for implementation"
 
   files:
@@ -16,17 +16,10 @@ plan_index:
 
     - sequence: 2
       filename: "plan-02-advanced-rotation-features.yaml"
-      phase: "Phase 2: Backup PAT & Metrics Collection (Tasks 1-5)"
-      tasks: [1, 2, 3, 4, 5]
-      line_count: "2280"
-      description: "Backup PAT management, metrics schema, and metrics collector service"
-
-    - sequence: 3
-      filename: "plan-03-phase2-advanced-features.yaml"
-      phase: "Phase 2: Slack Dashboard, Monitoring & Operations (Tasks 6-10)"
-      tasks: [6, 7, 8, 9, 10]
-      line_count: "1800"
-      description: "Slack metrics dashboard, advanced health monitoring, operational runbooks, and team training"
+      phase: "Phase 2: Backup PAT Management, Metrics, and Documentation"
+      tasks: [1, 2, 3, 4, 5, 6]
+      line_count: "1400+"
+      description: "Backup PAT management, metrics collection, and comprehensive system documentation"
 
   phase_1_worktree_groups:
     - group_id: "chain-1"
@@ -134,19 +127,16 @@ plan_index:
       validation: "Service starts, runs daily checks, sends alerts"
 
   phase_2_summary:
-    description: "Advanced rotation features, monitoring, and operational readiness"
-    total_phase_2_tasks: 10
-    phase_2_files: 2
-    phase_2_location: "plan-02-advanced-rotation-features.yaml and plan-03-phase2-advanced-features.yaml"
+    description: "Backup PAT management, metrics collection, and comprehensive documentation"
+    total_phase_2_tasks: 6
+    phase_2_files: 1
+    phase_2_location: "plan-02-advanced-rotation-features.yaml"
     execution_flow: |
       Phase 2 execution after Phase 1 completion:
       1. chain-1 (backup PAT): Tasks 1-3, 2h
-      2. chain-2 (metrics): Tasks 4-5, 1.5h (depends on Phase 1)
-      3. chain-3 (dashboard): Tasks 6-7, 2.5h (depends on chain-2)
-      4. independent-1 (monitoring): Task 8, 1h
-      5. independent-2 (runbook): Task 9, 2h
-      6. independent-3 (training): Task 10, 2h
-      Total duration: ~3 days wall-clock time (with 2-3 developers working in parallel)
+      2. chain-2 (metrics): Tasks 4-5, 1.5h (depends on Phase 1 + chain-1)
+      3. independent-1 (documentation): Task 6, 3h (can run in parallel with chain-1/chain-2)
+      Total duration: ~2 days wall-clock time (with 2-3 developers working in parallel)
 
   next_phases:
     - phase: "Phase 3 (Optional - Post-Deployment Enhancements)"

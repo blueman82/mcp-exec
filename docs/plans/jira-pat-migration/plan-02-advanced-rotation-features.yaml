@@ -1,17 +1,17 @@
 plan:
   metadata:
-    feature_name: "JIRA PAT Advanced Rotation Features with Backup Strategy and Monitoring"
+    feature_name: "JIRA PAT Advanced Rotation Features with Backup and Documentation"
     created: "2025-11-19"
-    phase: "Phase 2: Advanced PAT Rotation & Monitoring"
+    phase: "Phase 2: Backup PAT, Metrics, and Documentation"
     depends_on: "Phase 1 (plan-01-pat-authentication.yaml) must be completed first"
-    target: "Add backup PAT management, comprehensive metrics, Slack dashboard, enhanced monitoring, and operational runbooks for post-deployment PAT management"
-    estimated_tasks: 10
+    target: "Add backup PAT management, metrics collection, and comprehensive system documentation"
+    estimated_tasks: 6
     total_files: 1
     status: "Ready for implementation after Phase 1 completion"
 
   context:
     framework: "TypeScript (MCP), Python (rotation service)"
-    architecture: "Microservice-based with scheduled rotation, distributed metrics collection, Slack integration"
+    architecture: "Backup PAT management, metrics collection to DynamoDB, comprehensive internal documentation"
     test_framework: "Jest (TypeScript), pytest (Python)"
     phase_1_dependencies:
       - "buildJiraAuthHeaders utility function with PAT support"
@@ -22,16 +22,15 @@ plan:
       - "TypedDI dependency injection for services"
       - "Distributed DynamoDB locking for concurrent operations"
       - "Scheduler pattern with health status file updates"
-      - "Slack webhook integration for dashboards and alerts"
-      - "Metrics aggregation and time-series storage"
+      - "Minimal alerting: rotation failures sent to #ketchup-alerts using existing pattern"
       - "TDD approach: write tests first, then implementation"
     expectations:
       - "Write tests BEFORE implementation (RED/GREEN/REFACTOR)"
       - "Follow existing service patterns established in Phase 1"
       - "Backup PAT feature must be non-intrusive to primary rotation"
       - "Metrics collection must not degrade rotation service performance"
-      - "Slack dashboard must be read-only (no interactive controls)"
-      - "Operational runbooks must be validated against actual failure scenarios"
+      - "Alerting uses existing #ketchup-alerts pattern (like ketchup_access_request_monitor)"
+      - "Documentation is comprehensive and follows existing style (internal_documentation/)"
       - "Commit frequently after each completed task"
       - "Use worktree per group for parallel development"
 
@@ -100,127 +99,41 @@ plan:
         git merge feature/jira-pat-migration/phase-2-chain-2-metrics
         git push origin main
 
-    - group_id: "chain-3"
-      description: "Slack dashboard integration (read-only metrics display)"
-      tasks: [6, 7]
-      branch: "feature/jira-pat-migration/phase-2-chain-3-dashboard"
-      execution_model: "sequential"
-      isolation: "separate-worktree"
-      depends_on: ["chain-2 - metrics must be collected before displaying"]
-      rationale: "Dashboard tasks depend on metrics collection: format metrics → build dashboard blocks"
-      setup_commands: |
-        # Wait for chain-2 to complete and merge
-        git checkout main
-        git pull origin main
-
-        # Create worktree for dashboard feature
-        git worktree add ../wt-phase2-chain-3 -b feature/jira-pat-migration/phase-2-chain-3-dashboard
-        cd ../wt-phase2-chain-3
-
-        # Task 6: Format and prepare metrics for Slack
-        # Implement and test
-        git add .
-        git commit -m "feat: add metrics formatter for Slack display"
-
-        # Task 7: Implement Slack dashboard block builder
-        # Implement and test
-        git add .
-        git commit -m "feat: add Slack dashboard with PAT metrics and status"
-
-        # When ready, merge to main
-        git checkout main
-        git merge feature/jira-pat-migration/phase-2-chain-3-dashboard
-        git push origin main
-
     - group_id: "independent-1"
-      description: "Enhanced health monitoring with advanced checks"
-      tasks: [8]
-      branch: "feature/jira-pat-migration/phase-2-independent-1-monitoring"
+      description: "PAT rotation system documentation"
+      tasks: [6]
+      branch: "feature/jira-pat-migration/phase-2-independent-1-docs"
       execution_model: "parallel"
       isolation: "separate-worktree"
-      depends_on: ["Phase 1 completion - rotation service health checks"]
-      rationale: "Health monitoring is independent from backup/metrics features, can run in parallel"
+      rationale: "Documentation can be written independently from code implementation"
       setup_commands: |
-        # After Phase 1 is merged, can start immediately
-        git checkout main
-        git pull origin main
-
-        # Create worktree for health monitoring
-        git worktree add ../wt-phase2-independent-1 -b feature/jira-pat-migration/phase-2-independent-1-monitoring
+        # Create worktree for documentation
+        git worktree add ../wt-phase2-independent-1 -b feature/jira-pat-migration/phase-2-independent-1-docs
         cd ../wt-phase2-independent-1
 
-        # Task 8: Implement advanced health monitoring
-        # Implement and test
+        # Task 6: Document PAT rotation system
+        # Write and validate documentation
         git add .
-        git commit -m "feat: add advanced PAT health checks (expiry predictions, rotation failures)"
+        git commit -m "docs: add comprehensive PAT rotation system documentation"
 
         # When ready, merge to main
         git checkout main
-        git merge feature/jira-pat-migration/phase-2-independent-1-monitoring
-        git push origin main
-
-    - group_id: "independent-2"
-      description: "Operational runbooks and troubleshooting guide"
-      tasks: [9]
-      branch: "feature/jira-pat-migration/phase-2-independent-2-runbooks"
-      execution_model: "parallel"
-      isolation: "separate-worktree"
-      rationale: "Runbook documentation is independent from code tasks, can run in parallel"
-      setup_commands: |
-        # Create worktree for runbooks
-        git worktree add ../wt-phase2-independent-2 -b feature/jira-pat-migration/phase-2-independent-2-runbooks
-        cd ../wt-phase2-independent-2
-
-        # Task 9: Create operational runbooks
-        # Write and test documentation
-        git add .
-        git commit -m "docs: add PAT rotation operational runbooks and troubleshooting guide"
-
-        # When ready, merge to main
-        git checkout main
-        git merge feature/jira-pat-migration/phase-2-independent-2-runbooks
-        git push origin main
-
-    - group_id: "independent-3"
-      description: "Team training materials and knowledge transfer"
-      tasks: [10]
-      branch: "feature/jira-pat-migration/phase-2-independent-3-training"
-      execution_model: "parallel"
-      isolation: "separate-worktree"
-      rationale: "Training materials can be developed independently from implementation tasks"
-      setup_commands: |
-        # Create worktree for training
-        git worktree add ../wt-phase2-independent-3 -b feature/jira-pat-migration/phase-2-independent-3-training
-        cd ../wt-phase2-independent-3
-
-        # Task 10: Create team training materials
-        # Write and document training content
-        git add .
-        git commit -m "docs: add team training materials for PAT rotation and monitoring"
-
-        # When ready, merge to main
-        git checkout main
-        git merge feature/jira-pat-migration/phase-2-independent-3-training
+        git merge feature/jira-pat-migration/phase-2-independent-1-docs
         git push origin main
 
   execution_strategy:
     parallel_groups:
-      - ["chain-1 + independent-1 + independent-2 + independent-3"]  # All can start after Phase 1 completion
-      - ["chain-2 requires Phase 1 rotation service running"]
-      - ["chain-3 requires chain-2 metrics collection"]
+      - ["chain-1", "independent-1"]  # Can start immediately after Phase 1
 
     sequential_dependencies:
-      - "chain-1 → independent (can run anytime)"
-      - "Phase 1 → chain-2 (metrics needs rotation service)"
-      - "chain-2 → chain-3 (dashboard needs metrics)"
+      - "chain-1 → chain-2 (chain-2 waits for chain-1)"
+      - "chain-2 and independent-1 → deployment (both complete before prod deployment)"
 
     optimal_flow: |
-      1. Ensure Phase 1 (plan-01-pat-authentication.yaml) is completed and merged
-      2. Start chain-1 (backup PAT) in parallel with independent-1, independent-2, independent-3
-      3. After Phase 1 rotation service is running, start chain-2 (metrics collection)
-      4. After chain-2 completes, start chain-3 (Slack dashboard)
-      5. Total duration: ~3-4 hours wall-clock time (vs 6+ sequential)
-      6. After all worktrees merge, validate end-to-end functionality
+      1. Start chain-1 (backup PAT) and independent-1 (documentation) in parallel
+      2. When chain-1 completes, start chain-2 (metrics collection)
+      3. When both chain-2 AND independent-1 complete, ready for testing/deployment
+      4. Total duration: ~2 days wall-clock time (vs 3+ sequential)
 
   prerequisites:
     - item: "Phase 1 (plan-01-pat-authentication.yaml) completed"
@@ -239,22 +152,12 @@ plan:
       blocking: true
 
     - item: "DynamoDB tables available"
-      details: "Existing ketchup tables, distributed locking table if needed"
+      details: "Existing ketchup tables, metrics table available"
       verified: false
       blocking: true
 
     - item: "AWS Secrets Manager access"
       details: "Can read/write JIRA_PAT, JIRA_PAT_EXPIRY, and backup PAT secrets"
-      verified: false
-      blocking: true
-
-    - item: "Slack webhook configured"
-      details: "Valid webhook URL for posting to #ketchup-alerts or dedicated #pat-dashboard"
-      verified: false
-      blocking: true
-
-    - item: "Development environment from Phase 1"
-      details: "Docker Compose, local testing environment, test scripts"
       verified: false
       blocking: true
 
@@ -267,29 +170,23 @@ plan:
     - milestone: "Task 3 Complete"
       description: "Backup PAT feature working"
       validation: "Run: python -m pytest tests/unit/test_backup_pat -v && npm test ketchup/corp_jira_mcp --testPathPattern=backup"
-      before_next: "Backup PAT can be created and validated"
+      before_next: "Backup PAT can be created, validated, and used as fallback"
 
     - milestone: "Task 5 Complete"
       description: "Metrics collection running"
-      validation: "Verify metrics are being written to DynamoDB every minute, check: aws dynamodb scan --table-name ketchup_pat_metrics"
-      before_next: "Can begin Slack dashboard development"
+      validation: "Verify metrics are being written to DynamoDB every 5 minutes"
+      before_next: "Can use metrics for monitoring and operational decisions"
 
-    - milestone: "Task 7 Complete"
-      description: "Slack dashboard displaying metrics"
-      validation: "Post test message to #pat-dashboard: dashboard should show current metrics (rotation status, next rotation date, backup PAT health)"
-      before_next: "Operational features ready"
-
-    - milestone: "All Tasks Complete"
-      description: "Phase 2 fully implemented"
-      validation: "Run local docker-compose with all Phase 2 services, verify: rotation running + metrics collecting + dashboard updating every 5 minutes + health monitoring active"
-      before_next: "Ready for integration testing and production deployment"
+    - milestone: "Task 6 Complete"
+      description: "PAT rotation system documented"
+      validation: "Documentation covers how it works, success flows, failure modes, and alerting"
+      before_next: "Ready for production deployment with team trained on documentation"
 
   key_files_to_monitor:
     - "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts (backupPat configuration)"
     - "ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts (backup operations)"
     - "ketchup/ketchup_jira_pat_rotator/metrics_collector.py (metrics collection)"
-    - "ketchup/ketchup_jira_pat_rotator/slack_dashboard.py (Slack integration)"
-    - "infrastructure/docker-compose.yml (backup PAT and metrics services)"
+    - "ketchup/docs/internal_documentation/jira_pat_rotation_system.md (documentation)"
 
   expected_outcomes_by_task:
     task_1_3:
@@ -300,59 +197,9 @@ plan:
       description: "Metrics collection running continuously"
       validation: "Metrics visible in DynamoDB and queryable via Python API"
 
-    task_6_7:
-      description: "Slack dashboard showing PAT health"
-      validation: "Dashboard posts to Slack every 5 minutes with formatted metrics"
-
-    task_8:
-      description: "Enhanced health monitoring with predictive alerts"
-      validation: "Alerts sent for upcoming expiry, rotation failures, and anomalies"
-
-    task_9:
-      description: "Comprehensive operational documentation"
-      validation: "Runbook covers all common failure scenarios with resolution steps"
-
-    task_10:
-      description: "Team trained on new PAT rotation system"
-      validation: "Team can troubleshoot issues using runbook, perform manual rotation"
-
-  next_phases:
-    - phase: "Phase 3 (Optional - Post-Deployment Enhancements)"
-      description: "Additional features based on production usage"
-      tasks:
-        - "Implement automated PAT backup and recovery"
-        - "Add predictive rotation scheduling (AI-based)"
-        - "Create Slack bot commands for manual operations"
-        - "Implement cross-region PAT failover"
-      estimated_effort: "1-2 weeks after Phase 2 completion"
-
-    - phase: "Operations & Support"
-      description: "Ongoing monitoring and improvement"
-      items:
-        - "Monitor metrics dashboard for anomalies"
-        - "Run quarterly backup recovery drills"
-        - "Update runbooks based on incidents"
-        - "Measure PAT rotation success rate and reliability"
-
-  success_criteria_phase_2:
-    must_have:
-      - "✓ Backup PAT management implemented and tested"
-      - "✓ Metrics collection running continuously"
-      - "✓ Slack dashboard displaying real-time metrics"
-      - "✓ Enhanced health monitoring with early warnings"
-      - "✓ All tests passing (unit + integration)"
-      - "✓ All Phase 1 + Phase 2 features stable for 24h locally"
-
-    should_have:
-      - "✓ Comprehensive operational runbooks"
-      - "✓ Team trained and able to troubleshoot"
-      - "✓ Performance: rotation takes <5 seconds, metrics collection <1 second"
-      - "✓ Monitoring: no PAT-related alerts in normal operation"
-
-    nice_to_have:
-      - "✓ Automated backup recovery testing"
-      - "✓ Historical metrics visualization"
-      - "✓ Predictive rotation scheduling"
+    task_6:
+      description: "PAT rotation system comprehensively documented"
+      validation: "Documentation is accurate, complete, and integrated with existing docs"
 
   tasks:
     - task_number: 1
@@ -513,105 +360,6 @@ plan:
                 pat: string;
                 patExpiry: Date;
                 usePat: boolean;
-              }
-
-          config_loader_with_backup:
-            description: "Load backup PAT from secrets, handle gracefully if missing"
-            complete_code: |
-              // In ketchup/corp_jira_mcp/corp_jira_mcp/common/config-loader.ts
-
-              async function loadJiraConfig(): Promise<JiraConfig> {
-                const secrets = await secretsManager.getSecret('Ketchup_Token_Secrets');
-
-                // Load primary PAT (required)
-                const pat = secrets.ketchup_jira_pat;
-                const patExpiry = new Date(secrets.ketchup_jira_pat_expiry);
-
-                // Load backup PAT (optional - if not present, backupPat = undefined)
-                const backupPat = secrets.ketchup_jira_pat_backup;
-                const backupPatExpiry = secrets.ketchup_jira_pat_backup_expiry
-                  ? new Date(secrets.ketchup_jira_pat_backup_expiry)
-                  : undefined;
-
-                const config: JiraConfig = {
-                  email: secrets.jira_email,
-                  token: secrets.jira_basic_auth_token,
-                  pat,
-                  patExpiry,
-                  usePat: process.env.JIRA_USE_PAT_AUTH === 'true',
-
-                  // NEW: Backup PAT fields
-                  backupPat,
-                  backupPatExpiry,
-                  useBackupPat: process.env.JIRA_USE_BACKUP_PAT === 'true' ?? false,
-                  backupPatCreatedAt: secrets.ketchup_jira_pat_backup_created
-                    ? new Date(secrets.ketchup_jira_pat_backup_created)
-                    : undefined,
-
-                  // Calculate days remaining for backup PAT
-                  backupPatRotationDaysRemaining: backupPatExpiry
-                    ? Math.floor((backupPatExpiry.getTime() - Date.now()) / (24 * 60 * 60 * 1000))
-                    : undefined,
-                };
-
-                // Validation
-                validateJiraConfig(config);
-                return config;
-              }
-
-              function validateJiraConfig(config: JiraConfig): void {
-                // Primary PAT validation (required)
-                if (!config.pat || config.pat.trim() === '') {
-                  throw new Error('JIRA_PAT not found in secrets');
-                }
-
-                // Backup PAT validation (optional but format must be valid if present)
-                if (config.backupPat) {
-                  if (!config.backupPat.match(/^[a-zA-Z0-9_-]+$/)) {
-                    throw new Error('Invalid backup PAT format');
-                  }
-                  if (!config.backupPatExpiry || config.backupPatExpiry <= new Date()) {
-                    throw new Error('Backup PAT is expired or missing expiry date');
-                  }
-                }
-
-                // If useBackupPat is true, backup must exist
-                if (config.useBackupPat && !config.backupPat) {
-                  throw new Error('useBackupPat=true but no backup PAT available');
-                }
-              }
-
-          env_aws_mapping:
-            description: "Map backup PAT secrets in env-aws.ts"
-            complete_code: |
-              // In ketchup/corp_jira_mcp/corp_jira_mcp/env-aws.ts
-              // Add these mappings to the secrets mapping:
-
-              export async function mapAwsSecretsToEnv(
-                secretsResponse: SecretsManagerResponse
-              ): Promise<void> {
-                const secrets = JSON.parse(secretsResponse.SecretString);
-
-                // Existing mappings
-                process.env.JIRA_EMAIL = secrets.jira_email;
-                process.env.JIRA_PASSWORD = secrets.jira_password;
-                process.env.IPAAS_USERNAME = secrets.ipaas_username;
-                process.env.IPAAS_API_KEY = secrets.ipaas_api_key;
-
-                // Phase 1 PAT mapping
-                process.env.JIRA_PAT = secrets.ketchup_jira_pat;
-                process.env.JIRA_PAT_EXPIRY = secrets.ketchup_jira_pat_expiry;
-
-                // Phase 2 - Backup PAT mapping (NEW)
-                if (secrets.ketchup_jira_pat_backup) {
-                  process.env.JIRA_BACKUP_PAT = secrets.ketchup_jira_pat_backup;
-                }
-                if (secrets.ketchup_jira_pat_backup_expiry) {
-                  process.env.JIRA_BACKUP_PAT_EXPIRY = secrets.ketchup_jira_pat_backup_expiry;
-                }
-                if (secrets.ketchup_jira_pat_backup_created) {
-                  process.env.JIRA_BACKUP_PAT_CREATED = secrets.ketchup_jira_pat_backup_created;
-                }
               }
 
       verification:
@@ -829,14 +577,6 @@ plan:
               // Update config and secrets
               // Log audit entry
             }
-
-            async rotateBackupPAT(config: JiraConfig): Promise<void> {
-              // Create new backup PAT
-              // Validate it works
-              // Update secrets
-              // Keep old backup for 24 hours before revoking
-              // Log rotation event
-            }
           }
 
         key_points:
@@ -848,168 +588,6 @@ plan:
             reference: "Existing Logger injection pattern in other services"
           - point: "Handle errors with descriptive messages"
             details: "Don't let low-level errors bubble up unexamined"
-
-        critical_patterns:
-          purpose: "Complete service implementation patterns"
-
-          backup_pat_service:
-            description: "Full BackupPATService implementation"
-            complete_code: |
-              // ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts
-              import { Service, Inject } from 'typedi';
-              import { Logger } from 'pino';
-              import { MCPPATOperations } from './mcp-pat-operations';
-              import { SecretsManagerService } from './secrets-manager.service';
-              import { JiraConfig } from '../common/config';
-
-              @Service()
-              export class BackupPATService {
-                // Constants
-                private readonly BACKUP_PAT_ROTATION_DAYS = 75;
-                private readonly BACKUP_PAT_EXPIRING_DAYS_THRESHOLD = 14;
-
-                constructor(
-                  @Inject() private mcpPat: MCPPATOperations,
-                  @Inject() private secrets: SecretsManagerService,
-                  @Inject() private logger: Logger
-                ) {}
-
-                /**
-                 * Create a new backup PAT token via MCP operations.
-                 * Stores in AWS Secrets Manager and logs for audit.
-                 */
-                async createBackupPAT(): Promise<{ token: string; expiresAt: Date }> {
-                  try {
-                    this.logger.info('Creating new backup PAT token');
-
-                    // Use existing MCP operation to create PAT
-                    const result = await this.mcpPat.createPAT({
-                      name: 'backup-jira-pat',
-                      expiryDays: 90
-                    });
-
-                    // Store in AWS Secrets
-                    await this.secrets.updateSecret('Ketchup_Token_Secrets', {
-                      ketchup_jira_pat_backup: result.token,
-                      ketchup_jira_pat_backup_expiry: result.expiresAt.toISOString(),
-                      ketchup_jira_pat_backup_created: new Date().toISOString()
-                    });
-
-                    this.logger.info('Backup PAT created and stored', {
-                      expiresAt: result.expiresAt
-                    });
-
-                    return result;
-                  } catch (error) {
-                    this.logger.error('Failed to create backup PAT', { error });
-                    throw new Error(`Backup PAT creation failed: ${error.message}`);
-                  }
-                }
-
-                /**
-                 * Validate that a backup PAT token works against JIRA API.
-                 */
-                async validateBackupPAT(token: string): Promise<boolean> {
-                  try {
-                    this.logger.debug('Validating backup PAT token');
-
-                    // Use existing MCP operation
-                    const isValid = await this.mcpPat.validatePAT(token);
-
-                    if (!isValid) {
-                      this.logger.warn('Backup PAT validation failed');
-                    }
-
-                    return isValid;
-                  } catch (error) {
-                    this.logger.error('Error during backup PAT validation', { error });
-                    return false;
-                  }
-                }
-
-                /**
-                 * Check if backup PAT is expiring soon (< daysThreshold).
-                 */
-                isBackupPATExpiring(
-                  expiryDate: Date,
-                  daysThreshold: number = this.BACKUP_PAT_EXPIRING_DAYS_THRESHOLD
-                ): boolean {
-                  const now = new Date();
-                  const daysRemaining = Math.floor(
-                    (expiryDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
-                  );
-
-                  return daysRemaining <= daysThreshold;
-                }
-
-                /**
-                 * Switch to using backup PAT as the active token.
-                 * Should only be called when primary PAT is about to expire.
-                 */
-                async useBackupPAT(config: JiraConfig): Promise<void> {
-                  try {
-                    if (!config.backupPat) {
-                      throw new Error('No backup PAT available to use');
-                    }
-
-                    // Validate backup PAT works before switching
-                    const isValid = await this.validateBackupPAT(config.backupPat);
-                    if (!isValid) {
-                      throw new Error('Backup PAT validation failed');
-                    }
-
-                    // Update config
-                    config.useBackupPat = true;
-                    process.env.JIRA_USE_BACKUP_PAT = 'true';
-
-                    // Persist to secrets
-                    await this.secrets.updateSecret('Ketchup_Token_Secrets', {
-                      jira_use_backup_pat: 'true'
-                    });
-
-                    this.logger.warn('Switched to backup PAT', {
-                      backupExpiresAt: config.backupPatExpiry
-                    });
-                  } catch (error) {
-                    this.logger.error('Failed to switch to backup PAT', { error });
-                    throw error;
-                  }
-                }
-
-                /**
-                 * Rotate backup PAT: create new, validate, update secrets.
-                 * Keeps old backup for 24h before revoking for safety.
-                 */
-                async rotateBackupPAT(config: JiraConfig): Promise<void> {
-                  try {
-                    this.logger.info('Starting backup PAT rotation');
-
-                    // Create new backup PAT
-                    const newBackup = await this.createBackupPAT();
-
-                    // Validate new token works
-                    const isValid = await this.validateBackupPAT(newBackup.token);
-                    if (!isValid) {
-                      throw new Error('New backup PAT failed validation');
-                    }
-
-                    // Schedule old backup for revocation (24h from now)
-                    if (config.backupPat) {
-                      this.logger.info('Scheduling old backup PAT for revocation', {
-                        revokeAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-                      });
-                      // TODO: Store revoke schedule in DynamoDB, implement cleanup job
-                    }
-
-                    this.logger.info('Backup PAT rotated successfully', {
-                      newExpiresAt: newBackup.expiresAt
-                    });
-                  } catch (error) {
-                    this.logger.error('Backup PAT rotation failed', { error });
-                    throw error;
-                  }
-                }
-              }
 
       verification:
         manual_testing:
@@ -1242,18 +820,6 @@ plan:
             };
           }
 
-          function isPATValid(expiryDate?: Date): boolean {
-            if (!expiryDate) return false;
-            return expiryDate > new Date();
-          }
-
-          function calculateDaysUntilExpiry(expiryDate?: Date): number | null {
-            if (!expiryDate) return null;
-            const now = new Date();
-            const daysMs = expiryDate.getTime() - now.getTime();
-            return Math.floor(daysMs / (24 * 60 * 60 * 1000));
-          }
-
         key_points:
           - point: "Fallback must be transparent - existing code doesn't change"
             reference: "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts:1"
@@ -1263,109 +829,6 @@ plan:
             details: "Helps ops team know when new backup PAT rotation is needed"
           - point: "Throw clear error if no PAT available"
             details: "Don't return undefined/null - fail fast and visibly"
-
-        critical_patterns:
-          purpose: "Complete fallback logic implementation"
-
-          build_jira_auth_headers_with_fallback:
-            description: "Updated buildJiraAuthHeaders with fallback logic"
-            complete_code: |
-              // ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts
-
-              /**
-               * Build JIRA authentication headers with support for PAT fallback.
-               *
-               * Fallback logic:
-               * 1. If useBackupPat flag is true and backup exists → use backup
-               * 2. If primary PAT valid → use primary
-               * 3. If primary expired but backup valid → automatic fallback to backup
-               * 4. If neither available → throw error
-               *
-               * This function is transparent to callers - fallback handling is internal.
-               */
-              export function buildJiraAuthHeaders(
-                config: JiraConfig,
-                logger: Logger
-              ): Record<string, string> {
-                let authToken: string;
-                let source: 'primary' | 'backup';
-
-                // Determine which PAT to use with fallback logic
-                if (config.useBackupPat && config.backupPat) {
-                  // Explicitly using backup (config.useBackupPat = true)
-                  authToken = config.backupPat;
-                  source = 'backup';
-                  logger.debug('Using backup PAT (explicitly enabled)');
-
-                } else if (config.usePat && config.pat && isPATValid(config.patExpiry)) {
-                  // Primary PAT still valid and usePat=true
-                  authToken = config.pat;
-                  source = 'primary';
-
-                } else if (config.backupPat && isPATValid(config.backupPatExpiry)) {
-                  // Primary expired or unavailable, but backup is valid
-                  // Automatic fallback to backup
-                  authToken = config.backupPat;
-                  source = 'backup';
-
-                  logger.warn('Falling back to backup PAT - primary is expired', {
-                    primaryExpiryDate: config.patExpiry?.toISOString(),
-                    backupExpiryDate: config.backupPatExpiry?.toISOString(),
-                    daysUntilBackupExpiry: calculateDaysUntilExpiry(config.backupPatExpiry),
-                    timestamp: new Date().toISOString()
-                  });
-
-                } else {
-                  // Neither PAT is available
-                  const issues: string[] = [];
-                  if (!config.pat || !isPATValid(config.patExpiry)) {
-                    issues.push('primary PAT missing or expired');
-                  }
-                  if (!config.backupPat || !isPATValid(config.backupPatExpiry)) {
-                    issues.push('backup PAT missing or expired');
-                  }
-
-                  const errorMessage = `No valid PAT available: ${issues.join(', ')}`;
-                  logger.error(errorMessage, {
-                    primaryExpiryDate: config.patExpiry?.toISOString(),
-                    backupExpiryDate: config.backupPatExpiry?.toISOString()
-                  });
-
-                  throw new Error(errorMessage);
-                }
-
-                // Build and return Authorization header
-                return {
-                  'Authorization': `Bearer ${authToken}`,
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                };
-              }
-
-              /**
-               * Check if a PAT is still valid (not expired).
-               */
-              function isPATValid(expiryDate?: Date): boolean {
-                if (!expiryDate) return false;
-                const now = new Date();
-                return expiryDate > now;
-              }
-
-              /**
-               * Calculate days remaining until PAT expiry.
-               * Returns null if no expiry date provided.
-               */
-              function calculateDaysUntilExpiry(expiryDate?: Date): number | null {
-                if (!expiryDate) return null;
-
-                const now = new Date();
-                const expiryTime = expiryDate.getTime();
-                const nowTime = now.getTime();
-                const daysMs = expiryTime - nowTime;
-                const days = Math.floor(daysMs / (24 * 60 * 60 * 1000));
-
-                return days;
-              }
 
       verification:
         manual_testing:
@@ -1470,26 +933,6 @@ plan:
               assert call_args[1]['Item']['sk'] == metrics.timestamp.isoformat()
               assert call_args[1]['Item']['status'] == 'success'
 
-          def test_backup_pat_metrics(mock_dynamodb):
-              """Test backup PAT health metrics."""
-              # Arrange
-              metrics = BackupPATMetrics(
-                  timestamp=datetime.utcnow(),
-                  backup_pat_exists=True,
-                  backup_pat_valid=True,
-                  days_until_expiry=45
-              )
-
-              storage = MetricsStorage(mock_dynamodb)
-
-              # Act
-              storage.store_backup_metrics(metrics)
-
-              # Assert
-              mock_dynamodb.put_item.assert_called_once()
-              call_args = mock_dynamodb.put_item.call_args
-              assert call_args[1]['Item']['backup_pat_days_remaining'] == 45
-
       implementation:
         approach: |
           Define Python dataclasses for metrics (rotation, backup, health).
@@ -1531,181 +974,6 @@ plan:
               days_until_expiry: Optional[int]
               last_validated_at: Optional[datetime] = None
 
-          @dataclass
-          class HealthMetrics:
-              """Overall PAT health metrics."""
-              timestamp: datetime
-              primary_pat_days_remaining: int
-              backup_pat_days_remaining: Optional[int]
-              last_successful_rotation: Optional[datetime]
-              consecutive_rotation_failures: int
-              system_health_status: str  # "healthy", "warning", "critical"
-
-        key_points:
-          - point: "Use Python dataclasses for clean schema definition"
-            reference: "Existing dataclass patterns in ketchup_jira_pat_rotator/"
-          - point: "Define clear enum for rotation status"
-            details: "Makes queries and monitoring easier"
-          - point: "Include TTL for DynamoDB (30-day retention)"
-            details: "Metrics don't need to live forever, save storage"
-          - point: "Use compound keys for efficient date-range queries"
-            reference: "DynamoDB best practices for time-series data"
-
-        critical_patterns:
-          purpose: "Complete metrics schema and storage implementation"
-
-          metrics_schema:
-            description: "Full metrics schema with DynamoDB storage"
-            complete_code: |
-              # ketchup/ketchup_jira_pat_rotator/metrics_schema.py
-              from dataclasses import dataclass, asdict, field
-              from datetime import datetime, timedelta
-              from typing import Optional, List
-              from enum import Enum
-              import json
-              from abc import ABC, abstractmethod
-
-              class RotationStatus(str, Enum):
-                  """Status of a PAT rotation operation."""
-                  SUCCESS = "success"
-                  FAILURE = "failure"
-                  IN_PROGRESS = "in_progress"
-
-              @dataclass
-              class RotationMetrics:
-                  """Metrics for a single PAT rotation event.
-
-                  Stored in DynamoDB with:
-                  - pk: ROT#{rotation_id}
-                  - sk: {timestamp}
-                  """
-                  timestamp: datetime
-                  rotation_id: str
-                  status: RotationStatus
-                  duration_seconds: float
-                  old_pat_hash: str  # Hash of old PAT (don't store full token)
-                  new_pat_hash: str  # Hash of new PAT
-                  error_message: Optional[str] = None
-                  retry_count: int = 0
-                  rotation_type: str = "primary"  # or "backup"
-
-              @dataclass
-              class BackupPATMetrics:
-                  """Metrics for backup PAT health and status.
-
-                  Stored in DynamoDB with:
-                  - pk: BACKUP#METRICS
-                  - sk: {timestamp}
-                  """
-                  timestamp: datetime
-                  backup_pat_exists: bool
-                  backup_pat_valid: bool
-                  days_until_expiry: Optional[int]
-                  last_validated_at: Optional[datetime] = None
-                  last_validation_error: Optional[str] = None
-                  rotation_scheduled_at: Optional[datetime] = None
-
-              @dataclass
-              class HealthMetrics:
-                  """Overall PAT system health metrics.
-
-                  Stored in DynamoDB with:
-                  - pk: HEALTH#METRICS
-                  - sk: {timestamp}
-                  """
-                  timestamp: datetime
-                  primary_pat_days_remaining: int
-                  backup_pat_days_remaining: Optional[int]
-                  last_successful_rotation: Optional[datetime]
-                  last_rotation_attempt: Optional[datetime]
-                  consecutive_rotation_failures: int
-                  system_health_status: str  # "healthy", "warning", "critical"
-                  last_alert_sent_at: Optional[datetime] = None
-
-              class MetricsStorage(ABC):
-                  """Abstract base for metrics storage implementations."""
-
-                  @abstractmethod
-                  def store_rotation_metrics(self, metrics: RotationMetrics) -> None:
-                      """Store rotation metrics to backend."""
-                      pass
-
-                  @abstractmethod
-                  def store_backup_metrics(self, metrics: BackupPATMetrics) -> None:
-                      """Store backup PAT metrics to backend."""
-                      pass
-
-                  @abstractmethod
-                  def store_health_metrics(self, metrics: HealthMetrics) -> None:
-                      """Store overall health metrics to backend."""
-                      pass
-
-                  @abstractmethod
-                  def get_recent_rotations(
-                      self,
-                      limit: int = 10,
-                      status: Optional[RotationStatus] = None
-                  ) -> List[RotationMetrics]:
-                      """Get recent rotation metrics."""
-                      pass
-
-                  @abstractmethod
-                  def get_health_metrics(self, hours: int = 24) -> List[HealthMetrics]:
-                      """Get health metrics from last N hours."""
-                      pass
-
-              class DynamoDBMetricsStorage(MetricsStorage):
-                  """DynamoDB implementation of metrics storage."""
-
-                  TABLE_NAME = "ketchup_pat_metrics"
-                  TTL_DAYS = 30
-
-                  def __init__(self, dynamodb_client):
-                      """Initialize with DynamoDB client."""
-                      self.dynamodb = dynamodb_client
-                      self.table = dynamodb_client.Table(self.TABLE_NAME)
-
-                  def store_rotation_metrics(self, metrics: RotationMetrics) -> None:
-                      """Store rotation metrics with TTL."""
-                      # Calculate TTL (30 days from now)
-                      ttl = int((datetime.utcnow() + timedelta(days=self.TTL_DAYS)).timestamp())
-
-                      item = {
-                          'pk': f'ROT#{metrics.rotation_id}',
-                          'sk': metrics.timestamp.isoformat(),
-                          'status': metrics.status.value,
-                          'duration_seconds': metrics.duration_seconds,
-                          'old_pat_hash': metrics.old_pat_hash,
-                          'new_pat_hash': metrics.new_pat_hash,
-                          'error_message': metrics.error_message,
-                          'retry_count': metrics.retry_count,
-                          'rotation_type': metrics.rotation_type,
-                          'timestamp': int(metrics.timestamp.timestamp()),
-                          'ttl': ttl,  # DynamoDB will auto-delete after this
-                          'gsi1pk': f'STATUS#{metrics.status.value}',
-                          'gsi1sk': metrics.timestamp.isoformat()
-                      }
-
-                      self.table.put_item(Item=item)
-
-              # Usage example:
-              if __name__ == '__main__':
-                  import boto3
-
-                  dynamodb = boto3.resource('dynamodb')
-                  storage = DynamoDBMetricsStorage(dynamodb)
-
-                  # Store rotation metrics
-                  metrics = RotationMetrics(
-                      timestamp=datetime.utcnow(),
-                      rotation_id='rot-001',
-                      status=RotationStatus.SUCCESS,
-                      duration_seconds=8.3,
-                      old_pat_hash='hash-abc123',
-                      new_pat_hash='hash-xyz789'
-                  )
-                  storage.store_rotation_metrics(metrics)
-
       verification:
         manual_testing:
           - step: "Create metrics table in local DynamoDB"
@@ -1728,7 +996,7 @@ plan:
         message: "add PAT metrics schema and DynamoDB storage"
         body: |
           Create metrics storage for PAT rotation tracking.
-          - Define RotationMetrics, BackupPATMetrics, HealthMetrics dataclasses
+          - Define RotationMetrics, BackupPATMetrics dataclasses
           - Implement DynamoDBMetricsStorage for persistence
           - Add 30-day TTL for automatic cleanup
           - Include compound keys for date-range queries
@@ -1801,44 +1069,6 @@ plan:
               assert mock_storage.store_health_metrics.called
               assert mock_storage.store_backup_metrics.called
 
-          def test_backup_pat_metrics_captured(mock_storage, mock_config):
-              """Test backup PAT health metrics."""
-              # Arrange
-              collector = MetricsCollectorService(mock_storage, mock_config)
-
-              # Act
-              collector.collect_backup_pat_metrics()
-
-              # Assert
-              call_args = mock_storage.store_backup_metrics.call_args
-              metrics = call_args[0][0]
-              assert metrics.backup_pat_exists is True
-              assert metrics.backup_pat_valid is True
-              assert metrics.days_until_expiry == 60
-
-          def test_health_status_calculated_correctly():
-              """Test health status reflects system state."""
-              # Arrange
-              collector = MetricsCollectorService(mock_storage, mock_config)
-
-              # Act - primary expiring soon
-              status = collector.calculate_health_status(
-                  primary_days_remaining=5,
-                  backup_days_remaining=60
-              )
-
-              # Assert
-              assert status == 'warning'
-
-              # Act - primary already expired, no backup
-              status = collector.calculate_health_status(
-                  primary_days_remaining=-1,
-                  backup_days_remaining=None
-              )
-
-              # Assert
-              assert status == 'critical'
-
       implementation:
         approach: |
           Create MetricsCollectorService with async scheduler.
@@ -1847,225 +1077,6 @@ plan:
           Calculate overall health status based on PAT expiry dates.
           Store metrics in DynamoDB with timestamps.
           Handle errors gracefully - never crash the service.
-
-        code_structure: |
-          # ketchup/ketchup_jira_pat_rotator/metrics_collector.py
-          import asyncio
-          from datetime import datetime, timedelta
-          from typing import Optional
-          from typedi import Service, Inject
-          from logging import Logger
-
-          @Service()
-          class MetricsCollectorService:
-              COLLECTION_INTERVAL_SECONDS = 300  # 5 minutes
-
-              def __init__(
-                  self,
-                  @Inject() storage: MetricsStorage,
-                  @Inject() config: JiraConfig,
-                  @Inject() logger: Logger
-              ):
-                  self.storage = storage
-                  self.config = config
-                  self.logger = logger
-
-              async def run(self) -> None:
-                  """Main run loop - collect metrics every 5 minutes."""
-                  while True:
-                      try:
-                          await self.collect_metrics()
-                      except Exception as e:
-                          self.logger.error(f"Error collecting metrics: {e}")
-                      await asyncio.sleep(self.COLLECTION_INTERVAL_SECONDS)
-
-              async def collect_metrics(self) -> None:
-                  """Collect and store all metrics."""
-                  # Collect backup PAT metrics
-                  # Collect rotation history
-                  # Calculate health status
-                  # Store all metrics
-
-        key_points:
-          - point: "Run every 5 minutes (same as health check interval)"
-            details: "Ensures metrics align with health check events"
-          - point: "Use TypedDI for dependency injection"
-            reference: "Pattern used in Phase 1 rotation service"
-          - point: "Calculate health status from multiple signals"
-            details: "Primary expiry, backup status, rotation history"
-          - point: "Handle errors gracefully - never crash"
-            details: "Log error but continue collection loop"
-
-        critical_patterns:
-          purpose: "Complete metrics collector implementation"
-
-          metrics_collector_service:
-            description: "Full MetricsCollectorService implementation"
-            complete_code: |
-              # ketchup/ketchup_jira_pat_rotator/metrics_collector.py
-              import asyncio
-              from datetime import datetime, timedelta
-              from typing import Optional
-              from typedi import Service, Inject
-              from logging import Logger
-              import logging
-
-              from .metrics_schema import (
-                  MetricsStorage,
-                  HealthMetrics,
-                  BackupPATMetrics,
-                  RotationStatus
-              )
-              from ..common.config import JiraConfig
-
-              logger = logging.getLogger(__name__)
-
-              @Service()
-              class MetricsCollectorService:
-                  """Collects and stores PAT health metrics on a schedule."""
-
-                  COLLECTION_INTERVAL_SECONDS = 300  # 5 minutes
-                  PRIMARY_PAT_CRITICAL_DAYS = 7
-                  PRIMARY_PAT_WARNING_DAYS = 14
-
-                  def __init__(
-                      self,
-                      storage: MetricsStorage,
-                      config: JiraConfig
-                  ):
-                      """Initialize collector with dependencies."""
-                      self.storage = storage
-                      self.config = config
-                      self.logger = logger
-
-                  async def run(self) -> None:
-                      """Main run loop - collect metrics every 5 minutes."""
-                      self.logger.info("Starting metrics collector service")
-
-                      while True:
-                          try:
-                              await self.collect_metrics()
-                          except Exception as e:
-                              self.logger.error(
-                                  f"Error collecting metrics: {e}",
-                                  exc_info=True
-                              )
-                          # Sleep before next collection
-                          await asyncio.sleep(self.COLLECTION_INTERVAL_SECONDS)
-
-                  async def collect_metrics(self) -> None:
-                      """Collect and store all metrics."""
-                      self.logger.debug("Collecting metrics")
-
-                      try:
-                          # Collect individual metric types
-                          await self._collect_backup_pat_metrics()
-                          await self._collect_health_metrics()
-
-                          self.logger.debug("Metrics collected successfully")
-                      except Exception as e:
-                          self.logger.error(f"Failed to collect metrics: {e}")
-                          raise
-
-                  async def _collect_backup_pat_metrics(self) -> None:
-                      """Collect backup PAT health metrics."""
-                      metrics = BackupPATMetrics(
-                          timestamp=datetime.utcnow(),
-                          backup_pat_exists=self.config.backupPat is not None,
-                          backup_pat_valid=self._is_pat_valid(self.config.backupPatExpiry),
-                          days_until_expiry=self._calculate_days_until_expiry(
-                              self.config.backupPatExpiry
-                          ),
-                          last_validated_at=datetime.utcnow()
-                      )
-
-                      self.storage.store_backup_metrics(metrics)
-                      self.logger.debug(f"Backup PAT metrics stored: {metrics}")
-
-                  async def _collect_health_metrics(self) -> None:
-                      """Collect overall system health metrics."""
-                      primary_days = self._calculate_days_until_expiry(
-                          self.config.patExpiry
-                      )
-                      backup_days = self._calculate_days_until_expiry(
-                          self.config.backupPatExpiry
-                      )
-
-                      health_status = self._calculate_health_status(
-                          primary_days,
-                          backup_days
-                      )
-
-                      # Get last successful rotation from DynamoDB
-                      last_rotations = self.storage.get_recent_rotations(
-                          limit=1,
-                          status=RotationStatus.SUCCESS
-                      )
-                      last_successful = (
-                          last_rotations[0].timestamp if last_rotations else None
-                      )
-
-                      metrics = HealthMetrics(
-                          timestamp=datetime.utcnow(),
-                          primary_pat_days_remaining=primary_days or 0,
-                          backup_pat_days_remaining=backup_days,
-                          last_successful_rotation=last_successful,
-                          last_rotation_attempt=None,  # TODO: get from rotation service
-                          consecutive_rotation_failures=0,  # TODO: calculate from metrics
-                          system_health_status=health_status
-                      )
-
-                      self.storage.store_health_metrics(metrics)
-                      self.logger.info(
-                          f"Health metrics stored: status={health_status}",
-                          extra={
-                              'primary_days': primary_days,
-                              'backup_days': backup_days
-                          }
-                      )
-
-                  def _is_pat_valid(self, expiry_date: Optional[datetime]) -> bool:
-                      """Check if PAT is still valid (not expired)."""
-                      if not expiry_date:
-                          return False
-                      return expiry_date > datetime.utcnow()
-
-                  def _calculate_days_until_expiry(
-                      self,
-                      expiry_date: Optional[datetime]
-                  ) -> Optional[int]:
-                      """Calculate days until PAT expires."""
-                      if not expiry_date:
-                          return None
-
-                      days_remaining = (
-                          expiry_date - datetime.utcnow()
-                      ).days
-                      return max(0, days_remaining)  # Return 0 if already expired
-
-                  def _calculate_health_status(
-                      self,
-                      primary_days: Optional[int],
-                      backup_days: Optional[int]
-                  ) -> str:
-                      """Calculate overall health status.
-
-                      - "healthy": Primary PAT has >14 days
-                      - "warning": Primary PAT has 7-14 days or no backup
-                      - "critical": Primary PAT has <7 days or expired
-                      """
-                      if primary_days is None or primary_days < 0:
-                          # Primary is missing or already expired
-                          if backup_days and backup_days > 0:
-                              return "warning"
-                          return "critical"
-
-                      if primary_days < self.PRIMARY_PAT_CRITICAL_DAYS:
-                          return "critical"
-                      elif primary_days < self.PRIMARY_PAT_WARNING_DAYS:
-                          return "warning"
-                      else:
-                          return "healthy"
 
       verification:
         manual_testing:
@@ -2095,6 +1106,146 @@ plan:
           - Store metrics in DynamoDB with timestamps
           - Handle errors gracefully without crashing
 
+    - task_number: 6
+      name: "Document PAT rotation system comprehensively"
+      agent: "technical-documentation-specialist"
+      worktree_group: "independent-1"
+      files:
+        - "ketchup/docs/internal_documentation/jira_pat_rotation_system.md"
+      depends_on: []
+      estimated_time: "3h"
+
+      description: |
+        Create comprehensive internal documentation explaining how the JIRA PAT
+        rotation system works. Cover architecture, success flows, failure modes,
+        alerting mechanism, and how it integrates with existing Ketchup services.
+        Documentation should be detailed enough for new engineers to understand
+        the system and troubleshoot issues.
+
+      test_first:
+        # Documentation doesn't have unit tests, but we validate structure and content
+        structure:
+          - "Architecture overview with diagrams/flowcharts"
+          - "How PAT rotation succeeds (happy path)"
+          - "Failure modes and what can go wrong"
+          - "Alert mechanism (rotation failures → #ketchup-alerts)"
+          - "Backup PAT management (creation, fallback, rotation)"
+          - "Metrics collection and health tracking"
+          - "Troubleshooting common issues"
+          - "Integration with existing Ketchup services"
+          - "Operator runbook (minimal - focus on architecture)"
+
+        validation:
+          - "All code references (file paths, line numbers) are accurate"
+          - "All flows are explained clearly with minimal jargon"
+          - "All failure modes are documented with causes and resolutions"
+          - "Integration with other services is clear"
+
+      implementation:
+        approach: |
+          Create comprehensive markdown document in internal_documentation/ directory.
+          Follow existing documentation style (like ketchup_high_level.md).
+          Include architecture diagrams using Mermaid or reference existing diagrams.
+          Cover both happy path and failure scenarios.
+          Explain alerting mechanism (rotation failures sent to #ketchup-alerts).
+          Reference existing code with file paths and line numbers.
+          Write for audience: new engineers and on-call operators.
+
+        structure: |
+          # JIRA PAT Rotation System
+
+          ## Table of Contents
+          1. Overview and motivation
+          2. System architecture
+          3. Components and how they work
+          4. Happy path: successful rotation
+          5. Failure modes and error handling
+          6. Backup PAT management
+          7. Metrics and monitoring
+          8. Alerting (rotation failures)
+          9. Integration with Ketchup services
+          10. Troubleshooting guide
+          11. Code references
+
+        key_points:
+          - point: "Explain WHY PAT rotation exists (JIRA Basic Auth deprecation Nov 30)"
+            details: "Context helps understand importance and deadlines"
+          - point: "Show both happy path and failure scenarios"
+            details: "Engineers need to understand both success and recovery"
+          - point: "Reference specific code files and line numbers"
+            details: "Helps engineers find relevant code when learning"
+          - point: "Explain alerting: rotation failures → #ketchup-alerts"
+            details: "Uses existing ketchup_access_request_monitor pattern"
+          - point: "Keep it detailed but not overwhelming"
+            details: "Should take <20 minutes to understand core concepts"
+
+      verification:
+        manual_testing:
+          - step: "New engineer reads documentation"
+            what_to_verify: "Can understand system architecture and failure modes"
+          - step: "Code references checked"
+            what_to_verify: "All file paths and line numbers are accurate"
+          - step: "Integration with services verified"
+            what_to_verify: "How PAT rotation integrates with existing services is clear"
+
+        success_criteria:
+          - "Documentation is clear and complete"
+          - "All code references are accurate"
+          - "Failure modes are documented with resolutions"
+          - "New engineer can troubleshoot basic issues using doc"
+          - "Integration with other services is explained"
+
+      commit:
+        type: "docs"
+        message: "add comprehensive JIRA PAT rotation system documentation"
+        body: |
+          Create internal documentation for PAT rotation system.
+          - Architecture overview with component diagrams
+          - Happy path: how successful rotation works
+          - Failure modes and error scenarios
+          - Backup PAT management strategy
+          - Metrics collection and health tracking
+          - Alerting mechanism (failures → #ketchup-alerts)
+          - Integration with existing Ketchup services
+          - Troubleshooting guide with common issues
+          - Code references with specific file paths and line numbers
+
+  critical_milestones:
+    - milestone: "Task 3 Complete"
+      description: "Backup PAT feature working end-to-end"
+      validation: "Run: npm test ketchup/corp_jira_mcp --testPathPattern=backup && npm test ketchup/corp_jira_mcp --testPathPattern=fallback"
+      before_next: "PAT fallback is transparent to existing code"
+
+    - milestone: "Task 5 Complete"
+      description: "Metrics collection running continuously"
+      validation: "Verify metrics written to DynamoDB every 5 minutes in local docker-compose environment"
+      before_next: "Can use metrics for monitoring and health tracking"
+
+    - milestone: "Task 6 Complete"
+      description: "PAT rotation system documented"
+      validation: "Documentation covers architecture, success flows, failures, alerting, and troubleshooting"
+      before_next: "Ready for production deployment with team understanding the system"
+
+  key_files_to_monitor:
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts (backupPat configuration)"
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts (buildJiraAuthHeaders with fallback)"
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts (backup operations)"
+    - "ketchup/ketchup_jira_pat_rotator/metrics_collector.py (metrics collection)"
+    - "ketchup/docs/internal_documentation/jira_pat_rotation_system.md (system documentation)"
+
+  expected_outcomes_by_task:
+    task_1_3:
+      description: "Backup PAT management and fallback fully integrated"
+      validation: "Backup PAT can be created, validated, and transparently used as fallback"
+
+    task_4_5:
+      description: "Metrics collection running continuously"
+      validation: "Metrics visible in DynamoDB and queryable via Python API"
+
+    task_6:
+      description: "PAT rotation system comprehensively documented"
+      validation: "New engineer can understand system and troubleshoot using documentation alone"
+
   testing_strategy:
     unit_tests:
       location: "tests/unit/test_backup_pat, tests/unit/test_metrics"
@@ -2107,13 +1258,11 @@ plan:
       what_to_test:
         - "Backup PAT integration with existing JIRA operations"
         - "Metrics collector with real DynamoDB"
-        - "Slack dashboard with real metrics"
         - "Health monitoring with all Phase 2 features"
       setup_required:
         - "Local DynamoDB instance (via Docker)"
         - "Phase 1 services running (rotation service)"
         - "Test JIRA environment with valid PAT"
-      run_command: "npm run test:integration && pytest tests/integration/test_phase2"
 
     manual_testing:
       - step: "Deploy Phase 2 locally with docker-compose"
@@ -2121,12 +1270,10 @@ plan:
       - step: "Trigger backup PAT creation"
         what_to_verify: "New backup token created and validated"
       - step: "Verify metrics in DynamoDB"
-        what_to_verify: "Health metrics updated every 5 minutes"
-      - step: "Check Slack dashboard"
-        what_to_verify: "Dashboard posts metrics every 5 minutes"
+        what_to_verify: "Health metrics written every 5 minutes"
 
   commit_strategy:
-    total_commits: 10
+    total_commits: 6
 
     commits:
       - sequence: 1
@@ -2136,145 +1283,89 @@ plan:
 
       - sequence: 2
         type: "feat"
-        description: "Add backup PAT configuration to MCP service config"
+        description: "Add backup PAT configuration to MCP service"
         files: ["ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts"]
 
       - sequence: 3
         type: "test"
-        description: "Add tests for backup PAT service operations"
-        files: ["tests/unit/test_backup_pat/test_backup_pat_service.test.ts"]
+        description: "Add tests for backup PAT service and fallback logic"
+        files: ["tests/unit/test_backup_pat/test_backup_pat_service.test.ts", "tests/unit/test_backup_pat/test_fallback_logic.test.ts"]
 
       - sequence: 4
         type: "feat"
-        description: "Implement backup PAT service with create and validate operations"
-        files: ["ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts"]
+        description: "Implement backup PAT service and fallback logic"
+        files: ["ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts", "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts"]
 
       - sequence: 5
-        type: "test"
-        description: "Add tests for PAT fallback logic"
-        files: ["tests/unit/test_backup_pat/test_fallback_logic.test.ts"]
+        type: "feat"
+        description: "Add metrics schema and collector service"
+        files: ["ketchup/ketchup_jira_pat_rotator/metrics_schema.py", "ketchup/ketchup_jira_pat_rotator/metrics_collector.py"]
 
       - sequence: 6
-        type: "feat"
-        description: "Implement PAT fallback logic in buildJiraAuthHeaders utility"
-        files: ["ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts"]
-
-      - sequence: 7
-        type: "test"
-        description: "Add tests for metrics schema and storage"
-        files: ["tests/unit/test_metrics/test_metrics_schema.test.py"]
-
-      - sequence: 8
-        type: "feat"
-        description: "Add PAT metrics schema and DynamoDB storage"
-        files: ["ketchup/ketchup_jira_pat_rotator/metrics_schema.py"]
-
-      - sequence: 9
-        type: "test"
-        description: "Add tests for metrics collector service"
-        files: ["tests/unit/test_metrics/test_metrics_collector.test.py"]
-
-      - sequence: 10
-        type: "feat"
-        description: "Implement metrics collector service with periodic collection"
-        files: ["ketchup/ketchup_jira_pat_rotator/metrics_collector.py"]
-
-  common_pitfalls:
-    - pitfall: "Storing sensitive data in metrics"
-      why: "PAT tokens could be exposed in DynamoDB or logs"
-      how_to_avoid: "Store hashes of tokens, not the tokens themselves"
-      reference:
-        file: "ketchup/ketchup_jira_pat_rotator/metrics_schema.py"
-        pattern: "RotationMetrics uses old_pat_hash and new_pat_hash"
-
-    - pitfall: "Metrics collector crashes and stops collecting"
-      why: "Unhandled exceptions in async code"
-      how_to_avoid: "Use try-catch in main loop, log errors but continue"
-      reference:
-        file: "ketchup/ketchup_jira_pat_rotator/metrics_collector.py"
-        pattern: "Wraps collection in try-except, continues on error"
-
-    - pitfall: "Backup PAT not being created or rotated"
-      why: "Feature disabled by default or rotation never triggered"
-      how_to_avoid: "Always create backup PAT after primary rotation completes"
-      reference:
-        file: "ketchup/ketchup_jira_pat_rotator/rotator.py"
-        pattern: "rotateBackupPAT called after successful primary rotation"
-
-    - pitfall: "Fallback to backup PAT not working because backup is also expired"
-      why: "Backup PAT rotation cycle missed"
-      how_to_avoid: "Monitor backup PAT expiry proactively, alert when < 14 days"
-      reference:
-        file: "ketchup/ketchup_jira_pat_rotator/metrics_collector.py"
-        pattern: "Alerts trigger when backup_days_remaining < 14"
-
-    - pitfall: "DynamoDB metrics table not created"
-      why: "Infrastructure setup missed"
-      how_to_avoid: "Add table creation to docker-compose or IaC"
-      reference:
-        location: "infrastructure/docker-compose.yml"
-        pattern: "LocalStack DynamoDB configuration"
+        type: "docs"
+        description: "Add comprehensive PAT rotation system documentation"
+        files: ["ketchup/docs/internal_documentation/jira_pat_rotation_system.md"]
 
   resources:
     existing_code:
       - type: "Phase 1 rotation service"
         path: "ketchup/ketchup_jira_pat_rotator/rotator.py"
-        note: "Model for scheduler pattern and error handling"
+        note: "Reference for scheduler pattern and error handling"
 
       - type: "MCP PAT operations"
         path: "ketchup/corp_jira_mcp/corp_jira_mcp/services/mcp-pat-operations.ts"
-        note: "Reference for PAT creation and validation"
+        note: "Existing PAT operations to reuse"
 
-      - type: "Slack integration example"
+      - type: "Slack alerting pattern"
         path: "ketchup/ketchup_access_request_monitor/monitor.py"
-        note: "Pattern for Slack alert posting (Phase 2 will extend this)"
+        note: "How to send failures to #ketchup-alerts"
 
       - type: "TypedDI service pattern"
         path: "ketchup/ketchup_jira_pat_rotator/scheduler.py"
         note: "Reference for TypedDI service implementation"
 
+      - type: "Existing documentation patterns"
+        path: "ketchup/docs/internal_documentation/ketchup_high_level.md"
+        note: "Follow this style and structure for PAT documentation"
+
     documentation:
       - type: "AWS Secrets Manager API"
         link: "https://docs.aws.amazon.com/secretsmanager/"
-        relevance: "For storing backup PAT"
+        relevance: "For storing and retrieving backup PAT"
 
-      - type: "DynamoDB time-series best practices"
+      - type: "DynamoDB best practices"
         link: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html"
-        relevance: "For metrics storage and querying"
+        relevance: "For metrics storage design"
 
-      - type: "Slack Block Kit documentation"
-        link: "https://api.slack.com/block-kit"
-        relevance: "For building dashboard blocks (Phase 2 tasks 6-7)"
+  validation_checklist:
+    - item: "All unit tests pass"
+      command: "npm test && pytest tests/unit/"
+      checked: false
 
-    validation_checklist:
-      - item: "All unit tests pass"
-        command: "npm test && pytest tests/unit/"
-        checked: false
+    - item: "Backup PAT configuration loads correctly"
+      command: "npm test --testNamePattern=config"
+      checked: false
 
-      - item: "Backup PAT configuration loads correctly"
-        command: "npm test --testNamePattern=config"
-        checked: false
+    - item: "Backup PAT operations work (create, validate)"
+      command: "npm test --testNamePattern=backup"
+      checked: false
 
-      - item: "Backup PAT operations work (create, validate)"
-        command: "npm test --testNamePattern=backup"
-        checked: false
+    - item: "Fallback logic is transparent"
+      command: "npm test --testNamePattern=fallback"
+      checked: false
 
-      - item: "Fallback logic is transparent (no caller changes)"
-        command: "npm test --testNamePattern=fallback"
-        checked: false
+    - item: "Metrics collector runs without errors"
+      command: "pytest tests/unit/test_metrics/"
+      checked: false
 
-      - item: "Metrics collector runs without errors"
-        command: "pytest tests/unit/test_metrics/"
-        checked: false
+    - item: "DynamoDB table schema is correct"
+      command: "aws dynamodb describe-table --table-name ketchup_pat_metrics"
+      checked: false
 
-      - item: "No sensitive data (PAT tokens) in metrics"
-        command: "grep -r 'ketchup_jira_pat[^_]' ketchup/ketchup_jira_pat_rotator/ || echo 'OK'"
-        checked: false
+    - item: "Documentation is complete and accurate"
+      command: "Verify all code references and flows"
+      checked: false
 
-      - item: "DynamoDB table schema is created"
-        command: "aws dynamodb describe-table --table-name ketchup_pat_metrics"
-        checked: false
-
-      - item: "Health file updates (from Phase 1) still working"
-        command: "grep -l 'health_status' ketchup/ketchup_jira_pat_rotator/*.py"
-        checked: false
+    - item: "Phase 2 services running in docker-compose"
+      command: "docker-compose logs shows no errors over 1 hour"
+      checked: false
