@@ -30,7 +30,9 @@ async function loadSecretsFromAWS(): Promise<void> {
       'ipaas_username': 'JIRA_USERNAME',
       'ipaas_password': 'JIRA_PASSWORD',
       'ipaas_api_key': 'JIRA_API_KEY',
-      'ims_access_token': 'JIRA_IMS_TOKEN'
+      'ims_access_token': 'JIRA_IMS_TOKEN',
+      'ketchup_jira_pat': 'JIRA_PAT',
+      'ketchup_jira_pat_expiry': 'JIRA_PAT_EXPIRY'
     };
     
     // Also set backward compatibility variables
@@ -51,6 +53,8 @@ async function loadSecretsFromAWS(): Promise<void> {
     console.error('JIRA_USERNAME:', process.env.JIRA_USERNAME || 'not set');
     console.error('JIRA_API_KEY:', process.env.JIRA_API_KEY ? '[REDACTED]' : 'not set');
     console.error('JIRA_IMS_TOKEN:', process.env.JIRA_IMS_TOKEN ? '[REDACTED]' : 'not set');
+    console.error('JIRA_PAT:', process.env.JIRA_PAT ? '[REDACTED]' : 'not set');
+    console.error('JIRA_PAT_EXPIRY:', process.env.JIRA_PAT_EXPIRY || 'not set');
     
   } catch (error) {
     console.error('Failed to load secrets from AWS:', error);

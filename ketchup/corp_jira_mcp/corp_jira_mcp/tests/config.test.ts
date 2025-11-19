@@ -74,3 +74,107 @@ describe('Config - PAT Support', () => {
     expect(config.auth.patBackup).toBe('');
   });
 });
+
+describe('env-aws.ts - PAT mappings', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
+    // Clear any existing PAT variables
+    delete process.env.JIRA_PAT;
+    delete process.env.JIRA_PAT_EXPIRY;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('should load JIRA_PAT from AWS Secrets', async () => {
+    // Mock AWS Secrets Manager
+    const mockSecretsManager = {
+      send: jest.fn().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ketchup_jira_pat': 'test_pat_token_12345'
+        })
+      })
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    expect(process.env.JIRA_PAT).toBe('test_pat_token_12345');
+  });
+
+  it('should load JIRA_PAT_EXPIRY from AWS Secrets', async () => {
+    const testExpiry = '2025-12-31T23:59:59Z';
+    const mockSecretsManager = {
+      send: jest.fn().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ketchup_jira_pat_expiry': testExpiry
+        })
+      })
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    expect(process.env.JIRA_PAT_EXPIRY).toBe(testExpiry);
+  });
+
+  it('should handle missing PAT gracefully', async () => {
+    const mockSecretsManager = {
+      send: jest.fn().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ipaas_username': 'test@example.com'
+        })
+      })
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    expect(process.env.JIRA_PAT).toBeUndefined();
+  });
+
+  it('should log PAT presence without exposing value', async () => {
+    const consoleSpy = jest.spyOn(console, 'error');
+
+    const mockSecretsManager = {
+      send: jest.fn().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ketchup_jira_pat': 'secret_token_value'
+        })
+      })
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    const logCalls = consoleSpy.mock.calls.map(call => call[0]).join('\n');
+    expect(logCalls).toContain('[REDACTED]');
+    expect(logCalls).not.toContain('secret_token_value');
+
+    consoleSpy.mockRestore();
+  });
+});
