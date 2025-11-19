@@ -75,18 +75,35 @@ aws --version
 
 # Setup SSH key for admin user (from EC2 instance metadata)
 echo "[5/5] Setting up SSH key for admin user..."
+
+# Ensure admin user exists
+if ! id -u admin > /dev/null 2>&1; then
+    useradd -m -s /bin/bash admin
+    echo "✓ Created admin user"
+fi
+
+# Setup .ssh directory
 mkdir -p /home/admin/.ssh
 chmod 700 /home/admin/.ssh
 
-PUBLIC_KEY=$(curl -s http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key/)
+# Get public key from EC2 instance metadata (with timeout)
+PUBLIC_KEY=$(timeout 5 curl -s http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key/ || echo "")
+
 if [ -n "$PUBLIC_KEY" ]; then
     echo "$PUBLIC_KEY" > /home/admin/.ssh/authorized_keys
     chmod 600 /home/admin/.ssh/authorized_keys
     chown admin:admin /home/admin/.ssh/authorized_keys
     echo "✓ SSH public key installed for admin user"
 else
-    echo "WARNING: Could not retrieve SSH public key from instance metadata"
+    # If metadata fails, create empty authorized_keys (key will be added manually)
+    touch /home/admin/.ssh/authorized_keys
+    chmod 600 /home/admin/.ssh/authorized_keys
+    chown admin:admin /home/admin/.ssh/authorized_keys
+    echo "⚠ Could not retrieve SSH key from metadata - manual setup required"
 fi
+
+# Ensure admin owns home directory
+chown admin:admin /home/admin
 
 # Create application directory
 mkdir -p /opt/maptimize/logs
