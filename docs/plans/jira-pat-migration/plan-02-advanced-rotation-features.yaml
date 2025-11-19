@@ -7,6 +7,7 @@ plan:
     target: "Add backup PAT management, metrics collection, and comprehensive system documentation"
     estimated_tasks: 6
     total_files: 1
+    task_numbering: "19-24 (continuation from Phase 1 which has tasks 1-18)"
     status: "Ready for implementation after Phase 1 completion"
 
   context:
@@ -202,7 +203,7 @@ plan:
       validation: "Documentation is accurate, complete, and integrated with existing docs"
 
   tasks:
-    - task_number: 1
+    - task_number: 19
       name: "Add backup PAT configuration schema"
       agent: "typescript-pro"
       worktree_group: "chain-1"
@@ -394,14 +395,14 @@ plan:
           - Add validation for backup PAT format and expiry
           - Make backup PAT optional (not all deployments require it)
 
-    - task_number: 2
+    - task_number: 20
       name: "Implement backup PAT creation and validation operations"
       agent: "typescript-pro"
       worktree_group: "chain-1"
       files:
         - "ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts"
         - "tests/unit/test_backup_pat/test_backup_pat_service.test.ts"
-      depends_on: [1]
+      depends_on: [19]
       estimated_time: "1h"
 
       description: |
@@ -623,14 +624,14 @@ plan:
           - Include comprehensive logging for audit trail
           - Handle errors gracefully with descriptive messages
 
-    - task_number: 3
+    - task_number: 21
       name: "Implement PAT fallback logic in MCP service"
       agent: "typescript-pro"
       worktree_group: "chain-1"
       files:
         - "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts"
         - "tests/unit/test_backup_pat/test_fallback_logic.test.ts"
-      depends_on: [2]
+      depends_on: [4, 20]
       estimated_time: "1h"
 
       description: |
@@ -863,14 +864,14 @@ plan:
           - Throw clear error if neither PAT available
           - Fallback is transparent to existing code
 
-    - task_number: 4
+    - task_number: 22
       name: "Add metrics schema and DynamoDB storage"
       agent: "python-pro"
       worktree_group: "chain-2"
       files:
         - "ketchup/ketchup_jira_pat_rotator/metrics_schema.py"
         - "tests/unit/test_metrics/test_metrics_schema.test.py"
-      depends_on: [3]
+      depends_on: [21]
       estimated_time: "45m"
 
       description: |
@@ -1002,14 +1003,14 @@ plan:
           - Include compound keys for date-range queries
           - Support queries by status, date, and rotation type
 
-    - task_number: 5
+    - task_number: 23
       name: "Implement metrics collector service"
       agent: "python-pro"
       worktree_group: "chain-2"
       files:
         - "ketchup/ketchup_jira_pat_rotator/metrics_collector.py"
         - "tests/unit/test_metrics/test_metrics_collector.test.py"
-      depends_on: [4]
+      depends_on: [22]
       estimated_time: "1h"
 
       description: |
@@ -1106,7 +1107,7 @@ plan:
           - Store metrics in DynamoDB with timestamps
           - Handle errors gracefully without crashing
 
-    - task_number: 6
+    - task_number: 24
       name: "Document PAT rotation system comprehensively"
       agent: "technical-documentation-specialist"
       worktree_group: "independent-1"
@@ -1209,42 +1210,6 @@ plan:
           - Integration with existing Ketchup services
           - Troubleshooting guide with common issues
           - Code references with specific file paths and line numbers
-
-  critical_milestones:
-    - milestone: "Task 3 Complete"
-      description: "Backup PAT feature working end-to-end"
-      validation: "Run: npm test ketchup/corp_jira_mcp --testPathPattern=backup && npm test ketchup/corp_jira_mcp --testPathPattern=fallback"
-      before_next: "PAT fallback is transparent to existing code"
-
-    - milestone: "Task 5 Complete"
-      description: "Metrics collection running continuously"
-      validation: "Verify metrics written to DynamoDB every 5 minutes in local docker-compose environment"
-      before_next: "Can use metrics for monitoring and health tracking"
-
-    - milestone: "Task 6 Complete"
-      description: "PAT rotation system documented"
-      validation: "Documentation covers architecture, success flows, failures, alerting, and troubleshooting"
-      before_next: "Ready for production deployment with team understanding the system"
-
-  key_files_to_monitor:
-    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts (backupPat configuration)"
-    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts (buildJiraAuthHeaders with fallback)"
-    - "ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts (backup operations)"
-    - "ketchup/ketchup_jira_pat_rotator/metrics_collector.py (metrics collection)"
-    - "ketchup/docs/internal_documentation/jira_pat_rotation_system.md (system documentation)"
-
-  expected_outcomes_by_task:
-    task_1_3:
-      description: "Backup PAT management and fallback fully integrated"
-      validation: "Backup PAT can be created, validated, and transparently used as fallback"
-
-    task_4_5:
-      description: "Metrics collection running continuously"
-      validation: "Metrics visible in DynamoDB and queryable via Python API"
-
-    task_6:
-      description: "PAT rotation system comprehensively documented"
-      validation: "New engineer can understand system and troubleshoot using documentation alone"
 
   testing_strategy:
     unit_tests:
