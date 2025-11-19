@@ -135,11 +135,6 @@ sudo_provider = ldap
 ldap_sudo_search_base = ou=SUDOers,o=adbe
 ldap_user_ssh_public_key = sshPublicKey
 
-access_provider = simple
-ignore_group_members = True
-simple_allow_groups = campaign, Campaign_LB_Admin, campaignbastionhosts, Campaign_Temp_Users, campaign_sustenance, campaign_cc
-allow_users = root, admin
-
 [nss]
 filter_users = root,neolane,nobody,ntp,named,smtp,postgres,postfix,nagios,nrpe,httpd,hadoop,nssagent,ssh-authkeys,asc-bkaccess,asc-oit,asc-setup,asc-rundeck,asc-airflow,mbplc,mabadhoc,mabRelay
 filter_groups = chrooted,asc-users
@@ -164,20 +159,8 @@ else
     echo "    ✓ sudoers already configured in nsswitch.conf"
 fi
 
-# Configure SSH to use SSSD for public keys
-echo "[7.1/12] Configuring SSH to retrieve keys from LDAP..."
-if ! grep -q "^AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys" /etc/ssh/sshd_config; then
-    cat >> /etc/ssh/sshd_config <<'SSHEOF'
-
-# SSSD integration for SSH public keys from LDAP
-AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys
-AuthorizedKeysCommandUser root
-SSHEOF
-    systemctl restart sshd
-    echo "    ✓ SSH configured for LDAP public keys"
-else
-    echo "    ✓ SSH already configured for LDAP public keys"
-fi
+# Configure SSH (keep defaults, no LDAP key retrieval needed for MVP)
+echo "[7.1/12] SSH configuration (using EC2 key metadata)..."
 
 # Enable and start SSSD service
 echo "[7.2/12] Enabling and starting SSSD..."
