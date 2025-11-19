@@ -25,11 +25,17 @@ __all__ = [
 ]
 
 
-# Get tokens from AWS Secrets Manager
-BOT_TOKEN, APP_TOKEN = get_slack_tokens()
+# Get tokens and signing secret from AWS Secrets Manager
+BOT_TOKEN, APP_TOKEN, SIGNING_SECRET = get_slack_tokens()
 
-# Initialize slack-bolt app with token validation disabled for testing
-app = App(token=BOT_TOKEN, token_verification_enabled=False)
+# Initialize slack-bolt app with request signature verification enabled
+# The signing secret is required to verify that incoming requests actually came from Slack
+# This prevents attackers from forging Slack events and impersonating the bot
+app = App(
+    token=BOT_TOKEN,
+    signing_secret=SIGNING_SECRET,
+    token_verification_enabled=True,
+)
 
 
 @app.event("app_mention")

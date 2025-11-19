@@ -14,16 +14,18 @@ class TestGetSlackTokens:
         mock_client.get_secret_value.return_value = {
             'SecretString': json.dumps({
                 'bot_token': 'xoxb-123456',
-                'app_token': 'xapp-987654'
+                'app_token': 'xapp-987654',
+                'signing_secret': 'test-signing-secret'
             })
         }
 
         mocker.patch('maptimize.config.boto3.Session').return_value.client.return_value = mock_client
 
-        bot_token, app_token = get_slack_tokens()
+        bot_token, app_token, signing_secret = get_slack_tokens()
 
         assert bot_token == 'xoxb-123456'
         assert app_token == 'xapp-987654'
+        assert signing_secret == 'test-signing-secret'
         mock_client.get_secret_value.assert_called_once()
 
     def test_get_slack_tokens_with_aws_profile(self, mocker):
@@ -33,7 +35,8 @@ class TestGetSlackTokens:
         mock_client.get_secret_value.return_value = {
             'SecretString': json.dumps({
                 'bot_token': 'xoxb-profile-token',
-                'app_token': 'xapp-profile-token'
+                'app_token': 'xapp-profile-token',
+                'signing_secret': 'profile-signing-secret'
             })
         }
         mock_session.client.return_value = mock_client
@@ -42,10 +45,11 @@ class TestGetSlackTokens:
         mock_boto_session.return_value = mock_session
 
         mocker.patch.dict(os.environ, {'AWS_PROFILE': 'custom_profile'})
-        bot_token, app_token = get_slack_tokens()
+        bot_token, app_token, signing_secret = get_slack_tokens()
 
         assert bot_token == 'xoxb-profile-token'
         assert app_token == 'xapp-profile-token'
+        assert signing_secret == 'profile-signing-secret'
         mock_boto_session.assert_called_once_with(profile_name='custom_profile')
 
     def test_get_slack_tokens_default_profile(self, mocker):
@@ -55,7 +59,8 @@ class TestGetSlackTokens:
         mock_client.get_secret_value.return_value = {
             'SecretString': json.dumps({
                 'bot_token': 'xoxb-default-token',
-                'app_token': 'xapp-default-token'
+                'app_token': 'xapp-default-token',
+                'signing_secret': 'default-signing-secret'
             })
         }
         mock_session.client.return_value = mock_client
@@ -67,10 +72,11 @@ class TestGetSlackTokens:
         env_dict = {k: v for k, v in os.environ.items() if k != 'AWS_PROFILE'}
         mocker.patch.dict(os.environ, env_dict, clear=True)
 
-        bot_token, app_token = get_slack_tokens()
+        bot_token, app_token, signing_secret = get_slack_tokens()
 
         assert bot_token == 'xoxb-default-token'
         assert app_token == 'xapp-default-token'
+        assert signing_secret == 'default-signing-secret'
         mock_boto_session.assert_called_once_with()
 
     def test_get_slack_tokens_missing_secret(self, mocker):
@@ -89,17 +95,19 @@ class TestGetSlackTokens:
         mock_client.get_secret_value.return_value = {
             'SecretString': json.dumps({
                 'bot_token': 'xoxb-custom-secret',
-                'app_token': 'xapp-custom-secret'
+                'app_token': 'xapp-custom-secret',
+                'signing_secret': 'custom-signing-secret'
             })
         }
 
         mocker.patch('maptimize.config.boto3.Session').return_value.client.return_value = mock_client
 
         mocker.patch.dict(os.environ, {'SLACK_TOKENS_SECRET_ID': 'custom/secret/path'})
-        bot_token, app_token = get_slack_tokens()
+        bot_token, app_token, signing_secret = get_slack_tokens()
 
         assert bot_token == 'xoxb-custom-secret'
         assert app_token == 'xapp-custom-secret'
+        assert signing_secret == 'custom-signing-secret'
         mock_client.get_secret_value.assert_called_once_with(SecretId='custom/secret/path')
 
     def test_get_slack_tokens_custom_region(self, mocker):
@@ -109,7 +117,8 @@ class TestGetSlackTokens:
         mock_client.get_secret_value.return_value = {
             'SecretString': json.dumps({
                 'bot_token': 'xoxb-region-token',
-                'app_token': 'xapp-region-token'
+                'app_token': 'xapp-region-token',
+                'signing_secret': 'region-signing-secret'
             })
         }
         mock_session.client.return_value = mock_client
@@ -118,7 +127,7 @@ class TestGetSlackTokens:
         mock_boto_session.return_value = mock_session
 
         mocker.patch.dict(os.environ, {'AWS_REGION': 'us-east-1'})
-        bot_token, app_token = get_slack_tokens()
+        bot_token, app_token, signing_secret = get_slack_tokens()
 
         mock_session.client.assert_called_once_with('secretsmanager', region_name='us-east-1')
 

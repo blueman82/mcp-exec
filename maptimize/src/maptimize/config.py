@@ -19,11 +19,14 @@ __all__ = [
 ]
 
 
-def get_slack_tokens() -> Tuple[str, str]:
-    """Fetch Slack bot and app tokens from AWS Secrets Manager.
+def get_slack_tokens() -> Tuple[str, str, str]:
+    """Fetch Slack credentials from AWS Secrets Manager.
 
-    Retrieves Slack bot token and app token from AWS Secrets Manager.
+    Retrieves Slack bot token, app token, and signing secret from AWS Secrets Manager.
     Supports both EC2 (IAM role) and local development (AWS CLI profiles).
+
+    The signing secret is required for request signature verification to prevent
+    attackers from forging Slack requests.
 
     Environment variables:
         AWS_PROFILE: AWS CLI profile name for local development
@@ -31,13 +34,13 @@ def get_slack_tokens() -> Tuple[str, str]:
         SLACK_TOKENS_SECRET_ID: Secrets Manager secret ID (default: maptimize/slack-tokens)
 
     Returns:
-        Tuple of (bot_token, app_token)
+        Tuple of (bot_token, app_token, signing_secret)
 
     Raises:
         RuntimeError: If token retrieval fails or required keys are missing
 
     Example:
-        >>> bot_token, app_token = get_slack_tokens()
+        >>> bot_token, app_token, signing_secret = get_slack_tokens()
     """
     region = os.getenv("AWS_REGION", "eu-west-1")
     secret_id = os.getenv("SLACK_TOKENS_SECRET_ID", "maptimize/slack-tokens")
@@ -60,11 +63,12 @@ def get_slack_tokens() -> Tuple[str, str]:
         # Parse JSON secret
         secret = json.loads(response["SecretString"])
 
-        # Extract tokens
+        # Extract tokens and signing secret
         bot_token = secret["bot_token"]
         app_token = secret["app_token"]
+        signing_secret = secret["signing_secret"]
 
-        return bot_token, app_token
+        return bot_token, app_token, signing_secret
 
     except KeyError as e:
         raise RuntimeError(
