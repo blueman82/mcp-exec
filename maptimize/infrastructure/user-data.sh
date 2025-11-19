@@ -138,6 +138,7 @@ ldap_user_ssh_public_key = sshPublicKey
 access_provider = simple
 ignore_group_members = True
 simple_allow_groups = campaign, Campaign_LB_Admin, campaignbastionhosts, Campaign_Temp_Users, campaign_sustenance, campaign_cc
+allow_users = root, admin
 
 [nss]
 filter_users = root,neolane,nobody,ntp,named,smtp,postgres,postfix,nagios,nrpe,httpd,hadoop,nssagent,ssh-authkeys,asc-bkaccess,asc-oit,asc-setup,asc-rundeck,asc-airflow,mbplc,mabadhoc,mabRelay
@@ -204,6 +205,12 @@ echo "[8.1/12] Configuring SSH..."
 sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
     echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+fi
+
+# Disable UsePAM to prevent SSSD access control from blocking pubkey auth
+sed -i 's/^#UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+if ! grep -q "^UsePAM no" /etc/ssh/sshd_config; then
+    echo "UsePAM no" >> /etc/ssh/sshd_config
 fi
 
 # Test SSH configuration
