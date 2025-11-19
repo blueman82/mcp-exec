@@ -35,9 +35,21 @@ log_message "docker-compose installed"
 log_message "Adding admin to docker group"
 usermod -aG docker admin
 
-# SSSD disabled for MVP - causes SSH PAM lockouts without actual LDAP configured
-# Bot functionality works with Docker/docker-compose only
-log_message "Skipping SSSD installation (not required for MVP bot)"
+# Install SSSD with libsss-sudo (matching asksplunk-prod configuration)
+log_message "Installing SSSD for LDAP authentication"
+apt-get install -y sssd sssd-ldap libsss-sudo sssd-tools ldap-utils
+
+# Configure nsswitch.conf for SSSD sudo integration
+log_message "Configuring nsswitch.conf for SSSD sudo responder"
+if ! grep -q "^sudoers:" /etc/nsswitch.conf; then
+    echo 'sudoers:        files sss' >> /etc/nsswitch.conf
+    log_message "Added sudoers entry to nsswitch.conf"
+fi
+
+# Enable and start SSSD service
+log_message "Enabling and starting SSSD service"
+systemctl enable sssd
+systemctl start sssd
 
 # Set up SSH key for admin user (from EC2 instance metadata)
 log_message "Setting up SSH key for admin user"
