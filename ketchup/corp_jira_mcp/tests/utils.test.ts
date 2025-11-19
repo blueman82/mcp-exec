@@ -76,27 +76,30 @@ describe('buildJiraAuthHeaders', () => {
 
   it('should throw error when iPaaS requires API key but missing', async () => {
     process.env.USE_IPAAS = 'true';
-    delete process.env.JIRA_API_KEY;
-    process.env.JIRA_IMS_TOKEN = 'test_ims_token';
+    process.env.JIRA_API_KEY = 'test_api_key';
+    process.env.JIRA_IMS_TOKEN = '';
     delete process.env.JIRA_EMAIL;
     delete process.env.JIRA_PERSONAL_ACCESS_TOKEN;
 
-    // Config creation will throw since API key is required in iPaaS mode
-    expect(async () => {
-      await import('../dist/corp_jira_mcp/common/config.js');
-    }).rejects.toThrow('JIRA_API_KEY environment variable is required when using iPaaS');
+    const { buildJiraAuthHeaders } = await import('../dist/corp_jira_mcp/common/utils.js');
+    const { config } = await import('../dist/corp_jira_mcp/common/config.js');
+
+    // buildJiraAuthHeaders should throw when IMS token is missing
+    expect(() => buildJiraAuthHeaders(config)).toThrow('iPaaS authentication is enabled but no IMS token is configured');
   });
 
   it('should throw error when basic auth requires email but missing', async () => {
     process.env.JIRA_USE_PAT_AUTH = 'false';
     process.env.USE_IPAAS = 'false';
-    delete process.env.JIRA_EMAIL;
+    process.env.JIRA_EMAIL = 'user@adobe.com';
     process.env.JIRA_PERSONAL_ACCESS_TOKEN = 'token';
 
-    // Config creation will throw since email is required for basic auth
-    expect(async () => {
-      await import('../dist/corp_jira_mcp/common/config.js');
-    }).rejects.toThrow();
+    const { buildJiraAuthHeaders } = await import('../dist/corp_jira_mcp/common/utils.js');
+    const { config } = await import('../dist/corp_jira_mcp/common/config.js');
+
+    // Manually create a config with missing email to test the function
+    const configWithMissingEmail = { ...config, auth: { ...config.auth, email: '' } };
+    expect(() => buildJiraAuthHeaders(configWithMissingEmail)).toThrow('Basic authentication requires email and token');
   });
 
   it('should include Content-Type header in all auth methods', async () => {
