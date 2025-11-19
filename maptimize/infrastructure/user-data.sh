@@ -67,8 +67,25 @@ else
     log_message "WARNING: Could not retrieve SSH public key from instance metadata"
 fi
 
-# SSH hardening skipped - asksplunk-prod doesn't require it
-log_message "SSH configuration unchanged (using default Debian settings)"
+# Apply minimal SSH configuration (matching asksplunk-prod)
+log_message "Configuring SSH to disable password authentication"
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+
+# Only set PasswordAuthentication no (asksplunk-prod config)
+sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
+    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+fi
+
+# Test SSH configuration
+if sshd -t; then
+    log_message "SSH configuration valid"
+    systemctl restart sshd
+else
+    log_message "ERROR: SSH configuration invalid, reverting"
+    cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
+    systemctl restart sshd
+fi
 
 # Create application directory structure
 log_message "Creating application directory structure"
