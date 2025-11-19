@@ -67,37 +67,8 @@ else
     log_message "WARNING: Could not retrieve SSH public key from instance metadata"
 fi
 
-# Harden SSH configuration
-log_message "Hardening SSH configuration"
-cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
-
-# Apply security hardening settings
-cat >> /etc/ssh/sshd_config <<'EOF'
-
-# Security hardening configuration
-PermitRootLogin no
-PasswordAuthentication no
-PubkeyAuthentication yes
-X11Forwarding no
-MaxAuthTries 3
-MaxSessions 10
-ClientAliveInterval 300
-ClientAliveCountInterval 2
-Compression no
-UsePAM yes
-AllowUsers admin
-EOF
-
-# Test SSH configuration
-if sshd -t; then
-    log_message "SSH configuration valid"
-    systemctl restart sshd
-else
-    log_message "ERROR: SSH configuration invalid, reverting"
-    cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config
-    systemctl restart sshd
-    exit 1
-fi
+# SSH hardening skipped - asksplunk-prod doesn't require it
+log_message "SSH configuration unchanged (using default Debian settings)"
 
 # Create application directory structure
 log_message "Creating application directory structure"
