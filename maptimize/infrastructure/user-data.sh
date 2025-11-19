@@ -15,11 +15,12 @@ log_message "Starting EC2 initialization script"
 
 # Update system packages
 log_message "Updating system packages"
-yum update -y
+apt-get update
+apt-get upgrade -y
 
 # Install Docker
 log_message "Installing Docker"
-amazon-linux-extras install -y docker
+apt-get install -y docker.io
 systemctl start docker
 systemctl enable docker
 log_message "Docker installed and started"
@@ -30,13 +31,13 @@ curl -L "https://github.com/docker/compose/releases/latest/download/docker-compo
 chmod +x /usr/local/bin/docker-compose
 log_message "docker-compose installed"
 
-# Add ec2-user to docker group
-log_message "Adding ec2-user to docker group"
-usermod -aG docker ec2-user
+# Add admin to docker group (Debian default user)
+log_message "Adding admin to docker group"
+usermod -aG docker admin
 
 # Install SSSD for LDAP authentication
 log_message "Installing SSSD for LDAP authentication"
-yum install -y sssd sssd-ldap openldap-clients nss-pam-ldapd
+apt-get install -y sssd sssd-ldap ldap-utils libnss-ldapd
 
 # Create SSSD configuration directory
 mkdir -p /etc/sssd
@@ -80,7 +81,7 @@ ClientAliveInterval 300
 ClientAliveCountInterval 2
 Compression no
 UsePAM yes
-AllowUsers ec2-user
+AllowUsers admin
 EOF
 
 # Test SSH configuration
@@ -102,7 +103,7 @@ mkdir -p /opt/maptimize/logs
 mkdir -p /opt/maptimize/data
 
 # Set proper permissions
-chown -R ec2-user:ec2-user /opt/maptimize
+chown -R admin:admin /opt/maptimize
 chmod 755 /opt/maptimize
 chmod 755 /opt/maptimize/app
 chmod 755 /opt/maptimize/config
