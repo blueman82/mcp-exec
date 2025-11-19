@@ -1,22 +1,34 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { createPAT, CreatePATSchema } from '../operations/createPAT.js';
-import { revokePAT, RevokePATSchema } from '../operations/revokePAT.js';
-import { validatePAT, ValidatePATSchema } from '../operations/validatePAT.js';
+
+// Mock the config module before any other imports
+jest.mock('../common/config.js', () => ({
+  getConfig: () => ({
+    auth: {
+      email: 'test@adobe.com',
+      token: 'test_token'
+    },
+    jira: {
+      baseUrl: 'https://test.atlassian.net'
+    }
+  })
+}));
 
 // Mock the jiraRequest function
+const mockJiraRequest = jest.fn();
 jest.mock('../common/utils.js', () => ({
-  jiraRequest: jest.fn() as jest.MockedFunction<typeof jest.fn>,
+  jiraRequest: mockJiraRequest,
   buildUrl: jest.fn(),
   verifyAuthentication: jest.fn(),
   buildJiraAuthHeaders: jest.fn(),
   setCurrentAuthToken: jest.fn()
 }));
 
-describe('createPAT Operation', () => {
-  let mockJiraRequest: jest.MockedFunction<any>;
+import { createPAT, CreatePATSchema } from '../operations/createPAT.js';
+import { revokePAT, RevokePATSchema } from '../operations/revokePAT.js';
+import { validatePAT, ValidatePATSchema } from '../operations/validatePAT.js';
 
+describe('createPAT Operation', () => {
   beforeEach(() => {
-    mockJiraRequest = require('../common/utils.js').jiraRequest as jest.Mock;
     mockJiraRequest.mockClear();
   });
 
@@ -278,10 +290,7 @@ describe('createPAT Operation', () => {
 });
 
 describe('revokePAT Operation', () => {
-  let mockJiraRequest: jest.MockedFunction<any>;
-
   beforeEach(() => {
-    mockJiraRequest = require('../common/utils.js').jiraRequest as jest.Mock;
     mockJiraRequest.mockClear();
   });
 
@@ -467,10 +476,7 @@ describe('revokePAT Operation', () => {
 });
 
 describe('validatePAT Operation', () => {
-  let mockJiraRequest: jest.MockedFunction<any>;
-
   beforeEach(() => {
-    mockJiraRequest = require('../common/utils.js').jiraRequest as jest.Mock;
     mockJiraRequest.mockClear();
   });
 
