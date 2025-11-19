@@ -20,7 +20,7 @@ plan:
       worktree_group: "chain-2"
       depends_on: []
       files:
-        - "packages/core/typed_di/service_registrations/protocols/jira_protocols.py"
+        - "packages/core/typed_di/protocols/jira_protocols.py"
         - "tests/unit/core/typed_di/test_jira_protocols.py"
       description: |
         Create TypedDI protocol interfaces that define the contracts for PAT rotation
@@ -75,7 +75,7 @@ plan:
 
           Enables protocol-based DI with compile-time type safety and easy mocking.
         files:
-          - "packages/core/typed_di/service_registrations/protocols/jira_protocols.py"
+          - "packages/core/typed_di/protocols/jira_protocols.py"
           - "tests/unit/core/typed_di/test_jira_protocols.py"
     # Task 6: Implement PATRotationManager
     - task_number: 6
@@ -103,7 +103,6 @@ plan:
           - "test_rotate_pat_creation_failure - Test rotation handles PAT creation failure"
           - "test_rotate_pat_validation_failure - Test rotation handles new PAT validation failure"
           - "test_validate_current_pat_success - Test validating current PAT from AWS Secrets"
-          - "test_validate_current_pat_uses_backup_on_primary_failure - Test automatic fallback to backup PAT on primary failure"
           - "test_cleanup_old_tokens_after_rotation - Test old PAT tokens are deleted after successful rotation"
       implementation:
         approach: "Create PATRotationManager class implementing JiraPATRotatorProtocol using TypedDI-injected dependencies with comprehensive error handling"
@@ -112,8 +111,6 @@ plan:
             details: "Async/await pattern enables non-blocking PAT rotation operations"
           - point: "Comprehensive error handling with logging"
             details: "Catches and logs all failures for debugging and alerting"
-          - point: "Rotation strategy: primary → backup → new → primary"
-            details: "Ensures zero-downtime by keeping backup PAT during rotation"
           - point: "Cleanup prevents 10-token limit issues"
             details: "JIRA enforces 10 PAT limit per account, cleanup is critical"
           - point: "Google-style docstrings with Why comments"
@@ -135,9 +132,8 @@ plan:
           Concrete implementation of JiraPATRotatorProtocol that handles:
           - Creating new PATs via iPaaS JIRA API
           - Validating PATs with /myself endpoint
-          - Rotating secrets (primary → backup → new → primary)
+          - Rotating secrets and updating AWS Secrets Manager
           - Cleaning up old tokens (prevents 10-token limit)
-          - Automatic backup fallback on validation failures
 
           Full unit test coverage with mocked dependencies.
         files:
@@ -236,7 +232,6 @@ plan:
           Full test coverage for PATRotationManager:
           - PAT creation and validation
           - Rotation lifecycle with error handling
-          - Backup fallback logic
           - Token cleanup with edge cases
 
           Coverage: 97% (201/207 lines)
@@ -314,7 +309,7 @@ plan:
           - point: "Daily expiry warnings at 9 AM UTC using CronTrigger"
             details: "Early morning alerts give ops team full business day to respond"
           - point: "Hourly health checks using IntervalTrigger"
-            details: "Frequent validation detects PAT failures quickly for backup fallback"
+            details: "Frequent validation detects PAT failures quickly"
           - point: "Slack notifications for all events"
             details: "All rotation events trigger #ketchup_alerts notifications for visibility"
           - point: "Graceful shutdown with wait=True"
@@ -509,7 +504,7 @@ plan:
           Schedules automated PAT lifecycle management:
           - Rotation every 60 days
           - Daily expiry warnings (10 days threshold)
-          - Hourly health checks with backup fallback
+          - Hourly health checks
           - Slack notifications for all events
 
           Uses AsyncIOScheduler for async/await compatibility.
@@ -777,7 +772,6 @@ plan:
           - "test_validate_current_pat_real_secrets - Test validation against real PAT in AWS Secrets"
           - "test_get_pat_expiry_date_from_real_secrets - Test retrieving expiry date from AWS Secrets"
           - "test_full_rotation_lifecycle_real_api - Test complete rotation against real iPaaS JIRA API (creates real PAT token)"
-          - "test_backup_fallback_with_real_secrets - Test backup PAT fallback using real secrets"
       success_criteria:
         - "Integration tests pass"
         - "Real AWS connectivity verified"
@@ -797,7 +791,6 @@ plan:
           - Current PAT validation
           - Expiry date retrieval
           - Full rotation lifecycle (creates real tokens)
-          - Backup PAT fallback
 
           Requires AWS campaign_prod_v7 profile.
           WARNING: Full rotation test creates real JIRA PAT tokens.

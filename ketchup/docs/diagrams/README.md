@@ -209,8 +209,8 @@ Documented in **8-feature-flags** and **6-two-phase-processing**:
 **In this repository**:
 - [`CLAUDE.md`](../../CLAUDE.md) - Project overview and guidelines
 - [`README.md`](../../README.md) - Quick start guide
-- [`code_docs/ketchup_high_level.md`](../code_docs/ketchup_high_level.md) - Architecture deep dive
-- [`code_docs/ketchup_code_walkthrough_documentation.md`](../code_docs/ketchup_code_walkthrough_documentation.md) - Component reference
+- [`internal_documentation/ketchup_high_level.md`](../internal_documentation/ketchup_high_level.md) - Architecture deep dive
+- [`internal_documentation/ketchup_code_walkthrough_documentation.md`](../internal_documentation/ketchup_code_walkthrough_documentation.md) - Component reference
 - [`docs/TYPEDDI_MIGRATION_SUMMARY.md`](../TYPEDDI_MIGRATION_SUMMARY.md) - DI system details
 
 **External**:

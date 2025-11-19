@@ -97,5 +97,126 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "  Test Results\n\n  | Test Suite                         | Result | Time  | Count     |\n  |------------------------------------|--------|-------|-----------|\n  | Core (DI, Async, Utils)            | ✅ PASS | 1.48s | 161 tests |\n  | Slack (Events, Commands, Services) | ✅ PASS | 8.11s | 940 tests |\n\n  Total: 1,101 tests passed in 9.59 seconds!\n\n  ---\n  Run Tests By Service\n\n  Now you can run individual service tests instead of the full suite. Here's the command pattern:\n\n  cd /Users/harrison/Documents/Github/camp-ops-emea/ketchup/tests/setup\n  . .venv/bin/activate\n  python -m pytest ../../tests/unit/SERVICE_NAME -v\n\n  Available services:\n  - ai                     (Azure OpenAI integration)\n  - slack                  (Slack API, 940 tests) ✅\n  - core                   (DI, async, 161 tests) ✅\n  - db                     (DynamoDB operations)\n  - integrations           (Third-party services)\n  - secrets                (AWS Secrets Manager)\n  - cloud                  (AWS operations)\n  - infrastructure         (Docker, deployment)\n  - channel_metadata_updater\n  - maintenance_fetcher\n  - test_jira_reporter\n  - test_ketchup_status_updater\n  - test_utils\n\n  Examples:\n  # Run AI service tests\n  python -m pytest ../../tests/unit/ai -v\n\n  # Run database tests\n  python -m pytest ../../tests/unit/db -v\n\n  # Run integration tests\n  python -m pytest ../../tests/unit/integrations -v\n\n  # Run specific test file\n  python -m pytest ../../tests/unit/secrets/test_manager.py -v\nthose were unit, what about integration tests?"
     }
+  },
+  {
+    "timestamp": "2025-11-18T18:58:15.170830",
+    "input_data": {
+      "session_id": "574e63fc-226a-4d88-bab9-492a73e46334",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/574e63fc-226a-4d88-bab9-492a73e46334.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/sync-docs "
+    }
+  },
+  {
+    "timestamp": "2025-11-18T18:59:51.046142",
+    "input_data": {
+      "session_id": "574e63fc-226a-4d88-bab9-492a73e46334",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/574e63fc-226a-4d88-bab9-492a73e46334.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/task use agents in parallel to update --force-parallel --approved"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:11:00.211285",
+    "input_data": {
+      "session_id": "574e63fc-226a-4d88-bab9-492a73e46334",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/574e63fc-226a-4d88-bab9-492a73e46334.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "push merge pull"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:11:25.619174",
+    "input_data": {
+      "session_id": "574e63fc-226a-4d88-bab9-492a73e46334",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/574e63fc-226a-4d88-bab9-492a73e46334.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/task oh wait, fix those other low priority too using agents --approved"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:27:45.595233",
+    "input_data": {
+      "session_id": "68157042-fda6-437d-93c1-d1f641633aa1",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/68157042-fda6-437d-93c1-d1f641633aa1.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/prime "
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:28:18.842130",
+    "input_data": {
+      "session_id": "68157042-fda6-437d-93c1-d1f641633aa1",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/68157042-fda6-437d-93c1-d1f641633aa1.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/task check and verify if all file refernces in all yaml plan files actually exist (obviously not including ones that state should be created --approved"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:40:59.322426",
+    "input_data": {
+      "session_id": "68157042-fda6-437d-93c1-d1f641633aa1",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/68157042-fda6-437d-93c1-d1f641633aa1.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "was plan-01 the only one with modifications done? the other 3 were fine? yes or no only"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:42:14.916310",
+    "input_data": {
+      "session_id": "68157042-fda6-437d-93c1-d1f641633aa1",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/68157042-fda6-437d-93c1-d1f641633aa1.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/task go back and actually do what I asked you to do for 02, 03, 04 --force-parallel --approved"
+    }
+  },
+  {
+    "timestamp": "2025-11-18T19:46:46.867580",
+    "input_data": {
+      "session_id": "68157042-fda6-437d-93c1-d1f641633aa1",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/68157042-fda6-437d-93c1-d1f641633aa1.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "for the plans work, creaet a git worktree give me location of said worktree"
+    }
+  },
+  {
+    "timestamp": "2025-11-19T11:56:41.106471",
+    "input_data": {
+      "session_id": "ac25deea-a6a8-4783-8181-de4311e7eef8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/ac25deea-a6a8-4783-8181-de4311e7eef8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/sync-docs --suggest-updates FEATURE_FLAGS.md in docs/ feels out of sync with internal_documentation. The filename should be lowercase. Also, check and update if feature_flags.md is linked correctly in other docs and is referenced what its for."
+    }
+  },
+  {
+    "timestamp": "2025-11-19T11:58:26.067167",
+    "input_data": {
+      "session_id": "ac25deea-a6a8-4783-8181-de4311e7eef8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/ac25deea-a6a8-4783-8181-de4311e7eef8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/task apply all suggested updates --force-parallel --approved"
+    }
   }
 ]

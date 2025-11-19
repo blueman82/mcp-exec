@@ -238,7 +238,7 @@ Unit → Integration → E2E → Manual
 - **[High-Level Architecture Guide](./docs/internal_documentation/ketchup_high_level.md)** - Complete system design and event flow
 - **[Code Walkthrough](./docs/internal_documentation/ketchup_code_walkthrough_documentation.md)** - Component-by-component reference
 - **[Diagram Index & Navigation](./docs/diagrams/README.md)** - Visual documentation of infrastructure, services, and workflows
-- **[Feature Flags Reference](./docs/FEATURE_FLAGS.md)** - Comprehensive guide to all environment variables and feature controls
+- **[Feature Flags Reference](./docs/feature_flags.md)** - Comprehensive guide to all environment variables and feature controls
 
 **When updating architecture or features**: Always check `infrastructure/docker-compose.yml` as the source of truth for deployed services and enabled feature flags.
 
