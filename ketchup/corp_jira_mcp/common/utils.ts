@@ -12,6 +12,7 @@ type RequestOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+  apiVersion?: string;
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {

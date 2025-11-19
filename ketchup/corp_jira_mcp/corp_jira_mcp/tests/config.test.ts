@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import type { GetSecretValueCommandOutput } from '@aws-sdk/client-secrets-manager';
 
 // We'll need to reload the config module after setting env vars
 // Store original env vars to restore after tests
@@ -93,11 +94,11 @@ describe('env-aws.ts - PAT mappings', () => {
   it('should load JIRA_PAT from AWS Secrets', async () => {
     // Mock AWS Secrets Manager
     const mockSecretsManager = {
-      send: jest.fn().mockResolvedValue({
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
         SecretString: JSON.stringify({
           'ketchup_jira_pat': 'test_pat_token_12345'
         })
-      })
+      } as GetSecretValueCommandOutput)
     };
 
     jest.doMock('@aws-sdk/client-secrets-manager', () => ({
@@ -114,11 +115,11 @@ describe('env-aws.ts - PAT mappings', () => {
   it('should load JIRA_PAT_EXPIRY from AWS Secrets', async () => {
     const testExpiry = '2025-12-31T23:59:59Z';
     const mockSecretsManager = {
-      send: jest.fn().mockResolvedValue({
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
         SecretString: JSON.stringify({
           'ketchup_jira_pat_expiry': testExpiry
         })
-      })
+      } as GetSecretValueCommandOutput)
     };
 
     jest.doMock('@aws-sdk/client-secrets-manager', () => ({
@@ -134,11 +135,11 @@ describe('env-aws.ts - PAT mappings', () => {
 
   it('should handle missing PAT gracefully', async () => {
     const mockSecretsManager = {
-      send: jest.fn().mockResolvedValue({
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
         SecretString: JSON.stringify({
           'ipaas_username': 'test@example.com'
         })
-      })
+      } as GetSecretValueCommandOutput)
     };
 
     jest.doMock('@aws-sdk/client-secrets-manager', () => ({
@@ -156,11 +157,11 @@ describe('env-aws.ts - PAT mappings', () => {
     const consoleSpy = jest.spyOn(console, 'error');
 
     const mockSecretsManager = {
-      send: jest.fn().mockResolvedValue({
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
         SecretString: JSON.stringify({
           'ketchup_jira_pat': 'secret_token_value'
         })
-      })
+      } as GetSecretValueCommandOutput)
     };
 
     jest.doMock('@aws-sdk/client-secrets-manager', () => ({
