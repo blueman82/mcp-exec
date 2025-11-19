@@ -71,9 +71,7 @@ def get_slack_tokens() -> Tuple[str, str, str]:
         return bot_token, app_token, signing_secret
 
     except KeyError as e:
-        raise RuntimeError(
-            f"Failed to fetch Slack tokens: Missing key {e} in secret"
-        )
+        raise RuntimeError(f"Failed to fetch Slack tokens: Missing key {e} in secret")
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Failed to fetch Slack tokens: Invalid JSON in secret - {e}")
     except Exception as e:
@@ -107,7 +105,7 @@ def load_processes() -> dict[Any, Any]:
 
         return processes
 
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         raise RuntimeError(
             f"Failed to load process configuration: File not found at {processes_file}"
         )

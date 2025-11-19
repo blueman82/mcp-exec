@@ -5,7 +5,7 @@ including block templates, interactive elements, and rich formatting
 for task information, process details, and error messages.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 __all__ = [
     "format_response",
@@ -40,13 +40,10 @@ def format_response(processes: Dict[str, Any]) -> str:
     if not processes:
         return "No processes available"
 
-    lines = [
-        "Hi! Here's what I have available from Maptimize:",
-        ""
-    ]
+    lines = ["Hi! Here's what I have available from Maptimize:", ""]
 
     for process_name, process_info in processes.items():
-        wiki_url = process_info.get('wiki_url', '')
+        wiki_url = process_info.get("wiki_url", "")
         if wiki_url:
             # Slack mrkdwn link format: <URL|text>
             link = f"<{wiki_url}|View on Wiki>"
@@ -87,7 +84,7 @@ def create_block_kit_message(processes: Dict[str, Any]) -> str:
     for process_name, process_info in processes.items():
         lines.append(f"• {process_name}")
         if isinstance(process_info, dict):
-            if 'wiki_url' in process_info:
+            if "wiki_url" in process_info:
                 lines.append(f"  Wiki: {process_info['wiki_url']}")
 
     return "\n".join(lines)
@@ -101,9 +98,9 @@ def format_task_message(task_id: str, task_info: Dict[str, Any]) -> str:
         task_info: Task information dictionary
 
     Returns:
-        Formatted task message
+        Formatted task message for display in Slack
     """
-    pass
+    return f"Task {task_id}: {task_info}"
 
 
 def format_process_message(process_name: str, process_info: Dict[str, Any]) -> str:
@@ -114,9 +111,9 @@ def format_process_message(process_name: str, process_info: Dict[str, Any]) -> s
         process_info: Process information dictionary
 
     Returns:
-        Formatted process message
+        Formatted process message for display in Slack
     """
-    pass
+    return f"Process: {process_name} - {process_info}"
 
 
 def format_error_message(error: str) -> str:
@@ -126,6 +123,6 @@ def format_error_message(error: str) -> str:
         error: Error message text
 
     Returns:
-        Formatted error message
+        Formatted error message for display in Slack
     """
-    pass
+    return f"❌ Error: {error}"

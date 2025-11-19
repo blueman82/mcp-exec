@@ -40,8 +40,8 @@ def handle_app_mention(body: Dict[str, Any], say: Callable) -> None:
     """
     try:
         # Extract user ID from event
-        event = body.get('event', {})
-        user_id = event.get('user', 'unknown')
+        event = body.get("event", {})
+        user_id = event.get("user", "unknown")
 
         logger.info("mention_received", user_id=user_id)
 
@@ -81,7 +81,7 @@ def handle_slash_command(body: Dict[str, Any], say: Callable) -> None:
     """
     try:
         # Extract user ID from command
-        user_id = body.get('user_id', 'unknown')
+        user_id = body.get("user_id", "unknown")
 
         logger.info("slash_command_received", user_id=user_id, command="/maptimize")
 

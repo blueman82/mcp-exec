@@ -12,19 +12,19 @@ __all__ = [
 ]
 
 
-def setup_logging() -> structlog.BoundLogger:
+def setup_logging() -> Any:
     """Initialize structlog for structured logging.
 
     Configures structlog with JSON output format for production-grade
     structured logging that is easy to parse and search.
 
     Returns:
-        structlog.BoundLogger: Configured logger instance.
+        Configured structlog logger instance for structured logging.
     """
     structlog.configure(
         processors=[
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ],
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
@@ -52,16 +52,16 @@ def validate_slack_event(event: Any) -> bool:
     return all(field in event for field in required_fields)
 
 
-def handle_validation_error(field: str, message: str = None) -> str:
+def handle_validation_error(field: str, message: Optional[str] = None) -> str:
     """Generate a user-friendly validation error message.
 
     Args:
         field: The field that failed validation.
         message: Optional custom error message. If not provided,
-                a default message will be generated.
+                 a default message will be generated.
 
     Returns:
-        str: A formatted error message.
+        Formatted error message string.
     """
     if message:
         return f"Invalid {field}: {message}"

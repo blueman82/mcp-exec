@@ -8,12 +8,18 @@ The bot uses Socket Mode which provides a persistent WebSocket connection
 without requiring the application to expose a public HTTP endpoint.
 """
 
-from slack_bolt.app import App
-from slack_bolt.adapter.socket_mode import SocketModeHandler
+from typing import Any, Callable
+
+from slack_bolt.adapter.socket_mode import (  # type: ignore[import-not-found]
+    SocketModeHandler,
+)
+from slack_bolt.app import App  # type: ignore[import-not-found]
 
 from maptimize.config import get_slack_tokens
 from maptimize.handlers import (
     handle_app_mention as process_app_mention,
+)
+from maptimize.handlers import (
     handle_message as process_message,
 )
 
@@ -39,7 +45,7 @@ app = App(
 
 
 @app.event("app_mention")
-def handle_app_mention(body, say):
+def handle_app_mention(body: Any, say: Callable[..., Any]) -> None:
     """Handle app mention events.
 
     Called when the bot is mentioned in a message. Routes the event
@@ -53,7 +59,7 @@ def handle_app_mention(body, say):
 
 
 @app.command("/maptimize")
-def handle_slash_command(ack, body, say):
+def handle_slash_command(ack: Callable[[], None], body: Any, say: Callable[..., Any]) -> None:
     """Handle /maptimize slash command.
 
     Called when user executes the /maptimize slash command.
@@ -68,7 +74,7 @@ def handle_slash_command(ack, body, say):
     process_message(body, say)
 
 
-def create_socket_handler():
+def create_socket_handler() -> SocketModeHandler:
     """Create SocketModeHandler for persistent WebSocket connection.
 
     Creates and returns a SocketModeHandler instance configured with
@@ -76,7 +82,7 @@ def create_socket_handler():
     with automatic reconnection using exponential backoff.
 
     Returns:
-        SocketModeHandler: Configured handler for Socket Mode connection
+        Configured handler for Socket Mode connection.
 
     Example:
         handler = create_socket_handler()
