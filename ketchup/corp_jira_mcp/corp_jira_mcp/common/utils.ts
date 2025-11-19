@@ -146,13 +146,77 @@ function constructIpaasHeaders(
   if (username) {
     headers["Username"] = username;
   }
-  
+
   if (password) {
     headers["Password"] = password;
   }
 
   logToFile('Constructing iPaaS headers with IMS token and API key');
   return headers;
+}
+
+/**
+ * Builds appropriate authentication headers based on configuration
+ * This is the centralized source of truth for all auth header construction.
+ * Priority order: iPaaS > PAT > Basic Auth
+ *
+ * @param cfg The Jira configuration object
+ * @returns Headers object with appropriate authentication
+ * @throws Error if required configuration is missing
+ */
+export function buildJiraAuthHeaders(cfg: typeof config): Record<string, string> {
+  // Base headers that are always included
+  const baseHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  };
+
+  // Priority 1: iPaaS authentication
+  if (cfg.useIpaas) {
+    const { imsToken, apiKey, username, password } = cfg.auth;
+
+    if (!apiKey) {
+      throw new Error('iPaaS authentication is enabled but no API key is configured');
+    }
+
+    if (!imsToken) {
+      throw new Error('iPaaS authentication is enabled but no IMS token is configured');
+    }
+
+    logToFile('Building iPaaS authentication headers');
+    return {
+      ...baseHeaders,
+      ...constructIpaasHeaders(imsToken, apiKey, username, password)
+    };
+  }
+
+  // Priority 2: PAT (Personal Access Token) authentication
+  if (cfg.auth.usePat) {
+    const { pat } = cfg.auth;
+
+    if (!pat) {
+      throw new Error('PAT authentication is enabled but no PAT token is configured');
+    }
+
+    logToFile('Building PAT authentication headers');
+    return {
+      ...baseHeaders,
+      "Authorization": `Bearer ${pat}`
+    };
+  }
+
+  // Priority 3: Basic Auth (direct email:token)
+  const { email, token } = cfg.auth;
+
+  if (!email || !token) {
+    throw new Error('Basic authentication requires email and token');
+  }
+
+  logToFile('Building basic authentication headers');
+  return {
+    ...baseHeaders,
+    "Authorization": constructAuthHeader(email, token)
+  };
 }
 
 export async function jiraRequest(
