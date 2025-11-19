@@ -218,5 +218,49 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "/task apply all suggested updates --force-parallel --approved"
     }
+  },
+  {
+    "timestamp": "2025-11-19T11:59:53.030048",
+    "input_data": {
+      "session_id": "ac25deea-a6a8-4783-8181-de4311e7eef8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/ac25deea-a6a8-4783-8181-de4311e7eef8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "commit and push, if pr needed, create it, merge it change to main, pull, THEN check for a worktree ketchup-chain-1 delete it, recreate it."
+    }
+  },
+  {
+    "timestamp": "2025-11-19T12:01:22.406642",
+    "input_data": {
+      "session_id": "ac25deea-a6a8-4783-8181-de4311e7eef8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/ac25deea-a6a8-4783-8181-de4311e7eef8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "give me full path for the new git worktree"
+    }
+  },
+  {
+    "timestamp": "2025-11-19T12:01:46.769840",
+    "input_data": {
+      "session_id": "ac25deea-a6a8-4783-8181-de4311e7eef8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/ac25deea-a6a8-4783-8181-de4311e7eef8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "I'd prefer if it was called ketchup-jira-pat-migration"
+    }
+  },
+  {
+    "timestamp": "2025-11-19T12:02:50.184035",
+    "input_data": {
+      "session_id": "ac25deea-a6a8-4783-8181-de4311e7eef8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/ac25deea-a6a8-4783-8181-de4311e7eef8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "the branch should be renamed to feature/jira-pat-migration-branch\n"
+    }
   }
 ]
