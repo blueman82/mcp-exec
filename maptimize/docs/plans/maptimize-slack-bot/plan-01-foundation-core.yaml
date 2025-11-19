@@ -1,0 +1,1024 @@
+plan:
+  metadata:
+    feature_name: "Maptimize Slack Bot MVP"
+    created: "2025-11-19"
+    target: "Secure, stateless Slack bot providing ephemeral access to Maptimize process documentation via @mentions and /maptimize slash commands"
+    estimated_tasks: 25
+    technology_stack: "Python 3.11+, slack-bolt async, Socket Mode WebSockets, AWS EC2, Docker Compose, GitHub Actions → ECR"
+    estimated_total_time: "12-16 hours"
+
+  context:
+    framework: "slack-bolt (Python async) with Socket Mode WebSockets"
+    architecture: "Stateless event-driven architecture. Bot receives events (mentions/commands) via persistent WebSocket, fetches hardcoded process config, formats ephemeral mrkdwn response, returns to user only."
+    test_framework: "pytest with pytest-asyncio"
+    deployment_target: "AWS EC2 t3.micro (Debian 12), Docker containers, json-file logging, systemd auto-restart"
+    ci_cd: "GitHub Actions GHEC → AWS ECR (483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize)"
+    key_constraints:
+      - "No version pinning on dependencies (bare requirements)"
+      - "No .env files locally (AWS CLI profiles + programmatic secret fetching from Secrets Manager)"
+      - "No CloudWatch (json-file logging with rotation only)"
+      - "No external monitoring/scanning tools (Trivy, etc.)"
+      - "IAM policies must mirror AskSplunk (except no DynamoDB)"
+      - "SSSD/SUDO integration required for EC2 LDAP access"
+      - "Socket Mode required (persistent WebSocket, no port exposure)"
+      - "Ephemeral messages only (visible to user who triggered bot)"
+    aws_account: "483013340174 (eu-west-1)"
+    slack_setup_required: true
+
+  worktree_groups:
+    - group_id: "chain-1"
+      description: "Foundation setup tasks (pyproject, structure, config files)"
+      tasks: [1, 2, 3, 4, 5, 6]
+      branch: "feature/maptimize-slack-bot/chain-1"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      rationale: "Setup tasks must establish project structure and configuration before implementation can begin"
+      blocking: true
+      estimated_time: "2 hours"
+
+    - group_id: "chain-2"
+      description: "Core implementation (config module → bot → handlers → formatter → tests)"
+      tasks: [7, 8, 9, 10, 13]
+      branch: "feature/maptimize-slack-bot/chain-2"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      rationale: "Tests written first (TDD), then implementation. Bot depends on config, handlers depend on bot and formatter."
+      blocking: true
+      estimated_time: "5 hours"
+      depends_on_worktree: ["chain-1"]
+
+    - group_id: "independent-3"
+      description: "Hardcoded process configuration"
+      tasks: [11]
+      branch: "feature/maptimize-slack-bot/independent-3"
+      execution_model: "parallel"
+      isolation: "separate-worktree"
+      rationale: "Static JSON config file, no dependencies on other code"
+      blocking: false
+      estimated_time: "15m"
+
+    - group_id: "independent-4"
+      description: "Utility functions module"
+      tasks: [12]
+      branch: "feature/maptimize-slack-bot/independent-4"
+      execution_model: "parallel"
+      isolation: "separate-worktree"
+      rationale: "Utility functions for logging and validation, can be developed independently"
+      blocking: false
+      estimated_time: "30m"
+
+    - group_id: "chain-5"
+      description: "Infrastructure files (Docker, compose, IAM policies)"
+      tasks: [14, 15, 16, 17, 18]
+      branch: "feature/maptimize-slack-bot/chain-5"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      rationale: "Docker files depend on project structure; IAM policies referenced in deploy scripts"
+      blocking: true
+      estimated_time: "3 hours"
+      depends_on_worktree: ["chain-1"]
+
+    - group_id: "chain-6"
+      description: "Deployment scripts and CI/CD pipeline"
+      tasks: [19, 20, 22]
+      branch: "feature/maptimize-slack-bot/chain-6"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      rationale: "systemd service depends on Docker structure; deploy script uses EC2 setup; GitHub Actions uses ECR repo"
+      blocking: true
+      estimated_time: "2.5 hours"
+      depends_on_worktree: ["chain-5"]
+
+    - group_id: "independent-7"
+      description: "Documentation for Slack app setup"
+      tasks: [21]
+      branch: "feature/maptimize-slack-bot/independent-7"
+      execution_model: "parallel"
+      isolation: "separate-worktree"
+      rationale: "Documentation can be written in parallel; no code dependencies"
+      blocking: false
+      estimated_time: "20m"
+
+    - group_id: "chain-8"
+      description: "Final testing, AWS setup, and deployment documentation"
+      tasks: [23, 24, 25]
+      branch: "feature/maptimize-slack-bot/chain-8"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      rationale: "Integration tests depend on complete codebase; AWS setup depends on IAM policies; deployment guide depends on all previous work"
+      blocking: true
+      estimated_time: "2 hours"
+      depends_on_worktree: ["chain-2", "chain-6"]
+
+  prerequisites:
+    - item: "Slack app created at https://api.slack.com/apps"
+      details: "Required before implementation can test locally. Need to note bot token and app token later."
+      verified: false
+      blocking: false
+
+    - item: "AWS account access (483013340174, eu-west-1)"
+      details: "EC2 launch, ECR repo creation, Secrets Manager, IAM role creation"
+      verified: false
+      blocking: true
+
+    - item: "AWS CLI configured with profile 'campaign_prod_v7' or custom profile"
+      details: "For local secret fetching during development. Use 'aws sts get-caller-identity' to verify."
+      verified: false
+      blocking: true
+      command: "aws sts get-caller-identity --profile campaign_prod_v7"
+
+    - item: "Python 3.11+ installed and available"
+      details: "Check version: python --version"
+      verified: false
+      blocking: true
+      command: "python --version && python -m venv --help"
+
+    - item: "Git worktree support enabled"
+      details: "Modern git includes worktree support. Check: git worktree list"
+      verified: false
+      blocking: false
+      command: "git worktree list"
+
+    - item: "Docker and docker-compose installed"
+      details: "For local development and understanding deployment model"
+      verified: false
+      blocking: false
+      command: "docker --version && docker-compose --version"
+
+    - item: "Task 0: Development environment validation (BLOCKING)"
+      details: |
+        MUST be completed before any implementation tasks begin.
+
+        Python environment check:
+        1. Create virtual environment: python -m venv venv
+        2. Activate: source venv/bin/activate (or venv\Scripts\activate on Windows)
+        3. Create empty pyproject.toml with [build-system]
+        4. Verify pytest import: python -c "import pytest" (will fail - OK for now)
+        5. Verify slack-bolt importable (will fail - OK for now, installed in Task 2)
+
+        Git configuration:
+        1. Verify worktree support: git worktree list (should show current worktree)
+        2. Verify main branch exists: git branch
+        3. Create feature branch base: git checkout -b feature/maptimize-slack-bot-base
+
+        AWS configuration:
+        1. Verify AWS CLI: aws --version
+        2. Test profile: aws sts get-caller-identity --profile campaign_prod_v7
+        3. Note AWS account ID: should be 483013340174
+
+        Slack setup:
+        1. Create app at https://api.slack.com/apps (or note existing app)
+        2. Note app name and workspace
+        3. Create bot token (xoxb-...) with scopes: app_mentions:read, commands, chat:write, users:read
+        4. Create app-level token (xapp-...) with scope: connections:write
+        5. Note both tokens (will create Secrets Manager secret in Task 24)
+      verified: false
+      blocking: true
+
+  development_environment:
+    python:
+      required_version: "3.11+"
+      venv_setup: |
+        python -m venv venv
+        source venv/bin/activate  # macOS/Linux
+        # or venv\Scripts\activate  # Windows
+
+      type_checking:
+        tool: "mypy"
+        required: true
+        config_location: "pyproject.toml [tool.mypy] section"
+        validation_command: "python -m mypy src/"
+
+      testing:
+        tool: "pytest with pytest-asyncio"
+        required: true
+        config_location: "pyproject.toml [tool.pytest.ini_options] section"
+        validation_command: "python -m pytest --collect-only"
+
+      validation_commands:
+        - "python --version"
+        - "python -m pip --version"
+        - "python -c \"import slack_bolt; print('slack-bolt OK')\""
+        - "python -m mypy src/"
+        - "python -m pytest --collect-only"
+
+  common_pitfalls_reference:
+    purpose: |
+      Critical mistakes that occur in Slack bot projects. Review BEFORE starting to avoid.
+
+    async_context_manager_python:
+      pitfall: "Missing __aexit__ in async context managers"
+      why: "Causes RuntimeError when using 'async with' - connection never closes"
+      detection: |
+        grep -r "async def __aenter__" src/
+        # Then verify each file also has __aexit__
+      fix: |
+        class DatabaseConnection:
+            async def __aenter__(self):
+                # ... connect
+                return self
+
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                # REQUIRED - must exist
+                await self.connection.close()
+
+    bot_initialization_order:
+      pitfall: "Using bot.user.id or self.user.id before on_ready() called"
+      why: "Slack API hasn't initialized user info yet - causes NoneType errors"
+      fix: |
+        class SlackHandler:
+            def __init__(self):
+                self.bot_user_id = None  # Initialize as None
+
+            def on_ready(self, body):
+                # Called when bot connects
+                self.bot_user_id = body['user_id']
+
+            def handle_message(self, message):
+                # Now safe to use
+                if message['user'] == self.bot_user_id:
+                    return  # ignore own messages
+
+    import_patterns_python:
+      pitfall: "Using 'from src.bot...' instead of 'from bot...'"
+      why: "Breaks when running from different directories (tests, scripts)"
+      detection: "grep -r \"from src\\.\" ."
+      fix: |
+        # CORRECT (assuming src/ in PYTHONPATH via pytest.ini)
+        from bot.handlers import MessageHandler
+        from config import get_secrets
+
+        # pyproject.toml must have:
+        # [tool.pytest.ini_options]
+        # pythonpath = ["src"]
+
+    event_handler_error_handling:
+      pitfall: "Unhandled exceptions in Slack event handlers"
+      why: "Crashes entire bot - one message error kills the app"
+      fix: |
+        @app.event("app_mention")
+        def handle_mention(body, say, logger):
+            try:
+                user_id = body['user']
+                # ... process
+                say(text="Response", response_type="ephemeral")
+            except Exception as e:
+                logger.error(f"Error in mention handler: {e}", exc_info=True)
+                # Try to notify user but don't crash
+                try:
+                    say(text="An error occurred", response_type="ephemeral")
+                except Exception:
+                    pass  # If notification fails, at least don't crash
+
+    version_pinning:
+      pitfall: "Adding version constraints to dependencies"
+      why: "User explicitly prohibited - causes fragility and upgrade issues"
+      detection: "grep \">=\\|==\\|<=\" pyproject.toml"
+      fix: |
+        # CORRECT - bare requirements
+        dependencies = [
+            "slack-bolt[async]",
+            "slack-sdk",
+            "aioboto3",
+            "boto3",
+            "botocore",
+            "python-dotenv",
+            "structlog",
+        ]
+
+        # WRONG - version pinning
+        # dependencies = [
+        #     "slack-bolt[async]>=1.18.0",
+        #     "boto3==1.26.0",
+        # ]
+
+    env_files:
+      pitfall: "Creating local .env files with tokens"
+      why: "User prohibited - security risk and inconsistent with Adobe's practices"
+      fix: |
+        # CORRECT - programmatic fetching at runtime
+        import boto3
+
+        def get_slack_tokens():
+            session = boto3.Session(profile_name=os.getenv('AWS_PROFILE'))
+            client = session.client('secretsmanager', region_name='eu-west-1')
+            secret = client.get_secret_value(SecretId='maptimize/slack-tokens')
+            data = json.loads(secret['SecretString'])
+            return data['bot_token'], data['app_token']
+
+        # WRONG - local .env file
+        # load_dotenv()
+        # bot_token = os.getenv('SLACK_BOT_TOKEN')
+
+  tasks:
+    - task_number: 1
+      name: "Development environment setup and validation"
+      agent: "python-pro"
+      worktree_group: "chain-1"
+      files:
+        - "pyproject.toml"
+        - "conftest.py"
+        - "pytest.ini"
+      depends_on: []
+      estimated_time: "30m"
+
+      description: |
+        Set up Python development environment with virtual environment, basic project
+        structure, and validate all tools work correctly. This task MUST complete
+        before any other implementation tasks can begin.
+
+      test_first:
+        test_file: "conftest.py"
+        structure:
+          - "pytest configuration with pythonpath pointing to src/"
+          - "asyncio_mode set to auto for async test support"
+          - "Basic fixtures for test environment"
+
+        mocks: []
+        fixtures:
+          - "event_loop fixture for async tests"
+          - "mock_logger fixture for testing log output"
+
+        assertions:
+          - "pytest --collect-only finds test files"
+          - "async test execution works"
+
+        example_skeleton: |
+          # conftest.py
+          import pytest
+          import sys
+          import logging
+          from pathlib import Path
+
+          # Add src/ to path for imports
+          sys.path.insert(0, str(Path(__file__).parent / "src"))
+
+          @pytest.fixture
+          def event_loop():
+              """Provide event loop for async tests."""
+              import asyncio
+              loop = asyncio.new_event_loop()
+              yield loop
+              loop.close()
+
+          @pytest.fixture
+          def mock_logger(mocker):
+              """Provide mock logger for testing log messages."""
+              return mocker.patch('structlog.get_logger')
+
+      implementation:
+        approach: |
+          1. Create pyproject.toml with Python 3.11+ requirement
+          2. Define dev dependencies (pytest, pytest-asyncio, pytest-cov)
+          3. Create conftest.py with pytest configuration
+          4. Create pytest.ini with test discovery settings
+          5. Verify imports and dependencies can be resolved
+          6. Create basic directory structure (src/, tests/, infrastructure/, config/)
+
+        code_structure: |
+          # pyproject.toml structure
+          [build-system]
+          requires = ["hatchling"]
+          build-backend = "hatchling.build"
+
+          [project]
+          name = "maptimize"
+          version = "0.1.0"
+          requires-python = ">=3.11"
+
+          [project.optional-dependencies]
+          dev = [...]
+
+          [tool.pytest.ini_options]
+          pythonpath = ["src"]
+          testpaths = ["tests"]
+
+          [tool.mypy]
+          python_version = "3.11"
+          ...
+
+        key_points:
+          - point: "pythonpath in pytest.ini must include src/"
+            reference: "This enables correct imports without 'from src.' prefix"
+          - point: "asyncio_mode = auto for proper async test execution"
+            reference: "pytest-asyncio documentation"
+          - point: "mypy configuration must include mypy_path = src"
+            reference: "Enables type checking with proper module resolution"
+
+      code_quality:
+        python:
+          formatter:
+            tool: "black"
+            command: "python -m black ."
+            blocking: true
+          linter:
+            tool: "ruff"
+            command: "python -m ruff check ."
+            blocking: false
+          type_checker:
+            tool: "mypy"
+            command: "python -m mypy src/"
+            blocking: true
+
+      verification:
+        manual_testing:
+          - step: "Verify virtual environment"
+            command: "python -m venv venv && source venv/bin/activate"
+          - step: "Verify pytest installed"
+            command: "python -m pytest --version"
+          - step: "Verify mypy installed"
+            command: "python -m mypy --version"
+
+        automated_tests:
+          command: "python -m pytest --collect-only"
+          expected_output: "collected 0 items (no tests yet)"
+
+        success_criteria:
+          - "pyproject.toml is valid and parseable"
+          - "pytest can collect tests"
+          - "mypy configuration is valid"
+          - "conftest.py loads without errors"
+          - "Virtual environment setup works"
+
+      commit:
+        type: "chore"
+        message: "setup: initialize Python project with development environment"
+        body: |
+          - Create pyproject.toml with build system and dev dependencies
+          - Add conftest.py with pytest and asyncio configuration
+          - Create pytest.ini with test discovery settings
+          - Create basic directory structure (src/, tests/, infrastructure/, config/)
+          - Configure mypy for type checking with proper pythonpath
+        files:
+          - "pyproject.toml"
+          - "conftest.py"
+          - "pytest.ini"
+
+    - task_number: 2
+      name: "Create pyproject.toml with bare dependencies"
+      agent: "python-pro"
+      worktree_group: "chain-1"
+      files:
+        - "pyproject.toml"
+      depends_on: [1]
+      estimated_time: "15m"
+
+      description: |
+        Define project metadata and dependencies in pyproject.toml. Strictly follow
+        AskSplunk pattern: bare requirements with NO version pinning. Install slack-bolt[async]
+        with Socket Mode support, async AWS clients, and structlog for logging.
+
+      test_first:
+        test_file: "tests/test_dependencies.py"
+        structure:
+          - "test that pyproject.toml is valid TOML"
+          - "test that all required modules can be imported"
+          - "test that no version constraints are present in dependencies"
+
+        example_skeleton: |
+          # tests/test_dependencies.py
+          import tomllib
+          from pathlib import Path
+
+          def test_pyproject_valid_toml():
+              """Verify pyproject.toml is valid TOML."""
+              pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+              with open(pyproject_path, 'rb') as f:
+                  config = tomllib.load(f)
+              assert config['project']['name'] == 'maptimize'
+
+          def test_no_version_pinning():
+              """Ensure no version constraints in dependencies."""
+              pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+              with open(pyproject_path, 'r') as f:
+                  content = f.read()
+              # Check for version operators
+              assert '>=' not in content.split('[project]')[1].split('dependencies')[1]
+              assert '==' not in content.split('[project]')[1].split('dependencies')[1]
+
+      implementation:
+        approach: |
+          1. Define project metadata (name, version, requires-python, description)
+          2. List runtime dependencies as bare requirements (NO version constraints)
+          3. Define development dependencies (pytest, mypy, black, ruff)
+          4. Include build system configuration (hatchling)
+          5. Include tool configurations (pytest, mypy, black, ruff)
+
+        code_structure: |
+          [build-system]
+          requires = ["hatchling"]
+          build-backend = "hatchling.build"
+
+          [project]
+          name = "maptimize"
+          version = "0.1.0"
+          description = "Slack bot for Maptimize process documentation access"
+          requires-python = ">=3.11"
+          dependencies = [
+              "slack-bolt[async]",
+              # ... more dependencies
+          ]
+
+          [project.optional-dependencies]
+          dev = [
+              "pytest",
+              "pytest-asyncio",
+              # ... more dev dependencies
+          ]
+
+        key_points:
+          - point: "Bare dependencies - NO >=, ==, or <= operators"
+            reference: "AskSplunk pyproject.toml pattern"
+          - point: "Include slack-bolt[async] for Socket Mode support"
+            reference: "slack-bolt documentation for async and Socket Mode"
+          - point: "boto3 and aioboto3 for AWS Secrets Manager access"
+            reference: "For programmatic token fetching at runtime"
+
+        critical_patterns:
+          correct_dependencies: |
+            # CORRECT - bare requirements
+            dependencies = [
+                "slack-bolt[async]",
+                "slack-sdk",
+                "aioboto3",
+                "boto3",
+                "botocore",
+                "python-dotenv",
+                "structlog",
+            ]
+
+          wrong_version_pinning: |
+            # WRONG - DO NOT DO THIS
+            dependencies = [
+                "slack-bolt[async]>=1.18.0",
+                "boto3==1.26.0",
+                "structlog>=23.0",
+            ]
+
+      verification:
+        success_criteria:
+          - "pyproject.toml is valid TOML"
+          - "All dependencies listed without version constraints"
+          - "build-system section is present"
+          - "Tool configuration sections (pytest, mypy, black, ruff) are present"
+          - "requires-python = >=3.11 is set"
+
+      commit:
+        type: "chore"
+        message: "setup: define project dependencies in pyproject.toml"
+        body: |
+          - Add project metadata (name, version, description, requires-python)
+          - Define runtime dependencies with NO version pinning:
+            - slack-bolt[async] for Socket Mode Slack integration
+            - aioboto3 for async AWS Secrets Manager access
+            - structlog for structured logging
+          - Define development dependencies (pytest, mypy, black, ruff)
+          - Configure build system (hatchling)
+          - Add tool configurations for pytest, mypy, black, ruff
+        files:
+          - "pyproject.toml"
+
+    - task_number: 3
+      name: "Create GitHub Actions ECR workflow file"
+      agent: "deployment-engineer"
+      worktree_group: "chain-1"
+      files:
+        - ".github/workflows/ecr-build-push.yml"
+      depends_on: [2]
+      estimated_time: "20m"
+
+      description: |
+        Create GitHub Actions workflow that builds Docker image and pushes to ECR.
+        Based on AskSplunk pattern. Triggers on push to main branch, builds image,
+        authenticates to ECR, and pushes with latest tag.
+
+      test_first:
+        test_file: "tests/test_github_actions.py"
+        structure:
+          - "test that workflow file exists"
+          - "test that workflow is valid YAML"
+          - "test that required steps are present"
+
+        example_skeleton: |
+          # tests/test_github_actions.py
+          import yaml
+          from pathlib import Path
+
+          def test_ecr_workflow_exists():
+              """Verify ECR workflow file exists."""
+              workflow_path = Path(__file__).parent.parent / ".github" / "workflows" / "ecr-build-push.yml"
+              assert workflow_path.exists()
+
+          def test_ecr_workflow_valid_yaml():
+              """Verify workflow YAML is valid."""
+              workflow_path = Path(__file__).parent.parent / ".github" / "workflows" / "ecr-build-push.yml"
+              with open(workflow_path, 'r') as f:
+                  config = yaml.safe_load(f)
+              assert 'jobs' in config
+              assert 'build-and-push' in config['jobs']
+
+      implementation:
+        approach: |
+          1. Create .github/workflows directory structure
+          2. Define workflow triggers (push to main)
+          3. Set up build job with checkout, setup buildx, login to ECR
+          4. Build Docker image with tags (latest, git short SHA)
+          5. Push image to ECR repository
+
+        code_structure: |
+          name: Build and Push to ECR
+
+          on:
+            push:
+              branches:
+                - main
+
+          jobs:
+            build-and-push:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v3
+                - name: Set up Docker Buildx
+                  uses: docker/setup-buildx-action@v2
+                - name: Login to ECR
+                  # AWS CLI login
+                - name: Build and push
+                  uses: docker/build-push-action@v4
+
+        key_points:
+          - point: "Reference AskSplunk ECR_WORKFLOW_SETUP.md for exact pattern"
+            reference: "asksplunk/docs/ECR_WORKFLOW_SETUP.md"
+          - point: "ECR repository: maptimize (not asksplunk)"
+            reference: "AWS account 483013340174, region eu-west-1"
+          - point: "Push to: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize"
+            reference: "Update from AskSplunk pattern"
+
+      verification:
+        success_criteria:
+          - "Workflow file is valid YAML"
+          - "Contains build-and-push job"
+          - "ECR login step present"
+          - "Docker build step present"
+          - "Push step with correct ECR repository URL"
+
+      commit:
+        type: "chore"
+        message: "ci: create GitHub Actions workflow for ECR build and push"
+        body: |
+          - Create .github/workflows/ecr-build-push.yml
+          - Trigger on push to main branch
+          - Build Docker image with latest and git SHA tags
+          - Authenticate to ECR and push image
+          - Repository: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize
+        files:
+          - ".github/workflows/ecr-build-push.yml"
+
+    - task_number: 4
+      name: "Create project directory structure"
+      agent: "python-pro"
+      worktree_group: "chain-1"
+      files:
+        - "src/maptimize/__init__.py"
+        - "src/maptimize/py.typed"
+        - "tests/__init__.py"
+        - "infrastructure/.gitkeep"
+        - "config/.gitkeep"
+        - ".dockerignore"
+        - ".gitignore"
+      depends_on: [1]
+      estimated_time: "10m"
+
+      description: |
+        Create the complete directory structure for the project. Set up src/ for
+        package code, tests/ for test files, infrastructure/ for Docker and deployment
+        files, config/ for process definitions. Add py.typed marker for PEP 561 compliance.
+
+      test_first:
+        test_file: "tests/test_structure.py"
+        structure:
+          - "test that required directories exist"
+          - "test that py.typed file exists in package"
+
+        example_skeleton: |
+          # tests/test_structure.py
+          from pathlib import Path
+
+          def test_directory_structure():
+              """Verify required directories exist."""
+              required_dirs = [
+                  'src/maptimize',
+                  'tests',
+                  'infrastructure',
+                  'config'
+              ]
+              for dir_path in required_dirs:
+                  assert Path(dir_path).exists()
+
+          def test_py_typed_exists():
+              """Verify py.typed marker for type hints."""
+              py_typed = Path('src/maptimize/py.typed')
+              assert py_typed.exists()
+
+      implementation:
+        approach: |
+          1. Create src/maptimize/ directory for package code
+          2. Add src/maptimize/__init__.py to make it a package
+          3. Add src/maptimize/py.typed for PEP 561 type hint compliance
+          4. Create tests/ directory with __init__.py
+          5. Create infrastructure/ directory for Docker and deployment
+          6. Create config/ directory for JSON configuration files
+          7. Create .dockerignore to exclude unnecessary files from Docker builds
+          8. Create .gitignore for Python projects
+
+        file_contents:
+          - file: ".gitignore"
+            content: |
+              # Byte-compiled Python
+              __pycache__/
+              *.py[cod]
+              *$py.class
+
+              # Virtual environments
+              venv/
+              env/
+              ENV/
+
+              # IDE
+              .vscode/
+              .idea/
+              *.swp
+              *.swo
+
+              # OS
+              .DS_Store
+              Thumbs.db
+
+              # Environment files
+              .env
+              .env.local
+
+              # Test coverage
+              .coverage
+              htmlcov/
+
+              # Build artifacts
+              build/
+              dist/
+              *.egg-info/
+
+          - file: ".dockerignore"
+            content: |
+              .git
+              .gitignore
+              .venv
+              venv
+              __pycache__
+              .pytest_cache
+              .coverage
+              htmlcov
+              .DS_Store
+              .vscode
+              .idea
+              tests
+
+          - file: "src/maptimize/__init__.py"
+            content: |
+              """Maptimize Slack Bot - Process documentation access via Slack."""
+              __version__ = "0.1.0"
+
+          - file: "src/maptimize/py.typed"
+            content: ""  # Empty file, just a marker for PEP 561
+
+      verification:
+        success_criteria:
+          - "src/maptimize/ directory with __init__.py"
+          - "tests/ directory with __init__.py"
+          - "infrastructure/ directory created"
+          - "config/ directory created"
+          - "py.typed marker file present"
+          - ".gitignore configured for Python"
+          - ".dockerignore configured"
+
+      commit:
+        type: "chore"
+        message: "chore: create project directory structure"
+        body: |
+          - Create src/maptimize/ package directory
+          - Add py.typed marker for type hint compliance (PEP 561)
+          - Create tests/ directory
+          - Create infrastructure/ for Docker and deployment files
+          - Create config/ for process definitions
+          - Add .gitignore and .dockerignore
+        files:
+          - "src/maptimize/__init__.py"
+          - "src/maptimize/py.typed"
+          - "tests/__init__.py"
+          - ".gitignore"
+          - ".dockerignore"
+
+    - task_number: 5
+      name: "Create conftest.py with pytest configuration"
+      agent: "test-automator"
+      worktree_group: "chain-1"
+      files:
+        - "conftest.py"
+        - "pytest.ini"
+      depends_on: [1]
+      estimated_time: "15m"
+
+      description: |
+        Configure pytest with conftest.py providing fixtures for async tests,
+        logging, and mock Slack events. Configure pytest.ini for test discovery
+        and asyncio mode.
+
+      test_first:
+        test_file: "tests/test_conftest.py"
+        structure:
+          - "test that fixtures are available"
+          - "test that asyncio mode is configured"
+
+        example_skeleton: |
+          # tests/test_conftest.py
+          import pytest
+
+          @pytest.mark.asyncio
+          async def test_event_loop_fixture(event_loop):
+              """Test that event loop fixture is available."""
+              assert event_loop is not None
+              # event_loop should allow async operations
+
+      implementation:
+        approach: |
+          1. Create conftest.py with pytest fixtures
+          2. Define event_loop fixture for async tests
+          3. Define logger fixture for capturing logs
+          4. Define mock Slack event fixtures
+          5. Create pytest.ini with test discovery and asyncio settings
+
+        code_structure: |
+          # conftest.py
+          import pytest
+          import logging
+          import sys
+          from pathlib import Path
+
+          # Add src to path
+          sys.path.insert(0, str(Path(__file__).parent / "src"))
+
+          @pytest.fixture
+          def event_loop():
+              """Provide event loop for async tests."""
+              import asyncio
+              loop = asyncio.new_event_loop()
+              yield loop
+              loop.close()
+
+          @pytest.fixture
+          def mock_slack_event():
+              """Provide mock Slack event for testing."""
+              return {
+                  'type': 'event_callback',
+                  'event': {
+                      'type': 'app_mention',
+                      'user': 'U123456',
+                      'text': '<@U789> hello',
+                      'ts': '1234567890.000001'
+                  }
+              }
+
+        key_points:
+          - point: "pythonpath in conftest adds src/ to sys.path"
+            reference: "Allows 'from bot.handlers' imports without 'src' prefix"
+          - point: "event_loop fixture enables @pytest.mark.asyncio tests"
+            reference: "pytest-asyncio documentation"
+          - point: "mock fixtures provide Slack event structures"
+            reference: "slack-bolt event documentation"
+
+      verification:
+        success_criteria:
+          - "conftest.py defines required fixtures"
+          - "pytest.ini configures asyncio_mode = auto"
+          - "pythonpath includes src/"
+          - "pytest can collect async tests"
+
+      commit:
+        type: "chore"
+        message: "test: configure pytest with async support and fixtures"
+        body: |
+          - Create conftest.py with pytest fixtures
+          - Add event_loop fixture for async test support
+          - Add logger fixture for log verification
+          - Add mock Slack event fixtures
+          - Create pytest.ini with asyncio configuration
+          - Configure pythonpath to include src/
+        files:
+          - "conftest.py"
+          - "pytest.ini"
+
+    - task_number: 6
+      name: "Create src/maptimize/__init__.py and basic module structure"
+      agent: "python-pro"
+      worktree_group: "chain-1"
+      files:
+        - "src/maptimize/__init__.py"
+        - "src/maptimize/config.py"
+        - "src/maptimize/bot.py"
+        - "src/maptimize/handlers.py"
+        - "src/maptimize/formatter.py"
+        - "src/maptimize/utils.py"
+      depends_on: [4]
+      estimated_time: "10m"
+
+      description: |
+        Create empty module files with docstrings to establish the package structure.
+        These files will be filled in by subsequent tasks. Provides clear organization
+        and early type hint setup.
+
+      test_first:
+        test_file: "tests/test_modules.py"
+        structure:
+          - "test that all modules can be imported"
+          - "test that modules have docstrings"
+
+        example_skeleton: |
+          # tests/test_modules.py
+          import importlib
+
+          MODULES = ['config', 'bot', 'handlers', 'formatter', 'utils']
+
+          @pytest.mark.parametrize('module_name', MODULES)
+          def test_module_importable(module_name):
+              """Test that module can be imported."""
+              module = importlib.import_module(f'maptimize.{module_name}')
+              assert module is not None
+
+      implementation:
+        approach: |
+          1. Create placeholder modules with comprehensive docstrings
+          2. Add module-level type annotations
+          3. Define public interfaces with __all__
+          4. Add basic logging setup
+
+        file_contents:
+          config.py: |
+            """Configuration module for Maptimize bot.
+
+            Handles AWS Secrets Manager integration for token fetching
+            and process configuration loading.
+            """
+            from typing import Tuple
+
+          bot.py: |
+            """Main Slack bot application using slack-bolt.
+
+            Implements Socket Mode WebSocket connection and event routing.
+            """
+
+          handlers.py: |
+            """Event handlers for app mentions and slash commands.
+
+            Processes Slack events and coordinates bot responses.
+            """
+
+          formatter.py: |
+            """Message formatting for mrkdwn responses.
+
+            Formats ephemeral messages displayed only to triggering user.
+            """
+
+          utils.py: |
+            """Utility functions for logging and validation.
+
+            Shared helper functions used across modules.
+            """
+
+      verification:
+        success_criteria:
+          - "All module files created"
+          - "Each module has docstring"
+          - "Modules are importable"
+          - "No implementation code yet (just structure)"
+
+      commit:
+        type: "chore"
+        message: "chore: create module structure with placeholders"
+        body: |
+          - Create config.py for secrets and configuration
+          - Create bot.py for slack-bolt application
+          - Create handlers.py for event handling
+          - Create formatter.py for message formatting
+          - Create utils.py for shared utilities
+          - Add module docstrings and __all__ definitions
+        files:
+          - "src/maptimize/__init__.py"
+          - "src/maptimize/config.py"
+          - "src/maptimize/bot.py"
+          - "src/maptimize/handlers.py"
+          - "src/maptimize/formatter.py"
+          - "src/maptimize/utils.py"
+
+---
+
+# Line count tracking: 1847 lines
+# Tasks completed: 6/25 (chain-1 complete)
+# Next: Continue with chain-2 and independent tasks in plan-02-core-implementation.yaml

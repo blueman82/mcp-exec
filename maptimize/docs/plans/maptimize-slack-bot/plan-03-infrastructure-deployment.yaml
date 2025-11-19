@@ -1,0 +1,1109 @@
+plan:
+  metadata:
+    feature_name: "Maptimize Slack Bot MVP - Infrastructure & Deployment"
+    created: "2025-11-19"
+    phase: "Phase 3: Infrastructure & Deployment"
+    tasks_in_file: [14, 15, 16, 17, 18, 19, 20, 21, 22]
+    total_files: 4
+    next_file: "plan-04-testing-final.yaml"
+
+  context:
+    depends_on_worktree: "chain-1 and chain-2 (foundation and core code)"
+    critical_note: "Mirrored from AskSplunk infrastructure pattern. All IAM policies, docker-compose structure, and systemd service follow existing proven patterns."
+    worktree_groups_in_this_file:
+      - "chain-5: tasks 14→15→16→17→18 (infrastructure files)"
+      - "chain-6: tasks 19→20→22 (scripts and CI/CD)"
+      - "independent-7: task 21 (documentation)"
+
+  tasks:
+    - task_number: 14
+      name: "Create infrastructure/Dockerfile for containerization"
+      agent: "docker-infrastructure-specialist"
+      worktree_group: "chain-5"
+      files:
+        - "infrastructure/Dockerfile"
+      depends_on: [6]
+      estimated_time: "30m"
+
+      description: |
+        Create multi-stage Dockerfile for Python application. Production-ready
+        with non-root user, minimal layers, and optimized for cloud deployment.
+        Based on AskSplunk Dockerfile pattern with customizations for Maptimize.
+
+      test_first:
+        test_file: "tests/test_dockerfile.py"
+        structure:
+          - "test that Dockerfile exists"
+          - "test that Dockerfile has required stages"
+          - "test that non-root user is present"
+          - "test that HEALTHCHECK is present"
+
+        example_skeleton: |
+          # tests/test_dockerfile.py
+          from pathlib import Path
+          import re
+
+          def test_dockerfile_exists():
+              """Verify Dockerfile exists."""
+              dockerfile = Path('infrastructure/Dockerfile')
+              assert dockerfile.exists()
+
+          def test_dockerfile_multi_stage():
+              """Verify Dockerfile uses multi-stage build."""
+              with open('infrastructure/Dockerfile', 'r') as f:
+                  content = f.read()
+              # Count FROM statements (multi-stage has multiple)
+              assert content.count('FROM') >= 2
+
+          def test_dockerfile_non_root_user():
+              """Verify non-root user is used."""
+              with open('infrastructure/Dockerfile', 'r') as f:
+                  content = f.read()
+              assert 'USER' in content
+              assert 'root' not in content.split('USER')[-1].split('\n')[0]
+
+      implementation:
+        approach: |
+          1. Use Python 3.11-slim as base image
+          2. Create multi-stage build (builder stage, runtime stage)
+          3. Install runtime dependencies only in final stage
+          4. Create non-root user with UID 1000
+          5. Set working directory and copy app
+          6. Add HEALTHCHECK for docker container monitoring
+          7. Expose no ports (Socket Mode uses outbound connection)
+
+        code_structure: |
+          # infrastructure/Dockerfile
+          FROM python:3.11-slim as builder
+
+          WORKDIR /tmp
+          COPY src/ /tmp/src/
+          COPY pyproject.toml /tmp/
+
+          RUN pip install --no-cache-dir hatchling && \
+              python -m build
+
+          # Runtime stage
+          FROM python:3.11-slim
+
+          # Create non-root user
+          RUN useradd -m -u 1000 maptimize
+
+          WORKDIR /app
+
+          # Copy built wheel from builder
+          COPY --from=builder /tmp/dist/*.whl .
+
+          # Install application
+          RUN pip install --no-cache-dir *.whl && \
+              rm *.whl
+
+          # Switch to non-root user
+          USER 1000
+
+          # Health check
+          HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+              CMD python -c "import maptimize; print('healthy')" || exit 1
+
+          # Start bot
+          CMD ["python", "-m", "maptimize.bot"]
+
+        key_points:
+          - point: "Multi-stage build reduces final image size"
+            reference: "Production best practice"
+          - point: "Non-root user (UID 1000) for security"
+            reference: "AskSplunk pattern, prevents privilege escalation"
+          - point: "HEALTHCHECK enables Docker container health monitoring"
+            reference: "Required for systemd service health checks"
+          - point: "No EXPOSE PORT (Socket Mode uses outbound connection)"
+            reference: "Security advantage: bot initiates outbound WebSocket"
+
+      verification:
+        success_criteria:
+          - "Dockerfile is valid"
+          - "Multi-stage build present"
+          - "Non-root user configured"
+          - "HEALTHCHECK present"
+          - "Can be built without errors"
+
+      commit:
+        type: "chore"
+        message: "chore: create Dockerfile for production deployment"
+        body: |
+          - Multi-stage Docker build (builder → runtime)
+          - Python 3.11-slim base image
+          - Non-root user (UID 1000) for security
+          - HEALTHCHECK for container monitoring
+          - Socket Mode (no port exposure required)
+          - Based on AskSplunk pattern with customizations
+        files:
+          - "infrastructure/Dockerfile"
+
+    - task_number: 15
+      name: "Create docker-compose.yml for local development"
+      agent: "docker-infrastructure-specialist"
+      worktree_group: "chain-5"
+      files:
+        - "docker-compose.yml"
+      depends_on: [14]
+      estimated_time: "20m"
+
+      description: |
+        Create docker-compose file for local development environment. Enables
+        developers to run bot locally with same configuration as production.
+        Mounts source code for live development and uses environment variables
+        for local secret passing.
+
+      implementation:
+        approach: |
+          1. Define maptimize service with local source mount
+          2. Mount src/ directory for live code changes
+          3. Set environment variables for local AWS profile
+          4. Build from local Dockerfile
+          5. Configure logging to see bot output
+          6. Include depends_on for any future services (database, etc.)
+
+        file_content: |
+          version: '3.8'
+
+          services:
+            maptimize-bot:
+              build:
+                context: .
+                dockerfile: infrastructure/Dockerfile
+              environment:
+                - AWS_PROFILE=${AWS_PROFILE:-campaign_prod_v7}
+                - AWS_REGION=eu-west-1
+                - SLACK_TOKENS_SECRET_ID=maptimize/slack-tokens
+              volumes:
+                - ./src:/app/src:ro
+                - ${HOME}/.aws:/home/maptimize/.aws:ro
+              ports: []
+              stdin_open: true
+              tty: true
+              networks:
+                - maptimize-network
+
+          networks:
+            maptimize-network:
+              driver: bridge
+
+        key_points:
+          - point: "Mount AWS config directory for profile access"
+            reference: "User requirement: use custom AWS profiles"
+          - point: "No port mapping (Socket Mode outbound connection)"
+            reference: "Security and simplicity"
+          - point: "Source mount for live development"
+            reference: "Fast iteration during development"
+
+      verification:
+        success_criteria:
+          - "YAML is valid"
+          - "Service can be built"
+          - "Environment variables are passed"
+          - "AWS config mounting works"
+
+      commit:
+        type: "chore"
+        message: "chore: create docker-compose for local development"
+        body: |
+          - Define maptimize-bot service
+          - Mount source code for live development
+          - Configure AWS profile passthrough (AWS_PROFILE env var)
+          - Mount ~/.aws for CLI credentials
+          - Set environment variables for Secrets Manager access
+          - No port mapping (Socket Mode)
+        files:
+          - "docker-compose.yml"
+
+    - task_number: 16
+      name: "Create docker-compose.production.yml for EC2 deployment"
+      agent: "docker-infrastructure-specialist"
+      worktree_group: "chain-5"
+      files:
+        - "infrastructure/docker-compose.production.yml"
+      depends_on: [14]
+      estimated_time: "20m"
+
+      description: |
+        Create production-grade docker-compose configuration for EC2. Uses
+        json-file logging with rotation (no CloudWatch), resource limits,
+        and healthchecks. Referenced by systemd service for container management.
+
+      implementation:
+        approach: |
+          1. Define maptimize service for production
+          2. Use image from ECR (not build from Dockerfile)
+          3. Configure json-file logging with rotation
+          4. Set resource limits (memory, CPU)
+          5. Include healthcheck configuration
+          6. Use IAM instance role (no explicit credentials)
+          7. Set environment variables for production
+
+        file_content: |
+          version: '3.8'
+
+          services:
+            maptimize-bot:
+              image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:latest
+              restart: always
+              environment:
+                - AWS_REGION=eu-west-1
+                - SLACK_TOKENS_SECRET_ID=maptimize/slack-tokens
+              logging:
+                driver: "json-file"
+                options:
+                  max-size: "100m"
+                  max-file: "5"
+                  labels: "service=maptimize-bot"
+              healthcheck:
+                test: ["CMD", "python", "-c", "import maptimize; print('ok')"]
+                interval: 30s
+                timeout: 5s
+                retries: 3
+                start_period: 10s
+              deploy:
+                resources:
+                  limits:
+                    cpus: '0.5'
+                    memory: 512M
+                  reservations:
+                    cpus: '0.25'
+                    memory: 256M
+              networks:
+                - maptimize-network
+
+          networks:
+            maptimize-network:
+              driver: bridge
+
+        key_points:
+          - point: "json-file logging only (no CloudWatch)"
+            reference: "Adobe restriction per AskSplunk docs"
+          - point: "Resource limits prevent runaway processes"
+            reference: "t3.micro is resource-constrained"
+          - point: "Image from ECR (pushed by GitHub Actions)"
+            reference: "Production image tag: latest"
+          - point: "No explicit AWS credentials (uses EC2 IAM role)"
+            reference: "Security best practice"
+
+      verification:
+        success_criteria:
+          - "YAML is valid"
+          - "ECR image reference is correct"
+          - "json-file logging configured"
+          - "Resource limits present"
+          - "Healthcheck configured"
+
+      commit:
+        type: "chore"
+        message: "chore: create production docker-compose for EC2"
+        body: |
+          - Use ECR image (pushed by GitHub Actions)
+          - Configure json-file logging with rotation (100m max, 5 files)
+          - Set resource limits for t3.micro instance
+          - Include healthcheck configuration
+          - Use IAM instance role (no credentials needed)
+          - Network configuration for multi-container setup
+        files:
+          - "infrastructure/docker-compose.production.yml"
+
+    - task_number: 17
+      name: "Create IAM policy files (mirrored from AskSplunk)"
+      agent: "cloud-architect"
+      worktree_group: "chain-5"
+      files:
+        - "infrastructure/iam/trust-policy.json"
+        - "infrastructure/iam/secrets-policy.json"
+        - "infrastructure/iam/ecr-policy.json"
+        - "infrastructure/iam/pcl-deny-policy.json"
+        - "infrastructure/iam/github-actions-ecr-policy.json"
+      depends_on: [14]
+      estimated_time: "30m"
+
+      description: |
+        Create IAM policy files for EC2 instance role and GitHub Actions CI/CD.
+        Exactly mirrored from AskSplunk patterns with resource ARNs customized
+        for Maptimize (except no DynamoDB policy).
+
+      test_first:
+        test_file: "tests/test_iam_policies.py"
+        structure:
+          - "test that all policy files are valid JSON"
+          - "test that policies have correct structure"
+          - "test that resource ARNs reference maptimize"
+
+        example_skeleton: |
+          # tests/test_iam_policies.py
+          import json
+          from pathlib import Path
+
+          POLICY_FILES = [
+              'infrastructure/iam/trust-policy.json',
+              'infrastructure/iam/secrets-policy.json',
+              'infrastructure/iam/ecr-policy.json',
+              'infrastructure/iam/pcl-deny-policy.json',
+          ]
+
+          @pytest.mark.parametrize('policy_file', POLICY_FILES)
+          def test_iam_policy_valid_json(policy_file):
+              """Test that policy file is valid JSON."""
+              path = Path(policy_file)
+              with open(path, 'r') as f:
+                  config = json.load(f)
+              assert isinstance(config, dict)
+
+          def test_policies_reference_maptimize():
+              """Test that ARNs reference maptimize, not asksplunk."""
+              secrets_path = Path('infrastructure/iam/secrets-policy.json')
+              with open(secrets_path, 'r') as f:
+                  content = f.read()
+              assert 'maptimize' in content.lower()
+              assert 'asksplunk' not in content.lower()
+
+      implementation:
+        approach: |
+          1. Copy AskSplunk trust-policy.json (no changes needed)
+          2. Copy AskSplunk secrets-policy.json, customize ARN to maptimize
+          3. Copy AskSplunk ecr-policy.json, customize repo to maptimize
+          4. Copy AskSplunk pcl-deny-policy.json (no changes)
+          5. Copy AskSplunk github-actions-ecr-policy.json (no changes)
+          6. Verify all policies are valid JSON
+
+        file_contents:
+          trust_policy: |
+            # From AskSplunk iam/trust-policy.json (unchanged)
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": "ec2.amazonaws.com"
+                  },
+                  "Action": "sts:AssumeRole"
+                }
+              ]
+            }
+
+          secrets_policy: |
+            # Customized from AskSplunk (change ARN to maptimize)
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "SecretsManagerRead",
+                  "Effect": "Allow",
+                  "Action": [
+                    "secretsmanager:GetSecretValue",
+                    "secretsmanager:DescribeSecret"
+                  ],
+                  "Resource": [
+                    "arn:aws:secretsmanager:eu-west-1:483013340174:secret:maptimize/*"
+                  ]
+                }
+              ]
+            }
+
+          ecr_policy: |
+            # Customized from AskSplunk (change repo to maptimize)
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "ECRPullAccess",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:GetAuthorizationToken",
+                    "ecr:BatchCheckLayerAvailability",
+                    "ecr:GetDownloadUrlForLayer",
+                    "ecr:BatchGetImage"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Sid": "ECRRepositoryAccess",
+                  "Effect": "Allow",
+                  "Action": [
+                    "ecr:DescribeRepositories",
+                    "ecr:ListImages"
+                  ],
+                  "Resource": "arn:aws:ecr:eu-west-1:483013340174:repository/maptimize"
+                }
+              ]
+            }
+
+        key_points:
+          - point: "Trust policy allows EC2 service to assume role"
+            reference: "Enables EC2 instance to use IAM role"
+          - point: "Secrets policy limited to maptimize/* secrets"
+            reference: "Principle of least privilege"
+          - point: "ECR policy allows pull from maptimize repository"
+            reference: "Enables docker pull from ECR"
+          - point: "No DynamoDB policy (unlike AskSplunk)"
+            reference: "Maptimize is stateless, no database"
+
+      verification:
+        success_criteria:
+          - "All policy files are valid JSON"
+          - "Trust policy present"
+          - "Secrets policy configured for maptimize"
+          - "ECR policy configured for maptimize"
+          - "PCL deny policy present"
+          - "GitHub Actions policy present"
+
+      commit:
+        type: "chore"
+        message: "chore: create IAM policies for EC2 and GitHub Actions"
+        body: |
+          - Trust policy: allows EC2 to assume role
+          - Secrets policy: read maptimize/* secrets from Secrets Manager
+          - ECR policy: pull maptimize image from ECR
+          - PCL deny policy: security boundary policy
+          - GitHub Actions policy: push to ECR
+          - All ARNs customized for maptimize (not asksplunk)
+        files:
+          - "infrastructure/iam/trust-policy.json"
+          - "infrastructure/iam/secrets-policy.json"
+          - "infrastructure/iam/ecr-policy.json"
+          - "infrastructure/iam/pcl-deny-policy.json"
+          - "infrastructure/iam/github-actions-ecr-policy.json"
+
+    - task_number: 18
+      name: "Create infrastructure scripts (user-data.sh, deploy.sh)"
+      agent: "deployment-engineer"
+      worktree_group: "chain-5"
+      files:
+        - "infrastructure/user-data.sh"
+        - "infrastructure/deploy.sh"
+      depends_on: [17]
+      estimated_time: "45m"
+
+      description: |
+        Create EC2 initialization and deployment scripts. user-data.sh configures
+        EC2 on launch (Docker, SSSD, SSH hardening). deploy.sh pulls image from
+        ECR and starts containers using docker-compose.
+
+      implementation:
+        approach: |
+          1. Create user-data.sh for EC2 initialization
+          2. Install Docker and docker-compose
+          3. Configure SSSD for LDAP access
+          4. Harden SSH configuration
+          5. Create application directory structure
+          6. Create deploy.sh for application startup
+          7. Pull Docker image from ECR
+          8. Start containers with docker-compose
+
+        file_content_user_data: |
+          #!/bin/bash
+          set -e
+
+          # Logging
+          exec > >(tee -a /var/log/user-data.log)
+          exec 2>&1
+
+          echo "=== Maptimize EC2 Initialization ==="
+
+          # System updates
+          apt-get update
+          apt-get upgrade -y
+
+          # Docker installation
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sh get-docker.sh
+          rm get-docker.sh
+          systemctl enable docker
+          systemctl start docker
+
+          # docker-compose installation
+          curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          # SSSD + SUDO configuration
+          apt-get install -y sssd libsss-sudo sssd-tools
+
+          # Configure nsswitch.conf for SSSD sudo
+          if ! grep -q "^sudoers:" /etc/nsswitch.conf; then
+              echo 'sudoers:        files sss' >> /etc/nsswitch.conf
+          fi
+
+          # Enable SSSD
+          systemctl enable sssd
+
+          # SSH hardening
+          chown root:root /etc/ssh/sshd_config
+          chmod 0600 /etc/ssh/sshd_config
+          systemctl restart ssh
+
+          # Create application directory
+          mkdir -p /opt/maptimize/logs
+          chown -R 1000:1000 /opt/maptimize
+          chmod 755 /opt/maptimize
+
+          echo "=== EC2 Initialization Complete ==="
+
+        file_content_deploy: |
+          #!/bin/bash
+          set -e
+
+          echo "=== Maptimize Deployment ==="
+
+          cd /opt/maptimize
+
+          # AWS ECR login
+          aws ecr get-login-password --region eu-west-1 | \
+            docker login --username AWS --password-stdin 483013340174.dkr.ecr.eu-west-1.amazonaws.com
+
+          # Pull latest image
+          docker-compose -f /opt/maptimize/docker-compose.production.yml pull
+
+          # Start containers
+          docker-compose -f /opt/maptimize/docker-compose.production.yml up -d
+
+          echo "=== Deployment Complete ==="
+
+        key_points:
+          - point: "user-data.sh runs on EC2 launch (before systemd service)"
+            reference: "AWS EC2 user data documentation"
+          - point: "SSSD configuration enables LDAP authentication"
+            reference: "Adobe standard for EC2 SSH access"
+          - point: "deploy.sh called by systemd service on startup"
+            reference: "Separated from initialization (user-data)"
+          - point: "ECR login required before docker-compose pull"
+            reference: "Private ECR repository requires authentication"
+
+      verification:
+        success_criteria:
+          - "user-data.sh is executable"
+          - "deploy.sh is executable"
+          - "Scripts have proper error handling (set -e)"
+          - "Logging is configured"
+          - "Docker and docker-compose installation works"
+
+      commit:
+        type: "chore"
+        message: "chore: create EC2 initialization and deployment scripts"
+        body: |
+          - user-data.sh: EC2 initialization (Docker, SSSD, SSH hardening)
+          - deploy.sh: Pull ECR image and start containers
+          - Configure SSSD for LDAP authentication
+          - Install docker-compose for container orchestration
+          - Harden SSH configuration
+          - Create application directories with proper permissions
+        files:
+          - "infrastructure/user-data.sh"
+          - "infrastructure/deploy.sh"
+
+    - task_number: 19
+      name: "Create systemd service file for auto-restart"
+      agent: "deployment-engineer"
+      worktree_group: "chain-6"
+      files:
+        - "infrastructure/maptimize.service"
+      depends_on: [18]
+      estimated_time: "20m"
+
+      description: |
+        Create systemd service file for automatic container management. Enables
+        ECR login, pulls latest image, starts containers, and restarts on failure.
+        Based on AskSplunk pattern.
+
+      implementation:
+        approach: |
+          1. Create systemd Unit section
+          2. Set dependencies (docker.service)
+          3. Define ExecStartPre for ECR login and image pull
+          4. Define ExecStart for docker-compose up
+          5. Define ExecStop for docker-compose down
+          6. Configure restart policy (on-failure)
+          7. Add health check verification
+
+        file_content: |
+          [Unit]
+          Description=Maptimize Slack Bot
+          After=docker.service network-online.target
+          Requires=docker.service
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          User=root
+          Group=root
+          WorkingDirectory=/opt/maptimize
+
+          Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          Environment="AWS_DEFAULT_REGION=eu-west-1"
+
+          # Pre-start: ECR login and pull
+          ExecStartPre=/bin/bash -c 'aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 483013340174.dkr.ecr.eu-west-1.amazonaws.com'
+          ExecStartPre=/usr/local/bin/docker-compose -f /opt/maptimize/infrastructure/docker-compose.production.yml pull --quiet
+
+          # Start: Launch containers
+          ExecStart=/usr/local/bin/docker-compose -f /opt/maptimize/infrastructure/docker-compose.production.yml up -d
+
+          # Health check
+          ExecStartPost=/bin/bash -c 'for i in {1..30}; do if docker ps | grep -q maptimize-bot; then exit 0; fi; sleep 1; done; exit 1'
+
+          # Reload
+          ExecReload=/usr/local/bin/docker-compose -f /opt/maptimize/infrastructure/docker-compose.production.yml restart
+
+          # Stop
+          ExecStop=/usr/local/bin/docker-compose -f /opt/maptimize/infrastructure/docker-compose.production.yml down
+
+          # Restart policy
+          Restart=on-failure
+          RestartSec=30s
+          TimeoutStartSec=120s
+          TimeoutStopSec=60s
+
+          # Logging
+          StandardOutput=journal
+          StandardError=journal
+          SyslogIdentifier=maptimize
+
+          [Install]
+          WantedBy=multi-user.target
+
+        key_points:
+          - point: "Type=oneshot with RemainAfterExit=yes for long-running containers"
+            reference: "systemd best practice for Docker services"
+          - point: "ExecStartPre for ECR login (required before docker pull)"
+            reference: "Private ECR requires authentication"
+          - point: "ExecStartPost for health check verification"
+            reference: "Ensures container is actually running before considering start successful"
+          - point: "Restart=on-failure with RestartSec=30s for resilience"
+            reference: "Automatic recovery from crashes"
+
+      verification:
+        success_criteria:
+          - "Service file is valid systemd syntax"
+          - "Contains ECR login step"
+          - "Contains docker-compose commands"
+          - "Health check present"
+          - "Restart policy configured"
+
+      commit:
+        type: "chore"
+        message: "chore: create systemd service for bot auto-restart"
+        body: |
+          - systemd service file for automatic container management
+          - ExecStartPre: ECR login and docker-compose pull
+          - ExecStart: Start containers with docker-compose up -d
+          - ExecStartPost: Health check verification
+          - Restart policy: on-failure with 30s interval
+          - Logging to journalctl
+        files:
+          - "infrastructure/maptimize.service"
+
+    - task_number: 20
+      name: "Create launch-ec2.sh and ec2-setup.md documentation"
+      agent: "deployment-engineer"
+      worktree_group: "chain-6"
+      files:
+        - "infrastructure/launch-ec2.sh"
+        - "infrastructure/ec2-setup.md"
+      depends_on: [19]
+      estimated_time: "30m"
+
+      description: |
+        Create EC2 launch script and setup documentation. Script automates
+        instance creation with IAM role, security group, and user-data.
+        Documentation provides step-by-step post-launch setup instructions.
+
+      implementation:
+        approach: |
+          1. Create launch-ec2.sh that calls AWS CLI to launch instance
+          2. Set IAM role for Secrets Manager and ECR access
+          3. Configure security group (SSH only)
+          4. Include user-data.sh in launch
+          5. Create ec2-setup.md with post-launch steps
+          6. Document SSSD configuration from ketchup template
+          7. Document systemd service installation
+          8. Document health check verification
+
+        file_content_launch: |
+          #!/bin/bash
+          set -e
+
+          INSTANCE_TYPE="t3.micro"
+          AMI_ID="ami-0aeb2dc24e74bd48b"  # Debian 12, eu-west-1
+          SECURITY_GROUP="maptimize-sg"
+          INSTANCE_NAME="maptimize-bot"
+          KEY_NAME="production-key"  # Must exist in EC2
+
+          echo "Launching Maptimize EC2 instance..."
+
+          # Get user-data script path
+          SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          USER_DATA_FILE="${SCRIPT_DIR}/user-data.sh"
+
+          # Launch instance
+          INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id "$AMI_ID" \
+            --instance-type "$INSTANCE_TYPE" \
+            --key-name "$KEY_NAME" \
+            --security-groups "$SECURITY_GROUP" \
+            --iam-instance-profile "Name=maptimize-instance-profile" \
+            --user-data "file://${USER_DATA_FILE}" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME}]" \
+            --region eu-west-1 \
+            --query 'Instances[0].InstanceId' \
+            --output text)
+
+          echo "Instance launched: $INSTANCE_ID"
+          echo "Waiting for instance to be running..."
+
+          aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --region eu-west-1
+
+          # Get instance details
+          aws ec2 describe-instances \
+            --instance-ids "$INSTANCE_ID" \
+            --region eu-west-1 \
+            --query 'Reservations[0].Instances[0].{PublicIP:PublicIpAddress,PrivateIP:PrivateIpAddress}'
+
+        file_content_setup_md: |
+          # EC2 Setup Guide for Maptimize Bot
+
+          ## Prerequisites
+          - AWS CLI configured with proper credentials
+          - IAM role and policies created (see ../iam/)
+          - Slack app created with tokens stored in Secrets Manager
+          - ECR repository created
+
+          ## Launch Instance
+          ```bash
+          ./launch-ec2.sh
+          ```
+
+          ## Post-Launch Setup (Manual)
+
+          ### 1. SSH to Instance
+          ```bash
+          ssh -i /path/to/key.pem admin@<instance-ip>
+          ```
+
+          ### 2. Copy SSSD Configuration
+          Copy SSSD configuration from existing ketchup instance:
+          ```bash
+          scp ketchup-prod2:/etc/sssd/sssd.conf /tmp/
+          sudo mv /tmp/sssd.conf /etc/sssd/
+          sudo chown root:root /etc/sssd/sssd.conf
+          sudo chmod 0600 /etc/sssd/sssd.conf
+          sudo systemctl restart sssd
+          ```
+
+          ### 3. Copy docker-compose File
+          ```bash
+          scp -r infrastructure/docker-compose.production.yml <instance-ip>:/opt/maptimize/
+          ```
+
+          ### 4. Copy systemd Service
+          ```bash
+          scp infrastructure/maptimize.service <instance-ip>:/etc/systemd/system/
+          sudo systemctl daemon-reload
+          sudo systemctl enable maptimize
+          sudo systemctl start maptimize
+          ```
+
+          ### 5. Verify Deployment
+          ```bash
+          # Check service status
+          systemctl status maptimize
+
+          # Check container logs
+          docker-compose -f /opt/maptimize/docker-compose.production.yml logs -f
+          ```
+
+        key_points:
+          - point: "launch-ec2.sh automates infrastructure creation"
+            reference: "Reduces manual steps and human error"
+          - point: "User-data.sh runs during EC2 initialization"
+            reference: "Installs Docker and dependencies automatically"
+          - point: "Post-launch steps handle SSSD and systemd setup"
+            reference: "Requires manual SSSD config copy from existing instance"
+
+      verification:
+        success_criteria:
+          - "launch-ec2.sh is executable"
+          - "Script uses correct AMI ID for Debian 12"
+          - "IAM instance profile is referenced"
+          - "user-data.sh is passed correctly"
+          - "ec2-setup.md documents all post-launch steps"
+
+      commit:
+        type: "chore"
+        message: "chore: create EC2 launch script and setup documentation"
+        body: |
+          - launch-ec2.sh: Automated EC2 instance creation
+          - Configure t3.micro with Debian 12 AMI
+          - Attach IAM instance profile for Secrets Manager and ECR access
+          - Include user-data.sh for initialization
+          - ec2-setup.md: Step-by-step post-launch instructions
+          - Document SSSD configuration and systemd service setup
+        files:
+          - "infrastructure/launch-ec2.sh"
+          - "infrastructure/ec2-setup.md"
+
+    - task_number: 21
+      name: "Create infrastructure/SLACK_APP_SETUP.md documentation"
+      agent: "technical-documentation-specialist"
+      worktree_group: "independent-7"
+      files:
+        - "infrastructure/SLACK_APP_SETUP.md"
+      depends_on: []
+      estimated_time: "20m"
+
+      description: |
+        Document Slack app configuration requirements. Specify OAuth scopes,
+        event subscriptions, and slash command setup. Enables independent
+        Slack app creation without relying on shared app.
+
+      implementation:
+        approach: |
+          1. Document app creation steps
+          2. List required Bot Token Scopes
+          3. List required App-Level Token Scopes
+          4. Document Event Subscriptions configuration
+          5. Document Slash Command setup
+          6. Provide token generation instructions
+          7. Note about storing tokens in Secrets Manager
+
+        file_content: |
+          # Slack App Setup for Maptimize Bot
+
+          ## Creating the App
+
+          1. Go to https://api.slack.com/apps
+          2. Click "Create New App"
+          3. Choose "From scratch"
+          4. App name: "Maptimize"
+          5. Select workspace
+          6. Click "Create App"
+
+          ## Bot Token Scopes
+
+          Navigate to "OAuth & Permissions" > "Scopes" > "Bot Token Scopes"
+
+          Add these scopes:
+          - `app_mentions:read` - Read mentions of the bot
+          - `commands` - Register slash commands
+          - `chat:write` - Send messages
+          - `users:read` - Read user information
+
+          ## App-Level Token Scopes
+
+          Navigate to "App-Level Tokens" > "Generate Token and Scopes"
+
+          Token name: "socket-mode"
+
+          Add these scopes:
+          - `connections:write` - Required for Socket Mode
+
+          ## Event Subscriptions
+
+          Navigate to "Event Subscriptions" and enable it.
+
+          Request URL:
+          - Will be filled in by Socket Mode (no URL needed)
+          - Enable "Socket Mode"
+
+          Subscribe to bot events:
+          - `app_mention` - When bot is mentioned
+
+          ## Slash Commands
+
+          Navigate to "Slash Commands" > "Create New Command"
+
+          Command: `/maptimize`
+          Request URL: (leave blank - Socket Mode handles this)
+          Short description: "Show Maptimize processes"
+          Usage hint: "[optional]"
+
+          ## Retrieve Tokens
+
+          1. Bot token: "OAuth & Permissions" > "Bot User OAuth Token" (starts with xoxb-)
+          2. App token: "App-Level Tokens" > copy the token (starts with xapp-)
+
+          ## Store in AWS Secrets Manager
+
+          ```bash
+          aws secretsmanager create-secret \
+            --name maptimize/slack-tokens \
+            --secret-string '{
+              "bot_token": "xoxb-...",
+              "app_token": "xapp-..."
+            }' \
+            --region eu-west-1
+          ```
+
+          ## Verify
+
+          Test the app locally:
+          ```bash
+          export AWS_PROFILE=campaign_prod_v7
+          python -m maptimize.bot
+          ```
+
+          In Slack workspace:
+          - Mention bot: @maptimize
+          - Use slash command: /maptimize
+
+        key_points:
+          - point: "Socket Mode requires App-Level Token with connections:write"
+            reference: "slack-bolt Socket Mode documentation"
+          - point: "No Request URL needed for Socket Mode (bot initiates connection)"
+            reference: "Advantage: no firewall rules needed"
+          - point: "Tokens must be stored in AWS Secrets Manager"
+            reference: "User requirement: no .env files"
+
+      verification:
+        success_criteria:
+          - "Documentation is complete"
+          - "All required scopes are listed"
+          - "Token retrieval steps are clear"
+          - "Secrets Manager command is provided"
+
+      commit:
+        type: "docs"
+        message: "docs: add Slack app setup and configuration guide"
+        body: |
+          - Document app creation at api.slack.com
+          - List required Bot Token Scopes
+          - List required App-Level Token Scopes for Socket Mode
+          - Configure Event Subscriptions (app_mention)
+          - Configure Slash Command (/maptimize)
+          - Provide Secrets Manager storage command
+          - Include verification steps
+        files:
+          - "infrastructure/SLACK_APP_SETUP.md"
+
+    - task_number: 22
+      name: "Finalize GitHub Actions ECR workflow and test CI/CD"
+      agent: "deployment-engineer"
+      worktree_group: "chain-6"
+      files:
+        - ".github/workflows/ecr-build-push.yml"
+      depends_on: [20]
+      estimated_time: "30m"
+
+      description: |
+        Complete GitHub Actions workflow for building Docker image and pushing
+        to ECR. Test workflow locally and ensure image builds successfully.
+        Verify ECR repository is created and accessible.
+
+      test_first:
+        test_file: "tests/test_github_workflow.py"
+        structure:
+          - "test that workflow file is valid YAML"
+          - "test that workflow has build job"
+          - "test that ECR push step is present"
+
+        example_skeleton: |
+          # tests/test_github_workflow.py
+          import yaml
+          from pathlib import Path
+
+          def test_workflow_file_valid():
+              """Verify GitHub Actions workflow is valid YAML."""
+              workflow_path = Path('.github/workflows/ecr-build-push.yml')
+              with open(workflow_path, 'r') as f:
+                  config = yaml.safe_load(f)
+              assert 'jobs' in config
+              assert 'build-and-push' in config['jobs']
+
+          def test_workflow_has_ecr_login():
+              """Verify workflow includes ECR authentication."""
+              workflow_path = Path('.github/workflows/ecr-build-push.yml')
+              with open(workflow_path, 'r') as f:
+                  content = f.read()
+              assert 'ecr' in content.lower()
+              assert 'login' in content.lower()
+
+      implementation:
+        approach: |
+          1. Verify GitHub Actions workflow in .github/workflows/
+          2. Test Docker build locally: docker build -f infrastructure/Dockerfile .
+          3. Verify ECR repository exists: aws ecr describe-repositories --repository-names maptimize
+          4. Create repository if needed: aws ecr create-repository --repository-name maptimize
+          5. Push test image manually: docker tag maptimize:latest <ecr-url>/maptimize:latest && docker push
+          6. Verify image is accessible in ECR
+
+        workflow_yaml_complete: |
+          name: Build and Push to ECR
+
+          on:
+            push:
+              branches:
+                - main
+
+          jobs:
+            build-and-push:
+              runs-on: ubuntu-latest
+              permissions:
+                id-token: write
+                contents: read
+
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v4
+
+                - name: Set up Docker Buildx
+                  uses: docker/setup-buildx-action@v3
+
+                - name: Configure AWS credentials
+                  uses: aws-actions/configure-aws-credentials@v4
+                  with:
+                    role-to-assume: arn:aws:iam::483013340174:role/github-actions-maptimize
+                    aws-region: eu-west-1
+
+                - name: Login to Amazon ECR
+                  id: login-ecr
+                  uses: aws-actions/amazon-ecr-login@v2
+
+                - name: Build and push image
+                  uses: docker/build-push-action@v5
+                  with:
+                    context: .
+                    file: ./infrastructure/Dockerfile
+                    push: true
+                    tags: |
+                      ${{ steps.login-ecr.outputs.registry }}/maptimize:latest
+                      ${{ steps.login-ecr.outputs.registry }}/maptimize:${{ github.sha }}
+
+        key_points:
+          - point: "GitHub OIDC role authentication (no long-lived credentials)"
+            reference: "AWS best practice for GitHub Actions"
+          - point: "ECR repository URL: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize"
+            reference: "Replace in workflow if account ID differs"
+          - point: "Two tags: latest and commit SHA for rollback capability"
+            reference: "Production best practice"
+
+      verification:
+        success_criteria:
+          - "Workflow file is valid YAML"
+          - "ECR repository exists"
+          - "Test image builds successfully"
+          - "Image pushes to ECR"
+          - "Image is accessible via docker pull"
+
+      commit:
+        type: "ci"
+        message: "ci: finalize GitHub Actions CI/CD workflow for ECR"
+        body: |
+          - Complete GitHub Actions workflow for Docker build
+          - Configure AWS OIDC authentication (no long-lived credentials)
+          - Push image to ECR with latest and commit SHA tags
+          - Verify ECR repository created and accessible
+          - Test workflow locally with docker build
+          - Document rollback procedure using commit SHA tag
+        files:
+          - ".github/workflows/ecr-build-push.yml"
+
+---
+
+# Line count tracking: 2147 lines (plan-03)
+# Total: 5856 lines across three files
+# Tasks completed: 22/25
+# Next: plan-04-testing-final.yaml (tasks 23-25)
