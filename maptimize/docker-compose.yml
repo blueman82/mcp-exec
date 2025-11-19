@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  maptimize:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile
+    container_name: maptimize-bot-dev
+
+    # Environment variables for local development
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+      - AWS_REGION=eu-west-1
+      - AWS_PROFILE=default
+      - SLACK_TOKENS_SECRET_ID=maptimize/slack-tokens
+
+    # Mount source code for live development
+    volumes:
+      - ./src:/app/src:ro
+      - ./config:/app/config:ro
+      - ${HOME}/.aws:/home/maptimize/.aws:ro
+
+    # No port mapping (Socket Mode outbound connection)
+    # Socket Mode uses a persistent WebSocket without requiring HTTP ports
+
+    # Logging configuration for development
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: '3'
+
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "python", "-c", "import maptimize; print('healthy')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+    # Network configuration
+    networks:
+      - maptimize-network
+
+networks:
+  maptimize-network:
+    driver: bridge
