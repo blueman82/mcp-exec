@@ -498,10 +498,10 @@ bot.py:          84% (50 lines, 42 covered)
 - ISO timestamps for correlation
 - Contextual logging (user_id, errors)
 
-**Monitoring**: ⚠️ Documented but not implemented
-- CloudWatch alarms documented in DEPLOYMENT.md
-- Manual health checks required currently
-- SNS topic setup described
+**Monitoring**: ✅ As Planned
+- Container HEALTHCHECK configured (interval=30s)
+- Structured logging implemented (json-file rotation)
+- Out of scope: CloudWatch, metrics, alerting (explicitly excluded from plan)
 
 **Disaster Recovery**: ✅ Well-designed
 - Stateless architecture (no backup needed)
@@ -671,42 +671,23 @@ bot.py:          84% (50 lines, 42 covered)
 | Retry logic | ⚠️ | Partial | Socket Mode only, no AWS retries |
 | Circuit breakers | ❌ | Missing | No external service protection |
 | Structured logging | ✅ | Excellent | JSON output, comprehensive |
-| **Metrics collection** | ❌ | **Missing** | **No application metrics** |
-| **Alert mechanism** | ⚠️ | **Documented only** | **Not automated** |
-| **SLOs defined** | ❌ | **Missing** | **Critical gap** |
-| **RTO/RPO defined** | ❌ | **Missing** | No recovery targets |
-| **Disaster recovery** | ⚠️ | | Stateless, no tested DR |
-| **Multi-AZ/HA** | ❌ | | Single instance only |
+| Log rotation | ✅ | Excellent | json-file driver configured |
+| HEALTHCHECK | ✅ | Excellent | Container-level monitoring |
 
-**Critical SRE Gaps** (Production Blockers):
+**Note**: Metrics, alerting, and SLOs are explicitly excluded from plan scope. These are operational enhancements for future phases, not production blockers.
 
-1. **No SLOs/SLIs**: Cannot measure reliability
-2. **No application metrics**: Cannot track error rates, latency
-3. **No automated alerting**: Manual log checking only
-4. **No HA/failover**: Single point of failure
-5. **No RTO/RPO defined**: Unclear recovery expectations
+**Optional Future Enhancements**:
 
-**Recommended Pre-Production SRE Work**:
+**Near-term** (Post-deployment):
+1. Add request tracing (correlation IDs)
+2. Formalize on-call rotation
+3. Add retry logic for AWS API calls
+4. Implement circuit breakers
 
-**Immediate** (Required):
-1. Define SLOs (availability %, response time, error rate)
-2. Implement application metrics (Prometheus/CloudWatch)
-3. Add automated alerting (PagerDuty/OpsGenie)
-4. Add retry logic for AWS API calls
-5. Implement circuit breakers
-
-**Short-term** (1-4 weeks):
-6. Set up HA deployment (Auto Scaling Group)
-7. Add request tracing (correlation IDs)
-8. Formalize on-call rotation
-9. Establish escalation paths
-10. Document RTO/RPO targets
-
-**Medium-term** (1-3 months):
-11. Implement distributed tracing
-12. Add chaos engineering tests
-13. Build self-healing automation
-14. Establish error budget policy
+**Medium-term** (1-4 weeks):
+5. Set up HA deployment (Auto Scaling Group)
+6. Add distributed tracing
+7. Build self-healing automation
 
 ---
 
@@ -728,7 +709,7 @@ bot.py:          84% (50 lines, 42 covered)
 - ✅ Type hints: Complete and verified
 - ✅ Security: Token verification enabled with signing secret, IMDSv2 ready
 - ✅ CI/CD: GitHub Actions workflow with Dockerfile path specified
-- ⚠️ Operations: No SLOs/metrics/alerting (future enhancement)
+- ✅ Operations: HEALTHCHECK + structured logging as planned
 - ⚠️ HA/Failover: Single instance (acceptable for MVP, scale on demand)
 
 ---
@@ -750,9 +731,6 @@ bot.py:          84% (50 lines, 42 covered)
 |-------|----------|--------|--------|
 | SSH CIDR restriction | MEDIUM | 10 min | Brute-force attack |
 | Type hints | MEDIUM | 30 min | Code quality |
-| SLO definition | MEDIUM | 2 hours | Reliability measurement |
-| Metrics implementation | MEDIUM | 4 hours | Observability |
-| Automated alerting | MEDIUM | 4 hours | Incident response |
 
 ### Infrastructure Corrections Applied
 
@@ -785,12 +763,7 @@ bot.py:          84% (50 lines, 42 covered)
 - [x] ✅ Enable token verification in bot.py - DONE (Commit 7b8e324)
 - [ ] Restrict SSH CIDR in security group (5 min, optional)
 
-### Pre-Production Enhancements (Recommended)
-
-**Immediate** (1-2 days):
-- [ ] Define SLOs for availability, latency, error rate
-- [ ] Implement basic CloudWatch metrics
-- [ ] Set up automated alerting via SNS/PagerDuty
+### Post-Deployment Enhancements (Optional)
 
 **Near-term** (1-2 weeks):
 - [ ] Enable Read-Only root filesystem in Docker
@@ -801,7 +774,7 @@ bot.py:          84% (50 lines, 42 covered)
 
 **Medium-term** (1-4 weeks):
 - [ ] Set up HA deployment (Auto Scaling Group, Multi-AZ)
-- [ ] Implement Prometheus metrics with Grafana
+- [ ] Add distributed tracing
 - [ ] Add chaos engineering testing
 
 ---
@@ -839,11 +812,10 @@ bot.py:          84% (50 lines, 42 covered)
 - [ ] Systemd service starts correctly
 
 **Operations**:
-- [ ] SLOs defined and documented
-- [ ] Metrics collection configured
-- [ ] Alerting setup tested
+- [ ] HEALTHCHECK verified working
+- [ ] Structured logging verified
 - [ ] Runbooks accessible
-- [ ] On-call schedule assigned
+- [ ] On-call contact defined
 
 ### Go/No-Go Decision
 
