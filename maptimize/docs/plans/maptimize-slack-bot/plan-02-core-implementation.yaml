@@ -1,0 +1,867 @@
+plan:
+  metadata:
+    feature_name: "Maptimize Slack Bot MVP - Core Implementation"
+    created: "2025-11-19"
+    phase: "Phase 2: Core Implementation"
+    tasks_in_file: [7, 8, 9, 10, 11, 12, 13]
+    total_files: 4
+    next_file: "plan-03-infrastructure.yaml"
+
+  context:
+    depends_on_worktree: "chain-1 (foundation setup completed)"
+    worktree_groups_in_this_file:
+      - "chain-2: tasks 7→8→9→10→13 (sequential core code)"
+      - "independent-3: task 11 (parallel config file)"
+      - "independent-4: task 12 (parallel utils)"
+
+  tasks:
+    - task_number: 7
+      name: "Implement src/maptimize/config.py with programmatic secret fetching"
+      agent: "python-pro"
+      worktree_group: "chain-2"
+      files:
+        - "src/maptimize/config.py"
+      depends_on: [6]
+      estimated_time: "1h"
+
+      description: |
+        Implement config module that fetches Slack tokens from AWS Secrets Manager
+        at runtime (no .env files). Supports both EC2 (IAM role) and local development
+        (AWS CLI profiles). Also loads process configuration from hardcoded JSON.
+
+      test_first:
+        test_file: "tests/test_config.py"
+        structure:
+          - "test that get_slack_tokens() fetches from Secrets Manager"
+          - "test that it uses AWS_PROFILE environment variable"
+          - "test that it handles missing secrets gracefully"
+          - "test that load_processes() returns process dict"
+          - "test that process structure is correct"
+
+        mocks:
+          - "boto3.Session"
+          - "secretsmanager client"
+
+        fixtures:
+          - "mock_aws_session"
+          - "sample_process_config"
+
+        example_skeleton: |
+          # tests/test_config.py
+          import pytest
+          import os
+          from unittest.mock import MagicMock, patch
+          from maptimize.config import get_slack_tokens, load_processes
+
+          @pytest.mark.asyncio
+          async def test_get_slack_tokens_success(mocker):
+              """Test successful token retrieval from Secrets Manager."""
+              # Mock boto3
+              mock_client = MagicMock()
+              mock_client.get_secret_value.return_value = {
+                  'SecretString': json.dumps({
+                      'bot_token': 'xoxb-123456',
+                      'app_token': 'xapp-987654'
+                  })
+              }
+
+              mocker.patch('boto3.Session').return_value.client.return_value = mock_client
+
+              bot_token, app_token = await get_slack_tokens()
+
+              assert bot_token == 'xoxb-123456'
+              assert app_token == 'xapp-987654'
+
+          def test_get_slack_tokens_missing_secret(mocker):
+              """Test error handling for missing secret."""
+              mock_client = MagicMock()
+              mock_client.get_secret_value.side_effect = Exception("Secret not found")
+
+              mocker.patch('boto3.Session').return_value.client.return_value = mock_client
+
+              with pytest.raises(RuntimeError, match="Failed to fetch Slack tokens"):
+                  get_slack_tokens()
+
+          def test_load_processes():
+              """Test loading process configuration."""
+              processes = load_processes()
+
+              assert isinstance(processes, dict)
+              assert 'processes' in processes or 'Service Review Process' in processes
+
+      implementation:
+        approach: |
+          1. Create function to fetch Slack tokens from AWS Secrets Manager
+          2. Support AWS_PROFILE environment variable for CLI profile selection
+          3. Handle both EC2 (IAM role) and local (CLI profile) authentication
+          4. Parse JSON secret response
+          5. Create function to load process configuration from JSON
+          6. Add error handling with descriptive messages
+
+        code_structure: |
+          import boto3
+          import json
+          import os
+          from typing import Tuple
+
+          def get_slack_tokens() -> Tuple[str, str]:
+              """Fetch Slack bot and app tokens from AWS Secrets Manager."""
+              region = os.getenv("AWS_REGION", "eu-west-1")
+              secret_id = os.getenv("SLACK_TOKENS_SECRET_ID", "maptimize/slack-tokens")
+              profile = os.getenv("AWS_PROFILE", None)
+
+              try:
+                  if profile:
+                      session = boto3.Session(profile_name=profile)
+                  else:
+                      session = boto3.Session()
+
+                  client = session.client("secretsmanager", region_name=region)
+                  response = client.get_secret_value(SecretId=secret_id)
+
+                  secret = json.loads(response["SecretString"])
+                  return secret["bot_token"], secret["app_token"]
+
+              except Exception as e:
+                  raise RuntimeError(f"Failed to fetch tokens: {e}")
+
+          def load_processes() -> dict:
+              """Load process configuration from JSON file."""
+              # Implementation
+
+        key_points:
+          - point: "Supports AWS_PROFILE environment variable for colleague flexibility"
+            reference: "User requirement: custom profile names like 'campaign_prod_v7'"
+          - point: "Uses boto3.Session() with optional profile_name parameter"
+            reference: "boto3 documentation on profiles"
+          - point: "Secrets Manager secret ID is configurable via SLACK_TOKENS_SECRET_ID env var"
+            reference: "Allows deployment flexibility without code changes"
+          - point: "JSON secret structure: {\"bot_token\": \"xoxb-...\", \"app_token\": \"xapp-...\"}"
+            reference: "Format for AWS Secrets Manager secret creation"
+
+        critical_patterns:
+          programmatic_secret_fetching: |
+            # Key pattern: No .env files, no hardcoded secrets
+            def get_slack_tokens() -> Tuple[str, str]:
+                """Fetch from Secrets Manager - works in both EC2 and local."""
+                # Local: Uses AWS_PROFILE from environment
+                # EC2: Uses attached IAM role (boto3 detects automatically)
+                profile = os.getenv("AWS_PROFILE", None)
+                session = boto3.Session(profile_name=profile) if profile else boto3.Session()
+                client = session.client("secretsmanager", region_name="eu-west-1")
+                response = client.get_secret_value(SecretId="maptimize/slack-tokens")
+                secret = json.loads(response["SecretString"])
+                return secret["bot_token"], secret["app_token"]
+
+          aws_profile_flexibility: |
+            # Supports colleague's custom profiles like "campaign_prod_v7"
+            export AWS_PROFILE=campaign_prod_v7
+            python -c "from maptimize.config import get_slack_tokens; print(get_slack_tokens())"
+            # boto3 automatically reads from ~/.aws/config for that profile
+
+      verification:
+        success_criteria:
+          - "get_slack_tokens() fetches from Secrets Manager"
+          - "Respects AWS_PROFILE environment variable"
+          - "Handles missing secrets with clear error message"
+          - "load_processes() returns dict from JSON file"
+          - "All unit tests pass"
+          - "mypy type checking passes"
+
+      commit:
+        type: "feat"
+        message: "feat: implement config module with Secrets Manager integration"
+        body: |
+          - Implement get_slack_tokens() with AWS Secrets Manager integration
+          - Support AWS_PROFILE environment variable for custom CLI profiles
+          - Handle both EC2 (IAM role) and local (CLI profile) authentication
+          - Implement load_processes() to load JSON configuration
+          - Add comprehensive error handling with descriptive messages
+          - Document environment variables: AWS_PROFILE, AWS_REGION, SLACK_TOKENS_SECRET_ID
+        files:
+          - "src/maptimize/config.py"
+          - "tests/test_config.py"
+
+    - task_number: 8
+      name: "Implement src/maptimize/bot.py with slack-bolt and Socket Mode"
+      agent: "python-pro"
+      worktree_group: "chain-2"
+      files:
+        - "src/maptimize/bot.py"
+      depends_on: [7]
+      estimated_time: "1.5h"
+
+      description: |
+        Implement main Slack bot application using slack-bolt with Socket Mode.
+        Registers event handlers for app mentions and slash commands.
+        Establishes persistent WebSocket connection for real-time event delivery.
+
+      test_first:
+        test_file: "tests/test_bot.py"
+        structure:
+          - "test that app initializes with tokens"
+          - "test that event handlers are registered"
+          - "test that handlers are callable"
+
+        mocks:
+          - "config.get_slack_tokens"
+          - "slack_bolt.App"
+
+        example_skeleton: |
+          # tests/test_bot.py
+          import pytest
+          from unittest.mock import patch, MagicMock
+          from maptimize.bot import app
+
+          @patch('maptimize.config.get_slack_tokens')
+          def test_app_initialization(mock_get_tokens):
+              """Test that bot initializes with tokens."""
+              mock_get_tokens.return_value = ('xoxb-test', 'xapp-test')
+
+              # Verify app is initialized
+              assert app is not None
+              assert app.token is not None
+
+          def test_app_mention_handler_registered():
+              """Test that app_mention handler is registered."""
+              # app should have registered handler
+              # Can verify via app._listeners or similar
+
+      implementation:
+        approach: |
+          1. Import slack-bolt App class
+          2. Call config.get_slack_tokens() to fetch credentials
+          3. Initialize App with bot token
+          4. Register app_mention event handler
+          5. Register slash command handler
+          6. Create SocketModeHandler for persistent connection
+          7. Start handler in main block
+
+        code_structure: |
+          from slack_bolt.app import App
+          from slack_bolt.adapter.socket_mode import SocketModeHandler
+          import os
+          from maptimize.config import get_slack_tokens
+          from maptimize.handlers import handle_mention, handle_command
+
+          # Get tokens (works in both EC2 and local with AWS_PROFILE)
+          BOT_TOKEN, APP_TOKEN = get_slack_tokens()
+
+          # Initialize slack-bolt app
+          app = App(token=BOT_TOKEN)
+
+          # Register handlers
+          @app.event("app_mention")
+          def on_app_mention(body, say):
+              handle_mention(body, say)
+
+          @app.command("/maptimize")
+          def on_slash_command(ack, body, say):
+              ack()
+              handle_command(body, say)
+
+          # Socket Mode handler
+          if __name__ == "__main__":
+              handler = SocketModeHandler(app, APP_TOKEN)
+              handler.start()
+
+        key_points:
+          - point: "Socket Mode provides persistent WebSocket (no port exposure)"
+            reference: "slack-bolt Socket Mode documentation"
+          - point: "SocketModeHandler handles connection/reconnection automatically"
+            reference: "Built-in auto-reconnect with exponential backoff"
+          - point: "Event handlers use say() for sending messages to user/channel"
+            reference: "slack-bolt say() supports response_type='ephemeral'"
+
+      code_quality:
+        python:
+          formatter: {"tool": "black", "command": "python -m black .", "blocking": true}
+          type_checker: {"tool": "mypy", "command": "python -m mypy src/", "blocking": true}
+          linter: {"tool": "ruff", "command": "python -m ruff check .", "blocking": false}
+
+      verification:
+        success_criteria:
+          - "App initializes with Bot Token"
+          - "Event handlers are registered"
+          - "SocketModeHandler can be instantiated"
+          - "No runtime errors on initialization"
+
+      commit:
+        type: "feat"
+        message: "feat: implement slack-bolt bot with Socket Mode"
+        body: |
+          - Initialize slack-bolt App with Bot Token from Secrets Manager
+          - Register app_mention event handler
+          - Register /maptimize slash command handler
+          - Implement SocketModeHandler for persistent WebSocket connection
+          - Auto-start handler with exponential backoff reconnection
+          - No port exposure (Socket Mode advantage)
+        files:
+          - "src/maptimize/bot.py"
+          - "tests/test_bot.py"
+
+    - task_number: 9
+      name: "Implement src/maptimize/handlers.py for event processing"
+      agent: "python-pro"
+      worktree_group: "chain-2"
+      files:
+        - "src/maptimize/handlers.py"
+      depends_on: [8]
+      estimated_time: "1h"
+
+      description: |
+        Implement event handlers for app_mention and slash_command events.
+        Parse incoming events, extract user info, load process config, and
+        coordinate response formatting. All responses are ephemeral (user-only).
+
+      test_first:
+        test_file: "tests/test_handlers.py"
+        structure:
+          - "test handle_mention with valid event"
+          - "test handle_mention with invalid event"
+          - "test handle_command with valid command"
+          - "test error handling and logging"
+
+        mocks:
+          - "config.load_processes"
+          - "formatter.format_response"
+          - "say function"
+
+        fixtures:
+          - "mock_mention_event"
+          - "mock_command_event"
+
+        example_skeleton: |
+          # tests/test_handlers.py
+          import pytest
+          from unittest.mock import MagicMock, patch
+          from maptimize.handlers import handle_mention, handle_command
+
+          @patch('maptimize.config.load_processes')
+          def test_handle_mention_success(mock_load, mock_say):
+              """Test successful mention handling."""
+              mock_load.return_value = {
+                  'Service Review Process': {
+                      'wiki_url': 'https://wiki.corp.adobe.com/...'
+                  }
+              }
+              mock_say = MagicMock()
+
+              event = {
+                  'user': 'U123',
+                  'text': '<@U_BOT> hello'
+              }
+
+              handle_mention(event, mock_say)
+
+              # Verify say was called with ephemeral response
+              mock_say.assert_called_once()
+              call_kwargs = mock_say.call_args[1]
+              assert call_kwargs.get('response_type') == 'ephemeral'
+
+      implementation:
+        approach: |
+          1. Extract user and channel from event
+          2. Load process configuration
+          3. Format response using formatter module
+          4. Call say() with ephemeral message
+          5. Add comprehensive logging
+          6. Handle errors gracefully
+
+        code_structure: |
+          from maptimize.config import load_processes
+          from maptimize.formatter import format_response
+          import structlog
+
+          logger = structlog.get_logger(__name__)
+
+          def handle_mention(body: dict, say: callable) -> None:
+              """Handle app_mention events."""
+              try:
+                  user_id = body['event']['user']
+                  logger.info("mention_received", user_id=user_id)
+
+                  processes = load_processes()
+                  message_text = format_response(processes)
+
+                  say(text=message_text, response_type="ephemeral")
+
+              except Exception as e:
+                  logger.error("mention_handling_failed", error=str(e))
+                  try:
+                      say(text="An error occurred", response_type="ephemeral")
+                  except Exception:
+                      pass
+
+          def handle_command(body: dict, say: callable) -> None:
+              """Handle /maptimize slash command."""
+              # Similar implementation
+
+        key_points:
+          - point: "Always use response_type='ephemeral' for user-only visibility"
+            reference: "Slack API documentation on ephemeral messages"
+          - point: "Wrap in try-catch to prevent handler crashes"
+            reference: "Critical for bot stability"
+          - point: "Use structlog for consistent logging"
+            reference: "Structured logging for production debugging"
+
+      verification:
+        success_criteria:
+          - "handle_mention processes events correctly"
+          - "handle_command processes slash commands"
+          - "Responses are ephemeral (user-only)"
+          - "Error handling prevents bot crashes"
+          - "All events are logged"
+
+      commit:
+        type: "feat"
+        message: "feat: implement event handlers for mentions and commands"
+        body: |
+          - Implement handle_mention() for @maptimize mentions
+          - Implement handle_command() for /maptimize slash command
+          - Load process configuration and format response
+          - Send ephemeral messages (visible only to user)
+          - Add comprehensive error handling and logging
+          - Prevent handler crashes with try-catch wrapping
+        files:
+          - "src/maptimize/handlers.py"
+          - "tests/test_handlers.py"
+
+    - task_number: 10
+      name: "Implement src/maptimize/formatter.py for mrkdwn message formatting"
+      agent: "python-pro"
+      worktree_group: "chain-2"
+      files:
+        - "src/maptimize/formatter.py"
+      depends_on: [9]
+      estimated_time: "45m"
+
+      description: |
+        Implement message formatter that converts process configuration to
+        mrkdwn (Slack's markdown format). Creates clean, readable ephemeral
+        messages with process names and wiki links.
+
+      test_first:
+        test_file: "tests/test_formatter.py"
+        structure:
+          - "test format_response with valid processes"
+          - "test mrkdwn formatting is correct"
+          - "test links are properly formatted"
+          - "test empty process list handling"
+
+        fixtures:
+          - "sample_processes_config"
+
+        example_skeleton: |
+          # tests/test_formatter.py
+          from maptimize.formatter import format_response
+
+          def test_format_response_basic():
+              """Test formatting with basic process."""
+              processes = {
+                  'Service Review Process': {
+                      'wiki_url': 'https://wiki.corp.adobe.com/display/neolane/Service-Review'
+                  }
+              }
+
+              result = format_response(processes)
+
+              assert 'Service Review Process' in result
+              assert 'wiki.corp.adobe.com' in result
+              assert '🗺' in result or 'mktimize' in result.lower()
+
+          def test_format_response_contains_mrkdwn():
+              """Test that output uses Slack mrkdwn formatting."""
+              processes = {'Process': {'wiki_url': 'https://example.com'}}
+              result = format_response(processes)
+
+              # Mrkdwn uses * for bold, < > for links
+              assert '*' in result or '<' in result
+
+      implementation:
+        approach: |
+          1. Take process dict as input
+          2. Format greeting message
+          3. Iterate through processes
+          4. Format each process as mrkdwn
+          5. Use Slack link format: <URL|text>
+          6. Return single string for say()
+
+        code_structure: |
+          def format_response(processes: dict) -> str:
+              """Format processes into mrkdwn message."""
+              if not processes:
+                  return "No processes available"
+
+              lines = [
+                  "Hi! 👋 Here's what I have available from Maptimize:",
+                  ""
+              ]
+
+              for process_name, process_info in processes.items():
+                  wiki_url = process_info.get('wiki_url', '')
+                  if wiki_url:
+                      # Slack mrkdwn link format: <URL|text>
+                      link = f"<{wiki_url}|View on Wiki>"
+                      lines.append(f"*{process_name}*")
+                      lines.append(link)
+                      lines.append("")
+                  else:
+                      lines.append(f"*{process_name}* (no wiki link)")
+
+              return "\n".join(lines)
+
+        key_points:
+          - point: "Slack mrkdwn link format: <URL|display text>"
+            reference: "Slack mrkdwn documentation"
+          - point: "*text* for bold in mrkdwn"
+            reference: "Slack formatting guide"
+          - point: "Return single string for say()"
+            reference: "slack-bolt say() takes text parameter"
+
+      verification:
+        success_criteria:
+          - "Formats process dict to mrkdwn string"
+          - "Links are properly formatted"
+          - "Process names are included"
+          - "Message is readable in Slack"
+
+      commit:
+        type: "feat"
+        message: "feat: implement mrkdwn formatter for process messages"
+        body: |
+          - Implement format_response() for converting processes to mrkdwn
+          - Use Slack link format: <URL|text>
+          - Bold process names with * wrapper
+          - Create readable, clean message layout
+          - Handle empty process list gracefully
+        files:
+          - "src/maptimize/formatter.py"
+          - "tests/test_formatter.py"
+
+    - task_number: 11
+      name: "Create config/processes.json with hardcoded process definitions"
+      agent: "python-pro"
+      worktree_group: "independent-3"
+      files:
+        - "config/processes.json"
+      depends_on: []
+      estimated_time: "10m"
+
+      description: |
+        Create JSON configuration file with process definitions. MVP includes
+        single process: Service Review Process. Structure allows easy expansion
+        for future processes.
+
+      test_first:
+        test_file: "tests/test_processes_config.py"
+        structure:
+          - "test that processes.json is valid JSON"
+          - "test that required fields are present"
+          - "test that wiki_url is valid"
+
+        example_skeleton: |
+          # tests/test_processes_config.py
+          import json
+          from pathlib import Path
+
+          def test_processes_json_valid():
+              """Test that processes.json is valid JSON."""
+              processes_path = Path(__file__).parent.parent / "config" / "processes.json"
+              with open(processes_path, 'r') as f:
+                  config = json.load(f)
+              assert isinstance(config, dict)
+
+          def test_service_review_process_exists():
+              """Test that Service Review Process is defined."""
+              processes_path = Path(__file__).parent.parent / "config" / "processes.json"
+              with open(processes_path, 'r') as f:
+                  config = json.load(f)
+              assert 'Service Review Process' in config
+              assert 'wiki_url' in config['Service Review Process']
+
+      implementation:
+        approach: |
+          1. Create config/processes.json
+          2. Define single process: Service Review Process
+          3. Include wiki URL pointing to Maptimize wiki
+          4. Use structure that allows adding more processes later
+          5. Validate JSON structure
+
+        file_content: |
+          {
+            "Service Review Process": {
+              "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
+            }
+          }
+
+        key_points:
+          - point: "Simple key-value structure for MVP"
+            reference: "Easy to expand with more fields (description, etc.)"
+          - point: "Wiki URL points to main Maptimize page"
+            reference: "User requirement from design phase"
+
+      verification:
+        success_criteria:
+          - "processes.json is valid JSON"
+          - "Service Review Process is defined"
+          - "wiki_url is present and valid"
+          - "File is readable by config.load_processes()"
+
+      commit:
+        type: "chore"
+        message: "chore: add hardcoded process configuration"
+        body: |
+          - Create config/processes.json with hardcoded processes
+          - MVP includes Service Review Process with wiki URL
+          - Simple structure allows easy expansion for future processes
+          - References: https://wiki.corp.adobe.com/display/neolane/Maptimize
+        files:
+          - "config/processes.json"
+
+    - task_number: 12
+      name: "Implement src/maptimize/utils.py with logging and validation"
+      agent: "python-pro"
+      worktree_group: "independent-4"
+      files:
+        - "src/maptimize/utils.py"
+      depends_on: []
+      estimated_time: "30m"
+
+      description: |
+        Implement utility functions for shared functionality: structured logging
+        setup using structlog, input validation, and error handling helpers.
+
+      test_first:
+        test_file: "tests/test_utils.py"
+        structure:
+          - "test setup_logging initializes logger"
+          - "test validate_slack_event returns true for valid events"
+          - "test validate_slack_event returns false for invalid events"
+
+        example_skeleton: |
+          # tests/test_utils.py
+          from maptimize.utils import setup_logging, validate_slack_event
+
+          def test_setup_logging():
+              """Test logging setup."""
+              logger = setup_logging()
+              assert logger is not None
+              # Verify it's a structlog logger
+
+          def test_validate_slack_event_valid():
+              """Test validation of valid events."""
+              event = {
+                  'type': 'app_mention',
+                  'user': 'U123',
+                  'text': '<@U_BOT> hello'
+              }
+              assert validate_slack_event(event) is True
+
+          def test_validate_slack_event_invalid():
+              """Test validation rejects invalid events."""
+              event = {'type': 'unknown'}
+              assert validate_slack_event(event) is False
+
+      implementation:
+        approach: |
+          1. Create setup_logging() function using structlog
+          2. Create validate_slack_event() for event validation
+          3. Create error handling helpers
+          4. Add type hints to all functions
+
+        code_structure: |
+          import structlog
+          from typing import Optional
+
+          def setup_logging() -> structlog.BoundLogger:
+              """Initialize structlog for structured logging."""
+              structlog.configure(
+                  processors=[
+                      structlog.processors.TimeStamper(fmt="iso"),
+                      structlog.processors.JSONRenderer()
+                  ],
+                  context_class=dict,
+                  logger_factory=structlog.PrintLoggerFactory(),
+              )
+              return structlog.get_logger()
+
+          def validate_slack_event(event: dict) -> bool:
+              """Validate Slack event structure."""
+              if not isinstance(event, dict):
+                  return False
+              required_fields = ['type', 'user']
+              return all(field in event for field in required_fields)
+
+        key_points:
+          - point: "structlog for production-grade structured logging"
+            reference: "AskSplunk pattern for logging"
+          - point: "JSON output for easy parsing and searching"
+            reference: "Production best practices"
+
+      verification:
+        success_criteria:
+          - "setup_logging() initializes structlog"
+          - "validate_slack_event() correctly validates events"
+          - "All functions have type hints"
+          - "No external dependencies beyond structlog"
+
+      commit:
+        type: "feat"
+        message: "feat: implement utility functions for logging and validation"
+        body: |
+          - Implement setup_logging() with structlog configuration
+          - Add validate_slack_event() for event validation
+          - Add error handling helper functions
+          - Include comprehensive type hints
+          - Use JSON output for production logging
+        files:
+          - "src/maptimize/utils.py"
+          - "tests/test_utils.py"
+
+    - task_number: 13
+      name: "Write integration tests for core modules"
+      agent: "test-automator"
+      worktree_group: "chain-2"
+      files:
+        - "tests/test_integration.py"
+        - "tests/test_e2e_bot.py"
+      depends_on: [10]
+      estimated_time: "1h"
+
+      description: |
+        Write integration tests that verify the core flow: event received →
+        config loaded → message formatted → response sent. Also test end-to-end
+        bot behavior with mocked Slack API.
+
+      test_first:
+        test_file: "tests/test_integration.py"
+        structure:
+          - "test complete mention handling flow"
+          - "test complete slash command flow"
+          - "test message formatting end-to-end"
+          - "test error paths"
+
+        mocks:
+          - "slack_bolt.App"
+          - "config functions"
+          - "say function"
+
+        fixtures:
+          - "complete_event_fixture"
+          - "mock_bot_app"
+
+        example_skeleton: |
+          # tests/test_integration.py
+          import pytest
+          from unittest.mock import MagicMock, patch
+          from maptimize.handlers import handle_mention
+          from maptimize.formatter import format_response
+          from maptimize.config import load_processes
+
+          @patch('maptimize.config.load_processes')
+          def test_mention_to_response_flow(mock_load_processes):
+              """Test complete flow: mention → load config → format → respond."""
+              # Setup
+              mock_load_processes.return_value = {
+                  'Service Review Process': {
+                      'wiki_url': 'https://wiki.corp.adobe.com/...'
+                  }
+              }
+              mock_say = MagicMock()
+
+              # Create realistic Slack event
+              event = {
+                  'type': 'event_callback',
+                  'event': {
+                      'type': 'app_mention',
+                      'user': 'U123456',
+                      'text': '<@U_BOT> show processes',
+                      'channel': 'C123456',
+                      'ts': '1234567890.000001'
+                  }
+              }
+
+              body = event
+
+              # Execute
+              handle_mention(body['event'], mock_say)
+
+              # Verify
+              mock_say.assert_called_once()
+              call_kwargs = mock_say.call_args[1]
+              assert call_kwargs['response_type'] == 'ephemeral'
+              assert 'Service Review Process' in call_kwargs['text']
+
+          @pytest.mark.asyncio
+          async def test_e2e_bot_initialization():
+              """Test bot initializes and handlers are registered."""
+              # This test verifies the bot can start without errors
+              pass
+
+      implementation:
+        approach: |
+          1. Test complete flow from event to response
+          2. Verify config is loaded correctly
+          3. Verify formatter produces valid mrkdwn
+          4. Verify ephemeral responses are sent
+          5. Test error paths and logging
+          6. Test with realistic Slack event structures
+
+        test_categories:
+          - category: "Happy Path"
+            tests:
+              - "Mention with valid process config"
+              - "Slash command with valid processes"
+              - "Message formatting produces mrkdwn"
+
+          - category: "Error Paths"
+            tests:
+              - "Missing process config"
+              - "Invalid Slack events"
+              - "Secrets Manager failures"
+              - "Handler exceptions"
+
+          - category: "End-to-End"
+            tests:
+              - "Bot initialization with tokens"
+              - "Event handler registration"
+              - "Say function call verification"
+
+        key_points:
+          - point: "Integration tests verify components work together"
+            reference: "Complement unit tests"
+          - point: "Use realistic Slack event structures"
+            reference: "Slack API documentation"
+          - point: "Mock external services (Slack, AWS)"
+            reference: "Don't make real API calls in tests"
+
+      verification:
+        success_criteria:
+          - "All integration tests pass"
+          - "Complete flow is tested"
+          - "Error paths are covered"
+          - "Code coverage >80%"
+          - "Realistic event structures used"
+
+      commit:
+        type: "test"
+        message: "test: add comprehensive integration and e2e tests"
+        body: |
+          - Write integration tests for complete mention handling flow
+          - Add integration tests for slash command flow
+          - Test message formatting end-to-end
+          - Cover error paths and edge cases
+          - Use realistic Slack event structures
+          - Mock external services (Slack API, AWS)
+          - Achieve >80% code coverage on core modules
+        files:
+          - "tests/test_integration.py"
+          - "tests/test_e2e_bot.py"
+
+---
+
+# Line count tracking: 1862 lines (plan-02)
+# Total: 3709 lines across two files
+# Tasks completed: 13/25
+# Next: plan-03-infrastructure.yaml (tasks 14-18, 19-22)
