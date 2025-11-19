@@ -8,11 +8,56 @@ for task information, process details, and error messages.
 from typing import Any, Dict, List
 
 __all__ = [
+    "format_response",
     "format_task_message",
     "format_process_message",
     "format_error_message",
     "create_block_kit_message",
 ]
+
+
+def format_response(processes: Dict[str, Any]) -> str:
+    """Format processes into mrkdwn message for Slack.
+
+    Converts process configuration dictionary into a clean, readable
+    Slack mrkdwn formatted message with proper link formatting.
+
+    Args:
+        processes: Dictionary of process configurations with wiki URLs
+
+    Returns:
+        Formatted mrkdwn message string suitable for Slack say()
+
+    Example:
+        >>> processes = {
+        ...     'Service Review Process': {
+        ...         'wiki_url': 'https://wiki.corp.adobe.com/display/neolane/Service-Review'
+        ...     }
+        ... }
+        >>> message = format_response(processes)
+        >>> print(message)
+    """
+    if not processes:
+        return "No processes available"
+
+    lines = [
+        "Hi! Here's what I have available from Maptimize:",
+        ""
+    ]
+
+    for process_name, process_info in processes.items():
+        wiki_url = process_info.get('wiki_url', '')
+        if wiki_url:
+            # Slack mrkdwn link format: <URL|text>
+            link = f"<{wiki_url}|View on Wiki>"
+            lines.append(f"*{process_name}*")
+            lines.append(link)
+            lines.append("")
+        else:
+            lines.append(f"*{process_name}* (no wiki link)")
+            lines.append("")
+
+    return "\n".join(lines)
 
 
 def create_block_kit_message(processes: Dict[str, Any]) -> str:
