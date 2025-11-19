@@ -15,6 +15,15 @@ interface JiraConfig {
     apiKey?: string;
     username?: string;
     password?: string;
+    // PAT (Personal Access Token) fields
+    pat?: string;                    // Primary PAT for JIRA authentication
+    patExpiry?: Date;                // When primary PAT expires
+    usePat?: boolean;                // Flag to use PAT instead of token (default false)
+    // Backup PAT fields for rotation/fallback
+    backupPat?: string;              // Secondary PAT for fallback when primary is near expiry
+    backupPatExpiry?: Date;          // When backup PAT expires
+    useBackupPat?: boolean;          // Currently using backup PAT (default false)
+    backupPatCreatedAt?: Date;       // When backup PAT was created
   };
   defaultProject?: string;
   maxResults?: number;
@@ -33,7 +42,7 @@ function resolvePath(path: string): string {
 
 // Default values that can be overridden by environment variables
 const defaults: JiraConfig = {
-  apiBaseUrl: process.env.USE_IPAAS === 'true' 
+  apiBaseUrl: process.env.USE_IPAAS === 'true'
     ? "https://ipaasapi.adobe-services.com/jira/rest/api/2"
     : "https://jira.corp.adobe.com/rest/api/2",
   logFile: '/app/logs/jira-api.log',
@@ -43,7 +52,14 @@ const defaults: JiraConfig = {
     imsToken: process.env.JIRA_IMS_TOKEN || '',
     apiKey: process.env.JIRA_API_KEY || '',
     username: process.env.JIRA_USERNAME || '',
-    password: process.env.JIRA_PASSWORD || ''
+    password: process.env.JIRA_PASSWORD || '',
+    pat: process.env.JIRA_PAT || '',
+    patExpiry: process.env.JIRA_PAT_EXPIRY ? new Date(process.env.JIRA_PAT_EXPIRY) : undefined,
+    usePat: process.env.JIRA_USE_PAT_AUTH === 'true',
+    backupPat: process.env.JIRA_BACKUP_PAT || '',
+    backupPatExpiry: process.env.JIRA_BACKUP_PAT_EXPIRY ? new Date(process.env.JIRA_BACKUP_PAT_EXPIRY) : undefined,
+    useBackupPat: process.env.JIRA_USE_BACKUP_PAT === 'true',
+    backupPatCreatedAt: process.env.JIRA_BACKUP_PAT_CREATED ? new Date(process.env.JIRA_BACKUP_PAT_CREATED) : undefined
   },
   defaultProject: process.env.JIRA_DEFAULT_PROJECT,
   maxResults: parseInt(process.env.JIRA_MAX_RESULTS || '50', 10),
@@ -87,7 +103,14 @@ function createConfig(): JiraConfig {
       imsToken: process.env.JIRA_IMS_TOKEN || defaults.auth.imsToken,
       apiKey: process.env.JIRA_API_KEY || defaults.auth.apiKey,
       username: process.env.JIRA_USERNAME || defaults.auth.username,
-      password: process.env.JIRA_PASSWORD || defaults.auth.password
+      password: process.env.JIRA_PASSWORD || defaults.auth.password,
+      pat: process.env.JIRA_PAT || defaults.auth.pat,
+      patExpiry: process.env.JIRA_PAT_EXPIRY ? new Date(process.env.JIRA_PAT_EXPIRY) : defaults.auth.patExpiry,
+      usePat: process.env.JIRA_USE_PAT_AUTH === 'true' || defaults.auth.usePat,
+      backupPat: process.env.JIRA_BACKUP_PAT || defaults.auth.backupPat,
+      backupPatExpiry: process.env.JIRA_BACKUP_PAT_EXPIRY ? new Date(process.env.JIRA_BACKUP_PAT_EXPIRY) : defaults.auth.backupPatExpiry,
+      useBackupPat: process.env.JIRA_USE_BACKUP_PAT === 'true' || defaults.auth.useBackupPat,
+      backupPatCreatedAt: process.env.JIRA_BACKUP_PAT_CREATED ? new Date(process.env.JIRA_BACKUP_PAT_CREATED) : defaults.auth.backupPatCreatedAt
     },
     defaultProject: process.env.JIRA_DEFAULT_PROJECT || defaults.defaultProject,
     maxResults: parseInt(process.env.JIRA_MAX_RESULTS || String(defaults.maxResults), 10),
@@ -121,5 +144,13 @@ function createConfig(): JiraConfig {
 
   return config;
 }
+
+// Re-export validation utilities from pat-validation module
+export {
+  isValidPatFormat,
+  isBackupPatExpired,
+  isBackupPatValid,
+  shouldUseBackupPat,
+} from './pat-validation.js';
 
 export const config = createConfig();

@@ -11,9 +11,21 @@ export default {
       'ts-jest',
       {
         useESM: true,
+        tsconfig: {
+          module: 'ES2022',
+          target: 'ES2020',
+          moduleResolution: 'NodeNext',
+          isolatedModules: true,
+        },
+        diagnostics: {
+          ignoreCodes: [151002],
+        },
       },
     ],
   },
   testMatch: ['**/tests/**/*.test.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  transformIgnorePatterns: ['node_modules/(?!(dotenv)/)'],
+  collectCoverageFrom: ['corp_jira_mcp/**/*.ts', '!corp_jira_mcp/**/*.test.ts'],
+  coveragePathIgnorePatterns: ['node_modules'],
 };
