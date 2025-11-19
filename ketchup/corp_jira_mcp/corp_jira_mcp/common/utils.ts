@@ -223,61 +223,26 @@ export async function jiraRequest(
   path: string,
   options: RequestOptions = {}
 ): Promise<unknown> {
-  let headers: Record<string, string>;
-  
-  // Determine which authentication method to use based on config
-  if (config.useIpaas) {
-    // iPaaS authentication
-    
-    // First, try to use the token from the incoming request
-    if (currentAuthToken) {
-      logToFile('Using token from incoming request Authorization header');
-      
-      // Extract token from "Bearer " prefix if present
-      const token = currentAuthToken.startsWith('Bearer ') 
-        ? currentAuthToken.substring(7) 
-        : currentAuthToken;
-      
-      headers = {
-        ...constructIpaasHeaders(
-          token,
-          config.auth.apiKey || '',
-          config.auth.username,
-          config.auth.password
-        ),
-        ...options.headers
-      };
-    } else {
-      // Fallback to environment variables if no incoming token
-      logToFile('No incoming token, falling back to environment variables');
-      const { imsToken, apiKey, username, password } = config.auth;
-      
-      if (!imsToken || !apiKey) {
-        throw new Error("IMS token and API key are required for iPaaS authentication");
-      }
-      
-      headers = {
-        ...constructIpaasHeaders(imsToken, apiKey, username, password),
-        ...options.headers
-      };
-    }
-  } else {
-    // Direct Jira authentication
-    headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    ...options.headers,
+  // Use buildJiraAuthHeaders to get appropriate authentication headers based on config
+  let headers = buildJiraAuthHeaders(config);
+
+  // Handle incoming request token for iPaaS mode
+  if (config.useIpaas && currentAuthToken) {
+    logToFile('Using token from incoming request Authorization header for iPaaS');
+
+    // Extract token from "Bearer " prefix if present
+    const token = currentAuthToken.startsWith('Bearer ')
+      ? currentAuthToken.substring(7)
+      : currentAuthToken;
+
+    headers['Authorization'] = token;
+  }
+
+  // Merge with any custom headers provided in options (allows overrides)
+  headers = {
+    ...headers,
+    ...options.headers
   };
-
-  // Get auth details from config
-  const { email, token } = config.auth;
-  if (!email || !token) {
-      throw new Error("Email and token are required for direct authentication");
-  }
-
-  // Construct auth header using simplified approach
-  headers["Authorization"] = constructAuthHeader(email, token);
-  }
 
   // Build URL
   const url = path.startsWith('http') ? path : buildUrl(path, {});

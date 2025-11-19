@@ -187,3 +187,201 @@ describe('buildJiraAuthHeaders', () => {
     expect(headers.Password).toBeUndefined();
   });
 });
+
+describe('jiraRequest', () => {
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
+    process.env.JIRA_EMAIL = 'test@adobe.com';
+    process.env.JIRA_PERSONAL_ACCESS_TOKEN = 'base_token';
+    process.env.USE_IPAAS = 'false';
+    process.env.JIRA_LOG_FILE = '/tmp/jira-test.log';
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    jest.restoreAllMocks();
+  });
+
+  it('should use PAT headers when usePat=true', async () => {
+    process.env.JIRA_USE_PAT_AUTH = 'true';
+    process.env.JIRA_PAT = 'my_pat_token_12345';
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue('{"success":true}')
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    await jiraRequest('myself');
+
+    const callArgs = mockFetch.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    expect(headers.Authorization).toBe('Bearer my_pat_token_12345');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
+  it('should use iPaaS headers when useIpaas=true', async () => {
+    process.env.USE_IPAAS = 'true';
+    process.env.JIRA_API_KEY = 'test_api_key';
+    process.env.JIRA_IMS_TOKEN = 'test_ims_token';
+    delete process.env.JIRA_EMAIL;
+    delete process.env.JIRA_PERSONAL_ACCESS_TOKEN;
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue('{"success":true}')
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    await jiraRequest('myself');
+
+    const callArgs = mockFetch.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    expect(headers.Authorization).toBe('test_ims_token');
+    expect(headers.Api_key).toBe('test_api_key');
+  });
+
+  it('should use Basic Auth as fallback', async () => {
+    process.env.JIRA_USE_PAT_AUTH = 'false';
+    process.env.USE_IPAAS = 'false';
+    process.env.JIRA_EMAIL = 'user@adobe.com';
+    process.env.JIRA_PERSONAL_ACCESS_TOKEN = 'direct_token';
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue('{"success":true}')
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    await jiraRequest('myself');
+
+    const callArgs = mockFetch.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    const expectedAuth = `Basic ${Buffer.from('user@adobe.com:direct_token').toString('base64')}`;
+    expect(headers.Authorization).toBe(expectedAuth);
+  });
+
+  it('should return parsed JSON on successful request', async () => {
+    process.env.JIRA_USE_PAT_AUTH = 'true';
+    process.env.JIRA_PAT = 'test_pat';
+
+    const responseData = { name: 'John Doe', email: 'john@example.com' };
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue(JSON.stringify(responseData))
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    const result = await jiraRequest('myself');
+
+    expect(result).toEqual(responseData);
+  });
+
+  it('should handle 401 error with createJiraError', async () => {
+    process.env.JIRA_USE_PAT_AUTH = 'true';
+    process.env.JIRA_PAT = 'invalid_pat';
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue('{"errorMessages":["Authentication failed"]}')
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    await expect(jiraRequest('myself')).rejects.toThrow();
+  });
+
+  it('should handle network timeout properly', async () => {
+    process.env.JIRA_USE_PAT_AUTH = 'true';
+    process.env.JIRA_PAT = 'test_pat';
+    process.env.JIRA_TIMEOUT = '1000';
+
+    const mockFetch = jest.fn().mockRejectedValue(new Error('The operation timed out'));
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    await expect(jiraRequest('myself')).rejects.toThrow('The operation timed out');
+  });
+
+  it('should merge custom headers from options', async () => {
+    process.env.JIRA_USE_PAT_AUTH = 'true';
+    process.env.JIRA_PAT = 'test_pat';
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue('{"success":true}')
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest } = await import('../dist/corp_jira_mcp/common/utils.js');
+    await jiraRequest('myself', {
+      headers: { 'X-Custom-Header': 'custom-value' }
+    });
+
+    const callArgs = mockFetch.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    expect(headers['X-Custom-Header']).toBe('custom-value');
+    expect(headers.Authorization).toBe('Bearer test_pat');
+  });
+
+  it('should use incoming request token for iPaaS when available', async () => {
+    process.env.USE_IPAAS = 'true';
+    process.env.JIRA_API_KEY = 'test_api_key';
+    process.env.JIRA_IMS_TOKEN = 'default_ims_token';
+    delete process.env.JIRA_EMAIL;
+    delete process.env.JIRA_PERSONAL_ACCESS_TOKEN;
+
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Map([['content-type', 'application/json']]),
+      text: jest.fn().mockResolvedValue('{"success":true}')
+    });
+
+    global.fetch = mockFetch;
+
+    const { jiraRequest, setCurrentAuthToken } = await import('../dist/corp_jira_mcp/common/utils.js');
+    setCurrentAuthToken('Bearer incoming_token_12345');
+    await jiraRequest('myself');
+
+    const callArgs = mockFetch.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    expect(headers.Authorization).toBe('incoming_token_12345');
+    expect(headers.Api_key).toBe('test_api_key');
+  });
+});
