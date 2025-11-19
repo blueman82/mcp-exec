@@ -14,8 +14,8 @@ VPC_ID="vpc-0853eb6d"  # Same VPC as asksplunk-prod
 SUBNET_ID="subnet-ce8e12b9"  # Same subnet as asksplunk-prod
 SG_PRODUCTION="sg-7997a71c"  # Production SG from asksplunk
 SG_PUBLIC_WEB="sg-7633b010"  # Public-web-access SG from asksplunk
-IAM_INSTANCE_PROFILE="maptimize-ec2-instance-profile"
-IAM_ROLE_NAME="maptimize-ec2-role"
+IAM_INSTANCE_PROFILE="maptimize-instance-profile"  # Existing profile created by conductor
+IAM_ROLE_NAME="maptimize-instance-role"  # Existing role created by conductor
 KEY_PAIR_NAME="maptimize-ec2-keypair"
 
 log_message() {
