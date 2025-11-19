@@ -39,6 +39,65 @@ usermod -aG docker admin
 log_message "Installing SSSD for LDAP authentication"
 apt-get install -y sssd sssd-ldap libsss-sudo sssd-tools ldap-utils
 
+# Deploy SSSD configuration (matching asksplunk-prod)
+log_message "Deploying SSSD configuration"
+cat > /etc/sssd/sssd.conf <<'SSSDEOF'
+[sssd]
+debug_level = 0
+config_file_version = 2
+services = nss, pam, ssh, sudo
+domains = default
+
+[domain/default]
+debug_level = 0
+ldap_disable_paging = True
+ldap_id_use_start_tls = True
+ldap_schema = rfc2307bis
+ldap_search_base = o=adbe
+ldap_deref_threshold = 0
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+
+ldap_uri = ldaps://ldap-proxy.camp-infra.adobe.net:10636
+ldap_backup_uri = ldaps://camp-infra.adobe.net:636
+
+ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
+cache_credentials = True
+ldap_tls_reqcert = demand
+ldap_group_member = uniqueMember
+enumerate = False
+ldap_enumeration_refresh_timeout = 18000
+entry_cache_timeout = 14400
+entry_cache_user_timeout = 14400
+entry_cache_group_timeout = 14400
+entry_cache_netgroup_timeout = 14400
+entry_cache_service_timeout = 14400
+
+sudo_provider = ldap
+ldap_sudo_search_base = ou=SUDOers,o=adbe
+ldap_user_ssh_public_key = sshPublicKey
+
+access_provider = simple
+ignore_group_members = True
+simple_allow_groups = campaign, Campaign_LB_Admin, campaignbastionhosts, Campaign_Temp_Users, campaign_sustenance, campaign_cc
+
+[nss]
+filter_users = root,neolane,nobody,ntp,named,smtp,postgres,postfix,nagios,nrpe,httpd,hadoop,nssagent,ssh-authkeys,asc-bkaccess,asc-oit,asc-setup,asc-rundeck,asc-airflow,mbplc,mabadhoc,mabRelay
+filter_groups = chrooted,asc-users
+default_shell = /bin/bash
+
+[pam]
+
+[ssh]
+
+[sudo]
+SSSDEOF
+
+chmod 600 /etc/sssd/sssd.conf
+chown root:root /etc/sssd/sssd.conf
+log_message "SSSD configuration deployed"
+
 # Configure nsswitch.conf for SSSD sudo integration
 log_message "Configuring nsswitch.conf for SSSD sudo responder"
 if ! grep -q "^sudoers:" /etc/nsswitch.conf; then
@@ -50,6 +109,7 @@ fi
 log_message "Enabling and starting SSSD service"
 systemctl enable sssd
 systemctl start sssd
+log_message "SSSD service started"
 
 # Set up SSH key for admin user (from EC2 instance metadata)
 log_message "Setting up SSH key for admin user"
