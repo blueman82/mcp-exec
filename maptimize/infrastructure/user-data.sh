@@ -35,8 +35,33 @@ log_message "docker-compose installed"
 log_message "Adding admin to docker group"
 usermod -aG docker admin
 
-# SSSD/LDAP disabled for MVP - can be added in future phases if needed
-log_message "SSSD/LDAP authentication skipped (not required for MVP)"
+# Install SSSD for LDAP authentication
+log_message "Installing SSSD for LDAP authentication"
+apt-get install -y sssd sssd-ldap ldap-utils libnss-ldapd
+
+# Create SSSD configuration directory
+mkdir -p /etc/sssd
+chmod 755 /etc/sssd
+
+# Create basic SSSD configuration (to be populated by CloudFormation or manual setup)
+log_message "Creating SSSD configuration template"
+cat > /etc/sssd/sssd.conf.template <<'EOF'
+[domain/ldap]
+auth_provider = ldap
+id_provider = ldap
+ldap_uri = ldap://ldap.example.com
+ldap_search_base = dc=example,dc=com
+ldap_default_bind_dn = cn=admin,dc=example,dc=com
+ldap_default_authtok = PLACEHOLDER
+enumerate = false
+cache_credentials = true
+
+[sssd]
+domains = ldap
+services = nss, pam
+EOF
+
+chmod 600 /etc/sssd/sssd.conf.template
 
 # Set up SSH key for admin user (from EC2 instance metadata)
 log_message "Setting up SSH key for admin user"
