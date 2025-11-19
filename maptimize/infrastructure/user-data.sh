@@ -35,33 +35,21 @@ log_message "docker-compose installed"
 log_message "Adding admin to docker group"
 usermod -aG docker admin
 
-# Install SSSD for LDAP authentication
+# Install SSSD for LDAP authentication (matching asksplunk-prod configuration)
 log_message "Installing SSSD for LDAP authentication"
-apt-get install -y sssd sssd-ldap ldap-utils libnss-ldapd
+apt-get install -y sssd sssd-ldap libsss-sudo sssd-tools ldap-utils
 
-# Create SSSD configuration directory
-mkdir -p /etc/sssd
-chmod 755 /etc/sssd
+# Configure nsswitch.conf for SSSD sudo integration (required for LDAP sudo rules)
+log_message "Configuring nsswitch.conf for SSSD sudo responder"
+if ! grep -q "^sudoers:" /etc/nsswitch.conf; then
+    echo 'sudoers:        files sss' >> /etc/nsswitch.conf
+    log_message "Added sudoers entry to nsswitch.conf"
+fi
 
-# Create basic SSSD configuration (to be populated by CloudFormation or manual setup)
-log_message "Creating SSSD configuration template"
-cat > /etc/sssd/sssd.conf.template <<'EOF'
-[domain/ldap]
-auth_provider = ldap
-id_provider = ldap
-ldap_uri = ldap://ldap.example.com
-ldap_search_base = dc=example,dc=com
-ldap_default_bind_dn = cn=admin,dc=example,dc=com
-ldap_default_authtok = PLACEHOLDER
-enumerate = false
-cache_credentials = true
-
-[sssd]
-domains = ldap
-services = nss, pam
-EOF
-
-chmod 600 /etc/sssd/sssd.conf.template
+# Enable and start SSSD service
+log_message "Enabling and starting SSSD service"
+systemctl enable sssd
+systemctl start sssd
 
 # Set up SSH key for admin user (from EC2 instance metadata)
 log_message "Setting up SSH key for admin user"
