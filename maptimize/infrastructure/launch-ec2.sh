@@ -145,6 +145,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
     --security-group-ids "$SG_PRODUCTION" "$SG_PUBLIC_WEB" \
     --iam-instance-profile "Name=$IAM_INSTANCE_PROFILE" \
     --user-data "file://infrastructure/user-data.sh" \
+    --metadata-options "HttpTokens=required,HttpPutResponseHopLimit=1" \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME},{Key=Environment,Value=production},{Key=CostCenter,Value=MSIO-EMEA},{Key=ManagedBy,Value=MSIO-EMEA},{Key=Owner,Value=harrison},{Key=Project,Value=maptimize-slack-bot}]" \
     --region "$AWS_REGION" \
     --query 'Instances[0].InstanceId' \
