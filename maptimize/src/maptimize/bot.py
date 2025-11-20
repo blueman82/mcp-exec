@@ -8,7 +8,6 @@ The bot uses Socket Mode which provides a persistent WebSocket connection
 without requiring the application to expose a public HTTP endpoint.
 """
 
-import logging
 from typing import Any, Callable
 
 from slack_bolt.adapter.socket_mode import (  # type: ignore[import-not-found]
@@ -17,11 +16,6 @@ from slack_bolt.adapter.socket_mode import (  # type: ignore[import-not-found]
 from slack_bolt.app import App  # type: ignore[import-not-found]
 
 from maptimize.config import get_slack_tokens
-
-# Enable logging for slack-bolt
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("slack_bolt").setLevel(logging.DEBUG)
-logging.getLogger("slack_sdk").setLevel(logging.DEBUG)
 from maptimize.handlers import (
     handle_app_mention as process_app_mention,
 )
@@ -61,14 +55,7 @@ def handle_app_mention(body: Any, say: Callable[..., Any]) -> None:
         body: Event payload from Slack
         say: Callable for sending messages to the channel
     """
-    try:
-        print("DEBUG: app_mention event received", flush=True)
-        process_app_mention(body, say)
-        print("DEBUG: app_mention handled successfully", flush=True)
-    except Exception as e:
-        print(f"ERROR: app_mention handler failed: {e}", flush=True)
-        import traceback
-        traceback.print_exc()
+    process_app_mention(body, say)
 
 
 @app.command("/maptimize")
@@ -83,15 +70,8 @@ def handle_slash_command(ack: Callable[[], None], body: Any, say: Callable[..., 
         body: Command payload from Slack
         say: Callable for sending messages
     """
-    try:
-        print("DEBUG: slash_command /maptimize received", flush=True)
-        ack()
-        process_slash_command(body, say)
-        print("DEBUG: slash_command handled successfully", flush=True)
-    except Exception as e:
-        print(f"ERROR: slash_command handler failed: {e}", flush=True)
-        import traceback
-        traceback.print_exc()
+    ack()
+    process_slash_command(body, say)
 
 
 def create_socket_handler() -> SocketModeHandler:
@@ -112,15 +92,5 @@ def create_socket_handler() -> SocketModeHandler:
 
 
 if __name__ == "__main__":
-    # Start Socket Mode handler
-    try:
-        print("Starting Socket Mode handler...", flush=True)
-        handler = create_socket_handler()
-        print("Socket Mode handler created, starting connection...", flush=True)
-        print(f"APP_TOKEN present: {bool(APP_TOKEN)}", flush=True)
-        handler.start()
-        print("Socket Mode handler started", flush=True)
-    except Exception as e:
-        print(f"ERROR starting Socket Mode handler: {e}", flush=True)
-        import traceback
-        traceback.print_exc()
+    handler = create_socket_handler()
+    handler.start()
