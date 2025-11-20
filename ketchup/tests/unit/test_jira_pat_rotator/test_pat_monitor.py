@@ -4,7 +4,7 @@ Tests for PAT expiry monitor.
 
 Verifies:
 - Correctly calculates days until PAT expiry
-- Detects when < 75 days remaining and rotation is needed
+- Detects when <= 15 days remaining and rotation is needed
 - Handles missing JIRA_PAT_EXPIRY gracefully
 - Parses ISO 8601 date strings correctly
 """
@@ -62,12 +62,12 @@ class TestPatExpiryCalculation:
 class TestRotationNeeded:
     """Tests for detecting when PAT rotation is needed."""
 
-    def test_detects_rotation_needed_when_less_than_75_days_remaining(self):
-        """Test that rotation is needed when < 75 days remaining."""
+    def test_detects_rotation_needed_when_less_than_15_days_remaining(self):
+        """Test that rotation is needed when < 15 days remaining."""
         monitor = PatMonitor()
 
-        # Set expiry date to 60 days in the future
-        expiry_date = datetime.utcnow() + timedelta(days=60)
+        # Set expiry date to 10 days in the future (less than 15-day buffer)
+        expiry_date = datetime.utcnow() + timedelta(days=10)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
@@ -75,11 +75,11 @@ class TestRotationNeeded:
 
             assert result is True
 
-    def test_detects_no_rotation_needed_when_more_than_75_days_remaining(self):
-        """Test that rotation is not needed when > 75 days remaining."""
+    def test_detects_no_rotation_needed_when_more_than_15_days_remaining(self):
+        """Test that rotation is not needed when > 15 days remaining."""
         monitor = PatMonitor()
 
-        # Set expiry date to 90 days in the future
+        # Set expiry date to 90 days in the future (well beyond 15-day buffer)
         expiry_date = datetime.utcnow() + timedelta(days=90)
         expiry_iso = expiry_date.isoformat()
 
@@ -88,19 +88,47 @@ class TestRotationNeeded:
 
             assert result is False
 
-    def test_detects_rotation_needed_at_exactly_75_day_boundary(self):
-        """Test boundary condition at exactly 75 days."""
+    def test_detects_no_rotation_needed_at_75_days_remaining(self):
+        """Test that rotation is NOT needed at 75 days remaining (early in lifecycle)."""
         monitor = PatMonitor()
 
-        # Set expiry date to exactly 75 days in the future
+        # Set expiry date to 75 days in the future
         expiry_date = datetime.utcnow() + timedelta(days=75)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
             result = monitor.should_rotate()
 
-            # At exactly 75 days, rotation should be needed (< 75 becomes <=)
+            # At 75 days remaining, rotation should NOT be needed (> 15 day buffer)
+            assert result is False
+
+    def test_detects_rotation_needed_at_exactly_15_day_boundary(self):
+        """Test boundary condition at exactly 15 days."""
+        monitor = PatMonitor()
+
+        # Set expiry date to exactly 15 days in the future
+        expiry_date = datetime.utcnow() + timedelta(days=15)
+        expiry_iso = expiry_date.isoformat()
+
+        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+            result = monitor.should_rotate()
+
+            # At exactly 15 days, rotation should be needed (days_remaining <= 15)
             assert result is True
+
+    def test_detects_rotation_not_needed_at_20_days(self):
+        """Test that rotation is NOT needed at 20 days (well above buffer)."""
+        monitor = PatMonitor()
+
+        # Set expiry date to 20 days in the future (well above 15-day buffer)
+        expiry_date = datetime.utcnow() + timedelta(days=20)
+        expiry_iso = expiry_date.isoformat()
+
+        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+            result = monitor.should_rotate()
+
+            # At 20 days, rotation should NOT be needed (> 15 day buffer)
+            assert result is False
 
     def test_detects_rotation_needed_when_already_expired(self):
         """Test that rotation is needed when PAT is already expired."""

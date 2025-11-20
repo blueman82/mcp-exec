@@ -3,7 +3,10 @@
 PAT expiry monitor for JIRA authentication tokens.
 
 Monitors the expiry date of JIRA Personal Access Tokens (PATs) and
-determines if rotation is needed based on a 75-day threshold.
+determines if rotation is needed based on a 15-day buffer before expiry.
+
+For a 90-day PAT, rotation triggers when 15 or fewer days remain,
+allowing the PAT to be used for 75+ days of its lifecycle.
 
 Reads JIRA_PAT_EXPIRY from AWS Secrets Manager and calculates
 days remaining until expiry.
@@ -17,8 +20,9 @@ from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
 
-# Threshold for triggering PAT rotation (days)
-ROTATION_THRESHOLD_DAYS = 75
+# Safety buffer before PAT expiry to trigger rotation (days)
+# For a 90-day PAT, this allows 75 days of use before rotation
+EXPIRY_BUFFER_DAYS = 15
 
 
 class PatMonitor:
@@ -125,9 +129,13 @@ class PatMonitor:
         Determine if PAT rotation is needed.
 
         Returns rotation needed based on:
-        - True if expiry is within 75 days or already expired
+        - True if 15 or fewer days remain before expiry (safety buffer)
+        - True if PAT is already expired
         - True if expiry date cannot be retrieved (safety measure)
-        - False if expiry is more than 75 days away
+        - False if more than 15 days remain before expiry
+
+        For a 90-day PAT, this allows the PAT to be used for 75+ days
+        before triggering rotation, leaving a 15-day safety buffer.
 
         Returns:
             True if rotation is needed, False otherwise.
@@ -143,17 +151,18 @@ class PatMonitor:
         try:
             days_remaining = self._calculate_days_remaining(expiry_iso)
 
-            # Rotation needed if <= 75 days remaining
-            needs_rotation = days_remaining <= ROTATION_THRESHOLD_DAYS
+            # Rotation needed if <= 15 days remaining (safety buffer before expiry)
+            needs_rotation = days_remaining <= EXPIRY_BUFFER_DAYS
 
             if needs_rotation:
                 logger.warning(
                     f"PAT rotation needed: {days_remaining} days remaining "
-                    f"(threshold: {ROTATION_THRESHOLD_DAYS} days)"
+                    f"(buffer: {EXPIRY_BUFFER_DAYS} days before expiry)"
                 )
             else:
                 logger.info(
-                    f"PAT rotation not needed: {days_remaining} days remaining"
+                    f"PAT rotation not needed: {days_remaining} days remaining "
+                    f"(rotation triggers at {EXPIRY_BUFFER_DAYS} days or fewer)"
                 )
 
             return needs_rotation
