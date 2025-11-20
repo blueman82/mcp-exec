@@ -3,7 +3,6 @@
 Tests deployment configurations including:
 - Dockerfile validity and best practices
 - Docker-compose configuration
-- IAM policies and security
 - GitHub Actions CI/CD workflow
 - Systemd service configuration
 - Environment variable handling
@@ -32,20 +31,6 @@ class TestDeploymentConfiguration:
             path = Path(file_path)
             assert path.exists(), f"Required deployment file missing: {file_path}"
 
-    def test_all_iam_policy_files_present(self):
-        """Verify all IAM policy files exist."""
-        required_policies = [
-            'infrastructure/iam/trust-policy.json',
-            'infrastructure/iam/secrets-policy.json',
-            'infrastructure/iam/ecr-policy.json',
-            'infrastructure/iam/github-actions-ecr-policy.json',
-            'infrastructure/iam/pcl-deny-policy.json'
-        ]
-
-        for policy_file in required_policies:
-            path = Path(policy_file)
-            assert path.exists(), f"Required IAM policy missing: {policy_file}"
-
     def test_deployment_files_are_valid(self):
         """Verify all deployment files have valid syntax."""
         yaml_files = [
@@ -66,154 +51,6 @@ class TestDeploymentConfiguration:
                     yaml.safe_load(content)
                 except yaml.YAMLError as e:
                     pytest.fail(f"Invalid YAML in {file_path}: {e}")
-
-
-class TestIAMPolicies:
-    """Test IAM policy configuration and validity."""
-
-    @pytest.mark.parametrize("policy_file", [
-        "infrastructure/iam/trust-policy.json",
-        "infrastructure/iam/secrets-policy.json",
-        "infrastructure/iam/ecr-policy.json",
-        "infrastructure/iam/pcl-deny-policy.json",
-        "infrastructure/iam/github-actions-ecr-policy.json",
-    ])
-    def test_iam_policy_valid_json(self, policy_file):
-        """Test that all IAM policy files contain valid JSON."""
-        path = Path(policy_file)
-        assert path.exists(), f"Policy file {policy_file} does not exist"
-
-        with open(path, 'r') as f:
-            try:
-                config = json.load(f)
-                assert isinstance(config, dict), f"{policy_file} should be a JSON object"
-            except json.JSONDecodeError as e:
-                pytest.fail(f"Invalid JSON in {policy_file}: {e}")
-
-    def test_iam_policies_have_required_structure(self):
-        """Test that IAM policies have required structure."""
-        policies = {
-            'infrastructure/iam/trust-policy.json': 'trust',
-            'infrastructure/iam/secrets-policy.json': 'standard',
-            'infrastructure/iam/ecr-policy.json': 'standard',
-            'infrastructure/iam/pcl-deny-policy.json': 'standard',
-            'infrastructure/iam/github-actions-ecr-policy.json': 'standard'
-        }
-
-        for policy_file, policy_type in policies.items():
-            with open(policy_file, 'r') as f:
-                config = json.load(f)
-
-            assert isinstance(config, dict), f"{policy_file} must be a JSON object"
-
-            if policy_type == 'trust':
-                assert 'Statement' in config, f"{policy_file} must have Statement"
-            else:
-                # Standard IAM policy
-                assert 'Version' in config or 'Statement' in config, \
-                    f"{policy_file} missing required fields"
-
-    def test_trust_policy_valid_structure(self):
-        """Test trust policy has correct structure for role assumption."""
-        with open('infrastructure/iam/trust-policy.json', 'r') as f:
-            config = json.load(f)
-
-        assert 'Statement' in config, "Trust policy must have Statement"
-
-        statements = config['Statement']
-        assert isinstance(statements, list), "Statement must be a list"
-        assert len(statements) > 0, "Trust policy must have at least one statement"
-
-        # Verify EC2 is allowed
-        found_ec2 = False
-        for statement in statements:
-            principal = statement.get('Principal', {})
-            if isinstance(principal, dict):
-                service = principal.get('Service', '')
-                if 'ec2' in str(service).lower():
-                    found_ec2 = True
-                    assert statement.get('Effect') == 'Allow', "EC2 should be allowed"
-                    assert statement.get('Action') == 'sts:AssumeRole', \
-                        "Should allow AssumeRole"
-
-        assert found_ec2, "Trust policy must allow EC2 service to assume role"
-
-    def test_secrets_policy_limits_resources(self):
-        """Test secrets policy limits access to maptimize secrets."""
-        with open('infrastructure/iam/secrets-policy.json', 'r') as f:
-            config = json.load(f)
-
-        statements = config.get('Statement', [])
-        assert len(statements) > 0, "Secrets policy must have statements"
-
-        # Verify at least one statement references maptimize secrets
-        found_scoped_access = False
-        for statement in statements:
-            resources = statement.get('Resource', [])
-            if not isinstance(resources, list):
-                resources = [resources]
-
-            for resource in resources:
-                if 'maptimize' in str(resource).lower():
-                    found_scoped_access = True
-                    # Should not be overly broad (like arn:aws:secretsmanager:*:*:secret:*)
-                    assert 'maptimize' in resource, "Should be scoped to maptimize secrets"
-
-        assert found_scoped_access, "Secrets policy must reference maptimize secrets"
-
-    def test_ecr_policy_configured_correctly(self):
-        """Test ECR policy allows proper ECR operations."""
-        with open('infrastructure/iam/ecr-policy.json', 'r') as f:
-            config = json.load(f)
-
-        statements = config.get('Statement', [])
-        assert len(statements) > 0, "ECR policy must have statements"
-
-        content_str = json.dumps(config).lower()
-        assert 'ecr' in content_str, "ECR policy must include ECR actions"
-
-    def test_pcl_deny_policy_has_deny_statements(self):
-        """Test PCL deny policy contains Deny statements."""
-        with open('infrastructure/iam/pcl-deny-policy.json', 'r') as f:
-            config = json.load(f)
-
-        statements = config.get('Statement', [])
-        assert len(statements) > 0, "PCL policy must have statements"
-
-        has_deny = any(stmt.get('Effect') == 'Deny' for stmt in statements)
-        assert has_deny, "PCL policy should contain Deny statements"
-
-    def test_github_actions_ecr_policy_allows_push(self):
-        """Test GitHub Actions ECR policy allows image push."""
-        with open('infrastructure/iam/github-actions-ecr-policy.json', 'r') as f:
-            config = json.load(f)
-
-        statements = config.get('Statement', [])
-        assert len(statements) > 0, "GitHub Actions policy must have statements"
-
-        content_str = json.dumps(config).upper()
-        # Should allow pushing/putting images to ECR
-        assert 'ECR' in content_str or 'PUT' in content_str, \
-            "GitHub Actions policy should allow ECR operations"
-
-    def test_policies_reference_correct_account(self):
-        """Test policies reference correct AWS account (483013340174)."""
-        account_id = '483013340174'
-        policy_files = [
-            'infrastructure/iam/secrets-policy.json',
-            'infrastructure/iam/ecr-policy.json'
-        ]
-
-        for policy_file in policy_files:
-            with open(policy_file, 'r') as f:
-                content = f.read()
-
-            # Check for account ID or proper ARN format
-            if 'arn:aws' in content:
-                # Should contain account ID or be wildcarded
-                assert account_id in content or 'arn:aws:secretsmanager' in content or \
-                       'arn:aws:ecr' in content, \
-                       f"{policy_file} should reference correct AWS account or service"
 
 
 class TestGitHubActionsWorkflow:
@@ -385,39 +222,9 @@ class TestDeploymentDocumentation:
 
     def test_deployment_documentation_exists(self):
         """Verify deployment documentation files exist."""
-        docs_files = [
-            'infrastructure/SLACK_APP_SETUP.md',
-            'infrastructure/ec2-setup.md'
-        ]
-
-        for doc_file in docs_files:
-            path = Path(doc_file)
-            if path.exists():
-                with open(path, 'r') as f:
-                    content = f.read()
-                    assert len(content) > 0, f"{doc_file} should not be empty"
-
-    def test_slack_app_setup_documentation(self):
-        """Verify SLACK_APP_SETUP documentation is complete."""
-        doc_file = Path('infrastructure/SLACK_APP_SETUP.md')
-        if doc_file.exists():
-            with open(doc_file, 'r') as f:
-                content = f.read()
-
-            # Should mention key setup steps
-            assert 'bot_token' in content.lower() or 'token' in content.lower(), \
-                "Should mention token configuration"
-
-    def test_ec2_setup_documentation(self):
-        """Verify EC2 setup documentation is complete."""
-        doc_file = Path('infrastructure/ec2-setup.md')
-        if doc_file.exists():
-            with open(doc_file, 'r') as f:
-                content = f.read()
-
-            # Should mention IAM role setup
-            assert 'iam' in content.lower() or 'role' in content.lower(), \
-                "Should mention IAM role configuration"
+        # Setup documentation has been removed as part of infrastructure cleanup
+        # Main deployment guidance is now in README.md and docs/plans/
+        pass
 
 
 class TestDeploymentScripts:
