@@ -51,15 +51,15 @@ def handle_app_mention(body: Dict[str, Any], say: Callable) -> None:
         # Format response message
         message_text = create_block_kit_message(processes)
 
-        # Send ephemeral message (visible only to user)
-        say(text=message_text, response_type="ephemeral")
+        # Send message to channel
+        say(text=message_text)
 
         logger.info("mention_handled_success", user_id=user_id)
 
     except Exception as e:
         logger.error("mention_handling_failed", error=str(e), exc_info=True)
         try:
-            say(text="An error occurred while processing your request", response_type="ephemeral")
+            say(text="An error occurred while processing your request")
         except Exception as fallback_error:
             logger.error("mention_error_response_failed", error=str(fallback_error))
 

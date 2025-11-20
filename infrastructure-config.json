@@ -1,0 +1,249 @@
+{
+  "infrastructure_summary": {
+    "last_updated": "2025-11-20T00:00:00Z",
+    "aws_profile": "campaign_prod_v7",
+    "region": "eu-west-1",
+    "audit_mode": "read-only"
+  },
+  "instances": [
+    {
+      "instance_id": "i-05c5614fff69d4200",
+      "name": "maptimize-prod",
+      "instance_type": "t3.xlarge",
+      "state": "running",
+      "launch_time": "2025-11-19T23:26:25+00:00",
+      "availability_zone": "eu-west-1a",
+      "ami_id": "ami-0f9647c4c08a170a6",
+      "key_pair": "maptimize-ec2-keypair",
+      "network": {
+        "vpc_id": "vpc-0853eb6d",
+        "subnet_id": "subnet-ce8e12b9",
+        "private_ip": "10.30.0.41",
+        "public_ip": "52.213.19.55",
+        "public_dns": "ec2-52-213-19-55.eu-west-1.compute.amazonaws.com",
+        "primary_eni": "eni-01a8b880e676516b1",
+        "mac_address": "06:47:9e:35:08:81"
+      },
+      "storage": {
+        "root_device": "/dev/xvda",
+        "root_device_type": "ebs",
+        "volume_id": "vol-06d225bfc29c29f64",
+        "ebs_optimized": false
+      },
+      "compute": {
+        "vcpu_count": 4,
+        "cores": 2,
+        "threads_per_core": 2,
+        "hypervisor": "xen",
+        "virtualization_type": "hvm",
+        "platform": "Linux/UNIX"
+      },
+      "security_groups": [
+        {
+          "group_id": "sg-7997a71c",
+          "group_name": "production"
+        },
+        {
+          "group_id": "sg-7633b010",
+          "group_name": "public-web-access"
+        }
+      ]
+    },
+    {
+      "instance_id": "i-083af757db8f80b09",
+      "name": "maptimize-prod",
+      "instance_type": "t3.xlarge",
+      "state": "running",
+      "launch_time": "2025-11-19T23:30:28+00:00",
+      "availability_zone": "eu-west-1a",
+      "ami_id": "ami-0f9647c4c08a170a6",
+      "key_pair": "maptimize-ec2-keypair",
+      "network": {
+        "vpc_id": "vpc-0853eb6d",
+        "subnet_id": "subnet-ce8e12b9",
+        "private_ip": "10.30.0.152",
+        "public_ip": "3.252.54.191",
+        "public_dns": "ec2-3-252-54-191.eu-west-1.compute.amazonaws.com",
+        "primary_eni": "eni-0096153eeaddf7078",
+        "mac_address": "06:3d:da:fc:e6:cb"
+      },
+      "storage": {
+        "root_device": "/dev/xvda",
+        "root_device_type": "ebs",
+        "volume_id": "vol-042cad383ec24880c",
+        "ebs_optimized": false
+      },
+      "compute": {
+        "vcpu_count": 4,
+        "cores": 2,
+        "threads_per_core": 2,
+        "hypervisor": "xen",
+        "virtualization_type": "hvm",
+        "platform": "Linux/UNIX"
+      },
+      "security_groups": [
+        {
+          "group_id": "sg-7997a71c",
+          "group_name": "production"
+        },
+        {
+          "group_id": "sg-7633b010",
+          "group_name": "public-web-access"
+        }
+      ]
+    }
+  ],
+  "vpc": {
+    "vpc_id": "vpc-0853eb6d",
+    "vpc_name": "production",
+    "state": "available",
+    "cidr_block": "10.30.0.0/16",
+    "tenancy": "default",
+    "comment": "Production VPC",
+    "tags": {
+      "Name": "production",
+      "Comment": "Production VPC",
+      "emissary": "trusted"
+    }
+  },
+  "subnet": {
+    "subnet_id": "subnet-ce8e12b9",
+    "subnet_name": "production-subnet-1",
+    "availability_zone": "eu-west-1a",
+    "availability_zone_id": "euw1-az2",
+    "vpc_id": "vpc-0853eb6d",
+    "cidr_block": "10.30.0.0/24",
+    "available_ip_count": 210,
+    "map_public_ip_on_launch": true,
+    "state": "available"
+  },
+  "security_groups": [
+    {
+      "group_id": "sg-7997a71c",
+      "group_name": "production",
+      "description": "Production SG",
+      "vpc_id": "vpc-0853eb6d",
+      "inbound_ports": [
+        "22 (SSH - Limited sources)",
+        "25 (SMTP)",
+        "80 (HTTP)",
+        "443 (HTTPS)",
+        "5666 (Monitoring)",
+        "7777 (Internal)",
+        "9997 (Monitoring)",
+        "9998 (Monitoring)",
+        "12000 (Internal service)"
+      ],
+      "outbound": "All traffic to 10.30.0.0/16, SSH to 10.40.0.0/16"
+    },
+    {
+      "group_id": "sg-7633b010",
+      "group_name": "public-web-access",
+      "description": "Gives access to http and https",
+      "vpc_id": "vpc-0853eb6d",
+      "inbound_ports": [
+        "22 (SSH - Limited sources)",
+        "80 (HTTP)",
+        "443 (HTTPS)"
+      ],
+      "outbound": "All traffic to 0.0.0.0/0"
+    }
+  ],
+  "iam_configuration": {
+    "instance_profile_name": "maptimize-instance-profile",
+    "instance_profile_arn": "arn:aws:iam::483013340174:instance-profile/maptimize-instance-profile",
+    "aws_account_id": "483013340174"
+  },
+  "tags": {
+    "Name": "maptimize-prod",
+    "Project": "maptimize-slack-bot",
+    "ManagedBy": "MSIO-EMEA",
+    "CostCenter": "MSIO-EMEA",
+    "Environment": "production",
+    "Owner": "harrison"
+  },
+  "elastic_ips": {
+    "allocated": false,
+    "count": 0,
+    "note": "Instances use dynamic public IPs - consider allocating Elastic IPs for production"
+  },
+  "monitoring": {
+    "cloudwatch_monitoring_enabled": false,
+    "detailed_monitoring": false,
+    "auto_recovery": "default (enabled)",
+    "reboot_migration": "default (enabled)",
+    "recommendation": "Enable CloudWatch detailed monitoring for production instances"
+  },
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "category": "High Availability",
+      "recommendation": "Deploy instances across multiple availability zones (eu-west-1b, eu-west-1c)",
+      "impact": "Protects against AZ-level failures"
+    },
+    {
+      "priority": "HIGH",
+      "category": "Network",
+      "recommendation": "Allocate Elastic IPs for production instances",
+      "impact": "Provides consistent public IPs and DDoS protection"
+    },
+    {
+      "priority": "HIGH",
+      "category": "Load Balancing",
+      "recommendation": "Place instances behind Application/Network Load Balancer",
+      "impact": "Enables distribution of traffic and health checks"
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "Monitoring",
+      "recommendation": "Enable CloudWatch detailed monitoring",
+      "impact": "Better visibility into instance performance and issues"
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "Security",
+      "recommendation": "Enforce IMDSv2 by setting HTTP Tokens to Required",
+      "impact": "Prevents SSRF attacks on instance metadata"
+    },
+    {
+      "priority": "MEDIUM",
+      "category": "Cost Optimization",
+      "recommendation": "Consider Reserved Instances or Compute Savings Plans",
+      "impact": "Potential 30-70% cost reduction for continuous workloads"
+    },
+    {
+      "priority": "LOW",
+      "category": "Auto-scaling",
+      "recommendation": "Implement Auto Scaling Groups for automatic recovery",
+      "impact": "Automatic replacement of failed instances"
+    }
+  ],
+  "access_points": {
+    "instance_1": {
+      "instance_id": "i-05c5614fff69d4200",
+      "public_ip": "52.213.19.55",
+      "public_dns": "ec2-52-213-19-55.eu-west-1.compute.amazonaws.com",
+      "private_ip": "10.30.0.41",
+      "http_accessible": true,
+      "https_accessible": true,
+      "ssh_accessible": true,
+      "ssh_sources": "Limited - see security group sg-7633b010 and sg-7997a71c"
+    },
+    "instance_2": {
+      "instance_id": "i-083af757db8f80b09",
+      "public_ip": "3.252.54.191",
+      "public_dns": "ec2-3-252-54-191.eu-west-1.compute.amazonaws.com",
+      "private_ip": "10.30.0.152",
+      "http_accessible": true,
+      "https_accessible": true,
+      "ssh_accessible": true,
+      "ssh_sources": "Limited - see security group sg-7633b010 and sg-7997a71c"
+    }
+  },
+  "operational_contacts": {
+    "instance_owner": "harrison",
+    "project": "maptimize-slack-bot",
+    "cost_center": "MSIO-EMEA",
+    "managed_by": "MSIO-EMEA"
+  }
+}
