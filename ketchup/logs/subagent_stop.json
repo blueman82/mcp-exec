@@ -268,5 +268,25 @@
     "stop_hook_active": false,
     "agent_id": "acb7c230",
     "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/agent-acb7c230.jsonl"
+  },
+  {
+    "session_id": "147de1b7-ef10-4f37-9285-ad2af23fde31",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/147de1b7-ef10-4f37-9285-ad2af23fde31.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "132761e6",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-132761e6.jsonl"
+  },
+  {
+    "session_id": "147de1b7-ef10-4f37-9285-ad2af23fde31",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/147de1b7-ef10-4f37-9285-ad2af23fde31.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "85a308b5",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-85a308b5.jsonl"
   }
 ]

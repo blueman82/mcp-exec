@@ -383,5 +383,27 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "did you verify?\nssh ketchup-prod1 \"sudo docker logs -f ketchup-jira-pat-rotator\"\nError response from daemon: No such container: ketchup-jira-pat-rotator"
     }
+  },
+  {
+    "timestamp": "2025-11-20T16:50:33.997276",
+    "input_data": {
+      "session_id": "147de1b7-ef10-4f37-9285-ad2af23fde31",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/147de1b7-ef10-4f37-9285-ad2af23fde31.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "Continue BUT why would you restore deleted files if they are deleted deleted for a reason??"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T17:04:09.741625",
+    "input_data": {
+      "session_id": "147de1b7-ef10-4f37-9285-ad2af23fde31",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/147de1b7-ef10-4f37-9285-ad2af23fde31.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "needs to be .confluence"
+    }
   }
 ]
