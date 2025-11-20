@@ -45,7 +45,6 @@ env/
 
 # Claude Code
 .claude/
-docs/
 
 # Node
 node_modules/

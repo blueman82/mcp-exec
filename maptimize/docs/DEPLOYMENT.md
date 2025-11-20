@@ -440,6 +440,175 @@ aws iam add-role-to-instance-profile \
   --role-name ec2-maptimize-role
 ```
 
+## SSSD/LDAP Configuration
+
+This section covers LDAP user authentication setup using SSSD (System Security Services Daemon).
+
+### Prerequisites
+
+- LDAP server configured and accessible (e.g., `ldap-proxy.camp-infra.adobe.net:10636`)
+- Network connectivity from EC2 instance to LDAP server
+- Root/sudo access to the EC2 instance
+
+### Step 1: Install SSSD and LDAP Packages
+
+```bash
+# SSH into the EC2 instance
+ssh -i maptimize-key.pem harrison@$PUBLIC_IP
+
+# Update package lists
+sudo apt-get update
+
+# Install SSSD and LDAP packages
+sudo apt-get install -y \
+  sssd \
+  sssd-ldap \
+  sssd-common \
+  libsss-certmap0 \
+  libsss-idmap0 \
+  libsss-nss-idmap0 \
+  ldap-utils
+```
+
+### Step 2: Deploy SSSD Configuration
+
+Create `/etc/sssd/sssd.conf` with LDAP configuration:
+
+```bash
+sudo tee /etc/sssd/sssd.conf > /dev/null <<'EOF'
+[sssd]
+debug_level = 0
+config_file_version = 2
+services = nss, pam, ssh, sudo
+domains = default
+
+[domain/default]
+debug_level = 0
+ldap_disable_paging = True
+ldap_id_use_start_tls = True
+ldap_schema = rfc2307bis
+ldap_search_base = o=adbe
+ldap_deref_threshold = 0
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+
+ldap_uri = ldaps://ldap-proxy.camp-infra.adobe.net:10636
+ldap_backup_uri = ldaps://camp-infra.adobe.net:636
+
+ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
+cache_credentials = True
+ldap_tls_reqcert = demand
+ldap_group_member = uniqueMember
+enumerate = False
+ldap_enumeration_refresh_timeout = 18000
+entry_cache_timeout = 14400
+entry_cache_user_timeout = 14400
+entry_cache_group_timeout = 14400
+entry_cache_netgroup_timeout = 14400
+entry_cache_service_timeout = 14400
+
+sudo_provider = ldap
+ldap_sudo_search_base = ou=SUDOers,o=adbe
+ldap_user_ssh_public_key = sshPublicKey
+
+access_provider = simple
+ignore_group_members = True
+simple_allow_groups = campaign, Campaign_LB_Admin, campaignbastionhosts, Campaign_Temp_Users, campaign_sustenance, campaign_cc
+EOF
+
+# Set proper permissions
+sudo chmod 600 /etc/sssd/sssd.conf
+sudo chown root:root /etc/sssd/sssd.conf
+```
+
+### Step 3: Update NSS Configuration
+
+Update `/etc/nsswitch.conf` to enable SSSD:
+
+```bash
+sudo sed -i 's/^passwd:\s*files$/passwd:\t\tfiles sss/' /etc/nsswitch.conf
+sudo sed -i 's/^group:\s*files$/group:\t\tfiles sss/' /etc/nsswitch.conf
+sudo sed -i 's/^shadow:\s*files$/shadow:\t\tfiles sss/' /etc/nsswitch.conf
+```
+
+### Step 4: Enable Automatic Home Directory Creation
+
+Add PAM module for automatic home directory creation:
+
+```bash
+sudo tee -a /etc/pam.d/common-session > /dev/null <<'EOF'
+session      optional      pam_mkhomedir.so
+session required  pam_mkhomedir.so umask=0022
+EOF
+```
+
+### Step 5: Configure SSH Authentication
+
+Allow both public key and password authentication with LDAP fallback:
+
+```bash
+sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sudo sshd -t  # Verify config
+sudo systemctl reload sshd
+```
+
+### Step 6: Configure Sudo Access
+
+Create sudoers entry for LDAP group access:
+
+```bash
+echo '%Campaign_LB_Admin ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/91-ldap-campaign
+sudo chmod 440 /etc/sudoers.d/91-ldap-campaign
+sudo visudo -c  # Verify syntax
+```
+
+### Step 7: Start and Enable SSSD
+
+```bash
+sudo systemctl start sssd
+sudo systemctl enable sssd
+sudo systemctl status sssd
+```
+
+### Step 8: Verify LDAP Resolution
+
+```bash
+# Test user resolution
+sleep 2
+id <ldap-username>
+
+# Test group membership
+getent group
+
+# Test sudo access
+sudo -l
+```
+
+### Troubleshooting
+
+**SSSD service won't start:**
+```bash
+sudo journalctl -xe -u sssd
+sudo sssctl config-check
+```
+
+**LDAP users not resolving:**
+```bash
+sudo systemctl stop sssd
+sudo rm -rf /var/lib/sss/db/*
+sudo systemctl start sssd
+
+# Test connectivity
+ldapsearch -x -H ldaps://ldap-proxy.camp-infra.adobe.net:10636 -b "o=adbe" -s base
+```
+
+**SSH password authentication not working:**
+```bash
+sudo grep -E "PasswordAuthentication|PubkeyAuthentication" /etc/ssh/sshd_config
+sudo sshd -T | grep -i password
+```
+
 ### Step 2: Configure CloudWatch Logging
 
 ```bash
