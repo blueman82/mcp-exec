@@ -1,0 +1,319 @@
+<!-- CONFLUENCE STORAGE FORMAT FOR KETCHUP WIKI PAT UPDATES -->
+
+<!-- =====================================================
+     PART 1: UPDATE SECTION 13 (Production Services)
+     Add this line to the "Singleton Services (prod1 only)" list
+     ===================================================== -->
+
+<li><strong>ketchup-jira-pat-rotator</strong> - JIRA PAT token rotation (checks every 24 hours, rotates 15 days before 90-day expiry)</li>
+
+
+<!-- =====================================================
+     PART 2: UPDATE SECTION 14 (Feature Flags)
+     Add this bullet to the existing feature flags list
+     ===================================================== -->
+
+<li><code>JIRA_USE_PAT_AUTH=true</code> - Personal Access Token authentication for JIRA (replaces Basic Auth, enabled Nov 20, 2025)</li>
+
+
+<!-- =====================================================
+     PART 3: NEW SECTION 25 - JIRA Authentication (PAT)
+     Add this entire section after Section 24
+     ===================================================== -->
+
+<h1 data-nh-numbering="25. ">JIRA Authentication (PAT)</h1>
+
+<h2>Overview</h2>
+
+<p>Ketchup uses <strong>Personal Access Tokens (PATs)</strong> for JIRA authentication, replacing the deprecated Basic Authentication (username/password) method. JIRA fully deprecated Basic Auth on <strong>November 30, 2025</strong>.</p>
+
+<p><strong>Why PATs?</strong></p>
+<ul>
+<li><strong>Security</strong>: Token-based authentication is more secure than username/password</li>
+<li><strong>Compliance</strong>: Aligns with Adobe's enterprise security standards</li>
+<li><strong>Mandatory</strong>: JIRA API rejects Basic Auth after Nov 30, 2025</li>
+<li><strong>Automated rotation</strong>: System automatically rotates tokens before expiry</li>
+</ul>
+
+<p><strong>Key Constraint</strong>: PATs have a maximum 90-day expiry (mandatory, cannot be extended). This requires automated rotation to maintain continuous JIRA access.</p>
+
+<h2>Production Configuration</h2>
+
+<p>PAT configuration is stored in <strong>AWS Secrets Manager</strong> under <code>Ketchup_Token_Secrets</code>:</p>
+
+<table class="wrapped relative-table" style="width: 100.0%;">
+<colgroup>
+<col style="width: 30.0%;" />
+<col style="width: 40.0%;" />
+<col style="width: 30.0%;" />
+</colgroup>
+<tbody>
+<tr>
+<th><p><strong>Secret Key</strong></p></th>
+<th><p><strong>Purpose</strong></p></th>
+<th><p><strong>Example Value</strong></p></th>
+</tr>
+<tr>
+<td><p><code>ketchup_jira_pat</code></p></td>
+<td><p>Primary PAT token</p></td>
+<td><p><code>ATAT1234567890ABCDEF...</code></p></td>
+</tr>
+<tr>
+<td><p><code>ketchup_jira_pat_expiry</code></p></td>
+<td><p>Token expiry date (ISO 8601)</p></td>
+<td><p><code>2025-12-15T10:30:00Z</code></p></td>
+</tr>
+<tr>
+<td><p><code>ketchup_jira_pat_id</code></p></td>
+<td><p>Token ID for revocation tracking</p></td>
+<td><p><code>649e9d1c1234</code></p></td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Note</strong>: There are NO backup PAT fields. The system maintains only one active PAT at a time with automated rotation before expiry.</p>
+
+<p><strong>Feature Flag</strong> (docker-compose.yml line 152):</p>
+<pre>JIRA_USE_PAT_AUTH=true  # Enabled in production</pre>
+
+<h2>Operational Notes</h2>
+
+<h3>Automatic Rotation Schedule</h3>
+
+<p>The <code>ketchup-jira-pat-rotator</code> service runs as a <strong>singleton on prod1</strong> and performs the following:</p>
+
+<table class="wrapped relative-table" style="width: 100.0%;">
+<colgroup>
+<col style="width: 25.0%;" />
+<col style="width: 25.0%;" />
+<col style="width: 50.0%;" />
+</colgroup>
+<tbody>
+<tr>
+<th><p><strong>Check</strong></p></th>
+<th><p><strong>Frequency</strong></p></th>
+<th><p><strong>Action</strong></p></th>
+</tr>
+<tr>
+<td><p>Rotation check</p></td>
+<td><p>Every 24 hours</p></td>
+<td><p>Checks if PAT needs rotation</p></td>
+</tr>
+<tr>
+<td><p>Health file update</p></td>
+<td><p>Every minute</p></td>
+<td><p>Updates <code>/tmp/jira_pat_rotator_health</code></p></td>
+</tr>
+<tr>
+<td><p>Rotation trigger</p></td>
+<td><p>15 days before expiry</p></td>
+<td><p>Creates new PAT when &lt;75 days remain</p></td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Rotation Flow</strong>:</p>
+<ol>
+<li>Check if PAT is within 15 days of expiry (90 - 15 = 75 days)</li>
+<li>Create new PAT via MCP JIRA service</li>
+<li>Validate new PAT works with JIRA API</li>
+<li>Update AWS Secrets Manager with new token</li>
+<li>Revoke old PAT</li>
+<li>Send success alert to #ketchup-alerts</li>
+</ol>
+
+<p><strong>Safety</strong>: Failed rotations do NOT break JIRA access. The old PAT remains active and an alert is sent to #ketchup-alerts.</p>
+
+<h3>Monitoring &amp; Alerts</h3>
+
+<p>All rotation events are reported to <strong>#ketchup-alerts</strong> (Channel ID: C0957H8ASH2):</p>
+
+<p><strong>Success Alert</strong>:</p>
+<pre>✅ JIRA PAT rotation successful
+Old token ID: 649e9d1c1234
+New token created: 2025-11-19T10:30:00Z
+New expiry: 2026-02-17T10:30:00Z
+Next rotation check: 2025-12-03</pre>
+
+<p><strong>Failure Alert</strong>:</p>
+<pre>❌ JIRA PAT rotation failed
+Error: AWS Secrets Manager connection timeout
+Stage: secrets_update
+Old PAT: Still active and valid (65 days remaining)
+Action: Verify AWS network connectivity, escalate if persistent</pre>
+
+<p><strong>Alert Cooldown</strong>: 1 hour per alert category (prevents spam during repeated failures)</p>
+
+<h3>Health Checks</h3>
+
+<p><strong>Health File</strong>: <code>/tmp/jira_pat_rotator_health</code></p>
+<ul>
+<li>Updated every minute by the rotation service</li>
+<li>Format: <code>timestamp:status:last_rotation:next_rotation</code></li>
+<li>Status values: <code>healthy</code>, <code>failed</code>, <code>critical</code></li>
+</ul>
+
+<p><strong>Docker Health Check</strong> (docker-compose.yml line 342):</p>
+<pre>test: ["CMD", "/app/scripts/healthcheck-jira-pat-rotator.sh"]
+interval: 300s  # Check every 5 minutes</pre>
+
+<h2>Troubleshooting</h2>
+
+<h3>Scenario 1: JIRA Operations Failing with 401 Unauthorized</h3>
+
+<p><strong>Symptoms</strong>: JIRA requests return 401 errors in application logs</p>
+
+<p><strong>Diagnosis</strong>:</p>
+<pre># Check current PAT in AWS Secrets Manager
+aws secretsmanager get-secret-value \
+  --secret-id Ketchup_Token_Secrets \
+  --region eu-west-1 \
+  --query 'SecretString' | jq -r | jq '.ketchup_jira_pat_expiry'
+
+# Compare expiry date to current date
+date -u +"%Y-%m-%dT%H:%M:%SZ"</pre>
+
+<p><strong>Resolution</strong>:</p>
+<ol>
+<li><strong>If PAT expired</strong>: Create new PAT immediately via iPaaS console and update secrets</li>
+<li><strong>If not expired</strong>: Check JIRA API connectivity and token format</li>
+<li><strong>Check feature flag</strong>: Verify <code>JIRA_USE_PAT_AUTH=true</code> in docker-compose.yml</li>
+</ol>
+
+<p><strong>Emergency Fix</strong>:</p>
+<pre># SSH to prod1
+ssh ketchup-prod1.campaign.adobe.com
+
+# Restart MCP JIRA service to reload secrets
+sudo docker-compose -f /opt/ketchup/docker-compose.yml restart mcp-jira</pre>
+
+<h3>Scenario 2: Rotation Alert Received</h3>
+
+<p><strong>What it means</strong>: Automated rotation failed, but <strong>old PAT is still valid</strong></p>
+
+<p><strong>Immediate actions</strong>:</p>
+<ol>
+<li>Check the alert message for specific error (creation, validation, secrets_update, revoke)</li>
+<li>Verify days remaining on current PAT (check alert or AWS Secrets Manager)</li>
+<li>If &gt;14 days remaining: Wait 24 hours for automatic retry</li>
+<li>If &lt;14 days remaining: Investigate immediately</li>
+</ol>
+
+<p><strong>Common causes</strong>:</p>
+<ul>
+<li><strong>Network timeout</strong>: Temporary, will retry in 24 hours</li>
+<li><strong>MCP service down</strong>: Check <code>docker ps | grep mcp-jira</code></li>
+<li><strong>AWS Secrets Manager access</strong>: Verify IAM permissions</li>
+<li><strong>JIRA API down</strong>: Check JIRA status page</li>
+</ul>
+
+<p><strong>Escalation criteria</strong>:</p>
+<ul>
+<li>PAT expires in &lt;7 days and rotation still failing</li>
+<li>Multiple rotation failures across 3+ days</li>
+<li>Critical alert received ("No valid JIRA PAT available")</li>
+</ul>
+
+<h3>Scenario 3: Rotation Service Not Running</h3>
+
+<p><strong>Diagnosis</strong>:</p>
+<pre># SSH to prod1 (singleton deployment)
+ssh ketchup-prod1.campaign.adobe.com
+
+# Check if service is running
+sudo docker ps | grep pat-rotator
+
+# Check service logs
+sudo docker logs ketchup-jira-pat-rotator | tail -100
+
+# Check health file (should update every minute)
+cat /tmp/jira_pat_rotator_health</pre>
+
+<p><strong>Resolution</strong>:</p>
+<pre># Restart service
+sudo docker-compose -f /opt/ketchup/docker-compose.yml restart ketchup-jira-pat-rotator
+
+# Verify it's running
+sudo docker ps | grep pat-rotator
+
+# Monitor logs for errors
+sudo docker logs -f ketchup-jira-pat-rotator</pre>
+
+<h3>Scenario 4: Manual PAT Creation Required</h3>
+
+<p><strong>When needed</strong>:</p>
+<ul>
+<li>Rotation service failed repeatedly and PAT expires in &lt;7 days</li>
+<li>Emergency recovery after PAT expiry</li>
+<li>Initial system setup</li>
+</ul>
+
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>Access iPaaS console (Adobe internal authentication required)</li>
+<li>Navigate to JIRA PAT management</li>
+<li>Create new PAT with 90-day expiry</li>
+<li>Copy token value, expiry date, and token ID</li>
+<li>Update AWS Secrets Manager (see example command below)</li>
+<li>Restart MCP JIRA service to reload secrets</li>
+<li>Verify JIRA operations work correctly</li>
+</ol>
+
+<p>AWS Secrets update example:</p>
+<pre>aws secretsmanager update-secret \
+  --secret-id Ketchup_Token_Secrets \
+  --region eu-west-1 \
+  --secret-string '{
+    "ketchup_jira_pat": "ATAT...",
+    "ketchup_jira_pat_expiry": "2026-02-17T10:30:00Z",
+    "ketchup_jira_pat_id": "649e9d1c1234"
+  }'</pre>
+
+<h2>Technical Documentation</h2>
+
+<p>For detailed technical implementation, see:</p>
+
+<ul>
+<li><strong><a href="https://git.corp.adobe.com/campaign-ops/camp-ops-tools-emea/blob/main/ketchup/docs/internal_documentation/jira_pat_rotation_system.md">JIRA PAT Rotation System Documentation</a></strong> - Complete system architecture, failure modes, and code references</li>
+<li><strong><a href="https://git.corp.adobe.com/campaign-ops/camp-ops-tools-emea/blob/main/ketchup/CLAUDE.md#infrastructure">CLAUDE.md - Infrastructure Section</a></strong> - Docker container configuration and deployment details</li>
+<li><strong><a href="https://git.corp.adobe.com/campaign-ops/camp-ops-tools-emea/blob/main/ketchup/infrastructure/docker-compose.yml#L152">docker-compose.yml (line 152)</a></strong> - Feature flag and environment configuration</li>
+</ul>
+
+<p><strong>Key Code Locations</strong>:</p>
+<ul>
+<li>Configuration: <code>corp_jira_mcp/corp_jira_mcp/common/config.ts</code></li>
+<li>Authentication: <code>corp_jira_mcp/corp_jira_mcp/common/utils.ts</code></li>
+<li>Rotation Service: <code>ketchup_jira_pat_rotator/</code> (singleton on prod1)</li>
+<li>Deployment Script: <code>infrastructure/deploy-ketchup.sh</code> (line 505: excludes rotator from prod2)</li>
+</ul>
+
+<p><strong>Related Services</strong>:</p>
+<ul>
+<li>MCP JIRA service handles all JIRA API authentication</li>
+<li>FastAPI app loads PAT configuration on startup</li>
+<li>All JIRA operations use PAT when <code>JIRA_USE_PAT_AUTH=true</code></li>
+</ul>
+
+
+<!-- =====================================================
+     END OF SECTION 25
+     ===================================================== -->
+
+
+<!--
+IMPLEMENTATION INSTRUCTIONS:
+
+1. Open the Ketchup wiki page in edit mode
+2. Find Section 13 (Production Services) - locate the "Singleton Services (prod1 only)" list
+   - Add the new <li> element from PART 1 to the end of that list
+
+3. Find Section 14 (Feature Flags) - locate the bulleted list of feature flags
+   - Add the new <li> element from PART 2 to the end of that list
+
+4. Find Section 24 (Backlog) - this is currently the last section
+   - After Section 24, insert PART 3 (the entire Section 25 HTML block)
+
+5. Save the page
+
+The numbering is handled by the data-nh-numbering attribute, so the wiki will automatically show "25." for the new section.
+-->
