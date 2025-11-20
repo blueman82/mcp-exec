@@ -20,6 +20,9 @@ from maptimize.handlers import (
     handle_app_mention as process_app_mention,
 )
 from maptimize.handlers import (
+    handle_message as process_message,
+)
+from maptimize.handlers import (
     handle_slash_command as process_slash_command,
 )
 
@@ -58,8 +61,22 @@ def handle_app_mention(body: Any, say: Callable[..., Any]) -> None:
     process_app_mention(body, say)
 
 
+@app.event("message")
+def handle_message(body: Any, say: Callable[..., Any]) -> None:
+    """Handle message events.
+
+    Called when messages are sent in channels or DMs.
+    Routes to the appropriate handler for processing.
+
+    Args:
+        body: Event payload from Slack
+        say: Callable for sending messages
+    """
+    process_message(body, say)
+
+
 @app.command("/maptimize")
-def handle_slash_command(ack: Callable[[], None], body: Any, say: Callable[..., Any]) -> None:
+def handle_slash_command(ack: Callable[[], None], body: Any, respond: Callable[..., Any]) -> None:
     """Handle /maptimize slash command.
 
     Called when user executes the /maptimize slash command.
@@ -68,10 +85,10 @@ def handle_slash_command(ack: Callable[[], None], body: Any, say: Callable[..., 
     Args:
         ack: Callable to acknowledge command receipt
         body: Command payload from Slack
-        say: Callable for sending messages
+        respond: Callable for sending ephemeral responses to slash commands
     """
     ack()
-    process_slash_command(body, say)
+    process_slash_command(body, respond)
 
 
 def create_socket_handler() -> SocketModeHandler:
