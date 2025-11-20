@@ -72,7 +72,6 @@ class SecretsManager:
         CRITICAL: This method MUST NOT overwrite other credentials like:
         - ipaas_username, ipaas_password, ipaas_api_key
         - ims_access_token
-        - ketchup_jira_backup_pat
 
         Args:
             new_pat: New PAT token

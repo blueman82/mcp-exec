@@ -187,5 +187,19 @@
     "timestamp": "",
     "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/agent-acb7c230.jsonl",
     "status": "completed"
+  },
+  {
+    "agent_id": "132761e6",
+    "session_id": "147de1b7-ef10-4f37-9285-ad2af23fde31",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-132761e6.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "85a308b5",
+    "session_id": "147de1b7-ef10-4f37-9285-ad2af23fde31",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-85a308b5.jsonl",
+    "status": "completed"
   }
 ]
