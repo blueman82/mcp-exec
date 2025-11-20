@@ -1,0 +1,138 @@
+"""Configuration module for Maptimize.
+
+Fetches Slack tokens from AWS Secrets Manager at runtime and loads
+process configuration from JSON files.
+
+Supports both EC2 (IAM role) and local development (AWS CLI profiles).
+"""
+
+import json
+import os
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Tuple
+
+import boto3  # type: ignore
+
+__all__ = [
+    "get_slack_tokens",
+    "load_processes",
+]
+
+
+def get_slack_tokens() -> Tuple[str, str, str]:
+    """Fetch Slack credentials from AWS Secrets Manager.
+
+    Retrieves Slack bot token, app token, and signing secret from AWS Secrets Manager.
+    Supports both EC2 (IAM role) and local development (AWS CLI profiles).
+
+    The signing secret is required for request signature verification to prevent
+    attackers from forging Slack requests.
+
+    Environment variables:
+        AWS_PROFILE: AWS CLI profile name for local development
+        AWS_REGION: AWS region (default: eu-west-1)
+        SLACK_TOKENS_SECRET_ID: Secrets Manager secret ID (default: maptimize/slack-tokens)
+
+    Returns:
+        Tuple of (bot_token, app_token, signing_secret)
+
+    Raises:
+        RuntimeError: If token retrieval fails or required keys are missing
+
+    Example:
+        >>> bot_token, app_token, signing_secret = get_slack_tokens()
+    """
+    region = os.getenv("AWS_REGION", "eu-west-1")
+    secret_id = os.getenv("SLACK_TOKENS_SECRET_ID", "maptimize/slack-tokens")
+    profile = os.getenv("AWS_PROFILE", None)
+
+    try:
+        # Create session with optional profile for local development
+        if profile:
+            session = boto3.Session(profile_name=profile)
+        else:
+            # EC2 instances use IAM role automatically
+            session = boto3.Session()
+
+        # Get Secrets Manager client
+        client = session.client("secretsmanager", region_name=region)
+
+        # Fetch secret from Secrets Manager
+        response = client.get_secret_value(SecretId=secret_id)
+
+        # Parse JSON secret
+        secret = json.loads(response["SecretString"])
+
+        # Extract tokens and signing secret
+        bot_token = secret["bot_token"]
+        app_token = secret["app_token"]
+        signing_secret = secret["signing_secret"]
+
+        return bot_token, app_token, signing_secret
+
+    except KeyError as e:
+        raise RuntimeError(f"Failed to fetch Slack tokens: Missing key {e} in secret")
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Failed to fetch Slack tokens: Invalid JSON in secret - {e}")
+    except Exception as e:
+        raise RuntimeError(f"Failed to fetch Slack tokens: {e}")
+
+
+@lru_cache(maxsize=1)
+def load_processes() -> dict[Any, Any]:
+    """Load process configuration from JSON file (cached).
+
+    Loads the process configuration from a hardcoded JSON file that defines
+    the structure and metadata for various business processes. Results are
+    cached in memory to avoid repeated disk I/O.
+
+    The cache is LRU-based with a size of 1 (only one configuration cached).
+    For configuration updates, the cache can be cleared with:
+        load_processes.cache_clear()
+
+    Returns:
+        Dictionary containing process configuration
+
+    Raises:
+        RuntimeError: If configuration file cannot be loaded
+
+    Example:
+        >>> processes = load_processes()
+        >>> print(processes["Service Review Process"])
+        >>> load_processes.cache_clear()  # Clear cache if config updated
+    """
+    try:
+        # Try multiple locations for config directory
+        # 1. Docker container path: /app/config
+        # 2. Relative to source module: ../../../config
+        possible_paths = [
+            Path("/app/config/processes.json"),
+            Path(__file__).parent.parent.parent / "config" / "processes.json",
+        ]
+
+        processes_file = None
+        for path in possible_paths:
+            if path.exists():
+                processes_file = path
+                break
+
+        if not processes_file:
+            raise FileNotFoundError(f"processes.json not found in any of: {possible_paths}")
+
+        # Load and parse JSON file
+        with open(processes_file, "r") as f:
+            processes: dict[Any, Any] = json.load(f)
+
+        return processes
+
+    except FileNotFoundError:
+        raise RuntimeError(
+            f"Failed to load process configuration: File not found at {processes_file}"
+        )
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            f"Failed to load process configuration: Invalid JSON in {processes_file} - {e}"
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to load process configuration: {e}")

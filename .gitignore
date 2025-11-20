@@ -45,7 +45,6 @@ env/
 
 # Claude Code
 .claude/
-docs/
 
 # Node
 node_modules/
@@ -72,3 +71,9 @@ build/
 # Git worktrees
 ketchup-*/
 *-worktree/
+
+# EC2 deployment artifacts
+*-ec2-keypair.pem
+instance-config.json
+.swarm/
+.claude-flow/

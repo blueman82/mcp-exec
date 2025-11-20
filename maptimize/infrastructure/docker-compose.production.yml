@@ -1,0 +1,50 @@
+services:
+  maptimize:
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:latest
+    container_name: maptimize-bot
+    restart: unless-stopped
+
+    # Resource limits for t3.micro instance (1GB RAM, 1 vCPU)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    # json-file logging with rotation (no CloudWatch)
+    logging:
+      driver: json-file
+      options:
+        max-size: 100m
+        max-file: '5'
+        labels: 'service=maptimize'
+
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "python", "-c", "import maptimize; print('healthy')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+    # Environment variables for production
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - ENVIRONMENT=production
+
+    # No explicit AWS credentials (uses EC2 IAM instance role)
+    # Volumes for persistent data if needed
+    volumes:
+      - /var/log/maptimize:/app/logs
+
+    # Network configuration
+    networks:
+      - maptimize-network
+
+networks:
+  maptimize-network:
+    driver: bridge
