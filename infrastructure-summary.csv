@@ -1,3 +1,0 @@
-Instance ID,Instance Name,Instance Type,State,Region,Availability Zone,Private IP,Public IP,VPC ID,Subnet ID,Security Groups,Key Pair,Owner,Environment,Cost Center
-i-05c5614fff69d4200,maptimize-prod,t3.xlarge,running,eu-west-1,eu-west-1a,10.30.0.41,52.213.19.55,vpc-0853eb6d,subnet-ce8e12b9,"sg-7997a71c (production), sg-7633b010 (public-web-access)",maptimize-ec2-keypair,harrison,production,MSIO-EMEA
-i-083af757db8f80b09,maptimize-prod,t3.xlarge,running,eu-west-1,eu-west-1a,10.30.0.152,3.252.54.191,vpc-0853eb6d,subnet-ce8e12b9,"sg-7997a71c (production), sg-7633b010 (public-web-access)",maptimize-ec2-keypair,harrison,production,MSIO-EMEA
