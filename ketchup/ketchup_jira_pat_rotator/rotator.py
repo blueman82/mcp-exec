@@ -14,6 +14,7 @@ Includes distributed locking to prevent concurrent rotations.
 """
 
 import asyncio
+import json
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -77,14 +78,15 @@ class SecretsManager:
         """Initialize secrets manager."""
         import boto3
         self.client = boto3.client("secretsmanager")
-        self.secret_name = "jira-pat-secret"
+        # CRITICAL: Use correct secret name matching AWS and env-aws.ts
+        self.secret_name = "Ketchup_Token_Secrets"
 
     async def get_current_pat(self) -> Dict[str, str]:
         """
         Get current PAT from AWS Secrets Manager.
 
         Returns:
-            Dictionary containing JIRA_PAT, JIRA_PAT_ID, JIRA_PAT_EXPIRY
+            Dictionary containing ketchup_jira_pat, ketchup_jira_pat_id, ketchup_jira_pat_expiry
         """
         try:
             response = self.client.get_secret_value(SecretId=self.secret_name)
@@ -94,9 +96,9 @@ class SecretsManager:
                 logger.warning("No secret found")
                 return {}
 
-            import json
             try:
                 secret_dict = json.loads(secret_string)
+                # Return the full secret dict to preserve all fields
                 return secret_dict
             except json.JSONDecodeError:
                 logger.error("Failed to parse secret as JSON")
@@ -113,7 +115,12 @@ class SecretsManager:
         new_expiry: str,
     ) -> bool:
         """
-        Update PAT in AWS Secrets Manager.
+        Update PAT in AWS Secrets Manager while preserving ALL other secrets.
+
+        CRITICAL: This method MUST NOT overwrite other credentials like:
+        - ipaas_username, ipaas_password, ipaas_api_key
+        - ims_access_token
+        - ketchup_jira_backup_pat
 
         Args:
             new_pat: New PAT token
@@ -124,21 +131,43 @@ class SecretsManager:
             True if update successful, False otherwise
         """
         try:
-            import json
-            secret_dict = {
-                "JIRA_PAT": new_pat,
-                "JIRA_PAT_ID": new_pat_id,
-                "JIRA_PAT_EXPIRY": new_expiry,
-            }
+            # Step 1: Get current secrets first to preserve all fields
+            response = self.client.get_secret_value(SecretId=self.secret_name)
+            secret_string = response.get("SecretString")
 
+            if not secret_string:
+                logger.error("Cannot update PAT: No existing secrets found")
+                return False
+
+            # Parse existing secrets
+            secret_dict = json.loads(secret_string)
+
+            # Log which fields we're preserving
+            preserved_fields = [k for k in secret_dict.keys() if k not in [
+                "ketchup_jira_pat", "ketchup_jira_pat_id", "ketchup_jira_pat_expiry"
+            ]]
+            logger.info(f"Preserving {len(preserved_fields)} existing secret fields: {preserved_fields}")
+
+            # Step 2: Update ONLY the PAT-related fields, preserve everything else
+            secret_dict["ketchup_jira_pat"] = new_pat
+            secret_dict["ketchup_jira_pat_id"] = new_pat_id
+            secret_dict["ketchup_jira_pat_expiry"] = new_expiry
+
+            # Step 3: Update secret with ALL fields preserved
             self.client.update_secret(
                 SecretId=self.secret_name,
                 SecretString=json.dumps(secret_dict),
             )
 
-            logger.info("PAT updated in Secrets Manager")
+            logger.info(
+                f"PAT updated in Secrets Manager "
+                f"(preserved {len(secret_dict)} total fields including iPaaS credentials)"
+            )
             return True
 
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse existing secrets as JSON: {e}")
+            return False
         except Exception as e:
             logger.error(f"Failed to update PAT in Secrets Manager: {e}")
             return False
@@ -374,8 +403,9 @@ class PATRotator:
                 }
 
             # Get current PAT for revocation later
-            current_pat = await self._secrets_manager.get_current_pat()
-            old_pat_id = current_pat.get("JIRA_PAT_ID", "unknown")
+            current_secrets = await self._secrets_manager.get_current_pat()
+            # Use correct field names matching AWS Secrets Manager
+            old_pat_id = current_secrets.get("ketchup_jira_pat_id", "unknown")
 
             # Step 3: Create new PAT via MCP
             logger.info("Creating new PAT via MCP")

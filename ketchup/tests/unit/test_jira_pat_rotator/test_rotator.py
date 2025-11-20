@@ -48,11 +48,15 @@ class TestCompleteSuccessfulRotationFlow:
             "revokedPatId": "old-pat-456"
         }
 
-        # Mock secrets manager
+        # Mock secrets manager with correct AWS field names
         rotator._secrets_manager.get_current_pat.return_value = {
-            "JIRA_PAT": "old-pat-token-abc",
-            "JIRA_PAT_ID": "old-pat-456",
-            "JIRA_PAT_EXPIRY": (datetime.utcnow() + timedelta(days=60)).isoformat()
+            "ketchup_jira_pat": "old-pat-token-abc",
+            "ketchup_jira_pat_id": "old-pat-456",
+            "ketchup_jira_pat_expiry": (datetime.utcnow() + timedelta(days=60)).isoformat(),
+            # Include other secrets that should be preserved
+            "ipaas_username": "test-user",
+            "ipaas_password": "test-pass",
+            "ims_access_token": "test-token"
         }
         rotator._secrets_manager.update_pat.return_value = True
 
@@ -131,10 +135,10 @@ class TestValidationFailureKeepsOldPAT:
             "error": "Invalid token format"
         }
 
-        # Mock get current PAT
+        # Mock get current PAT with correct field names
         rotator._secrets_manager.get_current_pat.return_value = {
-            "JIRA_PAT": "old-pat-token-abc",
-            "JIRA_PAT_ID": "old-pat-456"
+            "ketchup_jira_pat": "old-pat-token-abc",
+            "ketchup_jira_pat_id": "old-pat-456"
         }
 
         # Mock lock manager
@@ -187,8 +191,8 @@ class TestSecretsUpdateFailureKeepsOldPAT:
 
         # Mock secrets update to fail
         rotator._secrets_manager.get_current_pat.return_value = {
-            "JIRA_PAT": "old-pat-token-abc",
-            "JIRA_PAT_ID": "old-pat-456"
+            "ketchup_jira_pat": "old-pat-token-abc",
+            "ketchup_jira_pat_id": "old-pat-456"
         }
         rotator._secrets_manager.update_pat.side_effect = Exception("Secrets Manager error")
 
@@ -239,8 +243,8 @@ class TestRevocationFailureStillAlerts:
         rotator._mcp_client.revoke_pat.side_effect = Exception("Failed to revoke PAT")
 
         rotator._secrets_manager.get_current_pat.return_value = {
-            "JIRA_PAT": "old-pat-token-abc",
-            "JIRA_PAT_ID": "old-pat-456"
+            "ketchup_jira_pat": "old-pat-token-abc",
+            "ketchup_jira_pat_id": "old-pat-456"
         }
         rotator._secrets_manager.update_pat.return_value = True
 
@@ -317,8 +321,8 @@ class TestDistributedLockPreventsConurrentRotations:
         }
 
         rotator._secrets_manager.get_current_pat.return_value = {
-            "JIRA_PAT": "old-pat-token-abc",
-            "JIRA_PAT_ID": "old-pat-456"
+            "ketchup_jira_pat": "old-pat-token-abc",
+            "ketchup_jira_pat_id": "old-pat-456"
         }
         rotator._secrets_manager.update_pat.return_value = True
 
@@ -369,8 +373,8 @@ class TestRotationOrchestrationSequence:
 
         rotator._secrets_manager = AsyncMock()
         rotator._secrets_manager.get_current_pat.side_effect = lambda: (call_order.append("get_current"), {
-            "JIRA_PAT": "old-pat-token-abc",
-            "JIRA_PAT_ID": "old-pat-456"
+            "ketchup_jira_pat": "old-pat-token-abc",
+            "ketchup_jira_pat_id": "old-pat-456"
         })[1]
         rotator._secrets_manager.update_pat.side_effect = lambda *args: (call_order.append("update_secrets"), True)[1]
 

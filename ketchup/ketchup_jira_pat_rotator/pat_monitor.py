@@ -8,7 +8,7 @@ determines if rotation is needed based on a 15-day buffer before expiry.
 For a 90-day PAT, rotation triggers when 15 or fewer days remain,
 allowing the PAT to be used for 75+ days of its lifecycle.
 
-Reads JIRA_PAT_EXPIRY from AWS Secrets Manager and calculates
+Reads ketchup_jira_pat_expiry from AWS Secrets Manager and calculates
 days remaining until expiry.
 """
 
@@ -31,11 +31,12 @@ class PatMonitor:
     def __init__(self):
         """Initialize the PAT monitor."""
         self.secrets_client = boto3.client("secretsmanager")
-        self.secret_name = "jira-pat-secret"
+        # CRITICAL: Use correct secret name matching AWS and env-aws.ts
+        self.secret_name = "Ketchup_Token_Secrets"
 
     def _get_pat_expiry_from_secrets(self) -> Optional[str]:
         """
-        Retrieve JIRA_PAT_EXPIRY from AWS Secrets Manager.
+        Retrieve ketchup_jira_pat_expiry from AWS Secrets Manager.
 
         Returns:
             ISO 8601 formatted expiry date string, or None if not found.
@@ -57,7 +58,8 @@ class PatMonitor:
             import json
             try:
                 secret_dict = json.loads(secret_string)
-                expiry = secret_dict.get("JIRA_PAT_EXPIRY")
+                # Use correct field name matching AWS Secrets Manager
+                expiry = secret_dict.get("ketchup_jira_pat_expiry")
                 return expiry
             except json.JSONDecodeError:
                 # If not JSON, treat as raw string
@@ -113,7 +115,7 @@ class PatMonitor:
         expiry_iso = self._get_pat_expiry_from_secrets()
 
         if expiry_iso is None:
-            logger.warning("JIRA_PAT_EXPIRY not found in Secrets Manager")
+            logger.warning("ketchup_jira_pat_expiry not found in Secrets Manager")
             return None
 
         try:
@@ -144,7 +146,7 @@ class PatMonitor:
 
         if expiry_iso is None:
             logger.warning(
-                "JIRA_PAT_EXPIRY not found - triggering rotation for safety"
+                "ketchup_jira_pat_expiry not found - triggering rotation for safety"
             )
             return True
 
