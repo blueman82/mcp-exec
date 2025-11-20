@@ -7,13 +7,12 @@
 3. [System Architecture Overview](#system-architecture-overview)
 4. [Happy Path: How Successful Rotation Works](#happy-path-how-successful-rotation-works)
 5. [Failure Modes and Error Recovery](#failure-modes-and-error-recovery)
-6. [Backup PAT Management Strategy](#backup-pat-management-strategy)
-7. [Alerting Mechanism](#alerting-mechanism)
-8. [Metrics Collection and Health Tracking](#metrics-collection-and-health-tracking)
-9. [Integration with Ketchup Services](#integration-with-ketchup-services)
-10. [Troubleshooting Guide](#troubleshooting-guide)
-11. [Configuration Reference](#configuration-reference)
-12. [Code Reference Map](#code-reference-map)
+6. [Alerting Mechanism](#alerting-mechanism)
+7. [Metrics Collection and Health Tracking](#metrics-collection-and-health-tracking)
+8. [Integration with Ketchup Services](#integration-with-ketchup-services)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Configuration Reference](#configuration-reference)
+11. [Code Reference Map](#code-reference-map)
 
 ## Quick Start for On-Call Engineers
 
@@ -56,15 +55,14 @@ The JIRA PAT rotation system consists of four main components:
 **Location**: `ketchup/corp_jira_mcp/corp_jira_mcp/common/`
 
 **Files**:
-- `config.ts` (lines 7-24): Defines `JiraAuthConfig` interface with primary and backup PAT fields
-- `pat-validation.ts` (lines 3-61): Provides format validation, expiry checking, and decision logic
+- `config.ts` (lines 7-24): Defines `JiraAuthConfig` interface with primary PAT fields
+- `pat-validation.ts` (lines 3-61): Provides format validation and expiry checking
 - `env-aws.ts` (lines 29-39): Maps AWS Secrets Manager keys to environment variables
 
 **Responsibilities**:
 - Load PAT configuration from environment variables
 - Validate PAT format (alphanumeric, hyphens, underscores)
 - Check PAT expiry dates
-- Decide whether to use backup PAT (multi-factor logic)
 
 **Key interfaces**:
 ```typescript
@@ -72,10 +70,6 @@ interface JiraAuthConfig {
   pat?: string;                    // Primary PAT token
   patExpiry?: Date;                // When primary expires
   usePat?: boolean;                // Feature flag for PAT auth
-  backupPat?: string;              // Fallback token
-  backupPatExpiry?: Date;          // When backup expires
-  useBackupPat?: boolean;          // Explicitly use backup
-  backupPatCreatedAt?: Date;       // When backup was created
 }
 ```
 
@@ -91,7 +85,6 @@ interface JiraAuthConfig {
 **Authentication modes**:
 1. **iPaaS Mode** (lines 165-199): Sends request through Adobe's iPaaS proxy with IMS token
 2. **Direct JIRA** (lines 200-216): Direct Basic Auth (currently deprecated, to be removed)
-3. **Token Fallback** (future): Automatic fallback to backup PAT if primary expired
 
 **Request error handling** (lines 265-271):
 - Network errors are caught and logged
@@ -143,11 +136,9 @@ interface JiraAuthConfig {
     ↓
 4. Update AWS Secrets Manager with new PAT
     ↓
-5. Update backup PAT fields (move current backup to history)
+5. Revoke old PAT via MCP
     ↓
-6. Revoke old PAT via MCP
-    ↓
-7. Send success alert to #ketchup-alerts
+6. Send success alert to #ketchup-alerts
     ↓
 Sleep 24 hours, repeat
 ```
@@ -175,7 +166,6 @@ Sleep 24 hours, repeat
 - Create new PAT: Returns `JIRA_PAT_NEW_ABC123` with expiry 2026-01-01
 - Validate: POST to `/rest/api/3/myself` succeeds with new token
 - Update Secrets Manager: `ketchup_jira_pat` = `JIRA_PAT_NEW_ABC123`
-- Move old PAT to backup (Phase 2 feature)
 - Revoke old PAT: POST to `/rest/pat/latest/tokens/{id}` succeeds
 - Release lock
 - Send success alert: "✅ JIRA PAT rotation successful"
@@ -251,17 +241,13 @@ async def perform_rotation(self) -> bool:
 **System response**:
 - JIRA API returns 401 Unauthorized on requests
 - `jiraRequest()` catches error (lines 265-271 in utils.ts)
-- Fallback logic checks if backup PAT available
-- Uses backup PAT if valid (see Backup PAT section)
 - Logs error with context for ops investigation
 
 **Recovery**:
-- Backup PAT fallback is automatic and transparent
 - Rotation service should have created new PAT before expiry (75-day check)
-- If backup also expired: System fails with clear error message
 - On-call engineer must manually create new PAT via iPaaS console
 
-**Code location**: `utils.ts:200-216` (request error handling) + fallback logic (future addition)
+**Code location**: `utils.ts:200-216` (request error handling)
 
 ### Failure Mode 2: Rotation Service Crashes
 
@@ -368,128 +354,6 @@ async def perform_rotation(self) -> bool:
 4. **Safe defaults**: System always maintains old PAT until new one verified
 5. **Exponential backoff**: Consider retry logic on transient errors (Phase 2)
 
-## Backup PAT Management Strategy
-
-### Why We Need Backup PAT
-
-- **Primary failure scenarios**: PAT creation failed, validation failed, network issue
-- **Transition safety**: If rotation fails, backup PAT provides fallback access
-- **Graceful degradation**: System continues working on backup while ops investigates
-
-### Backup PAT Lifecycle
-
-#### Phase 1 (Current): Configuration & Fallback
-
-**Configuration** (config.ts lines 19-23):
-```typescript
-backupPat?: string;              // Secondary PAT for fallback
-backupPatExpiry?: Date;          // When backup expires
-useBackupPat?: boolean;          // Explicitly use backup
-backupPatCreatedAt?: Date;       // When backup was created
-```
-
-**Fallback decision logic** (pat-validation.ts lines 46-61):
-```
-1. If useBackupPat flag is TRUE → Use backup
-2. Else if primary PAT NOT expired → Use primary
-3. Else if primary PAT expired AND backup available AND valid → Use backup (auto-fallback)
-4. Else → Throw error "No PAT available"
-```
-
-**Loading from AWS Secrets Manager** (env-aws.ts lines 29-39):
-```
-ketchup_jira_backup_pat → JIRA_BACKUP_PAT
-ketchup_jira_backup_pat_expiry → JIRA_BACKUP_PAT_EXPIRY
-ketchup_jira_backup_pat_created → JIRA_BACKUP_PAT_CREATED
-```
-
-#### Phase 2 (Planned): Active Backup Rotation
-
-**Task 20 - BackupPATService** (plan-02):
-- Monitors backup PAT expiry
-- Creates new backup when current backup is < 14 days to expiry
-- Validates new backup works before storing
-- Maintains history of PAT rotations
-
-#### Phase 3 (Planned): Metrics & Alerting
-
-**Task 22 - Metrics collection** (plan-02):
-- Track rotation frequency
-- Monitor backup PAT usage (how often fallback happens)
-- Alert if backup being used (indicates primary rotation failed)
-
-### Backup PAT Testing
-
-**Test file**: `test_backup_pat_config.test.ts` (12 test cases)
-
-**Key test scenarios**:
-
-```typescript
-// Test 1: Load primary + backup from environment
-expect(config.auth.pat).toBe('primary-token');
-expect(config.auth.backupPat).toBe('backup-token');
-
-// Test 2: shouldUseBackupPat decision logic
-expect(shouldUseBackupPat({
-  useBackupPat: true,
-  backupPat: 'valid-token-123',
-  backupPatExpiry: new Date('2030-01-01Z')
-})).toBe(true);  // Explicitly enabled
-
-expect(shouldUseBackupPat({
-  useBackupPat: false,
-  pat: 'valid-primary-token',
-  patExpiry: new Date('2030-01-01Z'),
-  backupPat: 'valid-backup-token'
-})).toBe(false);  // Primary still valid
-
-expect(shouldUseBackupPat({
-  useBackupPat: false,
-  pat: 'expired-token',
-  patExpiry: new Date('2020-01-01Z'),  // Expired
-  backupPat: 'valid-backup-token',
-  backupPatExpiry: new Date('2030-01-01Z')
-})).toBe(true);  // Auto-fallback to backup
-
-// Test 3: Reject if backup expired
-expect(shouldUseBackupPat({
-  useBackupPat: true,
-  backupPat: 'expired-backup-token',
-  backupPatExpiry: new Date('2020-01-01Z')
-})).toBe(false);  // Can't use expired backup
-```
-
-### Backup PAT Creation (Phase 2 Task 20)
-
-When backup rotation is implemented:
-
-```python
-# Simplified logic from plan-02
-async def rotate_backup_pat_if_needed(self):
-    # Check if backup needs rotation
-    days_until_expiry = (backup_pat_expiry - now).days
-    if days_until_expiry > 14:
-        return  # Not yet time to rotate
-
-    # Create new backup PAT
-    new_backup = await mcp_client.createPAT()
-
-    # Validate it works
-    is_valid = await mcp_client.validatePAT(new_backup['token'])
-    if not is_valid:
-        raise RuntimeError("Backup PAT validation failed")
-
-    # Store in secrets (old backup moves to history)
-    await secrets_mgr.update_secret(
-        'ketchup_jira_backup_pat',
-        new_backup['token']
-    )
-    await secrets_mgr.update_secret(
-        'ketchup_jira_backup_pat_expiry',
-        new_backup['expiresAt']
-    )
-```
-
 ## Alerting Mechanism
 
 ### Alert Channel
@@ -557,14 +421,13 @@ Action: Verify AWS network connectivity, escalate if persistent
 
 ### Critical Alerts
 
-**When sent**: When BOTH primary and backup PATs are invalid
+**When sent**: When primary PAT is invalid or expired
 
 **Format**:
 ```
 Channel: #ketchup-alerts (may be urgent/paged)
 Text: "🚨 CRITICAL: No valid JIRA PAT available
 Primary: Expired {days_ago} days ago
-Backup: {missing|expired|invalid}
 Service: JIRA operations failing
 Action: Create new PAT immediately via iPaaS console"
 ```
@@ -623,10 +486,9 @@ timestamp:status:last_rotation:next_rotation
 
 **Storage location**: DynamoDB `ketchup_metrics` table
 
-**Metrics to collect** (plan-02 Task 22):
+**Metrics to collect**:
 - Rotation frequency (how often needed)
 - Rotation success rate
-- Backup PAT usage frequency (indicates failures)
 - Time spent in each rotation step
 - Error rates by failure mode
 - Alert spam analysis
@@ -641,14 +503,6 @@ timestamp:status:last_rotation:next_rotation
     'success': True,
     'old_token_id': '649e9d1c1234',
     'new_expiry': '2026-02-17T10:30:00Z'
-}
-
-{
-    'service': 'jira_pat_rotator',
-    'timestamp': '2025-11-20T10:30:00Z',
-    'metric_type': 'backup_pat_used',
-    'reason': 'primary_expired',
-    'days_remaining_on_backup': 45
 }
 ```
 
@@ -707,7 +561,7 @@ Request made with appropriate auth header (utils.ts:165-199)
 - All JIRA API interactions go through here
 - Loads PAT configuration (config.ts)
 - Provides authentication headers (utils.ts)
-- Handles both Primary and Backup PAT logic
+- Handles primary PAT authentication
 
 **How authentication works** (utils.ts:158-272):
 ```
@@ -722,11 +576,6 @@ jiraRequest(endpoint, options)
   ├─ Handle response/errors (lines 265-271)
   └─ Return result or throw error
 ```
-
-**Fallback logic** (planned addition to lines 200-216):
-- If primary PAT expired: Automatically try backup PAT
-- Transparent to callers (they don't need to handle it)
-- Logged for audit trail
 
 #### 4. PAT Rotation Service (New Phase 1)
 
@@ -760,16 +609,12 @@ Rotation Service (Singleton on prod1)
    ├─ AWS Secrets Manager: Ketchup_Token_Secrets
    │  ├─ ketchup_jira_pat
    │  ├─ ketchup_jira_pat_expiry
-   │  ├─ ketchup_jira_backup_pat
-   │  ├─ ketchup_jira_backup_pat_expiry
-   │  └─ ketchup_jira_backup_pat_created
+   │  └─ ketchup_jira_pat_id
 
 2. Docker Compose Environment (docker-compose.yml)
    ├─ JIRA_PAT (from secrets via env-aws.ts)
    ├─ JIRA_PAT_EXPIRY
-   ├─ JIRA_BACKUP_PAT
-   ├─ JIRA_BACKUP_PAT_EXPIRY
-   ├─ JIRA_BACKUP_PAT_CREATED
+   ├─ JIRA_PAT_ID
    └─ JIRA_USE_PAT_AUTH (feature flag)
 
 3. MCP Service Initialization (env-aws.ts)
@@ -852,20 +697,16 @@ aws secretsmanager get-secret-value \
 date  # Current date
 # If ketchup_jira_pat_expiry < current date, PAT is expired
 
-# 3. Check if backup PAT is available
-# Look for ketchup_jira_backup_pat in same output
-
-# 4. Check MCP service logs
+# 3. Check MCP service logs
 docker logs mcp-jira | grep -i "pat\|401\|unauthorized" | tail -50
 
-# 5. Check feature flag
+# 4. Check feature flag
 echo $JIRA_USE_PAT_AUTH
 # Should be "true" if PAT auth is enabled
 ```
 
 **Resolution**:
-- If PAT expired and backup invalid: Create new PAT immediately
-- If backup PAT exists and valid: System should auto-fallback
+- If PAT expired: Create new PAT immediately via iPaaS console
 - If 401 persists: Check token format and JIRA API connectivity
 
 ### Scenario 2: Rotation Service Crashed
@@ -942,42 +783,7 @@ docker logs jira-pat-rotator | grep -i "error\|failed" | tail -20
 - If permission error: Check IAM role and policy
 - If service restarting: Check logs for crash reason, fix bug or restart manually
 
-### Scenario 4: Backup PAT Being Used (Fallback Active)
-
-**Symptoms**:
-- Slack alerts mention backup PAT in use
-- Or Ketchup logs show "Using backup PAT"
-- Primary PAT is still valid but not being used
-
-**Root causes**:
-1. Primary PAT validation failed
-2. Rotation created new PAT but validation failed
-3. Feature flag toggled to useBackupPat=true
-
-**Troubleshooting steps**:
-```bash
-# 1. Check which PAT is configured
-aws secretsmanager get-secret-value \
-  --secret-id Ketchup_Token_Secrets \
-  --region eu-west-1 | grep -A2 "ketchup_jira.*pat"
-
-# 2. Check backup PAT expiry
-# If backup also near expiry: Create new PAT immediately
-
-# 3. Check why primary failed validation
-# Look in rotation service logs for validation errors
-
-# 4. Check feature flag
-docker-compose config | grep JIRA_USE_PAT_AUTH
-docker-compose config | grep -A2 "useBackupPat"
-```
-
-**Resolution**:
-- If primary expired: Rotation should create new one, next 24-hour check
-- If backup is only option: Create new PAT immediately and update secrets
-- If flag manually enabled: Review why (should be auto-fallback only)
-
-### Scenario 5: Cannot Create New PAT (MCP createPAT Fails)
+### Scenario 4: Cannot Create New PAT (MCP createPAT Fails)
 
 **Symptoms**: Rotation service logs show "createPAT failed" or "iPaaS proxy error"
 
@@ -1012,7 +818,7 @@ echo $JIRA_API_KEY
 - If too many tokens: Revoke old ones manually, then retry
 - If configuration missing: Update docker-compose.yml with proper credentials
 
-### Scenario 6: Service Not Running (Singleton)
+### Scenario 5: Service Not Running (Singleton)
 
 **Symptoms**: Rotation not happening for multiple days
 
@@ -1049,9 +855,7 @@ cat /tmp/pat_rotator_health
 |----------|-------------|---------|----------|
 | `JIRA_PAT` | Primary PAT token value | `ATAT12...` | Yes (if JIRA_USE_PAT_AUTH=true) |
 | `JIRA_PAT_EXPIRY` | Primary PAT expiry date | `2025-12-15T10:30:00Z` | Yes (if JIRA_USE_PAT_AUTH=true) |
-| `JIRA_BACKUP_PAT` | Backup PAT token value | `ATAT34...` | No |
-| `JIRA_BACKUP_PAT_EXPIRY` | Backup PAT expiry date | `2026-01-15T10:30:00Z` | No |
-| `JIRA_BACKUP_PAT_CREATED` | Backup PAT creation timestamp | `2025-11-15T10:30:00Z` | No |
+| `JIRA_PAT_ID` | Primary PAT token ID | `649e9d1c1234` | Yes (if JIRA_USE_PAT_AUTH=true) |
 | `JIRA_USE_PAT_AUTH` | Enable PAT authentication | `true` or `false` | No (default: false) |
 | `USE_IPAAS` | Use iPaaS proxy for JIRA | `true` | No (default: true) |
 | `JIRA_USERNAME` | JIRA username (deprecated) | `bot-user@corp` | No (for rollback) |
@@ -1069,9 +873,7 @@ cat /tmp/pat_rotator_health
 |-----|-----------|-------------|---------|
 | `ketchup_jira_pat` | String | Primary PAT token | `ATAT1234567890ABCDEF...` |
 | `ketchup_jira_pat_expiry` | String (ISO 8601) | Primary PAT expiry | `2025-12-15T10:30:00Z` |
-| `ketchup_jira_backup_pat` | String | Backup PAT token | `ATAT0987654321FEDCBA...` |
-| `ketchup_jira_backup_pat_expiry` | String (ISO 8601) | Backup PAT expiry | `2026-01-15T10:30:00Z` |
-| `ketchup_jira_backup_pat_created` | String (ISO 8601) | When backup was created | `2025-11-15T10:30:00Z` |
+| `ketchup_jira_pat_id` | String | Primary PAT token ID | `649e9d1c1234` |
 | `ipaas_username` | String | iPaaS username (deprecated) | `bot@corp` |
 | `ipaas_password` | String | iPaaS password (deprecated) | `password-hash` |
 | `ipaas_api_key` | String | iPaaS API key | `api-key-value` |
@@ -1101,8 +903,7 @@ cat /tmp/pat_rotator_health
 
 **PAT Validation** (`ketchup/corp_jira_mcp/corp_jira_mcp/common/pat-validation.ts`)
 - `isValidPatFormat()` (lines 3-9): Regex validation
-- `isBackupPatExpired()` (lines 11-16): Expiry checking
-- `shouldUseBackupPat()` (lines 46-61): Decision logic
+- PAT expiry checking
 
 **Authentication** (`ketchup/corp_jira_mcp/corp_jira_mcp/utils.ts`)
 - `buildUrl()` (lines 44-55): URL construction
@@ -1117,9 +918,8 @@ cat /tmp/pat_rotator_health
 
 ### Test Files
 
-**Configuration Tests** (`ketchup/corp_jira_mcp/tests/test_backup_pat_config.test.ts`)
-- 12 test cases covering loading, format, expiry, and decision logic
-- Key tests at lines: 25-31, 33-42, 44-49, 51-57, 88-96, 98-105, 116-164
+**Configuration Tests** (`ketchup/corp_jira_mcp/tests/`)
+- Test cases covering PAT loading, format validation, and expiry checking
 
 ### Rotation Service (Phase 1, planned)
 
@@ -1135,7 +935,6 @@ cat /tmp/pat_rotator_health
 
 **Plans**: `docs/plans/jira-pat-migration/`
 - `plan-01-pat-authentication.yaml`: Phase 1 implementation (14 tasks)
-- `plan-02-advanced-rotation-features.yaml`: Phase 2 features (6 tasks)
 
 **Research**: `docs/plans/jira-pat-migration/ketchup_pat_research.md`
 - JIRA PAT policies and constraints
@@ -1166,10 +965,9 @@ cat /tmp/pat_rotator_health
 The JIRA PAT rotation system ensures continuous access to JIRA by:
 
 1. **Automatic rotation**: Checks every 24 hours, rotates when PAT is 75+ days old (before 90-day max)
-2. **Backup fallback**: Maintains backup PAT for transparent fallback if primary fails
-3. **Safe failure handling**: Non-blocking failures keep old PAT active, alert operations
-4. **Singleton deployment**: Runs only on prod1, eliminating concurrent rotation concerns
-5. **Comprehensive alerting**: Sends success/failure alerts to #ketchup-alerts for monitoring
+2. **Safe failure handling**: Non-blocking failures keep old PAT active, alert operations
+3. **Singleton deployment**: Runs only on prod1, eliminating concurrent rotation concerns
+4. **Comprehensive alerting**: Sends success/failure alerts to #ketchup-alerts for monitoring
 
 **Key timeline**: JIRA Basic Auth deprecated Nov 30, 2025. PAT rotation must be working before then.
 
@@ -1180,8 +978,7 @@ The JIRA PAT rotation system ensures continuous access to JIRA by:
 - Python rotation service to be implemented
 - Feature flag allows safe rollout
 
-**Next phases** (Phase 2):
-- Backup PAT rotation automation
+**Next phases**:
 - Detailed metrics collection
 - Health dashboard
 - Comprehensive documentation of all states
