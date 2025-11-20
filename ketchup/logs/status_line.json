@@ -208,5 +208,215 @@
       "exceeds_200k_tokens": false
     },
     "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m6 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"quite a few in there! \n    \nPe...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m137k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m62k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m6 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m22k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m31%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 6bf6c26b-e50d-451c-ae19-92b83fc8172c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T13:53:56.322797",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f1251714-5f0f-4c62-8e5e-9b6c96b203c0",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/f1251714-5f0f-4c62-8e5e-9b6c96b203c0.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 3.920326450000001,
+        "total_duration_ms": 18038613,
+        "total_api_duration_ms": 1439935,
+        "total_lines_added": 551,
+        "total_lines_removed": 111
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstraios\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"claude.md tels you the aws cli...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m130k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m69k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m43k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m35%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f1251714-5f0f-4c62-8e5e-9b6c96b203c0\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T13:53:56.324443",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f1251714-5f0f-4c62-8e5e-9b6c96b203c0",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/f1251714-5f0f-4c62-8e5e-9b6c96b203c0.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 3.920326450000001,
+        "total_duration_ms": 18038622,
+        "total_api_duration_ms": 1439935,
+        "total_lines_added": 551,
+        "total_lines_removed": 111
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstraios\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"claude.md tels you the aws cli...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m130k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m69k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m43k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m35%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f1251714-5f0f-4c62-8e5e-9b6c96b203c0\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T13:53:59.358223",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f1251714-5f0f-4c62-8e5e-9b6c96b203c0",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/f1251714-5f0f-4c62-8e5e-9b6c96b203c0.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 3.934955000000001,
+        "total_duration_ms": 18041650,
+        "total_api_duration_ms": 1442841,
+        "total_lines_added": 551,
+        "total_lines_removed": 111
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstraios\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"claude.md tels you the aws cli...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m130k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m69k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m43k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m35%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f1251714-5f0f-4c62-8e5e-9b6c96b203c0\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T13:55:03.668295",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f1251714-5f0f-4c62-8e5e-9b6c96b203c0",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/f1251714-5f0f-4c62-8e5e-9b6c96b203c0.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 3.958599550000001,
+        "total_duration_ms": 18105951,
+        "total_api_duration_ms": 1450360,
+        "total_lines_added": 551,
+        "total_lines_removed": 111
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstraios\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"claude.md tels you the aws cli...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m134k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m65k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m44k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m33%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f1251714-5f0f-4c62-8e5e-9b6c96b203c0\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T13:55:12.140049",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f1251714-5f0f-4c62-8e5e-9b6c96b203c0",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/f1251714-5f0f-4c62-8e5e-9b6c96b203c0.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 3.978814750000001,
+        "total_duration_ms": 18114426,
+        "total_api_duration_ms": 1460401,
+        "total_lines_added": 551,
+        "total_lines_removed": 111
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstraios\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"claude.md tels you the aws cli...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m134k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m65k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m44k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m33%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f1251714-5f0f-4c62-8e5e-9b6c96b203c0\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T13:55:17.302132",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f1251714-5f0f-4c62-8e5e-9b6c96b203c0",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/f1251714-5f0f-4c62-8e5e-9b6c96b203c0.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.46",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 3.995740450000001,
+        "total_duration_ms": 18119594,
+        "total_api_duration_ms": 1467264,
+        "total_lines_added": 551,
+        "total_lines_removed": 111
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAstraios\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"claude.md tels you the aws cli...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m134k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m65k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m44k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m33%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f1251714-5f0f-4c62-8e5e-9b6c96b203c0\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.46\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T14:07:20.767099",
+    "version": "v4",
+    "input_data": {
+      "session_id": "139a95f8-e5b3-4d07-88b3-bb80d69933a7",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/139a95f8-e5b3-4d07-88b3-bb80d69933a7.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-haiku-4-5-20251001",
+        "display_name": "Haiku 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 0.72787845,
+        "total_duration_ms": 338159,
+        "total_api_duration_ms": 273603,
+        "total_lines_added": 15,
+        "total_lines_removed": 11
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"wrong base jira.corp.adobe.com...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m104k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m95k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m34k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 139a95f8-e5b3-4d07-88b3-bb80d69933a7\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
   }
 ]

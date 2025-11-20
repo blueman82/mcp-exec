@@ -38,7 +38,7 @@ export async function createPAT(params: CreatePATRequest): Promise<{
     console.log(`Creating PAT token: ${params.tokenName} with ${params.expiryDays}-day expiry`);
 
     // Call JIRA API endpoint via iPaaS proxy
-    // Endpoint: POST /rest/api/3/tokens/tokens
+    // Endpoint: POST /tokens/tokens
     const result = await apiClient.jiraRequest("tokens/tokens", {
       method: "POST",
       body: {

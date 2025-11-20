@@ -30,7 +30,7 @@ export async function revokePAT(params: RevokePATRequest): Promise<{
     console.log(`Revoking PAT token with ID: ${params.tokenId}`);
 
     // Call JIRA API endpoint via iPaaS proxy
-    // Endpoint: DELETE /rest/api/3/tokens/tokens/{tokenId}
+    // Endpoint: DELETE /tokens/tokens/{tokenId}
     await apiClient.jiraRequest(`tokens/tokens/${params.tokenId}`, {
       method: "DELETE"
     });
