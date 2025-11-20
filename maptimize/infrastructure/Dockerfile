@@ -5,6 +5,7 @@ WORKDIR /tmp
 
 # Copy source and build dependencies
 COPY src/ /tmp/src/
+COPY config/ /tmp/config/
 COPY pyproject.toml /tmp/
 
 # Install build tools and create wheel
@@ -25,9 +26,12 @@ WORKDIR /app
 # Copy built wheel from builder stage
 COPY --from=builder --chown=maptimize:maptimize /tmp/dist/*.whl .
 
-# Install application dependencies
-RUN pip install --no-cache-dir --user *.whl && \
+# Install application dependencies with correct Python path
+RUN pip install --no-cache-dir *.whl && \
     rm *.whl
+
+# Copy configuration directory
+COPY --chown=maptimize:maptimize config/ /app/config/
 
 # Switch to non-root user
 USER 1000

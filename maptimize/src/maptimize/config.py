@@ -103,9 +103,22 @@ def load_processes() -> dict[Any, Any]:
         >>> load_processes.cache_clear()  # Clear cache if config updated
     """
     try:
-        # Construct path to processes.json (relative to this module)
-        config_dir = Path(__file__).parent.parent.parent / "config"
-        processes_file = config_dir / "processes.json"
+        # Try multiple locations for config directory
+        # 1. Docker container path: /app/config
+        # 2. Relative to source module: ../../../config
+        possible_paths = [
+            Path("/app/config/processes.json"),
+            Path(__file__).parent.parent.parent / "config" / "processes.json",
+        ]
+
+        processes_file = None
+        for path in possible_paths:
+            if path.exists():
+                processes_file = path
+                break
+
+        if not processes_file:
+            raise FileNotFoundError(f"processes.json not found in any of: {possible_paths}")
 
         # Load and parse JSON file
         with open(processes_file, "r") as f:

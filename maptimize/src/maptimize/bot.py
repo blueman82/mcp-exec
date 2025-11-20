@@ -20,7 +20,7 @@ from maptimize.handlers import (
     handle_app_mention as process_app_mention,
 )
 from maptimize.handlers import (
-    handle_message as process_message,
+    handle_slash_command as process_slash_command,
 )
 
 __all__ = [
@@ -71,7 +71,7 @@ def handle_slash_command(ack: Callable[[], None], body: Any, say: Callable[..., 
         say: Callable for sending messages
     """
     ack()
-    process_message(body, say)
+    process_slash_command(body, say)
 
 
 def create_socket_handler() -> SocketModeHandler:
