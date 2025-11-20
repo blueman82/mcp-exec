@@ -109,6 +109,8 @@ def handle_message(body: Dict[str, Any], say: Callable) -> None:
 
     Called when messages are sent in DM channels (channel ID starts with 'D').
     Ignores messages from bots and responds with process information.
+    In DMs, also checks for bot mentions in the message text since app_mention
+    events don't reliably fire in DMs.
 
     Args:
         body: Event payload from Slack
@@ -120,6 +122,7 @@ def handle_message(body: Dict[str, Any], say: Callable) -> None:
         channel_id = event.get("channel", "")
         user_id = event.get("user", "unknown")
         subtype = event.get("subtype")
+        message_text = event.get("text", "")
         
         # Only handle DM messages (channel ID starts with 'D')
         if not channel_id.startswith("D"):
@@ -129,7 +132,11 @@ def handle_message(body: Dict[str, Any], say: Callable) -> None:
         if subtype == "bot_message" or event.get("bot_id"):
             return
         
-        logger.info("dm_message_received", user_id=user_id, channel_id=channel_id)
+        # Check if bot is mentioned in the message
+        # Bot mentions look like <@U123456789> in the message text
+        bot_mentioned = "<@" in message_text and ">" in message_text
+        
+        logger.info("dm_message_received", user_id=user_id, channel_id=channel_id, bot_mentioned=bot_mentioned)
         
         # Load process configuration
         processes = load_processes()
