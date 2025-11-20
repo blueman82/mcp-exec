@@ -134,33 +134,32 @@ Response: HTTP/1.1 204 (Success)
 
 ## Full Rotation Workflow
 
-The complete 7-step rotation process is now wired up and verified:
+The complete 6-step rotation process is now wired up and verified:
+
+> **Note**: No distributed locking required - PAT rotator runs as singleton on prod1 only
 
 ```
 Step 1: Monitor Expiry
         └─→ pat_monitor.should_rotate()
             └─→ Checks: days_remaining <= 15?
 
-Step 2: Acquire Lock
-        └─→ Prevents concurrent rotations
-
-Step 3: Create New PAT
+Step 2: Create New PAT
         └─→ MCP: create_pat(name, expiryDays=90)
         └─→ Returns: {token, id, expiresAt}
 
-Step 4: Validate New PAT
+Step 3: Validate New PAT
         └─→ MCP: validate_pat(new_token)
         └─→ Tests authentication with JIRA
 
-Step 5: Update Secrets Manager ⚠️ CRITICAL FIX
+Step 4: Update Secrets Manager ⚠️ CRITICAL FIX
         └─→ GET current secrets (all fields)
         └─→ UPDATE only PAT fields
         └─→ PRESERVE: ims_access_token, ipaas_api_key, ipaas_username, etc.
 
-Step 6: Revoke Old PAT
+Step 5: Revoke Old PAT
         └─→ MCP: revoke_pat(old_token_id)
 
-Step 7: Send Slack Alert
+Step 6: Send Slack Alert
         └─→ Success/failure/partial-success notification
 ```
 

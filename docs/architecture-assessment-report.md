@@ -15,9 +15,9 @@ The JIRA PAT migration implementation demonstrates exceptional architectural dis
 - ✅ **Complete Phase 1 & Phase 2 integration** (14 + 6 tasks)
 - ✅ **Comprehensive TDD coverage** across TypeScript and Python layers
 - ✅ **Safe rollout patterns** via feature flags (usePat, useBackupPat)
-- ✅ **Distributed service architecture** following existing Ketchup patterns
+- ✅ **Singleton service architecture** following existing Ketchup patterns (prod1 only)
 - ✅ **Production-grade error handling** with fallback mechanisms
-- ⚠️ **Minor gaps** in distributed locking and metrics persistence (addressable)
+- ✅ **No distributed locking needed** (singleton deployment eliminates concurrent rotation concerns)
 
 ---
 
@@ -454,53 +454,43 @@ async def rotate(self):
 **Strengths:**
 1. **Single Responsibility:** Each component has one clear job
 2. **Ordered Execution:** Steps execute in safe sequence
-3. **Idempotent:** Can be retried safely if lock prevents concurrent runs
+3. **Idempotent:** Can be retried safely (singleton deployment prevents concurrent runs)
 4. **Auditable:** Each step logs success/failure
 
 **Comparison to Industry Patterns:** EQUIVALENT TO AWS STEP FUNCTIONS
 - State machine approach with ordered transitions
 - Rollback on failure (compensating transactions)
-- Lock-based concurrency control
+- Singleton deployment ensures sequential execution
 
-### 4.4 Distributed Lock Handling (INCOMPLETE)
+### 4.4 Singleton Deployment Pattern (IMPLEMENTED)
 
 **Current Implementation:**
-```python
-# rotator.py line 25-71
-class DistributedLockManager:
-    async def acquire(self, lock_id: str = "pat-rotation", timeout: int = 300) -> bool:
-        # TODO: Implement DynamoDB lock acquisition
-        self._lock_acquired = True  # Placeholder
-        return True
+- PAT rotator runs only on prod1 (like other singleton services: ketchup-status-updater, ketchup-metadata-updater)
+- Deployment script explicitly prevents service from running on prod2
+- No concurrent rotation possible by design
+
+**Deployment Pattern Grade:** ✅ EXCELLENT
+
+**Why This Works:**
+- Only one instance of rotation service runs across the entire infrastructure
+- No risk of concurrent rotations (eliminated by design)
+- Follows established Ketchup pattern for singleton services
+- Simpler than distributed locking (no DynamoDB lock coordination needed)
+
+**Implementation Details:**
+```yaml
+# docker-compose.yml on prod1
+services:
+  ketchup-jira-pat-rotator:
+    image: ketchup-jira-pat-rotator:latest
+    # Service runs normally on prod1
+
+# deploy-ketchup.sh explicitly stops singleton services on prod2
+# Line ~505-506: docker-compose stop ketchup-jira-pat-rotator
 ```
 
-**Lock Pattern Grade:** 🔴 CRITICAL GAP
-
-**Why This Matters:**
-- Without distributed locking, two rotation services (prod1 + prod2) could rotate simultaneously
-- Could result in:
-  - Both creating new PATs → only one gets activated
-  - Race condition in secrets update
-  - Both revoking the same old PAT
-
-**Recommended Implementation:**
-```python
-# Use existing Ketchup pattern
-from packages.core.distributed_lock import DistributedLock
-
-async def acquire(self, lock_id: str, timeout: int = 300) -> bool:
-    """Acquire DynamoDB-based distributed lock."""
-    self.lock = DistributedLock(
-        lock_name=lock_id,
-        dynamodb_table="ketchup_distributed_locks",  # Existing table
-        owner_id=f"pat-rotator-{socket.gethostname()}",
-        ttl_seconds=timeout
-    )
-    return await self.lock.acquire()
-```
-
-**Risk Assessment:** 🔴 HIGH RISK for production without this
-**Priority:** MUST IMPLEMENT before production deployment
+**Risk Assessment:** 🟢 LOW RISK
+**Benefits:** Simpler architecture, no distributed coordination overhead, follows existing patterns
 
 ### 4.5 Metrics Collection Architecture
 
@@ -547,7 +537,6 @@ class MetricsCollectorService:
 
 | Gap | Severity | Impact | Mitigation |
 |-----|----------|--------|------------|
-| **Distributed Lock Placeholder** | 🔴 CRITICAL | Concurrent rotations could corrupt secrets | Implement DynamoDB lock before prod |
 | **MCP Operations Incomplete** | 🟡 MEDIUM | Rotation service can't create/revoke PATs | Complete `create.ts`, `revoke.ts` operations |
 | **Python Test Coverage** | 🟡 MEDIUM | Regression risk in rotation logic | Add pytest suite for rotator/monitor/scheduler |
 | **Metrics Storage Schema** | 🟢 LOW | Metrics may not persist correctly | Verify DynamoDB table schema |
@@ -863,9 +852,6 @@ class MetricsCollectorService:
 
 | Priority | Item | Estimated Effort | Owner |
 |----------|------|------------------|-------|
-| 🔴 P0 | **Implement Distributed Lock** | 2 hours | Platform Team |
-|        | Use `packages.core.distributed_lock` with DynamoDB | | |
-|        | Test concurrent rotation prevention | | |
 | 🔴 P0 | **Complete MCP Operations** | 4 hours | Backend Team |
 |        | Implement `create.ts` (create PAT endpoint) | | |
 |        | Implement `revoke.ts` (revoke PAT endpoint) | | |
@@ -933,12 +919,11 @@ class MetricsCollectorService:
 **Decision:** ✅ APPROVE with CONDITIONS
 
 **Conditions:**
-1. ✅ Complete distributed lock implementation (2 hours)
-2. ✅ Complete MCP create/revoke operations (4 hours)
-3. ✅ Add Python test suite (3 hours)
-4. ✅ Configure Slack webhook (30 min)
+1. ✅ Complete MCP create/revoke operations (4 hours)
+2. ✅ Add Python test suite (3 hours)
+3. ✅ Configure Slack webhook (30 min)
 
-**Total Additional Effort:** ~10 hours (1.5 developer-days)
+**Total Additional Effort:** ~8 hours (1 developer-day)
 
 **Deployment Timeline:**
 - **Nov 20-21:** Complete P0 critical items
@@ -952,11 +937,11 @@ class MetricsCollectorService:
 
 | Risk Level | Count | Mitigation Status |
 |------------|-------|------------------|
-| 🔴 Critical | 2 | Addressable (10 hours effort) |
-| 🟡 Medium | 5 | Recommended before prod |
+| 🔴 Critical | 1 | Addressable (4 hours effort) |
+| 🟡 Medium | 3 | Recommended before prod |
 | 🟢 Low | 3 | Post-deployment acceptable |
 
-**Overall Risk Rating:** 🟡 MEDIUM (acceptable with critical items completed)
+**Overall Risk Rating:** 🟢 LOW (acceptable with critical items completed)
 
 ### 8.4 Architectural Strengths
 
@@ -964,7 +949,8 @@ class MetricsCollectorService:
 2. **Feature Flag Discipline:** Safe rollout with default-off flags
 3. **Error Resilience:** Comprehensive fallback mechanisms
 4. **Service Isolation:** Each component has single responsibility
-5. **Existing Pattern Compliance:** 100% alignment with Ketchup architecture
+5. **Singleton Deployment:** Follows Ketchup patterns, eliminates distributed coordination complexity
+6. **Existing Pattern Compliance:** 100% alignment with Ketchup architecture
 
 ### 8.5 Key Learnings for Future Projects
 

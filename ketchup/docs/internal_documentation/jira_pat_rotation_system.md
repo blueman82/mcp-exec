@@ -121,8 +121,8 @@ interface JiraAuthConfig {
 - `main.py`: Entry point, service initialization, async scheduler startup
 
 **Key characteristics**:
-- Single instance only (runs on prod1, like `ketchup_status_updater`)
-- Uses DynamoDB for distributed locking (prevents concurrent rotations)
+- Singleton service (runs only on prod1, like `ketchup_status_updater`)
+- No distributed locking needed (only one instance exists)
 - Sends alerts to #ketchup-alerts on success/failure
 - Non-blocking on failures (keeps old PAT active)
 
@@ -130,26 +130,24 @@ interface JiraAuthConfig {
 
 ### Step-by-Step Flow
 
+**Note**: PAT rotator is a singleton service (runs only on prod1), eliminating the need for distributed locking.
+
 ```
 24-hour scheduler triggers
     ↓
 1. Check if rotation needed (PAT > 75 days to expiry?)
     ↓
-2. Try to acquire distributed lock (DynamoDB)
+2. Create new PAT via MCP (returns token + 90-day expiry)
     ↓
-3. Create new PAT via MCP (returns token + 90-day expiry)
+3. Validate new PAT works (test against JIRA API)
     ↓
-4. Validate new PAT works (test against JIRA API)
+4. Update AWS Secrets Manager with new PAT
     ↓
-5. Update AWS Secrets Manager with new PAT
+5. Update backup PAT fields (move current backup to history)
     ↓
-6. Update backup PAT fields (move current backup to history)
+6. Revoke old PAT via MCP
     ↓
-7. Revoke old PAT via MCP
-    ↓
-8. Release distributed lock
-    ↓
-9. Send success alert to #ketchup-alerts
+7. Send success alert to #ketchup-alerts
     ↓
 Sleep 24 hours, repeat
 ```
@@ -191,7 +189,7 @@ Sleep 24 hours, repeat
 When `rotator.py` runs (simplified):
 
 ```python
-# From plan-01:912-969 (rotator.py pseudocode)
+# Simplified rotation flow (singleton service, no locking needed)
 async def perform_rotation(self) -> bool:
     # 1. Check if rotation needed
     needs_rotation = await pat_monitor.should_rotate()
@@ -199,26 +197,24 @@ async def perform_rotation(self) -> bool:
         logger.info("PAT rotation not needed yet")
         return True  # Success (no action needed)
 
-    # 2. Acquire distributed lock
-    async with distributed_lock.acquire_lock('PAT_ROTATION_GLOBAL', timeout_seconds=300):
-        # 3. Create new PAT
-        new_token_response = await mcp_client.createPAT()
-        new_pat = new_token_response['token']
-        new_expiry = new_token_response['expiresAt']
+    # 2. Create new PAT
+    new_token_response = await mcp_client.createPAT()
+    new_pat = new_token_response['token']
+    new_expiry = new_token_response['expiresAt']
 
-        # 4. Validate new PAT
-        is_valid = await mcp_client.validatePAT(new_pat)
-        if not is_valid:
-            raise RuntimeError("New PAT validation failed")
+    # 3. Validate new PAT
+    is_valid = await mcp_client.validatePAT(new_pat)
+    if not is_valid:
+        raise RuntimeError("New PAT validation failed")
 
-        # 5. Update secrets (point of no return)
-        await secrets_mgr.update_secret('ketchup_jira_pat', new_pat)
-        await secrets_mgr.update_secret('ketchup_jira_pat_expiry', new_expiry)
+    # 4. Update secrets (point of no return)
+    await secrets_mgr.update_secret('ketchup_jira_pat', new_pat)
+    await secrets_mgr.update_secret('ketchup_jira_pat_expiry', new_expiry)
 
-        # 6. Revoke old PAT
-        await mcp_client.revokePAT(old_token_id)
+    # 5. Revoke old PAT
+    await mcp_client.revokePAT(old_token_id)
 
-    # 7. Send success alert
+    # 6. Send success alert
     await slack_client.send_message(
         channel='#ketchup-alerts',
         text='✅ JIRA PAT rotation successful'
@@ -271,7 +267,6 @@ async def perform_rotation(self) -> bool:
 
 **How it fails**:
 - MCP service unreachable (network error)
-- DynamoDB lock acquisition timeout
 - AWS Secrets Manager unavailable
 - Unexpected exception in rotation logic
 
@@ -285,7 +280,6 @@ async def perform_rotation(self) -> bool:
 **Recovery**:
 - Check what failed (error in alert message)
 - If MCP unreachable: Check mcp-jira container status
-- If DynamoDB error: Verify AWS credentials and permissions
 - If Secrets Manager error: Check IAM policy and network
 - Wait 24 hours for automatic retry, or restart rotation service
 
@@ -334,25 +328,9 @@ async def perform_rotation(self) -> bool:
 
 **Code location**: `plan-01:941-944` (secrets update step)
 
-### Failure Mode 5: Distributed Lock Timeout
+### Failure Mode 5: Service Not Running (Removed - No Longer Applicable)
 
-**How it fails**:
-- Another instance is holding the rotation lock
-- Current instance tries to acquire but times out after 300 seconds
-
-**System response**:
-- Lock acquisition fails gracefully (plan-01:915-921)
-- Rotation skipped (no error, no change to PAT)
-- Logged as info: "Another server rotating PAT, exiting"
-- Next check in 24 hours
-- No alert sent (this is expected behavior)
-
-**Recovery**:
-- No action needed - this is normal operation with multiple instances
-- One instance will complete rotation, next check will see updated PAT
-- If lock is held for days: Check if rotation service is stuck on another instance
-
-**Code location**: `plan-01:915-921` (distributed lock acquisition with timeout)
+**Note**: With singleton deployment on prod1, there is no concurrent rotation issue. This failure mode has been eliminated.
 
 ### Failure Mode 6: MCP Service Unavailable
 
@@ -758,19 +736,17 @@ jiraRequest(endpoint, options)
 - Uses MCP JIRA service (createPAT, validatePAT, revokePAT operations)
 - Updates AWS Secrets Manager directly
 - Sends alerts to #ketchup-alerts via Slack API
-- Uses DynamoDB for distributed locking
+- Singleton deployment on prod1 (no distributed locking needed)
 
 **Interaction diagram**:
 ```
-Rotation Service
+Rotation Service (Singleton on prod1)
   ├─ MCP JIRA Service
   │  ├─ createPAT() → JIRA API via iPaaS
   │  ├─ validatePAT() → JIRA API via iPaaS
   │  └─ revokePAT() → JIRA API via iPaaS
   ├─ AWS Secrets Manager
   │  └─ Update ketchup_jira_pat, ketchup_jira_pat_expiry
-  ├─ DynamoDB
-  │  └─ Acquire/release PAT_ROTATION_GLOBAL lock
   └─ Slack API
      └─ Send alert to #ketchup-alerts
 ```
@@ -1036,36 +1012,34 @@ echo $JIRA_API_KEY
 - If too many tokens: Revoke old ones manually, then retry
 - If configuration missing: Update docker-compose.yml with proper credentials
 
-### Scenario 6: Lock Cannot Be Acquired (Timeout)
+### Scenario 6: Service Not Running (Singleton)
 
-**Symptoms**: Rotation logs show "Failed to acquire distributed lock" or "Another server rotating PAT"
+**Symptoms**: Rotation not happening for multiple days
 
 **Root causes**:
-1. Another instance is actively rotating (expected, not an error)
-2. Previous lock holder crashed (lock not released)
-3. Lock timeout too short for actual rotation duration
+1. PAT rotator service stopped on prod1
+2. prod1 server is down
+3. Service crashed and didn't restart
 
 **Troubleshooting steps**:
 ```bash
-# 1. Check lock in DynamoDB
-aws dynamodb scan \
-  --table-name ketchup_channel_information \
-  --filter-expression "contains(channel_id, :lock)" \
-  --expression-attribute-values '{":lock": {"S": "PAT_ROTATION_GLOBAL"}}' \
-  --region eu-west-1
+# 1. Check if service is running on prod1
+ssh ketchup-prod1.campaign.adobe.com
+sudo docker ps | grep pat-rotator
+# Should see 1 running container
 
-# 2. Check lock age
-# Lock should be < 300 seconds old if held by active process
+# 2. Check service logs
+sudo docker logs ketchup-jira-pat-rotator
 
-# 3. Check how many instances are running
-docker-compose ps | grep pat-rotator
-# Should be 1 instance only (singleton on prod1)
+# 3. Check health file
+cat /tmp/pat_rotator_health
+# Should have recent timestamp (< 1 min ago)
 ```
 
 **Resolution**:
-- If another instance active: Wait, it will finish (normal operation)
-- If lock is stale: Delete it from DynamoDB to allow next rotation
-- If happening frequently: Increase lock timeout value
+- If service stopped: Restart with `docker-compose up -d ketchup-jira-pat-rotator`
+- If service crashed: Check logs for error, fix issue, restart
+- If prod1 down: Temporarily start service on prod2 if critical
 
 ## Configuration Reference
 
@@ -1194,7 +1168,7 @@ The JIRA PAT rotation system ensures continuous access to JIRA by:
 1. **Automatic rotation**: Checks every 24 hours, rotates when PAT is 75+ days old (before 90-day max)
 2. **Backup fallback**: Maintains backup PAT for transparent fallback if primary fails
 3. **Safe failure handling**: Non-blocking failures keep old PAT active, alert operations
-4. **Distributed locking**: Prevents concurrent rotations on multiple instances
+4. **Singleton deployment**: Runs only on prod1, eliminating concurrent rotation concerns
 5. **Comprehensive alerting**: Sends success/failure alerts to #ketchup-alerts for monitoring
 
 **Key timeline**: JIRA Basic Auth deprecated Nov 30, 2025. PAT rotation must be working before then.

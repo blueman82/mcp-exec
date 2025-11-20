@@ -7,7 +7,6 @@ Verifies:
 - Validation failure keeps old PAT
 - Secrets update failure keeps old PAT
 - Revocation failure still alerts ops
-- Distributed lock prevents concurrent rotations
 """
 
 from datetime import datetime, timedelta
@@ -31,7 +30,6 @@ class TestCompleteSuccessfulRotationFlow:
         rotator._mcp_client = AsyncMock()
         rotator._secrets_manager = AsyncMock()
         rotator._slack_notifier = AsyncMock()
-        rotator._lock_manager = AsyncMock()
 
         # Mock MCP responses
         rotator._mcp_client.create_pat.return_value = {
@@ -59,10 +57,6 @@ class TestCompleteSuccessfulRotationFlow:
             "ims_access_token": "test-token"
         }
         rotator._secrets_manager.update_pat.return_value = True
-
-        # Mock lock manager
-        rotator._lock_manager.acquire.return_value = True
-        rotator._lock_manager.release.return_value = True
 
         # Execute rotation
         result = await rotator.rotate()
@@ -120,7 +114,6 @@ class TestValidationFailureKeepsOldPAT:
         rotator._mcp_client = AsyncMock()
         rotator._secrets_manager = AsyncMock()
         rotator._slack_notifier = AsyncMock()
-        rotator._lock_manager = AsyncMock()
 
         # Mock create_pat to succeed
         rotator._mcp_client.create_pat.return_value = {
@@ -140,10 +133,6 @@ class TestValidationFailureKeepsOldPAT:
             "ketchup_jira_pat": "old-pat-token-abc",
             "ketchup_jira_pat_id": "old-pat-456"
         }
-
-        # Mock lock manager
-        rotator._lock_manager.acquire.return_value = True
-        rotator._lock_manager.release.return_value = True
 
         # Execute rotation - should fail gracefully
         result = await rotator.rotate()
@@ -176,7 +165,6 @@ class TestSecretsUpdateFailureKeepsOldPAT:
         rotator._mcp_client = AsyncMock()
         rotator._secrets_manager = AsyncMock()
         rotator._slack_notifier = AsyncMock()
-        rotator._lock_manager = AsyncMock()
 
         # Mock create and validate to succeed
         rotator._mcp_client.create_pat.return_value = {
@@ -195,10 +183,6 @@ class TestSecretsUpdateFailureKeepsOldPAT:
             "ketchup_jira_pat_id": "old-pat-456"
         }
         rotator._secrets_manager.update_pat.side_effect = Exception("Secrets Manager error")
-
-        # Mock lock manager
-        rotator._lock_manager.acquire.return_value = True
-        rotator._lock_manager.release.return_value = True
 
         # Execute rotation
         result = await rotator.rotate()
@@ -228,7 +212,6 @@ class TestRevocationFailureStillAlerts:
         rotator._mcp_client = AsyncMock()
         rotator._secrets_manager = AsyncMock()
         rotator._slack_notifier = AsyncMock()
-        rotator._lock_manager = AsyncMock()
 
         # Mock create, validate, and update to succeed
         rotator._mcp_client.create_pat.return_value = {
@@ -248,10 +231,6 @@ class TestRevocationFailureStillAlerts:
         }
         rotator._secrets_manager.update_pat.return_value = True
 
-        # Mock lock manager
-        rotator._lock_manager.acquire.return_value = True
-        rotator._lock_manager.release.return_value = True
-
         # Execute rotation
         result = await rotator.rotate()
 
@@ -262,83 +241,6 @@ class TestRevocationFailureStillAlerts:
 
         # Verify alert was sent about revocation failure
         rotator._slack_notifier.notify_partial_success.assert_called_once()
-
-
-class TestDistributedLockPreventsConurrentRotations:
-    """Tests for distributed locking."""
-
-    @pytest.mark.asyncio
-    async def test_distributed_lock_prevents_concurrent_rotations(self):
-        """Test that distributed lock prevents concurrent rotations."""
-        rotator = PATRotator()
-
-        # Mock dependencies
-        rotator._monitor = MagicMock()
-        rotator._monitor.should_rotate.return_value = True
-        rotator._mcp_client = AsyncMock()
-        rotator._slack_notifier = AsyncMock()
-        rotator._lock_manager = AsyncMock()
-
-        # Mock lock acquisition to fail (another process has it)
-        rotator._lock_manager.acquire.return_value = False
-
-        # Execute rotation
-        result = await rotator.rotate()
-
-        # Verify early exit due to lock failure
-        assert result["status"] == "skipped"
-        assert result["reason"] == "lock_unavailable"
-
-        # Verify no rotation work was done
-        rotator._mcp_client.create_pat.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_lock_is_released_after_rotation(self):
-        """Test that lock is properly released after rotation completes."""
-        rotator = PATRotator()
-
-        # Mock all dependencies
-        rotator._monitor = MagicMock()
-        rotator._monitor.should_rotate.return_value = True
-        rotator._mcp_client = AsyncMock()
-        rotator._secrets_manager = AsyncMock()
-        rotator._slack_notifier = AsyncMock()
-        rotator._lock_manager = AsyncMock()
-
-        # Mock successful rotation
-        rotator._mcp_client.create_pat.return_value = {
-            "pat": "new-pat-token-xyz",
-            "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
-            "id": "pat-123"
-        }
-        rotator._mcp_client.validate_pat.return_value = {
-            "valid": True,
-            "jiraUser": "automation-user"
-        }
-        rotator._mcp_client.revoke_pat.return_value = {
-            "success": True,
-            "revokedPatId": "old-pat-456"
-        }
-
-        rotator._secrets_manager.get_current_pat.return_value = {
-            "ketchup_jira_pat": "old-pat-token-abc",
-            "ketchup_jira_pat_id": "old-pat-456"
-        }
-        rotator._secrets_manager.update_pat.return_value = True
-
-        # Mock lock operations
-        rotator._lock_manager.acquire.return_value = True
-        rotator._lock_manager.release.return_value = True
-
-        # Execute rotation
-        result = await rotator.rotate()
-
-        # Verify lock was acquired and released
-        rotator._lock_manager.acquire.assert_called_once()
-        rotator._lock_manager.release.assert_called_once()
-
-        # Verify release was called even after successful rotation
-        assert result["status"] == "success"
 
 
 class TestRotationOrchestrationSequence:
@@ -380,10 +282,6 @@ class TestRotationOrchestrationSequence:
 
         rotator._slack_notifier = AsyncMock()
         rotator._slack_notifier.notify_success.side_effect = lambda *args: (call_order.append("notify"), None)[1]
-
-        rotator._lock_manager = AsyncMock()
-        rotator._lock_manager.acquire.return_value = True
-        rotator._lock_manager.release.return_value = True
 
         # Execute rotation
         result = await rotator.rotate()
@@ -430,24 +328,3 @@ class TestRotatorErrorHandling:
 
         # Verify alert was sent
         rotator._slack_notifier.notify_failure.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_lock_acquisition_timeout_handled_gracefully(self):
-        """Test that lock acquisition timeout is handled gracefully."""
-        rotator = PATRotator()
-
-        # Mock dependencies
-        rotator._monitor = MagicMock()
-        rotator._monitor.should_rotate.return_value = True
-        rotator._lock_manager = AsyncMock()
-
-        # Mock lock acquisition timeout
-        rotator._lock_manager.acquire.side_effect = Exception("Lock timeout")
-        rotator._slack_notifier = AsyncMock()
-
-        # Execute rotation
-        result = await rotator.rotate()
-
-        # Verify graceful handling - exception is caught as lock error
-        assert result["status"] == "skipped"
-        assert result.get("reason") == "lock_unavailable"

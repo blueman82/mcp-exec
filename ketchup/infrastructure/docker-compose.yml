@@ -20,7 +20,7 @@ services:
         max-file: "3"
 
   ketchup-app:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_channel_information
@@ -90,7 +90,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-metadata-updater:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-metadata-updater:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_channel_information
@@ -136,7 +136,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.349
     ports:
       - "8081:8081"  # Expose for testing
     environment:
@@ -170,7 +170,7 @@ services:
         max-file: "3"
 
   ketchup-status-updater:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-status-updater:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-status-updater:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_channel_information
@@ -217,7 +217,7 @@ services:
         max-file: "3"
 
   ketchup-jira-reporter:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-reporter:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-reporter:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_channel_information
@@ -267,7 +267,7 @@ services:
         max-file: "3"
 
   ketchup-access-monitor:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_channel_information
@@ -298,7 +298,7 @@ services:
         max-file: "3"
 
   ketchup-maintenance-fetcher:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-maintenance-fetcher:v2.360.348
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-maintenance-fetcher:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_channel_information
@@ -322,7 +322,7 @@ services:
         max-file: "3"
 
   ketchup-jira-pat-rotator:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-pat-rotator:v2.360.347
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-pat-rotator:v2.360.349
     environment:
       - AWS_REGION=eu-west-1
       - DYNAMODB_TABLE_NAME=ketchup_jira_pat_rotations

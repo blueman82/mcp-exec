@@ -328,5 +328,38 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "quite a few in there! \n    \nPersonal Access Tokens\n\nCreate token\nUse personal access tokens as a safe alternative to authenticating with username and password. Learn more.\n\nName    Date created    Expiry date    Last authenticated    \nketchup_mcp_token    Nov 19, 2025, 12:52:59 PM UTC    \nFeb 17, 2026, 12:52:59 PM UTC\nNov 19, 2025, 01:12:32 PM UTC    \nRevoke\nketchup-pat-1763557966902    Nov 19, 2025, 01:12:47 PM UTC    \nFeb 17, 2026, 01:12:47 PM UTC\nNever    \nRevoke\nketchup-pat-1763557948417    Nov 19, 2025, 01:12:29 PM UTC    \nFeb 17, 2026, 01:12:29 PM UTC\nNever    \nRevoke\nketchup-pat-1763557976323    Nov 19, 2025, 01:12:57 PM UTC    \nFeb 17, 2026, 01:12:57 PM UTC\nNever    \nRevoke\nketchup-pat-1763557993236    Nov 19, 2025, 01:13:14 PM UTC    \nFeb 17, 2026, 01:13:14 PM UTC\nNever    \nRevoke\n\nalso you never tested updating the expiry date either in secrets, so tidy up, then re-run the test. We should be left with 1 PAT in jira, pat in secrets and its expiry date "
     }
+  },
+  {
+    "timestamp": "2025-11-20T15:33:42.443101",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "okay if we're only doing singleton why do we have dynamodb lock? `/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/FINAL_PRODUCTION_READY.md`"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:35:32.471340",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "im fine to remove it, but i dont know what other code has to be updated as a result of removing the lock code (yes we'll need to remove all references to it from all docs)?"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:37:31.164347",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "use agents to do the tasks"
+    }
   }
 ]

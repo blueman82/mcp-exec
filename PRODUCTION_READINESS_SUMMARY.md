@@ -63,7 +63,9 @@ Day 76:  Monitoring: 14 days remaining → ⚠️ ROTATION TRIGGERED (≤75 days
 **Triggered when**: `should_rotate()` returns `True`
 **Location**: `ketchup_jira_pat_rotator/rotator.py`
 
-#### Full 7-Step Process:
+#### Full 6-Step Process:
+
+**Note**: PAT rotator is a singleton service (runs only on prod1), eliminating the need for distributed locking.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -76,27 +78,21 @@ Step 1: Check Expiry Needed
         │   └─→ NO  → Exit (no rotation needed)
         │   └─→ YES → Continue to Step 2
         │
-Step 2: Acquire Distributed Lock (DynamoDB)
-        │
-        ├─→ Prevents concurrent rotations
-        │   └─→ Lock unavailable → Exit (rotation in progress)
-        │   └─→ Lock acquired ✓ → Continue to Step 3
-        │
-Step 3: Create New PAT (via MCP)
+Step 2: Create New PAT (via MCP)
         │
         ├─→ Call: create_pat(tokenName="ketchup-rotation-{timestamp}", expiryDays=90)
         │   └─→ Returns: {token, id, expiresAt}
-        │   └─→ Failure → Release lock, send Slack alert, exit
-        │   └─→ Success ✓ → Continue to Step 4
+        │   └─→ Failure → Send Slack alert, exit
+        │   └─→ Success ✓ → Continue to Step 3
         │
-Step 4: Validate New PAT Works
+Step 3: Validate New PAT Works
         │
         ├─→ Call: validate_pat(new_token)
         │   └─→ Test: Can authenticate with JIRA?
-        │   └─→ Invalid → Revoke new token, release lock, alert, exit
-        │   └─→ Valid ✓ → Continue to Step 5
+        │   └─→ Invalid → Revoke new token, alert, exit
+        │   └─→ Valid ✓ → Continue to Step 4
         │
-Step 5: Update AWS Secrets Manager
+Step 4: Update AWS Secrets Manager
         │
         ├─→ Store in Ketchup_Token_Secrets:
         │   {
@@ -104,17 +100,17 @@ Step 5: Update AWS Secrets Manager
         │     "ketchup_jira_pat_expiry": "2026-05-17T12:52:59.677Z",
         │     "ketchup_jira_pat_updated_at": "2025-11-20T14:30:00Z"
         │   }
-        │   └─→ Failure → Revoke new token, release lock, alert, exit
-        │   └─→ Success ✓ → Continue to Step 6
+        │   └─→ Failure → Revoke new token, alert, exit
+        │   └─→ Success ✓ → Continue to Step 5
         │
-Step 6: Revoke Old PAT
+Step 5: Revoke Old PAT
         │
         ├─→ Call: revoke_pat(old_token_id)
         │   └─→ Removes old token from JIRA
         │   └─→ Failure → Log warning (new token already active, safe)
-        │   └─→ Success ✓ → Continue to Step 7
+        │   └─→ Success ✓ → Continue to Step 6
         │
-Step 7: Record Metrics & Alert
+Step 6: Record Metrics & Alert
         │
         └─→ Store in DynamoDB:
             - Rotation timestamp
@@ -244,12 +240,11 @@ const secrets = await secretsManager.getSecretValue({
 // Maps to environment variables securely
 ```
 
-### 3. **Distributed Locking**
-```python
-# Prevents concurrent rotations from prod1 & prod2
-lock_acquired = await lock_manager.acquire("pat-rotation", timeout=300)
-if not lock_acquired:
-    return {"status": "skipped", "reason": "lock_unavailable"}
+### 3. **Singleton Deployment**
+```yaml
+# PAT rotator runs only on prod1 (like other singleton services)
+# No distributed locking needed - only one instance can rotate at a time
+# Prevents concurrent rotations by design
 ```
 
 ### 4. **Atomic Rotation**

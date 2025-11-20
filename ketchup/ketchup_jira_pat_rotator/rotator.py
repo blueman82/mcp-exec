@@ -10,7 +10,7 @@ Orchestrates:
 5. Revoke old PAT (call MCP)
 6. Alert on Slack (success/failure)
 
-Includes distributed locking to prevent concurrent rotations.
+Runs as singleton service on prod1 only - no distributed locking needed.
 """
 
 import asyncio
@@ -21,54 +21,6 @@ from typing import Any, Dict, Optional
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
-
-
-class DistributedLockManager:
-    """Manages distributed locks for preventing concurrent rotations."""
-
-    def __init__(self):
-        """Initialize lock manager (placeholder for DynamoDB integration)."""
-        self._lock_acquired = False
-
-    async def acquire(self, lock_id: str = "pat-rotation", timeout: int = 300) -> bool:
-        """
-        Acquire a distributed lock.
-
-        Args:
-            lock_id: Unique identifier for the lock
-            timeout: Lock timeout in seconds
-
-        Returns:
-            True if lock acquired, False otherwise
-        """
-        try:
-            # TODO: Implement DynamoDB lock acquisition
-            # For now, this is a placeholder
-            self._lock_acquired = True
-            logger.info(f"Lock acquired: {lock_id}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to acquire lock: {e}")
-            return False
-
-    async def release(self, lock_id: str = "pat-rotation") -> bool:
-        """
-        Release the distributed lock.
-
-        Args:
-            lock_id: Unique identifier for the lock
-
-        Returns:
-            True if released successfully, False otherwise
-        """
-        try:
-            # TODO: Implement DynamoDB lock release
-            self._lock_acquired = False
-            logger.info(f"Lock released: {lock_id}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to release lock: {e}")
-            return False
 
 
 class SecretsManager:
@@ -332,16 +284,15 @@ class SlackNotifier:
 
 class PATRotator:
     """
-    Orchestrator for safe PAT rotation with fallback and distributed locking.
+    Orchestrator for safe PAT rotation (singleton service on prod1 only).
 
     Implements safe rotation sequence:
     1. Check expiry needed (return if not)
-    2. Acquire distributed lock (DynamoDB)
-    3. Create new PAT via MCP
-    4. Validate new PAT works
-    5. Update secrets with new PAT + expiry
-    6. Revoke old PAT
-    7. Send success alert
+    2. Create new PAT via MCP
+    3. Validate new PAT works
+    4. Update secrets with new PAT + expiry
+    5. Revoke old PAT
+    6. Send success alert
     """
 
     def __init__(self):
@@ -352,7 +303,6 @@ class PATRotator:
         from packages.integrations.ims_token_manager import IMSTokenManager
 
         self._monitor = PatMonitor()
-        self._lock_manager = DistributedLockManager()
         self._secrets_manager = SecretsManager()
         self._slack_notifier = SlackNotifier()
 
@@ -371,8 +321,6 @@ class PATRotator:
         Returns:
             Dictionary with rotation status and details
         """
-        lock_acquired = False
-
         try:
             # Step 1: Check if rotation is needed
             logger.info("Starting PAT rotation check")
@@ -386,28 +334,12 @@ class PATRotator:
                     "timestamp": datetime.utcnow().isoformat(),
                 }
 
-            # Step 2: Acquire distributed lock to prevent concurrent rotations
-            logger.info("Acquiring distributed lock")
-            try:
-                lock_acquired = await self._lock_manager.acquire()
-            except Exception as e:
-                logger.error(f"Failed to acquire lock: {e}")
-                lock_acquired = False
-
-            if not lock_acquired:
-                logger.warning("Could not acquire lock - another rotation in progress")
-                return {
-                    "status": "skipped",
-                    "reason": "lock_unavailable",
-                    "timestamp": datetime.utcnow().isoformat(),
-                }
-
             # Get current PAT for revocation later
             current_secrets = await self._secrets_manager.get_current_pat()
             # Use correct field names matching AWS Secrets Manager
             old_pat_id = current_secrets.get("ketchup_jira_pat_id", "unknown")
 
-            # Step 3: Create new PAT via MCP
+            # Step 2: Create new PAT via MCP
             logger.info("Creating new PAT via MCP")
             try:
                 new_pat_response = await self._mcp_client.create_pat()
@@ -427,7 +359,7 @@ class PATRotator:
                     str(e),
                 )
 
-            # Step 4: Validate new PAT works
+            # Step 3: Validate new PAT works
             logger.info("Validating new PAT")
             try:
                 validation_result = await self._mcp_client.validate_pat(new_pat)
@@ -453,7 +385,7 @@ class PATRotator:
                     str(e),
                 )
 
-            # Step 5: Update secrets with new PAT
+            # Step 4: Update secrets with new PAT
             logger.info("Updating secrets with new PAT")
             try:
                 update_success = await self._secrets_manager.update_pat(
@@ -481,7 +413,7 @@ class PATRotator:
                     str(e),
                 )
 
-            # Step 6: Revoke old PAT
+            # Step 5: Revoke old PAT
             logger.info(f"Revoking old PAT: {old_pat_id}")
             old_pat_revoked = False
             revocation_error = None
@@ -500,7 +432,7 @@ class PATRotator:
                 revocation_error = str(e)
                 logger.error(f"Exception during PAT revocation: {e}")
 
-            # Step 7: Send alerts
+            # Step 6: Send alerts
             if old_pat_revoked:
                 await self._slack_notifier.notify_success(
                     new_pat_id,
@@ -540,15 +472,6 @@ class PATRotator:
                 "unexpected_error",
                 str(e),
             )
-
-        finally:
-            # Always release lock if acquired
-            if lock_acquired:
-                try:
-                    await self._lock_manager.release()
-                    logger.info("Lock released")
-                except Exception as e:
-                    logger.error(f"Failed to release lock: {e}")
 
     async def _handle_rotation_failure(
         self,
