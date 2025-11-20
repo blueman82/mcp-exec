@@ -12,6 +12,49 @@
 
 **Latest Commit:** `6d373c1` - "fix: disable UsePAM for SSH and allow local users in SSSD access control"
 
+## DNS Configuration
+
+The maptimize-prod EC2 instance is now accessible via a DNS hostname in the `campaign.adobe.com` zone:
+
+**Hostname:** `maptimize-prod.campaign.adobe.com`
+**IP Address:** `52.213.19.55`
+**Record Type:** A
+**TTL:** 300 seconds
+**Hosted Zone ID:** Z1FJAPF7U1MEJC
+**Status:** Active and propagated to AWS Route53
+
+### Verification
+
+Verify DNS resolution is working:
+
+```bash
+# Test DNS resolution
+nslookup maptimize-prod.campaign.adobe.com
+dig maptimize-prod.campaign.adobe.com
+
+# Expected output
+# maptimize-prod.campaign.adobe.com has address 52.213.19.55
+
+# Test HTTPS connectivity
+curl -v https://maptimize-prod.campaign.adobe.com/
+
+# Test SSH connectivity
+ssh -i ~/.ssh/maptimize-ec2-keypair.pem ubuntu@maptimize-prod.campaign.adobe.com
+```
+
+### DNS Propagation
+
+The A record was created in AWS Route53 and is immediately available from Route53 nameservers. Global DNS propagation across all public resolvers takes 24-48 hours due to DNS cache TTLs. The record is accessible immediately from:
+
+- AWS Route53 nameservers (ns-1122.awsdns-12.org, etc.)
+- Corporate networks using Route53 resolvers
+- Local resolvers after initial cache timeout
+
+For more details, see:
+- `DNS-CONFIGURATION-REPORT.md` - Route53 setup and verification
+- `HOSTNAME_SETUP_VERIFICATION.md` - Configuration reference
+- `DNS_TEST_REPORT.md` - Detailed DNS testing results
+
 ## Next Steps
 
 ### 1. Launch New EC2 Instance (Required)
