@@ -1,6 +1,17 @@
 import { z } from 'zod';
 import { jiraRequest } from '../common/utils.js';
 
+// Type definitions for JIRA API responses
+interface JiraFieldMetadata {
+  allowedValues?: unknown[];
+  [key: string]: unknown;
+}
+
+interface JiraCreateMetaResponse {
+  values?: JiraFieldMetadata[];
+  [key: string]: unknown;
+}
+
 // Schema for getting issue types
 export const GetIssueTypesSchema = z.object({
   projectKey: z.string().describe('The project key (e.g., CPGNREQ)')
@@ -52,18 +63,18 @@ export async function getProjectIssueTypes(params: z.infer<typeof GetIssueTypesS
 export async function getIssueTypeFieldMetadata(params: z.infer<typeof GetFieldMetadataSchema>) {
   try {
     const { projectKey, issueTypeId } = params;
-    
+
     // Use API v3 endpoint
     const result = await jiraRequest(`issue/createmeta/${projectKey}/issuetypes/${issueTypeId}`, {
       method: 'GET',
       apiVersion: '3'
-    });
-    
+    }) as JiraCreateMetaResponse;
+
     // Count fields with allowedValues for logging
-    const fieldsWithValues = result.values?.filter((field: any) => field.allowedValues)?.length || 0;
-    
+    const fieldsWithValues = result.values?.filter((field) => field.allowedValues)?.length || 0;
+
     console.log(`Retrieved ${result.values?.length || 0} fields for ${projectKey}/${issueTypeId}, ${fieldsWithValues} with allowedValues`);
-    
+
     return {
       success: true,
       message: `Successfully retrieved field metadata for ${projectKey} issue type ${issueTypeId}`,
@@ -71,11 +82,11 @@ export async function getIssueTypeFieldMetadata(params: z.infer<typeof GetFieldM
     };
   } catch (error) {
     console.error('Get Field Metadata Error:', error);
-    
+
     const errorDetails = error instanceof Error
       ? error.message
       : 'Unknown error occurred';
-    
+
     return {
       success: false,
       message: `Error getting field metadata: ${errorDetails}`

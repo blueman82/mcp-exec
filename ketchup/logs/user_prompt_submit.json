@@ -284,5 +284,104 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "yes you should go ahead"
     }
+  },
+  {
+    "timestamp": "2025-11-19T12:30:21.426309",
+    "input_data": {
+      "session_id": "a4e1a1dc-6d39-4ae5-b144-4fc32fcac0ba",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/a4e1a1dc-6d39-4ae5-b144-4fc32fcac0ba.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "if you have enough information to start the cooking manual process lets begin otherwise stop and tell me what you need"
+    }
+  },
+  {
+    "timestamp": "2025-11-19T12:39:38.752613",
+    "input_data": {
+      "session_id": "a4e1a1dc-6d39-4ae5-b144-4fc32fcac0ba",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/a4e1a1dc-6d39-4ae5-b144-4fc32fcac0ba.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "2 tests could be written/executed in parallel using agents just give me the instructions as if i have 0 knowledge of this conversation and the issue thus far, that way i can give it to a new session "
+    }
+  },
+  {
+    "timestamp": "2025-11-19T12:44:49.120483",
+    "input_data": {
+      "session_id": "a4e1a1dc-6d39-4ae5-b144-4fc32fcac0ba",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/a4e1a1dc-6d39-4ae5-b144-4fc32fcac0ba.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "let me continue this cook-man session into a new session, give me everything thus far as if I have 0 knowledge aabout what we've talked about. but that the new session invokes cook-man command and here are the test results as well. \n  Final Test Results\n\n  TEST 1: Direct JIRA API with PAT (Bearer Token)\n\n  Status: FAIL ❌\n  HTTP Code: 401 Unauthorized\n  Message: \"Client must be authenticated to access this resource.\"\n  - Finding: PAT with Bearer token format does NOT work on direct JIRA API\n\n  TEST 2: iPaaS Proxy with JIRA Credentials\n\n  Status: PASS ✅\n  HTTP Code: 200 OK\n  User Response:\n  {\n    \"self\": \"https://jira.corp.adobe.com/rest/api/2/user?username=ketchup\",\n    \"key\": \"JIRAUSER374857\",\n    \"name\": \"ketchup\",\n    \"emailAddress\": \"\",\n    \"avatarUrls\": {...}\n  }\n  - Finding: iPaaS proxy WORKS perfectly with standard JIRA username/password authentication\n\n  ---\n  Key Architectural Insight\n\n  ✅ iPaaS Proxy Authentication Path Works (use this)\n  - Requires: Basic JIRA credentials (username/password)\n  - NOT PAT-based authentication\n\n  ❌ Direct JIRA API with PAT Does Not Work\n  - PAT with Bearer token format is rejected"
+    }
+  },
+  {
+    "timestamp": "2025-11-19T13:14:47.484174",
+    "input_data": {
+      "session_id": "6bf6c26b-e50d-451c-ae19-92b83fc8172c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/6bf6c26b-e50d-451c-ae19-92b83fc8172c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "quite a few in there! \n    \nPersonal Access Tokens\n\nCreate token\nUse personal access tokens as a safe alternative to authenticating with username and password. Learn more.\n\nName    Date created    Expiry date    Last authenticated    \nketchup_mcp_token    Nov 19, 2025, 12:52:59 PM UTC    \nFeb 17, 2026, 12:52:59 PM UTC\nNov 19, 2025, 01:12:32 PM UTC    \nRevoke\nketchup-pat-1763557966902    Nov 19, 2025, 01:12:47 PM UTC    \nFeb 17, 2026, 01:12:47 PM UTC\nNever    \nRevoke\nketchup-pat-1763557948417    Nov 19, 2025, 01:12:29 PM UTC    \nFeb 17, 2026, 01:12:29 PM UTC\nNever    \nRevoke\nketchup-pat-1763557976323    Nov 19, 2025, 01:12:57 PM UTC    \nFeb 17, 2026, 01:12:57 PM UTC\nNever    \nRevoke\nketchup-pat-1763557993236    Nov 19, 2025, 01:13:14 PM UTC    \nFeb 17, 2026, 01:13:14 PM UTC\nNever    \nRevoke\n\nalso you never tested updating the expiry date either in secrets, so tidy up, then re-run the test. We should be left with 1 PAT in jira, pat in secrets and its expiry date "
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:33:42.443101",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "okay if we're only doing singleton why do we have dynamodb lock? `/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/FINAL_PRODUCTION_READY.md`"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:35:32.471340",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "im fine to remove it, but i dont know what other code has to be updated as a result of removing the lock code (yes we'll need to remove all references to it from all docs)?"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:37:31.164347",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "use agents to do the tasks"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:45:59.553247",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "ketchup-jira-pat-rotator:v2.360.349 deployed to prod1"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:47:07.671819",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "did you verify?\nssh ketchup-prod1 \"sudo docker logs -f ketchup-jira-pat-rotator\"\nError response from daemon: No such container: ketchup-jira-pat-rotator"
+    }
   }
 ]

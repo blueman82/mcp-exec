@@ -1,0 +1,181 @@
+plan_index:
+  metadata:
+    feature_name: "JIRA PAT Migration with Automated Rotation"
+    created: "2025-11-19"
+    total_tasks: 20
+    total_files: 2
+    status: "Generated and ready for implementation"
+
+  files:
+    - sequence: 1
+      filename: "plan-01-pat-authentication.yaml"
+      phase: "Phase 1: PAT Authentication Migration & Automated Rotation Service"
+      tasks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+      line_count: "2100+"
+      description: "Core JIRA PAT migration with authentication setup, MCP operations, and Python rotation service"
+
+    - sequence: 2
+      filename: "plan-02-advanced-rotation-features.yaml"
+      phase: "Phase 2: Backup PAT Management, Metrics, and Documentation"
+      tasks: [1, 2, 3, 4, 5, 6]
+      line_count: "1400+"
+      description: "Backup PAT management, metrics collection, and comprehensive system documentation"
+
+  phase_1_worktree_groups:
+    - group_id: "chain-1"
+      description: "MCP PAT authentication foundation"
+      tasks: [1, 2, 3, 4]
+      can_run_in_parallel_with: ["independent-3"]
+
+    - group_id: "chain-2"
+      description: "MCP PAT operations (create, revoke, validate, list)"
+      tasks: [5, 6, 7, 8]
+      depends_on: ["chain-1"]
+
+    - group_id: "independent-3"
+      description: "Docker Compose configuration for feature flag and rotation service"
+      tasks: [9, 10]
+      can_run_in_parallel_with: ["chain-1", "chain-2"]
+
+    - group_id: "chain-4"
+      description: "Python rotation service (scheduler, monitor, rotator, main)"
+      tasks: [11, 12, 13, 14]
+      depends_on: ["chain-2", "independent-3"]
+
+  execution_strategy:
+    parallel_groups:
+      - ["chain-1", "independent-3"]  # These can start immediately in parallel
+    sequential_dependencies:
+      - "chain-1 then chain-2 (Chain-2 waits for chain-1)"
+      - "chain-2 and independent-3 then chain-4 (Chain-4 waits for both)"
+
+    optimal_flow: |
+      1. Start chain-1 and independent-3 in parallel
+      2. When chain-1 completes, start chain-2
+      3. When both chain-2 AND independent-3 complete, start chain-4
+      4. Total duration: ~3-4 hours of wall-clock time (vs 5+ sequential)
+
+  getting_started:
+    first_task: 1
+    first_file: "plan-01-pat-authentication.yaml"
+    first_worktree: "chain-1"
+    instructions: |
+      1. Read the complete plan: docs/plans/jira-pat-migration/plan-01-pat-authentication.yaml
+      2. Start with Task 1 in chain-1 worktree
+      3. Follow the dependency ordering noted above
+      4. Use separate worktrees for parallel groups
+      5. Merge to main after each worktree group completes
+      6. Validate each phase before moving to next
+
+  critical_milestones:
+    - milestone: "Task 4 Complete"
+      description: "PAT authentication integrated into MCP service"
+      validation: "Run: cd ketchup/corp_jira_mcp && npm test && cd infrastructure && docker-compose -f docker-compose.local.yml up"
+      before_next: "Feature flag must be OFF by default"
+
+    - milestone: "Task 10 Complete"
+      description: "Docker Compose configuration ready"
+      validation: "Verify docker-compose.yml has both feature flag and rotation service"
+      before_next: "Can begin Python development"
+
+    - milestone: "Task 14 Complete"
+      description: "Rotation service ready for local testing"
+      validation: "Run local Docker environment with rotation service"
+      before_next: "Ready for production deployment planning"
+
+  deployment_timeline:
+    week_1:
+      - "Days 1-2: Implement chain-1 and independent-3 in parallel"
+      - "Days 3-4: Implement chain-2"
+      - "Days 5: Code review and testing"
+
+    week_2:
+      - "Days 1-3: Implement chain-4"
+      - "Days 4-5: Integration testing and local validation"
+
+    week_3_pre_nov30:
+      - "Days 1-2: Deploy to prod with JIRA_USE_PAT_AUTH=false (safe)"
+      - "Days 3-4: Run test scripts, validate PAT works"
+      - "Days 5: Flip flag to true for canary deployment"
+
+    week_3_nov30_and_after:
+      - "Nov 28-30: Canary to prod2, monitor 24h"
+      - "Nov 30: Deploy to prod1 (all servers on PAT)"
+      - "Beyond: Monitor PAT rotation service"
+
+  key_files_to_monitor:
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts (buildJiraAuthHeaders)"
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts (usePat flag)"
+    - "ketchup/ketchup_jira_pat_rotator/scheduler.py (rotation timing)"
+    - "infrastructure/docker-compose.yml (feature flag and service)"
+
+  expected_outcomes_by_task:
+    task_1_4:
+      description: "MCP service fully supports PAT authentication"
+      validation: "Feature flag controls which auth method is used"
+
+    task_5_8:
+      description: "MCP operations for token lifecycle management"
+      validation: "All operations can be called via MCP protocol"
+
+    task_9_10:
+      description: "Docker infrastructure ready for rotation service"
+      validation: "docker-compose.yml fully configured"
+
+    task_11_14:
+      description: "Production-ready PAT rotation service"
+      validation: "Service starts, runs daily checks, sends alerts"
+
+  phase_2_summary:
+    description: "Backup PAT management, metrics collection, and comprehensive documentation"
+    total_phase_2_tasks: 6
+    phase_2_files: 1
+    phase_2_location: "plan-02-advanced-rotation-features.yaml"
+    execution_flow: |
+      Phase 2 execution after Phase 1 completion:
+      1. chain-1 (backup PAT): Tasks 1-3, 2h
+      2. chain-2 (metrics): Tasks 4-5, 1.5h (depends on Phase 1 + chain-1)
+      3. independent-1 (documentation): Task 6, 3h (can run in parallel with chain-1/chain-2)
+      Total duration: ~2 days wall-clock time (with 2-3 developers working in parallel)
+
+  next_phases:
+    - phase: "Phase 3 (Optional - Post-Deployment Enhancements)"
+      description: "Additional features based on production usage"
+      tasks:
+        - "Automated PAT backup and recovery"
+        - "Predictive rotation scheduling (AI-based)"
+        - "Slack bot commands for manual operations"
+        - "Cross-region PAT failover"
+      estimated_effort: "1-2 weeks after Phase 2"
+
+    - phase: "Operations & Support"
+      description: "Post-deployment ongoing work"
+      items:
+        - "Monitor rotation service health"
+        - "Test fallback scenarios regularly"
+        - "Run quarterly backup recovery drills"
+        - "Update runbooks based on incidents"
+        - "Measure PAT rotation success rate"
+
+  success_criteria_final:
+    must_have:
+      - "✓ PAT authentication working in production"
+      - "✓ Rotation service running daily"
+      - "✓ Feature flag can toggle auth methods"
+      - "✓ All tests passing"
+      - "✓ No outages during Nov 30 transition"
+
+    should_have:
+      - "✓ Comprehensive monitoring and alerting"
+      - "✓ Fallback mechanisms tested"
+      - "✓ Documentation complete"
+
+    nice_to_have:
+      - "✓ Custom metrics dashboard"
+      - "✓ Automated backup PAT generation"
+
+  contact_and_support:
+    questions_about_plan: "Review the detailed task descriptions in plan-01-pat-authentication.yaml"
+    questions_about_implementation: "Refer to the 'critical_patterns' section in each task"
+    blockers_or_issues: "Create GitHub issue or reach out to team lead"
+    documentation_updates: "Update this index.yaml after each phase completes"

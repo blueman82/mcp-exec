@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "build": "tsc && (shx cp .env dist/ || echo 'No .env file to copy') && shx chmod +x dist/*.js",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.0.0",
@@ -30,8 +31,11 @@
     "zod-to-json-schema": "^3.23.5"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "@types/express": "^4.17.17",
+    "jest": "^30.2.0",
     "shx": "^0.3.4",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.6.2"
   }
 }

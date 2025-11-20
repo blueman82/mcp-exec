@@ -1,8 +1,8 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
 export default {
-  preset: 'ts-jest/presets/default-esm',
-  testEnvironment: 'node',
+  preset: 'ts-jest',
   extensionsToTreatAsEsm: ['.ts'],
+  testEnvironment: 'node',
+  testMatch: ['**/tests/**/*.test.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
@@ -11,9 +11,14 @@ export default {
       'ts-jest',
       {
         useESM: true,
+        tsconfig: {
+          esModuleInterop: true,
+        },
       },
     ],
   },
-  testMatch: ['**/tests/**/*.test.ts'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  // Ensure mocks are reset between tests
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 };

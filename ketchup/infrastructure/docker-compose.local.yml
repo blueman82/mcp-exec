@@ -108,6 +108,7 @@ services:
       - PORT=8081
       - NODE_ENV=development
       - LOG_LEVEL=debug
+      - JIRA_USE_PAT_AUTH=true  # Enable PAT authentication for local testing
     volumes:
       - ~/.aws:/home/nodejs/.aws:ro
     restart: unless-stopped

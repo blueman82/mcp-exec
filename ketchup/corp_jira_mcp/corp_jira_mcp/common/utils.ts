@@ -146,7 +146,7 @@ function constructIpaasHeaders(
   if (username) {
     headers["Username"] = username;
   }
-  
+
   if (password) {
     headers["Password"] = password;
   }
@@ -155,65 +155,138 @@ function constructIpaasHeaders(
   return headers;
 }
 
+/**
+ * Helper function to check if a PAT is valid (not expired)
+ * @param expiryDate The expiry date of the PAT
+ * @returns true if PAT is valid (not expired), false otherwise
+ */
+function isPATValid(expiryDate?: Date): boolean {
+  if (!expiryDate || !(expiryDate instanceof Date)) {
+    return true; // If no expiry date, consider it valid
+  }
+  return expiryDate > new Date();
+}
+
+/**
+ * Helper function to calculate days remaining until PAT expiry
+ * @param expiryDate The expiry date of the PAT
+ * @returns Number of days until expiry, or -1 if no expiry date
+ */
+function calculateDaysUntilExpiry(expiryDate?: Date): number {
+  if (!expiryDate || !(expiryDate instanceof Date)) {
+    return -1; // No expiry
+  }
+  const now = new Date();
+  const diffMs = expiryDate.getTime() - now.getTime();
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * Builds appropriate authentication headers based on configuration
+ * This is the centralized source of truth for all auth header construction.
+ * Priority order: iPaaS > PAT (with fallback to backup) > Basic Auth
+ *
+ * @param cfg The Jira configuration object
+ * @returns Headers object with appropriate authentication
+ * @throws Error if required configuration is missing
+ */
+export function buildJiraAuthHeaders(cfg: typeof config): Record<string, string> {
+  // Base headers that are always included
+  const baseHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  };
+
+  // Priority 1: iPaaS authentication
+  if (cfg.useIpaas) {
+    const { imsToken, apiKey, username, password } = cfg.auth;
+
+    if (!apiKey) {
+      throw new Error('iPaaS authentication is enabled but no API key is configured');
+    }
+
+    if (!imsToken) {
+      throw new Error('iPaaS authentication is enabled but no IMS token is configured');
+    }
+
+    logToFile('Building iPaaS authentication headers');
+    return {
+      ...baseHeaders,
+      ...constructIpaasHeaders(imsToken, apiKey, username, password)
+    };
+  }
+
+  // Priority 2: PAT (Personal Access Token) authentication with fallback logic
+  if (cfg.auth.usePat) {
+    let authToken: string;
+    let source: 'primary' | 'backup';
+
+    // Decision logic for which PAT to use
+    if (cfg.auth.useBackupPat && cfg.auth.backupPat) {
+      // Explicitly using backup
+      authToken = cfg.auth.backupPat;
+      source = 'backup';
+      logToFile('Using backup PAT (explicitly enabled)');
+    } else if (cfg.auth.pat && isPATValid(cfg.auth.patExpiry)) {
+      // Primary PAT still valid
+      authToken = cfg.auth.pat;
+      source = 'primary';
+    } else if (cfg.auth.backupPat && isPATValid(cfg.auth.backupPatExpiry)) {
+      // Primary expired but backup available - automatic fallback
+      authToken = cfg.auth.backupPat;
+      source = 'backup';
+      const daysRemaining = calculateDaysUntilExpiry(cfg.auth.backupPatExpiry);
+      logToFile(`Falling back to backup PAT (primary expired or missing). Backup expires in ${daysRemaining} days.`);
+    } else {
+      // Neither PAT available
+      throw new Error('No PAT available (primary and backup missing or expired)');
+    }
+
+    logToFile('Building PAT authentication headers');
+    return {
+      ...baseHeaders,
+      "Authorization": `Bearer ${authToken}`
+    };
+  }
+
+  // Priority 3: Basic Auth (direct email:token)
+  const { email, token } = cfg.auth;
+
+  if (!email || !token) {
+    throw new Error('Basic authentication requires email and token');
+  }
+
+  logToFile('Building basic authentication headers');
+  return {
+    ...baseHeaders,
+    "Authorization": constructAuthHeader(email, token)
+  };
+}
+
 export async function jiraRequest(
   path: string,
   options: RequestOptions = {}
 ): Promise<unknown> {
-  let headers: Record<string, string>;
-  
-  // Determine which authentication method to use based on config
-  if (config.useIpaas) {
-    // iPaaS authentication
-    
-    // First, try to use the token from the incoming request
-    if (currentAuthToken) {
-      logToFile('Using token from incoming request Authorization header');
-      
-      // Extract token from "Bearer " prefix if present
-      const token = currentAuthToken.startsWith('Bearer ') 
-        ? currentAuthToken.substring(7) 
-        : currentAuthToken;
-      
-      headers = {
-        ...constructIpaasHeaders(
-          token,
-          config.auth.apiKey || '',
-          config.auth.username,
-          config.auth.password
-        ),
-        ...options.headers
-      };
-    } else {
-      // Fallback to environment variables if no incoming token
-      logToFile('No incoming token, falling back to environment variables');
-      const { imsToken, apiKey, username, password } = config.auth;
-      
-      if (!imsToken || !apiKey) {
-        throw new Error("IMS token and API key are required for iPaaS authentication");
-      }
-      
-      headers = {
-        ...constructIpaasHeaders(imsToken, apiKey, username, password),
-        ...options.headers
-      };
-    }
-  } else {
-    // Direct Jira authentication
-    headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    ...options.headers,
+  // Use buildJiraAuthHeaders to get appropriate authentication headers based on config
+  let headers = buildJiraAuthHeaders(config);
+
+  // Handle incoming request token for iPaaS mode
+  if (config.useIpaas && currentAuthToken) {
+    logToFile('Using token from incoming request Authorization header for iPaaS');
+
+    // Extract token from "Bearer " prefix if present
+    const token = currentAuthToken.startsWith('Bearer ')
+      ? currentAuthToken.substring(7)
+      : currentAuthToken;
+
+    headers['Authorization'] = token;
+  }
+
+  // Merge with any custom headers provided in options (allows overrides)
+  headers = {
+    ...headers,
+    ...options.headers
   };
-
-  // Get auth details from config
-  const { email, token } = config.auth;
-  if (!email || !token) {
-      throw new Error("Email and token are required for direct authentication");
-  }
-
-  // Construct auth header using simplified approach
-  headers["Authorization"] = constructAuthHeader(email, token);
-  }
 
   // Build URL
   const url = path.startsWith('http') ? path : buildUrl(path, {});

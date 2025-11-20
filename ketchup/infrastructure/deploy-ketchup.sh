@@ -31,9 +31,10 @@ DOCKERFILE_STATUS_UPDATER="infrastructure/Dockerfile.status-updater"
 DOCKERFILE_JIRA_REPORTER="infrastructure/Dockerfile.jira-reporter"
 DOCKERFILE_ACCESS_MONITOR="infrastructure/Dockerfile.access-monitor"
 DOCKERFILE_MAINTENANCE_FETCHER="infrastructure/Dockerfile.maintenance_fetcher"
+DOCKERFILE_JIRA_PAT_ROTATOR="infrastructure/Dockerfile.jira-pat-rotator"
 
 # Service names
-SERVICES=("ketchup-app" "ketchup-metadata-updater" "mcp-jira" "ketchup-status-updater" "ketchup-jira-reporter" "ketchup-access-monitor" "ketchup-maintenance-fetcher")
+SERVICES=("ketchup-app" "ketchup-metadata-updater" "mcp-jira" "ketchup-status-updater" "ketchup-jira-reporter" "ketchup-access-monitor" "ketchup-maintenance-fetcher" "ketchup-jira-pat-rotator")
 
 # Default values
 VERSION=""
@@ -356,6 +357,18 @@ build_images() {
     }
     log_success "Built ketchup-maintenance-fetcher:$VERSION"
 
+    # Build ketchup-jira-pat-rotator
+    log_info "Building ketchup-jira-pat-rotator:$VERSION..."
+    BUILD_ARGS="-t ketchup-jira-pat-rotator:$VERSION -f $DOCKERFILE_JIRA_PAT_ROTATOR --platform linux/amd64"
+    if [ "$NO_CACHE" = true ]; then
+        BUILD_ARGS="$BUILD_ARGS --no-cache"
+    fi
+    docker build $BUILD_ARGS . || {
+        log_error "Failed to build ketchup-jira-pat-rotator"
+        exit 1
+    }
+    log_success "Built ketchup-jira-pat-rotator:$VERSION"
+
 }
 
 tag_images() {
@@ -502,8 +515,8 @@ deploy_to_server() {
         update_cmd+="sudo sed -i 's|KETCHUP_STATUS_UPDATER_ENABLED=true|KETCHUP_STATUS_UPDATER_ENABLED=false|g' /opt/ketchup/docker-compose.yml; "
 
         # Explicitly stop and remove singleton services that should only run on prod1
-        cleanup_cmd="sudo docker-compose stop ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher 2>/dev/null; "
-        cleanup_cmd+="sudo docker-compose rm -f ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher 2>/dev/null; "
+        cleanup_cmd="sudo docker-compose stop ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher ketchup-jira-pat-rotator 2>/dev/null; "
+        cleanup_cmd+="sudo docker-compose rm -f ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher ketchup-jira-pat-rotator 2>/dev/null; "
 
         ssh "$server" "cd $PROD_DIR && \
             $update_cmd \

@@ -71,9 +71,9 @@ class HomeTabHandler:
                 if normalized != user.lower():
                     self._admin_user_list.append(normalized)
         logger.info("HomeTabHandler initialized with dependencies")
-        # Debug: log which users are considered admins for usage-stats purposes
+        # Debug: log count of admin users (not names for privacy)
         logger.info(
-            "Usage-stats admin user list initialised: %s", self._admin_user_list
+            "Usage-stats admin user list initialised with %d users", len(self._admin_user_list)
         )
 
     async def handle_app_home_opened(self, event: Dict[str, Any]) -> bool:

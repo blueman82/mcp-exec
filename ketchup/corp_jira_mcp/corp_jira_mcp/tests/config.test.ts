@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import type { GetSecretValueCommandOutput } from '@aws-sdk/client-secrets-manager';
 
 // We'll need to reload the config module after setting env vars
 // Store original env vars to restore after tests
@@ -31,13 +32,15 @@ describe('Config - PAT Support', () => {
   });
 
   it('should load backup PAT from environment variable', async () => {
-    process.env.JIRA_PAT_BACKUP = 'backup_pat_67890';
+    process.env.JIRA_BACKUP_PAT = 'backup_pat_67890';
     const { config } = await import('../common/config.js');
-    expect(config.auth.patBackup).toBe('backup_pat_67890');
+    expect(config.auth.backupPat).toBe('backup_pat_67890');
   });
 
   it('should default usePat to false when JIRA_USE_PAT_AUTH not set', async () => {
-    delete process.env.JIRA_USE_PAT_AUTH;
+    // Must set to 'false' rather than delete, because dotenv.config()
+    // will reload from .env file if the variable is not present
+    process.env.JIRA_USE_PAT_AUTH = 'false';
     const { config } = await import('../common/config.js');
     expect(config.auth.usePat).toBe(false);
   });
@@ -69,8 +72,113 @@ describe('Config - PAT Support', () => {
   });
 
   it('should default backup PAT to empty string when not set', async () => {
-    delete process.env.JIRA_PAT_BACKUP;
+    delete process.env.JIRA_BACKUP_PAT;
     const { config } = await import('../common/config.js');
-    expect(config.auth.patBackup).toBe('');
+    expect(config.auth.backupPat).toBe('');
+  });
+});
+
+describe('env-aws.ts - PAT mappings', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...originalEnv };
+    // Clear any existing PAT variables
+    delete process.env.JIRA_PAT;
+    delete process.env.JIRA_PAT_EXPIRY;
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('should load JIRA_PAT from AWS Secrets', async () => {
+    // Mock AWS Secrets Manager
+    const mockSecretsManager = {
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ketchup_jira_pat': 'test_pat_token_12345'
+        })
+      } as GetSecretValueCommandOutput)
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    expect(process.env.JIRA_PAT).toBe('test_pat_token_12345');
+  });
+
+  it('should load JIRA_PAT_EXPIRY from AWS Secrets', async () => {
+    const testExpiry = '2025-12-31T23:59:59Z';
+    const mockSecretsManager = {
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ketchup_jira_pat_expiry': testExpiry
+        })
+      } as GetSecretValueCommandOutput)
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    expect(process.env.JIRA_PAT_EXPIRY).toBe(testExpiry);
+  });
+
+  it('should handle missing PAT gracefully', async () => {
+    const mockSecretsManager = {
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ipaas_username': 'test@example.com'
+        })
+      } as GetSecretValueCommandOutput)
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    expect(process.env.JIRA_PAT).toBeUndefined();
+  });
+
+  it('should log PAT presence without exposing value', async () => {
+    const consoleSpy = jest.spyOn(console, 'error');
+
+    const mockSecretsManager = {
+      send: jest.fn<() => Promise<GetSecretValueCommandOutput>>().mockResolvedValue({
+        SecretString: JSON.stringify({
+          'ketchup_jira_pat': 'secret_token_value'
+        })
+      } as GetSecretValueCommandOutput)
+    };
+
+    jest.doMock('@aws-sdk/client-secrets-manager', () => ({
+      SecretsManagerClient: jest.fn(() => mockSecretsManager),
+      GetSecretValueCommand: jest.fn((input) => input)
+    }));
+
+    const { loadSecretsFromAWS } = await import('../env-aws.js');
+    await loadSecretsFromAWS();
+
+    const logCalls = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
+    // Check that PAT is logged with redaction indicator
+    expect(logCalls).toMatch(/JIRA_PAT:.*\[REDACTED\]/);
+    expect(logCalls).not.toContain('secret_token_value');
+
+    consoleSpy.mockRestore();
   });
 });

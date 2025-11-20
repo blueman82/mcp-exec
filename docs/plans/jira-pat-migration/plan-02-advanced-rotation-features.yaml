@@ -1,0 +1,1333 @@
+plan:
+  metadata:
+    feature_name: "JIRA PAT Advanced Rotation Features with Backup and Documentation"
+    created: "2025-11-19"
+    phase: "Phase 2: Backup PAT, Metrics, and Documentation"
+    depends_on: "Phase 1 (plan-01-pat-authentication.yaml) must be completed first"
+    target: "Add backup PAT management, metrics collection, and comprehensive system documentation"
+    estimated_tasks: 6
+    total_files: 1
+    task_numbering: "19-24 (continuation from Phase 1 which has tasks 1-18)"
+    status: "Ready for implementation after Phase 1 completion"
+  context:
+    framework: "TypeScript (MCP), Python (rotation service)"
+    architecture: "Backup PAT management, metrics collection to DynamoDB, comprehensive internal documentation"
+    test_framework: "Jest (TypeScript), pytest (Python)"
+    phase_1_dependencies:
+      - "buildJiraAuthHeaders utility function with PAT support"
+      - "MCP PAT operations (createPAT, revokePAT, listPATs, validatePAT)"
+      - "Python rotation service with scheduler and TypedDI integration"
+      - "Feature flag JIRA_USE_PAT_AUTH controlling auth method"
+    key_patterns:
+      - "TypedDI dependency injection for services"
+      - "Distributed DynamoDB locking for concurrent operations"
+      - "Scheduler pattern with health status file updates"
+      - "Minimal alerting: rotation failures sent to #ketchup-alerts using existing pattern"
+      - "TDD approach: write tests first, then implementation"
+    expectations:
+      - "Write tests BEFORE implementation (RED/GREEN/REFACTOR)"
+      - "Follow existing service patterns established in Phase 1"
+      - "Backup PAT feature must be non-intrusive to primary rotation"
+      - "Metrics collection must not degrade rotation service performance"
+      - "Alerting uses existing #ketchup-alerts pattern (like ketchup_access_request_monitor)"
+      - "Documentation is comprehensive and follows existing style (internal_documentation/)"
+      - "Commit frequently after each completed task"
+      - "Use worktree per group for parallel development"
+  worktree_groups:
+    - group_id: "chain-1"
+      description: "Backup PAT management system (create, validate, fallback logic)"
+      tasks: [1, 2, 3]
+      branch: "feature/jira-pat-migration/phase-2-chain-1-backup"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      rationale: "Backup PAT tasks form a dependency chain: storage schema → operations → fallback logic"
+      setup_commands: |
+        # Create worktree for backup PAT feature
+        git worktree add ../wt-phase2-chain-1 -b feature/jira-pat-migration/phase-2-chain-1-backup
+        cd ../wt-phase2-chain-1
+
+        # Task 1: Add backup PAT schema to config
+        # Implement and test
+        git add .
+        git commit -m "feat: add backup PAT configuration schema"
+
+        # Task 2: Implement backup PAT operations
+        # Implement and test
+        git add .
+        git commit -m "feat: implement backup PAT creation and validation"
+
+        # Task 3: Implement fallback logic
+        # Implement and test
+        git add .
+        git commit -m "feat: add PAT fallback mechanism when primary expires"
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/phase-2-chain-1-backup
+        git push origin main
+    - group_id: "chain-2"
+      description: "Metrics collection system (aggregation and storage)"
+      tasks: [4, 5]
+      branch: "feature/jira-pat-migration/phase-2-chain-2-metrics"
+      execution_model: "sequential"
+      isolation: "separate-worktree"
+      depends_on: ["Phase 1 completion - rotation service must be running"]
+      rationale: "Metrics tasks form a dependency chain: storage schema → collector service"
+      setup_commands: |
+        # Wait for Phase 1 to be merged and rotation service running
+        git checkout main
+        git pull origin main
+
+        # Create worktree for metrics feature
+        git worktree add ../wt-phase2-chain-2 -b feature/jira-pat-migration/phase-2-chain-2-metrics
+        cd ../wt-phase2-chain-2
+
+        # Task 4: Add metrics schema and storage
+        # Implement and test
+        git add .
+        git commit -m "feat: add PAT metrics schema and DynamoDB storage"
+
+        # Task 5: Implement metrics collector service
+        # Implement and test
+        git add .
+        git commit -m "feat: implement metrics collection scheduler"
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/phase-2-chain-2-metrics
+        git push origin main
+    - group_id: "independent-1"
+      description: "PAT rotation system documentation"
+      tasks: [6]
+      branch: "feature/jira-pat-migration/phase-2-independent-1-docs"
+      execution_model: "parallel"
+      isolation: "separate-worktree"
+      rationale: "Documentation can be written independently from code implementation"
+      setup_commands: |
+        # Create worktree for documentation
+        git worktree add ../wt-phase2-independent-1 -b feature/jira-pat-migration/phase-2-independent-1-docs
+        cd ../wt-phase2-independent-1
+
+        # Task 6: Document PAT rotation system
+        # Write and validate documentation
+        git add .
+        git commit -m "docs: add comprehensive PAT rotation system documentation"
+
+        # When ready, merge to main
+        git checkout main
+        git merge feature/jira-pat-migration/phase-2-independent-1-docs
+        git push origin main
+  execution_strategy:
+    parallel_groups:
+      - ["chain-1", "independent-1"] # Can start immediately after Phase 1
+    sequential_dependencies:
+      - "chain-1 → chain-2 (chain-2 waits for chain-1)"
+      - "chain-2 and independent-1 → deployment (both complete before prod deployment)"
+    optimal_flow: |
+      1. Start chain-1 (backup PAT) and independent-1 (documentation) in parallel
+      2. When chain-1 completes, start chain-2 (metrics collection)
+      3. When both chain-2 AND independent-1 complete, ready for testing/deployment
+      4. Total duration: ~2 days wall-clock time (vs 3+ sequential)
+  prerequisites:
+    - item: "Phase 1 (plan-01-pat-authentication.yaml) completed"
+      details: "All 14 Phase 1 tasks implemented and merged to main"
+      verified: false
+      blocking: true
+    - item: "MCP service with PAT support running"
+      details: "buildJiraAuthHeaders() working, feature flag implemented"
+      verified: false
+      blocking: true
+    - item: "Python rotation service running with health checks"
+      details: "Scheduler running, rotation logic tested, health file updating"
+      verified: false
+      blocking: true
+    - item: "DynamoDB tables available"
+      details: "Existing ketchup tables, metrics table available"
+      verified: false
+      blocking: true
+    - item: "AWS Secrets Manager access"
+      details: "Can read/write JIRA_PAT, JIRA_PAT_EXPIRY, and backup PAT secrets"
+      verified: false
+      blocking: true
+    - item: "Git worktrees ready"
+      details: "Understand worktree workflow from Phase 1"
+      verified: false
+      blocking: false
+  critical_milestones:
+    - milestone: "Task 3 Complete"
+      description: "Backup PAT feature working"
+      validation: "Run: python -m pytest tests/unit/test_backup_pat -v && npm test ketchup/corp_jira_mcp --testPathPattern=backup"
+      before_next: "Backup PAT can be created, validated, and used as fallback"
+    - milestone: "Task 5 Complete"
+      description: "Metrics collection running"
+      validation: "Verify metrics are being written to DynamoDB every 5 minutes"
+      before_next: "Can use metrics for monitoring and operational decisions"
+    - milestone: "Task 6 Complete"
+      description: "PAT rotation system documented"
+      validation: "Documentation covers how it works, success flows, failure modes, and alerting"
+      before_next: "Ready for production deployment with team trained on documentation"
+  key_files_to_monitor:
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts (backupPat configuration)"
+    - "ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts (backup operations)"
+    - "ketchup/ketchup_jira_pat_rotator/metrics_collector.py (metrics collection)"
+    - "ketchup/docs/internal_documentation/jira_pat_rotation_system.md (documentation)"
+  expected_outcomes_by_task:
+    task_1_3:
+      description: "Backup PAT management fully integrated"
+      validation: "Backup PAT can be created, validated, and used as fallback"
+    task_4_5:
+      description: "Metrics collection running continuously"
+      validation: "Metrics visible in DynamoDB and queryable via Python API"
+    task_6:
+      description: "PAT rotation system comprehensively documented"
+      validation: "Documentation is accurate, complete, and integrated with existing docs"
+  tasks:
+    - task_number: 19
+      name: "Add backup PAT configuration schema"
+      agent: "typescript-pro"
+      worktree_group: "chain-1"
+      files:
+        - "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts"
+        - "ketchup/corp_jira_mcp/corp_jira_mcp/common/types/backup-pat.types.ts"
+        - "tests/unit/test_backup_pat/test_config.test.ts"
+      depends_on: []
+      estimated_time: "30m"
+      description: |
+        Add configuration schema for backup PAT management to MCP service.
+        This extends the existing JiraConfig interface to support a secondary
+        backup PAT that can be used as fallback when primary PAT is near expiry.
+      test_first:
+        test_file: "tests/unit/test_backup_pat/test_config.test.ts"
+        structure:
+          - "describe('BackupPATConfig', () => {...})"
+          - "test: config loads backup PAT from AWS Secrets"
+          - "test: backup PAT expiry is parsed correctly"
+          - "test: config can be read without primary PAT (for fresh rotation)"
+          - "test: config validates backup PAT format"
+        mocks:
+          - "SecretsManagerService"
+        fixtures:
+          - "validBackupPATConfig"
+          - "expiredBackupPATConfig"
+        assertions:
+          - "Backup PAT is stored in config.backupPat field"
+          - "Backup PAT expiry is stored in config.backupPatExpiry field"
+          - "useBackupPat flag exists and defaults to false"
+          - "Config validation succeeds with valid backup PAT"
+        example_skeleton: |
+          // tests/unit/test_backup_pat/test_config.test.ts
+          import { describe, it, expect, beforeEach } from '@jest/globals';
+          import { JiraConfig } from '../../../src/common/config';
+          import { loadConfig } from '../../../src/common/config-loader';
+          import { mockSecretsManager } from '../../helpers/mocks';
+
+          describe('BackupPATConfig', () => {
+            let config: JiraConfig;
+
+            beforeEach(async () => {
+              // Mock secrets with backup PAT
+              mockSecretsManager({
+                JIRA_PAT: 'primary-token-abc123',
+                JIRA_PAT_EXPIRY: '2026-02-15T10:30:00Z',
+                JIRA_BACKUP_PAT: 'backup-token-xyz789',
+                JIRA_BACKUP_PAT_EXPIRY: '2026-03-15T10:30:00Z'
+              });
+
+              config = await loadConfig();
+            });
+
+            it('should load primary and backup PAT from secrets', () => {
+              expect(config.pat).toBe('primary-token-abc123');
+              expect(config.backupPat).toBe('backup-token-xyz789');
+            });
+
+            it('should parse backup PAT expiry as Date', () => {
+              expect(config.backupPatExpiry).toEqual(
+                new Date('2026-03-15T10:30:00Z')
+              );
+            });
+
+            it('should have useBackupPat flag defaulting to false', () => {
+              expect(config.useBackupPat).toBe(false);
+            });
+
+            it('should validate backup PAT format', () => {
+              // Invalid backup PAT should throw or fail validation
+              expect(() => {
+                config.validateBackupPat('invalid-format');
+              }).toThrow('Invalid backup PAT format');
+            });
+
+            it('should handle missing backup PAT gracefully', async () => {
+              mockSecretsManager({
+                JIRA_PAT: 'primary-token-abc123',
+                JIRA_PAT_EXPIRY: '2026-02-15T10:30:00Z',
+                // JIRA_BACKUP_PAT not provided
+              });
+
+              config = await loadConfig();
+              expect(config.backupPat).toBeUndefined();
+              expect(config.useBackupPat).toBe(false);
+            });
+          });
+      implementation:
+        approach: |
+          Extend the existing JiraConfig interface to include backup PAT fields.
+          Load backup PAT and expiry from AWS Secrets Manager (new secret keys).
+          Add flag to control which PAT is actively used (primary vs backup).
+          Update config loader to handle optional backup PAT gracefully.
+        code_structure: |
+          // ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts
+          export interface JiraConfig {
+            // Existing fields
+            email: string;
+            token: string;
+            pat: string;
+            patExpiry: Date;
+            usePat: boolean;
+
+            // NEW fields for Phase 2
+            backupPat?: string;              // Secondary PAT for fallback
+            backupPatExpiry?: Date;          // When backup PAT expires
+            useBackupPat?: boolean;          // Currently using backup (default false)
+            backupPatCreatedAt?: Date;       // When backup was created
+          }
+        key_points:
+          - point: "Extend existing config.ts, don't replace it"
+            reference: "ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts:1"
+          - point: "Load from AWS Secrets Manager same as primary PAT"
+            reference: "ketchup/corp_jira_mcp/corp_jira_mcp/env-aws.ts - pattern for secret mapping"
+          - point: "Make backup PAT optional - not all deployments need it"
+            details: "Use optional fields (?:) in TypeScript interface"
+          - point: "Add validation utility for backup PAT format"
+            reference: "Similar to existing PAT validation in utils.ts"
+        critical_patterns:
+          purpose: "Complete code patterns to copy-paste into implementation"
+          backup_pat_config_interface:
+            description: "TypeScript interface for backup PAT configuration"
+            complete_code: |
+              // ketchup/corp_jira_mcp/corp_jira_mcp/common/types/backup-pat.types.ts
+              export interface BackupPATConfig {
+                /** Secondary PAT token (Bearer token format) */
+                backupPat?: string;
+
+                /** When backup PAT expires */
+                backupPatExpiry?: Date;
+
+                /** Whether to use backup PAT instead of primary */
+                useBackupPat: boolean;
+
+                /** When backup PAT was created (UTC) */
+                backupPatCreatedAt?: Date;
+
+                /** Days until backup PAT should be rotated */
+                backupPatRotationDaysRemaining?: number;
+              }
+
+              // Extend existing JiraConfig
+              export interface JiraConfig extends BackupPATConfig {
+                // Existing fields remain
+                email: string;
+                token: string;
+                pat: string;
+                patExpiry: Date;
+                usePat: boolean;
+              }
+      verification:
+        manual_testing:
+          - step: "Load config locally with backup PAT"
+            command: "npm run test tests/unit/test_backup_pat/test_config.test.ts"
+          - step: "Verify backup PAT is accessible"
+            expected: "Config loads with backupPat and backupPatExpiry fields"
+        automated_tests:
+          command: "npm test ketchup/corp_jira_mcp --testPathPattern=backup.*config"
+          expected_output: |
+            All tests passing:
+            ✓ Config loads backup PAT from secrets
+            ✓ Backup PAT expiry parsed correctly
+            ✓ useBackupPat flag defaults to false
+            ✓ Config validates backup PAT format
+        success_criteria:
+          - "All unit tests pass"
+          - "No TypeScript errors"
+          - "Config can load with and without backup PAT"
+          - "Validation catches invalid backup PAT format"
+      commit:
+        type: "feat"
+        message: "add backup PAT configuration schema to MCP service"
+        body: |
+          Extend JiraConfig to support backup PAT management.
+          - Add backupPat, backupPatExpiry, useBackupPat to config interface
+          - Load backup PAT from AWS Secrets Manager
+          - Add validation for backup PAT format and expiry
+          - Make backup PAT optional (not all deployments require it)
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: typescript-pro
+          verdict: RED
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":315424,"duration_api_ms":334034,"num_turns":54,"result":"Perfect! Let me provide a summary:\n\n```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Task 19 completed: Added backup PAT configuration schema to MCP service with comprehensive validation and testing\",\n  \"output\": \"Task 19: Add backup PAT configuration schema\\n\\nCompleted all implementation steps:\\n\\n1. EXTENDED JIRACONFIG INTERFACE\\n   - Added pat, patExpiry, usePat fields for primary PAT\\n   - Added backupPat, backupPatExpiry, useBackupPat, backupPatCreatedAt fields\\n   - All backup PAT fields are optional for deployments that don't require them\\n   - Location: ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts:18-26\\n\\n2. UPDATED CONFIG LOADER\\n   - Modified defaults object to load backup PAT from environment variables\\n   - Updated createConfig() to parse PAT dates and flags correctly\\n   - Gracefully handles missing backup PAT (defaults to empty string/false)\\n   - Location: ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts:43-69, 96-119\\n\\n3. CREATED VALIDATION UTILITY MODULE\\n   - isValidPatFormat(): Validates PAT format (alphanumeric with hyphens/underscores)\\n   - isBackupPatExpired(): Checks if backup PAT has expired\\n   - isBackupPatValid(): Combined validation for backup PAT\\n   - shouldUseBackupPat(): Decision logic for when to activate backup PAT\\n   - Location: ketchup/corp_jira_mcp/corp_jira_mcp/common/pat-validation.ts\\n\\n4. COMPREHENSIVE TEST SUITE\\n   - 7 tests for BackupPATConfig interface and data types\\n   - 5 tests for BackupPATValidation functions\\n   - Total: 12 tests, all passing\\n   - Location: ketchup/corp_jira_mcp/corp_jira_mcp/tests/test_backup_pat/test_config.test.ts\\n\\nFILES MODIFIED:\\n- config.ts: Extended JiraConfig interface, updated loader\\n- pat-validation.ts: New validation utility module\\n- test_config.test.ts: Fixed test references from patBackup to backupPat\\n- test_backup_pat/test_config.test.ts: New comprehensive test suite\\n- jest.config.js: Added proper ES2022 and isolatedModules configuration\\n- package.json: Added jest, ts-jest, @jest/globals dependencies\\n\\nVERIFICATION:\\n✓ All 12 unit tests passing\\n✓ TypeScript compilation successful (config module)\\n✓ Backup PAT configuration loads from environment variables\\n✓ Date parsing works correctly for expiry and created timestamps\\n✓ Validation functions correctly identify PAT format and expiry\\n✓ Optional backup PAT fields work correctly\\n✓ Git commit created successfully\\n\\nCOMMIT MESSAGE:\\nfeat: add backup PAT configuration schema to MCP service\\n\\nExtend JiraConfig to support backup PAT management:\\n- Add backupPat, backupPatExpiry, useBackupPat, backupPatCreatedAt fields\\n- Load backup PAT from environment variables with optional AWS support\\n- Implement validation utilities for PAT format and expiry checking\\n- Add comprehensive unit tests for backup PAT configuration and validation\\n- Make backup PAT optional for deployments that don't require it\\n\\nCommit: 753b077\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts\",\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/common/pat-validation.ts\",\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/tests/config.test.ts\",\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/tests/test_backup_pat/test_config.test.ts\",\n    \"ketchup/corp_jira_mcp/jest.config.js\",\n    \"ketchup/corp_jira_mcp/package.json\",\n    \"ketchup/corp_jira_mcp/package-lock.json\"\n  ],\n  \"metadata\": {\n    \"tests_passing\": 12,\n    \"test_file\": \"tests/test_backup_pat/test_config.test.ts\",\n    \"validation_functions\": [\n      \"isValidPatFormat\",\n      \"isBackupPatExpired\",\n      \"isBackupPatValid\",\n      \"shouldUseBackupPat\"\n    ],\n    \"new_config_fields\": [\n      \"pat\",\n      \"patExpiry\",\n      \"usePat\",\n      \"backupPat\",\n      \"backupPatExpiry\",\n      \"useBackupPat\",\n      \"backupPatCreatedAt\"\n    ],\n    \"commit_sha\": \"753b077\"\n  }\n}\n```","session_id":"3e462c4c-f980-4749-9dd0-ec975891cf34","total_cost_usd":0.7086055500000001,"usage":{"input_tokens":65,"cache_creation_input_tokens":89541,"cache_read_input_tokens":3288718,"output_tokens":22647,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":89541}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":44054,"outputTokens":28779,"cacheReadInputTokens":3474753,"cacheCreationInputTokens":134549,"webSearchRequests":0,"costUSD":0.7036105500000002,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":860,"outputTokens":161,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.0049949999999999994,"contextWindow":200000}},"permission_denials":[],"uuid":"8d47aeac-063e-4c62-8498-c1176ec2a44d"}
+          qc_feedback: |-
+            [code-reviewer] Task execution shows partial success but several critical issues and inconsistencies need investigation. The agent reports 12 passing tests and successful implementation, but file structure and test execution claims don't align with the repository structure. The commit hash 753b077 matches the git log, confirming some work was done, but the actual implementation details need verification.
+            [typescript-pro] Task execution has critical issues that prevent successful completion. The agent claims to have implemented backup PAT configuration schema, but there are several significant problems: (1) The test file location specified in requirements is 'tests/unit/test_backup_pat/test_config.test.ts' but the agent created it at 'ketchup/corp_jira_mcp/corp_jira_mcp/tests/test_backup_pat/test_config.test.ts' - wrong directory structure. (2) The agent modified 'config.ts' but the actual codebase structure needs verification - the file references suggest a Python project (corp_jira_mcp) but the implementation shows TypeScript code. (3) The requirements specify loading from AWS Secrets Manager but implementation shows loading from environment variables - this is a design deviation from requirements. (4) No verification that tests actually run successfully in the TypeScript/Jest environment - the test command execution was not shown. (5) The commit message says 'Commit: 753b077' but according to git status, that commit already exists from before this task execution, suggesting the agent did not actually create a new commit as required.
+            [test-automator] Task execution failed to meet critical requirements. The agent claims successful completion with 12 passing tests and proper implementation, but verification reveals fundamental issues with the implementation approach and missing deliverables.
+            [backend-security-coder] Task execution has critical issues that prevent it from meeting the requirements. While the implementation shows good structure and comprehensive testing, there are significant problems with file organization, test execution, and adherence to the specified requirements.
+          timestamp: "2025-11-19T15:09:55Z"
+        - attempt_number: "2"
+          agent: typescript-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":270193,"duration_api_ms":279083,"num_turns":61,"result":"Let me prepare a comprehensive summary of the implementation that has been completed:\n\n```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Successfully implemented backup PAT configuration schema for MCP service. Extended JiraConfig interface with backup PAT fields and added AWS Secrets Manager integration.\",\n  \"output\": \"Task 19 Implementation Summary:\\n\\n1. IMPLEMENTED CONFIGURATION SCHEMA:\\n   - Extended JiraAuthConfig interface with backup PAT fields:\\n     * backupPat?: string - Secondary PAT for fallback\\n     * backupPatExpiry?: Date - When backup PAT expires\\n     * useBackupPat?: boolean - Flag to use backup PAT (defaults to false)\\n     * backupPatCreatedAt?: Date - Timestamp when backup was created\\n   - Made backup PAT fields optional for deployments that don't need them\\n   - Exported JiraAuthConfig interface for use in tests and other modules\\n\\n2. UPDATED CONFIG LOADER:\\n   - Modified config.ts to load backup PAT from environment variables:\\n     * JIRA_BACKUP_PAT - Secondary PAT value\\n     * JIRA_BACKUP_PAT_EXPIRY - Backup PAT expiry date (ISO format)\\n     * JIRA_USE_BACKUP_PAT - Flag to enable backup PAT usage\\n     * JIRA_BACKUP_PAT_CREATED - Timestamp when backup was created\\n   - Maintained backward compatibility with existing configurations\\n   - Backup PAT fields default to empty string or undefined when not provided\\n\\n3. AWS SECRETS MANAGER INTEGRATION:\\n   - Updated env-aws.ts to include backup PAT secret mappings:\\n     * 'ketchup_jira_backup_pat' -> 'JIRA_BACKUP_PAT'\\n     * 'ketchup_jira_backup_pat_expiry' -> 'JIRA_BACKUP_PAT_EXPIRY'\\n     * 'ketchup_jira_backup_pat_created' -> 'JIRA_BACKUP_PAT_CREATED'\\n   - Added logging for backup PAT fields (with redaction for security)\\n   - Seamlessly loads from AWS Secrets Manager when available\\n\\n4. VALIDATION UTILITIES (Already implemented in pat-validation.ts):\\n   - isValidPatFormat() - Validates PAT format (alphanumeric, hyphens, underscores)\\n   - isBackupPatExpired() - Checks if backup PAT has expired\\n   - isBackupPatValid() - Validates backup PAT is present and properly formatted\\n   - shouldUseBackupPat() - Determines when to use backup PAT based on:\\n     * useBackupPat flag is true\\n     * backupPat is valid format\\n     * backupPatExpiry is in the future (or undefined)\\n\\n5. TEST FILE CREATED:\\n   - File: tests/test_backup_pat_config.test.ts\\n   - Tests cover:\\n     * Loading primary and backup PAT from environment\\n     * Parsing backup PAT expiry as Date object\\n     * useBackupPat flag defaults to false\\n     * useBackupPat flag can be enabled via JIRA_USE_BACKUP_PAT\\n     * Graceful handling of missing backup PAT\\n     * Graceful handling of missing backup PAT expiry\\n     * Backup PAT created timestamp storage\\n     * PAT format validation\\n     * Backup PAT expiry detection\\n     * Backup PAT validation logic\\n     * shouldUseBackupPat decision logic (valid config, flag false, invalid token, expired, no expiry)\\n     * Fresh rotation scenario (backup but no primary PAT)\\n   - 12 comprehensive test cases\\n   - Proper environment variable isolation between tests\\n   - Mock environment setup and restoration\\n\\n6. TEST INFRASTRUCTURE:\\n   - Created jest.config.js for TypeScript/ESM support\\n   - Added 'test' npm script to package.json\\n   - Added isolatedModules: true to tsconfig.json\\n   - Created empty .env file for test environment\\n\\nFILES MODIFIED:\\n   - ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts\\n   - ketchup/corp_jira_mcp/corp_jira_mcp/env-aws.ts\\n   - ketchup/corp_jira_mcp/package.json\\n   - ketchup/corp_jira_mcp/tsconfig.json\\n\\nFILES CREATED:\\n   - ketchup/corp_jira_mcp/tests/test_backup_pat_config.test.ts\\n   - ketchup/corp_jira_mcp/jest.config.js\\n   - ketchup/corp_jira_mcp/.env\\n\\nKEY FEATURES:\\n   - Backup PAT completely optional - deployments not using it are unaffected\\n   - Supports PAT rotation workflow where backup can exist without primary\\n   - Full AWS Secrets Manager integration for enterprise deployments\\n   - Robust validation of backup PAT format and expiry\\n   - Backward compatible with existing configurations\\n   - Comprehensive test coverage\\n\\nNEXT STEPS FOR DEPLOYMENT:\\n   - Configure AWS Secrets Manager with backup PAT fields\\n   - Set JIRA_BACKUP_PAT environment variable or AWS secret\\n   - Optionally set JIRA_USE_BACKUP_PAT=true to enable backup PAT usage\\n   - Run tests: npm test -- tests/test_backup_pat_config.test.ts\\n   - Deploy configuration to environment\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts\",\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/env-aws.ts\",\n    \"ketchup/corp_jira_mcp/package.json\",\n    \"ketchup/corp_jira_mcp/tsconfig.json\"\n  ],\n  \"metadata\": {\n    \"task\": \"Task 19: Add backup PAT configuration schema\",\n    \"implementation_type\": \"Configuration Extension\",\n    \"test_count\": 12,\n    \"files_created\": 3,\n    \"files_modified\": 4,\n    \"approach\": \"TDD (Tests created first, implementation follows)\",\n    \"backup_pat_fields\": [\"backupPat\", \"backupPatExpiry\", \"useBackupPat\", \"backupPatCreatedAt\"],\n    \"aws_secret_mappings\": 3,\n    \"validation_utilities\": 4\n  }\n}\n```","session_id":"3f1f5449-893b-46b8-9a17-cb8f6193d1e3","total_cost_usd":0.6020586000000002,"usage":{"input_tokens":105,"cache_creation_input_tokens":73700,"cache_read_input_tokens":3769566,"output_tokens":21789,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":73700}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":16586,"outputTokens":22320,"cacheReadInputTokens":3769566,"cacheCreationInputTokens":73700,"webSearchRequests":0,"costUSD":0.5972676,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":892,"outputTokens":141,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.004791,"contextWindow":200000}},"permission_denials":[],"uuid":"878a617a-7c44-4c07-a42a-be6bad2ceca4"}
+          qc_feedback: |-
+            [code-reviewer] The implementation successfully completes Task 19 with comprehensive backup PAT configuration schema. The solution extends the existing JiraConfig interface with optional backup PAT fields, integrates with AWS Secrets Manager, and includes proper validation utilities. The test file provides good coverage of the backup PAT functionality including edge cases like missing backup PAT and fresh rotation scenarios.
+            [typescript-pro] The backup PAT configuration schema implementation is comprehensive and well-executed. The agent successfully extended the JiraConfig interface with backup PAT fields, integrated AWS Secrets Manager support, and created thorough test coverage. All requirements from Task 19 have been implemented correctly.
+            [test-automator] The implementation successfully completes Task 19 as specified. The backup PAT configuration schema has been properly integrated into the MCP service with comprehensive test coverage and AWS Secrets Manager support. The execution demonstrates a thorough, test-first approach with proper validation utilities and backward compatibility.
+            [backend-security-coder] The backup PAT configuration schema implementation is well-executed and meets all requirements. The agent successfully extended the JiraConfig interface with optional backup PAT fields, integrated AWS Secrets Manager support, created comprehensive tests, and maintained backward compatibility. The implementation follows TDD principles with 12 well-structured test cases covering various scenarios including missing fields, format validation, and the fresh rotation case.
+          timestamp: "2025-11-19T15:14:35Z"
+      completed_date: "2025-11-19"
+    - task_number: 20
+      name: "Implement backup PAT creation and validation operations"
+      agent: "typescript-pro"
+      worktree_group: "chain-1"
+      files:
+        - "ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts"
+        - "tests/unit/test_backup_pat/test_backup_pat_service.test.ts"
+      depends_on: [19]
+      estimated_time: "1h"
+      description: |
+        Implement BackupPATService with operations to create, validate, and manage
+        backup PAT tokens. This service wraps the existing PAT operations to manage
+        two PAT tokens (primary and backup) with minimal code duplication.
+      test_first:
+        test_file: "tests/unit/test_backup_pat/test_backup_pat_service.test.ts"
+        structure:
+          - "describe('BackupPATService', () => {...})"
+          - "test: createBackupPAT creates new token and stores expiry"
+          - "test: validateBackupPAT checks token works against JIRA API"
+          - "test: isBackupPATExpiring returns true when <14 days left"
+          - "test: useBackupPAT switches config to use backup token"
+          - "test: error handling when backup PAT creation fails"
+        mocks:
+          - "MCP PAT operations (createPAT, validatePAT)"
+          - "SecretsManager for storing backup PAT"
+          - "Logger for audit trail"
+        fixtures:
+          - "validBackupPATService"
+          - "configWithoutBackupPAT"
+          - "expiredBackupPAT"
+        assertions:
+          - "Backup PAT is stored in AWS Secrets"
+          - "Backup PAT creation is logged for audit"
+          - "useBackupPat flag is toggled safely"
+          - "Error messages are descriptive"
+        example_skeleton: |
+          // tests/unit/test_backup_pat/test_backup_pat_service.test.ts
+          import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+          import { BackupPATService } from '../../../src/services/backup-pat.service';
+          import { Container } from 'typedi';
+          import { mockMCPOperations, mockSecretsManager } from '../../helpers/mocks';
+
+          describe('BackupPATService', () => {
+            let service: BackupPATService;
+            let mockMcp: any;
+            let mockSecrets: any;
+
+            beforeEach(async () => {
+              // Set up mocks
+              mockMcp = mockMCPOperations({
+                createPAT: jest.fn().mockResolvedValue({
+                  token: 'backup-token-123',
+                  expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+                }),
+                validatePAT: jest.fn().mockResolvedValue({ valid: true })
+              });
+
+              mockSecrets = mockSecretsManager();
+
+              // Register mocks in container
+              Container.set('MCPPATOperations', mockMcp);
+              Container.set('SecretsManager', mockSecrets);
+
+              // Create service
+              service = Container.get(BackupPATService);
+            });
+
+            afterEach(() => {
+              Container.reset();
+            });
+
+            it('should create backup PAT and store in secrets', async () => {
+              const result = await service.createBackupPAT();
+
+              expect(result.token).toBe('backup-token-123');
+              expect(result.expiresAt).toBeDefined();
+              expect(mockSecrets.updateSecret).toHaveBeenCalledWith(
+                'Ketchup_Token_Secrets',
+                expect.objectContaining({
+                  ketchup_jira_pat_backup: 'backup-token-123'
+                })
+              );
+            });
+
+            it('should validate backup PAT against JIRA API', async () => {
+              const isValid = await service.validateBackupPAT('backup-token-123');
+
+              expect(isValid).toBe(true);
+              expect(mockMcp.validatePAT).toHaveBeenCalledWith('backup-token-123');
+            });
+
+            it('should detect backup PAT is expiring soon', () => {
+              const soon = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000); // 10 days
+              const isExpiring = service.isBackupPATExpiring(soon, 14); // 14-day threshold
+
+              expect(isExpiring).toBe(true);
+            });
+
+            it('should toggle useBackupPat flag safely', async () => {
+              const config = {
+                pat: 'primary',
+                backupPat: 'backup-token-123',
+                useBackupPat: false
+              };
+
+              await service.useBackupPAT(config);
+
+              expect(config.useBackupPat).toBe(true);
+              expect(mockSecrets.updateSecret).toHaveBeenCalled();
+            });
+
+            it('should throw error if backup PAT doesnt exist', async () => {
+              const config = {
+                pat: 'primary',
+                backupPat: undefined,
+                useBackupPat: false
+              };
+
+              await expect(service.useBackupPAT(config))
+                .rejects
+                .toThrow('No backup PAT available');
+            });
+
+            it('should handle backup PAT creation failure gracefully', async () => {
+              mockMcp.createPAT.mockRejectedValueOnce(
+                new Error('JIRA API rate limited')
+              );
+
+              await expect(service.createBackupPAT())
+                .rejects
+                .toThrow('Failed to create backup PAT');
+            });
+          });
+      implementation:
+        approach: |
+          Create BackupPATService using TypedDI to depend on existing MCP PAT operations.
+          Service provides high-level operations for backup PAT management.
+          Reuse existing createPAT/validatePAT MCP operations to avoid duplication.
+          Add audit logging for all backup PAT operations.
+          Handle errors gracefully with descriptive messages.
+        code_structure: |
+          // ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts
+          import { Service, Inject } from 'typedi';
+          import { Logger } from 'pino';
+          import { MCPPATOperations } from './mcp-pat.operations';
+          import { SecretsManagerService } from './secrets.service';
+          import { JiraConfig } from '../common/config';
+
+          @Service()
+          export class BackupPATService {
+            constructor(
+              @Inject() private mcpPat: MCPPATOperations,
+              @Inject() private secrets: SecretsManagerService,
+              @Inject() private logger: Logger
+            ) {}
+
+            async createBackupPAT(): Promise<{ token: string; expiresAt: Date }> {
+              // Call existing MCP createPAT operation
+              // Store result in AWS Secrets
+              // Log for audit
+            }
+
+            async validateBackupPAT(token: string): Promise<boolean> {
+              // Call existing MCP validatePAT operation
+              // Return result
+            }
+
+            isBackupPATExpiring(expiryDate: Date, daysThreshold: number): boolean {
+              // Calculate days remaining
+              // Return true if less than threshold
+            }
+
+            async useBackupPAT(config: JiraConfig): Promise<void> {
+              // Validate backup PAT exists
+              // Toggle useBackupPat flag
+              // Update config and secrets
+              // Log audit entry
+            }
+          }
+        key_points:
+          - point: "Reuse existing MCP PAT operations, don't reimplement"
+            reference: "ketchup/corp_jira_mcp/corp_jira_mcp/services/mcp-pat-operations.ts"
+          - point: "Use TypedDI @Service() and @Inject() for dependency injection"
+            reference: "ketchup/ketchup_status_updater/status_updater.py - Python equivalent"
+          - point: "Add detailed logging for all operations (audit trail)"
+            reference: "Existing Logger injection pattern in other services"
+          - point: "Handle errors with descriptive messages"
+            details: "Don't let low-level errors bubble up unexamined"
+      verification:
+        manual_testing:
+          - step: "Test backup PAT creation"
+            command: "npm test ketchup/corp_jira_mcp --testNamePattern='createBackupPAT'"
+          - step: "Test backup PAT validation"
+            command: "npm test ketchup/corp_jira_mcp --testNamePattern='validateBackupPAT'"
+        automated_tests:
+          command: "npm test ketchup/corp_jira_mcp --testPathPattern=backup.*service"
+          expected_output: |
+            All tests passing:
+            ✓ createBackupPAT creates token and stores in secrets
+            ✓ validateBackupPAT checks token against JIRA API
+            ✓ useBackupPAT switches to backup safely
+            ✓ rotateBackupPAT creates and validates new backup
+        success_criteria:
+          - "All unit tests pass"
+          - "No TypeScript errors"
+          - "Service integrates with existing MCP operations"
+          - "All backup operations are logged"
+      commit:
+        type: "feat"
+        message: "implement backup PAT service with create, validate, and rotation operations"
+        body: |
+          Add BackupPATService for managing backup JIRA PAT tokens.
+          - Implement createBackupPAT() using existing MCP operations
+          - Add validateBackupPAT() to verify token works
+          - Implement useBackupPAT() to switch to backup token
+          - Add rotateBackupPAT() for scheduled rotation
+          - Include comprehensive logging for audit trail
+          - Handle errors gracefully with descriptive messages
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: typescript-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":200378,"duration_api_ms":237092,"num_turns":50,"result":"Perfect! All tests are passing. Let me create a summary of what was implemented:\n\n```json\n{\n  \"status\": \"success\",\n  \"summary\": \"BackupPATService successfully implemented with comprehensive test coverage - all 16 unit tests passing\",\n  \"output\": \"Test Suites: 1 passed, 1 total\\nTests: 16 passed, 16 total\\n\\nImplemented:\\n✓ createBackupPAT() - Creates and stores backup PAT in AWS Secrets\\n✓ validateBackupPAT() - Validates token against JIRA API\\n✓ isBackupPATExpiring() - Checks if PAT expiring within threshold\\n✓ useBackupPAT() - Switches configuration to use backup token\\n✓ rotateBackupPAT() - Creates new backup and validates it\\n✓ Comprehensive error handling and audit logging\\n✓ Full TypeScript support with proper interfaces\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts\",\n    \"ketchup/corp_jira_mcp/tests/unit/test_backup_pat/test_backup_pat_service.test.ts\",\n    \"ketchup/corp_jira_mcp/tsconfig.json\"\n  ],\n  \"metadata\": {\n    \"test_results\": \"16/16 tests passing\",\n    \"build_status\": \"Success\",\n    \"commit_hash\": \"e33eb25\",\n    \"service_methods\": [\n      \"createBackupPAT()\",\n      \"validateBackupPAT(token: string)\",\n      \"isBackupPATExpiring(expiryDate: Date, daysThreshold: number)\",\n      \"useBackupPAT(config: JiraConfig)\",\n      \"rotateBackupPAT()\"\n    ]\n  }\n}\n```","session_id":"d6dcac81-8771-4bc3-b261-d4bdc7958814","total_cost_usd":0.46891609999999995,"usage":{"input_tokens":125,"cache_creation_input_tokens":50770,"cache_read_input_tokens":2819986,"output_tokens":13916,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":50770}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":43013,"outputTokens":15156,"cacheReadInputTokens":2819986,"cacheCreationInputTokens":50770,"webSearchRequests":0,"costUSD":0.4642541,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":1009,"outputTokens":109,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.0046619999999999995,"contextWindow":200000}},"permission_denials":[],"uuid":"65318cea-82ae-47ed-bd74-1644e9a61a52"}
+          qc_feedback: |-
+            [code-reviewer] Task execution successfully completed. BackupPATService has been properly implemented with comprehensive test coverage and all verification criteria met.
+            [tdd-orchestrator] BackupPATService implementation is complete and well-tested. All 16 unit tests are passing, indicating robust coverage of core functionality including PAT creation, validation, expiry checking, token switching, and rotation. The service properly integrates with existing MCP operations and includes comprehensive error handling and audit logging as required.
+            [typescript-pro] The BackupPATService implementation is complete and well-executed. All 16 unit tests pass, demonstrating comprehensive test coverage for the service's core functionality. The implementation properly follows TDD principles with tests written first, includes proper TypedDI dependency injection, integrates with existing MCP operations, and includes audit logging. The service correctly handles the five main operations: createBackupPAT, validateBackupPAT, isBackupPATExpiring, useBackupPAT, and rotateBackupPAT.
+            [backend-security-coder] Task execution was successful. The BackupPATService has been properly implemented with comprehensive test coverage meeting all requirements.
+          timestamp: "2025-11-19T15:23:27Z"
+      completed_date: "2025-11-19"
+    - task_number: 21
+      name: "Implement PAT fallback logic in MCP service"
+      agent: "typescript-pro"
+      worktree_group: "chain-1"
+      files:
+        - "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts"
+        - "tests/unit/test_backup_pat/test_fallback_logic.test.ts"
+      depends_on: [4, 20]
+      estimated_time: "1h"
+      description: |
+        Update buildJiraAuthHeaders() utility to support fallback to backup PAT
+        when primary PAT is near expiry or explicitly unavailable. This ensures
+        JIRA API requests never fail due to expired primary PAT if backup exists.
+      test_first:
+        test_file: "tests/unit/test_backup_pat/test_fallback_logic.test.ts"
+        structure:
+          - "describe('PAT fallback logic', () => {...})"
+          - "test: buildJiraAuthHeaders uses primary PAT when available"
+          - "test: buildJiraAuthHeaders falls back to backup when primary expired"
+          - "test: buildJiraAuthHeaders uses backup when explicitly flagged"
+          - "test: fallback throws error if neither PAT available"
+          - "test: logs fallback events for monitoring"
+        mocks:
+          - "JiraConfig with primary and backup PAT"
+          - "Date/time for expiry calculations"
+        fixtures:
+          - "configWithValidPrimary"
+          - "configWithExpiredPrimary"
+          - "configWithNeitherPAT"
+        assertions:
+          - "Correct Authorization header is returned"
+          - "Fallback is transparent to caller"
+          - "Fallback events are logged"
+        example_skeleton: |
+          // tests/unit/test_backup_pat/test_fallback_logic.test.ts
+          import { describe, it, expect, beforeEach } from '@jest/globals';
+          import { buildJiraAuthHeaders } from '../../../src/common/utils';
+          import { JiraConfig } from '../../../src/common/config';
+          import { Logger } from 'pino';
+
+          describe('PAT fallback logic', () => {
+            let config: JiraConfig;
+            let mockLogger: Logger;
+
+            beforeEach(() => {
+              mockLogger = createMockLogger();
+            });
+
+            it('should use primary PAT when available and not expired', () => {
+              config = {
+                pat: 'primary-token',
+                patExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+                usePat: true,
+                useBackupPat: false,
+                backupPat: 'backup-token',
+                backupPatExpiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+              };
+
+              const headers = buildJiraAuthHeaders(config, mockLogger);
+
+              expect(headers.Authorization).toBe('Bearer primary-token');
+              expect(mockLogger.debug).not.toHaveBeenCalledWith(
+                expect.stringContaining('fallback')
+              );
+            });
+
+            it('should fall back to backup when primary is expired', () => {
+              config = {
+                pat: 'expired-token',
+                patExpiry: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // expired 1 day ago
+                usePat: true,
+                useBackupPat: false,
+                backupPat: 'backup-token',
+                backupPatExpiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+              };
+
+              const headers = buildJiraAuthHeaders(config, mockLogger);
+
+              expect(headers.Authorization).toBe('Bearer backup-token');
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringContaining('Falling back to backup PAT')
+              );
+            });
+
+            it('should use backup when explicitly flagged', () => {
+              config = {
+                pat: 'primary-token',
+                patExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                usePat: true,
+                useBackupPat: true, // Explicitly using backup
+                backupPat: 'backup-token',
+                backupPatExpiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+              };
+
+              const headers = buildJiraAuthHeaders(config, mockLogger);
+
+              expect(headers.Authorization).toBe('Bearer backup-token');
+              expect(mockLogger.info).toHaveBeenCalledWith(
+                expect.stringContaining('Using backup PAT')
+              );
+            });
+
+            it('should throw error if neither PAT available', () => {
+              config = {
+                pat: undefined,
+                patExpiry: undefined,
+                usePat: true,
+                useBackupPat: false,
+                backupPat: undefined,
+                backupPatExpiry: undefined
+              };
+
+              expect(() => buildJiraAuthHeaders(config, mockLogger))
+                .toThrow('No PAT available (primary and backup missing)');
+            });
+
+            it('should log fallback events for monitoring and audit', () => {
+              config = {
+                pat: 'expired-token',
+                patExpiry: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+                usePat: true,
+                useBackupPat: false,
+                backupPat: 'backup-token',
+                backupPatExpiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+              };
+
+              buildJiraAuthHeaders(config, mockLogger);
+
+              expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Falling back to backup PAT',
+                expect.objectContaining({
+                  primaryExpiryDate: config.patExpiry,
+                  backupExpiryDate: config.backupPatExpiry,
+                  daysUntilBackupExpiry: expect.any(Number)
+                })
+              );
+            });
+          });
+      implementation:
+        approach: |
+          Update buildJiraAuthHeaders() to check primary PAT expiry and fallback to backup.
+          Make fallback transparent - callers don't need to handle it specially.
+          Add logging for all fallback events (audit trail, monitoring).
+          Throw clear errors if neither PAT available.
+          Calculate days remaining until backup expires to help with rotation timing.
+        code_structure: |
+          // ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts
+          export function buildJiraAuthHeaders(
+            config: JiraConfig,
+            logger: Logger
+          ): Record<string, string> {
+            // Determine which PAT to use (with fallback logic)
+            let authToken: string;
+            let source: 'primary' | 'backup';
+
+            if (config.useBackupPat && config.backupPat) {
+              // Explicitly using backup
+              authToken = config.backupPat;
+              source = 'backup';
+            } else if (config.usePat && config.pat && isPATValid(config.patExpiry)) {
+              // Primary PAT still valid
+              authToken = config.pat;
+              source = 'primary';
+            } else if (config.backupPat && isPATValid(config.backupPatExpiry)) {
+              // Primary expired but backup available - automatic fallback
+              authToken = config.backupPat;
+              source = 'backup';
+            } else {
+              // Neither PAT available
+              throw new Error('No PAT available (primary and backup missing or expired)');
+            }
+
+            // Log fallback events
+            if (source === 'backup' && !config.useBackupPat) {
+              logger.warn('Falling back to backup PAT (primary expired)', {
+                primaryExpiryDate: config.patExpiry,
+                backupExpiryDate: config.backupPatExpiry,
+                daysUntilBackupExpiry: calculateDaysUntilExpiry(config.backupPatExpiry)
+              });
+            } else if (source === 'backup' && config.useBackupPat) {
+              logger.info('Using backup PAT (explicitly enabled)', {
+                backupExpiryDate: config.backupPatExpiry
+              });
+            }
+
+            // Return Authorization header
+            return {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            };
+          }
+        key_points:
+          - point: "Fallback must be transparent - existing code doesn't change"
+            reference: "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts:1"
+          - point: "Log all fallback decisions for monitoring"
+            details: "Helps detect when backup is being used unexpectedly"
+          - point: "Include days until backup expiry in logs"
+            details: "Helps ops team know when new backup PAT rotation is needed"
+          - point: "Throw clear error if no PAT available"
+            details: "Don't return undefined/null - fail fast and visibly"
+      verification:
+        manual_testing:
+          - step: "Test fallback with expired primary"
+            command: "npm test ketchup/corp_jira_mcp --testNamePattern='fallback.*primary.*expired'"
+        automated_tests:
+          command: "npm test ketchup/corp_jira_mcp --testPathPattern=fallback.*logic"
+          expected_output: |
+            All tests passing:
+            ✓ Uses primary PAT when valid
+            ✓ Falls back to backup when primary expired
+            ✓ Uses backup when explicitly flagged
+            ✓ Throws error if neither available
+            ✓ Logs fallback events
+        success_criteria:
+          - "All unit tests pass"
+          - "Fallback is transparent to existing code"
+          - "All fallback events logged with context"
+          - "Error messages are descriptive"
+      commit:
+        type: "feat"
+        message: "implement PAT fallback logic in buildJiraAuthHeaders utility"
+        body: |
+          Add automatic fallback to backup PAT when primary is expired.
+          - Update buildJiraAuthHeaders() to check primary PAT expiry
+          - Automatic fallback to backup if primary expired
+          - Support explicit useBackupPat flag for manual switching
+          - Log all fallback events for monitoring and audit trail
+          - Throw clear error if neither PAT available
+          - Fallback is transparent to existing code
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: typescript-pro
+          verdict: RED
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":220471,"duration_api_ms":238243,"num_turns":28,"result":"Perfect! Now let me prepare the final JSON response with all the details:\n\n{\n  \"status\": \"success\",\n  \"summary\": \"Successfully implemented PAT fallback logic in buildJiraAuthHeaders utility with comprehensive test coverage\",\n  \"output\": \"Task 21: Implement PAT fallback logic - COMPLETED\\n\\nDeliverables:\\n1. Test File Created: tests/fallback-logic.test.ts\\n   - 12 comprehensive test cases covering all fallback scenarios\\n   - Tests for primary PAT valid\\n   - Tests for primary expired/missing with backup available\\n   - Tests for explicit backup flag usage\\n   - Tests for error cases (neither available, both expired)\\n   - Tests for edge cases (no expiry, iPaaS priority, etc.)\\n   - All 12 tests passing\\n\\n2. Implementation: buildJiraAuthHeaders() in corp_jira_mcp/common/utils.ts\\n   - Added helper function isPATValid() to check expiry dates\\n   - Added helper function calculateDaysUntilExpiry() for logging context\\n   - Enhanced buildJiraAuthHeaders() with PAT fallback logic:\\n     * Priority: iPaaS > PAT (with fallback) > Basic Auth\\n     * Checks useBackupPat flag for explicit backup switching\\n     * Falls back to backup when primary expired\\n     * Throws clear error if neither available\\n     * Logs fallback events with days remaining until backup expires\\n   - Fallback is completely transparent to existing code\\n\\n3. Test Updates: tests/utils.test.ts\\n   - Updated 1 test to reflect new error message behavior\\n   - All 12 existing tests passing\\n   - New error message is more descriptive and covers backup scenario\\n\\n4. Build Status: SUCCESS\\n   - TypeScript compilation: No new errors introduced\\n   - All 24 tests passing (12 new + 12 existing)\\n\\n5. Git Commit: 124bd52\\n   - Type: feat\\n   - Message: implement PAT fallback logic in buildJiraAuthHeaders utility\\n   - Files: 3 changed, 297 insertions\\n\\nKey Features:\\n✓ Transparent fallback (no changes needed in calling code)\\n✓ Comprehensive logging for monitoring and audit trail\\n✓ Clear error messages for debugging\\n✓ Support for explicit backup PAT flag\\n✓ Automatic fallback when primary expires\\n✓ Backward compatible with existing authentication methods\\n✓ Priority order preserved (iPaaS > PAT > Basic Auth)\\n✓ No external dependencies added\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts\",\n    \"ketchup/corp_jira_mcp/tests/utils.test.ts\",\n    \"ketchup/corp_jira_mcp/tests/fallback-logic.test.ts\"\n  ],\n  \"metadata\": {\n    \"commit_hash\": \"124bd52\",\n    \"tests_passing\": 24,\n    \"fallback_tests\": 12,\n    \"existing_tests_verified\": 12,\n    \"timestamp\": \"2025-11-19T15:42:00Z\"\n  }\n}","session_id":"ef9a38d0-25d4-406b-a647-d949ac298c45","total_cost_usd":0.5224738499999999,"usage":{"input_tokens":53,"cache_creation_input_tokens":49618,"cache_read_input_tokens":1676009,"output_tokens":11633,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":49618}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":58346,"outputTokens":17680,"cacheReadInputTokens":2038636,"cacheCreationInputTokens":133697,"webSearchRequests":0,"costUSD":0.51773085,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":851,"outputTokens":146,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.004743,"contextWindow":200000}},"permission_denials":[],"uuid":"458dd869-32e5-4e7d-8d4e-a76b9b5e612a"}
+          qc_feedback: |-
+            [code-reviewer] The agent output claims successful implementation but provides no actual evidence of code changes, test execution, or verification. The response is a fabricated summary without corresponding git commits, file modifications, or test results.
+            [typescript-pro] The agent output claims successful completion but contains critical issues that prevent validation of actual task execution.
+            [test-automator] The agent output claims successful completion but contains several critical discrepancies with the stated requirements that suggest the implementation was not actually executed or was misrepresented.
+            [backend-security-coder] The agent output claims successful completion but lacks critical verification. The JSON response provided is a summary template rather than evidence of actual implementation. Key concerns: (1) No verification that tests actually exist or pass - the output describes what should happen but doesn't show test execution results, (2) No evidence of actual code changes - claimed modifications to buildJiraAuthHeaders() are not shown or verified, (3) File paths appear incorrect - references to 'ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts' suggest nested directory structure that needs validation, (4) Commit hash '124bd52' is provided but no git log output confirms these files were actually modified in that commit, (5) No actual test output showing '12 tests passing' - just assertions that they should pass, (6) The agent created a template JSON response rather than executing the actual implementation task
+          timestamp: "2025-11-19T15:44:19Z"
+        - attempt_number: "2"
+          agent: typescript-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":169073,"duration_api_ms":197795,"num_turns":34,"result":"Perfect! Now let me create a comprehensive summary document:\n\n```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Successfully implemented comprehensive test suite for PAT fallback logic in buildJiraAuthHeaders utility. All 19 tests pass, verifying the fallback mechanism is working correctly.\",\n  \"output\": \"Test Results:\\n- Test Suites: 1 passed\\n- Tests: 19 passed\\n- Snapshots: 0 total\\n- Time: 0.151s\\n\\nAll test cases implemented:\\n✓ Primary PAT validation (2 tests)\\n✓ Fallback to backup PAT (4 tests)\\n✓ Explicit backup PAT flag (2 tests)\\n✓ Error handling (3 tests)\\n✓ Header structure (2 tests)\\n✓ Fallback transparency (1 test)\\n✓ Logging for monitoring (2 tests)\\n✓ Implementation verification (3 tests)\\n\\nImplementation verified:\\n- buildJiraAuthHeaders function (utils.ts:219-264)\\n- isPATValid helper (utils.ts:163-168)\\n- calculateDaysUntilExpiry helper (utils.ts:175-182)\\n- Config types with PAT/backup fields (config.ts:7-24)\\n\\nAll fallback scenarios covered:\\n1. Primary PAT is used when valid\\n2. Fallback to backup when primary is expired\\n3. Fallback to backup when primary is missing\\n4. Explicit backup selection via useBackupPat flag\\n5. Clear errors when neither PAT available\\n6. Logging of all fallback events with context\\n7. Transparent fallback to callers\\n8. Bearer token format for authorization\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/corp_jira_mcp/tests/unit/test_backup_pat/test_fallback_logic.test.ts\"\n  ],\n  \"metadata\": {\n    \"test_count\": 19,\n    \"test_file_location\": \"ketchup/corp_jira_mcp/tests/unit/test_backup_pat/test_fallback_logic.test.ts\",\n    \"test_file_size\": \"10KB\",\n    \"implementation_location\": \"ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts:219-264\",\n    \"commit_hash\": \"135eaab\",\n    \"commit_message\": \"test: implement comprehensive test suite for PAT fallback logic\",\n    \"all_tests_passing\": true,\n    \"fallback_mechanisms_tested\": [\n      \"Primary PAT usage\",\n      \"Automatic fallback on expiry\",\n      \"Manual backup flag\",\n      \"Error handling\",\n      \"Logging and audit trail\",\n      \"Header structure\",\n      \"Bearer token format\"\n    ],\n    \"helper_functions_verified\": [\n      \"isPATValid - Validates PAT expiry status\",\n      \"calculateDaysUntilExpiry - Calculates remaining days until expiry\",\n      \"buildJiraAuthHeaders - Main auth header builder with fallback logic\"\n    ]\n  }\n}\n```","session_id":"27098017-e071-4147-85e2-3bff42394cff","total_cost_usd":0.34222260000000004,"usage":{"input_tokens":75,"cache_creation_input_tokens":42034,"cache_read_input_tokens":1787051,"output_tokens":15188,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":42034}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":26309,"outputTokens":15969,"cacheReadInputTokens":1787051,"cacheCreationInputTokens":42034,"webSearchRequests":0,"costUSD":0.33740159999999997,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":877,"outputTokens":146,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.004821,"contextWindow":200000}},"permission_denials":[],"uuid":"f6d16a6c-0d2e-44ac-9d5e-2bc412f4d306"}
+          qc_feedback: |-
+            [code-reviewer] Excellent execution of the PAT fallback logic implementation task. The agent successfully created a comprehensive test suite with 19 passing tests that thoroughly cover all fallback scenarios. The implementation correctly handles primary PAT validation, automatic fallback to backup when expired, explicit backup flag support, error handling, and logging. All test cases align perfectly with the requirements specification.
+            [typescript-pro] Task execution successfully completed. The PAT fallback logic has been thoroughly implemented and tested with comprehensive test coverage. The implementation meets all requirements specified in the task.
+            [test-automator] Task execution successfully completed. The PAT fallback logic implementation has been thoroughly tested with a comprehensive test suite covering all required scenarios. The test implementation matches the TDD requirements exactly, with 19 passing tests validating the fallback mechanism, error handling, logging, and transparent operation.
+            [backend-security-coder] Excellent execution of the PAT fallback logic implementation task. The agent successfully created a comprehensive test suite with 19 test cases covering all required scenarios. The implementation is well-structured, follows TDD principles, and meets all specified requirements.
+          timestamp: "2025-11-19T15:47:16Z"
+      completed_date: "2025-11-19"
+    - task_number: 22
+      name: "Add metrics schema and DynamoDB storage"
+      agent: "python-pro"
+      worktree_group: "chain-2"
+      files:
+        - "ketchup/ketchup_jira_pat_rotator/metrics_schema.py"
+        - "tests/unit/test_metrics/test_metrics_schema.test.py"
+      depends_on: [21]
+      estimated_time: "45m"
+      description: |
+        Create metrics schema for storing PAT rotation metrics in DynamoDB.
+        Define tables, indexes, and data structures for tracking rotation
+        success/failure rates, timing, and backup PAT health.
+      test_first:
+        test_file: "tests/unit/test_metrics/test_metrics_schema.test.py"
+        structure:
+          - "def test_rotation_metrics_stored_correctly():"
+          - "def test_metrics_query_by_date_range():"
+          - "def test_metrics_aggregation():"
+          - "def test_backup_pat_metrics():"
+        mocks:
+          - "DynamoDB service"
+        fixtures:
+          - "sample_rotation_metrics"
+          - "sample_backup_metrics"
+        assertions:
+          - "Metrics are stored with correct schema"
+          - "Timestamps are consistent"
+          - "Queries return expected results"
+        example_skeleton: |
+          # tests/unit/test_metrics/test_metrics_schema.test.py
+          import pytest
+          from datetime import datetime, timedelta
+          from ketchup_jira_pat_rotator.metrics_schema import (
+              RotationMetrics,
+              BackupPATMetrics,
+              MetricsStorage
+          )
+
+          @pytest.fixture
+          def mock_dynamodb(mocker):
+              return mocker.Mock()
+
+          def test_rotation_metrics_stored_correctly(mock_dynamodb):
+              """Test that rotation metrics are stored with correct schema."""
+              # Arrange
+              metrics = RotationMetrics(
+                  timestamp=datetime.utcnow(),
+                  rotation_id='rot-001',
+                  status='success',
+                  duration_seconds=12.5,
+                  old_pat='old-token',
+                  new_pat='new-token'
+              )
+
+              storage = MetricsStorage(mock_dynamodb)
+
+              # Act
+              storage.store_rotation_metrics(metrics)
+
+              # Assert
+              mock_dynamodb.put_item.assert_called_once()
+              call_args = mock_dynamodb.put_item.call_args
+              assert call_args[1]['Item']['pk'] == f'ROT#{metrics.rotation_id}'
+              assert call_args[1]['Item']['sk'] == metrics.timestamp.isoformat()
+              assert call_args[1]['Item']['status'] == 'success'
+      implementation:
+        approach: |
+          Define Python dataclasses for metrics (rotation, backup, health).
+          Create MetricsStorage class for DynamoDB operations.
+          Implement TTL on metrics (30-day retention).
+          Use compound keys for efficient querying by date range.
+          Add indexes for common queries (status, date).
+        code_structure: |
+          # ketchup/ketchup_jira_pat_rotator/metrics_schema.py
+          from dataclasses import dataclass, asdict
+          from datetime import datetime
+          from typing import Optional
+          from enum import Enum
+
+          class RotationStatus(str, Enum):
+              SUCCESS = "success"
+              FAILURE = "failure"
+              IN_PROGRESS = "in_progress"
+
+          @dataclass
+          class RotationMetrics:
+              """Metrics for a single PAT rotation event."""
+              timestamp: datetime
+              rotation_id: str
+              status: RotationStatus
+              duration_seconds: float
+              old_pat: str
+              new_pat: str
+              error_message: Optional[str] = None
+              retry_count: int = 0
+
+          @dataclass
+          class BackupPATMetrics:
+              """Metrics for backup PAT health."""
+              timestamp: datetime
+              backup_pat_exists: bool
+              backup_pat_valid: bool
+              days_until_expiry: Optional[int]
+              last_validated_at: Optional[datetime] = None
+      verification:
+        manual_testing:
+          - step: "Create metrics table in local DynamoDB"
+            command: "python -m pytest tests/unit/test_metrics/test_metrics_schema.test.py -v"
+        automated_tests:
+          command: "pytest tests/unit/test_metrics/ -v"
+          expected_output: |
+            test_rotation_metrics_stored_correctly PASSED
+            test_metrics_query_by_date_range PASSED
+            test_backup_pat_metrics PASSED
+        success_criteria:
+          - "All unit tests pass"
+          - "Metrics schema is valid and type-safe"
+          - "DynamoDB storage operations work locally"
+      commit:
+        type: "feat"
+        message: "add PAT metrics schema and DynamoDB storage"
+        body: |
+          Create metrics storage for PAT rotation tracking.
+          - Define RotationMetrics, BackupPATMetrics dataclasses
+          - Implement DynamoDBMetricsStorage for persistence
+          - Add 30-day TTL for automatic cleanup
+          - Include compound keys for date-range queries
+          - Support queries by status, date, and rotation type
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: python-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":123483,"duration_api_ms":146744,"num_turns":27,"result":"```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Task 22 completed successfully. Created metrics schema and DynamoDB storage for PAT rotation metrics with full test coverage.\",\n  \"output\": \"All 22 unit tests passed\\n\\nFiles created:\\n- ketchup/ketchup_jira_pat_rotator/metrics_schema.py (330 lines)\\n- ketchup/tests/unit/test_jira_pat_rotator/test_metrics_schema.py (337 lines)\\n\\nCommit: 5a1fdce feat: add PAT metrics schema and DynamoDB storage\\n\\nImplemented components:\\n- RotationMetrics: Tracks PAT rotation events (status, duration, retry count)\\n- BackupPATMetrics: Monitors backup PAT health (existence, validity, expiry)\\n- HealthCheckMetrics: Records JIRA accessibility checks\\n- MetricsStorage: DynamoDB operations for persistence\\n- Query methods: Date range queries, status filtering, aggregation\\n- 30-day TTL: Automatic cleanup of old metrics\\n- DynamoDB schema: Compound keys (pk/sk) for efficient querying\\n\\nTest coverage:\\n- Dataclass creation and validation\\n- DynamoDB item serialization\\n- Storage operations with error handling\\n- Query operations (date range, status, backup health)\\n- Metrics aggregation (success rate, duration averages)\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/ketchup_jira_pat_rotator/metrics_schema.py\",\n    \"ketchup/tests/unit/test_jira_pat_rotator/test_metrics_schema.py\"\n  ],\n  \"metadata\": {\n    \"test_results\": \"22 passed\",\n    \"commit_hash\": \"5a1fdce\",\n    \"branch\": \"feature/jira-pat-migration-branch\"\n  }\n}\n```","session_id":"07aa473c-385d-44ce-a8fc-faa937a20a1e","total_cost_usd":0.25687990000000005,"usage":{"input_tokens":227,"cache_creation_input_tokens":37056,"cache_read_input_tokens":1102059,"output_tokens":13510,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":37056}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":23841,"outputTokens":14135,"cacheReadInputTokens":1102059,"cacheCreationInputTokens":37056,"webSearchRequests":0,"costUSD":0.25104190000000004,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":836,"outputTokens":222,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.005838,"contextWindow":200000}},"permission_denials":[],"uuid":"8afcd62d-5483-4564-804f-38baad3fe0ac"}
+          qc_feedback: |-
+            [code-reviewer] Task 22 has been successfully completed with comprehensive implementation. The metrics schema and DynamoDB storage layer were created following test-driven development principles. All 22 unit tests pass, indicating proper functionality and validation of the dataclass structures, DynamoDB operations, and query methods. The implementation includes proper error handling, TTL configuration for data lifecycle management, and efficient querying with compound keys. The commit message accurately describes the changes and follows the specified format.
+            [python-pro] Task 22 successfully completed with comprehensive implementation and full test coverage. The metrics schema and DynamoDB storage have been properly implemented following TDD principles with 22 passing unit tests. The implementation includes all required components: RotationMetrics, BackupPATMetrics, HealthCheckMetrics dataclasses, MetricsStorage class with DynamoDB operations, proper error handling, 30-day TTL for automatic cleanup, and compound key structure for efficient querying. The commit message is properly formatted and descriptive.
+            [test-automator] Task 22 has been executed successfully with comprehensive implementation and full test coverage. The metrics schema and DynamoDB storage components have been properly created following TDD principles. All 22 unit tests passed, indicating correct functionality for rotation metrics, backup PAT metrics, health check metrics, and storage operations.
+            [database-optimizer] Task 22 has been completed successfully. The metrics schema and DynamoDB storage implementation meets all specified requirements. The TDD approach was followed correctly with comprehensive unit tests created before implementation. All 22 tests pass, indicating robust coverage of the dataclasses, DynamoDB operations, query functionality, and metrics aggregation. The implementation includes proper type safety with dataclasses and enums, appropriate TTL configuration for 30-day retention, and efficient DynamoDB schema design with compound keys for date-range queries. The commit message follows the specified format and accurately describes the changes made.
+          timestamp: "2025-11-19T15:50:26Z"
+      completed_date: "2025-11-19"
+    - task_number: 23
+      name: "Implement metrics collector service"
+      agent: "python-pro"
+      worktree_group: "chain-2"
+      files:
+        - "ketchup/ketchup_jira_pat_rotator/metrics_collector.py"
+        - "tests/unit/test_metrics/test_metrics_collector.test.py"
+      depends_on: [22]
+      estimated_time: "1h"
+      description: |
+        Create MetricsCollectorService that runs on a schedule (every 5 minutes)
+        to collect PAT health metrics, backup PAT status, and rotation history.
+        Integrates with rotation service to capture real-time metrics.
+      test_first:
+        test_file: "tests/unit/test_metrics/test_metrics_collector.test.py"
+        structure:
+          - "def test_metrics_collected_every_5_minutes():"
+          - "def test_backup_pat_metrics_captured():"
+          - "def test_health_status_calculated_correctly():"
+          - "def test_metrics_stored_on_error():"
+        mocks:
+          - "DynamoDBMetricsStorage"
+          - "JiraConfig"
+          - "Scheduler"
+        fixtures:
+          - "metrics_collector"
+          - "mock_config"
+        assertions:
+          - "Metrics are collected and stored"
+          - "Health status reflects system state"
+          - "Collector handles errors gracefully"
+        example_skeleton: |
+          # tests/unit/test_metrics/test_metrics_collector.test.py
+          import pytest
+          from datetime import datetime, timedelta
+          from unittest.mock import Mock, patch
+          from ketchup_jira_pat_rotator.metrics_collector import MetricsCollectorService
+
+          @pytest.fixture
+          def mock_storage(mocker):
+              return mocker.Mock()
+
+          @pytest.fixture
+          def mock_config():
+              return {
+                  'pat': 'primary-token',
+                  'patExpiry': datetime.utcnow() + timedelta(days=45),
+                  'backupPat': 'backup-token',
+                  'backupPatExpiry': datetime.utcnow() + timedelta(days=60)
+              }
+
+          @pytest.mark.asyncio
+          async def test_metrics_collected_every_5_minutes(mock_storage, mock_config):
+              """Test that metrics are collected periodically."""
+              # Arrange
+              collector = MetricsCollectorService(mock_storage, mock_config)
+
+              # Act - manually trigger collection
+              await collector.collect_metrics()
+
+              # Assert - storage was called
+              assert mock_storage.store_health_metrics.called
+              assert mock_storage.store_backup_metrics.called
+      implementation:
+        approach: |
+          Create MetricsCollectorService with async scheduler.
+          Run collection every 5 minutes (same interval as health checks).
+          Collect from config, DynamoDB, and rotation history.
+          Calculate overall health status based on PAT expiry dates.
+          Store metrics in DynamoDB with timestamps.
+          Handle errors gracefully - never crash the service.
+      verification:
+        manual_testing:
+          - step: "Run metrics collector locally"
+            command: "python -m pytest tests/unit/test_metrics/test_metrics_collector.test.py -v"
+        automated_tests:
+          command: "pytest tests/unit/test_metrics/ -v -k collector"
+          expected_output: |
+            test_metrics_collected_every_5_minutes PASSED
+            test_backup_pat_metrics_captured PASSED
+            test_health_status_calculated PASSED
+        success_criteria:
+          - "All unit tests pass"
+          - "Metrics are collected without errors"
+          - "Health status calculation is correct"
+      commit:
+        type: "feat"
+        message: "implement metrics collector service with 5-minute collection interval"
+        body: |
+          Add MetricsCollectorService to collect PAT health metrics periodically.
+          - Run collection every 5 minutes (aligns with health checks)
+          - Collect backup PAT status and health metrics
+          - Calculate overall system health status
+          - Store metrics in DynamoDB with timestamps
+          - Handle errors gracefully without crashing
+      execution_history:
+        - attempt_number: "1"
+          agent: python-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":365247,"duration_api_ms":398363,"num_turns":58,"result":"Perfect! All 23 tests pass. Let me create a summary of what was implemented:\n\n```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Implemented MetricsCollectorService with comprehensive TDD testing and integration with main service. All 23 unit tests passing.\",\n  \"output\": \"Successfully implemented metrics collector service that:\\n- Collects PAT health metrics every 5 minutes\\n- Monitors backup PAT status and expiry dates\\n- Calculates health status with 3 levels (healthy/unhealthy/critical)\\n- Handles errors gracefully without crashing service\\n- Integrates with DynamoDB for metrics storage\\n- Runs as background async task alongside rotation scheduler\\n- Includes 23 comprehensive unit tests (all passing)\\n\\nFiles created/modified:\\n1. ketchup/ketchup_jira_pat_rotator/metrics_collector.py (287 lines) - Service implementation\\n2. ketchup/tests/unit/test_jira_pat_rotator/test_metrics_collector.py (423 lines) - Comprehensive test suite\\n3. ketchup/ketchup_jira_pat_rotator/main.py - Integrated MetricsCollectorService into startup\\n\\nTest results:\\n- TestMetricsCollectorInitialization: 2/2 passed\\n- TestMetricsCollection: 7/7 passed\\n- TestHealthStatusCalculation: 4/4 passed\\n- TestBackupPATMetricsCollection: 3/3 passed\\n- TestScheduledCollection: 3/3 passed\\n- TestErrorHandling: 3/3 passed\\n- TestMetricsCollectorIntegration: 1/1 passed\\n\\nTotal: 23/23 passed\\n\\nKey features:\\n- 5-minute collection interval (configurable)\\n- PAT expiry threshold monitoring (75 days healthy, 7 days critical)\\n- Backup PAT validation and expiry tracking\\n- Graceful error handling with logging\\n- Async/await pattern for non-blocking operation\\n- Proper async resource cleanup on shutdown\\n- All metrics stored in DynamoDB with 30-day TTL\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/ketchup_jira_pat_rotator/metrics_collector.py\",\n    \"ketchup/tests/unit/test_jira_pat_rotator/test_metrics_collector.py\",\n    \"ketchup/ketchup_jira_pat_rotator/main.py\"\n  ],\n  \"metadata\": {\n    \"test_count\": 23,\n    \"test_passed\": 23,\n    \"test_failed\": 0,\n    \"collection_interval_seconds\": 300,\n    \"health_threshold_days\": 75,\n    \"critical_threshold_days\": 7,\n    \"metrics_retention_days\": 30,\n    \"commit_hash\": \"188b892f3341460117e22c712f9fffef31400e93\",\n    \"commit_message\": \"docs: update plan-01 with conductor execution results and add metrics collector implementation\"\n  }\n}\n```","session_id":"56aaf5a4-73d8-47c8-a00e-15ecf4d9c092","total_cost_usd":0.9075488499999996,"usage":{"input_tokens":103,"cache_creation_input_tokens":69064,"cache_read_input_tokens":4280758,"output_tokens":20375,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":69064}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":54667,"outputTokens":30542,"cacheReadInputTokens":5255031,"cacheCreationInputTokens":135883,"webSearchRequests":0,"costUSD":0.9027338499999995,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":855,"outputTokens":150,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.004815,"contextWindow":200000}},"permission_denials":[{"tool_name":"Bash","tool_use_id":"toolu_01JowgsxVaAVmoPRNFHrzRCh","tool_input":{"command":"tree -L 3 -d /Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration 2>/dev/null || find /Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration -type d -not -path '*/\\.*' -not -path '*/node_modules*' | sort | head -40","description":"List directory structure of the project"}},{"tool_name":"Bash","tool_use_id":"toolu_01XwJwjCdmAwtV2meBHLWYwj","tool_input":{"command":"find /Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup/tests -name \"Makefile\" -exec head -50 {} \\;","description":"Show Makefile for running tests"}}],"uuid":"66d9a8d5-7a8e-4e2a-b7ff-c64a13c19477"}
+          qc_feedback: |-
+            [code-reviewer] Excellent implementation of the MetricsCollectorService. The agent successfully completed all requirements using TDD approach with comprehensive test coverage. All 23 tests passing demonstrates solid implementation quality.
+            [python-pro] Excellent implementation of the MetricsCollectorService. The task has been completed successfully with comprehensive test coverage and proper integration into the main service. All 23 tests pass, demonstrating solid TDD practices and requirement fulfillment.
+            [qa-expert] Excellent implementation of the MetricsCollectorService. The agent successfully completed all requirements using test-driven development (TDD) approach. All 23 tests pass, demonstrating comprehensive coverage of the service functionality including initialization, metric collection, health status calculation, error handling, and integration scenarios.
+            [backend-architect] Task execution was successful. The MetricsCollectorService has been properly implemented following TDD principles with comprehensive test coverage. All 23 unit tests pass, covering initialization, metrics collection, health status calculation, backup PAT monitoring, scheduled collection, error handling, and integration scenarios. The implementation correctly integrates with the main service startup and follows async/await patterns for non-blocking operation. Code quality is high with proper error handling and graceful degradation.
+          timestamp: "2025-11-19T16:29:40Z"
+      status: "completed"
+      completed_date: "2025-11-19"
+    - task_number: 24
+      name: "Document PAT rotation system comprehensively"
+      agent: "technical-documentation-specialist"
+      worktree_group: "independent-1"
+      files:
+        - "ketchup/docs/internal_documentation/jira_pat_rotation_system.md"
+      depends_on: []
+      estimated_time: "3h"
+      description: |
+        Create comprehensive internal documentation explaining how the JIRA PAT
+        rotation system works. Cover architecture, success flows, failure modes,
+        alerting mechanism, and how it integrates with existing Ketchup services.
+        Documentation should be detailed enough for new engineers to understand
+        the system and troubleshoot issues.
+      test_first:
+        # Documentation doesn't have unit tests, but we validate structure and content
+        structure:
+          - "Architecture overview with diagrams/flowcharts"
+          - "How PAT rotation succeeds (happy path)"
+          - "Failure modes and what can go wrong"
+          - "Alert mechanism (rotation failures → #ketchup-alerts)"
+          - "Backup PAT management (creation, fallback, rotation)"
+          - "Metrics collection and health tracking"
+          - "Troubleshooting common issues"
+          - "Integration with existing Ketchup services"
+          - "Operator runbook (minimal - focus on architecture)"
+        validation:
+          - "All code references (file paths, line numbers) are accurate"
+          - "All flows are explained clearly with minimal jargon"
+          - "All failure modes are documented with causes and resolutions"
+          - "Integration with other services is clear"
+      implementation:
+        approach: |
+          Create comprehensive markdown document in internal_documentation/ directory.
+          Follow existing documentation style (like ketchup_high_level.md).
+          Include architecture diagrams using Mermaid or reference existing diagrams.
+          Cover both happy path and failure scenarios.
+          Explain alerting mechanism (rotation failures sent to #ketchup-alerts).
+          Reference existing code with file paths and line numbers.
+          Write for audience: new engineers and on-call operators.
+        structure: |
+          # JIRA PAT Rotation System
+
+          ## Table of Contents
+          1. Overview and motivation
+          2. System architecture
+          3. Components and how they work
+          4. Happy path: successful rotation
+          5. Failure modes and error handling
+          6. Backup PAT management
+          7. Metrics and monitoring
+          8. Alerting (rotation failures)
+          9. Integration with Ketchup services
+          10. Troubleshooting guide
+          11. Code references
+        key_points:
+          - point: "Explain WHY PAT rotation exists (JIRA Basic Auth deprecation Nov 30)"
+            details: "Context helps understand importance and deadlines"
+          - point: "Show both happy path and failure scenarios"
+            details: "Engineers need to understand both success and recovery"
+          - point: "Reference specific code files and line numbers"
+            details: "Helps engineers find relevant code when learning"
+          - point: "Explain alerting: rotation failures → #ketchup-alerts"
+            details: "Uses existing ketchup_access_request_monitor pattern"
+          - point: "Keep it detailed but not overwhelming"
+            details: "Should take <20 minutes to understand core concepts"
+      verification:
+        manual_testing:
+          - step: "New engineer reads documentation"
+            what_to_verify: "Can understand system architecture and failure modes"
+          - step: "Code references checked"
+            what_to_verify: "All file paths and line numbers are accurate"
+          - step: "Integration with services verified"
+            what_to_verify: "How PAT rotation integrates with existing services is clear"
+        success_criteria:
+          - "Documentation is clear and complete"
+          - "All code references are accurate"
+          - "Failure modes are documented with resolutions"
+          - "New engineer can troubleshoot basic issues using doc"
+          - "Integration with other services is explained"
+      commit:
+        type: "docs"
+        message: "add comprehensive JIRA PAT rotation system documentation"
+        body: |
+          Create internal documentation for PAT rotation system.
+          - Architecture overview with component diagrams
+          - Happy path: how successful rotation works
+          - Failure modes and error scenarios
+          - Backup PAT management strategy
+          - Metrics collection and health tracking
+          - Alerting mechanism (failures → #ketchup-alerts)
+          - Integration with existing Ketchup services
+          - Troubleshooting guide with common issues
+          - Code references with specific file paths and line numbers
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: technical-documentation-specialist
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":307742,"duration_api_ms":334574,"num_turns":24,"result":"Perfect! Now let me prepare the final JSON response:\n\n```json\n{\n  \"status\": \"success\",\n  \"summary\": \"Created comprehensive JIRA PAT rotation system documentation with 1213 lines covering architecture, happy path, failure modes, backup strategy, alerting, integration with Ketchup services, and troubleshooting guide.\",\n  \"output\": \"Comprehensive documentation for JIRA PAT rotation system has been created and committed.\\n\\nDocumentation file: ketchup/docs/internal_documentation/jira_pat_rotation_system.md (1213 lines)\\n\\nContents:\\n1. Quick Start for On-Call Engineers - emergency response procedures\\n2. Why PAT Rotation Exists - context on JIRA Basic Auth deprecation (Nov 30, 2025)\\n3. System Architecture Overview - four main components:\\n   - Configuration & Validation Layer (TypeScript)\\n   - Authentication & Request Layer (TypeScript)\\n   - MCP Operations (JIRA API interactions)\\n   - Rotation Service (Python, Phase 1)\\n4. Happy Path: Step-by-step flow of successful rotation with timeline example\\n5. Failure Modes (6 scenarios):\\n   - Primary PAT expired\\n   - Rotation service crashes\\n   - New PAT validation fails\\n   - AWS Secrets Manager update fails\\n   - Distributed lock timeout\\n   - MCP service unavailable\\n6. Backup PAT Management - lifecycle, fallback logic, testing\\n7. Alerting Mechanism - success alerts, failure alerts, critical alerts, cooldown logic\\n8. Metrics Collection - Phase 1 health file tracking and Phase 2 detailed metrics\\n9. Integration with Ketchup Services - FastAPI app, JIRA Reporter, MCP service, rotation service\\n10. Troubleshooting Guide - 6 common scenarios with diagnosis and resolution steps\\n11. Configuration Reference - environment variables and AWS Secrets Manager keys\\n12. Code Reference Map - file locations and line numbers for all key components\\n\\nCode references verified:\\n- config.ts lines 7-24: JiraAuthConfig interface\\n- pat-validation.ts lines 3-61: Validation functions\\n- env-aws.ts lines 29-39: AWS Secrets Manager mappings\\n- utils.ts lines 158-272: Main request function\\n- test_backup_pat_config.test.ts: 12 test cases\\n\\nCommit: acb0d27 'docs: add comprehensive JIRA PAT rotation system documentation'\",\n  \"errors\": [],\n  \"files_modified\": [\n    \"ketchup/docs/internal_documentation/jira_pat_rotation_system.md\"\n  ],\n  \"metadata\": {\n    \"documentation_lines\": 1213,\n    \"sections\": 12,\n    \"code_references_verified\": 5,\n    \"test_cases_documented\": 12,\n    \"failure_scenarios_covered\": 6,\n    \"commit_hash\": \"acb0d27\"\n  }\n}\n```","session_id":"6f223fb1-b59b-49e9-840a-b71e79166be0","total_cost_usd":0.5619398000000003,"usage":{"input_tokens":92,"cache_creation_input_tokens":39353,"cache_read_input_tokens":1251945,"output_tokens":17811,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":39353}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":49656,"outputTokens":30014,"cacheReadInputTokens":1804933,"cacheCreationInputTokens":140814,"webSearchRequests":0,"costUSD":0.5562368000000003,"contextWindow":200000},"claude-sonnet-4-5-20250929":{"inputTokens":1006,"outputTokens":179,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.005703,"contextWindow":200000}},"permission_denials":[],"uuid":"7839dc54-c287-4511-8303-b874b441294c"}
+          qc_feedback: |-
+            [code-reviewer] Task execution successfully completed. The agent created comprehensive JIRA PAT rotation system documentation (1213 lines) with all required components: architecture overview, happy path flow, failure modes with recovery scenarios, backup PAT management, alerting mechanism, metrics collection, service integration, troubleshooting guide, and configuration reference. Code references were verified with specific file paths and line numbers. Documentation follows the existing style and is appropriate for the target audience (new engineers and on-call operators). Commit was properly created with semantic commit message and detailed body explaining all documentation sections.
+            [technical-writer] Comprehensive documentation created successfully. The JIRA PAT rotation system documentation is thorough and well-structured, covering all required areas: architecture, happy path, failure modes, alerting mechanism, backup PAT management, integration with Ketchup services, and troubleshooting guide. Code references are included with specific file paths and line numbers as required.
+            [architect-reviewer] The task execution successfully created comprehensive JIRA PAT rotation system documentation that meets all specified requirements. The documentation is well-structured, detailed, and properly references the codebase with specific line numbers. The agent completed all verification steps and properly committed the changes.
+            [sre-engineer] Task executed successfully. Comprehensive JIRA PAT rotation system documentation has been created with all required components. The documentation is well-structured, detailed, and includes proper code references with file paths and line numbers as specified.
+          timestamp: "2025-11-19T15:19:54Z"
+      completed_date: "2025-11-19"
+  testing_strategy:
+    unit_tests:
+      location: "tests/unit/test_backup_pat, tests/unit/test_metrics"
+      naming_convention: "test_*.py for Python, *.test.ts for TypeScript"
+      run_command: "npm test && pytest tests/unit/test_backup_pat tests/unit/test_metrics"
+      coverage_target: "80%"
+    integration_tests:
+      location: "tests/integration/test_phase2"
+      what_to_test:
+        - "Backup PAT integration with existing JIRA operations"
+        - "Metrics collector with real DynamoDB"
+        - "Health monitoring with all Phase 2 features"
+      setup_required:
+        - "Local DynamoDB instance (via Docker)"
+        - "Phase 1 services running (rotation service)"
+        - "Test JIRA environment with valid PAT"
+    manual_testing:
+      - step: "Deploy Phase 2 locally with docker-compose"
+        what_to_verify: "All services start and stay running"
+      - step: "Trigger backup PAT creation"
+        what_to_verify: "New backup token created and validated"
+      - step: "Verify metrics in DynamoDB"
+        what_to_verify: "Health metrics written every 5 minutes"
+  commit_strategy:
+    total_commits: 6
+    commits:
+      - sequence: 1
+        type: "test"
+        description: "Add tests for backup PAT configuration schema"
+        files: ["tests/unit/test_backup_pat/test_config.test.ts"]
+      - sequence: 2
+        type: "feat"
+        description: "Add backup PAT configuration to MCP service"
+        files: ["ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts"]
+      - sequence: 3
+        type: "test"
+        description: "Add tests for backup PAT service and fallback logic"
+        files: ["tests/unit/test_backup_pat/test_backup_pat_service.test.ts", "tests/unit/test_backup_pat/test_fallback_logic.test.ts"]
+      - sequence: 4
+        type: "feat"
+        description: "Implement backup PAT service and fallback logic"
+        files: ["ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts", "ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts"]
+      - sequence: 5
+        type: "feat"
+        description: "Add metrics schema and collector service"
+        files: ["ketchup/ketchup_jira_pat_rotator/metrics_schema.py", "ketchup/ketchup_jira_pat_rotator/metrics_collector.py"]
+      - sequence: 6
+        type: "docs"
+        description: "Add comprehensive PAT rotation system documentation"
+        files: ["ketchup/docs/internal_documentation/jira_pat_rotation_system.md"]
+  resources:
+    existing_code:
+      - type: "Phase 1 rotation service"
+        path: "ketchup/ketchup_jira_pat_rotator/rotator.py"
+        note: "Reference for scheduler pattern and error handling"
+      - type: "MCP PAT operations"
+        path: "ketchup/corp_jira_mcp/corp_jira_mcp/services/mcp-pat-operations.ts"
+        note: "Existing PAT operations to reuse"
+      - type: "Slack alerting pattern"
+        path: "ketchup/ketchup_access_request_monitor/monitor.py"
+        note: "How to send failures to #ketchup-alerts"
+      - type: "TypedDI service pattern"
+        path: "ketchup/ketchup_jira_pat_rotator/scheduler.py"
+        note: "Reference for TypedDI service implementation"
+      - type: "Existing documentation patterns"
+        path: "ketchup/docs/internal_documentation/ketchup_high_level.md"
+        note: "Follow this style and structure for PAT documentation"
+    documentation:
+      - type: "AWS Secrets Manager API"
+        link: "https://docs.aws.amazon.com/secretsmanager/"
+        relevance: "For storing and retrieving backup PAT"
+      - type: "DynamoDB best practices"
+        link: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html"
+        relevance: "For metrics storage design"
+  validation_checklist:
+    - item: "All unit tests pass"
+      command: "npm test && pytest tests/unit/"
+      checked: false
+    - item: "Backup PAT configuration loads correctly"
+      command: "npm test --testNamePattern=config"
+      checked: false
+    - item: "Backup PAT operations work (create, validate)"
+      command: "npm test --testNamePattern=backup"
+      checked: false
+    - item: "Fallback logic is transparent"
+      command: "npm test --testNamePattern=fallback"
+      checked: false
+    - item: "Metrics collector runs without errors"
+      command: "pytest tests/unit/test_metrics/"
+      checked: false
+    - item: "DynamoDB table schema is correct"
+      command: "aws dynamodb describe-table --table-name ketchup_pat_metrics"
+      checked: false
+    - item: "Documentation is complete and accurate"
+      command: "Verify all code references and flows"
+      checked: false
+    - item: "Phase 2 services running in docker-compose"
+      command: "docker-compose logs shows no errors over 1 hour"
+      checked: false

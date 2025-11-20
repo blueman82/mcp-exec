@@ -23,6 +23,8 @@ import * as status from './operations/status.js';
 import * as getComments from './operations/getComments.js';
 import * as addComment from './operations/addComment.js';
 import * as getFields from './operations/getFields.js';
+import * as listPATs from './operations/listPATs.js';
+import * as validatePAT from './operations/validatePAT.js';
 import { VERSION } from "./common/version.js";
 import { isJiraError } from "./common/errors.js";
 import { setCurrentAuthToken } from "./common/utils.js";
@@ -117,6 +119,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "get_jira_fields",
         description: "Get all available Jira fields including custom fields",
         inputSchema: zodToJsonSchema(getFields.GetFieldsSchema),
+      },
+      {
+        name: "list_jira_pats",
+        description: "List all active JIRA Personal Access Tokens with expiry dates for debugging and monitoring",
+        inputSchema: zodToJsonSchema(listPATs.ListPATsSchema),
+      },
+      {
+        name: "validate_jira_pat",
+        description: "Validate a JIRA Personal Access Token by attempting authentication",
+        inputSchema: zodToJsonSchema(validatePAT.ValidatePATSchema),
       },
     ],
   };
@@ -259,6 +271,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "get_jira_fields": {
         const result = await getFields.getJiraFields();
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "list_jira_pats": {
+        const result = await listPATs.listPATs();
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to list PAT tokens');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "validate_jira_pat": {
+        const args = validatePAT.ValidatePATSchema.parse(request.params.arguments);
+        const result = await validatePAT.validatePAT(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to validate PAT token');
+        }
+
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
@@ -454,7 +491,7 @@ async function runServer() {
             resolution: z.object({ name: z.string() }).optional(),
             fields: z.record(z.any()).optional()
           }).parse(request.params.arguments);
-          
+
           const transitionResult = await status.transitionJiraStatusByName(
             issueIdOrKey,
             statusName,
@@ -467,7 +504,7 @@ async function runServer() {
           };
           break;
         }
-        
+
         case 'get_jira_transitions': {
           const { issueIdOrKey } = z.object({ issueIdOrKey: z.string() }).parse(request.params.arguments);
           const transitionsResult = await status.getJiraTransitions(issueIdOrKey);
@@ -476,7 +513,24 @@ async function runServer() {
           };
           break;
         }
-        
+
+        case 'list_jira_pats': {
+          const listResult = await listPATs.listPATs();
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(listResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'validate_jira_pat': {
+          const args = validatePAT.ValidatePATSchema.parse(request.params.arguments);
+          const validateResult = await validatePAT.validatePAT(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(validateResult, null, 2) }]
+          };
+          break;
+        }
+
         default:
           return res.status(400).json({
             jsonrpc: '2.0',

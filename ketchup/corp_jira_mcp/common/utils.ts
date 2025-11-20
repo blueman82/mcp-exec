@@ -12,6 +12,7 @@ type RequestOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+  apiVersion?: string;
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -126,13 +127,17 @@ function constructAuthHeader(email: string, token: string): string {
  * Constructs headers for iPaaS authentication
  * @param imsToken The IMS token for authentication
  * @param apiKey The API key for iPaaS
- * @param username Optional username for iPaaS
- * @param password Optional password for iPaaS
+ * @param pat Optional PAT (Personal Access Token) for iPaaS authentication (preferred method)
+ * @param username Optional username for iPaaS (fallback)
+ * @param password Optional password for iPaaS (fallback)
  * @returns Headers object with iPaaS authentication
+ *
+ * NOTE: Exported for testing purposes
  */
-function constructIpaasHeaders(
+export function constructIpaasHeaders(
   imsToken: string,
   apiKey: string,
+  pat?: string,
   username?: string,
   password?: string
 ): Record<string, string> {
@@ -142,16 +147,18 @@ function constructIpaasHeaders(
     "Content-Type": "application/json"
   };
 
-  // Add optional username and password if provided
-  if (username) {
-    headers["Username"] = username;
+  // If PAT is provided, use x-authorization header (preferred method)
+  if (pat) {
+    headers["x-authorization"] = `Bearer ${pat}`;
+    logToFile('Using PAT in x-authorization header for iPaaS');
   }
-  
-  if (password) {
+  // Fall back to username/password if no PAT (backward compatibility)
+  else if (username && password) {
+    headers["Username"] = username;
     headers["Password"] = password;
+    logToFile('Using Username/Password headers for iPaaS (deprecated)');
   }
 
-  logToFile('Constructing iPaaS headers with IMS token and API key');
   return headers;
 }
 
@@ -164,36 +171,37 @@ export async function jiraRequest(
   // Determine which authentication method to use based on config
   if (config.useIpaas) {
     // iPaaS authentication
-    
+
     // First, try to use the token from the incoming request
     if (currentAuthToken) {
       logToFile('Using token from incoming request Authorization header');
-      
+
       // Extract token from "Bearer " prefix if present
-      const token = currentAuthToken.startsWith('Bearer ') 
-        ? currentAuthToken.substring(7) 
+      const token = currentAuthToken.startsWith('Bearer ')
+        ? currentAuthToken.substring(7)
         : currentAuthToken;
-      
+
       headers = {
         ...constructIpaasHeaders(
           token,
           config.auth.apiKey || '',
-          config.auth.username,
-          config.auth.password
+          config.auth.pat,       // PAT parameter (preferred)
+          config.auth.username,  // Fallback username
+          config.auth.password   // Fallback password
         ),
         ...options.headers
       };
     } else {
       // Fallback to environment variables if no incoming token
       logToFile('No incoming token, falling back to environment variables');
-      const { imsToken, apiKey, username, password } = config.auth;
-      
+      const { imsToken, apiKey, pat, username, password } = config.auth;
+
       if (!imsToken || !apiKey) {
         throw new Error("IMS token and API key are required for iPaaS authentication");
       }
-      
+
       headers = {
-        ...constructIpaasHeaders(imsToken, apiKey, username, password),
+        ...constructIpaasHeaders(imsToken, apiKey, pat, username, password),
         ...options.headers
       };
     }
