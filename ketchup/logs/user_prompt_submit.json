@@ -361,5 +361,27 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "use agents to do the tasks"
     }
+  },
+  {
+    "timestamp": "2025-11-20T15:45:59.553247",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "ketchup-jira-pat-rotator:v2.360.349 deployed to prod1"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T15:47:07.671819",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "did you verify?\nssh ketchup-prod1 \"sudo docker logs -f ketchup-jira-pat-rotator\"\nError response from daemon: No such container: ketchup-jira-pat-rotator"
+    }
   }
 ]

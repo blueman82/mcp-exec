@@ -1,6 +1,6 @@
 [
   {
-    "timestamp": "2025-11-20T15:34:05.971043",
+    "timestamp": "2025-11-20T15:47:26.143355",
     "version": "v4",
     "input_data": {
       "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
@@ -19,678 +19,18 @@
         "name": "default"
       },
       "cost": {
-        "total_cost_usd": 9.2441237,
-        "total_duration_ms": 3811505,
-        "total_api_duration_ms": 1972091,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m11 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"okay if we're only doing singl...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m96k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m103k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m11 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m52%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:35:40.876271",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.281100499999999,
-        "total_duration_ms": 3906401,
-        "total_api_duration_ms": 1981151,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m96k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m103k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m52%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:35:48.971145",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.317771449999999,
-        "total_duration_ms": 3914483,
-        "total_api_duration_ms": 1988430,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m96k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m103k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m52%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:35:55.758014",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.3519005,
-        "total_duration_ms": 3921273,
-        "total_api_duration_ms": 1994831,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m97k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m102k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m51%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:01.805650",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.384623,
-        "total_duration_ms": 3927327,
-        "total_api_duration_ms": 2000490,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m97k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m102k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m51%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:06.967757",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.417426899999999,
-        "total_duration_ms": 3932478,
-        "total_api_duration_ms": 2006462,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m97k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m102k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m51%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:06.968404",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.417426899999999,
-        "total_duration_ms": 3932489,
-        "total_api_duration_ms": 2006462,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m97k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m102k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m51%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:17.093522",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.462260249999998,
-        "total_duration_ms": 3942617,
-        "total_api_duration_ms": 2016484,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m100k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m99k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m50%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:33.526340",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.506794049999998,
-        "total_duration_ms": 3959045,
-        "total_api_duration_ms": 2032485,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m101k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m98k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m49%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:33.538330",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.506794049999998,
-        "total_duration_ms": 3959062,
-        "total_api_duration_ms": 2032485,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m101k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m98k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m49%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:36:33.847625",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.506794049999998,
-        "total_duration_ms": 3959348,
-        "total_api_duration_ms": 2032485,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m12 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"im fine to remove it, but i do...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m101k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m98k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m12 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m49%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:37:41.847172",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.562984749999998,
-        "total_duration_ms": 4027360,
-        "total_api_duration_ms": 2043572,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m101k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m98k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m49%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:37:41.847877",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.562984749999998,
-        "total_duration_ms": 4027371,
-        "total_api_duration_ms": 2043572,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m101k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m98k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m49%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:38:12.417178",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.618024549999998,
-        "total_duration_ms": 4057943,
-        "total_api_duration_ms": 2074036,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m103k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m96k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:38:12.418485",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.618024549999998,
-        "total_duration_ms": 4057944,
-        "total_api_duration_ms": 2074036,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m103k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m96k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:38:12.420764",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.618024549999998,
-        "total_duration_ms": 4057944,
-        "total_api_duration_ms": 2074036,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m103k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m96k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:38:12.421395",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.618024549999998,
-        "total_duration_ms": 4057951,
-        "total_api_duration_ms": 2074036,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m103k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m96k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:38:12.423979",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 9.618024549999998,
-        "total_duration_ms": 4057952,
-        "total_api_duration_ms": 2074036,
-        "total_lines_added": 1298,
-        "total_lines_removed": 377
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m103k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m96k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:43:11.686806",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 11.26209845,
-        "total_duration_ms": 4357198,
-        "total_api_duration_ms": 2549859,
-        "total_lines_added": 1419,
-        "total_lines_removed": 647
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m107k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m92k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m46%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:43:17.742543",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 11.29838885,
-        "total_duration_ms": 4363257,
-        "total_api_duration_ms": 2555808,
-        "total_lines_added": 1419,
-        "total_lines_removed": 647
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m107k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m92k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m46%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:44:12.731475",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 11.357890249999999,
-        "total_duration_ms": 4418204,
-        "total_api_duration_ms": 2573883,
-        "total_lines_added": 1419,
-        "total_lines_removed": 647
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m111k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m88k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:44:12.990460",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 11.357890249999999,
-        "total_duration_ms": 4418504,
-        "total_api_duration_ms": 2573883,
-        "total_lines_added": 1419,
-        "total_lines_removed": 647
-      },
-      "exceeds_200k_tokens": false
-    },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m111k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m88k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
-  },
-  {
-    "timestamp": "2025-11-20T15:44:57.707386",
-    "version": "v4",
-    "input_data": {
-      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
-      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
-      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-      "model": {
-        "id": "claude-sonnet-4-5-20250929",
-        "display_name": "Sonnet 4.5"
-      },
-      "workspace": {
-        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
-        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
-      },
-      "version": "2.0.47",
-      "output_style": {
-        "name": "default"
-      },
-      "cost": {
-        "total_cost_usd": 11.539655699999997,
-        "total_duration_ms": 4463219,
-        "total_api_duration_ms": 2654854,
+        "total_cost_usd": 12.163071699999996,
+        "total_duration_ms": 4611673,
+        "total_api_duration_ms": 2745520,
         "total_lines_added": 1419,
         "total_lines_removed": 744
       },
       "exceeds_200k_tokens": false
     },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m111k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m88k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m116k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m83k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m42%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
   },
   {
-    "timestamp": "2025-11-20T15:44:58.016811",
+    "timestamp": "2025-11-20T15:47:40.227337",
     "version": "v4",
     "input_data": {
       "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
@@ -709,18 +49,18 @@
         "name": "default"
       },
       "cost": {
-        "total_cost_usd": 11.539655699999997,
-        "total_duration_ms": 4463521,
-        "total_api_duration_ms": 2654854,
+        "total_cost_usd": 12.168941699999998,
+        "total_duration_ms": 4625741,
+        "total_api_duration_ms": 2747405,
         "total_lines_added": 1419,
         "total_lines_removed": 744
       },
       "exceeds_200k_tokens": false
     },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m111k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m88k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m116k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m83k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m42%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
   },
   {
-    "timestamp": "2025-11-20T15:44:59.635587",
+    "timestamp": "2025-11-20T15:47:40.523031",
     "version": "v4",
     "input_data": {
       "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
@@ -739,18 +79,18 @@
         "name": "default"
       },
       "cost": {
-        "total_cost_usd": 11.578995749999997,
-        "total_duration_ms": 4465153,
-        "total_api_duration_ms": 2660142,
+        "total_cost_usd": 12.168941699999998,
+        "total_duration_ms": 4626043,
+        "total_api_duration_ms": 2747405,
         "total_lines_added": 1419,
         "total_lines_removed": 744
       },
       "exceeds_200k_tokens": false
     },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m111k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m88k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m44%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m116k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m83k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m7k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m42%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
   },
   {
-    "timestamp": "2025-11-20T15:45:08.894334",
+    "timestamp": "2025-11-20T15:47:41.978468",
     "version": "v4",
     "input_data": {
       "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
@@ -769,18 +109,18 @@
         "name": "default"
       },
       "cost": {
-        "total_cost_usd": 11.630095949999996,
-        "total_duration_ms": 4474406,
-        "total_api_duration_ms": 2670089,
+        "total_cost_usd": 12.228035849999998,
+        "total_duration_ms": 4627502,
+        "total_api_duration_ms": 2761127,
         "total_lines_added": 1419,
         "total_lines_removed": 744
       },
       "exceeds_200k_tokens": false
     },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m114k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m85k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m43%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m121k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m78k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m39%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
   },
   {
-    "timestamp": "2025-11-20T15:45:22.055319",
+    "timestamp": "2025-11-20T15:47:48.836119",
     "version": "v4",
     "input_data": {
       "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
@@ -799,14 +139,194 @@
         "name": "default"
       },
       "cost": {
-        "total_cost_usd": 11.672298149999996,
-        "total_duration_ms": 4487575,
-        "total_api_duration_ms": 2683120,
+        "total_cost_usd": 12.270904049999997,
+        "total_duration_ms": 4634357,
+        "total_api_duration_ms": 2767227,
         "total_lines_added": 1419,
         "total_lines_removed": 744
       },
       "exceeds_200k_tokens": false
     },
-    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m13 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"use agents to do the tasks\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m114k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m85k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m13 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m43%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m122k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m77k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m39%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T15:47:48.836971",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 12.270904049999997,
+        "total_duration_ms": 4634360,
+        "total_api_duration_ms": 2767227,
+        "total_lines_added": 1419,
+        "total_lines_removed": 744
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m122k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m77k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m39%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T15:47:54.135076",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 12.311249849999998,
+        "total_duration_ms": 4639656,
+        "total_api_duration_ms": 2772430,
+        "total_lines_added": 1419,
+        "total_lines_removed": 744
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m122k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m77k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m39%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T15:48:02.460267",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 12.355047899999997,
+        "total_duration_ms": 4647987,
+        "total_api_duration_ms": 2780603,
+        "total_lines_added": 1421,
+        "total_lines_removed": 746
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m123k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m76k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m38%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T15:48:06.441748",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 12.355047899999997,
+        "total_duration_ms": 4651954,
+        "total_api_duration_ms": 2780603,
+        "total_lines_added": 1421,
+        "total_lines_removed": 746
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m123k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m76k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m38%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T15:48:06.738408",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 12.355047899999997,
+        "total_duration_ms": 4652255,
+        "total_api_duration_ms": 2780603,
+        "total_lines_added": 1421,
+        "total_lines_removed": 746
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m123k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m76k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m38%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T15:48:12.590365",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5ce2b166-c092-484b-9ada-2fa6dbcc5fa4",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup-jira-pat-migration/5ce2b166-c092-484b-9ada-2fa6dbcc5fa4.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "default"
+      },
+      "cost": {
+        "total_cost_usd": 12.400066199999998,
+        "total_duration_ms": 4658104,
+        "total_api_duration_ms": 2790442,
+        "total_lines_added": 1421,
+        "total_lines_removed": 746
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mApollo\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m15 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"did you verify?\nssh ketchup-pr...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m123k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m76k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m15 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m8k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m38%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5ce2b166-c092-484b-9ada-2fa6dbcc5fa4\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
   }
 ]
