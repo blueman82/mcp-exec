@@ -26,7 +26,7 @@ describe('Config - PAT Support', () => {
 
   it('should load PAT from environment variable', async () => {
     process.env.JIRA_PAT = 'test_pat_token_12345';
-    const { config } = await import('../dist/corp_jira_mcp/common/config.js');
+    const { config } = await import('../corp_jira_mcp/common/config.js');
     expect(config.auth.pat).toBe('test_pat_token_12345');
   });
 
@@ -37,7 +37,9 @@ describe('Config - PAT Support', () => {
   });
 
   it('should default usePat to false when JIRA_USE_PAT_AUTH not set', async () => {
-    delete process.env.JIRA_USE_PAT_AUTH;
+    // Must set to 'false' rather than delete, because dotenv.config()
+    // will reload from .env file if the variable is not present
+    process.env.JIRA_USE_PAT_AUTH = 'false';
     const { config } = await import('../corp_jira_mcp/common/config.js');
     expect(config.auth.usePat).toBe(false);
   });

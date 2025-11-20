@@ -17,4 +17,8 @@ export default {
       },
     ],
   },
+  // Ensure mocks are reset between tests
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 };

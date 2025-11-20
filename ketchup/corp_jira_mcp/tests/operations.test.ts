@@ -1,44 +1,30 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+/**
+ * Operation tests with proper ES module mocking using apiClient wrapper
+ * The apiClient is an object with a mutable property, so we can spy on it
+ */
 
-// Create the mock function before jest.mock() is hoisted
-const mockJiraRequestFn = jest.fn();
+import { describe, it, expect, beforeEach, jest, beforeAll } from '@jest/globals';
 
-// Mock the config module
-jest.mock('../common/config', () => ({
-  config: {
-    auth: {
-      email: 'test@adobe.com',
-      token: 'test_token',
-      imsToken: 'test_ims_token',
-      apiKey: 'test_api_key'
-    },
-    apiBaseUrl: 'https://test.atlassian.net/rest/api/3',
-    useIpaas: false,
-    timeout: 30000,
-    logFile: '/tmp/test-jira.log'
-  }
-}));
+// First, set up environment before any imports
+process.env.JIRA_API_BASE_URL = 'https://test.atlassian.net/rest/api/3';
+process.env.JIRA_EMAIL = 'test@adobe.com';
+process.env.JIRA_PERSONAL_ACCESS_TOKEN = 'test_token';
 
-// Mock utils WITHOUT .js extension to match moduleNameMapper
-jest.mock('../common/utils', () => ({
-  jiraRequest: mockJiraRequestFn,
-  buildUrl: jest.fn((path) => `https://test.atlassian.net/rest/api/3/${path}`),
-  verifyAuthentication: jest.fn(),
-  setCurrentAuthToken: jest.fn()
-}));
+// Import the apiClient wrapper
+import { apiClient } from '../common/api-client.js';
 
-// Import mocked utils module
-import * as utils from '../common/utils.js';
+// Create a mock function
+const mockJiraRequest = jest.fn();
 
-// Import operations AFTER setting up mocks
+// Replace the jiraRequest method BEFORE importing operations
+apiClient.jiraRequest = mockJiraRequest as any;
+
+// Now import the operations - they will use the mocked apiClient
 import { createPAT, CreatePATSchema } from '../operations/createPAT.js';
 import { revokePAT, RevokePATSchema } from '../operations/revokePAT.js';
 import { validatePAT, ValidatePATSchema } from '../operations/validatePAT.js';
 
-// Use the same mock reference we created earlier
-const mockJiraRequest = mockJiraRequestFn;
-
-describe('createPAT Operation', () => {
+describe('createPAT Operation (with apiClient mock)', () => {
   beforeEach(() => {
     mockJiraRequest.mockClear();
   });
@@ -61,6 +47,7 @@ describe('createPAT Operation', () => {
       expect(result.data).toBeDefined();
       expect(result.data?.token).toBe('test_generated_pat_token_xyz789');
       expect(result.data?.expiresAt).toBe('2025-02-17T23:59:59Z');
+      expect(mockJiraRequest).toHaveBeenCalled();
     });
   });
 
@@ -80,6 +67,7 @@ describe('createPAT Operation', () => {
 
       expect(typeof result.data?.token).toBe('string');
       expect(result.data?.token).toMatch(/^[a-zA-Z0-9_-]+$/);
+      expect(mockJiraRequest).toHaveBeenCalled();
     });
 
     it('should return expiry as ISO 8601 date string', async () => {

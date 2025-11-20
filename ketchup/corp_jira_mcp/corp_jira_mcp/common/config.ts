@@ -109,10 +109,10 @@ function createConfig(): JiraConfig {
       password: process.env.JIRA_PASSWORD || defaults.auth.password,
       pat: process.env.JIRA_PAT || defaults.auth.pat,
       patExpiry: process.env.JIRA_PAT_EXPIRY ? new Date(process.env.JIRA_PAT_EXPIRY) : defaults.auth.patExpiry,
-      usePat: process.env.JIRA_USE_PAT_AUTH === 'true' || defaults.auth.usePat,
+      usePat: process.env.JIRA_USE_PAT_AUTH === 'true',
       backupPat: process.env.JIRA_BACKUP_PAT || defaults.auth.backupPat,
       backupPatExpiry: process.env.JIRA_BACKUP_PAT_EXPIRY ? new Date(process.env.JIRA_BACKUP_PAT_EXPIRY) : defaults.auth.backupPatExpiry,
-      useBackupPat: process.env.JIRA_USE_BACKUP_PAT === 'true' || defaults.auth.useBackupPat,
+      useBackupPat: process.env.JIRA_USE_BACKUP_PAT === 'true',
       backupPatCreatedAt: process.env.JIRA_BACKUP_PAT_CREATED ? new Date(process.env.JIRA_BACKUP_PAT_CREATED) : defaults.auth.backupPatCreatedAt
     },
     defaultProject: process.env.JIRA_DEFAULT_PROJECT || defaults.defaultProject,

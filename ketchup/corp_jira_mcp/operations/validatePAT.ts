@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jiraRequest } from "../common/utils.js";
+import { apiClient } from "../common/api-client.js";
 
 export const ValidatePATSchema = z.object({
   token: z.string().min(1, "Token cannot be empty").describe("PAT token to validate"),
@@ -37,7 +37,7 @@ export async function validatePAT(request: ValidatePATRequest): Promise<Validate
 
     // Attempt to use the token for authentication
     // We'll make a request to the API using the token to see if it's valid
-    const result = await jiraRequest("myself", {
+    const result = await apiClient.jiraRequest("myself", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`

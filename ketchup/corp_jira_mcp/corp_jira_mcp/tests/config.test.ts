@@ -38,7 +38,9 @@ describe('Config - PAT Support', () => {
   });
 
   it('should default usePat to false when JIRA_USE_PAT_AUTH not set', async () => {
-    delete process.env.JIRA_USE_PAT_AUTH;
+    // Must set to 'false' rather than delete, because dotenv.config()
+    // will reload from .env file if the variable is not present
+    process.env.JIRA_USE_PAT_AUTH = 'false';
     const { config } = await import('../common/config.js');
     expect(config.auth.usePat).toBe(false);
   });
@@ -172,8 +174,9 @@ describe('env-aws.ts - PAT mappings', () => {
     const { loadSecretsFromAWS } = await import('../env-aws.js');
     await loadSecretsFromAWS();
 
-    const logCalls = consoleSpy.mock.calls.map(call => call[0]).join('\n');
-    expect(logCalls).toContain('[REDACTED]');
+    const logCalls = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
+    // Check that PAT is logged with redaction indicator
+    expect(logCalls).toMatch(/JIRA_PAT:.*\[REDACTED\]/);
     expect(logCalls).not.toContain('secret_token_value');
 
     consoleSpy.mockRestore();

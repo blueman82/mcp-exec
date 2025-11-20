@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jiraRequest } from "../common/utils.js";
+import { apiClient } from "../common/api-client.js";
 
 // Schema for PAT revocation request
 export const RevokePATSchema = z.object({
@@ -31,7 +31,7 @@ export async function revokePAT(params: RevokePATRequest): Promise<{
 
     // Call JIRA API endpoint via iPaaS proxy
     // Endpoint: DELETE /rest/api/3/tokens/tokens/{tokenId}
-    await jiraRequest(`tokens/tokens/${params.tokenId}`, {
+    await apiClient.jiraRequest(`tokens/tokens/${params.tokenId}`, {
       method: "DELETE"
     });
 

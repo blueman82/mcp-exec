@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { jiraRequest } from "../common/utils.js";
+import { apiClient } from "../common/api-client.js";
 
 // Schema for PAT creation request
 export const CreatePATSchema = z.object({
@@ -39,7 +39,7 @@ export async function createPAT(params: CreatePATRequest): Promise<{
 
     // Call JIRA API endpoint via iPaaS proxy
     // Endpoint: POST /rest/api/3/tokens/tokens
-    const result = await jiraRequest("tokens/tokens", {
+    const result = await apiClient.jiraRequest("tokens/tokens", {
       method: "POST",
       body: {
         name: params.tokenName,
