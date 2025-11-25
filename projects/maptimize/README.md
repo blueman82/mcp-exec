@@ -145,7 +145,7 @@ maptimize/
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/camp-ops-emea/maptimize.git
+git clone https://github.com/camp-ops-emea/projects/maptimize.git
 cd maptimize
 ```
 

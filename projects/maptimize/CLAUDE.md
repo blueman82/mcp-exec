@@ -256,7 +256,7 @@ ruff check src/ tests/
 ## Team Context
 
 **Camp Ops EMEA Team**
-- Repository: `camp-ops-emea/maptimize`
+- Repository: `camp-ops-emea/projects/maptimize`
 - Primary focus: Task optimization and process improvement
 - Deployment: AWS (eu-west-1)
 

@@ -219,7 +219,7 @@ The JIRA PAT migration implementation demonstrates exceptional architectural dis
 
 ### 3.1 Docker Service Definitions
 
-**File:** `/ketchup/infrastructure/docker-compose.yml`
+**File:** `/projects/ketchup/infrastructure/docker-compose.yml`
 
 ```yaml
 services:
@@ -967,23 +967,23 @@ class MetricsCollectorService:
 ### 9.1 File Inventory
 
 **TypeScript Files (MCP Service):**
-- `/ketchup/corp_jira_mcp/corp_jira_mcp/env-aws.ts` (AWS Secrets integration)
-- `/ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts` (Configuration)
-- `/ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts` (Auth headers)
-- `/ketchup/corp_jira_mcp/corp_jira_mcp/operations/validatePAT.ts` (Validate)
-- `/ketchup/corp_jira_mcp/corp_jira_mcp/operations/listPATs.ts` (List PATs)
-- `/ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts` (Phase 2)
+- `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/env-aws.ts` (AWS Secrets integration)
+- `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/common/config.ts` (Configuration)
+- `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/common/utils.ts` (Auth headers)
+- `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/operations/validatePAT.ts` (Validate)
+- `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/operations/listPATs.ts` (List PATs)
+- `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts` (Phase 2)
 
 **Python Files (Rotation Service):**
-- `/ketchup/ketchup_jira_pat_rotator/main.py` (Entry point)
-- `/ketchup/ketchup_jira_pat_rotator/scheduler.py` (24hr scheduler)
-- `/ketchup/ketchup_jira_pat_rotator/pat_monitor.py` (Expiry monitor)
-- `/ketchup/ketchup_jira_pat_rotator/rotator.py` (Orchestrator)
-- `/ketchup/ketchup_jira_pat_rotator/metrics_collector.py` (Phase 2)
-- `/ketchup/ketchup_jira_pat_rotator/metrics_schema.py` (Phase 2)
+- `/projects/ketchup/ketchup_jira_pat_rotator/main.py` (Entry point)
+- `/projects/ketchup/ketchup_jira_pat_rotator/scheduler.py` (24hr scheduler)
+- `/projects/ketchup/ketchup_jira_pat_rotator/pat_monitor.py` (Expiry monitor)
+- `/projects/ketchup/ketchup_jira_pat_rotator/rotator.py` (Orchestrator)
+- `/projects/ketchup/ketchup_jira_pat_rotator/metrics_collector.py` (Phase 2)
+- `/projects/ketchup/ketchup_jira_pat_rotator/metrics_schema.py` (Phase 2)
 
 **Configuration Files:**
-- `/ketchup/infrastructure/docker-compose.yml` (Service definitions)
+- `/projects/ketchup/infrastructure/docker-compose.yml` (Service definitions)
 
 **Documentation:**
 - `/docs/plans/jira-pat-migration/index.yaml` (Master plan)

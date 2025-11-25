@@ -12,14 +12,14 @@
 
 #### 1. Unit Test Validation
 ```bash
-cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup
+cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup
 make test-unit
 ```
 **Expected**: All tests pass, especially TypedDI compatibility tests
 
 #### 2. Pylint Code Quality Check
 ```bash
-cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup
+cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup
 make pylint
 ```
 **Expected**: No linting errors, code quality standards met

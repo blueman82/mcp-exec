@@ -29,7 +29,7 @@ Api_key: {IPAAS_API_KEY}
 
 ## Test File Created
 
-**Location:** `/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup/corp_jira_mcp/tests/constructIpaasHeaders.test.ts`
+**Location:** `/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/tests/constructIpaasHeaders.test.ts`
 
 ---
 
@@ -78,7 +78,7 @@ Tests:       4 failed, 2 passed, 6 total
 ## Implementation Changes Required
 
 ### File to Modify
-`/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup/corp_jira_mcp/common/utils.ts`
+`/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/common/utils.ts`
 
 ### Function to Update
 `constructIpaasHeaders()`
@@ -128,7 +128,7 @@ export function constructIpaasHeaders(
 ## Test Command
 
 ```bash
-cd /Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup/corp_jira_mcp
+cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp
 npm test -- tests/constructIpaasHeaders.test.ts
 ```
 

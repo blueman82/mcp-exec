@@ -2,7 +2,7 @@
 
 This file provides guidance for working with the **ketchup_access_request_monitor** service.
 
-**Parent Documentation**: See `/ketchup/CLAUDE.md` for shared infrastructure, TypedDI, and deployment patterns.
+**Parent Documentation**: See `/projects/ketchup/CLAUDE.md` for shared infrastructure, TypedDI, and deployment patterns.
 
 ## Service Overview
 
@@ -440,7 +440,7 @@ print(await metrics.get_error_rate())
 
 ## Related Documentation
 
-- **Parent CLAUDE.md**: `/ketchup/CLAUDE.md` - Shared infrastructure and TypedDI
-- **High-Level Architecture**: `/ketchup/code_docs/ketchup_high_level.md`
-- **TypedDI Migration**: `/ketchup/docs/TYPEDDI_MIGRATION_SUMMARY.md`
-- **Deployment Guide**: `/ketchup/infrastructure/deploy-ketchup.sh`
+- **Parent CLAUDE.md**: `/projects/ketchup/CLAUDE.md` - Shared infrastructure and TypedDI
+- **High-Level Architecture**: `/projects/ketchup/code_docs/ketchup_high_level.md`
+- **TypedDI Migration**: `/projects/ketchup/docs/TYPEDDI_MIGRATION_SUMMARY.md`
+- **Deployment Guide**: `/projects/ketchup/infrastructure/deploy-ketchup.sh`

@@ -3,7 +3,7 @@
 ## Updated Documentation Files
 
 ### 1. TODO.md - Primary Project Status
-**File**: `/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/TODO.md`
+**File**: `/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/TODO.md`
 **Status**: ✅ **UPDATED**
 
 **Changes Made**:
@@ -21,7 +21,7 @@
 - Added reference to detailed validation report
 
 ### 2. CHANGELOG.md - Project History
-**File**: `/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/CHANGELOG.md`
+**File**: `/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/CHANGELOG.md`
 **Status**: ✅ **UPDATED**
 
 **Changes Made**:
@@ -39,7 +39,7 @@
 - Deployment status: BLOCKED with requirement for 100% pass rate
 
 ### 3. Phase 4.1 Validation Summary (New)
-**File**: `/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup/phase_4_1_validation_summary.md`
+**File**: `/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup/phase_4_1_validation_summary.md`
 **Status**: ✅ **CREATED**
 
 **Content**:

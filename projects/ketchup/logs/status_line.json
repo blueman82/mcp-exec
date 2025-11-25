@@ -1,0 +1,2560 @@
+[
+  {
+    "timestamp": "2025-11-20T19:20:47.149327",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 4.936912099999999,
+        "total_duration_ms": 3515056,
+        "total_api_duration_ms": 1144955,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAnaxandra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m9 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"delete it, commit, push, pr, m...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m171k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m28k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m9 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m14%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:20:56.208695",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 4.9926531999999995,
+        "total_duration_ms": 3524119,
+        "total_api_duration_ms": 1155103,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAnaxandra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m9 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"delete it, commit, push, pr, m...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m172k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m27k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m9 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m14%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:21:00.152936",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.047495249999999,
+        "total_duration_ms": 3528056,
+        "total_api_duration_ms": 1160233,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAnaxandra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m9 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"delete it, commit, push, pr, m...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m172k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m27k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m9 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m14%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:21:05.885069",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.103298349999999,
+        "total_duration_ms": 3533794,
+        "total_api_duration_ms": 1166988,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAnaxandra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m9 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"delete it, commit, push, pr, m...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m172k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m27k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m9 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m14%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:21:15.323313",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.160853049999999,
+        "total_duration_ms": 3543230,
+        "total_api_duration_ms": 1176262,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAnaxandra\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m9 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"delete it, commit, push, pr, m...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m173k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m26k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m9 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m19k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:26:25.822567",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.812640049999999,
+        "total_duration_ms": 3853718,
+        "total_api_duration_ms": 1182906,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m173k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m26k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:26:31.556807",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.872940949999999,
+        "total_duration_ms": 3859459,
+        "total_api_duration_ms": 1192236,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m173k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m26k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:26:39.524127",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.93206995,
+        "total_duration_ms": 3867421,
+        "total_api_duration_ms": 1201532,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m173k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m26k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:26:54.781566",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 5.990767000000001,
+        "total_duration_ms": 3882676,
+        "total_api_duration_ms": 1211737,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m174k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m25k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:27:01.712221",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 6.048534700000001,
+        "total_duration_ms": 3889618,
+        "total_api_duration_ms": 1219168,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m174k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m25k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:27:01.717392",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 6.048534700000001,
+        "total_duration_ms": 3889631,
+        "total_api_duration_ms": 1219168,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m174k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m25k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m13%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:27:09.108569",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 6.106210600000001,
+        "total_duration_ms": 3897023,
+        "total_api_duration_ms": 1228312,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m175k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m24k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m12%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-20T19:27:09.478361",
+    "version": "v4",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-sonnet-4-5-20250929",
+        "display_name": "Sonnet 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.47",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 6.106210600000001,
+        "total_duration_ms": 3897323,
+        "total_api_duration_ms": 1228312,
+        "total_lines_added": 405,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAthena\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mSonnet 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m10 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"i want it gone the document iv...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m175k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m24k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m10 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m17k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[31m12%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 57b4d18e-787e-47cb-9378-3de10ad0527c\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.47\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:04.058893",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 1678,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mf5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/f5100dd4-58e9-4acc-adab-ce6191818f63.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:05.476603",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 3109,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mf5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/f5100dd4-58e9-4acc-adab-ce6191818f63.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:11.157574",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.04287225,
+        "total_duration_ms": 8787,
+        "total_api_duration_ms": 9803,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:11.880017",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.04287225,
+        "total_duration_ms": 9513,
+        "total_api_duration_ms": 9803,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:12.259821",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.04287225,
+        "total_duration_ms": 9893,
+        "total_api_duration_ms": 9803,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:12.812518",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.04287225,
+        "total_duration_ms": 10445,
+        "total_api_duration_ms": 9803,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:13.517480",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.11330625,
+        "total_duration_ms": 11158,
+        "total_api_duration_ms": 17014,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:13.595807",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.11330625,
+        "total_duration_ms": 11236,
+        "total_api_duration_ms": 17014,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:13.834511",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.11330625,
+        "total_duration_ms": 11467,
+        "total_api_duration_ms": 17014,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m37k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m162k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m37k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m81%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:40.935790",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.26940749999999997,
+        "total_duration_ms": 38566,
+        "total_api_duration_ms": 44096,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m55k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m144k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m55k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m72%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:48.011177",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.2697245,
+        "total_duration_ms": 45641,
+        "total_api_duration_ms": 44949,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m57k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m142k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m28k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m71%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:48.842345",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.2697245,
+        "total_duration_ms": 46476,
+        "total_api_duration_ms": 44949,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m57k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m142k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m28k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m71%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:49.629278",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.2697245,
+        "total_duration_ms": 47264,
+        "total_api_duration_ms": 44949,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m57k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m142k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m28k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m71%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:50.353853",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46420599999999995,
+        "total_duration_ms": 47983,
+        "total_api_duration_ms": 52972,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m57k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m142k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m28k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m71%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:55.406883",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 53040,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:58.315436",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 55947,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:58.590004",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 56226,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:58.696516",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 56325,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:58.769661",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 56397,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:58.969123",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 56603,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:59.155990",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 56783,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:59.350153",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.46654399999999996,
+        "total_duration_ms": 56980,
+        "total_api_duration_ms": 55374,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:50:59.750058",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5223705,
+        "total_duration_ms": 57386,
+        "total_api_duration_ms": 64623,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m59k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m140k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m29k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m70%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:06.472479",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5252704999999999,
+        "total_duration_ms": 64106,
+        "total_api_duration_ms": 69793,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m61k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m138k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:08.329468",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5252704999999999,
+        "total_duration_ms": 65966,
+        "total_api_duration_ms": 69793,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m61k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m138k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:09.022466",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5252704999999999,
+        "total_duration_ms": 66657,
+        "total_api_duration_ms": 69793,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m61k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m138k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:10.045031",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5815002499999998,
+        "total_duration_ms": 67677,
+        "total_api_duration_ms": 79848,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m61k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m138k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m30k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:18.365889",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5829742499999998,
+        "total_duration_ms": 75996,
+        "total_api_duration_ms": 83423,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:25.190617",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 82821,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:58.160079",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 115792,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:51:58.459596",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 116093,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:02.797663",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 120428,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:03.094528",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 120729,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:06.195043",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 123825,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:06.491081",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6375569999999998,
+        "total_duration_ms": 124125,
+        "total_api_duration_ms": 98427,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAriadne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"camp-ops-emea is the main repo...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m31k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:15.268636",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.6378389999999998,
+        "total_duration_ms": 132902,
+        "total_api_duration_ms": 100258,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"Move to ketchup/docs/internal_...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m62k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m137k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m20k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m69%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:17.308353",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.8487847499999999,
+        "total_duration_ms": 134940,
+        "total_api_duration_ms": 107229,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"Move to ketchup/docs/internal_...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m63k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m136k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m21k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m68%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T09:52:20.787962",
+    "version": "v4",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.8487847499999999,
+        "total_duration_ms": 138417,
+        "total_api_duration_ms": 107229,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m3 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"Move to ketchup/docs/internal_...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m63k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m136k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m3 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m21k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m68%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 f5100dd4-58e9-4acc-adab-ce6191818f63\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:31.194263",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 1574,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/5389adc7-f8d6-4812-84eb-eafe20a02be8.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:31.522149",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 1881,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/5389adc7-f8d6-4812-84eb-eafe20a02be8.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:33.014879",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 3387,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/5389adc7-f8d6-4812-84eb-eafe20a02be8.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:33.314937",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 3691,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[32m58%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/5389adc7-f8d6-4812-84eb-eafe20a02be8.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:45.182728",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.039078249999999995,
+        "total_duration_ms": 15538,
+        "total_api_duration_ms": 8653,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:46.038313",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.039078249999999995,
+        "total_duration_ms": 16412,
+        "total_api_duration_ms": 8653,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:47.088627",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.039078249999999995,
+        "total_duration_ms": 17469,
+        "total_api_duration_ms": 8653,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:47.389764",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.039078249999999995,
+        "total_duration_ms": 17770,
+        "total_api_duration_ms": 8653,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:51.154118",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.039078249999999995,
+        "total_duration_ms": 21525,
+        "total_api_duration_ms": 8653,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:52.527703",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.039078249999999995,
+        "total_duration_ms": 22904,
+        "total_api_duration_ms": 8653,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:53.600936",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.4777625,
+        "total_duration_ms": 23983,
+        "total_api_duration_ms": 26375,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m93k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m106k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m93k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:00:58.764237",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.48010349999999996,
+        "total_duration_ms": 29138,
+        "total_api_duration_ms": 32495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m94k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m105k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m94k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:00.265567",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.48010349999999996,
+        "total_duration_ms": 30645,
+        "total_api_duration_ms": 32495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m94k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m105k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m94k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m53%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:01.836578",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5467569999999999,
+        "total_duration_ms": 32214,
+        "total_api_duration_ms": 40500,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m95k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m104k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m95k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m52%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:01.875100",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5467569999999999,
+        "total_duration_ms": 32250,
+        "total_api_duration_ms": 40500,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m95k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m104k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m95k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m52%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:15.087623",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5467569999999999,
+        "total_duration_ms": 45447,
+        "total_api_duration_ms": 40500,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m104k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m95k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m104k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:15.616347",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.5467569999999999,
+        "total_duration_ms": 45985,
+        "total_api_duration_ms": 40500,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m104k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m95k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m104k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m48%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:19.180280",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.67639925,
+        "total_duration_ms": 49566,
+        "total_api_duration_ms": 54871,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m105k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m94k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m105k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m47%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:25.439470",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.67639925,
+        "total_duration_ms": 55820,
+        "total_api_duration_ms": 54871,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m105k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m94k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m105k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m47%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:34.978879",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.75105725,
+        "total_duration_ms": 65362,
+        "total_api_duration_ms": 70680,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m105k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m94k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m105k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m47%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:56.296551",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.75105725,
+        "total_duration_ms": 86675,
+        "total_api_duration_ms": 70680,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m105k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m94k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m105k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m47%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:01:56.596090",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.75105725,
+        "total_duration_ms": 86975,
+        "total_api_duration_ms": 70680,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mAres\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"under stood, I like the projec...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m105k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m94k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m105k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m47%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:02:45.973308",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.75105725,
+        "total_duration_ms": 136352,
+        "total_api_duration_ms": 70680,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task assign subagents for the...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m108k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m91k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m54k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m46%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:02:47.276060",
+    "version": "v4",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.75105725,
+        "total_duration_ms": 137656,
+        "total_api_duration_ms": 70680,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m2 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/task assign subagents for the...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m108k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m91k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m2 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m54k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[33m46%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 5389adc7-f8d6-4812-84eb-eafe20a02be8\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:28.043755",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 1138,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/19661fa4-67b0-46ac-bc03-656a02272d06.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:29.334548",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0,
+        "total_duration_ms": 2441,
+        "total_api_duration_ms": 0,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93mketchup\u001b[0m \u001b[97m|\u001b[0m \u001b[2mv2.0.53\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94m19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/19661fa4-67b0-46ac-bc03-656a02272d06.json not found"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:33.791826",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 6897,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:34.472910",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 7577,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:35.098321",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 8207,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:35.491675",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 8595,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:35.775897",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 8880,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:35.869692",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 8971,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:36.182767",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.0258405,
+        "total_duration_ms": 9291,
+        "total_api_duration_ms": 5495,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  },
+  {
+    "timestamp": "2025-11-25T10:06:36.519295",
+    "version": "v4",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.53",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 0.19064325,
+        "total_duration_ms": 9619,
+        "total_api_duration_ms": 11873,
+        "total_lines_added": 0,
+        "total_lines_removed": 0
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93mketchup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m1 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"/prime \"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m52k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m147k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m1 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m52k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m74%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 19661fa4-67b0-46ac-bc03-656a02272d06\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.53\u001b[0m"
+  }
+]
