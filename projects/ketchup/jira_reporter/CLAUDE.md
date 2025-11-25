@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code when working with the **jira_reporter** service codebase.
 
-**Parent Documentation**: See [/ketchup/CLAUDE.md](../CLAUDE.md) for shared patterns, TypedDI system, deployment, and repository structure.
+**Parent Documentation**: See [/projects/ketchup/CLAUDE.md](../CLAUDE.md) for shared patterns, TypedDI system, deployment, and repository structure.
 
 ---
 

@@ -10,14 +10,36 @@ permissions:
   contents: read
 
 jobs:
-  build-and-push:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest --cov=src/maptimize
+
+      - name: Type check
+        run: mypy src/
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -27,12 +49,12 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login-action@v2
+        uses: aws-actions/amazon-ecr-login@v2
         with:
           registries: "483013340174"
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: infrastructure/Dockerfile
@@ -40,3 +62,7 @@ jobs:
           tags: |
             483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:latest
             483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true

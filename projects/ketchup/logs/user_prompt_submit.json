@@ -405,5 +405,93 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "needs to be .confluence"
     }
+  },
+  {
+    "timestamp": "2025-11-20T19:20:30.440381",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "delete it, commit, push, pr, merge, main"
+    }
+  },
+  {
+    "timestamp": "2025-11-20T19:26:19.864652",
+    "input_data": {
+      "session_id": "57b4d18e-787e-47cb-9378-3de10ad0527c",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/57b4d18e-787e-47cb-9378-3de10ad0527c.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "i want it gone the document ive finished with the wiki!!!! delete both commit, push, pr, mergem main done"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T09:50:06.030598",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/prime "
+    }
+  },
+  {
+    "timestamp": "2025-11-25T09:50:41.947162",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "camp-ops-emea is the main repo, ketchup is but jut a folder inside the repo \nwhats happened is that a docs and analysis folder that belong to ketchup have ended up outside of the ketchup folder and in the camp-ops-emea repo"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T09:52:09.941179",
+    "input_data": {
+      "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/f5100dd4-58e9-4acc-adab-ce6191818f63.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "Move to ketchup/docs/internal_documentation/ Move to ketchup/docs/plans/jira-pat-migration/ Delete root copy (or keep newer)\ncommit, push"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T10:00:35.531857",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "under stood, I like the project/ subfolders idea, what would be the plan to move both maptimize and ketchup and updating documentation/links that you can find in both fodlers and the ketchup wiki"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T10:02:35.699892",
+    "input_data": {
+      "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/5389adc7-f8d6-4812-84eb-eafe20a02be8.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/task assign subagents for these tasks and run where possible in parallel, any changes commited and pushed must be done by a PR, which I give you permission to create and merge on my behalf --approved"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T10:06:29.774663",
+    "input_data": {
+      "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/19661fa4-67b0-46ac-bc03-656a02272d06.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/prime "
+    }
   }
 ]

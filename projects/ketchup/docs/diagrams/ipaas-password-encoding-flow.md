@@ -423,4 +423,4 @@
 
 **Diagram Version**: 1.0
 **Last Updated**: 2025-11-20
-**Location**: `/Users/harrison/Documents/Github/camp-ops-emea/ketchup-jira-pat-migration/ketchup/docs/diagrams/`
+**Location**: `/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/docs/diagrams/`

@@ -201,5 +201,40 @@
     "timestamp": "",
     "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-85a308b5.jsonl",
     "status": "completed"
+  },
+  {
+    "agent_id": "fadc55a5",
+    "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-fadc55a5.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "70652ed2",
+    "session_id": "f5100dd4-58e9-4acc-adab-ce6191818f63",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-70652ed2.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "8047d027",
+    "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-8047d027.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "6a7b8c6d",
+    "session_id": "5389adc7-f8d6-4812-84eb-eafe20a02be8",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-ketchup/agent-6a7b8c6d.jsonl",
+    "status": "completed"
+  },
+  {
+    "agent_id": "b8751858",
+    "session_id": "19661fa4-67b0-46ac-bc03-656a02272d06",
+    "timestamp": "",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/agent-b8751858.jsonl",
+    "status": "completed"
   }
 ]

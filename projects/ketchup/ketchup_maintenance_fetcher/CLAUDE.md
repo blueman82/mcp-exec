@@ -1,6 +1,6 @@
 # ketchup_maintenance_fetcher/CLAUDE.md
 
-Service-specific guidance for the Ketchup Maintenance Fetcher service. For shared patterns and repository-wide conventions, see [/ketchup/CLAUDE.md](../CLAUDE.md).
+Service-specific guidance for the Ketchup Maintenance Fetcher service. For shared patterns and repository-wide conventions, see [/projects/ketchup/CLAUDE.md](../CLAUDE.md).
 
 ## Service Overview
 
@@ -499,7 +499,7 @@ CMD ["python", "/app/ketchup_maintenance_fetcher/scheduler.py"]
 
 **Deploy to Prod1 Only**:
 ```bash
-cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/infrastructure
+cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/infrastructure
 ./deploy-ketchup.sh --prod1-only
 ```
 
@@ -627,7 +627,7 @@ def sample_soap_response():
 
 **Running Unit Tests**:
 ```bash
-cd /Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/tests/setup
+cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup
 make test-unit
 
 # Or specifically for maintenance tests
