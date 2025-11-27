@@ -39,9 +39,12 @@ npm run dev
 - `src/registry/loader.ts` - Loads `backends.json`, validates with Zod, caches manifest
 - `src/tools/tool-cache.ts` - Per-server tool definition cache
 
-**Request Flow**:
-1. AI calls `get_server_tools({server_name})` → pool lazily spawns backend → caches tools
-2. AI calls `call_tool({server_name, tool_name, arguments})` → pool returns existing connection → forwards to backend
+**Request Flow** (two-tier lazy loading):
+1. AI calls `get_server_tools({server_name, summary_only: true})` → returns tool names/descriptions only (~100 tokens)
+2. AI calls `get_server_tools({server_name, tools: ["specific_tool"]})` → returns full schema for selected tools
+3. AI calls `call_tool({server_name, tool_name, arguments})` → pool returns existing connection → forwards to backend
+
+**Token Optimization**: `summary_only` and `tools` params reduce 16k tokens → ~2k (87% reduction)
 
 **Configuration**: `SERVERS_CONFIG` env var points to backends.json (format matches Claude Desktop mcp.json)
 
