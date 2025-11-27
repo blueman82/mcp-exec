@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "splunk-async": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "splunk/mcp-server:latest"],
+      "env": {
+        "SPLUNK_TOKEN": "test-token"
+      },
+      "description": "Splunk async MCP server"
+    },
+    "new-relic": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "newrelic/mcp-server:latest"],
+      "env": {
+        "NEW_RELIC_API_KEY": "test-key"
+      },
+      "description": "New Relic MCP server"
+    },
+    "corp-github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/corp/github-mcp:v1.0"],
+      "env": {
+        "GITHUB_TOKEN": "test-token"
+      },
+      "description": "Corporate GitHub MCP server"
+    }
+  }
+}
