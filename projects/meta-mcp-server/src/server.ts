@@ -56,7 +56,11 @@ export function createServer(pool: ServerPool, toolCache: ToolCache) {
 
       case 'get_server_tools': {
         const result = await getServerToolsHandler(
-          { server_name: args.server_name as string },
+          {
+            server_name: args.server_name as string,
+            summary_only: args.summary_only as boolean | undefined,
+            tools: args.tools as string[] | undefined,
+          },
           pool,
           toolCache
         );
