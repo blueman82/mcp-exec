@@ -16,6 +16,7 @@ This repository houses multiple related projects that share common infrastructur
 |---------|-------------|--------|---------------|
 | [Ketchup](./projects/ketchup) | Multi-service Slack app for CSO warroom summarization, JIRA integration, and channel management | Production | [README](./projects/ketchup/README.md) |
 | [Maptimize](./projects/maptimize) | Slack bot for task mapping, process optimization, and team collaboration | Alpha | [README](./projects/maptimize/README.md) |
+| [Meta-MCP](./projects/meta-mcp-server) | MCP server wrapper for token-efficient tool discovery via lazy loading | Production | [README](./projects/meta-mcp-server/README.md) |
 
 ## Repository Structure
 
@@ -33,12 +34,20 @@ camp-ops-emea/
 │   │   ├── tests/          # Test suite
 │   │   └── docs/           # Technical documentation
 │   │
-│   └── maptimize/          # Task mapping Slack bot
+│   ├── maptimize/          # Task mapping Slack bot
+│   │   ├── README.md
+│   │   ├── CLAUDE.md
+│   │   ├── src/            # Source code
+│   │   ├── infrastructure/ # Docker, deployment scripts
+│   │   └── tests/          # Test suite
+│   │
+│   └── meta-mcp-server/    # MCP server wrapper
 │       ├── README.md
-│       ├── CLAUDE.md
-│       ├── src/            # Source code
-│       ├── infrastructure/ # Docker, deployment scripts
-│       └── tests/          # Test suite
+│       ├── src/            # TypeScript source
+│       │   ├── pool/       # Connection pool with LRU eviction
+│       │   ├── registry/   # Server manifest loader
+│       │   └── tools/      # MCP tools (list, get, call)
+│       └── tests/          # Vitest test suite
 │
 └── logs/                   # Local development logs (gitignored content)
 ```
@@ -263,3 +272,6 @@ docs/ketchup-api-reference      # Documentation updates
 - [CLAUDE.md](./projects/maptimize/CLAUDE.md) - Development guidelines
 - [Deployment Guide](./projects/maptimize/docs/DEPLOYMENT.md)
 - [AWS Setup](./projects/maptimize/docs/AWS_SETUP.md)
+
+### Meta-MCP Server
+- [README](./projects/meta-mcp-server/README.md) - Quick start and configuration
