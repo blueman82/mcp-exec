@@ -157,6 +157,82 @@ describe('get_server_tools tool', () => {
     ).rejects.toThrow(ServerNotFoundError);
   });
 
+  it('returns summaries only when summary_only=true', async () => {
+    const mockConnection = createMockConnection('filesystem', mockTools);
+    mockPool.getConnection.mockResolvedValue(mockConnection);
+
+    const result = await getServerToolsHandler(
+      { server_name: 'filesystem', summary_only: true },
+      mockPool as any,
+      toolCache
+    );
+
+    expect(result.tools).toHaveLength(2);
+    expect(result.tools[0]).toEqual({
+      name: 'read_file',
+      description: 'Read a file from disk',
+    });
+    // Should NOT have inputSchema
+    expect((result.tools[0] as any).inputSchema).toBeUndefined();
+  });
+
+  it('filters tools by name when tools param provided', async () => {
+    const mockConnection = createMockConnection('filesystem', mockTools);
+    mockPool.getConnection.mockResolvedValue(mockConnection);
+
+    const result = await getServerToolsHandler(
+      { server_name: 'filesystem', tools: ['read_file'] },
+      mockPool as any,
+      toolCache
+    );
+
+    expect(result.tools).toHaveLength(1);
+    expect(result.tools[0].name).toBe('read_file');
+    // Should have full schema
+    expect((result.tools[0] as any).inputSchema).toBeDefined();
+  });
+
+  it('combines summary_only and tools filters', async () => {
+    const mockConnection = createMockConnection('filesystem', mockTools);
+    mockPool.getConnection.mockResolvedValue(mockConnection);
+
+    const result = await getServerToolsHandler(
+      { server_name: 'filesystem', summary_only: true, tools: ['write_file'] },
+      mockPool as any,
+      toolCache
+    );
+
+    expect(result.tools).toHaveLength(1);
+    expect(result.tools[0]).toEqual({
+      name: 'write_file',
+      description: 'Write content to a file',
+    });
+    expect((result.tools[0] as any).inputSchema).toBeUndefined();
+  });
+
+  it('applies filters to cached tools', async () => {
+    const mockConnection = createMockConnection('filesystem', mockTools);
+    mockPool.getConnection.mockResolvedValue(mockConnection);
+
+    // First call - caches full tools
+    await getServerToolsHandler(
+      { server_name: 'filesystem' },
+      mockPool as any,
+      toolCache
+    );
+
+    // Second call with summary_only - should filter cached tools
+    const result = await getServerToolsHandler(
+      { server_name: 'filesystem', summary_only: true },
+      mockPool as any,
+      toolCache
+    );
+
+    expect(result.cached).toBe(true);
+    expect(result.tools).toHaveLength(2);
+    expect((result.tools[0] as any).inputSchema).toBeUndefined();
+  });
+
   it('tool definition has correct structure', () => {
     expect(getServerToolsTool.name).toBe('get_server_tools');
     expect(getServerToolsTool.description).toBeDefined();
