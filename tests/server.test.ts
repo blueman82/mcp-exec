@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { createServer } from '../src/server.js';
 import type { ServerPool } from '../src/pool/index.js';
 import type { ToolCache } from '../src/tools/tool-cache.js';
@@ -10,13 +9,17 @@ import {
 } from '../src/tools/index.js';
 
 // Mock Server from SDK
+const MockServerConstructor = vi.fn();
 vi.mock('@modelcontextprotocol/sdk/server/index.js', () => {
-  const MockServer = vi.fn().mockImplementation(() => ({
-    setRequestHandler: vi.fn(),
-    connect: vi.fn().mockResolvedValue(undefined),
-    close: vi.fn().mockResolvedValue(undefined),
-  }));
-  return { Server: MockServer };
+  const Server = function MockServer(...args: unknown[]) {
+    MockServerConstructor(...args);
+    return {
+      setRequestHandler: vi.fn(),
+      connect: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
+    };
+  };
+  return { Server };
 });
 
 // Mock StdioServerTransport
@@ -57,7 +60,7 @@ describe('MCP Server', () => {
     it('should create server instance', () => {
       const { server } = createServer(mockPool, mockToolCache);
       expect(server).toBeDefined();
-      expect(Server).toHaveBeenCalledWith(
+      expect(MockServerConstructor).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'meta-mcp-server',
           version: expect.any(String),
