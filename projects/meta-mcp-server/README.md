@@ -13,7 +13,7 @@ Meta-MCP exposes only 3 tools to the AI:
 | Tool | Purpose |
 |------|---------|
 | `list_servers` | List available backend servers (lightweight, no schemas) |
-| `get_server_tools` | Fetch tools from a specific server (on-demand) |
+| `get_server_tools` | Fetch tools from a server. Supports `summary_only` for names/descriptions, `tools` for specific schemas |
 | `call_tool` | Execute a tool on a backend server |
 
 Backend servers are spawned lazily on first access and managed via a connection pool.
