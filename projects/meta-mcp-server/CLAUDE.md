@@ -4,7 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Meta-MCP Server wraps multiple backend MCP servers, exposing only 3 meta-tools (`list_servers`, `get_server_tools`, `call_tool`) instead of loading 100+ tool schemas upfront. This reduces context token consumption for AI tools.
+Meta-MCP Server wraps multiple backend MCP servers, exposing only 3 meta-tools instead of loading 100+ tool schemas upfront. This reduces context token consumption for AI tools.
+
+**Meta-Tools:**
+- `list_servers` - List available backends (optional `filter` param)
+- `get_server_tools` - Fetch tools (`summary_only`: names only, `tools`: specific schemas)
+- `call_tool` - Execute tool on backend (`server_name`, `tool_name`, `arguments`)
 
 ## Commands
 
