@@ -29,7 +29,7 @@ interface PoolEntry {
 }
 
 const DEFAULT_CONFIG: PoolConfig = {
-  maxConnections: 6,
+  maxConnections: 20,
   idleTimeoutMs: 300000,
 };
 
