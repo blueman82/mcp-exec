@@ -41,7 +41,7 @@ npm run dev
 - `src/server.ts` - MCP server with request handlers routing to 3 meta-tools
 - `src/pool/server-pool.ts` - LRU connection pool (max 6, 5min idle timeout, 1min cleanup interval)
 - `src/pool/connection.ts` - MCP client wrapper managing spawn/connect lifecycle
-- `src/registry/loader.ts` - Loads `backends.json`, validates with Zod, caches manifest
+- `src/registry/loader.ts` - Loads `servers.json`, validates with Zod, caches manifest
 - `src/tools/tool-cache.ts` - Per-server tool definition cache
 
 **Request Flow** (two-tier lazy loading):
@@ -51,7 +51,7 @@ npm run dev
 
 **Token Optimization**: `summary_only` and `tools` params reduce 16k tokens → ~2k (87% reduction)
 
-**Configuration**: `SERVERS_CONFIG` env var points to backends.json (format matches Claude Desktop mcp.json)
+**Configuration**: `SERVERS_CONFIG` env var points to servers.json (format matches Claude Desktop mcp.json)
 
 ## Testing
 

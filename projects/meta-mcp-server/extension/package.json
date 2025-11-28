@@ -1,0 +1,83 @@
+{
+  "name": "meta-mcp-configurator",
+  "displayName": "Meta-MCP",
+  "description": "Configure and manage Meta-MCP server backends with a visual interface",
+  "version": "0.1.0",
+  "publisher": "adobe",
+  "icon": "media/meta-mcp-logo.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:meta-mcp-view"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "meta-mcp",
+          "title": "Meta-MCP",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "meta-mcp": [
+        {
+          "id": "meta-mcp-view",
+          "name": "Meta-MCP",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "meta-mcp.openView",
+        "title": "Open Meta-MCP"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Meta-MCP",
+        "properties": {
+          "meta-mcp.serversConfigPath": {
+            "type": "string",
+            "default": "",
+            "description": "Path to custom servers.json configuration file. Leave empty to use default location."
+          },
+          "meta-mcp.serverPath": {
+            "type": "string",
+            "default": "",
+            "description": "Path to meta-mcp-server dist/index.js. Required for Setup wizard to configure AI tools."
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile": "webpack --mode development",
+    "watch": "webpack --watch",
+    "build": "webpack --mode production",
+    "package": "npm run build && vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.126",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.44.0",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.1.6",
+    "webpack": "^5.78.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1"
+  }
+}

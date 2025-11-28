@@ -1,5 +1,7 @@
 # Meta-MCP Server
 
+![Meta-MCP Configurator](extension/media/meta-mcp-logo.png)
+
 A Model Context Protocol (MCP) server that wraps multiple backend MCP servers for token-efficient tool discovery via lazy loading.
 
 ## Problem
@@ -36,9 +38,9 @@ npm run build
 
 ## Configuration
 
-### 1. Create backends.json
+### 1. Create servers.json
 
-Create `~/.meta-mcp/backends.json` with your MCP servers:
+Create `~/.meta-mcp/servers.json` with your MCP servers:
 
 ```json
 {
@@ -74,7 +76,7 @@ Add to `~/.claude/config/mcp.json` or `~/.factory/mcp.json`:
       "command": "node",
       "args": ["/path/to/meta-mcp-server/dist/index.js"],
       "env": {
-        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/backends.json"
+        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/servers.json"
       }
     }
   }
@@ -146,7 +148,7 @@ src/
 ├── index.ts           # Entry point with stdio transport
 ├── server.ts          # MCP server setup and request handlers
 ├── types/             # TypeScript interfaces
-├── registry/          # Server manifest loading (backends.json)
+├── registry/          # Server manifest loading (servers.json)
 ├── pool/              # Connection pool with LRU eviction
 │   ├── server-pool.ts # Pool manager
 │   ├── connection.ts  # MCP client connections
@@ -162,7 +164,7 @@ src/
 
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
-| `SERVERS_CONFIG` | `~/.meta-mcp/backends.json` | Path to backends configuration |
+| `SERVERS_CONFIG` | `~/.meta-mcp/servers.json` | Path to backends configuration |
 | `MAX_CONNECTIONS` | `6` | Maximum concurrent server connections |
 | `IDLE_TIMEOUT_MS` | `300000` | Idle connection cleanup timeout (5 min) |
 

@@ -34,14 +34,14 @@ const validBackendsJson = {
 describe('Registry loader', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    process.env.SERVERS_CONFIG = '/path/to/backends.json';
+    process.env.SERVERS_CONFIG = '/path/to/servers.json';
   });
 
   afterEach(() => {
     delete process.env.SERVERS_CONFIG;
   });
 
-  it('loadServerManifest parses valid backends.json', () => {
+  it('loadServerManifest parses valid servers.json', () => {
     vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(validBackendsJson));
     vi.mocked(fs.existsSync).mockReturnValue(true);
 

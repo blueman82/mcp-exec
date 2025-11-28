@@ -493,5 +493,71 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "/prime "
     }
+  },
+  {
+    "timestamp": "2025-11-25T10:13:06.107529",
+    "input_data": {
+      "session_id": "5b50ea19-0fb3-40fd-8c1a-559cfef59604",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/5b50ea19-0fb3-40fd-8c1a-559cfef59604.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "the wiki hasn't upate, check first then stop."
+    }
+  },
+  {
+    "timestamp": "2025-11-25T10:14:54.062066",
+    "input_data": {
+      "session_id": "5b50ea19-0fb3-40fd-8c1a-559cfef59604",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/5b50ea19-0fb3-40fd-8c1a-559cfef59604.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "  | .../blob/main/ketchup/docs/internal_documentation/jira_pat_rotation_system.md | .../blob/main/projects/ketchup/docs/...                 |\n  | .../blob/main/ketchup/CLAUDE.md#infrastructure                                | .../blob/main/projects/ketchup/CLAUDE.md#infrastructure |\n  | .../blob/main/ketchup/infrastructure/docker-compose.yml#L152                  | .../blob/main/projects/ketchup/infrastructure/...       |\nshould be replaced with links and references of the contents in\nhttps://github.com/OneAdobe/camp-ops-emea/tree/main/projects/ketchup/docs"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T10:16:56.144268",
+    "input_data": {
+      "session_id": "5b50ea19-0fb3-40fd-8c1a-559cfef59604",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/5b50ea19-0fb3-40fd-8c1a-559cfef59604.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "yes."
+    }
+  },
+  {
+    "timestamp": "2025-11-25T10:21:28.299328",
+    "input_data": {
+      "session_id": "5b50ea19-0fb3-40fd-8c1a-559cfef59604",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/5b50ea19-0fb3-40fd-8c1a-559cfef59604.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "assess the format/structure/language of the raw source code of the wiki page, then create a document locally with the whole of the wiki page and the included modifications so then I can do a copy/paste without formatting worries"
+    }
+  },
+  {
+    "timestamp": "2025-11-25T13:16:35.786786",
+    "input_data": {
+      "session_id": "c1bcc8a7-6ea2-4bc0-924f-afa8968e32f7",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/c1bcc8a7-6ea2-4bc0-924f-afa8968e32f7.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "not just on git worktrees this a readme for our repo, right? So make a plan on what you'll be including in the README before you generate."
+    }
+  },
+  {
+    "timestamp": "2025-11-25T13:21:11.724817",
+    "input_data": {
+      "session_id": "c1bcc8a7-6ea2-4bc0-924f-afa8968e32f7",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/c1bcc8a7-6ea2-4bc0-924f-afa8968e32f7.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "great push, commit, pr, merge, main pull"
+    }
   }
 ]
