@@ -248,7 +248,7 @@ src/
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
 | `SERVERS_CONFIG` | `~/.meta-mcp/servers.json` | Path to backends configuration |
-| `MAX_CONNECTIONS` | `6` | Maximum concurrent server connections |
+| `MAX_CONNECTIONS` | `20` | Maximum concurrent server connections |
 | `IDLE_TIMEOUT_MS` | `300000` | Idle connection cleanup timeout (5 min) |
 
 ## Test Results

@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import type { MCPConnection } from '../../src/types/index.js';
 
 const CONFIG_PATH = process.env.SERVERS_CONFIG;
-const MAX_CONNECTIONS = 6;
+const MAX_CONNECTIONS = 20;
 
 function isDockerAvailable(): boolean {
   try {
