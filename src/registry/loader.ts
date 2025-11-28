@@ -41,7 +41,7 @@ const BackendsConfigSchema = z.object({
 let cachedManifest: ServerManifest | null = null;
 
 function getConfigPath(): string {
-  return process.env.SERVERS_CONFIG || '~/.config/mcp/backends.json';
+  return process.env.SERVERS_CONFIG || '~/.config/mcp/servers.json';
 }
 
 export function loadServerManifest(): ServerManifest {

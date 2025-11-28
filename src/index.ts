@@ -6,6 +6,31 @@ import { ToolCache } from './tools/tool-cache.js';
 import { getServerConfig } from './registry/index.js';
 
 export const APP_NAME = 'meta-mcp-server';
+export const VERSION = '0.1.2';
+
+// Handle --version and --help flags
+const args = process.argv.slice(2);
+if (args.includes('--version') || args.includes('-v')) {
+  console.log(VERSION);
+  process.exit(0);
+}
+if (args.includes('--help') || args.includes('-h')) {
+  console.log(`${APP_NAME} v${VERSION}
+
+A meta MCP server that wraps multiple backend MCP servers,
+exposing only 3 meta-tools to reduce context token consumption.
+
+Usage:
+  meta-mcp-server              Start the server (stdio transport)
+  meta-mcp-server --version    Show version
+  meta-mcp-server --help       Show this help
+
+Environment:
+  SERVERS_CONFIG    Path to servers.json config file
+                    Default: ~/.meta-mcp/servers.json
+`);
+  process.exit(0);
+}
 
 async function main() {
   // Load config on startup

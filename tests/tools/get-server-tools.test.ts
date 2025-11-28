@@ -73,7 +73,7 @@ describe('get_server_tools tool', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     clearCache();
-    process.env.SERVERS_CONFIG = '/path/to/backends.json';
+    process.env.SERVERS_CONFIG = '/path/to/servers.json';
     vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(testBackendsJson));
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
