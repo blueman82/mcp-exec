@@ -8,7 +8,7 @@ describe("Project setup", () => {
     const content = readFileSync(packagePath, "utf-8");
     const pkg = JSON.parse(content);
 
-    expect(pkg.name).toBe("meta-mcp-server");
+    expect(pkg.name).toBe("@justanothermldude/meta-mcp-server");
     expect(pkg.type).toBe("module");
     expect(pkg.dependencies["@modelcontextprotocol/sdk"]).toBeDefined();
     expect(pkg.dependencies["zod"]).toBeDefined();
