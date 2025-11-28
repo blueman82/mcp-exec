@@ -11,11 +11,24 @@ Meta-MCP Server wraps multiple backend MCP servers, exposing only 3 meta-tools i
 - `get_server_tools` - Fetch tools (`summary_only`: names only, `tools`: specific schemas)
 - `call_tool` - Execute tool on backend (`server_name`, `tool_name`, `arguments`)
 
+## Project Structure
+
+```
+meta-mcp-server/
+├── src/                    # Core MCP server (npm package)
+├── extension/              # VS Code/Cursor extension
+├── tests/                  # Vitest tests
+└── servers.json            # Backend MCP server config
+```
+
 ## Commands
 
 ```bash
-# Build
+# Build core server
 npm run build
+
+# Build extension
+cd extension && npm run compile
 
 # Run all tests (vitest)
 npx vitest run
@@ -33,6 +46,18 @@ npx tsc --noEmit
 npm run dev
 ```
 
+## Configuration
+
+**servers.json** (`~/.meta-mcp/servers.json`): Defines all backend MCP servers meta-mcp manages.
+
+**AI Tool Configs**:
+- Claude: `~/.claude.json`
+- Droid: `~/.factory/mcp.json`
+
+**npm package**: `@justanothermldude/meta-mcp-server`
+
+**Internal servers**: Clone https://github.com/Adobe-AIFoundations/adobe-mcp-servers for corp-jira and other internal MCP servers.
+
 ## Architecture
 
 **Entry Flow**: `src/index.ts` → creates `ServerPool` + `ToolCache` → `createServer()` → stdio transport
@@ -43,6 +68,13 @@ npm run dev
 - `src/pool/connection.ts` - MCP client wrapper managing spawn/connect lifecycle
 - `src/registry/loader.ts` - Loads `servers.json`, validates with Zod, caches manifest
 - `src/tools/tool-cache.ts` - Per-server tool definition cache
+
+**Extension Components** (`extension/src/`):
+- `views/MetaMcpViewProvider.ts` - Main webview provider
+- `views/webviewTemplate.ts` - UI template (Servers, Setup, Catalog tabs)
+- `services/ServersConfigManager.ts` - CRUD for servers.json
+- `services/AIToolConfigurator.ts` - Detects AI tools, generates config snippets
+- `services/GitHubCatalogService.ts` - Fetches MCP server catalog from GitHub
 
 **Request Flow** (two-tier lazy loading):
 1. AI calls `get_server_tools({server_name, summary_only: true})` → returns tool names/descriptions only (~100 tokens)

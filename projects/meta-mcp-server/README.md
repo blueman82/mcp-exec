@@ -1,6 +1,6 @@
 # Meta-MCP Server
 
-![Meta-MCP Configurator](extension/media/meta-mcp-logo.png)
+![Meta-MCP](extension/media/meta-mcp-logo.png)
 
 A Model Context Protocol (MCP) server that wraps multiple backend MCP servers for token-efficient tool discovery via lazy loading.
 
@@ -27,8 +27,29 @@ Backend servers are spawned lazily on first access and managed via a connection 
 - **Connection Pool**: LRU eviction (max 6 connections) with idle cleanup (5 min)
 - **Multi-Transport**: Supports Node, Docker, and uvx/npx spawn types
 - **Tool Caching**: Tool definitions cached per-server for session duration
+- **VS Code Extension**: Visual UI for managing servers and configuring AI tools
 
-## Installation
+## Quick Start
+
+### Option 1: VS Code/Cursor Extension (Recommended)
+
+The **Meta-MCP** extension provides a visual interface for configuration:
+
+1. Install the extension from `extension/meta-mcp-configurator-0.1.0.vsix`
+2. Open the Meta-MCP panel from the activity bar
+3. Go to **Setup** tab and click **Install** to install via npm
+4. Copy the generated snippet to your AI tool's config
+5. Add servers from the **Catalog** or manually
+
+### Option 2: npm Package
+
+```bash
+npm install -g @justanothermldude/meta-mcp-server
+```
+
+Then add to your AI tool config (see Configuration below).
+
+### Option 3: Build from Source
 
 ```bash
 cd projects/meta-mcp-server
@@ -38,37 +59,99 @@ npm run build
 
 ## Configuration
 
-### 1. Create servers.json
+### servers.json
 
-Create `~/.meta-mcp/servers.json` with your MCP servers:
+All MCP servers are configured in `~/.meta-mcp/servers.json`:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "your-token"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-filesystem", "/path/to/allowed/dir"]
+    },
+    "corp-jira": {
+      "command": "node",
+      "args": ["/path/to/adobe-mcp-servers/servers/corp-jira/dist/index.js"],
+      "env": {
+        "JIRA_URL": "https://jira.example.com",
+        "JIRA_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+### Internal MCP Servers
+
+For internal/corporate MCP servers (like corp-jira), clone the Adobe MCP servers repo:
+
+```bash
+git clone https://github.com/Adobe-AIFoundations/adobe-mcp-servers.git
+cd adobe-mcp-servers
+npm install
+npm run build
+```
+
+Then reference the built server in your `servers.json`:
 
 ```json
 {
   "mcpServers": {
     "corp-jira": {
       "command": "node",
-      "args": ["/path/to/corp-jira/dist/index.js"],
+      "args": ["/path/to/adobe-mcp-servers/servers/corp-jira/dist/index.js"],
       "env": {
         "JIRA_URL": "https://jira.example.com",
         "JIRA_TOKEN": "your-token"
       }
-    },
-    "github": {
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "--env-file", "/path/to/.env", "github-mcp:latest"]
-    },
-    "context7": {
-      "command": "uvx",
-      "args": ["context7-mcp"]
     }
   }
 }
 ```
 
-### 2. Add to Claude/Droid config
+### AI Tool Configuration
 
-Add to `~/.claude/config/mcp.json` or `~/.factory/mcp.json`:
+Add meta-mcp to your AI tool's config file:
 
+**Claude** (`~/.claude.json`):
+```json
+{
+  "mcpServers": {
+    "meta-mcp": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/meta-mcp-server"],
+      "env": {
+        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/servers.json"
+      }
+    }
+  }
+}
+```
+
+**Droid** (`~/.factory/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "meta-mcp": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/meta-mcp-server"],
+      "env": {
+        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/servers.json"
+      }
+    }
+  }
+}
+```
+
+**Using local build** (instead of npx):
 ```json
 {
   "mcpServers": {
@@ -83,9 +166,9 @@ Add to `~/.claude/config/mcp.json` or `~/.factory/mcp.json`:
 }
 ```
 
-### 3. Restart your AI tool
+### Restart your AI tool
 
-Restart Claude Desktop or Droid to load the new configuration.
+Restart Claude or Droid to load the new configuration.
 
 ## Usage
 
