@@ -91,17 +91,17 @@ All MCP servers are configured in `~/.meta-mcp/servers.json`:
 
 ### Internal MCP Servers
 
-For internal/corporate MCP servers (like corp-jira), clone the Adobe MCP servers repo:
+For internal/corporate MCP servers (like corp-jira), the extension handles setup automatically:
 
-```bash
-git clone https://github.com/Adobe-AIFoundations/adobe-mcp-servers.git
-cd adobe-mcp-servers
-npm install
-npm run build
-```
+1. Click **Add** on an Internal server in the Catalog
+2. If not found locally, choose **Clone Repository** - the extension opens a terminal and runs:
+   ```bash
+   git clone https://github.com/Adobe-AIFoundations/adobe-mcp-servers.git
+   cd adobe-mcp-servers && npm install && npm run build
+   ```
+3. Once built, click **Add** again - the server will be auto-detected via Spotlight (macOS)
 
-Then reference the built server in your `servers.json`:
-
+**Manual setup** (if needed):
 ```json
 {
   "mcpServers": {

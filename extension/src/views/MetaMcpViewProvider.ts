@@ -292,19 +292,39 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                     command = 'node';
                     args = [localPath];
                 } else {
-                    // Prompt user to browse for the server
-                    const result = await vscode.window.showOpenDialog({
-                        canSelectFiles: true,
-                        canSelectFolders: false,
-                        canSelectMany: false,
-                        filters: { 'JavaScript': ['js'] },
-                        title: `Select ${item.name} entry point (index.js or dist/index.js)`
-                    });
-                    if (result && result[0]) {
-                        command = 'node';
-                        args = [result[0].fsPath];
+                    // Server not found - offer helpful options
+                    const choice = await vscode.window.showInformationMessage(
+                        `${item.name} requires the Adobe MCP Servers repository to be cloned locally.`,
+                        { modal: true },
+                        'Clone Repository',
+                        'Browse for File'
+                    );
+                    
+                    if (choice === 'Clone Repository') {
+                        // Open terminal and clone the repo
+                        const repoUrl = 'https://github.com/Adobe-AIFoundations/adobe-mcp-servers.git';
+                        const terminal = vscode.window.createTerminal('Clone MCP Servers');
+                        terminal.show();
+                        terminal.sendText(`git clone ${repoUrl} && cd adobe-mcp-servers && npm install && npm run build`);
+                        vscode.window.showInformationMessage(
+                            'Cloning repository... After build completes, click "Add" again to configure the server.'
+                        );
+                        return;
+                    } else if (choice === 'Browse for File') {
+                        const result = await vscode.window.showOpenDialog({
+                            canSelectFiles: true,
+                            canSelectFolders: false,
+                            canSelectMany: false,
+                            filters: { 'JavaScript': ['js'] },
+                            title: `Select ${item.name} entry point (index.js or dist/index.js)`
+                        });
+                        if (result && result[0]) {
+                            command = 'node';
+                            args = [result[0].fsPath];
+                        } else {
+                            return;
+                        }
                     } else {
-                        vscode.window.showWarningMessage(`${item.name} requires a local installation. Clone the repo and try again.`);
                         return;
                     }
                 }
