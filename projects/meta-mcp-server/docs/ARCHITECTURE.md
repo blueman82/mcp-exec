@@ -21,7 +21,7 @@
 
 ### What is Meta-MCP?
 
-Meta-MCP Server is an intelligent proxy layer for the Model Context Protocol (MCP) that sits between AI clients (like Claude Desktop) and multiple backend MCP servers. It acts as a "meta" server that exposes only 3 high-level tools instead of loading hundreds of tool schemas upfront.
+Meta-MCP Server is an intelligent proxy layer for the Model Context Protocol (MCP) that sits between AI clients and multiple backend MCP servers. It acts as a "meta" server that exposes only 3 high-level tools instead of loading hundreds of tool schemas upfront.
 
 ### The Problem
 
@@ -70,7 +70,7 @@ Meta-MCP implements a two-tier lazy loading strategy that reduces token consumpt
 - Scales to 100+ backend servers without context explosion
 - Maintains compatibility with existing MCP servers
 - No changes required to backend implementations
-- Simple configuration matching Claude Desktop's format
+- Simple configuration in standard MCP format
 
 ---
 
@@ -175,7 +175,7 @@ The following diagram shows the complete Meta-MCP architecture from client to ba
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        AI Client                            │
-│                    (Claude Desktop)                         │
+│                 (Claude/Cursor/VS Code)                     │
 │                   Sees only 3 tools                         │
 └─────────────────────┬───────────────────────────────────────┘
                       │
@@ -761,7 +761,7 @@ await call_tool({
 
 **Configuration Format**:
 
-The `servers.json` format matches Claude Desktop's `mcp.json`:
+The `servers.json` format matches the standard MCP configuration format:
 
 ```json
 {
@@ -1470,7 +1470,7 @@ EOF
 
 **3. Configure AI Client**:
 
-**Claude Desktop** (`~/.claude/config/mcp.json`):
+**AI Tool** (`~/.claude/config/mcp.json` or equivalent):
 ```json
 {
   "mcpServers": {
@@ -1502,8 +1502,8 @@ EOF
 ```
 
 **4. Restart AI Client**:
-- Claude Desktop: Quit and restart application
-- Cline/Continue: Restart VSCode or reload MCP servers
+- Cursor/VS Code: Reload VSCode or restart MCP servers
+- Cline/Continue: Restart extension or reload MCP servers
 
 **5. Verify**:
 ```typescript
