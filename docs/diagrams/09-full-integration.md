@@ -94,7 +94,7 @@ sequenceDiagram
     Main->>Pool: new ServerPool(connectionFactory, config)
     Pool->>Pool: Store factory reference
     Pool->>Pool: Set DEFAULT_CONFIG
-    Note over Pool: maxConnections: 6<br/>idleTimeoutMs: 300000 (5min)
+    Note over Pool: maxConnections: 20<br/>idleTimeoutMs: 300000 (5min)
     Pool->>Pool: startCleanupTimer()
     Pool->>Pool: setInterval(runCleanup, 60000)
     Pool-->>Main: ServerPool instance
@@ -708,7 +708,7 @@ graph TD
     end
 
     subgraph "Hardcoded Defaults"
-        HC1[maxConnections: 6]
+        HC1[maxConnections: 20]
         HC2[idleTimeoutMs: 300000]
         HC3[cleanupIntervalMs: 60000]
     end

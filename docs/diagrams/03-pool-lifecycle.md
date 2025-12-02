@@ -8,7 +8,7 @@ This diagram shows the complete lifecycle of connections in the Meta-MCP Server 
 stateDiagram-v2
     [*] --> Startup: Server Initializes
 
-    Startup --> Empty: Pool Created<br/>(maxConnections: 6)
+    Startup --> Empty: Pool Created<br/>(maxConnections: 20)
 
     Empty --> Request: Client Request Arrives
     Request --> GetCreate: Check Pool for<br/>Existing Connection

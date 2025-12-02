@@ -119,7 +119,7 @@ pool.on('eviction', (serverId: string) => {
 ```
 
 This ensures:
-- Cache size stays bounded by pool size (max 6 servers)
+- Cache size stays bounded by pool size (max 20 servers)
 - Stale tool definitions never served after server restart
 - Memory usage proportional to active server count
 
