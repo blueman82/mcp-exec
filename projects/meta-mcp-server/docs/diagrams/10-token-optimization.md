@@ -76,7 +76,7 @@ sequenceDiagram
     Note over MCP: Loads ALL 25 tools
     MCP-->>AI: Full schemas for 25 tools
     Note over AI: 16,000 tokens consumed
-    Note over AI: ❌ Expensive<br/>❌ Wasteful<br/>❌ Slow context load
+    Note over AI: ❌ Expensive - Wasteful - Slow context load
 ```
 
 ### Token Breakdown
@@ -111,20 +111,20 @@ sequenceDiagram
     Note over AI: ~100 tokens
 
     Note over AI: Phase 2: Summary
-    AI->>Meta: get_server_tools({<br/>  server_name: "jira",<br/>  summary_only: true<br/>})
+    AI->>Meta: get_server_tools with summary_only: true
     Meta->>Backend: Fetch tool list
     Backend-->>Meta: Tool names + descriptions
-    Meta-->>AI: [<br/>  "search_issues: Search Jira...",<br/>  "create_issue: Create new...",<br/>  ...(23 more)<br/>]
+    Meta-->>AI: search_issues, create_issue, ... (23 more)
     Note over AI: ~100 tokens (lightweight!)
 
     Note over AI: Phase 3: Selective Fetch
-    AI->>Meta: get_server_tools({<br/>  server_name: "jira",<br/>  tools: ["search_issues", "create_issue"]<br/>})
+    AI->>Meta: get_server_tools for search_issues, create_issue
     Meta->>Backend: Fetch specific schemas
     Backend-->>Meta: Full schemas for 2 tools
     Meta-->>AI: Complete tool definitions
     Note over AI: ~1,280 tokens (2 × 640)
 
-    Note over AI: TOTAL: 1,480 tokens<br/>SAVINGS: 91%
+    Note over AI: TOTAL: 1,480 tokens - SAVINGS: 91%
 ```
 
 ### Token Waterfall: 16,000 → 1,480
@@ -157,11 +157,11 @@ graph TD
 
 ```mermaid
 graph LR
-    A[AI sees task:<br/>"Find bug PROJ-123"] --> B{Knows what's available?}
-    B -->|No| C[Phase 1: list_servers<br/>100 tokens]
-    C --> D[Phase 2: summary_only<br/>100 tokens]
+    A["AI sees task: Find bug PROJ-123"] --> B{Knows what's available?}
+    B -->|No| C["Phase 1: list_servers (100 tokens)"]
+    C --> D["Phase 2: summary_only (100 tokens)"]
     D --> E{Which tool needed?}
-    E -->|search_issues| F[Phase 3: Fetch 1 schema<br/>640 tokens]
+    E -->|search_issues| F["Phase 3: Fetch 1 schema (640 tokens)"]
     F --> G[Execute task]
 
     B -->|Yes| E
@@ -193,13 +193,13 @@ sequenceDiagram
     Note over AI: ~200 tokens
 
     Note over AI: Task Analysis Phase
-    Note over AI: AI predicts likely tools needed<br/>based on conversation context
+    Note over AI: AI predicts likely tools from context
 
-    AI->>Meta: get_server_tools({<br/>  tools: ["search", "get", "update", "create"]<br/>})
+    AI->>Meta: get_server_tools for search, get, update, create
     Meta-->>AI: 4 tool schemas
     Note over AI: ~2,560 tokens (4 × 640)
 
-    Note over AI: TOTAL: ~2,800 tokens<br/>SAVINGS: 82-87%
+    Note over AI: TOTAL: ~2,800 tokens - SAVINGS: 82-87%
 ```
 
 **Use Case:** When AI can predict likely tools from context (e.g., "I need to work with Jira issues" → fetch CRUD tools)
@@ -212,7 +212,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    A[Claude Desktop Starts] --> B[Load ALL MCP Servers]
+    A[AI Tool Starts] --> B[Load ALL MCP Servers]
     B --> C[Jira: 25 tools = 16k tokens]
     C --> D[Slack: 35 tools = 22.4k tokens]
     D --> E[GitHub: 30 tools = 19.2k tokens]
@@ -229,7 +229,7 @@ graph TD
 
 ```mermaid
 graph TD
-    A[Claude Desktop Starts] --> B[Load Meta-MCP Only]
+    A[AI Tool Starts] --> B[Load Meta-MCP Only]
     B --> C[3 meta-tools loaded]
     C --> D[Minimal schema: ~200 tokens]
 
@@ -268,9 +268,9 @@ graph TD
 ```mermaid
 graph TD
     subgraph "Cost to Access 1 Tool"
-        A1[Traditional] --> B1[Load all 25 tools<br/>640 × 25 = 16,000 tokens]
-        A2[Meta-MCP] --> B2[Discovery: 200<br/>+ Tool: 640<br/>= 840 tokens]
-        A3[Hybrid] --> B3[Discovery: 200<br/>+ Batch 4: 2,560<br/>= 690 tokens per tool]
+        A1[Traditional] --> B1["Load all 25 tools: 16,000 tokens"]
+        A2[Meta-MCP] --> B2["Discovery: 200 + Tool: 640 = 840 tokens"]
+        A3[Hybrid] --> B3["Discovery: 200 + Batch 4: 2,560 = 690 per tool"]
     end
 
     style B1 fill:#ff6b6b
@@ -365,9 +365,9 @@ graph TD
     H -->|Yes| I[Traditional Load]
     H -->|Most, not all| G
 
-    C --> J[Phase 1: list_servers<br/>Phase 2: summary_only<br/>Phase 3: Selective fetch]
-    F --> K[Skip Phase 1/2 if cached<br/>Jump to selective fetch]
-    G --> L[Batch fetch predicted tools<br/>+ on-demand remainder]
+    C --> J["Three-phase: Discovery, Summary, Selective fetch"]
+    F --> K["Skip Phase 1/2 if cached - Jump to selective fetch"]
+    G --> L["Batch fetch predicted tools + on-demand remainder"]
     I --> M[Single call get_server_tools]
 
     style C fill:#51cf66
