@@ -142,7 +142,7 @@ export function renderCustomPathSection(): string {
                 <div class="form-group">
                     <label class="form-label" for="custom-format-select">Config Format</label>
                     <select id="custom-format-select" class="form-select">
-                        <option value="mcpServers">mcpServers (Claude Desktop, Cursor)</option>
+                        <option value="mcpServers">mcpServers (Cursor, VS Code)</option>
                         <option value="servers">servers (VS Code style)</option>
                     </select>
                 </div>

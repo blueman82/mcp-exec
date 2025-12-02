@@ -17,7 +17,7 @@ graph TB
     classDef configStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000
 
     %% AI Client Layer
-    AI[AI Client / Claude Desktop<br/>---<br/>Sends high-level requests<br/>using 3 meta-tools]
+    AI[AI Client - Claude/Cursor/VS Code<br/>---<br/>Sends high-level requests<br/>using 3 meta-tools]
     class AI clientStyle
 
     %% Meta-MCP Server Layer
@@ -268,7 +268,7 @@ graph TD
 - Cache invalidation: manual or on connection restart
 
 ### 5. Configuration-Driven (Flexibility)
-- `servers.json` format matches Claude Desktop's `mcp.json`
+- `servers.json` format matches standard MCP configuration format
 - Environment variable: `SERVERS_CONFIG` points to config file
 - Zod schema validation ensures config correctness
 
