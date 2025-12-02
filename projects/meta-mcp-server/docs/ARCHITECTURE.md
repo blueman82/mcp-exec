@@ -330,13 +330,13 @@ async getConnection(serverId: string): Promise<MCPConnection> {
 **Configuration**:
 ```typescript
 const pool = new ServerPool(factory, {
-  maxConnections: 6,        // Max concurrent backends
+  maxConnections: 20,       // Max concurrent backends
   idleTimeoutMs: 300000     // 5 minutes
 });
 ```
 
 **LRU Eviction Algorithm**:
-1. Pool reaches max capacity (6 connections)
+1. Pool reaches max capacity (20 connections)
 2. New server needs connection
 3. Find least recently used idle connection
 4. Disconnect and remove from pool
@@ -1242,7 +1242,7 @@ export IDLE_TIMEOUT_MS=600000  # 10 minutes
 **Connection Pool Defaults**:
 ```typescript
 {
-  maxConnections: 6,        // Max concurrent backends
+  maxConnections: 20,       // Max concurrent backends
   idleTimeoutMs: 300000,    // 5 minutes
   cleanupIntervalMs: 60000  // 1 minute
 }
@@ -1739,7 +1739,7 @@ const pool = new ServerPool(factory, {
 **Change Idle Timeout**:
 ```typescript
 const pool = new ServerPool(factory, {
-  maxConnections: 6,
+  maxConnections: 20,
   idleTimeoutMs: 600000  // 10 minutes instead of 5
 });
 ```
