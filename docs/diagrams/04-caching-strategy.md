@@ -13,27 +13,27 @@ This diagram illustrates Meta-MCP's tool caching mechanism, which minimizes back
 
 ```mermaid
 flowchart TD
-    Start([Request Tools for 'corp-jira']) --> CheckCache{Is 'corp-jira'<br/>in ToolCache?}
+    Start([Request Tools for 'corp-jira']) --> CheckCache{Is 'corp-jira' in ToolCache?}
 
     %% Cache Hit Path (Fast)
-    CheckCache -->|YES - Cache Hit| ReturnCached[Return Cached<br/>ToolDefinition[]]
+    CheckCache -->|YES - Cache Hit| ReturnCached[Return Cached ToolDefinition Array]
     ReturnCached --> End([Response to Caller])
 
     %% Cache Miss Path (Backend Call)
-    CheckCache -->|NO - Cache Miss| GetConnection[Get Connection<br/>to 'corp-jira' Server]
-    GetConnection --> CallBackend[Call MCP<br/>client.listTools]
-    CallBackend --> ReceiveTools[Receive ToolDefinition[]<br/>from Backend]
-    ReceiveTools --> StoreCache[Store in Cache:<br/>ToolCache['corp-jira'] = definitions]
-    StoreCache --> ReturnNew[Return Tools<br/>to Caller]
+    CheckCache -->|NO - Cache Miss| GetConnection[Get Connection to 'corp-jira' Server]
+    GetConnection --> CallBackend[Call MCP client.listTools]
+    CallBackend --> ReceiveTools[Receive ToolDefinition Array from Backend]
+    ReceiveTools --> StoreCache[Store in Cache ToolCache['corp-jira']]
+    StoreCache --> ReturnNew[Return Tools to Caller]
     ReturnNew --> End
 
     %% Cache Invalidation Triggers
-    EvictionTrigger([Server Pool Eviction Event]) --> CheckServerId{Server ID matches<br/>cached entry?}
-    CheckServerId -->|YES| EvictCache[Remove from ToolCache:<br/>delete ToolCache[serverId]]
+    EvictionTrigger([Server Pool Eviction Event]) --> CheckServerId{Server ID matches cached entry?}
+    CheckServerId -->|YES| EvictCache[Remove from ToolCache delete ToolCache[serverId]]
     CheckServerId -->|NO| IgnoreEviction[No Action]
     EvictCache --> EvictionComplete([Cache Entry Removed])
 
-    ShutdownTrigger([Graceful Shutdown]) --> ClearAll[Clear All Caches:<br/>ToolCache.clear]
+    ShutdownTrigger([Graceful Shutdown]) --> ClearAll[Clear All Caches ToolCache.clear]
     ClearAll --> ShutdownComplete([All Caches Cleared])
 
     %% Styling
