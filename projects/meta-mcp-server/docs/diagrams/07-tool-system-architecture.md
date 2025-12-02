@@ -267,7 +267,7 @@ classDiagram
         -Map<string, Connection> connections
         -Map<string, number> lastUsed
         +getConnection(serverId: string) Connection
-        +evictLRU() void
+        +evictLRU void
     }
 
     ToolCache "1" -- "*" ToolDefinition : stores
