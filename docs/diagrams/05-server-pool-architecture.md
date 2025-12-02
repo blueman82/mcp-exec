@@ -14,10 +14,10 @@ classDiagram
         +constructor(factory, config?)
         +getConnection(serverId) Promise<MCPConnection>
         +releaseConnection(serverId) void
-        +runCleanup() Promise<void>
+        +runCleanup Promise<void>
         +getActiveCount() number
         +shutdown() Promise<void>
-        -evictLRU() boolean
+        -evictLRU boolean
         -startCleanupTimer() void
     }
 
@@ -102,15 +102,15 @@ graph TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Created: factory(serverId)
-    Created --> InUse: getConnection()
-    InUse --> Idle: releaseConnection()
-    Idle --> InUse: getConnection()
-    Idle --> Evicted: evictLRU() or runCleanup()
+    [*] --> Created: factory
+    Created --> InUse: getConnection
+    InUse --> Idle: releaseConnection
+    Idle --> InUse: getConnection
+    Idle --> Evicted: evictLRU or runCleanup
     InUse --> Shutdown: shutdown()
     Idle --> Shutdown: shutdown()
-    Evicted --> [*]: connection.disconnect()
-    Shutdown --> [*]: connection.disconnect()
+    Evicted --> [*]: disconnect
+    Shutdown --> [*]: disconnect
 
     note right of Created
         lastAccessTime = Date.now()
@@ -157,14 +157,14 @@ flowchart TD
     MORE -->|Yes| ITERATE
     MORE -->|No| CHECK_FOUND{Oldest<br/>found?}
 
-    CHECK_FOUND -->|Yes| DISCONNECT[Call disconnect()]
+    CHECK_FOUND -->|Yes| DISCONNECT["Call disconnect"]
     DISCONNECT --> DELETE[Delete from Map]
     DELETE --> CREATE
 
     CHECK_FOUND -->|No| ERROR[Throw PoolExhaustedError]
 
-    CREATE --> FACTORY[Call factory(serverId)]
-    FACTORY --> CONNECT[Call connection.connect()]
+    CREATE --> FACTORY["Call factory"]
+    FACTORY --> CONNECT["Call connect"]
     CONNECT --> ADD_ENTRY[Add to Map with:<br/>lastAccessTime = now<br/>inUse = true]
     ADD_ENTRY --> RETURN2[Return new connection]
 
@@ -181,7 +181,7 @@ flowchart TD
 
 ## Connection Pool Operations
 
-### getConnection() Flow
+### getConnection Flow
 
 ```mermaid
 sequenceDiagram
@@ -204,14 +204,14 @@ sequenceDiagram
         Pool->>Pool: Check size >= maxConnections
 
         alt Pool is full
-            Pool->>Pool: evictLRU()
+            Pool->>Pool: evictLRU
             Pool->>Map: Find oldest idle connection
             Map-->>Pool: Oldest entry
             Pool->>Conn: disconnect()
             Pool->>Map: delete(oldestServerId)
         end
 
-        Pool->>Factory: factory(serverId)
+        Pool->>Factory: factory
         Factory-->>Pool: new MCPConnection
         Pool->>Conn: connect()
         Conn-->>Pool: Connected
@@ -220,7 +220,7 @@ sequenceDiagram
     end
 ```
 
-### releaseConnection() Flow
+### releaseConnection Flow
 
 ```mermaid
 sequenceDiagram
@@ -250,7 +250,7 @@ sequenceDiagram
     participant Map as connections Map
     participant Conn as MCPConnection
 
-    Timer->>Pool: runCleanup() [every 60s]
+    Timer->>Pool: runCleanup [every 60s]
     Pool->>Pool: now = Date.now()
     Pool->>Map: Iterate entries
 
@@ -431,11 +431,11 @@ graph TB
 
 | Operation | Best Case | Average Case | Worst Case | Notes |
 |-----------|-----------|--------------|------------|-------|
-| `getConnection()` (hit) | O(1) | O(1) | O(1) | Map lookup |
-| `getConnection()` (miss, space) | O(1) | O(1) | O(1) | Create + Map insert |
-| `getConnection()` (miss, full) | O(n) | O(n) | O(n) | Must iterate to find LRU |
-| `releaseConnection()` | O(1) | O(1) | O(1) | Map lookup |
-| `runCleanup()` | O(n) | O(n) | O(n) | Iterate all entries |
+| `getConnection` (hit) | O(1) | O(1) | O(1) | Map lookup |
+| `getConnection` (miss, space) | O(1) | O(1) | O(1) | Create + Map insert |
+| `getConnection` (miss, full) | O(n) | O(n) | O(n) | Must iterate to find LRU |
+| `releaseConnection` | O(1) | O(1) | O(1) | Map lookup |
+| `runCleanup` | O(n) | O(n) | O(n) | Iterate all entries |
 | `shutdown()` | O(n) | O(n) | O(n) | Disconnect all |
 
 ### Space Complexity
@@ -555,7 +555,7 @@ try {
    - Protects active connections from eviction
    - Simple timestamp-based algorithm
 
-2. **Graceful Release**: `releaseConnection()` marks as idle but keeps alive
+2. **Graceful Release**: `releaseConnection` marks as idle but keeps alive
    - Connection stays in pool for reuse
    - Cleaned up later by timer or eviction
    - Optimizes for repeated access patterns
