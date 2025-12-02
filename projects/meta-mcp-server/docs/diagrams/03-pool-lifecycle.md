@@ -8,39 +8,39 @@ This diagram shows the complete lifecycle of connections in the Meta-MCP Server 
 stateDiagram-v2
     [*] --> Startup: Server Initializes
 
-    Startup --> Empty: Pool Created<br/>(maxConnections: 20)
+    Startup --> Empty: Pool Created
 
     Empty --> Request: Client Request Arrives
-    Request --> GetCreate: Check Pool for<br/>Existing Connection
+    Request --> GetCreate: Check Pool for Existing Connection
 
-    GetCreate --> Active: Found Existing<br/>Connection
-    GetCreate --> CheckCapacity: Need New<br/>Connection
+    GetCreate --> Active: Found Existing Connection
+    GetCreate --> CheckCapacity: Need New Connection
 
-    CheckCapacity --> CreateNew: Pool Size < 6
-    CheckCapacity --> Eviction: Pool Size = 6
+    CheckCapacity --> CreateNew: Pool Size < 20
+    CheckCapacity --> Eviction: Pool Size = 20
 
-    Eviction --> CreateNew: LRU Connection<br/>Evicted & Closed
+    Eviction --> CreateNew: LRU Connection Evicted & Closed
 
-    CreateNew --> Active: Connection<br/>Spawned & Ready
+    CreateNew --> Active: Connection Spawned & Ready
 
-    Active --> Idle: Request<br/>Completes
+    Active --> Idle: Request Completes
 
-    Idle --> IdleTimer: Start Timeout<br/>(5 minutes)
+    Idle --> IdleTimer: Start Timeout (5 minutes)
 
-    IdleTimer --> Active: Reused by<br/>New Request
-    IdleTimer --> Close: 5min Timeout<br/>Expired
+    IdleTimer --> Active: Reused by New Request
+    IdleTimer --> Close: 5min Timeout Expired
 
-    Idle --> Cleanup: Periodic Cleanup<br/>Check (every 1min)
+    Idle --> Cleanup: Periodic Cleanup (every 1min)
     Cleanup --> Close: Idle > 5min
     Cleanup --> Idle: Still Valid
 
-    Close --> [*]: Connection<br/>Terminated
+    Close --> [*]: Connection Terminated
 
-    Active --> Shutdown: Server Exit<br/>Signal
-    Idle --> Shutdown: Server Exit<br/>Signal
-    IdleTimer --> Shutdown: Server Exit<br/>Signal
+    Active --> Shutdown: Server Exit Signal
+    Idle --> Shutdown: Server Exit Signal
+    IdleTimer --> Shutdown: Server Exit Signal
 
-    Shutdown --> [*]: Graceful Close<br/>All Connections
+    Shutdown --> [*]: Graceful Close All Connections
 
     note right of Startup
         Initial State
@@ -50,7 +50,7 @@ stateDiagram-v2
 
     note right of CheckCapacity
         Capacity Check
-        Maximum 6 concurrent
+        Maximum 20 concurrent
         connections allowed
     end note
 
@@ -92,7 +92,7 @@ stateDiagram-v2
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
-| `maxConnections` | 6 | Maximum number of concurrent backend connections |
+| `maxConnections` | 20 | Maximum number of concurrent backend connections |
 | `idleTimeoutMs` | 300,000 ms | 5 minutes - idle connections are closed after this period |
 | `cleanupIntervalMs` | 60,000 ms | 1 minute - periodic cleanup runs at this interval |
 
@@ -100,7 +100,7 @@ stateDiagram-v2
 
 ### Startup → Empty
 - **Trigger**: Server initialization
-- **Action**: Create empty connection pool with max capacity of 6
+- **Action**: Create empty connection pool with max capacity of 20
 - **State**: No connections exist yet
 
 ### Request → GetCreate
@@ -115,16 +115,16 @@ stateDiagram-v2
 
 ### GetCreate → CheckCapacity (New)
 - **Condition**: No existing connection to target server
-- **Action**: Check current pool size against max (6)
+- **Action**: Check current pool size against max (20)
 - **Decision Point**: Room available or eviction needed?
 
 ### CheckCapacity → CreateNew
-- **Condition**: Pool has < 6 connections
+- **Condition**: Pool has < 20 connections
 - **Action**: Spawn new backend process and establish connection
 - **Duration**: Varies by backend (stdio spawn, connection handshake)
 
 ### CheckCapacity → Eviction
-- **Condition**: Pool already has 6 connections
+- **Condition**: Pool already has 20 connections
 - **Action**: Evict least recently used (LRU) connection
 - **Cleanup**: Close evicted connection gracefully before creating new one
 
@@ -204,7 +204,7 @@ stateDiagram-v2
 
 1. **Lazy Loading**: Connections only created when needed
 2. **Resource Reuse**: Avoid spawn overhead for repeated requests
-3. **Memory Bounded**: Maximum 6 connections prevents resource exhaustion
+3. **Memory Bounded**: Maximum 20 connections prevents resource exhaustion
 4. **Automatic Cleanup**: Idle connections don't linger indefinitely
 5. **LRU Eviction**: Keeps most frequently used servers readily available
 
