@@ -19,19 +19,25 @@ graph TB
 
         subgraph "Core Components"
             REG[Registry Loader]
-            CACHE[ToolCache<br/>Map&lt;serverId, ToolDefinition[]&gt;]
-            POOL[ServerPool<br/>LRU Connection Pool]
+            CACHE[ToolCache
+Map&lt;serverId, ToolDefinition[]&gt;]
+            POOL[ServerPool
+LRU Connection Pool]
         end
 
         subgraph "Validation"
-            VAL[Input Validation<br/>Zod Schemas]
+            VAL[Input Validation
+Zod Schemas]
         end
     end
 
     subgraph "Backend Servers"
-        BS1[Backend Server 1<br/>filesystem]
-        BS2[Backend Server 2<br/>sqlite]
-        BS3[Backend Server N<br/>...]
+        BS1[Backend Server 1
+filesystem]
+        BS2[Backend Server 2
+sqlite]
+        BS3[Backend Server N
+...]
     end
 
     %% Flow 1: List Servers
@@ -42,30 +48,36 @@ graph TB
     LSH -->|Server metadata[]| AI
 
     %% Flow 2: Get Server Tools
-    AI -->|2. get_server_tools<br/>server_name, summary_only?, tools?| GSTH
+    AI -->|2. get_server_tools
+server_name, summary_only?, tools?| GSTH
     GSTH -->|Validate params| VAL
     VAL -->|Valid| GSTH
     GSTH -->|Check cache| CACHE
 
-    CACHE -->|Cache HIT<br/>Matches request| GSTH
-    CACHE -->|Cache MISS or<br/>Different params| GSTH
+    CACHE -->|Cache HIT
+Matches request| GSTH
+    CACHE -->|Cache MISS or
+Different params| GSTH
 
     GSTH -->|Cache MISS| POOL
     POOL -->|getConnection| BS1
     BS1 -->|client.listTools| POOL
     POOL -->|ToolDefinition[]| GSTH
 
-    GSTH -->|Apply filters<br/>summary_only or tools[]| GSTH
+    GSTH -->|Apply filters
+summary_only or tools[]| GSTH
     GSTH -->|Store filtered result| CACHE
     GSTH -->|Filtered tools| AI
 
     %% Flow 3: Call Tool
-    AI -->|3. call_tool<br/>server_name, tool_name, arguments| CTH
+    AI -->|3. call_tool
+server_name, tool_name, arguments| CTH
     CTH -->|Validate params| VAL
     VAL -->|Valid| CTH
     CTH -->|getConnection| POOL
     POOL -->|Get/Create connection| BS2
-    CTH -->|client.callTool<br/>tool_name, arguments| BS2
+    CTH -->|client.callTool
+tool_name, arguments| BS2
     BS2 -->|Result or Error| CTH
     CTH -->|Return result| AI
 
@@ -109,9 +121,11 @@ sequenceDiagram
         Handler->>Handler: Apply name/desc filter
     end
 
-    Handler-->>AI: ServerMetadata[]<br/>{name, description, type}
+    Handler-->>AI: ServerMetadata[]
+{name, description, type}
 
-    Note over AI,Handler: ~100-500 tokens<br/>No tool schemas loaded
+    Note over AI,Handler: ~100-500 tokens
+No tool schemas loaded
 ```
 
 ## Flow 2: getServerToolsHandler() - Tool Discovery & Caching
@@ -125,7 +139,11 @@ sequenceDiagram
     participant Pool as ServerPool
     participant Backend as Backend Server
 
-    AI->>Handler: get_server_tools({<br/>  server_name: "filesystem",<br/>  summary_only?: true,<br/>  tools?: ["read_file"]<br/>})
+    AI->>Handler: get_server_tools({
+  server_name: "filesystem",
+  summary_only?: true,
+  tools?: ["read_file"]
+})
 
     Handler->>Validator: Validate params
     Validator-->>Handler: Valid
@@ -136,7 +154,8 @@ sequenceDiagram
         ToolCache-->>Handler: Cached ToolDefinition[]
         Handler->>Handler: Apply filters
         Handler-->>AI: Filtered tools
-        Note over AI,Handler: Instant response<br/>No backend call
+        Note over AI,Handler: Instant response
+No backend call
     else Cache MISS or Different Params
         ToolCache-->>Handler: null or stale
 
@@ -153,15 +172,19 @@ sequenceDiagram
         end
 
         Handler->>Backend: client.listTools()
-        Backend-->>Handler: ToolDefinition[]<br/>(Full schemas)
+        Backend-->>Handler: ToolDefinition[]
+(Full schemas)
 
         Handler->>Handler: Apply filters
-        Note over Handler: summary_only: names/desc only<br/>tools: specific schemas only
+        Note over Handler: summary_only: names/desc only
+tools: specific schemas only
 
         Handler->>ToolCache: set(serverId, filtered)
         Handler-->>AI: Filtered tools
 
-        Note over AI,Handler: summary_only: ~100 tokens<br/>tools: ~1-2k tokens<br/>all tools: ~16k tokens
+        Note over AI,Handler: summary_only: ~100 tokens
+tools: ~1-2k tokens
+all tools: ~16k tokens
     end
 ```
 
@@ -175,7 +198,11 @@ sequenceDiagram
     participant Pool as ServerPool
     participant Backend as Backend Server
 
-    AI->>Handler: call_tool({<br/>  server_name: "filesystem",<br/>  tool_name: "read_file",<br/>  arguments: {path: "/foo"}<br/>})
+    AI->>Handler: call_tool({
+  server_name: "filesystem",
+  tool_name: "read_file",
+  arguments: {path: "/foo"}
+})
 
     Handler->>Validator: Validate params
     Validator-->>Handler: Valid
@@ -184,7 +211,8 @@ sequenceDiagram
 
     alt Connection exists
         Pool-->>Handler: Return existing
-        Note over Pool,Handler: LRU cache hit<br/>Instant connection
+        Note over Pool,Handler: LRU cache hit
+Instant connection
     else Connection needed
         Pool->>Pool: Check capacity
 
@@ -198,7 +226,10 @@ sequenceDiagram
         Pool-->>Handler: New connection
     end
 
-    Handler->>Backend: client.callTool(<br/>  tool_name,<br/>  arguments<br/>)
+    Handler->>Backend: client.callTool(
+  tool_name,
+  arguments
+)
 
     alt Success
         Backend-->>Handler: {content: [...]}
@@ -208,7 +239,8 @@ sequenceDiagram
         Handler-->>AI: Propagate error
     end
 
-    Note over Pool: Connection stays warm<br/>for next request
+    Note over Pool: Connection stays warm
+for next request
 ```
 
 ## ToolCache Structure & Lifecycle
@@ -251,15 +283,19 @@ classDiagram
 stateDiagram-v2
     [*] --> Empty: Server starts
 
-    Empty --> CacheMiss: get_server_tools<br/>(first request)
+    Empty --> CacheMiss: get_server_tools
+(first request)
     CacheMiss --> FetchingTools: No cached tools
     FetchingTools --> CallingBackend: Get connection
     CallingBackend --> FilteringTools: client.listTools()
-    FilteringTools --> CachePopulated: Apply filters<br/>+ set(serverId, tools)
+    FilteringTools --> CachePopulated: Apply filters
++ set(serverId, tools)
     CachePopulated --> CacheHit: Next request
 
-    CacheHit --> CacheHit: Same request params<br/>Return cached
-    CacheHit --> CacheMiss: Different params<br/>(summary_only changed)
+    CacheHit --> CacheHit: Same request params
+Return cached
+    CacheHit --> CacheMiss: Different params
+(summary_only changed)
 
     CachePopulated --> Empty: Pool evicts connection
     CacheHit --> Empty: Pool evicts connection
@@ -288,23 +324,27 @@ stateDiagram-v2
 graph LR
     subgraph "First Discovery"
         A1[AI: list_servers] -->|~200 tokens| A2[Server names only]
-        A2 --> A3[AI: get_server_tools<br/>summary_only=true]
+        A2 --> A3[AI: get_server_tools
+summary_only=true]
         A3 -->|~100 tokens| A4[Tool names + descriptions]
     end
 
     subgraph "Selective Loading"
         A4 --> B1[AI analyzes capabilities]
-        B1 --> B2[AI: get_server_tools<br/>tools=['read_file', 'write_file']]
+        B1 --> B2[AI: get_server_tools
+tools=['read_file', 'write_file']]
         B2 -->|~1-2k tokens| B3[Only requested schemas]
     end
 
     subgraph "Execution"
-        B3 --> C1[AI: call_tool<br/>read_file, args]
+        B3 --> C1[AI: call_tool
+read_file, args]
         C1 -->|Result only| C2[File contents]
     end
 
     subgraph "Cached Requests"
-        C2 --> D1[AI: get_server_tools<br/>same params]
+        C2 --> D1[AI: get_server_tools
+same params]
         D1 -->|Instant, ~1k tokens| D2[Cached schemas]
     end
 
@@ -314,7 +354,8 @@ graph LR
     style C1 fill:#fff4e1
     style D1 fill:#f0e1ff
 
-    note1[Total: ~1.5k tokens<br/>vs 16k+ traditional]
+    note1[Total: ~1.5k tokens
+vs 16k+ traditional]
     B3 -.-> note1
 ```
 
@@ -327,7 +368,8 @@ sequenceDiagram
     participant Conn as Connection
     participant Cache as ToolCache
 
-    Timer->>Pool: Check idle connections<br/>(every 60s)
+    Timer->>Pool: Check idle connections
+(every 60s)
 
     loop For each connection
         Pool->>Pool: Check lastUsed
@@ -348,7 +390,8 @@ sequenceDiagram
 
     Pool->>Pool: Remove from connections map
 
-    Note over Pool,Cache: Cache and connection<br/>lifecycles are synchronized
+    Note over Pool,Cache: Cache and connection
+lifecycles are synchronized
 ```
 
 ## Complete Request Lifecycle Example
@@ -367,7 +410,10 @@ sequenceDiagram
     Server-->>AI: ["filesystem", "sqlite", ...]
     Note right of AI: 200 tokens
 
-    AI->>Server: get_server_tools({<br/>  server_name: "filesystem",<br/>  summary_only: true<br/>})
+    AI->>Server: get_server_tools({
+  server_name: "filesystem",
+  summary_only: true
+})
     Server->>Cache: get("filesystem")
     Cache-->>Server: Cache MISS
     Server->>Pool: getConnection("filesystem")
@@ -375,7 +421,8 @@ sequenceDiagram
     Backend-->>Pool: Connected
     Pool-->>Server: Connection
     Server->>Backend: client.listTools()
-    Backend-->>Server: [read_file, write_file, ...]<br/>with full schemas
+    Backend-->>Server: [read_file, write_file, ...]
+with full schemas
     Server->>Server: Filter to names/desc only
     Server->>Cache: set("filesystem", filtered)
     Server-->>AI: Tool summaries
@@ -383,7 +430,10 @@ sequenceDiagram
 
     Note over AI,Backend: Selective Schema Loading
 
-    AI->>Server: get_server_tools({<br/>  server_name: "filesystem",<br/>  tools: ["read_file"]<br/>})
+    AI->>Server: get_server_tools({
+  server_name: "filesystem",
+  tools: ["read_file"]
+})
     Server->>Cache: get("filesystem")
     Cache-->>Server: Cache HIT (but different params)
     Server->>Backend: client.listTools()
@@ -395,7 +445,11 @@ sequenceDiagram
 
     Note over AI,Backend: Tool Execution
 
-    AI->>Server: call_tool({<br/>  server_name: "filesystem",<br/>  tool_name: "read_file",<br/>  arguments: {path: "/data.txt"}<br/>})
+    AI->>Server: call_tool({
+  server_name: "filesystem",
+  tool_name: "read_file",
+  arguments: {path: "/data.txt"}
+})
     Server->>Pool: getConnection("filesystem")
     Pool-->>Server: Return existing (warm)
     Server->>Backend: client.callTool("read_file", ...)
@@ -405,11 +459,15 @@ sequenceDiagram
 
     Note over AI,Backend: Cached Request (Fast Path)
 
-    AI->>Server: get_server_tools({<br/>  server_name: "filesystem",<br/>  tools: ["read_file"]<br/>})
+    AI->>Server: get_server_tools({
+  server_name: "filesystem",
+  tools: ["read_file"]
+})
     Server->>Cache: get("filesystem")
     Cache-->>Server: Cache HIT (same params)
     Server-->>AI: Cached schema
-    Note right of AI: Instant, 500 tokens<br/>No backend call
+    Note right of AI: Instant, 500 tokens
+No backend call
 
     Note over AI,Backend: Idle Timeout & Cleanup
 
