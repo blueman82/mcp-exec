@@ -60,9 +60,19 @@ npm run dev
 
 ## Architecture
 
-**Entry Flow**: `src/index.ts` → creates `ServerPool` + `ToolCache` → `createServer()` → stdio transport
+### Quick Reference
+- **Entry Flow**: `src/index.ts` → creates `ServerPool` + `ToolCache` → `createServer()` → stdio transport
+- **Token Optimization**: `summary_only` and `tools` params reduce 16k tokens → ~2k (87% reduction)
+- **Configuration**: `SERVERS_CONFIG` env var points to servers.json (format matches Claude Desktop mcp.json)
 
-**Core Components**:
+### Visual Diagrams
+See [Architecture Guide](docs/ARCHITECTURE.md) and [Diagram Index](docs/diagrams/README.md) for complete visual documentation:
+- [System Architecture](docs/diagrams/01-system-architecture.md) - Component overview
+- [Request Flow](docs/diagrams/02-request-flow.md) - Two-tier discovery
+- [Pool Lifecycle](docs/diagrams/03-pool-lifecycle.md) - Connection management
+- [Token Optimization](docs/diagrams/10-token-optimization.md) - 87% reduction analysis
+
+### Core Components
 - `src/server.ts` - MCP server with request handlers routing to 3 meta-tools
 - `src/pool/server-pool.ts` - LRU connection pool (max 6, 5min idle timeout, 1min cleanup interval)
 - `src/pool/connection.ts` - MCP client wrapper managing spawn/connect lifecycle
@@ -76,14 +86,10 @@ npm run dev
 - `services/AIToolConfigurator.ts` - Detects AI tools, generates config snippets
 - `services/GitHubCatalogService.ts` - Fetches MCP server catalog from GitHub
 
-**Request Flow** (two-tier lazy loading):
+### Request Flow (two-tier lazy loading)
 1. AI calls `get_server_tools({server_name, summary_only: true})` → returns tool names/descriptions only (~100 tokens)
 2. AI calls `get_server_tools({server_name, tools: ["specific_tool"]})` → returns full schema for selected tools
 3. AI calls `call_tool({server_name, tool_name, arguments})` → pool returns existing connection → forwards to backend
-
-**Token Optimization**: `summary_only` and `tools` params reduce 16k tokens → ~2k (87% reduction)
-
-**Configuration**: `SERVERS_CONFIG` env var points to servers.json (format matches Claude Desktop mcp.json)
 
 ## Testing
 
