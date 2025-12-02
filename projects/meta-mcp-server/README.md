@@ -221,11 +221,9 @@ npm run build
 For detailed architecture documentation with diagrams, see:
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Complete narrative guide with all concepts explained
 - **[Diagram Index](docs/diagrams/README.md)** - Visual diagrams organized by topic
-  - [System Architecture](docs/diagrams/01-system-architecture.md) - Overview of all components
-  - [Request Flow](docs/diagrams/02-request-flow.md) - Two-tier tool discovery sequence
-  - [Pool Lifecycle](docs/diagrams/03-pool-lifecycle.md) - Connection pool state management
-  - [Tool Caching](docs/diagrams/04-caching-strategy.md) - Cache hit/miss patterns
-  - [Token Optimization](docs/diagrams/10-token-optimization.md) - 87% savings visualization
+  - [Architecture](docs/diagrams/architecture.md) - System overview, config, lifecycle
+  - [Core Mechanics](docs/diagrams/core-mechanics.md) - Pool, connections, caching, tool system
+  - [Token Economics](docs/diagrams/token-economics.md) - 87-91% savings, ROI analysis
 
 **Source Code Structure:**
 ```

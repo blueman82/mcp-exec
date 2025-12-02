@@ -89,7 +89,7 @@ Meta-MCP's architecture is built on five fundamental principles that work togeth
 - First `get_server_tools` or `call_tool` request triggers server spawn
 - Connection pool manages lifecycle from that point forward
 
-**Diagram Reference**: [System Architecture](diagrams/01-system-architecture.md)
+**Diagram Reference**: [System Architecture](diagrams/architecture.md)
 
 ```
 Startup Time Comparison:
@@ -105,7 +105,7 @@ Meta-MCP:    <100ms (no backend spawning)
 
 **Token Savings**: 99.4% for discovery phase, 90.8% for typical 2-tool workflows.
 
-**Detailed Flow:** See [Request Flow Diagram](diagrams/02-request-flow.md) and [Token Optimization](diagrams/10-token-optimization.md) for complete analysis with examples.
+**Detailed Flow:** See [Request Flow Diagram](diagrams/token-economics.md) and [Token Optimization](diagrams/token-economics.md) for complete analysis with examples.
 
 ### 3. Connection Pooling
 
@@ -119,7 +119,7 @@ Meta-MCP:    <100ms (no backend spawning)
 - 5-minute idle timeout for automatic cleanup
 - 1-minute background cleanup cycle
 
-**Diagram Reference**: [Pool Lifecycle](diagrams/03-pool-lifecycle.md), [ServerPool Architecture](diagrams/05-server-pool-architecture.md)
+**Diagram Reference**: [Pool Lifecycle](diagrams/core-mechanics.md), [ServerPool Architecture](diagrams/core-mechanics.md)
 
 **Benefits**:
 - Repeated tool calls reuse existing connections (no spawn overhead)
@@ -139,7 +139,7 @@ Meta-MCP:    <100ms (no backend spawning)
 - Cache invalidates when connection is evicted from pool
 - Manual cache clearing on shutdown
 
-**Diagram Reference**: [Caching Strategy](diagrams/04-caching-strategy.md)
+**Diagram Reference**: [Caching Strategy](diagrams/core-mechanics.md)
 
 **Performance Impact**:
 ```
@@ -160,7 +160,7 @@ Speedup:        200x faster
 - Clear all caches
 - Wait for graceful backend termination
 
-**Diagram Reference**: [Full Integration](diagrams/09-full-integration.md)
+**Diagram Reference**: [Full Integration](diagrams/architecture.md)
 
 ---
 
@@ -170,7 +170,7 @@ Speedup:        200x faster
 
 The following diagram shows the complete Meta-MCP architecture from client to backend servers:
 
-**Diagram Reference**: [System Architecture](diagrams/01-system-architecture.md)
+**Diagram Reference**: [System Architecture](diagrams/architecture.md)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -298,7 +298,7 @@ async getConnection(serverId: string): Promise<MCPConnection> {
 - Resources allocated only when needed
 - Scales to 100+ configured servers (only active ones running)
 
-**Diagram Reference**: [System Architecture](diagrams/01-system-architecture.md), [Full Integration](diagrams/09-full-integration.md)
+**Diagram Reference**: [System Architecture](diagrams/architecture.md), [Full Integration](diagrams/architecture.md)
 
 ---
 
@@ -313,7 +313,7 @@ async getConnection(serverId: string): Promise<MCPConnection> {
 - Phase 2 (Selective): `{tools: ["specific"]}` → ~640 tokens/tool
 - Traditional: All tools → ~16,000 tokens for 25 tools
 
-**Complete Examples & Token Calculations:** See [Token Optimization Analysis](diagrams/10-token-optimization.md#implementation-example) for:
+**Complete Examples & Token Calculations:** See [Token Optimization Analysis](diagrams/token-economics.md#implementation-example) for:
 - Working TypeScript code examples
 - Detailed token accounting per phase
 - Strategy comparison flowcharts
@@ -367,7 +367,7 @@ Idle eviction:    Automatic cleanup
 Re-spawn:         Transparent to client
 ```
 
-**Diagram Reference**: [Pool Lifecycle](diagrams/03-pool-lifecycle.md), [ServerPool Architecture](diagrams/05-server-pool-architecture.md)
+**Diagram Reference**: [Pool Lifecycle](diagrams/core-mechanics.md), [ServerPool Architecture](diagrams/core-mechanics.md)
 
 ---
 
@@ -425,7 +425,7 @@ Time: ~1ms (200x faster)
 - Enables instant filtering (summary_only, specific tools)
 - Minimal memory footprint (~50KB per server)
 
-**Diagram Reference**: [Caching Strategy](diagrams/04-caching-strategy.md), [Tool System](diagrams/07-tool-system-architecture.md)
+**Diagram Reference**: [Caching Strategy](diagrams/core-mechanics.md), [Tool System](diagrams/core-mechanics.md)
 
 ---
 
@@ -500,7 +500,7 @@ private connections: Map<string, PoolEntry>;
 - `PoolExhaustedError`: No idle connections to evict when pool full
 - `ConnectionError`: Backend spawn or connect failed
 
-**Diagram Reference**: [ServerPool Architecture](diagrams/05-server-pool-architecture.md)
+**Diagram Reference**: [ServerPool Architecture](diagrams/core-mechanics.md)
 
 ---
 
@@ -589,7 +589,7 @@ try {
 - File descriptors cleaned up
 - Graceful SIGTERM, forced SIGKILL after timeout
 
-**Diagram Reference**: [Connection Components](diagrams/06-connection-components.md)
+**Diagram Reference**: [Connection Components](diagrams/core-mechanics.md)
 
 ---
 
@@ -749,7 +749,7 @@ await call_tool({
 4. Execute tool on backend via MCP protocol
 5. Return result to client
 
-**Diagram Reference**: [Tool System Architecture](diagrams/07-tool-system-architecture.md)
+**Diagram Reference**: [Tool System Architecture](diagrams/core-mechanics.md)
 
 ---
 
@@ -848,7 +848,7 @@ throw new ConfigValidationError('command is required');
 - Changes require server restart (no hot-reload)
 - Use `clearCache()` for testing
 
-**Diagram Reference**: [Registry Configuration](diagrams/08-registry-configuration.md)
+**Diagram Reference**: [Registry Configuration](diagrams/architecture.md)
 
 ---
 
@@ -1057,7 +1057,7 @@ If AI makes another Jira request later:
 - Steps 2-4 repeat (re-spawn backend)
 - Lazy loading ensures resources freed when not needed
 
-**Diagram Reference**: [Request Flow](diagrams/02-request-flow.md), [Full Integration](diagrams/09-full-integration.md)
+**Diagram Reference**: [Request Flow](diagrams/token-economics.md), [Full Integration](diagrams/architecture.md)
 
 ---
 
@@ -1343,7 +1343,7 @@ Meta-MCP achieves 87-91% token reduction through two-tier lazy loading:
 |-------------|-------------------|---------|
 | 16,000 tokens | 1,480 tokens | 90.8% |
 
-**Detailed Analysis:** See [Token Optimization Guide](diagrams/10-token-optimization.md) for:
+**Detailed Analysis:** See [Token Optimization Guide](diagrams/token-economics.md) for:
 - Complete strategy comparisons (Traditional vs Two-Tier vs Hybrid)
 - Real-world usage distribution analysis
 - Break-even calculations
@@ -1672,7 +1672,7 @@ DEBUG:   Request/response details, cache hits/misses
 TRACE:   Full MCP protocol messages
 ```
 
-**Diagram Reference**: [Full Integration](diagrams/09-full-integration.md)
+**Diagram Reference**: [Full Integration](diagrams/architecture.md)
 
 ---
 
@@ -1934,7 +1934,7 @@ Error: Config file not found: ~/.meta-mcp/servers.json
 3. Create config file: `mkdir -p ~/.meta-mcp && touch ~/.meta-mcp/servers.json`
 4. Use absolute path, not `~`: `/Users/username/.meta-mcp/servers.json`
 
-**Diagram Reference**: [Registry Configuration](diagrams/08-registry-configuration.md)
+**Diagram Reference**: [Registry Configuration](diagrams/architecture.md)
 
 ---
 
@@ -1966,7 +1966,7 @@ ls -la /path/to/server.js
 - Use absolute paths in config
 - Check environment variables are set
 
-**Diagram Reference**: [Connection Components](diagrams/06-connection-components.md)
+**Diagram Reference**: [Connection Components](diagrams/core-mechanics.md)
 
 ---
 
@@ -1999,7 +1999,7 @@ await pool.runCleanup();  // In development/testing
 **Option 4: Wait for idle connections**
 - Pool automatically cleans up after 5 minutes of inactivity
 
-**Diagram Reference**: [Pool Lifecycle](diagrams/03-pool-lifecycle.md)
+**Diagram Reference**: [Pool Lifecycle](diagrams/core-mechanics.md)
 
 ---
 
@@ -2051,7 +2051,7 @@ await pool.runCleanup();  // Force eviction
 
 **Note**: Cache invalidates automatically when connection evicted.
 
-**Diagram Reference**: [Caching Strategy](diagrams/04-caching-strategy.md)
+**Diagram Reference**: [Caching Strategy](diagrams/core-mechanics.md)
 
 ---
 
@@ -2077,7 +2077,7 @@ Second request: 10-50ms   (execute only)
   }
   ```
 
-**Diagram Reference**: [System Architecture](diagrams/01-system-architecture.md)
+**Diagram Reference**: [System Architecture](diagrams/architecture.md)
 
 ---
 
@@ -2172,16 +2172,16 @@ console.log(`Cached: ${toolCache.size()}`);
 
 | Diagram | Description | Link |
 |---------|-------------|------|
-| **System Architecture** | Complete Meta-MCP architecture overview | [01-system-architecture.md](diagrams/01-system-architecture.md) |
-| **Request Flow** | Two-tier tool discovery sequence | [02-request-flow.md](diagrams/02-request-flow.md) |
-| **Pool Lifecycle** | Connection pool state machine | [03-pool-lifecycle.md](diagrams/03-pool-lifecycle.md) |
-| **Caching Strategy** | Tool cache behavior and invalidation | [04-caching-strategy.md](diagrams/04-caching-strategy.md) |
-| **ServerPool Architecture** | Class structure and LRU eviction | [05-server-pool-architecture.md](diagrams/05-server-pool-architecture.md) |
-| **Connection Components** | Transport types and lifecycle | [06-connection-components.md](diagrams/06-connection-components.md) |
-| **Tool System** | Three meta-tools architecture | [07-tool-system-architecture.md](diagrams/07-tool-system-architecture.md) |
-| **Registry Configuration** | Config loading and validation | [08-registry-configuration.md](diagrams/08-registry-configuration.md) |
-| **Full Integration** | End-to-end request flow | [09-full-integration.md](diagrams/09-full-integration.md) |
-| **Token Optimization** | Token savings analysis and charts | [10-token-optimization.md](diagrams/10-token-optimization.md) |
+| **System Architecture** | Complete Meta-MCP architecture overview | [architecture.md](diagrams/architecture.md) |
+| **Request Flow** | Two-tier tool discovery sequence | [token-economics.md](diagrams/token-economics.md) |
+| **Pool Lifecycle** | Connection pool state machine | [core-mechanics.md](diagrams/core-mechanics.md) |
+| **Caching Strategy** | Tool cache behavior and invalidation | [core-mechanics.md](diagrams/core-mechanics.md) |
+| **ServerPool Architecture** | Class structure and LRU eviction | [core-mechanics.md](diagrams/core-mechanics.md) |
+| **Connection Components** | Transport types and lifecycle | [core-mechanics.md](diagrams/core-mechanics.md) |
+| **Tool System** | Three meta-tools architecture | [core-mechanics.md](diagrams/core-mechanics.md) |
+| **Registry Configuration** | Config loading and validation | [architecture.md](diagrams/architecture.md) |
+| **Full Integration** | End-to-end request flow | [architecture.md](diagrams/architecture.md) |
+| **Token Optimization** | Token savings analysis and charts | [token-economics.md](diagrams/token-economics.md) |
 
 ---
 
