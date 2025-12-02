@@ -7,16 +7,16 @@ This diagram shows the complete ServerPool class architecture, including all com
 ```mermaid
 classDiagram
     class ServerPool {
-        -Map~string,PoolEntry~ connections
+        -Map<string,PoolEntry> connections
         -ConnectionFactory factory
         -PoolConfig config
         -Timer cleanupInterval
         +constructor(factory, config?)
-        +getConnection(serverId) Promise~MCPConnection~
+        +getConnection(serverId) Promise<MCPConnection>
         +releaseConnection(serverId) void
-        +runCleanup() Promise~void~
+        +runCleanup() Promise<void>
         +getActiveCount() number
-        +shutdown() Promise~void~
+        +shutdown() Promise<void>
         -evictLRU() boolean
         -startCleanupTimer() void
     }
@@ -34,17 +34,17 @@ classDiagram
 
     class ConnectionFactory {
         <<interface>>
-        +(serverId: string) Promise~MCPConnection~
+        +(serverId: string) Promise<MCPConnection>
     }
 
     class MCPConnection {
         <<interface>>
         +string serverId
         +ConnectionState state
-        +connect() Promise~void~
-        +disconnect() Promise~void~
+        +connect() Promise<void>
+        +disconnect() Promise<void>
         +isConnected() boolean
-        +getTools() Promise~ToolDefinition[]~
+        +getTools() Promise<ToolDefinition[]>
     }
 
     class ConnectionState {
@@ -88,7 +88,7 @@ graph TB
     end
 
     subgraph "Runtime State"
-        MAP[connections: Map&lt;serverId, PoolEntry&gt;]
+        MAP[connections: Map<serverId, PoolEntry>]
         TIMER[cleanupInterval: NodeJS.Timer]
         FACTORY[factory: ConnectionFactory]
     end
@@ -313,7 +313,7 @@ graph TB
     subgraph "ServerPool"
         POOL[ServerPool Instance]
         CONFIG[PoolConfig<br/>max: 6, idle: 5min]
-        ENTRIES[Map&lt;serverId, PoolEntry&gt;]
+        ENTRIES[Map<serverId, PoolEntry>]
         TIMER[Cleanup Timer<br/>every 60s]
     end
 

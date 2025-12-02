@@ -116,21 +116,21 @@ flowchart TD
 ```mermaid
 classDiagram
     class BackendsConfigSchema {
-        +Record~string, ServerConfigSchema~ mcpServers
+        +Record<string, ServerConfigSchema> mcpServers
     }
 
     class ServerConfigSchema {
         +string command
         +string? type
         +string[]? args
-        +Record~string,string~? env
+        +Record<string,string>? env
         +boolean? disabled
         +string? description
         +string[]? tags
     }
 
     class ValidatedConfig {
-        +Record~string, ServerConfig~ mcpServers
+        +Record<string, ServerConfig> mcpServers
     }
 
     class ServerConfig {
@@ -139,7 +139,7 @@ classDiagram
         +string[]? args
         +string? type
         +docker? object
-        +Record~string,string~? env
+        +Record<string,string>? env
     }
 
     class ServerConfigWithMeta {
@@ -148,7 +148,7 @@ classDiagram
         +string[]? args
         +string? type
         +docker? object
-        +Record~string,string~? env
+        +Record<string,string>? env
         +string? description
         +string[]? tags
     }
@@ -219,7 +219,7 @@ flowchart TD
 ```mermaid
 classDiagram
     class ServerManifest {
-        +Record~string, ServerConfigWithMeta~ servers
+        +Record<string, ServerConfigWithMeta> servers
     }
 
     class ServerConfigWithMeta {
@@ -227,7 +227,7 @@ classDiagram
         +string command
         +string[]? args
         +string? type
-        +Record~string,string~? env
+        +Record<string,string>? env
         +boolean? disabled
         +string? description
         +string[]? tags

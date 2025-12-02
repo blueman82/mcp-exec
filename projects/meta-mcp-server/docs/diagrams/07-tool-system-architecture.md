@@ -20,7 +20,7 @@ graph TB
         subgraph "Core Components"
             REG[Registry Loader]
             CACHE[ToolCache
-Map&lt;serverId, ToolDefinition[]&gt;]
+Map<serverId, ToolDefinition[]>]
             POOL[ServerPool
 LRU Connection Pool]
         end
@@ -248,7 +248,7 @@ for next request
 ```mermaid
 classDiagram
     class ToolCache {
-        -Map~string, ToolDefinition[]~ cache
+        -Map<string, ToolDefinition[]> cache
         +get(serverId: string) ToolDefinition[] | undefined
         +has(serverId: string) boolean
         +set(serverId: string, tools: ToolDefinition[]) void
@@ -264,8 +264,8 @@ classDiagram
     }
 
     class ServerPool {
-        -Map~string, Connection~ connections
-        -Map~string, number~ lastUsed
+        -Map<string, Connection> connections
+        -Map<string, number> lastUsed
         +getConnection(serverId: string) Connection
         +evictLRU() void
     }
