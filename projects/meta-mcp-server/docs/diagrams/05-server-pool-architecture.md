@@ -82,7 +82,7 @@ classDiagram
 ```mermaid
 graph TB
     subgraph "Default Configuration"
-        MAX[maxConnections: 6]
+        MAX[maxConnections: 20]
         IDLE[idleTimeoutMs: 300000ms<br/>5 minutes]
         CLEANUP[cleanupIntervalMs: 60000ms<br/>1 minute]
     end
@@ -477,7 +477,7 @@ gantt
 const pool = new ServerPool(connectionFactory);
 // Equivalent to:
 const pool = new ServerPool(connectionFactory, {
-  maxConnections: 6,
+  maxConnections: 20,
   idleTimeoutMs: 300000  // 5 minutes
 });
 ```

@@ -215,7 +215,7 @@ The following diagram shows the complete Meta-MCP architecture from client to ba
 │                                                             │
 │  ┌──────────────┐        ┌────────────────┐               │
 │  │ ServerPool   │◄──────►│  Tool Cache    │               │
-│  │ (LRU, max 6) │        │  (per-server)  │               │
+│  │ (LRU, max 20) │        │  (per-server)  │               │
 │  └──────┬───────┘        └────────────────┘               │
 │         │                                                   │
 │         │ ┌───────────────────────┐                        │
@@ -419,7 +419,7 @@ const pool = new ServerPool(factory, {
 
 **Example Scenario**:
 ```
-Pool state (max 6):
+Pool state (max 20):
 [A: used 1m ago] [B: used 2m ago] [C: used 5m ago, idle]
 [D: used 3m ago] [E: used 8m ago, idle] [F: used 4m ago]
 
@@ -2007,7 +2007,7 @@ A: No. Backends are isolated. Only Meta-MCP can communicate with them via MCP pr
 
 **Q: What's the maximum number of configured servers?**
 
-A: Unlimited. Only active connections (max 6) consume resources. Configure 100+ servers without issues.
+A: Unlimited. Only active connections (max 20) consume resources. Configure 100+ servers without issues.
 
 ---
 

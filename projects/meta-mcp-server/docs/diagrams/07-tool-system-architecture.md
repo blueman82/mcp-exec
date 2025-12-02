@@ -439,7 +439,7 @@ sequenceDiagram
 - No TTL - cache cleared only on eviction
 
 ### 4. Connection Pooling
-- LRU eviction policy (max 6 connections)
+- LRU eviction policy (max 20 connections)
 - 5-minute idle timeout
 - 1-minute cleanup interval
 - Warm connections for repeated requests

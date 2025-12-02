@@ -102,7 +102,7 @@ These diagrams explore individual components in depth.
 
 **What you'll learn**:
 - ServerPool class structure and methods
-- Detailed LRU implementation (Map-based, max 6 connections)
+- Detailed LRU implementation (Map-based, max 20 connections)
 - Eviction decision logic
 - Connection acquisition and release flows
 
