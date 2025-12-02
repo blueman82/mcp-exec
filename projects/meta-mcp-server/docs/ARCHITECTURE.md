@@ -103,32 +103,9 @@ Meta-MCP:    <100ms (no backend spawning)
 
 **Why**: AI can browse available tools without loading expensive JSON schemas.
 
-**How**:
-- **Tier 1**: `summary_only: true` returns tool names and descriptions (~4 tokens per tool)
-- **Tier 2**: `tools: ["specific"]` returns full JSON schemas only for selected tools (~640 tokens per tool)
+**Token Savings**: 99.4% for discovery phase, 90.8% for typical 2-tool workflows.
 
-**Diagram Reference**: [Request Flow](diagrams/02-request-flow.md), [Token Optimization](diagrams/10-token-optimization.md)
-
-**Example**:
-```typescript
-// Phase 1: Lightweight discovery (100 tokens)
-await get_server_tools({
-  server_name: "jira",
-  summary_only: true
-});
-// Returns: [
-//   {name: "search_issues", description: "Search Jira issues"},
-//   {name: "create_issue", description: "Create new issue"},
-//   ... (23 more)
-// ]
-
-// Phase 2: Selective schema fetch (640 tokens)
-await get_server_tools({
-  server_name: "jira",
-  tools: ["search_issues"]
-});
-// Returns: Full JSON schema for search_issues only
-```
+**Detailed Flow:** See [Request Flow Diagram](diagrams/02-request-flow.md) and [Token Optimization](diagrams/10-token-optimization.md) for complete analysis with examples.
 
 ### 3. Connection Pooling
 
@@ -331,68 +308,16 @@ async getConnection(serverId: string): Promise<MCPConnection> {
 
 **Solution**: Split discovery into two phases - summaries first, schemas on-demand.
 
-**Phase 1: Summary Discovery**
-```typescript
-// Request: ~20 tokens
-await get_server_tools({
-  server_name: "jira",
-  summary_only: true
-});
+**Implementation Patterns:**
+- Phase 1 (Summary): `{summary_only: true}` → ~4 tokens/tool
+- Phase 2 (Selective): `{tools: ["specific"]}` → ~640 tokens/tool
+- Traditional: All tools → ~16,000 tokens for 25 tools
 
-// Response: ~100 tokens (for 25 tools)
-[
-  {name: "search_issues", description: "Search Jira issues with JQL"},
-  {name: "create_issue", description: "Create a new Jira issue"},
-  {name: "update_issue", description: "Update existing issue"},
-  ... (22 more)
-]
-```
-
-**Phase 2: Selective Schema Fetch**
-```typescript
-// Request: ~30 tokens
-await get_server_tools({
-  server_name: "jira",
-  tools: ["search_issues", "create_issue"]
-});
-
-// Response: ~1,280 tokens (2 × 640)
-[
-  {
-    name: "search_issues",
-    description: "Search Jira issues with JQL",
-    inputSchema: {
-      type: "object",
-      properties: {
-        jql: {type: "string", description: "JQL query"},
-        maxResults: {type: "number", default: 50},
-        fields: {type: "array", items: {type: "string"}}
-      },
-      required: ["jql"]
-    }
-  },
-  {
-    name: "create_issue",
-    description: "Create a new Jira issue",
-    inputSchema: { ... } // Full schema
-  }
-]
-```
-
-**Token Savings**:
-```
-Traditional:    25 tools × 640 tokens = 16,000 tokens
-Phase 1 Only:   25 tools × 4 tokens   = 100 tokens (99.4% savings)
-Phase 1 + 2:    100 + (2 × 640)       = 1,480 tokens (90.8% savings)
-```
-
-**Why This Works**:
-- Most tasks need 1-3 tools, not all 25
-- AI can browse available tools without loading schemas
-- Full schemas fetched only when AI is ready to use the tool
-- Progressive disclosure matches natural workflow
-
-**Diagram Reference**: [Request Flow](diagrams/02-request-flow.md), [Token Optimization](diagrams/10-token-optimization.md)
+**Complete Examples & Token Calculations:** See [Token Optimization Analysis](diagrams/10-token-optimization.md#implementation-example) for:
+- Working TypeScript code examples
+- Detailed token accounting per phase
+- Strategy comparison flowcharts
+- Real-world Slack workspace case study (96.9% savings)
 
 ---
 
@@ -1412,34 +1337,17 @@ const pool = new ServerPool(factory, {
 
 ### Token Consumption
 
-**Scenario: Jira Server with 25 Tools**
+Meta-MCP achieves 87-91% token reduction through two-tier lazy loading:
 
-| Strategy | Initial Load | Per Task (2 tools) | Total | Savings |
-|----------|--------------|-------------------|-------|---------|
-| Traditional MCP | 16,000 | 0 | 16,000 | Baseline |
-| Meta-MCP (Two-Tier) | 200 | 1,280 | 1,480 | **90.8%** |
-| Meta-MCP (Summary Only) | 200 | 100 | 300 | **98.1%** |
+| Traditional | Meta-MCP (2 tools) | Savings |
+|-------------|-------------------|---------|
+| 16,000 tokens | 1,480 tokens | 90.8% |
 
-**Multi-Server Scenario: 3 Servers (Jira, Slack, GitHub)**
-
-| Metric | Traditional | Meta-MCP | Savings |
-|--------|-------------|----------|---------|
-| Startup tokens | 57,400 | 200 | **99.7%** |
-| Discovery tokens | 0 | 300 | N/A |
-| Execution (2 tools per server) | 0 | 3,840 | N/A |
-| **Total** | **57,400** | **4,340** | **92.4%** |
-
-**Token Cost Breakdown**:
-```
-Component                    Tokens    Notes
-────────────────────────────────────────────────
-list_servers                 100       All servers
-get_server_tools (summary)   100       Per server
-get_server_tools (schema)    640       Per tool
-call_tool (execution)        Variable  Depends on result
-```
-
-**Diagram Reference**: [Token Optimization](diagrams/10-token-optimization.md)
+**Detailed Analysis:** See [Token Optimization Guide](diagrams/10-token-optimization.md) for:
+- Complete strategy comparisons (Traditional vs Two-Tier vs Hybrid)
+- Real-world usage distribution analysis
+- Break-even calculations
+- Per-tool marginal cost analysis
 
 ---
 

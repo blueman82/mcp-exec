@@ -198,15 +198,7 @@ call_tool({server_name: "corp-jira", tool_name: "search_issues", arguments: {jql
 
 ### Two-Tier Lazy Loading
 
-For servers with many tools (e.g., Jira with 25 tools), use two-tier discovery:
-
-| Parameter | Tokens | Use Case |
-|-----------|--------|----------|
-| `summary_only: true` | ~100 | Discovery: see what tools exist |
-| `tools: ["name"]` | ~640/tool | Fetch specific schemas before calling |
-| (none) | ~16k | Backward compatible, fetch all |
-
-This reduces token usage by **87%** for typical discovery workflows.
+See [Token Optimization Guide](docs/diagrams/10-token-optimization.md) for detailed analysis of 87-91% token savings across different workflow patterns.
 
 ## Development
 

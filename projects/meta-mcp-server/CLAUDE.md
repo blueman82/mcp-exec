@@ -62,7 +62,7 @@ npm run dev
 
 ### Quick Reference
 - **Entry Flow**: `src/index.ts` → creates `ServerPool` + `ToolCache` → `createServer()` → stdio transport
-- **Token Optimization**: `summary_only` and `tools` params reduce 16k tokens → ~2k (87% reduction)
+- **Token Optimization**: See [Token Optimization Analysis](docs/diagrams/10-token-optimization.md) for 87-91% savings breakdown
 - **Configuration**: `SERVERS_CONFIG` env var points to servers.json (format matches Claude Desktop mcp.json)
 
 ### Visual Diagrams
@@ -74,7 +74,7 @@ See [Architecture Guide](docs/ARCHITECTURE.md) and [Diagram Index](docs/diagrams
 
 ### Core Components
 - `src/server.ts` - MCP server with request handlers routing to 3 meta-tools
-- `src/pool/server-pool.ts` - LRU connection pool (max 6, 5min idle timeout, 1min cleanup interval)
+- `src/pool/server-pool.ts` - LRU connection pool (max 20, 5min idle timeout, 1min cleanup interval)
 - `src/pool/connection.ts` - MCP client wrapper managing spawn/connect lifecycle
 - `src/registry/loader.ts` - Loads `servers.json`, validates with Zod, caches manifest
 - `src/tools/tool-cache.ts` - Per-server tool definition cache
