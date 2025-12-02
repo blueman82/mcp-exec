@@ -62,15 +62,14 @@ npm run dev
 
 ### Quick Reference
 - **Entry Flow**: `src/index.ts` → creates `ServerPool` + `ToolCache` → `createServer()` → stdio transport
-- **Token Optimization**: See [Token Optimization Analysis](docs/diagrams/10-token-optimization.md) for 87-91% savings breakdown
+- **Token Optimization**: See [Token Economics](docs/diagrams/token-economics.md) for 87-91% savings breakdown
 - **Configuration**: `SERVERS_CONFIG` env var points to servers.json (standard MCP format)
 
 ### Visual Diagrams
 See [Architecture Guide](docs/ARCHITECTURE.md) and [Diagram Index](docs/diagrams/README.md) for complete visual documentation:
-- [System Architecture](docs/diagrams/01-system-architecture.md) - Component overview
-- [Request Flow](docs/diagrams/02-request-flow.md) - Two-tier discovery
-- [Pool Lifecycle](docs/diagrams/03-pool-lifecycle.md) - Connection management
-- [Token Optimization](docs/diagrams/10-token-optimization.md) - 87% reduction analysis
+- [Architecture](docs/diagrams/architecture.md) - System, config, lifecycle
+- [Core Mechanics](docs/diagrams/core-mechanics.md) - Pool, connections, caching, tools
+- [Token Economics](docs/diagrams/token-economics.md) - ROI analysis
 
 ### Core Components
 - `src/server.ts` - MCP server with request handlers routing to 3 meta-tools
