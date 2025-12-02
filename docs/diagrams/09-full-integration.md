@@ -100,7 +100,7 @@ sequenceDiagram
     Pool-->>Main: ServerPool instance
 
     Main->>Cache: new ToolCache()
-    Cache->>Cache: Initialize empty Map<string, ToolDefinition[]>
+    Cache->>Cache: Initialize empty Map<string, ToolDefinition(array)>
     Cache-->>Main: ToolCache instance
 
     Note over Main: Create MCP Server
@@ -266,11 +266,11 @@ graph LR
 
     Server1 --> Type1[type: 'stdio' optional]
     Server1 --> Cmd1[command: string]
-    Server1 --> Args1[args: string[] optional]
+    Server1 --> Args1[args: string(array) optional]
     Server1 --> Env1[env: Record string optional]
     Server1 --> Disabled1[disabled: boolean optional]
     Server1 --> Desc1[description: string optional]
-    Server1 --> Tags1[tags: string[] optional]
+    Server1 --> Tags1[tags: string(array) optional]
 
     style Config fill:#ffe1b3
     style Root fill:#b3d9ff

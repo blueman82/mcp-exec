@@ -23,13 +23,13 @@ flowchart TD
     CheckCache -->|NO - Cache Miss| GetConnection[Get Connection to 'corp-jira' Server]
     GetConnection --> CallBackend[Call MCP client.listTools]
     CallBackend --> ReceiveTools[Receive ToolDefinition Array from Backend]
-    ReceiveTools --> StoreCache[Store in Cache ToolCache['corp-jira']]
+    ReceiveTools --> StoreCache["Store result in cache"]
     StoreCache --> ReturnNew[Return Tools to Caller]
     ReturnNew --> End
 
     %% Cache Invalidation Triggers
     EvictionTrigger([Server Pool Eviction Event]) --> CheckServerId{Server ID matches cached entry?}
-    CheckServerId -->|YES| EvictCache[Remove from ToolCache delete ToolCache[serverId]]
+    CheckServerId -->|YES| EvictCache["Delete cache entry"]
     CheckServerId -->|NO| IgnoreEviction[No Action]
     EvictCache --> EvictionComplete([Cache Entry Removed])
 
