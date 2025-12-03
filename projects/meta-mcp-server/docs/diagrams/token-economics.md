@@ -4,7 +4,7 @@ Dense ROI analysis for AI tool discovery strategies. Meta-MCP achieves **91-96.9
 
 ---
 
-## 1. Token Comparison Matrix (150 lines)
+## 1. Token Comparison Matrix
 
 ### Three Strategies: Side-by-Side
 
@@ -100,7 +100,7 @@ graph TD
 
 ---
 
-## 2. Request Flows with Token Counts (300 lines)
+## 2. Request Flows with Token Counts
 
 ### Flow 1: Traditional Approach
 
@@ -241,7 +241,7 @@ sequenceDiagram
 
 ---
 
-## 3. Real-World Examples (150 lines)
+## 3. Real-World Examples
 
 ### Example 1: Jira Integration (25 Tools)
 

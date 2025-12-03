@@ -24,7 +24,7 @@ Backend servers are spawned lazily on first access and managed via a connection 
 
 - **Lazy Loading**: Servers spawn only when first accessed
 - **Two-Tier Tool Discovery**: Fetch summaries first (~100 tokens), then specific schemas on-demand
-- **Connection Pool**: LRU eviction (max 6 connections) with idle cleanup (5 min)
+- **Connection Pool**: LRU eviction (max 20 connections) with idle cleanup (5 min)
 - **Multi-Transport**: Supports Node, Docker, and uvx/npx spawn types
 - **Tool Caching**: Tool definitions cached per-server for session duration
 - **VS Code Extension**: Visual UI for managing servers and configuring AI tools
