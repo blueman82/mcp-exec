@@ -64,11 +64,13 @@ tests/                      # 200+ tests, 80%+ coverage
 ├── test_e2e_bot.py
 └── ... (more test files)
 
-infrastructure/             # Deployment
+infrastructure/             # Deployment & CI/CD
 ├── Dockerfile             # Multi-stage Docker build
 ├── docker-compose.yml     # Local development
 ├── docker-compose.production.yml
-├── deploy.sh              # Deployment automation
+├── validate.sh            # Local CI validation (pytest, mypy, ruff, black)
+├── deploy.sh              # Full deployment with validation gate
+├── deploy-ec2.sh          # EC2 runtime deployment (systemd hook)
 ├── launch-ec2.sh          # EC2 launcher
 ├── user-data.sh           # EC2 initialization
 ├── maptimize.service      # Systemd service
@@ -144,16 +146,75 @@ Slack tokens stored as JSON:
 - **EC2**: Compute instances running Docker containers
 - **Secrets Manager**: Secure credential storage
 - **IAM**: Least privilege policies for service access
-- **ECR**: Docker image registry (via GitHub Actions)
+- **ECR**: Docker image registry (483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize)
+- **AWS Profile**: campaign_prod_v7
 
-### Deployment Commands
+### Local CI/CD Pipeline
+GitHub Actions is disabled at the organization level, so all deployments use a local CI/CD pipeline with validation gate.
+
+**Workflow:**
+1. Code validation (pytest, mypy, ruff, black) - MUST pass before build
+2. Version auto-increment from ECR tags (semantic versioning)
+3. Docker image build
+4. Image tagging (version + latest)
+5. ECR push
+
+**Deploy Script:**
 ```bash
-# Deploy to AWS
+# Full deployment (with validation)
 bash infrastructure/deploy.sh
 
-# Stop running instance
-bash infrastructure/deploy.sh stop
+# Preview without pushing
+bash infrastructure/deploy.sh --dry-run
+
+# Skip validation (dangerous, not recommended)
+bash infrastructure/deploy.sh --skip-validation
+
+# Build without Docker cache
+bash infrastructure/deploy.sh --no-cache
 ```
+
+**Validate Script (runs independently):**
+```bash
+# Validate code before deployment
+bash infrastructure/validate.sh
+
+# Auto-fix style issues
+bash infrastructure/validate.sh --fix
+
+# Quick check (ruff only, skip slow tests)
+bash infrastructure/validate.sh --quick
+
+# Verbose output
+bash infrastructure/validate.sh -v
+```
+
+**Using Make (recommended for developers):**
+```bash
+# Validate code
+make validate
+
+# Deploy to ECR
+make deploy
+
+# Preview deployment
+make deploy-dry
+
+# Run tests
+make test
+
+# Auto-fix code style
+make fix
+
+# See all available commands
+make help
+```
+
+### Deployment Flow Details
+- **Validation Gate**: All checks (pytest, mypy, ruff, black) must pass before Docker build
+- **Version Management**: Auto-detects patch/minor/major from commit messages
+- **Dry-Run Support**: Preview deployments without pushing to ECR
+- **Error Handling**: Comprehensive error checking with detailed messages
 
 ### Health Monitoring
 ```bash
@@ -162,6 +223,9 @@ docker inspect --format='{{.State.Health.Status}}' maptimize-bot-dev
 
 # View logs
 docker logs -f maptimize-bot-dev
+
+# View logs from deployment
+tail -f /opt/maptimize/logs/deploy.log
 ```
 
 ## Security
@@ -208,36 +272,71 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ### Bot Operations
 ```bash
-# Run bot
+# Run bot locally
 python -m maptimize.bot
 
-# Run with Docker
+# Run with Docker Compose
 docker-compose up --build
+```
+
+### Deployment (Use Makefile)
+```bash
+# Validate code (pytest, mypy, ruff, black)
+make validate
+
+# Deploy to ECR with validation gate
+make deploy
+
+# Preview deployment without pushing
+make deploy-dry
+
+# Deploy without validation (not recommended)
+make deploy-skip-validation
 ```
 
 ### Testing
 ```bash
-# Full test suite
-pytest
+# Full test suite with coverage
+make test
 
-# With coverage
-pytest --cov=src/maptimize
+# Unit tests only
+make test-unit
 
-# Specific markers
-pytest -m unit
-pytest -m integration
+# Integration tests only
+make test-integration
+
+# Generate coverage report
+make coverage
 ```
 
 ### Code Quality
 ```bash
 # Type check
-mypy src/
+make type-check
 
-# Format
-black src/ tests/
+# Validate formatting (without fixing)
+make format-check
 
 # Lint
-ruff check src/ tests/
+make lint
+
+# Auto-fix code style issues
+make fix
+```
+
+### Development Setup
+```bash
+# Install dependencies
+make install
+
+# Install with dev dependencies
+make install-dev
+
+# Check required tools
+make check-tools
+
+# Show configuration
+make show-config
 ```
 
 ## Troubleshooting

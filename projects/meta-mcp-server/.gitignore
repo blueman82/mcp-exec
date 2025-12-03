@@ -7,3 +7,6 @@ dist/
 .env.local
 coverage/
 .vitest/
+
+docs/*
+!docs/research/mcp_gateway_research.md

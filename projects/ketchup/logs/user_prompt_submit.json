@@ -559,5 +559,16 @@
       "hook_event_name": "UserPromptSubmit",
       "prompt": "great push, commit, pr, merge, main pull"
     }
+  },
+  {
+    "timestamp": "2025-12-03T09:54:56.319901",
+    "input_data": {
+      "session_id": "8dc56ced-5e43-4977-91b1-3b44fa999322",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/8dc56ced-5e43-4977-91b1-3b44fa999322.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "/prime "
+    }
   }
 ]
