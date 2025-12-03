@@ -134,7 +134,7 @@ cat >> /etc/ssh/sshd_config << 'EOF'
 # SSSD-based public key authentication
 PubkeyAuthentication yes
 AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys %u
-AuthorizedKeysCommandUser nobody
+AuthorizedKeysCommandUser root
 PasswordAuthentication yes
 EOF
 
