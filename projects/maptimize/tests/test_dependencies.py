@@ -1,8 +1,6 @@
 import tomllib
 from pathlib import Path
 
-import pytest
-
 
 def test_pyproject_valid_toml():
     """Verify pyproject.toml is valid TOML."""

@@ -20,4 +20,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"ERROR starting Socket Mode handler: {e}", flush=True)
         import traceback
+
         traceback.print_exc()

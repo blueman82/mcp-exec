@@ -51,15 +51,15 @@ def handle_app_mention(body: Dict[str, Any], say: Callable) -> None:
         # Format response message
         message_text = create_block_kit_message(processes)
 
-        # Send message to channel
-        say(text=message_text)
+        # Send message as ephemeral (visible only to user)
+        say(text=message_text, response_type="ephemeral")
 
         logger.info("mention_handled_success", user_id=user_id)
 
     except Exception as e:
         logger.error("mention_handling_failed", error=str(e), exc_info=True)
         try:
-            say(text="An error occurred while processing your request")
+            say(text="An error occurred while processing your request", response_type="ephemeral")
         except Exception as fallback_error:
             logger.error("mention_error_response_failed", error=str(fallback_error))
 
@@ -99,7 +99,9 @@ def handle_slash_command(body: Dict[str, Any], respond: Callable) -> None:
     except Exception as e:
         logger.error("slash_command_handling_failed", error=str(e), exc_info=True)
         try:
-            respond(text="An error occurred while processing your request", response_type="ephemeral")
+            respond(
+                text="An error occurred while processing your request", response_type="ephemeral"
+            )
         except Exception as fallback_error:
             logger.error("slash_command_error_response_failed", error=str(fallback_error))
 
@@ -123,36 +125,44 @@ def handle_message(body: Dict[str, Any], say: Callable) -> None:
         user_id = event.get("user", "unknown")
         subtype = event.get("subtype")
         message_text = event.get("text", "")
-        
+
         # Only handle DM messages (channel ID starts with 'D')
         if not channel_id.startswith("D"):
             return
-        
+
         # Ignore messages from bots (including our own)
         if subtype == "bot_message" or event.get("bot_id"):
             return
-        
+
         # Check if bot is mentioned in the message
         # Bot mentions look like <@U123456789> in the message text
         bot_mentioned = "<@" in message_text and ">" in message_text
-        
-        logger.info("dm_message_received", user_id=user_id, channel_id=channel_id, bot_mentioned=bot_mentioned)
-        
+
+        logger.info(
+            "dm_message_received",
+            user_id=user_id,
+            channel_id=channel_id,
+            bot_mentioned=bot_mentioned,
+        )
+
         # Load process configuration
         processes = load_processes()
-        
+
         # Format response message
         message_text = create_block_kit_message(processes)
-        
-        # Send message in DM
-        say(text=message_text)
-        
+
+        # Send message as ephemeral in DM
+        say(text=message_text, response_type="ephemeral")
+
         logger.info("dm_message_handled_success", user_id=user_id)
-        
+
     except Exception as e:
         logger.error("dm_message_handling_failed", error=str(e), exc_info=True)
         try:
-            say(text="An error occurred while processing your message. Try using /maptimize command.")
+            error_msg = (
+                "An error occurred while processing your message. " "Try using /maptimize command."
+            )
+            say(text=error_msg, response_type="ephemeral")
         except Exception as fallback_error:
             logger.error("dm_message_error_response_failed", error=str(fallback_error))
 

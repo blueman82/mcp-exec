@@ -5,9 +5,9 @@ connection setup.
 """
 
 import sys
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import patch, MagicMock, ANY
-from slack_bolt.app import App
 
 
 @pytest.fixture
@@ -15,12 +15,14 @@ def bot_module(mocker):
     """Import and provide bot module after mocking."""
     # Mock the dependencies before importing bot module
     mocker.patch(
-        "maptimize.config.get_slack_tokens",
-        return_value=("xoxb-test-token", "xapp-test-token")
+        "maptimize.config.get_slack_tokens", return_value=("xoxb-test-token", "xapp-test-token", "test-signing-secret")
     )
+    mocker.patch("slack_bolt.adapter.socket_mode.SocketModeHandler", return_value=MagicMock())
+
+    # Mock auth.test to prevent token validation
     mocker.patch(
-        "slack_bolt.adapter.socket_mode.SocketModeHandler",
-        return_value=MagicMock()
+        "slack_sdk.web.client.WebClient.auth_test",
+        return_value={"ok": True, "user_id": "U123456", "team_id": "T123456"}
     )
 
     # Remove from sys.modules to force reimport
@@ -28,6 +30,7 @@ def bot_module(mocker):
         del sys.modules["maptimize.bot"]
 
     import maptimize.bot
+
     return maptimize.bot
 
 
@@ -46,9 +49,11 @@ def test_app_mention_handler_registered(bot_module):
 
     # Find app_mention listeners by checking the ack function name
     app_mention_listeners = [
-        l for l in listeners
-        if hasattr(l, 'ack_function') and l.ack_function and
-           l.ack_function.__name__ == 'handle_app_mention'
+        listener
+        for listener in listeners
+        if hasattr(listener, "ack_function")
+        and listener.ack_function
+        and listener.ack_function.__name__ == "handle_app_mention"
     ]
 
     assert len(app_mention_listeners) > 0, "app_mention handler not registered"
@@ -61,9 +66,11 @@ def test_slash_command_handler_registered(bot_module):
 
     # Find command listeners by checking the ack function name
     command_listeners = [
-        l for l in listeners
-        if hasattr(l, 'ack_function') and l.ack_function and
-           l.ack_function.__name__ == 'handle_slash_command'
+        listener
+        for listener in listeners
+        if hasattr(listener, "ack_function")
+        and listener.ack_function
+        and listener.ack_function.__name__ == "handle_slash_command"
     ]
 
     assert len(command_listeners) > 0, "/maptimize command handler not registered"

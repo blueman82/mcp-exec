@@ -1,7 +1,5 @@
 """Tests for maptimize.utils module."""
 
-import pytest
-import structlog
 from maptimize.utils import setup_logging, validate_slack_event
 
 
@@ -16,21 +14,13 @@ def test_setup_logging():
 
 def test_validate_slack_event_valid():
     """Test validation of valid Slack events."""
-    event = {
-        "type": "app_mention",
-        "user": "U123",
-        "text": "<@U_BOT> hello"
-    }
+    event = {"type": "app_mention", "user": "U123", "text": "<@U_BOT> hello"}
     assert validate_slack_event(event) is True
 
 
 def test_validate_slack_event_valid_message():
     """Test validation of valid message events."""
-    event = {
-        "type": "message",
-        "user": "U456",
-        "text": "hello world"
-    }
+    event = {"type": "message", "user": "U456", "text": "hello world"}
     assert validate_slack_event(event) is True
 
 

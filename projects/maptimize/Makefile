@@ -1,4 +1,4 @@
-.PHONY: help validate fix test lint type-check coverage clean deploy deploy-dry deploy-skip-validation build push docker-shell install install-dev
+.PHONY: help venv validate fix test lint type-check coverage clean deploy deploy-dry deploy-skip-validation build push docker-shell install install-dev
 
 # Color output
 BLUE := \033[0;34m
@@ -6,8 +6,13 @@ GREEN := \033[0;32m
 YELLOW := \033[0;33m
 NC := \033[0m
 
+# Virtual environment
+VENV := .venv
+VENV_BIN := $(VENV)/bin
+PYTHON := $(VENV_BIN)/python3
+PIP := $(VENV_BIN)/pip
+
 # Python paths
-PYTHON := python3
 SRC := src/maptimize
 TESTS := tests
 INFRA := infrastructure
@@ -16,13 +21,13 @@ help: ## Show this help message
 	@echo "$(BLUE)Maptimize - Local CI/CD Helpers$(NC)"
 	@echo ""
 	@echo "$(GREEN)Quick Start:$(NC)"
+	@echo "  make venv               Create virtual environment"
+	@echo "  make install-dev        Install dev dependencies in venv"
 	@echo "  make validate           Validate code (pytest, mypy, ruff, black)"
 	@echo "  make deploy             Full deployment with validation"
 	@echo "  make deploy-dry         Preview deployment without pushing"
 	@echo ""
 	@echo "$(GREEN)Development:$(NC)"
-	@echo "  make install            Install dependencies"
-	@echo "  make install-dev        Install dev dependencies"
 	@echo "  make test               Run tests with coverage"
 	@echo "  make coverage           Show coverage report"
 	@echo "  make fix                Auto-fix code style (black, ruff)"
@@ -38,44 +43,51 @@ help: ## Show this help message
 	@echo ""
 	@echo "$(YELLOW)For more info: ./$(INFRA)/validate.sh --help | ./$(INFRA)/deploy-build-push.sh --help$(NC)"
 
+## ========== VIRTUAL ENVIRONMENT ==========
+
+venv: ## Create Python virtual environment
+	@test -d $(VENV) || (echo "Creating virtual environment..." && python3 -m venv $(VENV))
+	@echo "$(GREEN)✓ Virtual environment ready$(NC)"
+	@echo "Activate with: source $(VENV_BIN)/activate"
+
 ## ========== VALIDATION & TESTING ==========
 
-validate: ## Validate code (pytest, mypy, ruff, black)
+validate: venv ## Validate code (pytest, mypy, ruff, black)
 	@./$(INFRA)/validate.sh
 
-validate-verbose: ## Validate with verbose output
+validate-verbose: venv ## Validate with verbose output
 	@./$(INFRA)/validate.sh -v
 
-validate-quick: ## Quick validation (ruff only, skip slow checks)
+validate-quick: venv ## Quick validation (ruff only, skip slow checks)
 	@./$(INFRA)/validate.sh --quick
 
-fix: ## Auto-fix code style issues (black, ruff)
+fix: venv ## Auto-fix code style issues (black, ruff)
 	@./$(INFRA)/validate.sh --fix
 
-test: ## Run tests with coverage
+test: venv ## Run tests with coverage
 	@$(PYTHON) -m pytest $(TESTS) --cov=$(SRC) --cov-report=term-missing -v
 
-test-quiet: ## Run tests without output
+test-quiet: venv ## Run tests without output
 	@$(PYTHON) -m pytest $(TESTS) --cov=$(SRC) --cov-report=term --quiet
 
-test-unit: ## Run only unit tests
+test-unit: venv ## Run only unit tests
 	@$(PYTHON) -m pytest $(TESTS) -m unit -v
 
-test-integration: ## Run only integration tests
+test-integration: venv ## Run only integration tests
 	@$(PYTHON) -m pytest $(TESTS) -m integration -v
 
-coverage: ## Generate and show HTML coverage report
+coverage: venv ## Generate and show HTML coverage report
 	@$(PYTHON) -m pytest $(TESTS) --cov=$(SRC) --cov-report=html
 	@echo "Coverage report generated at htmlcov/index.html"
 
-lint: ## Run linting checks (ruff)
-	@ruff check $(SRC) $(TESTS)
+lint: venv ## Run linting checks (ruff)
+	@$(VENV_BIN)/ruff check $(SRC) $(TESTS)
 
-type-check: ## Run type checking (mypy)
-	@mypy $(SRC)
+type-check: venv ## Run type checking (mypy)
+	@$(VENV_BIN)/mypy $(SRC)
 
-format-check: ## Check code formatting (black)
-	@black $(SRC) $(TESTS) --check
+format-check: venv ## Check code formatting (black)
+	@$(VENV_BIN)/black $(SRC) $(TESTS) --check
 
 ## ========== DEPLOYMENT ==========
 
@@ -118,15 +130,15 @@ docker-logs: ## Show Docker container logs
 
 ## ========== SETUP & CLEANUP ==========
 
-install: ## Install project dependencies
-	$(PYTHON) -m pip install -e .
+install: venv ## Install project dependencies
+	@$(PIP) install -e .
 
-install-dev: ## Install project with dev dependencies
-	$(PYTHON) -m pip install -e ".[dev]"
+install-dev: venv ## Install project with dev dependencies
+	@$(PIP) install -e ".[dev]"
 
-install-upgrade: ## Upgrade all dependencies
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev]" --upgrade
+install-upgrade: venv ## Upgrade all dependencies
+	@$(PIP) install --upgrade pip
+	@$(PIP) install -e ".[dev]" --upgrade
 
 clean: ## Remove build artifacts, cache, and temp files
 	@echo "Cleaning build artifacts..."
@@ -139,6 +151,10 @@ clean: ## Remove build artifacts, cache, and temp files
 	rm -rf .coverage htmlcov/
 	@echo "$(GREEN)Clean complete$(NC)"
 
+clean-venv: ## Remove virtual environment (WARNING: destructive)
+	@rm -rf $(VENV)
+	@echo "$(GREEN)Virtual environment removed$(NC)"
+
 ## ========== UTILITY ==========
 
 show-config: ## Show Maptimize configuration
@@ -147,13 +163,15 @@ show-config: ## Show Maptimize configuration
 	@echo "Tests: $(TESTS)"
 	@echo "Infrastructure: $(INFRA)"
 	@echo "Python: $$($(PYTHON) --version)"
+	@echo "Venv: $(VENV)"
 
-deps: ## Show installed dependencies
-	$(PYTHON) -m pip list | grep -E "pytest|mypy|black|ruff|slack-bolt|pydantic"
+deps: venv ## Show installed dependencies
+	@$(PIP) list | grep -E "pytest|mypy|black|ruff|slack-bolt|pydantic"
 
 check-tools: ## Check if required tools are installed
 	@echo "Checking required tools..."
 	@command -v docker >/dev/null 2>&1 && echo "$(GREEN)✓$(NC) Docker" || echo "$(YELLOW)✗$(NC) Docker not found"
 	@command -v aws >/dev/null 2>&1 && echo "$(GREEN)✓$(NC) AWS CLI" || echo "$(YELLOW)✗$(NC) AWS CLI not found"
-	@command -v $(PYTHON) >/dev/null 2>&1 && echo "$(GREEN)✓$(NC) Python 3" || echo "$(YELLOW)✗$(NC) Python 3 not found"
+	@command -v python3 >/dev/null 2>&1 && echo "$(GREEN)✓$(NC) Python 3" || echo "$(YELLOW)✗$(NC) Python 3 not found"
 	@command -v git >/dev/null 2>&1 && echo "$(GREEN)✓$(NC) Git" || echo "$(YELLOW)✗$(NC) Git not found"
+	@test -d $(VENV) && echo "$(GREEN)✓$(NC) Venv exists" || echo "$(YELLOW)✗$(NC) Venv not found (run: make venv)"
