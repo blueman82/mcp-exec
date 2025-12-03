@@ -25,6 +25,7 @@ dependencies = [
     "aioboto3",
     "structlog",
     "pydantic",
+    "playwright",
     "httpx",
     "python-dotenv",
 ]

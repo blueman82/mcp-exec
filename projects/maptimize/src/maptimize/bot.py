@@ -25,6 +25,7 @@ from maptimize.handlers import (
 from maptimize.handlers import (
     handle_slash_command as process_slash_command,
 )
+from maptimize.miro import screenshot_miro_board
 
 __all__ = [
     "app",
@@ -76,7 +77,9 @@ def handle_message(body: Any, say: Callable[..., Any]) -> None:
 
 
 @app.command("/maptimize")
-def handle_slash_command(ack: Callable[[], None], body: Any, respond: Callable[..., Any]) -> None:
+def handle_slash_command(
+    ack: Callable[[], None], body: Any, respond: Callable[..., Any], client: Any
+) -> None:
     """Handle /maptimize slash command.
 
     Called when user executes the /maptimize slash command.
@@ -86,9 +89,10 @@ def handle_slash_command(ack: Callable[[], None], body: Any, respond: Callable[.
         ack: Callable to acknowledge command receipt
         body: Command payload from Slack
         respond: Callable for sending ephemeral responses to slash commands
+        client: Slack Web API client for file uploads
     """
     ack()
-    process_slash_command(body, respond)
+    process_slash_command(body, respond, client)
 
 
 def create_socket_handler() -> SocketModeHandler:

@@ -5,7 +5,7 @@ including event parsing, configuration loading, response formatting,
 and error handling.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -49,6 +49,33 @@ def mock_say():
 def mock_ack():
     """Provide mock ack callable."""
     return MagicMock()
+
+
+@pytest.fixture
+def mock_respond():
+    """Provide mock respond callable for slash commands."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_slack_client():
+    """Provide mock Slack Web API client."""
+    client = MagicMock()
+    client.files_upload = MagicMock(return_value={
+        "ok": True,
+        "file": {
+            "permalink": "https://files.slack.com/files/T123/F123/image.png",
+            "id": "F123",
+        }
+    })
+    client.chat_postMessage = MagicMock(return_value={"ok": True})
+    return client
+
+
+@pytest.fixture
+def mock_screenshot_bytes():
+    """Return sample PNG bytes."""
+    return b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR'
 
 
 class TestHandleAppMention:
@@ -175,94 +202,315 @@ class TestHandleAppMention:
             handle_app_mention(mock_mention_event, mock_say)
 
 
-class TestHandleSlashCommand:
-    """Tests for handle_slash_command handler."""
+@pytest.mark.asyncio
+class TestHandleSlashCommandAsync:
+    """Tests for async handle_slash_command with Miro integration."""
 
-    def test_handle_slash_command_success(self, mock_command_event, mock_say):
-        """Test successful slash command handling."""
-        with patch("maptimize.config.load_processes") as mock_load:
+    async def test_async_slash_command_with_miro_success(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+        mock_screenshot_bytes,
+    ):
+        """Test successful async slash command with Miro screenshot."""
+        with patch("maptimize.handlers.load_processes") as mock_load, \
+             patch("maptimize.handlers.screenshot_miro_board") as mock_screenshot, \
+             patch("maptimize.handlers.create_response_blocks") as mock_create_blocks:
+
             from maptimize.handlers import handle_slash_command
 
+            # Setup mocks
             mock_load.return_value = {
                 "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
+                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize",
+                    "description": "8-step process for reviews",
+                    "miro_board_id": "uXjVJ2FVjGM",
                 }
             }
+            mock_screenshot.return_value = mock_screenshot_bytes
+            mock_create_blocks.return_value = [
+                {"type": "header", "text": {"type": "plain_text", "text": "Test Header"}},
+                {"type": "image", "image_url": "https://files.slack.com/files/T123/F123/image.png", "alt_text": "Test"},
+            ]
 
-            handle_slash_command(mock_command_event, mock_say)
+            # Call async handler
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
 
-            # Verify say was called with ephemeral response
-            mock_say.assert_called_once()
-            call_kwargs = mock_say.call_args[1]
-            assert call_kwargs.get("response_type") == "ephemeral"
-            assert "text" in call_kwargs
+            # Verify screenshot was called
+            mock_screenshot.assert_called_once_with("uXjVJ2FVjGM")
 
-    def test_handle_slash_command_extracts_user_id(self, mock_command_event, mock_say):
-        """Test that handler extracts user ID from command."""
+            # Verify file upload was called with correct parameters
+            mock_slack_client.files_upload.assert_called_once()
+            upload_call = mock_slack_client.files_upload.call_args
+            assert upload_call[1]["channels"] == "C123456"
+            assert upload_call[1]["file"] == mock_screenshot_bytes
+            assert "service_review_process" in upload_call[1]["filename"]
+            assert upload_call[1]["filename"].endswith(".png")
+
+            # Verify chat_postMessage was called with blocks
+            mock_slack_client.chat_postMessage.assert_called_once()
+            post_call = mock_slack_client.chat_postMessage.call_args
+            assert post_call[1]["channel"] == "C123456"
+            assert "blocks" in post_call[1]
+            assert post_call[1]["blocks"] is not None
+
+            # Verify create_response_blocks was called with image URLs
+            mock_create_blocks.assert_called_once()
+            call_args = mock_create_blocks.call_args
+            processes = call_args[0][0]
+            image_urls = call_args[0][1]
+            assert "Service Review Process" in image_urls
+            assert "https://files.slack.com/files/T123/F123/image.png" in image_urls["Service Review Process"]
+
+    async def test_async_slash_command_with_miro_screenshot_fails(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+    ):
+        """Test async slash command when Miro screenshot fails."""
+        with patch("maptimize.handlers.load_processes") as mock_load, \
+             patch("maptimize.handlers.screenshot_miro_board") as mock_screenshot, \
+             patch("maptimize.handlers.create_response_blocks") as mock_create_blocks:
+
+            from maptimize.handlers import handle_slash_command
+
+            # Setup mocks - screenshot returns None (failure)
+            mock_load.return_value = {
+                "Service Review Process": {
+                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize",
+                    "miro_board_id": "uXjVJ2FVjGM",
+                }
+            }
+            mock_screenshot.return_value = None
+            mock_create_blocks.return_value = [
+                {"type": "section", "text": {"type": "mrkdwn", "text": "Test"}},
+            ]
+
+            # Call async handler - should not crash
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
+
+            # Verify screenshot was attempted
+            mock_screenshot.assert_called_once_with("uXjVJ2FVjGM")
+
+            # Verify file upload was NOT called
+            mock_slack_client.files_upload.assert_not_called()
+
+            # Verify message was still posted (without image)
+            mock_slack_client.chat_postMessage.assert_called_once()
+
+            # Verify create_response_blocks was called with empty image_urls
+            mock_create_blocks.assert_called_once()
+            call_args = mock_create_blocks.call_args
+            image_urls = call_args[0][1]
+            assert "Service Review Process" not in image_urls
+
+    async def test_async_slash_command_without_miro_board_id(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+    ):
+        """Test async slash command with process that has no miro_board_id."""
+        with patch("maptimize.handlers.load_processes") as mock_load, \
+             patch("maptimize.handlers.screenshot_miro_board") as mock_screenshot, \
+             patch("maptimize.handlers.create_response_blocks") as mock_create_blocks:
+
+            from maptimize.handlers import handle_slash_command
+
+            # Setup mocks - no miro_board_id
+            mock_load.return_value = {
+                "Service Review Process": {
+                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize",
+                    "description": "Process without diagram",
+                }
+            }
+            mock_create_blocks.return_value = [
+                {"type": "section", "text": {"type": "mrkdwn", "text": "Test"}},
+            ]
+
+            # Call async handler
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
+
+            # Verify screenshot was NOT called
+            mock_screenshot.assert_not_called()
+
+            # Verify file upload was NOT called
+            mock_slack_client.files_upload.assert_not_called()
+
+            # Verify message was still posted (text-only fallback)
+            mock_slack_client.chat_postMessage.assert_called_once()
+
+    async def test_async_slash_command_file_upload_error(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+        mock_screenshot_bytes,
+    ):
+        """Test async slash command when file upload fails."""
+        with patch("maptimize.handlers.load_processes") as mock_load, \
+             patch("maptimize.handlers.screenshot_miro_board") as mock_screenshot, \
+             patch("maptimize.handlers.create_response_blocks") as mock_create_blocks:
+
+            from maptimize.handlers import handle_slash_command
+
+            # Setup mocks
+            mock_load.return_value = {
+                "Service Review Process": {
+                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize",
+                    "miro_board_id": "uXjVJ2FVjGM",
+                }
+            }
+            mock_screenshot.return_value = mock_screenshot_bytes
+
+            # Make files_upload raise exception
+            mock_slack_client.files_upload.side_effect = Exception("Upload failed")
+
+            mock_create_blocks.return_value = [
+                {"type": "section", "text": {"type": "mrkdwn", "text": "Test"}},
+            ]
+
+            # Call async handler - should not crash
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
+
+            # Verify screenshot was called
+            mock_screenshot.assert_called_once()
+
+            # Verify file upload was attempted
+            mock_slack_client.files_upload.assert_called_once()
+
+            # Verify message was still posted (fallback without image)
+            mock_slack_client.chat_postMessage.assert_called_once()
+
+    async def test_async_slash_command_creates_correct_blocks(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+        mock_screenshot_bytes,
+    ):
+        """Test that async slash command creates correct Block Kit structure."""
+        with patch("maptimize.handlers.load_processes") as mock_load, \
+             patch("maptimize.handlers.screenshot_miro_board") as mock_screenshot:
+
+            from maptimize.handlers import handle_slash_command
+
+            # Setup mocks
+            mock_load.return_value = {
+                "Service Review Process": {
+                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize",
+                    "description": "8-step process",
+                    "miro_board_id": "uXjVJ2FVjGM",
+                }
+            }
+            mock_screenshot.return_value = mock_screenshot_bytes
+
+            # Call async handler
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
+
+            # Verify chat_postMessage was called
+            mock_slack_client.chat_postMessage.assert_called_once()
+
+            # Extract blocks from call
+            post_call = mock_slack_client.chat_postMessage.call_args
+            blocks = post_call[1]["blocks"]
+
+            # Verify block structure
+            assert isinstance(blocks, list)
+            assert len(blocks) > 0
+
+            # First block should be header
+            assert blocks[0]["type"] == "header"
+            assert blocks[0]["text"]["type"] == "plain_text"
+            assert "Maptimize" in blocks[0]["text"]["text"]
+
+            # Should have divider after header
+            assert blocks[1]["type"] == "divider"
+
+            # Should contain image block (since we successfully uploaded)
+            image_blocks = [b for b in blocks if b.get("type") == "image"]
+            assert len(image_blocks) > 0
+
+            # Image block should have correct structure
+            image_block = image_blocks[0]
+            assert "image_url" in image_block
+            assert "alt_text" in image_block
+            assert "https://files.slack.com/files/T123/F123/image.png" in image_block["image_url"]
+
+    async def test_async_slash_command_multiple_processes_with_mixed_miro(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+        mock_screenshot_bytes,
+    ):
+        """Test async slash command with multiple processes, some with Miro boards."""
+        with patch("maptimize.handlers.load_processes") as mock_load, \
+             patch("maptimize.handlers.screenshot_miro_board") as mock_screenshot, \
+             patch("maptimize.handlers.create_response_blocks") as mock_create_blocks:
+
+            from maptimize.handlers import handle_slash_command
+
+            # Setup mocks - multiple processes
+            mock_load.return_value = {
+                "Process With Miro": {
+                    "wiki_url": "https://wiki.corp.adobe.com/process1",
+                    "miro_board_id": "board1",
+                },
+                "Process Without Miro": {
+                    "wiki_url": "https://wiki.corp.adobe.com/process2",
+                },
+                "Another With Miro": {
+                    "wiki_url": "https://wiki.corp.adobe.com/process3",
+                    "miro_board_id": "board2",
+                },
+            }
+            mock_screenshot.return_value = mock_screenshot_bytes
+            mock_create_blocks.return_value = [{"type": "section", "text": {"type": "mrkdwn", "text": "Test"}}]
+
+            # Call async handler
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
+
+            # Verify screenshot was called twice (for two processes with miro_board_id)
+            assert mock_screenshot.call_count == 2
+            mock_screenshot.assert_any_call("board1")
+            mock_screenshot.assert_any_call("board2")
+
+            # Verify file upload was called twice
+            assert mock_slack_client.files_upload.call_count == 2
+
+            # Verify create_response_blocks was called with two image URLs
+            mock_create_blocks.assert_called_once()
+            call_args = mock_create_blocks.call_args
+            image_urls = call_args[0][1]
+            assert len(image_urls) == 2
+            assert "Process With Miro" in image_urls
+            assert "Another With Miro" in image_urls
+            assert "Process Without Miro" not in image_urls
+
+    async def test_async_slash_command_exception_handling(
+        self,
+        mock_command_event,
+        mock_respond,
+        mock_slack_client,
+    ):
+        """Test that async slash command handles exceptions gracefully."""
         with patch("maptimize.handlers.load_processes") as mock_load:
             from maptimize.handlers import handle_slash_command
 
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
+            # Make load_processes raise exception
+            mock_load.side_effect = Exception("Config load failed")
 
-            handle_slash_command(mock_command_event, mock_say)
+            # Call async handler - should not raise
+            await handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
 
-            # Verify load_processes was called
-            mock_load.assert_called_once()
-
-    def test_handle_slash_command_config_load_failure(self, mock_command_event, mock_say):
-        """Test handling of config load failures."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.side_effect = RuntimeError("Failed to load config")
-
-            handle_slash_command(mock_command_event, mock_say)
-
-            # Should still send ephemeral error message
-            mock_say.assert_called_once()
-            call_kwargs = mock_say.call_args[1]
-            assert call_kwargs.get("response_type") == "ephemeral"
-
-    def test_handle_slash_command_say_failure_handled(self, mock_command_event, mock_say):
-        """Test that say() failure is handled gracefully."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
-
-            mock_say.side_effect = Exception("Slack API error")
-
-            # Should not raise
-            handle_slash_command(mock_command_event, mock_say)
-
-    def test_handle_slash_command_missing_user_id(self, mock_say):
-        """Test error handling for missing user_id."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
-
-            # Command without user_id
-            invalid_event = {"type": "slash_commands", "command": "/maptimize"}
-
-            handle_slash_command(invalid_event, mock_say)
-
-            # Should handle gracefully
-            mock_say.assert_called_once()
-            call_kwargs = mock_say.call_args[1]
-            assert call_kwargs.get("response_type") == "ephemeral"
+            # Verify error response was sent
+            mock_respond.assert_called_once()
+            call_args = mock_respond.call_args
+            assert "error occurred" in call_args[1]["text"].lower()
+            assert call_args[1].get("response_type") == "ephemeral"
 
 
 class TestHandlerLogging:

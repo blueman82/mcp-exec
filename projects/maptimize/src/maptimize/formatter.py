@@ -5,7 +5,7 @@ including block templates, interactive elements, and rich formatting
 for task information, process details, and error messages.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 __all__ = [
     "format_response",
@@ -13,6 +13,7 @@ __all__ = [
     "format_process_message",
     "format_error_message",
     "create_block_kit_message",
+    "create_response_blocks",
 ]
 
 
@@ -88,6 +89,121 @@ def create_block_kit_message(processes: Dict[str, Any]) -> str:
                 lines.append(f"  Wiki: {process_info['wiki_url']}")
 
     return "\n".join(lines)
+
+
+def create_response_blocks(
+    processes: Dict[str, Any],
+    image_urls: Optional[Dict[str, str]] = None,
+) -> List[Dict[str, Any]]:
+    """Create Block Kit response blocks with optional Miro diagrams.
+
+    Builds a rich Block Kit response with process information, descriptions,
+    and embedded Miro board screenshots. Each process is displayed with:
+    - Header section with process name in bold
+    - Optional Miro diagram image (if available)
+    - Description text
+    - Wiki link (if available)
+    - Divider between processes
+
+    Args:
+        processes: Process configuration dict with process names as keys
+        image_urls: Dict mapping process names to Slack image permalink URLs
+
+    Returns:
+        List of Block Kit block dictionaries ready for Slack API
+
+    Example:
+        >>> processes = {
+        ...     'Service Review Process': {
+        ...         'description': '8-step process for reviews',
+        ...         'wiki_url': 'https://wiki.corp.adobe.com/...',
+        ...         'miro_board_id': 'abc123'
+        ...     }
+        ... }
+        >>> image_urls = {'Service Review Process': 'https://slack.com/...'}
+        >>> blocks = create_response_blocks(processes, image_urls)
+    """
+    if image_urls is None:
+        image_urls = {}
+
+    blocks: List[Dict[str, Any]] = []
+
+    # Add header
+    blocks.append({
+        "type": "header",
+        "text": {
+            "type": "plain_text",
+            "text": "Maptimize Process Information",
+            "emoji": True,
+        }
+    })
+
+    blocks.append({"type": "divider"})
+
+    if not processes:
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "_No processes available._",
+            }
+        })
+        return blocks
+
+    # Add each process
+    for process_name, process_info in processes.items():
+        if not isinstance(process_info, dict):
+            continue
+
+        # Build process header text with description
+        description = process_info.get("description", "")
+        wiki_url = process_info.get("wiki_url", "")
+
+        header_text = f"*{process_name}*"
+        if description:
+            header_text += f"\n{description}"
+
+        # Add header section
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": header_text,
+            }
+        })
+
+        # Add wiki link button if available
+        if wiki_url:
+            blocks.append({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": " ",  # Empty text to satisfy Block Kit requirements
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "View on Wiki",
+                        "emoji": True,
+                    },
+                    "url": wiki_url,
+                    "action_id": f"wiki_link_{process_name.lower().replace(' ', '_')}",
+                }
+            })
+
+        # Add Miro diagram image if available
+        if process_name in image_urls:
+            blocks.append({
+                "type": "image",
+                "image_url": image_urls[process_name],
+                "alt_text": f"{process_name} Process Diagram",
+            })
+
+        # Add divider between processes
+        blocks.append({"type": "divider"})
+
+    return blocks
 
 
 def format_task_message(task_id: str, task_info: Dict[str, Any]) -> str:
