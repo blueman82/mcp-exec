@@ -252,18 +252,29 @@ if [ "$QUICK" != true ]; then
 fi
 
 # ========== SUMMARY ==========
-log_section "Validation Summary"
-log_info "Passed: $CHECKS_PASSED"
-log_info "Failed: $CHECKS_FAILED"
+log_section "Validation Results"
+echo ""
 
 if [ $CHECKS_FAILED -eq 0 ]; then
-    log_success "All validation checks passed! ✓"
+    echo -e "${GREEN}${BOLD}✓ All Validation Stages Passed${NC}"
+    echo ""
+    echo -e "${GREEN}Validation Stages:${NC}"
+    echo "  ✓ Code Formatting (black)"
+    echo "  ✓ Linting (ruff)"
+    if [ "$QUICK" != true ]; then
+        echo "  ✓ Type Checking (mypy)"
+        echo "  ✓ Unit & Integration Tests (pytest)"
+    fi
+    echo ""
+    echo -e "${GREEN}${BOLD}Ready to commit and push!${NC}"
     exit 0
 else
-    log_error "Validation failed. Failed checks:"
+    log_error "Validation failed. Fix the errors above:"
+    echo ""
     for check in "${FAILED_CHECKS[@]}"; do
-        log_error "  - $check"
+        echo -e "${RED}  ✗ ${check}${NC}"
     done
-    log_error "Fix errors above and try again."
+    echo ""
+    log_error "Try again after fixing errors."
     exit 1
 fi
