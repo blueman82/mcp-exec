@@ -1,8 +1,11 @@
 """Tests for Miro board screenshot functionality."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, call
-from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import (
+    TimeoutError as PlaywrightTimeoutError,  # type: ignore[import-not-found]
+)
 
 from maptimize.miro import screenshot_miro_board
 
@@ -11,7 +14,10 @@ from maptimize.miro import screenshot_miro_board
 def mock_screenshot_bytes():
     """Return sample PNG bytes."""
     # Minimal valid PNG header
-    return b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde'
+    return (
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+        b"\x08\x02\x00\x00\x00\x90wS\xde"
+    )
 
 
 @pytest.fixture
@@ -42,11 +48,15 @@ def mock_playwright_browser(mock_screenshot_bytes):
 class TestScreenshotMiroBoard:
     """Tests for screenshot_miro_board function."""
 
-    async def test_screenshot_miro_board_success(self, mock_playwright_browser, mock_screenshot_bytes):
+    async def test_screenshot_miro_board_success(
+        self, mock_playwright_browser, mock_screenshot_bytes
+    ):
         """Test successful Miro board screenshot capture."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Call function
             result = await screenshot_miro_board("uXjVJ2FVjGM")
@@ -58,7 +68,9 @@ class TestScreenshotMiroBoard:
             assert len(result) > 0
 
             # Verify browser operations
-            mock_playwright_browser["playwright"].chromium.launch.assert_called_once_with(headless=True)
+            mock_playwright_browser["playwright"].chromium.launch.assert_called_once_with(
+                headless=True
+            )
             mock_playwright_browser["browser"].new_page.assert_called_once_with(
                 viewport={"width": 1700, "height": 1000}
             )
@@ -86,7 +98,9 @@ class TestScreenshotMiroBoard:
             await screenshot_miro_board(None)
 
         # Will raise because None is not a string and will fail validation
-        assert "board_id cannot be empty" in str(exc_info.value) or "NoneType" in str(exc_info.value)
+        assert "board_id cannot be empty" in str(exc_info.value) or "NoneType" in str(
+            exc_info.value
+        )
 
     async def test_screenshot_miro_board_invalid_board_id_special_chars(self):
         """Test with invalid characters in board_id raises ValueError."""
@@ -100,10 +114,14 @@ class TestScreenshotMiroBoard:
         """Test handling of page load timeout."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Make goto raise PlaywrightTimeoutError
-            mock_playwright_browser["page"].goto.side_effect = PlaywrightTimeoutError("Timeout exceeded")
+            mock_playwright_browser["page"].goto.side_effect = PlaywrightTimeoutError(
+                "Timeout exceeded"
+            )
 
             # Call function
             result = await screenshot_miro_board("uXjVJ2FVjGM")
@@ -118,7 +136,9 @@ class TestScreenshotMiroBoard:
         """Test handling of generic network errors."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Make goto raise generic exception
             mock_playwright_browser["page"].goto.side_effect = Exception("Network error")
@@ -136,7 +156,9 @@ class TestScreenshotMiroBoard:
         """Test browser cleanup happens even when errors occur."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Make screenshot raise exception
             mock_playwright_browser["page"].screenshot.side_effect = Exception("Screenshot failed")
@@ -150,11 +172,15 @@ class TestScreenshotMiroBoard:
             # Verify browser.close() was called despite error
             mock_playwright_browser["browser"].close.assert_called()
 
-    async def test_screenshot_miro_board_custom_dimensions(self, mock_playwright_browser, mock_screenshot_bytes):
+    async def test_screenshot_miro_board_custom_dimensions(
+        self, mock_playwright_browser, mock_screenshot_bytes
+    ):
         """Test screenshot with custom width and height."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Call with custom dimensions
             custom_width = 1920
@@ -173,11 +199,15 @@ class TestScreenshotMiroBoard:
                 viewport={"width": custom_width, "height": custom_height}
             )
 
-    async def test_screenshot_miro_board_custom_timeout(self, mock_playwright_browser, mock_screenshot_bytes):
+    async def test_screenshot_miro_board_custom_timeout(
+        self, mock_playwright_browser, mock_screenshot_bytes
+    ):
         """Test screenshot with custom timeout."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Call with custom timeout
             custom_timeout = 60000  # 60 seconds
@@ -196,11 +226,15 @@ class TestScreenshotMiroBoard:
                 timeout=custom_timeout,
             )
 
-    async def test_screenshot_miro_board_browser_close_failure_logged(self, mock_playwright_browser):
+    async def test_screenshot_miro_board_browser_close_failure_logged(
+        self, mock_playwright_browser
+    ):
         """Test that browser close failures are logged but don't raise."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Make screenshot succeed but browser.close fail
             mock_playwright_browser["browser"].close.side_effect = Exception("Close failed")
@@ -212,11 +246,15 @@ class TestScreenshotMiroBoard:
             # The important thing is that it doesn't raise an exception
             assert result is None
 
-    async def test_screenshot_miro_board_valid_board_id_with_hyphens(self, mock_playwright_browser, mock_screenshot_bytes):
+    async def test_screenshot_miro_board_valid_board_id_with_hyphens(
+        self, mock_playwright_browser, mock_screenshot_bytes
+    ):
         """Test that board IDs with hyphens are accepted."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Call with board ID containing hyphens
             result = await screenshot_miro_board("board-id-with-hyphens")
@@ -224,11 +262,15 @@ class TestScreenshotMiroBoard:
             # Should succeed
             assert result == mock_screenshot_bytes
 
-    async def test_screenshot_miro_board_valid_board_id_with_underscores(self, mock_playwright_browser, mock_screenshot_bytes):
+    async def test_screenshot_miro_board_valid_board_id_with_underscores(
+        self, mock_playwright_browser, mock_screenshot_bytes
+    ):
         """Test that board IDs with underscores are accepted."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             # Call with board ID containing underscores
             result = await screenshot_miro_board("board_id_with_underscores")
@@ -236,14 +278,18 @@ class TestScreenshotMiroBoard:
             # Should succeed
             assert result == mock_screenshot_bytes
 
-    async def test_screenshot_miro_board_constructs_correct_url(self, mock_playwright_browser, mock_screenshot_bytes):
+    async def test_screenshot_miro_board_constructs_correct_url(
+        self, mock_playwright_browser, mock_screenshot_bytes
+    ):
         """Test that the correct Miro board URL is constructed."""
         with patch("maptimize.miro.async_playwright") as mock_async_playwright:
             # Setup async context manager
-            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser["playwright"]
+            mock_async_playwright.return_value.__aenter__.return_value = mock_playwright_browser[
+                "playwright"
+            ]
 
             board_id = "testBoardId123"
-            result = await screenshot_miro_board(board_id)
+            await screenshot_miro_board(board_id)
 
             # Verify correct URL was used
             expected_url = f"https://miro.com/app/board/{board_id}/"

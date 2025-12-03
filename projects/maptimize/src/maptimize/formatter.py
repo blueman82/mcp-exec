@@ -129,25 +129,29 @@ def create_response_blocks(
     blocks: List[Dict[str, Any]] = []
 
     # Add header
-    blocks.append({
-        "type": "header",
-        "text": {
-            "type": "plain_text",
-            "text": "Maptimize Process Information",
-            "emoji": True,
+    blocks.append(
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": "Maptimize Process Information",
+                "emoji": True,
+            },
         }
-    })
+    )
 
     blocks.append({"type": "divider"})
 
     if not processes:
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "_No processes available._",
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "_No processes available._",
+                },
             }
-        })
+        )
         return blocks
 
     # Add each process
@@ -164,41 +168,47 @@ def create_response_blocks(
             header_text += f"\n{description}"
 
         # Add header section
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": header_text,
-            }
-        })
-
-        # Add wiki link button if available
-        if wiki_url:
-            blocks.append({
+        blocks.append(
+            {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": " ",  # Empty text to satisfy Block Kit requirements
+                    "text": header_text,
                 },
-                "accessory": {
-                    "type": "button",
+            }
+        )
+
+        # Add wiki link button if available
+        if wiki_url:
+            blocks.append(
+                {
+                    "type": "section",
                     "text": {
-                        "type": "plain_text",
-                        "text": "View on Wiki",
-                        "emoji": True,
+                        "type": "mrkdwn",
+                        "text": " ",  # Empty text to satisfy Block Kit requirements
                     },
-                    "url": wiki_url,
-                    "action_id": f"wiki_link_{process_name.lower().replace(' ', '_')}",
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "View on Wiki",
+                            "emoji": True,
+                        },
+                        "url": wiki_url,
+                        "action_id": f"wiki_link_{process_name.lower().replace(' ', '_')}",
+                    },
                 }
-            })
+            )
 
         # Add Miro diagram image if available
         if process_name in image_urls:
-            blocks.append({
-                "type": "image",
-                "image_url": image_urls[process_name],
-                "alt_text": f"{process_name} Process Diagram",
-            })
+            blocks.append(
+                {
+                    "type": "image",
+                    "image_url": image_urls[process_name],
+                    "alt_text": f"{process_name} Process Diagram",
+                }
+            )
 
         # Add divider between processes
         blocks.append({"type": "divider"})

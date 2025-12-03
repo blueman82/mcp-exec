@@ -8,7 +8,7 @@ Slack event structures and comprehensive error handling.
 from unittest.mock import MagicMock, patch
 
 from maptimize.formatter import create_block_kit_message, format_response
-from maptimize.handlers import handle_app_mention, handle_slash_command
+from maptimize.handlers import handle_app_mention
 
 
 class TestMentionHandlingFlow:

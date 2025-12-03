@@ -53,16 +53,16 @@ venv: ## Create Python virtual environment
 ## ========== VALIDATION & TESTING ==========
 
 validate: venv ## Validate code (pytest, mypy, ruff, black)
-	@./$(INFRA)/validate.sh
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh
 
 validate-verbose: venv ## Validate with verbose output
-	@./$(INFRA)/validate.sh -v
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh -v
 
 validate-quick: venv ## Quick validation (ruff only, skip slow checks)
-	@./$(INFRA)/validate.sh --quick
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh --quick
 
 fix: venv ## Auto-fix code style issues (black, ruff)
-	@./$(INFRA)/validate.sh --fix
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh --fix
 
 test: venv ## Run tests with coverage
 	@$(PYTHON) -m pytest $(TESTS) --cov=$(SRC) --cov-report=term-missing -v

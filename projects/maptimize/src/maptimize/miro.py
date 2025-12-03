@@ -8,10 +8,10 @@ import re
 from typing import Optional
 
 import structlog
-from playwright.async_api import (
+from playwright.async_api import (  # type: ignore[import-not-found]
     TimeoutError as PlaywrightTimeoutError,
-    async_playwright,
 )
+from playwright.async_api import async_playwright  # type: ignore[import-not-found]
 
 __all__ = [
     "screenshot_miro_board",
@@ -79,9 +79,7 @@ async def screenshot_miro_board(
             browser = await playwright.chromium.launch(headless=True)
 
             # Create new page with specified viewport
-            page = await browser.new_page(
-                viewport={"width": width, "height": height}
-            )
+            page = await browser.new_page(viewport={"width": width, "height": height})
 
             # Construct Miro board URL
             board_url = f"https://miro.com/app/board/{board_id}/"
@@ -95,7 +93,7 @@ async def screenshot_miro_board(
             )
 
             # Capture full page screenshot as PNG
-            screenshot_bytes = await page.screenshot(
+            screenshot_bytes: bytes = await page.screenshot(
                 type="png",
                 full_page=True,
             )
@@ -116,7 +114,6 @@ async def screenshot_miro_board(
             "miro_screenshot_timeout",
             board_id=board_id,
             timeout_ms=timeout_ms,
-            message=f"Page load exceeded {timeout_ms}ms timeout. Board may be private or slow to load.",
         )
         return None
 

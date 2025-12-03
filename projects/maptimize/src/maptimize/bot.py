@@ -10,10 +10,8 @@ without requiring the application to expose a public HTTP endpoint.
 
 from typing import Any, Callable
 
-from slack_bolt.adapter.socket_mode import (  # type: ignore[import-not-found]
-    SocketModeHandler,
-)
-from slack_bolt.app import App  # type: ignore[import-not-found]
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_bolt.app import App
 
 from maptimize.config import get_slack_tokens
 from maptimize.handlers import (
@@ -25,7 +23,6 @@ from maptimize.handlers import (
 from maptimize.handlers import (
     handle_slash_command as process_slash_command,
 )
-from maptimize.miro import screenshot_miro_board
 
 __all__ = [
     "app",
