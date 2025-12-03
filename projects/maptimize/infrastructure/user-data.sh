@@ -184,6 +184,29 @@ systemctl start docker
 
 log_info "Docker installed and started"
 
+# ========== BOT DEPLOYMENT ==========
+
+log_section "Deploying Maptimize Bot v0.1.1"
+
+# Configure AWS credentials from environment/instance profile
+export AWS_REGION="eu-west-1"
+export AWS_DEFAULT_REGION="eu-west-1"
+
+# Pull bot image from ECR
+docker login -u AWS -p $(aws ecr get-login-password --region eu-west-1) 483013340174.dkr.ecr.eu-west-1.amazonaws.com
+
+docker pull 483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:v0.1.1
+
+# Run bot container with restart policy
+docker run -d \
+  --restart=always \
+  --name maptimize-bot \
+  -e LOG_LEVEL=INFO \
+  -e ENVIRONMENT=production \
+  483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:v0.1.1
+
+log_info "Maptimize Bot v0.1.1 deployed and running"
+
 # ========== COMPLETION ==========
 
 log_section "User data initialization complete"
