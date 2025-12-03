@@ -100,10 +100,10 @@ log_info "SSSD configuration written"
 
 # ========== NSSWITCH CONFIGURATION ==========
 
-log_section "Updating nsswitch.conf"
+log_section "Updating nsswitch.conf for SSSD"
 
 cat > /etc/nsswitch.conf << 'EOF'
-# /etc/nsswitch.conf
+# /etc/nsswitch.conf - SSSD integration for LDAP
 #
 passwd:         files sss
 group:          files sss
@@ -123,7 +123,7 @@ automount:      sss
 sudoers:        files sss
 EOF
 
-log_info "nsswitch.conf updated"
+log_info "nsswitch.conf configured with LDAP sudo support"
 
 # ========== SSH CONFIGURATION ==========
 
