@@ -1,6 +1,6 @@
 # Meta-MCP Server Architecture
 
-## 1. System Overview (100 lines)
+## 1. System Overview
 
 ### Complete System Diagram
 
@@ -21,7 +21,7 @@ graph TB
         Cache -.->|Schemas| Server
     end
 
-    subgraph Pool["Connection Pool<br/>src/pool/server-pool.ts<br/>Max 6, LRU eviction<br/>5min idle timeout"]
+    subgraph Pool["Connection Pool<br/>src/pool/server-pool.ts<br/>Max 20, LRU eviction<br/>5min idle timeout"]
         P["Active Connections<br/>1-6 backends"]
     end
 
@@ -62,7 +62,7 @@ graph TB
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | **MCP Server** | `src/server.ts` | Routes requests to 3 meta-tools |
-| **ServerPool** | `src/pool/server-pool.ts` | Manages up to 6 backend connections with LRU eviction |
+| **ServerPool** | `src/pool/server-pool.ts` | Manages up to 20 backend connections with LRU eviction |
 | **Connection** | `src/pool/connection.ts` | Spawns and manages individual backend processes |
 | **Registry** | `src/registry/loader.ts` | Loads, validates, caches servers.json manifest |
 | **ToolCache** | `src/tools/tool-cache.ts` | Caches tool schemas per-server in memory |
@@ -70,7 +70,7 @@ graph TB
 
 ---
 
-## 2. Configuration & Registry (200 lines)
+## 2. Configuration & Registry
 
 ### servers.json Format
 
@@ -219,7 +219,7 @@ stateDiagram-v2
 
 ---
 
-## 3. Lifecycle (300 lines)
+## 3. Lifecycle
 
 ### Startup Sequence
 
@@ -324,7 +324,7 @@ stateDiagram-v2
 
     note right of Empty
         Pool empty
-        Max 6 connections
+        Max 20 connections
         LRU eviction policy
     end note
 
@@ -581,7 +581,7 @@ src/
 ├── index.ts                 # Entry point (startup, signal handling)
 ├── server.ts                # MCP server, 3 meta-tool handlers
 ├── pool/
-│   ├── server-pool.ts       # LRU pool manager (max 6, 5min timeout)
+│   ├── server-pool.ts       # LRU pool manager (max 20, 5min timeout)
 │   └── connection.ts        # Backend spawn/connect lifecycle
 ├── registry/
 │   ├── loader.ts            # Loads/validates servers.json via Zod

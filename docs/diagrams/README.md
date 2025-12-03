@@ -2,15 +2,13 @@
 
 Ultra-dense technical documentation for developers with MCP knowledge.
 
-## Documents (3 total, ~2,200 lines)
+## Documents
 
-| Document | Lines | Focus | Content |
-|----------|-------|-------|---------|
-| [**architecture.md**](architecture.md) | ~600 | System + Config + Lifecycle | System diagram, config loading, startup/shutdown sequences |
-| [**core-mechanics.md**](core-mechanics.md) | ~1,000 | Pool + Connections + Caching + Tools | ServerPool (LRU), connections (4 transports), tool cache, 3 handlers |
-| [**token-economics.md**](token-economics.md) | ~600 | ROI + Optimization | Request flows with token counts, strategy comparison, break-even analysis |
-
-**Consolidates:** 10 previous diagrams (01-10) into 3 focused documents
+| Document | Focus | Content |
+|----------|-------|---------|
+| [**architecture.md**](architecture.md) | System + Config + Lifecycle | System diagram, config loading, startup/shutdown sequences |
+| [**core-mechanics.md**](core-mechanics.md) | Pool + Connections + Caching + Tools | ServerPool (LRU), connections (4 transports), tool cache, 3 handlers |
+| [**token-economics.md**](token-economics.md) | ROI + Optimization | Request flows with token counts, strategy comparison, break-even analysis |
 
 ---
 
@@ -36,8 +34,8 @@ Ultra-dense technical documentation for developers with MCP knowledge.
 ## Reading Paths
 
 ### Path 1: Quick Start (15 min)
-1. architecture.md → System Overview (100 lines)
-2. token-economics.md → Token Comparison (150 lines)
+1. architecture.md → System Overview
+2. token-economics.md → Token Comparison
 3. core-mechanics.md → skim diagrams
 
 ### Path 2: Implementation (60 min)

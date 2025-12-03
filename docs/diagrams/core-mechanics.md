@@ -4,7 +4,7 @@ Ultra-dense reference consolidating ServerPool, Connection Layer, Tool Cache, an
 
 ---
 
-## 1. ServerPool: Connection Pooling & LRU Eviction (250 lines)
+## 1. ServerPool: Connection Pooling & LRU Eviction
 
 ### Class Structure
 
@@ -204,7 +204,7 @@ sequenceDiagram
 
 ---
 
-## 2. Connections: Lifecycle & Transport Layer (200 lines)
+## 2. Connections: Lifecycle & Transport Layer
 
 ### Connection State Machine
 
@@ -489,7 +489,7 @@ sequenceDiagram
 
 ---
 
-## 3. Tool Cache: Structure & Lifecycle (150 lines)
+## 3. Tool Cache: Structure & Lifecycle
 
 ### Cache Structure (Class Diagram)
 
@@ -634,7 +634,7 @@ sequenceDiagram
 
 ---
 
-## 4. Tool System: Three Handler Architecture (200 lines)
+## 4. Tool System: Three Handler Architecture
 
 ### Three Handlers Overview
 
@@ -917,7 +917,7 @@ flowchart TD
 
 ---
 
-## 5. Integration Points & Lifecycle Example (100 lines)
+## 5. Integration Points & Lifecycle Example
 
 ### Pool Eviction Triggers Cache Cleanup
 
