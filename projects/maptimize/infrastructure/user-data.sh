@@ -171,12 +171,26 @@ else
     log_error "Warning: LDAP user resolution may not be working yet"
 fi
 
+# ========== DOCKER INSTALLATION ==========
+
+log_section "Installing Docker"
+
+apt-get install -y docker.io docker-compose
+
+usermod -aG docker admin
+
+systemctl enable docker
+systemctl start docker
+
+log_info "Docker installed and started"
+
 # ========== COMPLETION ==========
 
 log_section "User data initialization complete"
 
 log_info "SSSD with LDAP authentication is configured"
 log_info "SSH with SSSD public key auth is configured"
+log_info "Docker is installed and ready"
 log_info "Logs available at: $LOG_FILE"
 
 exit 0
