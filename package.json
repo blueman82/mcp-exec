@@ -1,6 +1,6 @@
 {
   "name": "@justanothermldude/meta-mcp-server",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Meta MCP server that wraps multiple backend MCP servers, exposing only 3 meta-tools to reduce context token consumption",
   "type": "module",
   "main": "dist/index.js",
