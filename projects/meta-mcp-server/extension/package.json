@@ -2,7 +2,7 @@
   "name": "meta-mcp-configurator",
   "displayName": "Meta-MCP",
   "description": "Configure and manage Meta-MCP server backends with a visual interface",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "adobe",
   "icon": "media/meta-mcp-logo.png",
   "engines": {
@@ -63,7 +63,7 @@
     "compile": "webpack --mode development",
     "watch": "webpack --watch",
     "build": "webpack --mode production",
-    "package": "npm run build && vsce package",
+    "package": "npm run build && npx @vscode/vsce package --no-dependencies",
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {

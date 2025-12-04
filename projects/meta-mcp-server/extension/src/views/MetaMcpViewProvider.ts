@@ -11,9 +11,14 @@ import { ServerConfig } from '../types';
  */
 interface ServerListItem {
     name: string;
-    command: string;
+    // Stdio transport
+    command?: string;
     args?: string[];
     env?: Record<string, string>;
+    // HTTP transport
+    url?: string;
+    headers?: Record<string, string>;
+    // Common
     disabled?: boolean;
     description?: string;
     tags?: string[];
@@ -140,10 +145,6 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 await this.handleInstallMetaMcpServer();
                 break;
 
-            case 'checkInstallStatus':
-                await this.handleCheckInstallStatus();
-                break;
-
             case 'showError':
                 vscode.window.showErrorMessage(message.message as string);
                 break;
@@ -227,50 +228,6 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
-     * Find a local server installation using Spotlight (macOS) or workspace search
-     */
-    private async findLocalServer(serverId: string): Promise<string | null> {
-        // 1. Check workspace folders first
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders) {
-            for (const folder of workspaceFolders) {
-                const candidates = [
-                    vscode.Uri.joinPath(folder.uri, serverId, 'dist', 'index.js'),
-                    vscode.Uri.joinPath(folder.uri, `src/${serverId}`, 'dist', 'index.js'),
-                    vscode.Uri.joinPath(folder.uri, serverId, 'index.js'),
-                ];
-
-                for (const candidate of candidates) {
-                    try {
-                        await vscode.workspace.fs.stat(candidate);
-                        return candidate.fsPath;
-                    } catch {
-                        // File doesn't exist, try next
-                    }
-                }
-            }
-        }
-
-        // 2. Use Spotlight on macOS to find it anywhere
-        if (process.platform === 'darwin') {
-            try {
-                const { execSync } = require('child_process');
-                const result = execSync(
-                    `mdfind -name "index.js" | grep "${serverId}/dist/index.js$" | head -1`,
-                    { encoding: 'utf-8', timeout: 5000 }
-                ).trim();
-                if (result) {
-                    return result;
-                }
-            } catch {
-                // mdfind failed or timed out
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Handle installing a server from the catalog
      */
     private async handleInstallFromCatalog(item: CatalogServer): Promise<void> {
@@ -285,49 +242,6 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             } else if (item.serverType === 'docker') {
                 command = 'docker';
                 args = ['run', '-i', '--rm', item.repoUrl];
-            } else if (item.serverType === 'Internal' || item.serverType === 'internal') {
-                // Internal server - try to find local installation via Spotlight
-                const localPath = await this.findLocalServer(item.id);
-                if (localPath) {
-                    command = 'node';
-                    args = [localPath];
-                } else {
-                    // Server not found - offer helpful options
-                    const choice = await vscode.window.showInformationMessage(
-                        `${item.name} requires the Adobe MCP Servers repository to be cloned locally.`,
-                        { modal: true },
-                        'Clone Repository',
-                        'Browse for File'
-                    );
-                    
-                    if (choice === 'Clone Repository') {
-                        // Open terminal and clone the repo
-                        const repoUrl = 'https://github.com/Adobe-AIFoundations/adobe-mcp-servers.git';
-                        const terminal = vscode.window.createTerminal('Clone MCP Servers');
-                        terminal.show();
-                        terminal.sendText(`git clone ${repoUrl} && cd adobe-mcp-servers && npm install && npm run build`);
-                        vscode.window.showInformationMessage(
-                            'Cloning repository... After build completes, click "Add" again to configure the server.'
-                        );
-                        return;
-                    } else if (choice === 'Browse for File') {
-                        const result = await vscode.window.showOpenDialog({
-                            canSelectFiles: true,
-                            canSelectFolders: false,
-                            canSelectMany: false,
-                            filters: { 'JavaScript': ['js'] },
-                            title: `Select ${item.name} entry point (index.js or dist/index.js)`
-                        });
-                        if (result && result[0]) {
-                            command = 'node';
-                            args = [result[0].fsPath];
-                        } else {
-                            return;
-                        }
-                    } else {
-                        return;
-                    }
-                }
             } else {
                 // Default to npx for npm packages
                 command = 'npx';
@@ -369,19 +283,6 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         terminal.show();
         terminal.sendText('npm install -g @justanothermldude/meta-mcp-server');
         vscode.window.showInformationMessage('Installing @justanothermldude/meta-mcp-server... Check terminal for progress.');
-    }
-
-    /**
-     * Check if meta-mcp-server is installed globally
-     */
-    private async handleCheckInstallStatus(): Promise<void> {
-        const { exec } = await import('child_process');
-        exec('meta-mcp-server --version', (error) => {
-            this.postMessage({ 
-                type: 'installStatusResponse', 
-                installed: !error 
-            });
-        });
     }
 
     /**
@@ -601,6 +502,17 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Build ServerConfig from webview message
      */
     private buildServerConfig(server: Record<string, unknown>): ServerConfig {
+        // Check if this is a URL-based config
+        if (server.url) {
+            const url = server.url as string;
+            const headers = server.headers as Record<string, string> | undefined;
+            return {
+                url,
+                headers: headers && Object.keys(headers).length > 0 ? headers : undefined,
+            };
+        }
+
+        // Stdio transport config
         const commandType = server.commandType as string || 'npx';
         const command = server.command as string || '';
         const args = server.args as string[] | undefined;
@@ -614,10 +526,10 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             fullCommand = commandType;
         }
 
-        // Build args array - only add command to args for custom type
+        // Build args array
         const fullArgs: string[] = [];
-        if (commandType === 'custom' && command) {
-            // For custom, command field is part of args
+        if (commandType !== 'custom' && command) {
+            fullArgs.push(command);
         }
         if (args && args.length > 0) {
             fullArgs.push(...args);
@@ -635,6 +547,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      */
     private sendServerList(): void {
         const servers = this.getServerList();
+        console.log('[Meta-MCP] sendServerList:', servers.length, 'servers');
         this.postMessage({ type: 'updateServers', servers });
     }
 
@@ -642,16 +555,20 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Get server list from config
      */
     private getServerList(): ServerListItem[] {
+        console.log('[Meta-MCP] getServerList - configPath:', this.configManager.getConfigPath());
         const serverNames = this.configManager.listServers();
+        console.log('[Meta-MCP] getServerList - serverNames:', serverNames);
         return serverNames.map(name => {
             const config = this.configManager.getServer(name);
-            // Mark as "connected" if server has valid command (actual connection testing not implemented)
-            const isConfigured = !!config?.command;
+            // Mark as "connected" if server has valid command OR url
+            const isConfigured = !!(config?.command || config?.url);
             return {
                 name,
-                command: config?.command ?? '',
+                command: config?.command,
                 args: config?.args,
                 env: config?.env,
+                url: config?.url,
+                headers: config?.headers,
                 disabled: config?.disabled,
                 description: config?.description,
                 tags: config?.tags,
