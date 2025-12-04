@@ -53,16 +53,16 @@ venv: ## Create Python virtual environment
 ## ========== VALIDATION & TESTING ==========
 
 validate: venv ## Validate code (pytest, mypy, ruff, black)
-	@./$(INFRA)/validate.sh
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh
 
 validate-verbose: venv ## Validate with verbose output
-	@./$(INFRA)/validate.sh -v
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh -v
 
 validate-quick: venv ## Quick validation (ruff only, skip slow checks)
-	@./$(INFRA)/validate.sh --quick
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh --quick
 
 fix: venv ## Auto-fix code style issues (black, ruff)
-	@./$(INFRA)/validate.sh --fix
+	@. $(VENV_BIN)/activate && ./$(INFRA)/validate.sh --fix
 
 test: venv ## Run tests with coverage
 	@$(PYTHON) -m pytest $(TESTS) --cov=$(SRC) --cov-report=term-missing -v
@@ -91,23 +91,23 @@ format-check: venv ## Check code formatting (black)
 
 ## ========== DEPLOYMENT ==========
 
-deploy: ## Full deployment with validation (builds, tags, pushes to ECR)
-	@./$(INFRA)/deploy-build-push.sh
+deploy: venv ## Full deployment with validation (builds, tags, pushes to ECR)
+	@. $(VENV_BIN)/activate && ./$(INFRA)/deploy-build-push.sh
 
-deploy-dry: ## Preview deployment without pushing
-	@./$(INFRA)/deploy-build-push.sh --dry-run
+deploy-dry: venv ## Preview deployment without pushing
+	@. $(VENV_BIN)/activate && ./$(INFRA)/deploy-build-push.sh --dry-run
 
-deploy-dry-verbose: ## Preview deployment with verbose output
-	@./$(INFRA)/deploy-build-push.sh --dry-run --verbose
+deploy-dry-verbose: venv ## Preview deployment with verbose output
+	@. $(VENV_BIN)/activate && ./$(INFRA)/deploy-build-push.sh --dry-run --verbose
 
-deploy-skip-validation: ## Deploy without validation checks (dangerous)
-	@./$(INFRA)/deploy-build-push.sh --skip-validation
+deploy-skip-validation: venv ## Deploy without validation checks (dangerous)
+	@. $(VENV_BIN)/activate && ./$(INFRA)/deploy-build-push.sh --skip-validation
 
-deploy-no-cache: ## Deploy without Docker layer cache
-	@./$(INFRA)/deploy-build-push.sh --no-cache
+deploy-no-cache: venv ## Deploy without Docker layer cache
+	@. $(VENV_BIN)/activate && ./$(INFRA)/deploy-build-push.sh --no-cache
 
-deploy-verbose: ## Deploy with verbose output
-	@./$(INFRA)/deploy-build-push.sh --verbose
+deploy-verbose: venv ## Deploy with verbose output
+	@. $(VENV_BIN)/activate && ./$(INFRA)/deploy-build-push.sh --verbose
 
 ## ========== DOCKER OPERATIONS ==========
 

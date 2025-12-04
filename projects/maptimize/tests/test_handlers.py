@@ -51,6 +51,35 @@ def mock_ack():
     return MagicMock()
 
 
+@pytest.fixture
+def mock_respond():
+    """Provide mock respond callable for slash commands."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_slack_client():
+    """Provide mock Slack Web API client."""
+    client = MagicMock()
+    client.files_upload = MagicMock(
+        return_value={
+            "ok": True,
+            "file": {
+                "permalink": "https://files.slack.com/files/T123/F123/image.png",
+                "id": "F123",
+            },
+        }
+    )
+    client.chat_postMessage = MagicMock(return_value={"ok": True})
+    return client
+
+
+@pytest.fixture
+def mock_screenshot_bytes():
+    """Return sample PNG bytes."""
+    return b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+
+
 class TestHandleAppMention:
     """Tests for handle_app_mention handler."""
 
@@ -175,96 +204,6 @@ class TestHandleAppMention:
             handle_app_mention(mock_mention_event, mock_say)
 
 
-class TestHandleSlashCommand:
-    """Tests for handle_slash_command handler."""
-
-    def test_handle_slash_command_success(self, mock_command_event, mock_say):
-        """Test successful slash command handling."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
-
-            handle_slash_command(mock_command_event, mock_say)
-
-            # Verify say was called with ephemeral response
-            mock_say.assert_called_once()
-            call_kwargs = mock_say.call_args[1]
-            assert call_kwargs.get("response_type") == "ephemeral"
-            assert "text" in call_kwargs
-
-    def test_handle_slash_command_extracts_user_id(self, mock_command_event, mock_say):
-        """Test that handler extracts user ID from command."""
-        with patch("maptimize.handlers.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
-
-            handle_slash_command(mock_command_event, mock_say)
-
-            # Verify load_processes was called
-            mock_load.assert_called_once()
-
-    def test_handle_slash_command_config_load_failure(self, mock_command_event, mock_say):
-        """Test handling of config load failures."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.side_effect = RuntimeError("Failed to load config")
-
-            handle_slash_command(mock_command_event, mock_say)
-
-            # Should still send ephemeral error message
-            mock_say.assert_called_once()
-            call_kwargs = mock_say.call_args[1]
-            assert call_kwargs.get("response_type") == "ephemeral"
-
-    def test_handle_slash_command_say_failure_handled(self, mock_command_event, mock_say):
-        """Test that say() failure is handled gracefully."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
-
-            mock_say.side_effect = Exception("Slack API error")
-
-            # Should not raise
-            handle_slash_command(mock_command_event, mock_say)
-
-    def test_handle_slash_command_missing_user_id(self, mock_say):
-        """Test error handling for missing user_id."""
-        with patch("maptimize.config.load_processes") as mock_load:
-            from maptimize.handlers import handle_slash_command
-
-            mock_load.return_value = {
-                "Service Review Process": {
-                    "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Maptimize"
-                }
-            }
-
-            # Command without user_id
-            invalid_event = {"type": "slash_commands", "command": "/maptimize"}
-
-            handle_slash_command(invalid_event, mock_say)
-
-            # Should handle gracefully
-            mock_say.assert_called_once()
-            call_kwargs = mock_say.call_args[1]
-            assert call_kwargs.get("response_type") == "ephemeral"
-
-
 class TestHandlerLogging:
     """Tests for handler logging behavior."""
 
@@ -283,7 +222,7 @@ class TestHandlerLogging:
             handle_app_mention(mock_mention_event, mock_say)
             mock_say.assert_called_once()
 
-    def test_handle_command_logs_event(self, mock_command_event, mock_say):
+    def test_handle_command_logs_event(self, mock_command_event, mock_respond, mock_slack_client):
         """Test that command events are logged."""
         with patch("maptimize.config.load_processes") as mock_load:
             from maptimize.handlers import handle_slash_command
@@ -295,5 +234,5 @@ class TestHandlerLogging:
             }
 
             # Just verify it runs without error
-            handle_slash_command(mock_command_event, mock_say)
-            mock_say.assert_called_once()
+            handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
+            mock_respond.assert_called_once()

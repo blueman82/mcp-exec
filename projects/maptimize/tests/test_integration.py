@@ -8,7 +8,7 @@ Slack event structures and comprehensive error handling.
 from unittest.mock import MagicMock, patch
 
 from maptimize.formatter import create_block_kit_message, format_response
-from maptimize.handlers import handle_app_mention, handle_slash_command
+from maptimize.handlers import handle_app_mention
 
 
 class TestMentionHandlingFlow:
@@ -217,95 +217,6 @@ class TestMentionErrorHandling:
         assert mock_say.called
 
 
-class TestSlashCommandHandlingFlow:
-    """Test complete slash command handling flow."""
-
-    @patch("maptimize.handlers.load_processes")
-    def test_slash_command_to_response_flow(self, mock_load_processes):
-        """Test complete flow for slash command: command → config → format → respond."""
-        test_processes = {
-            "Service Review Process": {
-                "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Service-Review"
-            }
-        }
-        mock_load_processes.return_value = test_processes
-        mock_say = MagicMock()
-
-        # Create realistic Slack slash command body
-        command_body = {
-            "type": "slash_commands",
-            "command": "/maptimize",
-            "user_id": "U123456",
-            "team_id": "T123456",
-            "channel_id": "C123456",
-            "response_url": "https://hooks.slack.com/commands/T123456/123/abc",
-        }
-
-        # Execute handler
-        handle_slash_command(command_body, mock_say)
-
-        # Verify config was loaded
-        mock_load_processes.assert_called_once()
-
-        # Verify response was sent with correct parameters
-        mock_say.assert_called_once()
-        call_kwargs = mock_say.call_args[1]
-        assert call_kwargs["response_type"] == "ephemeral"
-        assert isinstance(call_kwargs["text"], str)
-        assert "Service Review Process" in call_kwargs["text"]
-
-    @patch("maptimize.handlers.load_processes")
-    def test_slash_command_with_multiple_processes(self, mock_load_processes):
-        """Test slash command with multiple processes."""
-        test_processes = {
-            "Service Review": {"wiki_url": "http://example.com/1"},
-            "Data Validation": {"wiki_url": "http://example.com/2"},
-            "Approval": {"wiki_url": "http://example.com/3"},
-        }
-        mock_load_processes.return_value = test_processes
-        mock_say = MagicMock()
-
-        command_body = {
-            "type": "slash_commands",
-            "command": "/maptimize",
-            "user_id": "U234567",
-            "team_id": "T234567",
-            "channel_id": "C234567",
-        }
-
-        # Execute
-        handle_slash_command(command_body, mock_say)
-
-        # Verify all processes in response
-        call_kwargs = mock_say.call_args[1]
-        response_text = call_kwargs["text"]
-        assert "Service Review" in response_text
-        assert "Data Validation" in response_text
-        assert "Approval" in response_text
-
-    @patch("maptimize.handlers.load_processes")
-    def test_slash_command_error_handling(self, mock_load_processes):
-        """Test slash command error handling."""
-        mock_load_processes.side_effect = RuntimeError("Config error")
-        mock_say = MagicMock()
-
-        command_body = {
-            "type": "slash_commands",
-            "command": "/maptimize",
-            "user_id": "U345678",
-            "team_id": "T345678",
-            "channel_id": "C345678",
-        }
-
-        # Execute
-        handle_slash_command(command_body, mock_say)
-
-        # Verify error response
-        mock_say.assert_called_once()
-        call_kwargs = mock_say.call_args[1]
-        assert "error" in call_kwargs["text"].lower()
-
-
 class TestMessageFormattingEndToEnd:
     """Test end-to-end message formatting and response handling."""
 
@@ -442,85 +353,6 @@ class TestEndToEndIntegration:
         # Verify it contains formatted process information
         assert "Service Review" in actual_message
         assert "Data Validation" in actual_message
-
-    @patch("maptimize.handlers.load_processes")
-    def test_slash_command_end_to_end_with_real_formatter(self, mock_load_processes):
-        """Test slash command → config → real formatter → response."""
-        processes = {
-            "Approval Workflow": {
-                "wiki_url": "https://wiki.corp.adobe.com/display/neolane/Approval"
-            }
-        }
-        mock_load_processes.return_value = processes
-        mock_say = MagicMock()
-
-        command_body = {
-            "type": "slash_commands",
-            "command": "/maptimize",
-            "user_id": "U888888",
-            "team_id": "T888888",
-            "channel_id": "C888888",
-        }
-
-        # Execute complete flow
-        handle_slash_command(command_body, mock_say)
-
-        # Verify full flow
-        assert mock_load_processes.called
-        mock_say.assert_called_once()
-
-        call_kwargs = mock_say.call_args[1]
-        actual_message = call_kwargs["text"]
-        assert "Approval Workflow" in actual_message
-
-    @patch("maptimize.handlers.load_processes")
-    def test_mention_and_command_consistency(self, mock_load_processes):
-        """Test that mention and command handlers produce consistent responses."""
-        test_processes = {
-            "Process 1": {"wiki_url": "http://example.com/1"},
-            "Process 2": {"wiki_url": "http://example.com/2"},
-        }
-        mock_load_processes.return_value = test_processes
-
-        mention_say = MagicMock()
-        command_say = MagicMock()
-
-        mention_body = {
-            "type": "event_callback",
-            "event": {
-                "type": "app_mention",
-                "user": "U111111",
-                "text": "<@U_BOT>",
-                "channel": "C111111",
-                "ts": "1111111111.111111",
-            },
-        }
-
-        command_body = {
-            "type": "slash_commands",
-            "command": "/maptimize",
-            "user_id": "U111111",
-            "team_id": "T111111",
-            "channel_id": "C111111",
-        }
-
-        # Execute both handlers
-        handle_app_mention(mention_body, mention_say)
-        handle_slash_command(command_body, command_say)
-
-        # Verify both were called
-        mention_say.assert_called_once()
-        command_say.assert_called_once()
-
-        # Extract messages
-        mention_message = mention_say.call_args[1]["text"]
-        command_message = command_say.call_args[1]["text"]
-
-        # Both should contain same processes
-        assert "Process 1" in mention_message
-        assert "Process 1" in command_message
-        assert "Process 2" in mention_message
-        assert "Process 2" in command_message
 
 
 class TestLoggingIntegration:

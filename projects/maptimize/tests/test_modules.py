@@ -1,7 +1,6 @@
 """Tests for module structure and importability."""
 
 import importlib
-import sys
 
 import pytest
 
@@ -13,10 +12,11 @@ def mock_slack_tokens(mocker):
     """Mock get_slack_tokens and slack-bolt App for all tests in this module."""
     mocker.patch(
         "maptimize.config.get_slack_tokens",
-        return_value=("xoxb-test-token", "xapp-test-token", "test-signing-secret")
+        return_value=("xoxb-test-token", "xapp-test-token", "test-signing-secret"),
     )
     # Mock slack-bolt App to prevent auth.test verification
     from unittest.mock import MagicMock
+
     mock_app = MagicMock()
     mock_app._listeners = []
     mocker.patch("slack_bolt.app.App", return_value=mock_app)

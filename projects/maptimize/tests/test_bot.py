@@ -15,14 +15,15 @@ def bot_module(mocker):
     """Import and provide bot module after mocking."""
     # Mock the dependencies before importing bot module
     mocker.patch(
-        "maptimize.config.get_slack_tokens", return_value=("xoxb-test-token", "xapp-test-token", "test-signing-secret")
+        "maptimize.config.get_slack_tokens",
+        return_value=("xoxb-test-token", "xapp-test-token", "test-signing-secret"),
     )
     mocker.patch("slack_bolt.adapter.socket_mode.SocketModeHandler", return_value=MagicMock())
 
     # Mock auth.test to prevent token validation
     mocker.patch(
         "slack_sdk.web.client.WebClient.auth_test",
-        return_value={"ok": True, "user_id": "U123456", "team_id": "T123456"}
+        return_value={"ok": True, "user_id": "U123456", "team_id": "T123456"},
     )
 
     # Remove from sys.modules to force reimport

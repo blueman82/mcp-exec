@@ -10,10 +10,8 @@ without requiring the application to expose a public HTTP endpoint.
 
 from typing import Any, Callable
 
-from slack_bolt.adapter.socket_mode import (  # type: ignore[import-not-found]
-    SocketModeHandler,
-)
-from slack_bolt.app import App  # type: ignore[import-not-found]
+from slack_bolt.adapter.socket_mode import SocketModeHandler
+from slack_bolt.app import App
 
 from maptimize.config import get_slack_tokens
 from maptimize.handlers import (
@@ -76,7 +74,9 @@ def handle_message(body: Any, say: Callable[..., Any]) -> None:
 
 
 @app.command("/maptimize")
-def handle_slash_command(ack: Callable[[], None], body: Any, respond: Callable[..., Any]) -> None:
+def handle_slash_command(
+    ack: Callable[[], None], body: Any, respond: Callable[..., Any], client: Any
+) -> None:
     """Handle /maptimize slash command.
 
     Called when user executes the /maptimize slash command.
@@ -86,9 +86,10 @@ def handle_slash_command(ack: Callable[[], None], body: Any, respond: Callable[.
         ack: Callable to acknowledge command receipt
         body: Command payload from Slack
         respond: Callable for sending ephemeral responses to slash commands
+        client: Slack Web API client for file uploads
     """
     ack()
-    process_slash_command(body, respond)
+    process_slash_command(body, respond, client)
 
 
 def create_socket_handler() -> SocketModeHandler:

@@ -25,6 +25,7 @@ dependencies = [
     "aioboto3",
     "structlog",
     "pydantic",
+    "playwright",
     "httpx",
     "python-dotenv",
 ]
@@ -65,6 +66,18 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = "maptimize.miro"
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = "slack_bolt.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "slack_sdk.*"
+ignore_missing_imports = true
 
 [tool.black]
 line-length = 100
