@@ -75,3 +75,7 @@ venv.bak/
 
 # Project specific
 .conductor/
+
+# Claude Logs
+logs/*
+infrastructure/logs/*

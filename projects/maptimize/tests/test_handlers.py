@@ -235,4 +235,4 @@ class TestHandlerLogging:
 
             # Just verify it runs without error
             handle_slash_command(mock_command_event, mock_respond, mock_slack_client)
-            mock_slack_client.chat_postMessage.assert_called_once()
+            mock_respond.assert_called_once()

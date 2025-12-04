@@ -33,6 +33,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 VALIDATE_SCRIPT="${SCRIPT_DIR}/validate.sh"
 DOCKERFILE="${SCRIPT_DIR}/Dockerfile"
+VENV_DIR="${PROJECT_ROOT}/.venv"
+
+# Activate virtual environment if it exists
+if [ -d "$VENV_DIR" ]; then
+    source "${VENV_DIR}/bin/activate"
+fi
 
 # Color definitions
 RED='\033[0;31m'
@@ -259,11 +265,12 @@ build_image() {
     fi
 
     if [ "$DRY_RUN" = true ]; then
-        log_warning "DRY RUN: Would execute: docker build $build_args -t ${ECR_REPO}/${ECR_REPOSITORY}:${version} -f ${DOCKERFILE} ${PROJECT_ROOT}"
+        log_warning "DRY RUN: Would execute: docker buildx build --platform linux/amd64 $build_args -t ${ECR_REPO}/${ECR_REPOSITORY}:${version} -f ${DOCKERFILE} ${PROJECT_ROOT}"
         return 0
     fi
 
-    if docker build \
+    if docker buildx build \
+        --platform linux/amd64 \
         $build_args \
         -t "${ECR_REPO}/${ECR_REPOSITORY}:${version}" \
         -f "$DOCKERFILE" \
@@ -388,6 +395,37 @@ build_image "$NEW_VERSION" || exit 1
 tag_latest "$NEW_VERSION" || exit 1
 authenticate_ecr || exit 1
 push_image "$NEW_VERSION" || exit 1
+
+# Deploy to server
+log_section "Deploying to maptimize-prod"
+MAPTIMIZE_HOST="maptimize-prod.campaign.adobe.com"
+
+if [ "$DRY_RUN" = true ]; then
+    log_warning "DRY RUN: Would SSH to $MAPTIMIZE_HOST and restart container"
+else
+    log_info "Connecting to $MAPTIMIZE_HOST..."
+    if ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no "harrison@${MAPTIMIZE_HOST}" "
+        echo 'Pulling new image...'
+        sudo docker pull ${ECR_REPO}/${ECR_REPOSITORY}:latest
+        echo 'Stopping old container...'
+        sudo docker stop maptimize-bot 2>/dev/null || true
+        sudo docker rm maptimize-bot 2>/dev/null || true
+        echo 'Starting new container...'
+        sudo docker run -d --restart=always --name maptimize-bot \
+            -e LOG_LEVEL=INFO -e ENVIRONMENT=production \
+            -e AWS_REGION=eu-west-1 -e AWS_DEFAULT_REGION=eu-west-1 \
+            -e PYTHONUNBUFFERED=1 \
+            ${ECR_REPO}/${ECR_REPOSITORY}:latest
+        echo 'Verifying...'
+        sleep 3
+        sudo docker ps | grep maptimize-bot
+    "; then
+        log_success "Deployed to $MAPTIMIZE_HOST successfully"
+    else
+        log_error "Failed to deploy to $MAPTIMIZE_HOST"
+        exit 1
+    fi
+fi
 
 # Success
 log_section "Deployment Summary"

@@ -29,12 +29,27 @@ log_section() {
     echo ""
 }
 
+# ========== HOSTNAME CONFIGURATION ==========
+
+log_section "Setting hostname and domain"
+
+HOSTNAME="maptimize-prod.campaign.adobe.com"
+echo "$HOSTNAME" > /etc/hostname
+hostnamectl set-hostname "$HOSTNAME"
+
+# Add to /etc/hosts for local resolution
+if ! grep -q "$HOSTNAME" /etc/hosts; then
+    echo "127.0.1.1 $HOSTNAME maptimize-prod" >> /etc/hosts
+fi
+
+log_info "Hostname set to $HOSTNAME"
+
 # ========== SSSD INSTALLATION ==========
 
 log_section "Installing SSSD and LDAP packages"
 
 apt-get update
-apt-get install -y sssd sssd-ldap sssd-tools libpam-sss libnss-sss libsss-sudo
+apt-get install -y sssd sssd-ldap sssd-tools libpam-sss libnss-sss libsss-sudo ldap-utils
 
 log_info "SSSD packages installed"
 
@@ -149,6 +164,18 @@ else
     fi
 fi
 
+# ========== PAM MKHOMEDIR ==========
+
+log_section "Configuring PAM to auto-create home directories"
+
+# Add pam_mkhomedir to common-session if not already present
+if ! grep -q "pam_mkhomedir.so" /etc/pam.d/common-session; then
+    echo "session required pam_mkhomedir.so umask=0022" >> /etc/pam.d/common-session
+    log_info "pam_mkhomedir added to common-session"
+else
+    log_info "pam_mkhomedir already configured"
+fi
+
 # ========== START SERVICES ==========
 
 log_section "Starting SSSD and SSH"
@@ -177,7 +204,15 @@ log_section "Installing Docker"
 
 apt-get install -y docker.io docker-compose
 
-usermod -aG docker admin
+# Add default cloud user to docker group (if exists)
+# Debian uses 'admin', Ubuntu uses 'ubuntu'
+for user in admin ubuntu; do
+    if id "$user" &>/dev/null; then
+        usermod -aG docker "$user"
+        log_info "Added $user to docker group"
+        break
+    fi
+done
 
 systemctl enable docker
 systemctl start docker
@@ -203,7 +238,10 @@ docker run -d \
   --name maptimize-bot \
   -e LOG_LEVEL=INFO \
   -e ENVIRONMENT=production \
-  483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:v0.1.1
+  -e AWS_REGION=eu-west-1 \
+  -e AWS_DEFAULT_REGION=eu-west-1 \
+  -e PYTHONUNBUFFERED=1 \
+  483013340174.dkr.ecr.eu-west-1.amazonaws.com/maptimize:latest
 
 log_info "Maptimize Bot v0.1.1 deployed and running"
 

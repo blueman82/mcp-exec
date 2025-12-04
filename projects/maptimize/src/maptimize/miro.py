@@ -19,8 +19,8 @@ __all__ = [
 
 logger = structlog.get_logger(__name__)
 
-# Pattern for valid Miro board IDs (alphanumeric, underscores, hyphens)
-BOARD_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
+# Pattern for valid Miro board IDs (alphanumeric, underscores, hyphens, equals for base64)
+BOARD_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_=-]+$")
 
 
 async def screenshot_miro_board(

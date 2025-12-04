@@ -144,7 +144,7 @@ class TestBotEventFlow:
         handle_slash_command(command_body, mock_respond, mock_client)
 
         # Verify command was processed
-        assert mock_client.chat_postMessage.called
+        assert mock_respond.called
         assert mock_load_processes.called
 
     @patch("maptimize.handlers.load_processes")
@@ -381,7 +381,7 @@ class TestBotConcurrency:
 
         # Verify both were processed
         assert mention_say.called
-        assert command_client.chat_postMessage.called
+        assert command_respond.called
 
 
 class TestBotIntegrationWithConfig:
@@ -486,10 +486,10 @@ class TestBotMessageValidation:
 
         # Test multiple channels
         channels = ["C123456", "C789012", "C345678"]
-        client_mocks = [MagicMock() for _ in channels]
+        respond_mocks = []
 
-        for channel, client in zip(channels, client_mocks):
-            client.chat_postMessage = MagicMock(return_value={"ok": True})
+        for channel in channels:
+            client = MagicMock()
             command_body = {
                 "type": "slash_commands",
                 "command": "/maptimize",
@@ -498,11 +498,12 @@ class TestBotMessageValidation:
                 "channel_id": channel,
             }
             respond = MagicMock()
+            respond_mocks.append(respond)
             handle_slash_command(command_body, respond, client)
 
         # All should succeed
-        for client in client_mocks:
-            assert client.chat_postMessage.called
+        for respond in respond_mocks:
+            assert respond.called
 
     @patch("maptimize.handlers.load_processes")
     def test_bot_handles_different_users(self, mock_load_processes):

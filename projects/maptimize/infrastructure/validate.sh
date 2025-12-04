@@ -19,6 +19,12 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC_DIR="${PROJECT_ROOT}/src/maptimize"
 TESTS_DIR="${PROJECT_ROOT}/tests"
+VENV_DIR="${PROJECT_ROOT}/.venv"
+
+# Activate virtual environment if it exists
+if [ -d "$VENV_DIR" ]; then
+    source "${VENV_DIR}/bin/activate"
+fi
 
 # Color definitions
 RED='\033[0;31m'

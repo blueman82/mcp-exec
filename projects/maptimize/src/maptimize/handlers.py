@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict
 import structlog
 
 from maptimize.config import load_processes
-from maptimize.formatter import create_block_kit_message, create_response_blocks
+from maptimize.formatter import create_block_kit_message
 from maptimize.miro import screenshot_miro_board
 
 __all__ = [
@@ -88,8 +88,15 @@ def handle_slash_command(body: Dict[str, Any], respond: Callable, client: Any) -
         # Extract user ID and channel from command
         user_id = body.get("user_id", "unknown")
         channel_id = body.get("channel_id", body.get("channel"))
+        channel_name = body.get("channel_name", "unknown")
 
-        logger.info("slash_command_received", user_id=user_id, command="/maptimize")
+        logger.info(
+            "slash_command_received",
+            user_id=user_id,
+            channel_id=channel_id,
+            channel_name=channel_name,
+            command="/maptimize",
+        )
 
         # Load process configuration
         processes = load_processes()
@@ -114,22 +121,47 @@ def handle_slash_command(body: Dict[str, Any], respond: Callable, client: Any) -
 
                     if image_bytes is not None:
                         try:
-                            # Upload image to Slack
                             filename = f"{process_name.lower().replace(' ', '_')}_diagram.png"
-                            response = client.files_upload(
-                                channels=channel_id,
-                                file=image_bytes,
-                                filename=filename,
-                                title=f"{process_name} Diagram",
-                            )
+                            response = None
 
-                            # Store the permalink for the Block Kit response
-                            if response.get("ok") and response.get("file"):
-                                image_urls[process_name] = response["file"]["permalink"]
+                            # Try uploading to channel first (works for DMs and member channels)
+                            try:
+                                logger.info(
+                                    "miro_image_upload_attempt",
+                                    process_name=process_name,
+                                    channel_id=channel_id,
+                                )
+                                response = client.files_upload_v2(
+                                    channel=channel_id,
+                                    content=image_bytes,
+                                    filename=filename,
+                                    title=f"{process_name} Diagram",
+                                )
+                            except Exception as channel_err:
+                                # If channel upload fails, upload without channel
+                                logger.warning(
+                                    "miro_image_channel_upload_failed",
+                                    process_name=process_name,
+                                    error=str(channel_err),
+                                    fallback="uploading without channel",
+                                )
+                                response = client.files_upload_v2(
+                                    content=image_bytes,
+                                    filename=filename,
+                                    title=f"{process_name} Diagram",
+                                )
+
+                            # Store the URL for the Block Kit response
+                            if response and response.get("ok") and response.get("file"):
+                                file_info = response["file"]
+                                image_urls[process_name] = file_info.get(
+                                    "url_private", file_info.get("permalink", "")
+                                )
                                 logger.info(
                                     "miro_image_uploaded",
                                     process_name=process_name,
-                                    permalink=image_urls[process_name],
+                                    file_id=file_info.get("id"),
+                                    url=image_urls[process_name],
                                 )
                             else:
                                 logger.warning(
@@ -153,16 +185,13 @@ def handle_slash_command(body: Dict[str, Any], respond: Callable, client: Any) -
                             message="Continuing without diagram",
                         )
 
-        # Create Block Kit response with embedded images
-        response_blocks = create_response_blocks(processes, image_urls)
+        # Create plain text response (same as @mention)
+        message_text = create_block_kit_message(processes)
 
-        # Send response to user
-        # Use chat_postMessage for Block Kit support
-        client.chat_postMessage(
-            channel=channel_id,
-            blocks=response_blocks,
-            text="Maptimize Process Information",  # Fallback text for notifications
-            metadata={"event_type": "slash_command_response"},
+        # Send ephemeral response to user using respond() function
+        respond(
+            text=message_text,
+            response_type="ephemeral",
         )
 
         logger.info("slash_command_handled_success", user_id=user_id, image_count=len(image_urls))

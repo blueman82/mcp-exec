@@ -34,8 +34,15 @@ COPY --from=builder --chown=maptimize:maptimize /tmp/dist/*.whl .
 
 # Install application dependencies with correct Python path
 RUN pip install --no-cache-dir *.whl && \
-    rm *.whl && \
-    playwright install chromium
+    rm *.whl
+
+# Set Playwright browser path to shared location accessible by all users
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
+
+# Install Playwright browsers with dependencies to shared location
+RUN mkdir -p /opt/playwright-browsers && \
+    playwright install --with-deps chromium && \
+    chmod -R 755 /opt/playwright-browsers
 
 # Copy configuration directory
 COPY --chown=maptimize:maptimize config/ /app/config/
