@@ -124,59 +124,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             background-color: var(--vscode-button-secondaryHoverBackground);
         }
 
-        .btn-success {
-            background-color: var(--vscode-charts-green) !important;
-            color: white !important;
-        }
-
-        .btn-warning {
-            background-color: var(--vscode-editorWarning-foreground) !important;
-            color: black !important;
-        }
-
-        /* Modal styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            min-width: 300px;
-            position: relative;
-        }
-
-        .modal-content h3 {
-            margin: 0 0 var(--spacing-sm);
-        }
-
-        .modal-content p {
-            color: var(--vscode-descriptionForeground);
-            margin: 0 0 var(--spacing-md);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-        }
-
         .btn-icon {
             padding: 6px;
             background: transparent;
@@ -346,14 +293,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-md);
-        }
-
-        .search-container {
-            margin-bottom: var(--spacing-md);
-        }
-
-        .search-container input {
-            width: 100%;
         }
 
         .catalog-search {
@@ -576,10 +515,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             </div>
         </div>
 
-        <div class="search-container">
-            <input type="text" class="form-input" id="server-search-input" placeholder="Search servers...">
-        </div>
-
         <div id="server-list-container">
             <!-- Server cards will be rendered here -->
         </div>
@@ -587,7 +522,8 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
         <div id="empty-list" class="empty-state hidden">
             <div class="empty-state-icon">📦</div>
             <div class="empty-state-title">No servers configured</div>
-            <div class="empty-state-desc">Click "+ Add Server" above to get started</div>
+            <div class="empty-state-desc">Add your first MCP server to get started</div>
+            <button class="btn btn-primary" id="btn-add-first-server">+ Add Server</button>
         </div>
     </div>
 
@@ -609,12 +545,14 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="command-type-select">Command Type</label>
+                <label class="form-label" for="command-type-select">Transport Type</label>
                 <select id="command-type-select" class="form-select">
                     <option value="node">node</option>
                     <option value="npx">npx</option>
                     <option value="uvx">uvx</option>
                     <option value="python">python</option>
+                    <option value="docker">docker</option>
+                    <option value="url">🌐 URL (HTTP/SSE)</option>
                     <option value="custom">custom</option>
                 </select>
             </div>
@@ -739,43 +677,9 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                 }
             }
 
-            // Buttons - Show choice modal for Add Server
-            document.getElementById('btn-add-server').addEventListener('click', () => showAddChoiceModal());
-            
-            // Server search
-            document.getElementById('server-search-input').addEventListener('input', (e) => {
-                filterServers(e.target.value);
-            });
-            
-            function showAddChoiceModal() {
-                const modal = document.createElement('div');
-                modal.className = 'modal-overlay';
-                modal.innerHTML = \`
-                    <div class="modal-content">
-                        <h3>Add Server</h3>
-                        <p>How would you like to add a server?</p>
-                        <div class="modal-actions">
-                            <button class="btn btn-primary" id="modal-btn-catalog">From Catalog</button>
-                            <button class="btn btn-secondary" id="modal-btn-manual">Manual</button>
-                        </div>
-                        <button class="btn btn-icon modal-close">&times;</button>
-                    </div>
-                \`;
-                document.body.appendChild(modal);
-                
-                modal.querySelector('#modal-btn-catalog').addEventListener('click', () => {
-                    modal.remove();
-                    switchView('catalog');
-                });
-                modal.querySelector('#modal-btn-manual').addEventListener('click', () => {
-                    modal.remove();
-                    showAddForm();
-                });
-                modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) modal.remove();
-                });
-            }
+            // Buttons
+            document.getElementById('btn-add-server').addEventListener('click', () => showAddForm());
+            document.getElementById('btn-add-first-server')?.addEventListener('click', () => showAddForm());
             document.getElementById('btn-cancel-form').addEventListener('click', () => switchView('list'));
             document.getElementById('btn-save-server').addEventListener('click', saveServer);
             document.getElementById('btn-add-env-var').addEventListener('click', addEnvVarRow);
@@ -809,63 +713,62 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
 
             function populateForm(server) {
                 serverNameInput.value = server.name || '';
-                
-                // Detect command type from command value
-                const knownCommands = ['npx', 'node', 'uvx', 'docker'];
-                const cmd = server.command || '';
-                const detectedType = knownCommands.includes(cmd) ? cmd : 'custom';
-                commandTypeSelect.value = detectedType;
-                
-                // For known commands, the "command" input should be empty (args has the actual command)
-                // For custom, show the full command
-                commandInput.value = detectedType === 'custom' ? cmd : '';
-                argsInput.value = (server.args || []).join(' ');
 
-                envVarRows.innerHTML = '';
-                if (server.env) {
-                    Object.entries(server.env).forEach(([key, value]) => {
-                        addEnvVarRow(key, value);
-                    });
+                // Determine transport type
+                if (server.url) {
+                    commandTypeSelect.value = 'url';
+                    commandInput.value = server.url || '';
+                    argsInput.value = '';
+                    // Populate headers as env vars for URL transport
+                    envVarRows.innerHTML = '';
+                    if (server.headers) {
+                        Object.entries(server.headers).forEach(([key, value]) => {
+                            addEnvVarRow(key, value);
+                        });
+                    }
+                } else {
+                    commandTypeSelect.value = server.commandType || 'npx';
+                    commandInput.value = server.command || '';
+                    argsInput.value = (server.args || []).join(' ');
+                    envVarRows.innerHTML = '';
+                    if (server.env) {
+                        Object.entries(server.env).forEach(([key, value]) => {
+                            addEnvVarRow(key, value);
+                        });
+                    }
+                }
+
+                updateFormLabels();
+            }
+
+            function updateFormLabels() {
+                const isUrl = commandTypeSelect.value === 'url';
+                const commandLabel = document.querySelector('label[for="command-input"]');
+                const argsGroup = document.getElementById('args-group');
+                const envLabel = document.querySelector('.env-vars-label');
+
+                if (commandLabel) {
+                    commandLabel.textContent = isUrl ? 'Server URL' : 'Command / Package';
+                }
+                if (argsGroup) {
+                    argsGroup.style.display = isUrl ? 'none' : 'block';
+                }
+                if (envLabel) {
+                    envLabel.textContent = isUrl ? 'Headers' : 'Environment Variables';
                 }
             }
+
+            commandTypeSelect.addEventListener('change', updateFormLabels);
 
             function addEnvVarRow(key = '', value = '') {
                 const row = document.createElement('div');
                 row.className = 'env-var-row';
-                const isSensitive = /password|token|secret|key|pat|credential|api_key/i.test(key);
                 row.innerHTML = \`
                     <input type="text" class="form-input env-key" placeholder="KEY" value="\${key}">
-                    <input type="\${isSensitive ? 'password' : 'text'}" class="form-input env-value" placeholder="value" value="\${value}">
-                    <button class="btn btn-icon btn-toggle-visibility" title="Show/Hide" type="button">\${isSensitive ? '👁' : ''}</button>
+                    <input type="text" class="form-input env-value" placeholder="value" value="\${value}">
                     <button class="btn btn-icon btn-remove" title="Remove">&times;</button>
                 \`;
                 row.querySelector('.btn-remove').addEventListener('click', () => row.remove());
-                
-                // Toggle password visibility
-                const toggleBtn = row.querySelector('.btn-toggle-visibility');
-                const valueInput = row.querySelector('.env-value');
-                toggleBtn.addEventListener('click', () => {
-                    if (valueInput.type === 'password') {
-                        valueInput.type = 'text';
-                        toggleBtn.textContent = '🙈';
-                    } else {
-                        valueInput.type = 'password';
-                        toggleBtn.textContent = '👁';
-                    }
-                });
-                
-                // Update input type when key changes (detect sensitive keys)
-                const keyInput = row.querySelector('.env-key');
-                keyInput.addEventListener('blur', () => {
-                    const newIsSensitive = /password|token|secret|key|pat|credential|api_key/i.test(keyInput.value);
-                    if (newIsSensitive && valueInput.type === 'text') {
-                        valueInput.type = 'password';
-                        toggleBtn.textContent = '👁';
-                    }
-                    toggleBtn.style.visibility = newIsSensitive ? 'visible' : 'hidden';
-                });
-                toggleBtn.style.visibility = isSensitive ? 'visible' : 'hidden';
-                
                 envVarRows.appendChild(row);
             }
 
@@ -877,23 +780,41 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                 }
 
                 const commandType = commandTypeSelect.value;
-                const command = commandInput.value.trim();
-                const args = argsInput.value.trim().split(/\\s+/).filter(Boolean);
+                const isUrl = commandType === 'url';
 
-                const env = {};
+                // Collect key-value pairs (either headers or env vars)
+                const keyValuePairs = {};
                 envVarRows.querySelectorAll('.env-var-row').forEach(row => {
                     const key = row.querySelector('.env-key').value.trim();
                     const value = row.querySelector('.env-value').value;
-                    if (key) env[key] = value;
+                    if (key) keyValuePairs[key] = value;
                 });
 
-                const serverConfig = {
-                    name,
-                    commandType,
-                    command,
-                    args: args.length > 0 ? args : undefined,
-                    env: Object.keys(env).length > 0 ? env : undefined
-                };
+                let serverConfig;
+                if (isUrl) {
+                    // URL-based transport
+                    const url = commandInput.value.trim();
+                    if (!url) {
+                        vscode.postMessage({ type: 'showError', message: 'Server URL is required' });
+                        return;
+                    }
+                    serverConfig = {
+                        name,
+                        url,
+                        headers: Object.keys(keyValuePairs).length > 0 ? keyValuePairs : undefined
+                    };
+                } else {
+                    // Stdio transport
+                    const command = commandInput.value.trim();
+                    const args = argsInput.value.trim().split(/\\s+/).filter(Boolean);
+                    serverConfig = {
+                        name,
+                        commandType,
+                        command,
+                        args: args.length > 0 ? args : undefined,
+                        env: Object.keys(keyValuePairs).length > 0 ? keyValuePairs : undefined
+                    };
+                }
 
                 vscode.postMessage({
                     type: editingServer ? 'updateServer' : 'addServer',
@@ -915,11 +836,14 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                 servers.forEach(server => {
                     const card = document.createElement('div');
                     card.className = 'server-card' + (server.connected ? ' connected' : '') + (server.error ? ' error' : '');
+                    const transportInfo = server.url
+                        ? \`🌐 \${escapeHtml(server.url)}\`
+                        : escapeHtml(server.command || 'No command specified');
                     card.innerHTML = \`
                         <div class="server-card-header">
                             <div>
                                 <div class="server-name">\${escapeHtml(server.name)}</div>
-                                <div class="server-command">\${escapeHtml(server.command || 'No command specified')}</div>
+                                <div class="server-command">\${transportInfo}</div>
                             </div>
                             <span class="server-status \${server.connected ? 'connected' : 'disconnected'}">
                                 \${server.connected ? 'Connected' : 'Disconnected'}
@@ -972,19 +896,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         vscode.postMessage({ type: 'installFromCatalog', item });
                     });
                     catalogContainer.appendChild(card);
-                });
-            }
-
-            function filterServers(query) {
-                const q = query.toLowerCase();
-                const cards = serverListContainer.querySelectorAll('.server-card');
-                cards.forEach((card, i) => {
-                    const server = servers[i];
-                    const matches =
-                        server.name.toLowerCase().includes(q) ||
-                        (server.command || '').toLowerCase().includes(q) ||
-                        (server.description || '').toLowerCase().includes(q);
-                    card.classList.toggle('hidden', !matches);
                 });
             }
 
@@ -1210,14 +1121,8 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                 document.getElementById('btn-install-server')?.addEventListener('click', () => {
                     const btn = document.getElementById('btn-install-server');
                     if (btn) {
-                        btn.textContent = 'Opening terminal...';
+                        btn.textContent = 'Installing...';
                         btn.disabled = true;
-                        
-                        // Poll for installation status after 5 seconds
-                        setTimeout(() => {
-                            btn.textContent = 'Checking...';
-                            vscode.postMessage({ type: 'checkInstallStatus' });
-                        }, 5000);
                     }
                     vscode.postMessage({ type: 'installMetaMcpServer' });
                 });
@@ -1226,9 +1131,11 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             // Message handling
             window.addEventListener('message', event => {
                 const message = event.data;
+                console.log('[Meta-MCP Webview] Received message:', message.type, message);
                 switch (message.type) {
                     case 'updateServers':
                         servers = message.servers || [];
+                        console.log('[Meta-MCP Webview] updateServers:', servers.length, 'servers');
                         renderServerList();
                         break;
                     case 'updateCatalog':
@@ -1252,28 +1159,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         break;
                     case 'serverDeleted':
                         // List will be refreshed via updateServers
-                        break;
-                    case 'installStatusResponse':
-                        const installBtn = document.getElementById('btn-install-server');
-                        if (installBtn) {
-                            if (message.installed) {
-                                installBtn.textContent = 'Installed!';
-                                installBtn.classList.add('btn-success');
-                                setTimeout(() => {
-                                    installBtn.textContent = 'Install via npm';
-                                    installBtn.classList.remove('btn-success');
-                                    installBtn.disabled = false;
-                                }, 3000);
-                            } else {
-                                installBtn.textContent = 'Not found - check terminal';
-                                installBtn.classList.add('btn-warning');
-                                setTimeout(() => {
-                                    installBtn.textContent = 'Install via npm';
-                                    installBtn.classList.remove('btn-warning');
-                                    installBtn.disabled = false;
-                                }, 5000);
-                            }
-                        }
                         break;
                     case 'showError':
                         // Could show inline error, for now just alert
