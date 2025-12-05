@@ -1,0 +1,261 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ketchup"
+version = "2.360.347"
+description = "Multi-service Slack application for automated workflows, JIRA integration, and intelligent channel management"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "Proprietary"}
+authors = [
+    {name = "Harrison", email = "harrison@adobe.com"},
+]
+keywords = ["slack", "jira", "aws", "dynamodb", "fastapi", "adobe-campaign"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Communications :: Chat",
+    "Topic :: Office/Business",
+]
+
+dependencies = [
+    # Web Framework
+    "fastapi",
+    "uvicorn[standard]",
+
+    # Slack Integration
+    "slack-bolt[async]",
+    "slack-sdk",
+
+    # AWS Services
+    "aioboto3",
+    "boto3",
+    "botocore",
+
+    # Azure OpenAI
+    "openai",
+
+    # HTTP Clients
+    "aiohttp",
+    "httpx[http2]",
+
+    # Async Support
+    "aiofiles",
+
+    # Scheduling
+    "apscheduler",
+
+    # Type Hints
+    "typing-extensions",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+
+    # AWS Mocking
+    "moto[dynamodb,secretsmanager,sqs]",
+
+    # Code Quality
+    "black",
+    "ruff",
+    "isort",
+    "pylint",
+    "mypy",
+
+    # Type Stubs
+    "types-aioboto3",
+    "boto3-stubs[dynamodb,secretsmanager,sqs]",
+]
+
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-mock",
+    "moto[dynamodb,secretsmanager,sqs]",
+]
+
+# =============================================================================
+# Tool Configurations - Single Source of Truth
+# =============================================================================
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.ruff_cache
+  | \.venv
+  | build
+  | dist
+  | node_modules
+  | ketchup-log-viewer
+  | corp_jira_mcp
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    ".eggs",
+    "__pycache__",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "node_modules",
+    "ketchup-log-viewer",
+    "corp_jira_mcp",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "UP",     # pyupgrade
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by black)
+    "E203",   # whitespace before ':'
+    "B008",   # function call in default argument (common in FastAPI)
+    "B904",   # raise without from (too noisy)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+"tests/*" = ["F841", "E402", "B018"]  # Allow unused variables and late imports in tests
+"conftest.py" = ["F401", "F403"]  # Allow star imports in conftest
+
+[tool.ruff.lint.isort]
+known-first-party = ["packages", "ketchup_app", "jira_reporter", "channel_metadata_updater", "ketchup_status_updater", "ketchup_maintenance_fetcher", "ketchup_access_request_monitor"]
+known-third-party = ["slack_bolt", "openai", "fastapi", "aioboto3", "aiohttp"]
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "."
+explicit_package_bases = true
+namespace_packages = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+no_implicit_optional = true
+warn_no_return = true
+strict_equality = true
+exclude = [
+    "venv",
+    ".venv",
+    "build",
+    "dist",
+    ".eggs",
+    "node_modules",
+    "ketchup-log-viewer",
+    "corp_jira_mcp",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "aioboto3.*",
+    "slack_bolt.*",
+    "slack_sdk.*",
+    "moto.*",
+    "apscheduler.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+pythonpath = ["."]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--ignore=tests/setup",
+    "--ignore=ketchup-log-viewer",
+    "--ignore=corp_jira_mcp",
+]
+markers = [
+    "asyncio: marks tests as async",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "dependency_graph: marks tests for dependency graph functionality",
+    "slow: marks tests as slow running",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::RuntimeWarning:unittest.mock",
+    "ignore::RuntimeWarning:threading",
+]
+
+[tool.coverage.run]
+source = ["packages"]
+branch = true
+omit = [
+    "*/__init__.py",
+    "*/conftest.py",
+    "*/.venv/*",
+    "*/tests/*",
+    "ketchup-log-viewer/*",
+    "corp_jira_mcp/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+fail_under = 70
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["packages", "ketchup_app", "jira_reporter", "channel_metadata_updater", "ketchup_status_updater", "ketchup_maintenance_fetcher", "ketchup_access_request_monitor"]
+skip_gitignore = true
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip = [".venv", "node_modules", "ketchup-log-viewer", "corp_jira_mcp"]
