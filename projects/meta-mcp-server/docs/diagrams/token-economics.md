@@ -4,15 +4,15 @@
 
 ```mermaid
 flowchart TB
-  subgraph Traditional["Traditional: 16k+"]
-    T1[Start] --> T2[Load ALL]
-    T2 --> T3["57,600 tokens"]
+  subgraph Traditional["Traditional"]
+    T1[Start] --> T2[Load ALL tools]
+    T2 --> T3["16k-48k+ tokens"]
   end
 
-  subgraph Meta["Meta-MCP: 80% less"]
+  subgraph Meta["Meta-MCP"]
     M1[Start] --> M2["1.9k startup"]
-    M2 --> M3["+640/tool"]
-    M3 --> M4["~3.2k typical"]
+    M2 --> M3["only load what you use"]
+    M3 --> M4["~3k typical"]
   end
 
   style T3 fill:#ff6b6b
@@ -21,15 +21,15 @@ flowchart TB
 
 ## Savings
 
-Traditional loads ALL schemas upfront (~57k for 3 servers). Meta-MCP scales with usage.
+Traditional loads ALL available tools at startup. Meta-MCP only loads what you use.
 
-| Tools Used | Meta-MCP | Savings |
-|------------|----------|---------|
-| 1 | 2,500 | **96%** |
-| 2 | 3,200 | **94%** |
-| 5 | 5,100 | **91%** |
+| Servers | Tools Available | Traditional | You Use | Meta-MCP | Savings |
+|---------|-----------------|-------------|---------|----------|---------|
+| 1 | 25 | 16,000 | 2 | 3,200 | **80%** |
+| 3 | 75 | 48,000 | 2 | 3,200 | **93%** |
+| 3 | 75 | 48,000 | 5 | 5,100 | **89%** |
 
-Formula: `1,900 + (tools × 640)`
+Formula: `1,900 + (tools used × 640)`
 
 ## Request Flow
 
