@@ -35,11 +35,50 @@ Backend servers are spawned lazily on first access and managed via a connection 
 
 The **Meta-MCP** extension provides a visual interface for configuration:
 
-1. Install the extension from `extension/meta-mcp-configurator-0.1.0.vsix`
-2. Open the Meta-MCP panel from the activity bar
-3. Go to **Setup** tab and click **Install** to install via npm
-4. Copy the generated snippet to your AI tool's config
-5. Add servers from the **Catalog** or manually
+1. **Install the extension** from `extension/meta-mcp-configurator-0.1.1.vsix`
+2. **Open the Meta-MCP panel** - click the Meta-MCP icon in the activity bar (left sidebar)
+3. **Go to the Setup tab** and complete the setup wizard:
+
+#### Step 1: Install meta-mcp-server
+- Click **Install via npm** (opens terminal with `npm install -g @justanothermldude/meta-mcp-server`)
+- Or run manually: `npm install -g @justanothermldude/meta-mcp-server`
+
+#### Step 2: Configure Your AI Tools
+The extension auto-detects installed AI tools and shows their status:
+
+| Tool | Config Location | Detection |
+|------|-----------------|-----------|
+| Claude | `~/.claude.json` | `~/.claude.json` exists |
+| Cursor | `~/.cursor/mcp.json` | `~/.cursor/` exists |
+| Droid (Factory) | `~/.factory/mcp.json` | `~/.factory/` exists |
+| VS Code | `~/.vscode/mcp.json` | `~/.vscode/` exists |
+
+For each detected tool, use these buttons:
+
+| Button | Action |
+|--------|--------|
+| **Configure** | Auto-adds meta-mcp to the tool's config (creates backup first, creates `~/.meta-mcp/servers.json` if missing) |
+| **Copy Snippet** | Copies JSON config to clipboard for manual setup |
+| **Migrate Servers** | *(Only if tool has existing servers)* Moves servers from tool's config to `servers.json`, keeping only meta-mcp in the original |
+
+#### Other Platforms (Windsurf, Augment, etc.)
+For tools not auto-detected, copy the generic snippet shown in the Setup tab:
+```json
+{
+  "mcpServers": {
+    "meta-mcp": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/meta-mcp-server"],
+      "env": {
+        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
+      }
+    }
+  }
+}
+```
+
+4. **Restart your AI tool** to load the new configuration
+5. **Add servers** from the **Catalog** tab or **Servers** tab manually
 
 ### Option 2: npm Package
 
