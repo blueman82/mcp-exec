@@ -46,3 +46,5 @@ orjson
 matplotlib
 seaborn
 psutil
+pytest-xdist
+pytest-timeout

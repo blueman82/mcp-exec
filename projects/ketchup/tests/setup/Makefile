@@ -39,6 +39,26 @@ setup:
 # ============================================================================
 # TESTING
 # ============================================================================
+#
+# Test Tiers (use appropriate tier for your workflow):
+#   - test-fast:    Critical tests only (~30s) - use during development
+#   - test-unit:    All unit tests, serial (~5-10 min)
+#   - test-parallel: All unit tests, parallel (~1-2 min with -n auto)
+#   - test-integration: AWS-dependent tests (requires AWS_PROFILE)
+#   - test:         Everything (CI/CD only)
+
+# FAST: Critical path tests only - TypedDI + core functionality (~30 seconds)
+test-fast:
+	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
+	PYTHONPATH=. pytest tests/unit/core/typed_di tests/unit/core/config \
+	tests/unit/core/utils -v --timeout=10 $(ARGS)
+
+# PARALLEL: All unit tests with parallel execution (install pytest-xdist first)
+# Usage: make test-parallel ARGS="-n auto" (auto-detect CPUs)
+# Usage: make test-parallel ARGS="-n 4" (use 4 workers)
+test-parallel:
+	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
+	PYTHONPATH=. pytest tests/unit --ignore=tests/setup -n auto --timeout=30 $(ARGS)
 
 test:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
@@ -46,24 +66,26 @@ test:
 
 test-unit:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
-	PYTHONPATH=. pytest tests/unit --ignore=tests/setup $(ARGS)
+	PYTHONPATH=. pytest tests/unit --ignore=tests/setup --timeout=30 $(ARGS)
 
 test-integration:
+	@echo "Integration tests require AWS_PROFILE=campaign_prod_v7"
+	@echo "Set up .env.test or export AWS_PROFILE before running"
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
-	PYTHONPATH=. pytest tests/integration $(ARGS)
+	PYTHONPATH=. pytest tests/integration --timeout=60 $(ARGS)
 
 test-typed-di:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
-	PYTHONPATH=. pytest tests/unit/core/typed_di -v $(ARGS)
+	PYTHONPATH=. pytest tests/unit/core/typed_di -v --timeout=10 $(ARGS)
 
 test-jira-reporter:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
-	PYTHONPATH=. pytest tests/unit/test_jira_reporter $(ARGS)
+	PYTHONPATH=. pytest tests/unit/test_jira_reporter --timeout=30 $(ARGS)
 
 test-coverage:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
 	PYTHONPATH=. pytest tests/unit --ignore=tests/setup \
-	--cov=packages --cov-report=html --cov-report=term-missing $(ARGS)
+	--cov=packages --cov-report=html --cov-report=term-missing --timeout=30 $(ARGS)
 
 # ============================================================================
 # LINTING & CODE QUALITY
@@ -160,11 +182,13 @@ help:
 	@echo "Setup:"
 	@echo "  make setup              Set up virtual environment and install dependencies"
 	@echo ""
-	@echo "Testing:"
-	@echo "  make test-unit          Run unit tests"
-	@echo "  make test-integration   Run integration tests (requires AWS)"
+	@echo "Testing (use appropriate tier for your workflow):"
+	@echo "  make test-fast          Critical tests only (~10s) - USE DURING DEVELOPMENT"
+	@echo "  make test-typed-di      TypedDI validation tests (~10s)"
+	@echo "  make test-parallel      All unit tests, parallel (~1-2 min)"
+	@echo "  make test-unit          All unit tests, serial (~5-10 min)"
+	@echo "  make test-integration   AWS-dependent tests (requires AWS_PROFILE)"
 	@echo "  make test-coverage      Run tests with coverage report"
-	@echo "  make test-typed-di      Run TypedDI validation tests"
 	@echo "  make test-jira-reporter Run JIRA reporter tests"
 	@echo ""
 	@echo "Code Quality:"
