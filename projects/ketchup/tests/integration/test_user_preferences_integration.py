@@ -12,7 +12,7 @@ Test Coverage:
 - Join notification service respecting user preferences
 - Default behavior when no preference is set
 
-Requires: AWS_PROFILE=campaign_prod_v7
+Requires: AWS configured via .env.test (see .env.test.example)
 """
 
 import os
@@ -44,11 +44,11 @@ class TestUserPreferencesIntegration:
 
     @pytest_asyncio.fixture
     async def real_dynamodb_client(self):
-        """Create a real DynamoDB client for testing."""
-        # Ensure AWS profile is set
-        if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-            pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
-
+        """Create a real DynamoDB client for testing.
+        
+        AWS profile is loaded from .env.test by root conftest.py.
+        Tests are auto-skipped if AWS is not configured.
+        """
         client = DynamoDBAsyncClient()
         yield client
         # Cleanup will happen in test teardown

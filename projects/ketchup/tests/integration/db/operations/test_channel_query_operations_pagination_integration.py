@@ -2,7 +2,7 @@
 Integration tests for ChannelQueryOperations pagination with real DynamoDB.
 
 Tests the get_all_active_channels method against actual DynamoDB instance.
-Requires AWS_PROFILE=campaign_prod_v7 to be set.
+Requires: AWS configured via .env.test (see .env.test.example)
 """
 
 import asyncio
@@ -30,11 +30,11 @@ class TestChannelQueryOperationsPaginationIntegration:
 
     @pytest_asyncio.fixture
     async def dynamodb_client(self):
-        """Create a real DynamoDB client."""
-        # Ensure AWS profile is set
-        if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-            pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
-
+        """Create a real DynamoDB client.
+        
+        AWS profile is loaded from .env.test by root conftest.py.
+        Tests are auto-skipped if AWS is not configured.
+        """
         client = DynamoDBAsyncClient()
         yield client
         # No cleanup needed for client
@@ -262,10 +262,10 @@ async def test_specific_channel_c09c20plh7c_exists():
     """
     Specific test to verify channel C09C20PLH7C is retrieved with pagination.
     This is the channel that was missing before the fix.
+    
+    AWS profile is loaded from .env.test by root conftest.py.
+    Test is auto-skipped if AWS is not configured.
     """
-    if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-        pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
-
     client = DynamoDBAsyncClient()
 
     ops = ChannelQueryOperations(client=client, table_name=PROD_TABLE_NAME)

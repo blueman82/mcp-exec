@@ -6,7 +6,7 @@ These tests verify the end-to-end flow with actual AWS services:
 2. Preference being stored in real DynamoDB via UserStore
 3. UserJoinNotificationService respecting the preference when sending notifications
 
-Requires: AWS_PROFILE=campaign_prod_v7
+Requires: AWS configured via .env.test (see .env.test.example)
 """
 
 import asyncio
@@ -44,10 +44,11 @@ class TestUserPreferencesRealAWS:
 
     @pytest_asyncio.fixture
     async def aws_client(self):
-        """Create real DynamoDB client."""
-        if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-            pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
-
+        """Create real DynamoDB client.
+        
+        AWS profile is loaded from .env.test by root conftest.py.
+        Tests are auto-skipped if AWS is not configured.
+        """
         client = DynamoDBAsyncClient()
         yield client
 
@@ -296,10 +297,11 @@ class TestUserPreferencesRealAWS:
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_preference_flow_end_to_end():
-    """Test complete end-to-end flow with real AWS DynamoDB."""
-    if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-        pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
-
+    """Test complete end-to-end flow with real AWS DynamoDB.
+    
+    AWS profile is loaded from .env.test by root conftest.py.
+    Test is auto-skipped if AWS is not configured.
+    """
     client = DynamoDBAsyncClient()
     user_store = UserStore(client=client, table_name="ketchup_channel_information")
     user_id = f"U_TEST_E2E_{int(time.time())}"

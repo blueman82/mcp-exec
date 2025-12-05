@@ -50,7 +50,7 @@ test-unit:
 
 test-integration:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
-	AWS_PROFILE=campaign_prod_v7 PYTHONPATH=. pytest tests/integration $(ARGS)
+	PYTHONPATH=. pytest tests/integration $(ARGS)
 
 test-typed-di:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
@@ -122,7 +122,7 @@ test-jira-reporter-unit:
 
 test-jira-reporter-integration:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
-	AWS_PROFILE=campaign_prod_v7 PYTHONPATH=. pytest tests/integration/test_jira_reporter $(ARGS)
+	PYTHONPATH=. pytest tests/integration/test_jira_reporter $(ARGS)
 
 test-jira-reporter-coverage:
 	. $(VENV)/bin/activate && cd $(PROJECT_ROOT) && \
