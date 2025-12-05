@@ -35,7 +35,7 @@ Backend servers are spawned lazily on first access and managed via a connection 
 
 The **Meta-MCP** extension provides a visual interface for configuration:
 
-1. **Install the extension** from `extension/meta-mcp-configurator-0.1.1.vsix`
+1. **Install the extension** from `extension/meta-mcp-configurator-0.1.2.vsix`
 2. **Open the Meta-MCP panel** - click the Meta-MCP icon in the activity bar (left sidebar)
 3. **Go to the Setup tab** and complete the setup wizard:
 
