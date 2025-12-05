@@ -16,3 +16,7 @@ docs/diagrams/logs/*
 !docs/diagrams/README.md
 !docs/diagrams/core-mechanics.md
 !docs/diagrams/token-economics.md
+
+# Project-specific
+CONSOLIDATION_ROADMAP.md
+*.code-workspace
