@@ -10,8 +10,8 @@ Main architecture doc: [**../ARCHITECTURE.md**](../ARCHITECTURE.md)
 
 | Doc | Focus |
 |-----|-------|
-| [**core-mechanics.mmd**](core-mechanics.mmd) | Pool, connections, cache, handlers |
-| [**token-economics.mmd**](token-economics.mmd) | ROI analysis, savings calculations |
+| [**core-mechanics.md**](core-mechanics.md) | Pool, cache, handlers |
+| [**token-economics.md**](token-economics.md) | Savings, request flow |
 
 ---
 
@@ -20,10 +20,9 @@ Main architecture doc: [**../ARCHITECTURE.md**](../ARCHITECTURE.md)
 | Topic | Go to |
 |-------|-------|
 | Overview | [ARCHITECTURE.md](../ARCHITECTURE.md) |
-| Request flow | [token-economics.mmd](token-economics.mmd) |
-| Pool behavior | [core-mechanics.mmd](core-mechanics.mmd) |
-| Token savings | [token-economics.mmd](token-economics.mmd) |
-| Cache/handlers | [core-mechanics.mmd](core-mechanics.mmd) |
+| Request flow | [token-economics.md](token-economics.md) |
+| Pool/Cache | [core-mechanics.md](core-mechanics.md) |
+| Token savings | [token-economics.md](token-economics.md) |
 
 ---
 
