@@ -10,7 +10,8 @@
 #   -v, --verbose     Verbose output with detailed results
 #   --fix             Auto-fix code style issues (black, ruff, isort)
 #   --quick           Skip slow checks (only run ruff)
-#   --no-tests        Skip pytest (only run linting)
+#   --with-tests      Run pytest unit tests (disabled by default - use CI/CD)
+#   --no-tests        Explicitly skip tests (default behavior)
 #
 
 set -euo pipefail
@@ -45,7 +46,7 @@ NC='\033[0m' # No Color
 VERBOSE=false
 FIX=false
 QUICK=false
-NO_TESTS=false
+NO_TESTS=true  # Tests disabled by default - run via CI/CD or 'make test-unit'
 
 # Track results
 CHECKS_PASSED=0
@@ -86,26 +87,32 @@ ${BOLD}Options:${NC}
   -h, --help          Show this help message
   -v, --verbose       Verbose output with detailed results
   --fix               Auto-fix code style issues (black, ruff, isort)
-  --quick             Skip slow checks (only run ruff)
-  --no-tests          Skip pytest (only run linting)
+  --quick             Quick check (ruff only)
+  --with-tests        Include pytest unit tests (use for CI/CD)
+  --no-tests          Skip tests (default - tests run via CI/CD)
 
-${BOLD}Validation Checks:${NC}
+${BOLD}Validation Checks (default):${NC}
   1. ruff             Linting (imports, style, warnings)
   2. black            Code formatting check
   3. isort            Import sorting check
-  4. pytest           Unit tests
+
+${BOLD}Optional (--with-tests):${NC}
+  4. pytest           Unit tests (1700+ tests - run in CI/CD, not locally)
 
 ${BOLD}Examples:${NC}
-  ./validate.sh                  # Run all validation checks
-  ./validate.sh --verbose        # Run with detailed output
+  ./validate.sh                  # Lint only (default, fast)
   ./validate.sh --fix            # Auto-fix style issues
-  ./validate.sh --quick          # Quick check (ruff only)
-  ./validate.sh --no-tests       # Linting only, skip tests
+  ./validate.sh --quick          # Ruff only (fastest)
+  ./validate.sh --with-tests     # Include tests (for CI/CD)
+  ./validate.sh --verbose        # Detailed output
 
 ${BOLD}Pre-deployment:${NC}
-  This script is called automatically by deploy-ketchup.sh unless
-  --skip-validation is passed. You can also run it manually before
-  committing changes.
+  This script runs lint checks before deployment. Tests are skipped
+  by default (1700+ tests can timeout locally). Run full test suite
+  via CI/CD or manually with 'make test-unit'.
+
+${BOLD}For CI/CD:${NC}
+  ./validate.sh --with-tests     # Full validation including tests
 
 EOF
 }
@@ -127,6 +134,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --quick)
             QUICK=true
+            shift
+            ;;
+        --with-tests)
+            NO_TESTS=false
             shift
             ;;
         --no-tests)

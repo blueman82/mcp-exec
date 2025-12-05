@@ -777,21 +777,21 @@ fi
 update_local_docker_compose
 
 # ========== VALIDATION GATE ==========
-# Run pre-deployment validation (lint + tests) unless skipped
+# Run pre-deployment validation (lint only, tests via CI/CD)
 if [ "$SKIP_VALIDATION" = true ]; then
     log_warning "Skipping pre-deployment validation (--skip-validation)"
 else
     log_section "Pre-deployment Validation"
     
     if [ -f "$VALIDATE_SCRIPT" ] && [ -x "$VALIDATE_SCRIPT" ]; then
-        log_info "Running validation checks (lint + tests)..."
-        if ! "$VALIDATE_SCRIPT" --no-tests; then
+        log_info "Running lint checks (ruff, black, isort)..."
+        if ! "$VALIDATE_SCRIPT"; then
             log_error "Validation failed. Deployment aborted."
             log_info "Fix the issues above, or use --skip-validation to bypass."
             log_info "Run './infrastructure/validate.sh --fix' to auto-fix style issues."
             exit 1
         fi
-        log_success "All validation checks passed"
+        log_success "Lint checks passed"
     else
         log_warning "validate.sh not found or not executable, skipping validation"
         log_info "Expected location: $VALIDATE_SCRIPT"
