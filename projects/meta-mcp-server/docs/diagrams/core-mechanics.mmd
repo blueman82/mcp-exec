@@ -1,0 +1,133 @@
+# Core Mechanics
+
+---
+
+## 1. ServerPool
+
+### LRU Algorithm
+
+```mermaid
+flowchart TD
+  A[getConnection] --> B{Exists?}
+  B -->|Yes| C[Return]
+  B -->|No| D{Full?}
+  D -->|No| E[Create]
+  D -->|Yes| F[Evict oldest]
+  F --> E
+  E --> G[Return]
+
+  style C fill:#e8f5e9
+  style G fill:#e8f5e9
+```
+
+### States
+
+```mermaid
+stateDiagram-v2
+  [*] --> Created
+  Created --> InUse
+  InUse --> Idle
+  Idle --> InUse
+  Idle --> Evicted
+  Evicted --> [*]
+```
+
+| Setting | Value |
+|---------|-------|
+| maxConnections | 6 |
+| idleTimeoutMs | 300000 |
+| cleanupIntervalMs | 60000 |
+
+---
+
+## 2. Connections
+
+```mermaid
+stateDiagram-v2
+  [*] --> Disconnected
+  Disconnected --> Connecting
+  Connecting --> Connected
+  Connecting --> Error
+  Connected --> Disconnected
+```
+
+| Type | Command |
+|------|---------|
+| Node | `node` |
+| Docker | `docker` |
+| Python | `uvx` |
+| NPX | `npx` |
+
+---
+
+## 3. Tool Cache
+
+```mermaid
+flowchart TD
+  A[Request] --> B{Cached?}
+  B -->|Yes| C[Return]
+  B -->|No| D[Fetch]
+  D --> E[Cache]
+  E --> F[Return]
+
+  style C fill:#e8f5e9
+```
+
+Cache cleared when connection evicted.
+
+---
+
+## 4. Handlers
+
+```mermaid
+flowchart LR
+  subgraph Handlers
+    H1[list_servers]
+    H2[get_server_tools]
+    H3[call_tool]
+  end
+
+  subgraph Support
+    R[Registry]
+    C[Cache]
+    P[Pool]
+  end
+
+  H1 --> R
+  H2 --> C & P
+  H3 --> P
+
+  style H1 fill:#e3f2fd
+  style H2 fill:#fff3e0
+  style H3 fill:#f3e5f5
+```
+
+---
+
+## Error Flow
+
+```mermaid
+flowchart TD
+  A[Request] --> B{Valid?}
+  B -->|No| C[Error]
+  B -->|Yes| D{Server?}
+  D -->|No| E[Error]
+  D -->|Yes| F{Connect?}
+  F -->|No| G[Error]
+  F -->|Yes| H[Execute]
+
+  style C fill:#ffcdd2
+  style E fill:#ffcdd2
+  style G fill:#ffcdd2
+```
+
+---
+
+## Files
+
+| Component | File |
+|-----------|------|
+| Pool | `src/pool/server-pool.ts` |
+| Connection | `src/pool/connection.ts` |
+| Cache | `src/tools/tool-cache.ts` |
+| Handlers | `src/tools/*.ts` |

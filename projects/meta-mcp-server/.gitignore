@@ -9,4 +9,10 @@ coverage/
 .vitest/
 
 docs/*
-!docs/research/mcp_gateway_research.md
+!docs/ARCHITECTURE.md
+!docs/diagrams/
+docs/diagrams/*
+docs/diagrams/logs/*
+!docs/diagrams/README.md
+!docs/diagrams/core-mechanics.mmd
+!docs/diagrams/token-economics.mmd
