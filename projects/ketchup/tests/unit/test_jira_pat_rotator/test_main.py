@@ -3,17 +3,16 @@
 Tests for main.py entry point with TypedDI integration.
 
 Verifies:
-- TypedDI container initializes correctly
+- TypedDI container initializes correctly with mocked AWS dependencies
 - All required protocols are resolved
 - Scheduler starts without errors
 - Services are properly initialized
 
-NOTE: These tests require AWS credentials and are effectively integration tests.
-They are skipped when AWS credentials are not available.
+NOTE: These are unit tests with mocked AWS dependencies.
+AWS services are mocked via conftest.py fixtures.
 """
 
 import asyncio
-import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -29,13 +28,6 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
     MCPClientProtocol,
 )
 from packages.core.typed_di_integration import get_unified_container
-
-# Skip these tests if AWS credentials are not configured
-# These are integration tests that require real AWS access
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("AWS_PROFILE") or os.environ.get("SKIP_AWS_TESTS", "true").lower() == "true",
-    reason="Requires AWS credentials (set AWS_PROFILE and SKIP_AWS_TESTS=false to run)"
-)
 
 
 class TestMainTypeInitialization:
