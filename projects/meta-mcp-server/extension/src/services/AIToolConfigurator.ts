@@ -140,6 +140,11 @@ export class AIToolConfigurator {
                 serversConfig = JSON.parse(serversContent);
             }
             
+            // Ensure mcpServers exists (in case file had unexpected structure)
+            if (!serversConfig.mcpServers) {
+                serversConfig.mcpServers = {};
+            }
+            
             // Merge servers (don't overwrite existing)
             for (const [name, serverConfig] of serversToMigrate) {
                 if (!(name in serversConfig.mcpServers)) {

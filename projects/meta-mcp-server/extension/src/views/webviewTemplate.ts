@@ -1181,6 +1181,17 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             vscode.postMessage({ type: 'loadSetup' });
                         }
                         break;
+                    case 'migrateServersResponse':
+                        if (message.success) {
+                            // Setup view will be refreshed via updateSetup from backend
+                        } else {
+                            // Re-enable migrate buttons on failure
+                            setupContainer.querySelectorAll('.btn-migrate').forEach(btn => {
+                                btn.disabled = false;
+                                btn.textContent = 'Migrate Servers';
+                            });
+                        }
+                        break;
                 }
             });
 
