@@ -7,9 +7,13 @@ Verifies:
 - All required protocols are resolved
 - Scheduler starts without errors
 - Services are properly initialized
+
+NOTE: These tests require AWS credentials and are effectively integration tests.
+They are skipped when AWS credentials are not available.
 """
 
 import asyncio
+import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -25,6 +29,13 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
     MCPClientProtocol,
 )
 from packages.core.typed_di_integration import get_unified_container
+
+# Skip these tests if AWS credentials are not configured
+# These are integration tests that require real AWS access
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("AWS_PROFILE") or os.environ.get("SKIP_AWS_TESTS", "true").lower() == "true",
+    reason="Requires AWS credentials (set AWS_PROFILE and SKIP_AWS_TESTS=false to run)"
+)
 
 
 class TestMainTypeInitialization:

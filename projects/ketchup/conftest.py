@@ -39,6 +39,7 @@ if env_test.exists():
 # Set defaults if not loaded from .env.test
 os.environ.setdefault("AWS_PROFILE", "campaign_prod_v7")
 os.environ.setdefault("AWS_REGION", "eu-west-1")
+os.environ.setdefault("AWS_DEFAULT_REGION", "eu-west-1")  # boto3 requires this
 
 
 def _reset_mock_recursive(obj: Any) -> None:
