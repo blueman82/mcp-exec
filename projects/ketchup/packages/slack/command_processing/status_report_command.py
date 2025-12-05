@@ -9,13 +9,13 @@ from typing import Any, Dict, Optional, Tuple
 import orjson
 
 from packages.core.config.feature_flags import FeatureFlags
-from packages.core.typed_di_integration import get_typed_registry
+from packages.core.exceptions import MessagePreparationError
+from packages.core.logging import setup_logger
+from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     ChannelNameResolverProtocol,
 )
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.exceptions import MessagePreparationError
-from packages.core.logging import setup_logger
+from packages.core.typed_di_integration import get_typed_registry
 from packages.secrets.manager import SecretsManager  # Import for secrets_manager
 from packages.slack.blockkits.handlers.report import ReportMessageHandler
 from packages.slack.blockkits.handlers.status import StatusMessageHandler
@@ -65,9 +65,7 @@ class SlackReports(BaseCommandHandler):
             channel_restore_ops: Handler for restoring archived channels
         """
         if slack_posting_handler is None:
-            raise ValueError(
-                "slack_posting_handler must be provided via dependency injection"
-            )
+            raise ValueError("slack_posting_handler must be provided via dependency injection")
         super().__init__()
         self.channel_info_ops = channel_info_ops
         self.archive_ops = archive_ops
@@ -80,9 +78,7 @@ class SlackReports(BaseCommandHandler):
         self.slack_config = slack_config
 
         self.posting_handler = slack_posting_handler
-        self.slack_posting_handler = (
-            self.posting_handler
-        )  # Keep for backward compatibility
+        self.slack_posting_handler = self.posting_handler  # Keep for backward compatibility
 
         # Extract build_feedback_blocks if available
         feedback_builder_func = None
@@ -179,11 +175,10 @@ class SlackReports(BaseCommandHandler):
                 pass
 
             if not channel_name_resolver:
-                logger.warning(
-                    "ChannelNameResolver not available, using fallback parsing"
-                )
+                logger.warning("ChannelNameResolver not available, using fallback parsing")
                 # Fallback: try to extract channel ID from Slack mention format
                 from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
+
                 mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
                 if mention_match:
                     channel_id = mention_match.group(1)
@@ -196,8 +191,8 @@ class SlackReports(BaseCommandHandler):
                 # If not a mention format, return as-is (might be already a valid ID)
                 return channel_param
 
-            resolved_id, format_type = (
-                await channel_name_resolver.resolve_channel_parameter(channel_param)
+            resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
+                channel_param
             )
             if resolved_id:
                 logger.info(
@@ -211,9 +206,7 @@ class SlackReports(BaseCommandHandler):
                 logger.error("Failed to resolve channel parameter: %s", format_type)
                 return None
         except Exception as e:
-            logger.error(
-                "Error resolving channel parameter '%s': %s", channel_param, str(e)
-            )
+            logger.error("Error resolving channel parameter '%s': %s", channel_param, str(e))
             return channel_param  # Return as-is on error
 
     def _parse_and_validate_initial_input(
@@ -233,9 +226,7 @@ class SlackReports(BaseCommandHandler):
         # If no channel specified and not in a DM, default to current channel
         if not channel_id and incoming_channel and not incoming_channel.startswith("D"):
             channel_id = incoming_channel
-            logger.info(
-                "No channel specified, defaulting to current channel: %s", channel_id
-            )
+            logger.info("No channel specified, defaulting to current channel: %s", channel_id)
 
         # Use incoming_channel as fallback for dm_channel_id
         if not dm_channel_id:
@@ -266,9 +257,7 @@ class SlackReports(BaseCommandHandler):
         """Posts the initial acknowledgement message to the user."""
         # Ensure dm_channel_id and response_url are provided for posting
         if not dm_channel_id and not response_url:
-            logger.error(
-                "Cannot post initial ack: missing dm_channel_id and response_url."
-            )
+            logger.error("Cannot post initial ack: missing dm_channel_id and response_url.")
             return
         await self.slack_posting_handler.post_message(
             user_id=user_id,
@@ -287,9 +276,7 @@ class SlackReports(BaseCommandHandler):
         """Gets channel info from Slack API, validates, and checks membership."""
         # Ensure dm_channel_id and response_url are provided for channel_details call
         if not dm_channel_id and not response_url:
-            logger.error(
-                "Cannot get channel details: missing dm_channel_id and response_url."
-            )
+            logger.error("Cannot get channel details: missing dm_channel_id and response_url.")
             return None, False
         channel_info = await self.channel_info_ops.get_channel_details(
             user_id=user_id,
@@ -299,9 +286,7 @@ class SlackReports(BaseCommandHandler):
         )
 
         if channel_info is None:
-            logger.error(
-                "Could not get channel details for %s from Slack API", channel_id
-            )
+            logger.error("Could not get channel details for %s from Slack API", channel_id)
             await self.slack_posting_handler.post_message(
                 user_id=user_id,
                 channel_id=dm_channel_id,
@@ -349,18 +334,12 @@ class SlackReports(BaseCommandHandler):
                 normalized_prefs_for_ai=normalized_prefs_for_ai,
             )
         except MessagePreparationError as e:
-            logger.error(
-                "Message preparation failed for channel %s: %s", passed_channel_id, e
-            )
+            logger.error("Message preparation failed for channel %s: %s", passed_channel_id, e)
             # This error is already handled at the channel validation level,
             # so we should return None to indicate failure without additional user messaging
             return None
 
-        if (
-            not response_data
-            or "choices" not in response_data
-            or not response_data["choices"]
-        ):
+        if not response_data or "choices" not in response_data or not response_data["choices"]:
             logger.error("Failed to get response from OpenAI for query: %s", query_text)
             await self.slack_posting_handler.post_message(
                 user_id=user_id,
@@ -427,20 +406,15 @@ class SlackReports(BaseCommandHandler):
             "• **Support Ticket:** NOT YET AVAILABLE",
             "Support Ticket: NOT YET AVAILABLE",
         ]
-        needs_jira_check = any(
-            p in models_response for p in placeholder_jira_variations
-        )
+        needs_jira_check = any(p in models_response for p in placeholder_jira_variations)
         if needs_jira_check:
             try:
-                full_channel_details_dict = (
-                    await self.dynamodb_store.get_channel_details(channel_id)
+                full_channel_details_dict = await self.dynamodb_store.get_channel_details(
+                    channel_id
                 )
                 if full_channel_details_dict:
                     jira_ticket_from_db = full_channel_details_dict.get("jira_ticket")
-                    if (
-                        jira_ticket_from_db
-                        and jira_ticket_from_db != "NOT YET AVAILABLE"
-                    ):
+                    if jira_ticket_from_db and jira_ticket_from_db != "NOT YET AVAILABLE":
                         for placeholder in placeholder_jira_variations:
                             if placeholder in models_response:
                                 # Make JIRA ticket clickable with full URL
@@ -498,15 +472,11 @@ class SlackReports(BaseCommandHandler):
 
         # Resolve channel parameter if needed
         if target_channel_id_opt:
-            resolved_channel_id = await self._resolve_channel_parameter(
-                target_channel_id_opt
-            )
+            resolved_channel_id = await self._resolve_channel_parameter(target_channel_id_opt)
             if resolved_channel_id:
                 target_channel_id_opt = resolved_channel_id
             else:
-                logger.error(
-                    "Failed to resolve channel parameter: %s", target_channel_id_opt
-                )
+                logger.error("Failed to resolve channel parameter: %s", target_channel_id_opt)
                 return self.create_validation_error_response(
                     "Could not resolve the specified channel. Please check the channel name or ID and try again."
                 )
@@ -541,18 +511,14 @@ class SlackReports(BaseCommandHandler):
         )
 
         # 2. Validate Channel and Membership
-        channel_name_from_slack_opt, is_valid_channel = (
-            await self._get_and_validate_channel_info(
-                validated_user_id,
-                target_channel_id,
-                validated_dm_channel_id,
-                validated_response_url,
-            )
+        channel_name_from_slack_opt, is_valid_channel = await self._get_and_validate_channel_info(
+            validated_user_id,
+            target_channel_id,
+            validated_dm_channel_id,
+            validated_response_url,
         )
         if not is_valid_channel:
-            return self.create_error_response(
-                "Channel validation failed or bot not member."
-            )
+            return self.create_error_response("Channel validation failed or bot not member.")
         if channel_name_from_slack_opt is None:
             logger.error(
                 "Could not retrieve channel name for valid channel %s",
@@ -564,9 +530,7 @@ class SlackReports(BaseCommandHandler):
                 message="Error: Could not retrieve channel details.",
                 response_url=validated_response_url,  # Use validated var
             )
-            return self.create_error_response(
-                "Internal error retrieving channel details."
-            )
+            return self.create_error_response("Internal error retrieving channel details.")
         channel_name_from_slack: str = channel_name_from_slack_opt
 
         # 3. Fetch user preferences and build adaptive prompt
@@ -578,9 +542,7 @@ class SlackReports(BaseCommandHandler):
             "time_window": "past_24_hours",
         }
         raw_preferences = (
-            user_data.get("preferences", default_raw_prefs)
-            if user_data
-            else default_raw_prefs
+            user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs
         )
         normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
         logger.info(
@@ -621,9 +583,7 @@ class SlackReports(BaseCommandHandler):
         # 6. Send Final Response
         # Use DM channel if no response_url is available (e.g., app mentions)
         effective_response_target = (
-            validated_response_url
-            if validated_response_url
-            else validated_dm_channel_id
+            validated_response_url if validated_response_url else validated_dm_channel_id
         )
 
         # Use block_kit_builder if available (it has feedback blocks configured)
@@ -671,15 +631,11 @@ class SlackReports(BaseCommandHandler):
 
         # Resolve channel parameter if needed
         if target_channel_id_opt:
-            resolved_channel_id = await self._resolve_channel_parameter(
-                target_channel_id_opt
-            )
+            resolved_channel_id = await self._resolve_channel_parameter(target_channel_id_opt)
             if resolved_channel_id:
                 target_channel_id_opt = resolved_channel_id
             else:
-                logger.error(
-                    "Failed to resolve channel parameter: %s", target_channel_id_opt
-                )
+                logger.error("Failed to resolve channel parameter: %s", target_channel_id_opt)
                 return self.create_validation_error_response(
                     "Could not resolve the specified channel. Please check the channel name or ID and try again."
                 )
@@ -715,22 +671,16 @@ class SlackReports(BaseCommandHandler):
         )
 
         # 2. Validate Channel and Membership
-        channel_name_from_slack_opt, is_valid_channel = (
-            await self._get_and_validate_channel_info(
-                validated_user_id,
-                target_channel_id,
-                validated_dm_channel_id,
-                validated_response_url,
-            )
+        channel_name_from_slack_opt, is_valid_channel = await self._get_and_validate_channel_info(
+            validated_user_id,
+            target_channel_id,
+            validated_dm_channel_id,
+            validated_response_url,
         )
         if not is_valid_channel:
-            return self.create_error_response(
-                "Channel validation failed or bot not member."
-            )
+            return self.create_error_response("Channel validation failed or bot not member.")
         if channel_name_from_slack_opt is None:
-            logger.error(
-                f"Could not retrieve channel name for valid channel {target_channel_id}"
-            )
+            logger.error(f"Could not retrieve channel name for valid channel {target_channel_id}")
             # Post error message to user
             await self.slack_posting_handler.post_message(
                 user_id=validated_user_id,  # Use validated var
@@ -738,9 +688,7 @@ class SlackReports(BaseCommandHandler):
                 message="Error: Could not retrieve channel details.",
                 response_url=validated_response_url,  # Use validated var
             )
-            return self.create_error_response(
-                "Internal error retrieving channel details."
-            )
+            return self.create_error_response("Internal error retrieving channel details.")
         channel_name_from_slack: str = channel_name_from_slack_opt
 
         # 3. Fetch user preferences and build adaptive prompt
@@ -752,9 +700,7 @@ class SlackReports(BaseCommandHandler):
             "time_window": "past_24_hours",
         }
         raw_preferences = (
-            user_data.get("preferences", default_raw_prefs)
-            if user_data
-            else default_raw_prefs
+            user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs
         )
         normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
         logger.info(
@@ -796,9 +742,7 @@ class SlackReports(BaseCommandHandler):
         # 6. Send Final Response
         # Use DM channel if no response_url is available (e.g., app mentions)
         effective_response_target = (
-            validated_response_url
-            if validated_response_url
-            else validated_dm_channel_id
+            validated_response_url if validated_response_url else validated_dm_channel_id
         )
 
         # Use block_kit_builder if available (it has feedback blocks configured)

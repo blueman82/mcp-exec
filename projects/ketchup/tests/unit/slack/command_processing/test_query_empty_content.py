@@ -72,9 +72,7 @@ async def test_query_command_with_empty_content_field(
 
     # Create mock dependencies
     mock_openai_handler = AsyncMock()
-    mock_openai_handler.call_openai_endpoint.return_value = (
-        mock_openai_response_with_empty_content
-    )
+    mock_openai_handler.call_openai_endpoint.return_value = mock_openai_response_with_empty_content
 
     # Mock the channel_info_ops to return valid channel details
     mock_channel_info_ops = AsyncMock()
@@ -172,7 +170,4 @@ async def test_query_command_with_valid_json_content(
     )
 
     # Should extract the response_text from JSON
-    assert (
-        result
-        == "This is the actual response from the AI with 1024 tokens"
-    )
+    assert result == "This is the actual response from the AI with 1024 tokens"

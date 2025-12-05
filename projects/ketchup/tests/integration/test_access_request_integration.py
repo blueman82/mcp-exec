@@ -21,9 +21,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
 
     def __init__(self):
         """Initialize access request integration test."""
-        super().__init__(
-            test_name="AccessRequestIntegration", env_vars={"LOG_LEVEL": "DEBUG"}
-        )
+        super().__init__(test_name="AccessRequestIntegration", env_vars={"LOG_LEVEL": "DEBUG"})
 
         # Test data
         self.test_user_id = "UTEST12345"
@@ -100,18 +98,14 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 status=ACCESS_REQUEST_STATUS["PENDING"],
             )
 
-            success, message, created_request = (
-                await ops.create_request_with_validation(request)
-            )
+            success, message, created_request = await ops.create_request_with_validation(request)
 
             if not success:
                 self.logger.error(f"Failed to create request: {message}")
                 return False
 
             # Verify request was created
-            self.logger.info(
-                f"✓ Request created successfully: {created_request.user_id}"
-            )
+            self.logger.info(f"✓ Request created successfully: {created_request.user_id}")
 
             # Check if request appears in pending list
             pending = await ops.get_all_pending_requests()
@@ -142,9 +136,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 status=ACCESS_REQUEST_STATUS["PENDING"],
             )
 
-            success, message, created_request = (
-                await ops.create_request_with_validation(request)
-            )
+            success, message, created_request = await ops.create_request_with_validation(request)
 
             if success:
                 self.logger.error("Duplicate request was allowed!")
@@ -168,9 +160,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
 
             # First approve the existing request to allow new ones
             pending = await ops.get_all_pending_requests()
-            existing = next(
-                (r for r in pending if r.user_id == self.test_user_id), None
-            )
+            existing = next((r for r in pending if r.user_id == self.test_user_id), None)
 
             if existing:
                 await ops.update_request_decision(
@@ -196,9 +186,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
 
                 if i < 3:  # First 3 should succeed
                     if not success:
-                        self.logger.error(
-                            f"Request {i+1} failed unexpectedly: {message}"
-                        )
+                        self.logger.error(f"Request {i+1} failed unexpectedly: {message}")
                         return False
                     # Immediately approve to allow next request
                     await ops.update_request_decision(
@@ -239,9 +227,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 status=ACCESS_REQUEST_STATUS["PENDING"],
             )
 
-            success, _, created_request = await ops.create_request_with_validation(
-                request
-            )
+            success, _, created_request = await ops.create_request_with_validation(request)
             if not success:
                 self.logger.error("Failed to create request for approval test")
                 return False
@@ -264,11 +250,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                     "user": {"id": self.approver_user_id, "name": self.approver_name},
                     "channel": {"id": ACCESS_REQUEST_CHANNEL},
                     "message": {"ts": "1234567890.123456", "blocks": []},
-                    "actions": [
-                        {
-                            "value": f"{approval_user}|{created_request.request_timestamp}"
-                        }
-                    ],
+                    "actions": [{"value": f"{approval_user}|{created_request.request_timestamp}"}],
                 }
 
                 # Handle approval
@@ -281,11 +263,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 # Verify request status was updated
                 history = await ops.get_user_request_history(approval_user)
                 approved = next(
-                    (
-                        r
-                        for r in history
-                        if r.status == ACCESS_REQUEST_STATUS["APPROVED"]
-                    ),
+                    (r for r in history if r.status == ACCESS_REQUEST_STATUS["APPROVED"]),
                     None,
                 )
 
@@ -321,9 +299,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 status=ACCESS_REQUEST_STATUS["PENDING"],
             )
 
-            success, _, created_request = await ops.create_request_with_validation(
-                request
-            )
+            success, _, created_request = await ops.create_request_with_validation(request)
             if not success:
                 self.logger.error("Failed to create request for rejection test")
                 return False
@@ -342,17 +318,13 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                     "view": {
                         "state": {
                             "values": {
-                                "reason_block": {
-                                    "reason_input": {"value": "Test rejection reason"}
-                                }
+                                "reason_block": {"reason_input": {"value": "Test rejection reason"}}
                             }
                         },
                         "private_metadata": json.dumps(
                             {
                                 "user_id": rejection_user,
-                                "request_timestamp": str(
-                                    created_request.request_timestamp
-                                ),
+                                "request_timestamp": str(created_request.request_timestamp),
                                 "channel_ts": "1234567890.123456",
                                 "original_blocks": [],
                             }
@@ -370,11 +342,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 # Verify request status was updated
                 history = await ops.get_user_request_history(rejection_user)
                 rejected = next(
-                    (
-                        r
-                        for r in history
-                        if r.status == ACCESS_REQUEST_STATUS["REJECTED"]
-                    ),
+                    (r for r in history if r.status == ACCESS_REQUEST_STATUS["REJECTED"]),
                     None,
                 )
 
@@ -383,9 +351,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                     return False
 
                 if rejected.rejection_reason != "Test rejection reason":
-                    self.logger.error(
-                        f"Rejection reason mismatch: {rejected.rejection_reason}"
-                    )
+                    self.logger.error(f"Rejection reason mismatch: {rejected.rejection_reason}")
                     return False
 
                 self.logger.info("✓ Rejection flow completed successfully")
@@ -414,9 +380,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 status=ACCESS_REQUEST_STATUS["PENDING"],
             )
 
-            success, _, created_request = await ops.create_request_with_validation(
-                request
-            )
+            success, _, created_request = await ops.create_request_with_validation(request)
             if not success:
                 self.logger.error("Failed to create request for concurrent test")
                 return False
@@ -438,9 +402,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                     "channel": {"id": ACCESS_REQUEST_CHANNEL},
                     "message": {"ts": "1234567890.123456", "blocks": []},
                     "actions": [
-                        {
-                            "value": f"{concurrent_user}|{created_request.request_timestamp}"
-                        }
+                        {"value": f"{concurrent_user}|{created_request.request_timestamp}"}
                     ],
                 }
 
@@ -449,9 +411,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                     "channel": {"id": ACCESS_REQUEST_CHANNEL},
                     "message": {"ts": "1234567890.123456", "blocks": []},
                     "actions": [
-                        {
-                            "value": f"{concurrent_user}|{created_request.request_timestamp}"
-                        }
+                        {"value": f"{concurrent_user}|{created_request.request_timestamp}"}
                     ],
                 }
 
@@ -482,9 +442,7 @@ class TestAccessRequestIntegration(BaseIntegrationTest):
                 ]
 
                 if len(approved_requests) != 1:
-                    self.logger.error(
-                        f"Expected 1 approval, got {len(approved_requests)}"
-                    )
+                    self.logger.error(f"Expected 1 approval, got {len(approved_requests)}")
                     return False
 
                 self.logger.info("✓ Distributed lock prevented concurrent approvals")

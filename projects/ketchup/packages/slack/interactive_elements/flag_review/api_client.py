@@ -69,9 +69,7 @@ class FlagReviewApiClient:
 
             api_payload = {"trigger_id": trigger_id, "view": modal_view}
 
-            return await self._make_modal_api_request(
-                url, headers, api_payload, modal_type
-            )
+            return await self._make_modal_api_request(url, headers, api_payload, modal_type)
 
         except Exception as e:
             logger.error(f"Error displaying {modal_type} modal: {e}")
@@ -179,9 +177,7 @@ class FlagReviewApiClient:
                 "ttl": {"N": str(int((datetime.now(timezone.utc).timestamp()) + 2592000))},
             }
 
-            await self.db_store.client.put_item(
-                table_name=self.db_store.table_name, item=flag_item
-            )
+            await self.db_store.client.put_item(table_name=self.db_store.table_name, item=flag_item)
             return True
         except Exception as e:
             logger.error(f"Error storing command flag: {e}")
@@ -214,9 +210,7 @@ class FlagReviewApiClient:
             logger.error(f"Error getting command output: {e}")
             return None
 
-    async def get_feedback_data(
-        self, channel_id: str, message_ts: str
-    ) -> Optional[Dict[str, Any]]:
+    async def get_feedback_data(self, channel_id: str, message_ts: str) -> Optional[Dict[str, Any]]:
         """Retrieve feedback data for a specific message.
 
         Args:
@@ -324,9 +318,7 @@ class FlagReviewApiClient:
                 "ttl": {"N": str(int((datetime.now(timezone.utc).timestamp()) + 2592000))},
             }
 
-            await self.db_store.client.put_item(
-                table_name=self.db_store.table_name, item=flag_item
-            )
+            await self.db_store.client.put_item(table_name=self.db_store.table_name, item=flag_item)
             return True
         except Exception as e:
             logger.error(f"Error storing summary review: {e}")

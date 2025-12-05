@@ -64,20 +64,14 @@ class ParameterMessageHandler:
             help_text: Optional additional help text
         """
         # Build all message blocks
-        message_blocks = self._build_message_blocks(
-            command_type, parameters, help_text
-        )
+        message_blocks = self._build_message_blocks(command_type, parameters, help_text)
 
         # Send the message with error handling
         try:
-            await self._send_parameter_message(
-                response_url, command_type, message_blocks
-            )
+            await self._send_parameter_message(response_url, command_type, message_blocks)
         except Exception as e:
             logger.error("Failed to send parameter help message: %s", str(e))
-            await self._handle_message_fallback(
-                response_url, command_type, parameters, help_text
-            )
+            await self._handle_message_fallback(response_url, command_type, parameters, help_text)
 
     def _build_message_blocks(
         self,
@@ -179,9 +173,7 @@ class ParameterMessageHandler:
             help_text: Optional additional help text
         """
         try:
-            fallback_text = self._create_fallback_text(
-                command_type, parameters, help_text
-            )
+            fallback_text = self._create_fallback_text(command_type, parameters, help_text)
             if response_url.startswith("http"):
                 await self._posting_handler.post_message(
                     response_url=response_url, message=fallback_text

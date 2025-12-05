@@ -37,9 +37,7 @@ class TestExtractQueryParams:
     def test_dm_missing_channel_id(self) -> None:
         """Test DM: raises ValidationError if channel ID is missing."""
         with pytest.raises(ValidationError) as exc:
-            extract_query_params(
-                "/ketchup query", CommandContext.DIRECT_MESSAGE, "C123"
-            )
+            extract_query_params("/ketchup query", CommandContext.DIRECT_MESSAGE, "C123")
         assert "Missing channel parameter" in exc.value.message
 
     def test_dm_invalid_channel_id(self) -> None:
@@ -55,9 +53,7 @@ class TestExtractQueryParams:
     def test_dm_missing_question(self) -> None:
         """Test DM: raises ValidationError if question is missing."""
         with pytest.raises(ValidationError) as exc:
-            extract_query_params(
-                "/ketchup query C12345678", CommandContext.DIRECT_MESSAGE, "C123"
-            )
+            extract_query_params("/ketchup query C12345678", CommandContext.DIRECT_MESSAGE, "C123")
         assert "Missing question" in exc.value.message
 
     def test_dm_valid(self) -> None:
@@ -75,9 +71,7 @@ class TestExtractQueryParams:
     def test_public_missing_question(self) -> None:
         """Test public: raises ValidationError if question is missing."""
         with pytest.raises(ValidationError) as exc:
-            extract_query_params(
-                "/ketchup query", CommandContext.PUBLIC_CHANNEL, "C123"
-            )
+            extract_query_params("/ketchup query", CommandContext.PUBLIC_CHANNEL, "C123")
         assert "Missing question" in exc.value.message
 
     def test_public_channel_id_included(self) -> None:
@@ -187,7 +181,4 @@ class TestExtractQueryParams:
                     CommandContext.DIRECT_MESSAGE,
                     "C123",
                 )
-            assert (
-                "Invalid channel" in exc.value.message
-                or "channel format" in exc.value.message
-            )
+            assert "Invalid channel" in exc.value.message or "channel format" in exc.value.message

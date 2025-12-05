@@ -1,8 +1,8 @@
 # Additional protocols for new TypedDI service registrations
 # Manual protocol definitions for services beyond the generated protocol files
 
-from typing import Protocol, Any, Dict, List, Optional, AsyncContextManager
 from contextlib import asynccontextmanager
+from typing import Any, AsyncContextManager, Dict, List, Optional, Protocol
 
 
 # Monitoring and metrics protocols
@@ -22,7 +22,9 @@ class DistributedLockProtocol(Protocol):
     """Protocol for DistributedLock service."""
 
     @asynccontextmanager
-    async def acquire_lock(self, resource_id: str, timeout_seconds: Optional[int] = None) -> AsyncContextManager[bool]: ...
+    async def acquire_lock(
+        self, resource_id: str, timeout_seconds: Optional[int] = None
+    ) -> AsyncContextManager[bool]: ...
 
     async def is_locked(self, resource_id: str) -> bool: ...
 
@@ -96,7 +98,9 @@ class TokenManagerProtocol(Protocol):
 class TypedServiceRegistryProtocol(Protocol):
     """Protocol for TypedServiceRegistry service."""
 
-    def register_service(self, service_type: type, instance: Any, qualifier: Optional[str] = None) -> None: ...
+    def register_service(
+        self, service_type: type, instance: Any, qualifier: Optional[str] = None
+    ) -> None: ...
 
     def get_service(self, service_type: type, qualifier: Optional[str] = None) -> Any: ...
 
@@ -112,7 +116,9 @@ class PerformanceMonitorProtocol(Protocol):
 
     def end_timing(self, timing_id: str) -> float: ...
 
-    def record_metric(self, metric_name: str, value: float, tags: Optional[Dict[str, str]] = None) -> None: ...
+    def record_metric(
+        self, metric_name: str, value: float, tags: Optional[Dict[str, str]] = None
+    ) -> None: ...
 
     def get_metrics_summary(self) -> Dict[str, Any]: ...
 
@@ -190,7 +196,9 @@ class SlackQueryHandlerProtocol(Protocol):
 
     async def handle_query(self, query_params: Any) -> Dict[str, Any]: ...
 
-    async def search_channels(self, search_term: str, filters: Dict[str, Any]) -> List[Dict[str, Any]]: ...
+    async def search_channels(
+        self, search_term: str, filters: Dict[str, Any]
+    ) -> List[Dict[str, Any]]: ...
 
 
 class SlackSummaryHandlerProtocol(Protocol):

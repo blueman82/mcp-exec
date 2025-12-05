@@ -7,13 +7,13 @@ which is used to process the `/ketchup short` and `/ketchup long` commands.
 
 from typing import Any, Dict, Optional
 
-from packages.core.typed_di_integration import get_typed_registry
+from packages.core.exceptions import MessagePreparationError
+from packages.core.logging import setup_logger
+from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     ChannelNameResolverProtocol,
 )
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.exceptions import MessagePreparationError
-from packages.core.logging import setup_logger
+from packages.core.typed_di_integration import get_typed_registry
 from packages.slack.blockkits.handlers.summary import SummaryMessageHandler
 from packages.slack.channel_operations.channel_info_ops import ChannelInfoOps
 from packages.slack.command_processing.base_command_handler import BaseCommandHandler
@@ -107,11 +107,10 @@ class SlackSummaryHandler(BaseCommandHandler):
                 pass
 
             if not channel_name_resolver:
-                logger.warning(
-                    "ChannelNameResolver not available, using fallback parsing"
-                )
+                logger.warning("ChannelNameResolver not available, using fallback parsing")
                 # Fallback: try to extract channel ID from Slack mention format
                 from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
+
                 mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
                 if mention_match:
                     channel_id = mention_match.group(1)
@@ -124,8 +123,8 @@ class SlackSummaryHandler(BaseCommandHandler):
                 # If not a mention format, return as-is (might be already a valid ID)
                 return channel_param
 
-            resolved_id, format_type = (
-                await channel_name_resolver.resolve_channel_parameter(channel_param)
+            resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
+                channel_param
             )
             if resolved_id:
                 logger.info(
@@ -139,9 +138,7 @@ class SlackSummaryHandler(BaseCommandHandler):
                 logger.error("Failed to resolve channel parameter: %s", format_type)
                 return None
         except Exception as e:
-            logger.error(
-                "Error resolving channel parameter '%s': %s", channel_param, str(e)
-            )
+            logger.error("Error resolving channel parameter '%s': %s", channel_param, str(e))
             return channel_param  # Return as-is on error
 
     @handle_archived_channel
@@ -278,9 +275,7 @@ class SlackSummaryHandler(BaseCommandHandler):
                 summaries=summaries,
                 target_channel=channel_id,
             )
-            return self.create_success_response(
-                {"message": "Summary generated successfully."}
-            )
+            return self.create_success_response({"message": "Summary generated successfully."})
         except Exception as e:
             logger.error("Error processing summary: %s", str(e), exc_info=True)
             # Try to send an error message back to the user
@@ -347,9 +342,7 @@ class SlackSummaryHandler(BaseCommandHandler):
         if not is_member:
             # Error message already sent by get_channel_details
             error_message = f"Bot is not a member of channel {channel_id}"
-            logger.info(
-                "%s. User notified. Stopping command processing.", error_message
-            )
+            logger.info("%s. User notified. Stopping command processing.", error_message)
             raise Exception(error_message)
 
         # Fetch, define default, extract, and normalize user preferences
@@ -360,9 +353,7 @@ class SlackSummaryHandler(BaseCommandHandler):
             "time_window": "past_24_hours",  # Default for summaries, can be overridden by prefs
         }
         raw_preferences = (
-            user_data.get("preferences", default_raw_prefs)
-            if user_data
-            else default_raw_prefs
+            user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs
         )
         normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
         logger.info(
@@ -397,11 +388,7 @@ class SlackSummaryHandler(BaseCommandHandler):
                 f"Unable to generate {summary_type} summary for channel {channel_id}: bot may not be a member of the channel"
             ) from e
 
-        if (
-            not response_data
-            or "choices" not in response_data
-            or not response_data["choices"]
-        ):
+        if not response_data or "choices" not in response_data or not response_data["choices"]:
             error_message = "Failed to get valid response from OpenAI for summary"
             logger.error(error_message)
             raise Exception(error_message)
@@ -424,31 +411,22 @@ class SlackSummaryHandler(BaseCommandHandler):
                 generated_text = generated_text.replace(
                     placeholder_customer, f"Customer Name: {customer_name_from_slack}"
                 )
-                logger.info(
-                    "Corrected Customer Name in AI summary using Slack API data."
-                )
+                logger.info("Corrected Customer Name in AI summary using Slack API data.")
 
             # Correct JIRA Ticket using DB data
             placeholder_jira_variations = [
                 "Support Ticket: NOT YET AVAILABLE",
                 "Support Ticket: NOT YET AVAILABLE",
             ]
-            needs_jira_check = any(
-                p in generated_text for p in placeholder_jira_variations
-            )
+            needs_jira_check = any(p in generated_text for p in placeholder_jira_variations)
             if needs_jira_check:
                 try:
-                    full_channel_details_dict = (
-                        await self.dynamodb_store.get_channel_details(channel_id)
+                    full_channel_details_dict = await self.dynamodb_store.get_channel_details(
+                        channel_id
                     )
                     if full_channel_details_dict:
-                        jira_ticket_from_db = full_channel_details_dict.get(
-                            "jira_ticket"
-                        )
-                        if (
-                            jira_ticket_from_db
-                            and jira_ticket_from_db != "NOT YET AVAILABLE"
-                        ):
+                        jira_ticket_from_db = full_channel_details_dict.get("jira_ticket")
+                        if jira_ticket_from_db and jira_ticket_from_db != "NOT YET AVAILABLE":
                             for placeholder in placeholder_jira_variations:
                                 if placeholder in generated_text:
                                     generated_text = generated_text.replace(
@@ -471,9 +449,7 @@ class SlackSummaryHandler(BaseCommandHandler):
                     )
         # --- End Correction Logic --- #
 
-        logger.info(
-            "Successfully generated %s summary for %s.", summary_type, channel_id
-        )
+        logger.info("Successfully generated %s summary for %s.", summary_type, channel_id)
         return generated_text
         # Note: Block Kit sending is moved to the caller (process_summary_params)
 

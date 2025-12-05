@@ -6,7 +6,6 @@ Protocol definitions for TypedDI registry-related services.
 
 from typing import Protocol, runtime_checkable
 
-
 __all__ = [
     "TypedServiceRegistryProtocol",
 ]

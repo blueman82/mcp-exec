@@ -12,10 +12,7 @@ from typing import Any, Dict, List
 # Add packages to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from packages.core.typed_di.performance_benchmark import (
-    TypedDIBenchmark,
-    BenchmarkResult
-)
+from packages.core.typed_di.performance_benchmark import BenchmarkResult, TypedDIBenchmark
 
 
 def load_service_registry() -> Dict[str, Any]:
@@ -31,16 +28,17 @@ def load_service_registry() -> Dict[str, Any]:
         "total_services": 0,
         "service_names": [],
         "registry_status": "frozen",
-        "registry_version": "batch_5_hardening"
+        "registry_version": "batch_5_hardening",
     }
 
     if registry_path.exists():
-        with open(registry_path, 'r') as f:
+        with open(registry_path, "r") as f:
             content = f.read()
 
         # Count register_ functions
         import re
-        register_pattern = r'def register_(\w+)\('
+
+        register_pattern = r"def register_(\w+)\("
         matches = re.findall(register_pattern, content)
 
         registry_info["total_services"] = len(matches)
@@ -67,19 +65,14 @@ def create_mock_container(service_count: int) -> Any:
     Returns:
         Mock container with resolve method
     """
+
     class MockContainer:
         def __init__(self, count: int):
-            self.services = {
-                f"Service{i}": f"Instance{i}"
-                for i in range(count)
-            }
+            self.services = {f"Service{i}": f"Instance{i}" for i in range(count)}
 
         def resolve(self, service_name: str) -> Any:
             """Resolve a service by name."""
-            return self.services.get(
-                service_name,
-                self.services.get(list(self.services.keys())[0])
-            )
+            return self.services.get(service_name, self.services.get(list(self.services.keys())[0]))
 
     return MockContainer(service_count)
 
@@ -114,9 +107,7 @@ def run_current_benchmark() -> Dict[str, Any]:
     # Run benchmark
     print("\n⏱️  Running benchmark (100 iterations per service)...")
     result = benchmark.benchmark_service_resolution(
-        container,
-        service_names[:10],  # Sample 10 services for testing
-        iterations=100
+        container, service_names[:10], iterations=100  # Sample 10 services for testing
     )
 
     # Project scalability
@@ -134,20 +125,17 @@ def run_current_benchmark() -> Dict[str, Any]:
             "p95_resolution_ms": result.p95_resolution_time_ms,
             "p99_resolution_ms": result.p99_resolution_time_ms,
             "memory_impact_mb": result.memory_delta_mb,
-            "total_time_ms": result.total_time_ms
+            "total_time_ms": result.total_time_ms,
         },
         "scalability_projection": projection,
         "performance_report": report,
-        "recommendations": generate_recommendations(result, projection)
+        "recommendations": generate_recommendations(result, projection),
     }
 
     return analysis
 
 
-def generate_recommendations(
-    result: BenchmarkResult,
-    projection: Dict[str, Any]
-) -> List[str]:
+def generate_recommendations(result: BenchmarkResult, projection: Dict[str, Any]) -> List[str]:
     """Generate specific recommendations based on results.
 
     Args:
@@ -174,17 +162,17 @@ def generate_recommendations(
         )
 
     if result.avg_resolution_time_ms > 0.1:
-        recommendations.append(
-            "⚡ Current resolution time could be optimized with caching"
-        )
+        recommendations.append("⚡ Current resolution time could be optimized with caching")
 
     # Add optimization strategies
-    recommendations.extend([
-        "✅ Implement service resolution caching for hot paths",
-        "✅ Use lazy initialization for rarely-used services",
-        "✅ Consider service batching for related components",
-        "✅ Add performance monitoring for production tracking"
-    ])
+    recommendations.extend(
+        [
+            "✅ Implement service resolution caching for hot paths",
+            "✅ Use lazy initialization for rarely-used services",
+            "✅ Consider service batching for related components",
+            "✅ Add performance monitoring for production tracking",
+        ]
+    )
 
     return recommendations
 
@@ -200,7 +188,7 @@ def save_results(analysis: Dict[str, Any]) -> None:
 
     output_file = output_path / "typed_di_performance_analysis.json"
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(analysis, f, indent=2, default=str)
 
     print(f"\n💾 Results saved to: {output_file}")
@@ -261,6 +249,7 @@ def main() -> None:
     except Exception as e:
         print(f"\n❌ Benchmark failed: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

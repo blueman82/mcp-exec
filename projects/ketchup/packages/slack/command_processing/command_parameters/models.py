@@ -129,9 +129,7 @@ class ArchiveCommandParams(CommandParams):
     """
 
     archive_days: Optional[int] = 30  # Number of days to look back for archive
-    include_metadata: bool = (
-        True  # Whether to include channel metadata in archive report
-    )
+    include_metadata: bool = True  # Whether to include channel metadata in archive report
 
 
 @dataclass
@@ -177,13 +175,13 @@ class MetricsCommandParams(CommandParams):
     The metrics command generates comprehensive HTML dashboard covering:
     - Executive CSO Management metrics
     - Technical System Health monitoring
-    
-    Format: 
+
+    Format:
     - /ketchup metrics (last 7 days)
     - /ketchup metrics september 25 (monthly)
     - /ketchup metrics q1 25 (quarterly)
     """
-    
+
     # Time period specification
     time_period_type: str = "7_days"  # "7_days", "monthly", "quarterly"
     month: Optional[int] = None  # 1-12

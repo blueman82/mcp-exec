@@ -93,9 +93,7 @@ class ChannelQueryOperations(BaseOperations):
             logger.error(error_message)
             return None
 
-    async def get_channel_details_consistent(
-        self, channel_id: str
-    ) -> Optional[Dict[str, Any]]:
+    async def get_channel_details_consistent(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """
         Get details for a specific channel by ID using strongly consistent read.
 
@@ -108,9 +106,7 @@ class ChannelQueryOperations(BaseOperations):
         Returns:
             Dictionary with channel details or None if not found or error occurs
         """
-        logger.info(
-            "Starting get_channel_details_consistent for channel: %s", channel_id
-        )
+        logger.info("Starting get_channel_details_consistent for channel: %s", channel_id)
 
         try:
             # Get the item from DynamoDB with consistent read
@@ -129,9 +125,7 @@ class ChannelQueryOperations(BaseOperations):
             return self._normalize_item(item)
 
         except Exception as e:
-            error_message = (
-                f"Error retrieving channel {channel_id} with consistent read: {str(e)}"
-            )
+            error_message = f"Error retrieving channel {channel_id} with consistent read: {str(e)}"
             logger.error(error_message)
             return None
 
@@ -175,14 +169,10 @@ class ChannelQueryOperations(BaseOperations):
             request_items = {self.table_name: {"Keys": current_batch_keys}}
 
             try:
-                logger.info(
-                    "Calling batch_get_item for %s keys", len(current_batch_keys)
-                )
+                logger.info("Calling batch_get_item for %s keys", len(current_batch_keys))
                 # Get the underlying client to call batch_get_item
                 underlying_client = await self.client._get_client()
-                response = await underlying_client.batch_get_item(
-                    RequestItems=request_items
-                )
+                response = await underlying_client.batch_get_item(RequestItems=request_items)
 
                 # Process successfully retrieved items
                 items = response.get("Responses", {}).get(self.table_name, [])
@@ -197,9 +187,7 @@ class ChannelQueryOperations(BaseOperations):
 
                 # Handle unprocessed keys
                 unprocessed_keys = (
-                    response.get("UnprocessedKeys", {})
-                    .get(self.table_name, {})
-                    .get("Keys", [])
+                    response.get("UnprocessedKeys", {}).get(self.table_name, {}).get("Keys", [])
                 )
                 if unprocessed_keys:
                     logger.warning(
@@ -211,9 +199,7 @@ class ChannelQueryOperations(BaseOperations):
 
             except ClientError as e:
                 # Log the specific DynamoDB error but continue if possible to process other batches
-                self._handle_dynamo_error(
-                    e, "batch_get_item in _get_channels_from_list"
-                )
+                self._handle_dynamo_error(e, "batch_get_item in _get_channels_from_list")
                 # Decide if we should stop entirely or just skip this batch
                 # For now, we log and continue with potentially remaining keys_to_process
                 logger.error("Skipping failed batch, attempting remaining keys if any.")
@@ -224,9 +210,7 @@ class ChannelQueryOperations(BaseOperations):
                     str(e),
                     exc_info=True,
                 )
-                logger.error(
-                    "Stopping further batch processing due to unexpected error."
-                )
+                logger.error("Stopping further batch processing due to unexpected error.")
                 keys_to_process = []  # Stop processing further batches
 
         logger.info(
@@ -271,13 +255,9 @@ class ChannelQueryOperations(BaseOperations):
 
                 if filter_expression:
                     scan_params["filter_expression"] = filter_expression
-                    scan_params["expression_attribute_values"] = (
-                        expression_attribute_values
-                    )
+                    scan_params["expression_attribute_values"] = expression_attribute_values
                     if expression_attribute_names:
-                        scan_params["expression_attribute_names"] = (
-                            expression_attribute_names
-                        )
+                        scan_params["expression_attribute_names"] = expression_attribute_names
 
                 response = await self.client.scan(**scan_params)
                 items = response.get("Items", [])
@@ -313,9 +293,7 @@ class ChannelQueryOperations(BaseOperations):
         logger.info("Final number of channels after filtering: %d", len(channels))
         return channels
 
-    def _handle_dynamo_error(
-        self, error: ClientError, operation_type: str
-    ) -> Dict[str, Any]:
+    def _handle_dynamo_error(self, error: ClientError, operation_type: str) -> Dict[str, Any]:
         """
         Handle DynamoDB specific errors.
 

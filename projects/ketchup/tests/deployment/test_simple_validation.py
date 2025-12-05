@@ -14,32 +14,35 @@ import pytest
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+
 @pytest.mark.asyncio
 async def test_basic_validation():
     """Test basic deployment validation with mocking"""
     print("Testing basic deployment validation...")
 
-    with patch('boto3.Session') as mock_boto_session, \
-         patch('subprocess.run') as mock_subprocess, \
-         patch('aiohttp.ClientSession') as mock_session:
+    with (
+        patch("boto3.Session") as mock_boto_session,
+        patch("subprocess.run") as mock_subprocess,
+        patch("aiohttp.ClientSession") as mock_session,
+    ):
 
         # Mock AWS services
         mock_sts_client = MagicMock()
         mock_sts_client.get_caller_identity.return_value = {
-            'Account': '123456789012',
-            'UserId': 'test-user',
-            'Arn': 'arn:aws:iam::123456789012:user/test'
+            "Account": "123456789012",
+            "UserId": "test-user",
+            "Arn": "arn:aws:iam::123456789012:user/test",
         }
 
         mock_dynamodb_client = MagicMock()
         mock_dynamodb_client.describe_table.return_value = {
-            'Table': {'TableStatus': 'ACTIVE', 'ItemCount': 100}
+            "Table": {"TableStatus": "ACTIVE", "ItemCount": 100}
         }
 
         def mock_client(service_name):
-            if service_name == 'sts':
+            if service_name == "sts":
                 return mock_sts_client
-            elif service_name == 'dynamodb':
+            elif service_name == "dynamodb":
                 return mock_dynamodb_client
             return MagicMock()
 
@@ -54,10 +57,15 @@ async def test_basic_validation():
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.text.return_value = "OK"
-        mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = mock_response
+        mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = (
+            mock_response
+        )
 
         # Import and test the validator
-        from tests.deployment.deployment_readiness import DeploymentReadinessValidator, ValidationStatus
+        from tests.deployment.deployment_readiness import (
+            DeploymentReadinessValidator,
+            ValidationStatus,
+        )
 
         validator = DeploymentReadinessValidator()
 
@@ -83,6 +91,7 @@ async def test_basic_validation():
 
         return passed_count > 0 and passed_code > 0
 
+
 async def main():
     """Main test function"""
     print("=" * 60)
@@ -102,8 +111,10 @@ async def main():
     except Exception as e:
         print(f"❌ Test failed with exception: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
+
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())

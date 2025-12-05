@@ -48,16 +48,12 @@ def preparer(
     mock_channel_msg_ops: MagicMock,
     mock_channel_info_ops: MagicMock,
 ) -> MessagePreparer:
-    return MessagePreparer(
-        mock_token_tracker, mock_channel_msg_ops, mock_channel_info_ops
-    )
+    return MessagePreparer(mock_token_tracker, mock_channel_msg_ops, mock_channel_info_ops)
 
 
 @patch("packages.ai.core.operations.message_preparation.get_prompt_for_command")
 @pytest.mark.asyncio
-async def test_no_instructions(
-    mock_get_prompt: MagicMock, preparer: MessagePreparer
-) -> None:
+async def test_no_instructions(mock_get_prompt: MagicMock, preparer: MessagePreparer) -> None:
     """Test prepare_messages raises MessagePreparationError if get_prompt_for_command returns None."""
     mock_get_prompt.return_value = None
     with pytest.raises(Exception) as excinfo:
@@ -74,12 +70,8 @@ async def test_channel_info_fetch_fails(
 ) -> None:
     """Test prepare_messages raises MessagePreparationError if channel_info_ops.get_channel_info_from_api raises Exception."""
     mock_get_prompt.return_value = "instructions"
-    preparer.channel_info_ops.get_channel_info_from_api = AsyncMock(
-        side_effect=Exception("fail")
-    )
-    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(
-        return_value=["msg1", "msg2"]
-    )
+    preparer.channel_info_ops.get_channel_info_from_api = AsyncMock(side_effect=Exception("fail"))
+    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(return_value=["msg1", "msg2"])
     with pytest.raises(Exception) as excinfo:
         await preparer.prepare_messages("cmd", "U1", "C1")
     assert "Could not access channel details" in str(excinfo.value)
@@ -95,9 +87,7 @@ async def test_channel_info_none(
     """Test prepare_messages raises MessagePreparationError if channel_info_ops.get_channel_info_from_api returns None."""
     mock_get_prompt.return_value = "instructions"
     preparer.channel_info_ops.get_channel_info_from_api = AsyncMock(return_value=None)
-    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(
-        return_value=["msg1", "msg2"]
-    )
+    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(return_value=["msg1", "msg2"])
     with pytest.raises(Exception) as excinfo:
         await preparer.prepare_messages("cmd", "U1", "C1")
     assert "Failed to retrieve channel details" in str(excinfo.value)
@@ -115,9 +105,7 @@ async def test_not_a_member(
     preparer.channel_info_ops.get_channel_info_from_api = AsyncMock(
         return_value={"name": "chan", "is_member": False, "is_archived": False}
     )
-    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(
-        return_value=["msg1", "msg2"]
-    )
+    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(return_value=["msg1", "msg2"])
     with pytest.raises(Exception) as excinfo:
         await preparer.prepare_messages("cmd", "U1", "C1")
     assert "Ketchup is not a member of channel" in str(excinfo.value)
@@ -136,9 +124,7 @@ async def test_message_fetch_fails(
     preparer.channel_info_ops.get_channel_info_from_api = AsyncMock(
         return_value={"name": "chan", "is_member": True, "is_archived": False}
     )
-    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(
-        side_effect=Exception("fail")
-    )
+    preparer.channel_msg_ops.fetch_channel_messages = AsyncMock(side_effect=Exception("fail"))
     with pytest.raises(Exception) as excinfo:
         await preparer.prepare_messages("cmd", "U1", "C1")
     # The parallel implementation doesn't include channel name in error when fetch fails
@@ -186,9 +172,7 @@ async def test_successful_path(
     mock_channel_info_ops.get_channel_info_from_api = AsyncMock(
         return_value={"name": "chan", "is_member": True, "is_archived": True}
     )
-    mock_channel_msg_ops.fetch_channel_messages = AsyncMock(
-        return_value=["msg1", "msg2"]
-    )
+    mock_channel_msg_ops.fetch_channel_messages = AsyncMock(return_value=["msg1", "msg2"])
     result, channel_info = await preparer.prepare_messages("cmd", "U1", "C1")
     assert result[0]["role"] == "system"
     assert result[1]["role"] == "user"
@@ -255,9 +239,7 @@ async def test_successful_path_with_prefs(
         normalized_user_preferences=test_prefs,
     )
     # Verify get_prompt_for_command was called with user_prefs
-    mock_get_prompt.assert_called_once_with(
-        "cmd_with_prefs", None, user_prefs=test_prefs
-    )
+    mock_get_prompt.assert_called_once_with("cmd_with_prefs", None, user_prefs=test_prefs)
     assert result[0]["content"] == "instructions_with_prefs"
     assert "msg1_with_prefs" in result[1]["content"]
     assert channel_info is not None
@@ -282,6 +264,4 @@ async def test_no_instructions_with_prefs(
         )
     assert "No instructions generated for command" in str(excinfo.value)
     # Verify get_prompt_for_command was called correctly with prefs
-    mock_get_prompt.assert_called_once_with(
-        "cmd_prefs_no_instr", None, user_prefs=test_prefs
-    )
+    mock_get_prompt.assert_called_once_with("cmd_prefs_no_instr", None, user_prefs=test_prefs)

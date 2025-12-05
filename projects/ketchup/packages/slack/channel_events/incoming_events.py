@@ -8,8 +8,8 @@ for processing different types of requests.
 import json
 from typing import Any, Dict
 
-from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.logging import setup_logger
+from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.slack.authorisation.auth import SlackAuth
 from packages.slack.channel_events.events import SlackEventHandler
 from packages.slack.channel_events.request_processing.dependency_setup import (
@@ -29,9 +29,7 @@ logger = setup_logger(__name__)
 
 
 # --- Main Request Handler --- #
-async def process_request(
-    event: Dict[str, Any], container: TypedServiceRegistry
-) -> Dict[str, Any]:
+async def process_request(event: Dict[str, Any], container: TypedServiceRegistry) -> Dict[str, Any]:
     """
     Process a request from Slack at the module level.
 
@@ -124,9 +122,7 @@ class EventProcessor:
         self.shortcut_handler = clients.get("shortcut_handler")
         # Retrieve feedback_report_handler again
         self.feedback_report_handler = clients.get("feedback_report_handler")
-        self.channel_metadata_edit_handler = clients.get(
-            "channel_metadata_edit_handler"
-        )
+        self.channel_metadata_edit_handler = clients.get("channel_metadata_edit_handler")
         # Get HomeTabHandler for app_home_opened events
         self.home_tab_handler = clients.get("home_tab_handler")
         # Get TrustEndorsementHandler for trust button interactions
@@ -171,18 +167,14 @@ class EventProcessor:
 
         # Ensure parsed bodies are not None before accessing keys
         if parsed_body_dict is None or parsed_body_multivalue is None:
-            logger.error(
-                "Parsed bodies are None after successful verification. Unexpected state."
-            )
+            logger.error("Parsed bodies are None after successful verification. Unexpected state.")
             return {"statusCode": 500, "body": "Internal processing error"}
 
         # Check for retry attempts
         headers = event.get("headers", {})
         retry_num = headers.get("X-Slack-Retry-Num")
         if retry_num:
-            logger.warning(
-                "Slack retry attempt number %s detected. Ignoring.", retry_num
-            )
+            logger.warning("Slack retry attempt number %s detected. Ignoring.", retry_num)
             return {"statusCode": 200, "body": "Retry ignored"}
 
         # --- Request Routing Logic --- #

@@ -83,9 +83,7 @@ class TestEventsBotFiltering:
         )
 
     @pytest.mark.asyncio
-    async def test_handle_message_filters_bot_user(
-        self, event_handler, posting_handler
-    ):
+    async def test_handle_message_filters_bot_user(self, event_handler, posting_handler):
         """Test that messages from the bot itself are filtered out."""
         # Create event from bot
         event = {
@@ -102,9 +100,7 @@ class TestEventsBotFiltering:
         posting_handler.post_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_handle_message_filters_bot_id(
-        self, event_handler, posting_handler
-    ):
+    async def test_handle_message_filters_bot_id(self, event_handler, posting_handler):
         """Test that messages with bot_id are filtered out."""
         # Create event with bot_id
         event = {
@@ -122,9 +118,7 @@ class TestEventsBotFiltering:
         posting_handler.post_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_handle_message_processes_user_mention(
-        self, event_handler, posting_handler
-    ):
+    async def test_handle_message_processes_user_mention(self, event_handler, posting_handler):
         """Test that regular user messages with bot mention are logged."""
         # Create event from regular user mentioning bot
         event = {
@@ -142,9 +136,7 @@ class TestEventsBotFiltering:
         posting_handler.post_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_handle_message_im_filters_bot_user(
-        self, event_handler, posting_handler
-    ):
+    async def test_handle_message_im_filters_bot_user(self, event_handler, posting_handler):
         """Test that DMs from the bot itself are filtered out."""
         # Create DM event from bot
         event = {
@@ -161,9 +153,7 @@ class TestEventsBotFiltering:
         posting_handler.post_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_handle_message_im_filters_bot_id(
-        self, event_handler, posting_handler
-    ):
+    async def test_handle_message_im_filters_bot_id(self, event_handler, posting_handler):
         """Test that DMs with bot_id are filtered out."""
         # Create DM event with bot_id
         event = {
@@ -181,9 +171,7 @@ class TestEventsBotFiltering:
         posting_handler.post_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_handle_message_im_processes_user_message(
-        self, event_handler, posting_handler
-    ):
+    async def test_handle_message_im_processes_user_message(self, event_handler, posting_handler):
         """Test that regular user DMs are processed."""
         # Create DM event from regular user
         event = {

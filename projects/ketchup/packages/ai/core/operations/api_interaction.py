@@ -124,18 +124,14 @@ class ApiExecutor:
             # and it implicitly uses self._endpoint passed during init.
             # A cleaner way might be to pass endpoint/url explicitly here.
             # Log the endpoint and check if query params are present
-            logger.info(
-                f"ApiExecutor: Making request with endpoint URL: {self._endpoint}"
-            )
+            logger.info(f"ApiExecutor: Making request with endpoint URL: {self._endpoint}")
             logger.info(f"ApiExecutor: Endpoint contains '?': {'?' in self._endpoint}")
             logger.info(f"ApiExecutor: Full endpoint repr: {repr(self._endpoint)}")
 
             # TEMPORARY WORKAROUND: Ensure query params are included
             url_to_use = self._endpoint
             if "?" not in url_to_use and "chat/completions" in url_to_use:
-                logger.warning(
-                    "ApiExecutor: Query parameter missing! Adding api-version"
-                )
+                logger.warning("ApiExecutor: Query parameter missing! Adding api-version")
                 url_to_use = f"{url_to_use}?api-version=2025-01-01-preview"
 
             response_data = await self._api_request_func(
@@ -152,9 +148,7 @@ class ApiExecutor:
             total_tokens = usage.get("total_tokens", 0)
 
             self._token_tracker.add_usage(input_tokens, output_tokens)
-            cost_details = self._token_tracker.calculate_cost(
-                input_tokens, output_tokens
-            )
+            cost_details = self._token_tracker.calculate_cost(input_tokens, output_tokens)
             total_cost = cost_details["Total Cost"]
 
             token_usage_message = (
@@ -173,9 +167,7 @@ class ApiExecutor:
             ):
                 target_channel = channel_info["target_channel"]
                 channel_id_for_metadata = target_channel
-                logger.info(
-                    "Re-archiving previously archived channel %s", target_channel
-                )
+                logger.info("Re-archiving previously archived channel %s", target_channel)
                 try:
                     # Use injected ops
                     await self._channel_archive_ops.archive_channel(
@@ -210,8 +202,6 @@ class ApiExecutor:
 
         except Exception as e:
             # Log the error with traceback
-            logger.error(
-                "Error during OpenAI API request execution: %s", str(e), exc_info=True
-            )
+            logger.error("Error during OpenAI API request execution: %s", str(e), exc_info=True)
             # Reraise the original exception
             raise

@@ -18,18 +18,18 @@ from typing import TYPE_CHECKING
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di.types import DependencySpec
+from packages.db.config.dynamodb_config import DynamoDBConfig
+from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
+from packages.db.dynamodb_store import DynamoDBStore
 
 # Integration service imports (with try/except for optional dependencies)
 from packages.db.operations.command_tracking_operations import (
     CommandTrackingOperations,
 )
+from packages.db.user_store import UserStore
 from packages.secrets.manager import SecretsManager
 from packages.slack.core.slack_async_client import SlackAsyncClient
 from packages.slack.messages.posting import SlackPostingHandler
-from packages.db.dynamodb_store import DynamoDBStore
-from packages.db.user_store import UserStore
-from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
-from packages.db.config.dynamodb_config import DynamoDBConfig
 from packages.slack.user_operations.user_ops import SlackUserOps
 
 # Protocol imports (conditional to avoid circular dependencies)
@@ -38,20 +38,20 @@ if TYPE_CHECKING:
 
 # Import protocols from the protocols module to avoid circular dependencies
 from ..protocols import (
-    CommandTrackingOperationsProtocol,
     ChannelOperationsProtocol,
+    CommandTrackingOperationsProtocol,
+    CommandUsageCSVGeneratorProtocol,
+    FlagReviewHandlerProtocol,
+    HomeTabHandlerProtocol,
     IMSTokenManagerProtocol,
     JIRACacheProtocol,
     JIRADataExtractorProtocol,
     MCPAsyncClientProtocol,
-    MCPConfigProtocol,
     MCPClientProtocol,
-    iPaaSRateLimiterProtocol,
-    CommandUsageCSVGeneratorProtocol,
-    FlagReviewHandlerProtocol,
+    MCPConfigProtocol,
     TrustEndorsementHandlerProtocol,
-    HomeTabHandlerProtocol,
     UsageExportHandlerProtocol,
+    iPaaSRateLimiterProtocol,
 )
 
 # Set up logger
@@ -61,18 +61,19 @@ logger = setup_logger(__name__)
 def register_integrations(manager: "ServiceRegistrationManager") -> None:
     """
     Register integration services.
-    
+
     Provides connectivity to external systems including JIRA,
     MCP services, token management, command tracking, usage export,
     trust endorsement, and CSV generation capabilities.
-    
+
     Args:
         manager: ServiceRegistrationManager instance
     """
     logger.info("Starting Integration Services registration")
-    
+
     # CommandTrackingOperations with protocol
     try:
+
         async def create_command_tracking_operations(resolver) -> CommandTrackingOperations:
             """Factory function for CommandTrackingOperations using TypedResolver."""
             logger.info("Creating CommandTrackingOperations instance via TypedDI")
@@ -90,10 +91,10 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
     except ImportError as e:
         logger.warning(f"CommandTrackingOperations not available: {e}")
 
-    # ChannelOperations with protocol  
+    # ChannelOperations with protocol
     try:
         from packages.db.operations.channel_operations import ChannelOperations
-        
+
         async def create_channel_operations(resolver) -> ChannelOperations:
             """Factory function for ChannelOperations using TypedResolver."""
             logger.info("Creating ChannelOperations instance via TypedDI")
@@ -123,9 +124,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
         from packages.integrations.ims_token_manager import IMSTokenManager
 
         use_async_ims = MCPFeatureFlags.use_async_clients()
-        ims_token_manager_cls = (
-            AsyncIMSTokenManager if use_async_ims else IMSTokenManager
-        )
+        ims_token_manager_cls = AsyncIMSTokenManager if use_async_ims else IMSTokenManager
 
         async def create_ims_token_manager(resolver):
             """Factory function selecting legacy vs async IMS token manager."""
@@ -155,7 +154,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
         from packages.integrations.jira_cache import JIRACache
         from packages.integrations.jira_data_extractor import JIRADataExtractor
         from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
-        from packages.integrations.mcp_client import iPaaSRateLimiter, MCPClient
+        from packages.integrations.mcp_client import MCPClient, iPaaSRateLimiter
 
         use_async_mcp = MCPFeatureFlags.use_async_clients()
         mcp_client_cls = AsyncMCPClient if use_async_mcp else MCPClient
@@ -184,13 +183,12 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
             """Factory function for JIRADataExtractor using TypedResolver."""
             logger.info("Creating JIRADataExtractor instance via TypedDI")
             from packages.db.dynamodb_store import DynamoDBStore
+
             mcp_client = await resolver.aget(MCPAsyncClientProtocol)
             dynamodb_store = await resolver.aget(DynamoDBStore)
             jira_cache = await resolver.aget(JIRACache)
             return JIRADataExtractor(
-                mcp_client=mcp_client,
-                dynamodb_store=dynamodb_store,
-                cache=jira_cache
+                mcp_client=mcp_client, dynamodb_store=dynamodb_store, cache=jira_cache
             )
 
         # Use MCPAsyncClientProtocol for JIRADataExtractor since that's what the constructor expects
@@ -201,7 +199,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
             dependencies=[
                 DependencySpec(MCPAsyncClientProtocol),
                 DependencySpec(DynamoDBStore),
-                DependencySpec(JIRACache)
+                DependencySpec(JIRACache),
             ],
             lifetime="singleton",
         )
@@ -211,10 +209,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
             """Factory function for MCPConfig using TypedResolver."""
             logger.info("Creating MCPConfig instance via TypedDI")
             token_manager = await resolver.aget(ims_token_manager_cls)
-            return MCPConfig(
-                base_url="http://mcp-jira:8081",
-                token_manager=token_manager
-            )
+            return MCPConfig(base_url="http://mcp-jira:8081", token_manager=token_manager)
 
         manager.register_protocol_with_concrete_alias(
             protocol_type=MCPConfigProtocol,
@@ -226,6 +221,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
 
         # Always register MCPAsyncClient when available, needed for JIRADataExtractor
         if MCPAsyncClient:
+
             async def create_mcp_async_client(resolver):
                 """Factory function for MCPAsyncClient using TypedResolver."""
                 logger.info("Creating MCPAsyncClient instance via TypedDI")
@@ -262,14 +258,11 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
                 "Creating %s instance via TypedDI",
                 mcp_client_cls.__name__,
             )
-            
-            if mcp_client_cls.__name__ == 'AsyncMCPClient':
+
+            if mcp_client_cls.__name__ == "AsyncMCPClient":
                 # AsyncMCPClient takes base_url and token_manager
                 token_manager = await resolver.aget(ims_token_manager_cls)
-                return mcp_client_cls(
-                    base_url="http://mcp-jira:8081",
-                    token_manager=token_manager
-                )
+                return mcp_client_cls(base_url="http://mcp-jira:8081", token_manager=token_manager)
             else:
                 # Legacy MCPClient takes token_manager parameter
                 token_manager = await resolver.aget(ims_token_manager_cls)
@@ -296,7 +289,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
     # CommandUsageCSVGenerator with protocol
     try:
         from packages.core.exports.csv_generator import CommandUsageCSVGenerator
-        
+
         async def create_command_usage_csv_generator(resolver) -> CommandUsageCSVGenerator:
             """Factory function for CommandUsageCSVGenerator using TypedResolver."""
             logger.info("Creating CommandUsageCSVGenerator instance via TypedDI")
@@ -318,7 +311,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
         from packages.slack.interactive_elements.trust_endorsement_handler import (
             TrustEndorsementHandler,
         )
-        
+
         async def create_trust_endorsement_handler(resolver) -> TrustEndorsementHandler:
             """Factory function for TrustEndorsementHandler using TypedResolver."""
             logger.info("Creating TrustEndorsementHandler instance via TypedDI")
@@ -422,24 +415,32 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
                     kt_secrets = await secrets_manager.get_secret_async("Ketchup_Token_Secrets")
                     admin_users = kt_secrets.get("usage_stats_admin_users", [])
 
-                    logger.info("Loaded usage_stats_admin_users from secrets (type: %s, length: %s)",
-                               type(admin_users).__name__,
-                               len(admin_users) if isinstance(admin_users, (list, str)) else "N/A")
+                    logger.info(
+                        "Loaded usage_stats_admin_users from secrets (type: %s, length: %s)",
+                        type(admin_users).__name__,
+                        len(admin_users) if isinstance(admin_users, (list, str)) else "N/A",
+                    )
 
                     # If it's a string (JSON), parse it
                     if isinstance(admin_users, str):
                         import json
+
                         admin_user_list = json.loads(admin_users)
-                        logger.info("Parsed admin list from JSON string: %d users", len(admin_user_list))
+                        logger.info(
+                            "Parsed admin list from JSON string: %d users", len(admin_user_list)
+                        )
                     else:
                         admin_user_list = admin_users
-                        logger.info("Using admin list directly: %d users", len(admin_user_list) if isinstance(admin_user_list, list) else 0)
+                        logger.info(
+                            "Using admin list directly: %d users",
+                            len(admin_user_list) if isinstance(admin_user_list, list) else 0,
+                        )
 
                 except Exception as exc:  # noqa: BLE001  – ensure Home tab still loads
-                    logger.error(
-                        "Failed to retrieve usage_stats_admin_users from secrets: %s", exc
+                    logger.error("Failed to retrieve usage_stats_admin_users from secrets: %s", exc)
+                    logger.warning(
+                        "Admin list will be EMPTY - no users will have admin access to usage stats"
                     )
-                    logger.warning("Admin list will be EMPTY - no users will have admin access to usage stats")
 
             return HomeTabHandler(
                 secrets_manager=secrets_manager,
@@ -476,7 +477,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
         from packages.slack.interactive_elements.usage_export_handler import (
             UsageExportHandler,
         )
-        
+
         async def create_usage_export_handler(resolver) -> UsageExportHandler:
             """Factory function for UsageExportHandler using TypedResolver."""
             logger.info("Creating UsageExportHandler instance via TypedDI")

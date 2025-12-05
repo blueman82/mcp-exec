@@ -94,9 +94,7 @@ class HomeTabHandler:
         logger.info("Publishing Home tab for user: %s", user_id)
 
         # Get user preferences from DynamoDB
-        raw_prefs, normalized_prefs, first_name = await self._get_user_preferences(
-            user_id
-        )
+        raw_prefs, normalized_prefs, first_name = await self._get_user_preferences(user_id)
 
         logger.info(
             "Home tab context for user %s: Name=%s, Raw Prefs=%s, Normalized Prefs=%s",
@@ -135,9 +133,7 @@ class HomeTabHandler:
             if user_name and user_name in self._admin_user_list:
                 is_admin_user = True
                 if self._command_tracking_ops:
-                    admin_stats = await self._command_tracking_ops.get_top_users(
-                        days=7, limit=5
-                    )
+                    admin_stats = await self._command_tracking_ops.get_top_users(days=7, limit=5)
                     logger.info(
                         "Admin stats retrieved for '%s' -> %d records",
                         user_name,
@@ -145,9 +141,7 @@ class HomeTabHandler:
                     )
                     # Get detailed command breakdown for admins
                     admin_command_breakdown = (
-                        await self._command_tracking_ops.get_user_command_breakdown(
-                            days=7, limit=5
-                        )
+                        await self._command_tracking_ops.get_user_command_breakdown(days=7, limit=5)
                     )
                     logger.info(
                         "Admin command breakdown retrieved for '%s' -> %d users",
@@ -211,9 +205,7 @@ class HomeTabHandler:
 
             # Extract user's first name
             real_name = user_data.get("real_name", "there") if user_data else "there"
-            first_name = (
-                real_name.split()[0] if real_name and real_name != "there" else "there"
-            )
+            first_name = real_name.split()[0] if real_name and real_name != "there" else "there"
 
         except Exception as e:
             logger.error(
@@ -340,9 +332,7 @@ class HomeTabHandler:
                 logger.error("Feedback report handler not initialized")
                 return False
 
-            success = await self._feedback_report_handler.open_feedback_report_modal(
-                trigger_id
-            )
+            success = await self._feedback_report_handler.open_feedback_report_modal(trigger_id)
             return success
         elif action_id == "export_usage_csv":
             # Handle export button click

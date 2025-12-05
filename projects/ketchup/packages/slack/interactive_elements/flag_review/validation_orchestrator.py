@@ -8,7 +8,7 @@ This module contains the same validation logic as the original implementation,
 with some methods simplified to their essential functionality.
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from packages.core.logging import setup_logger
 
@@ -22,9 +22,7 @@ class ValidationOrchestrator:
         """Initialize the validation orchestrator."""
         self._rate_limits: Dict[str, List[float]] = {}
 
-    async def validate_feedback(
-        self, text: str, user_id: str, channel_id: str
-    ) -> Dict[str, Any]:
+    async def validate_feedback(self, text: str, user_id: str, channel_id: str) -> Dict[str, Any]:
         """Validate feedback text for potential issues.
 
         Args:
@@ -70,9 +68,10 @@ class ValidationOrchestrator:
             True if user is within rate limit, False if rate limited.
         """
         import time
+
         from packages.slack.interactive_elements.flag_review.flag_types import (
-            RATE_LIMIT_WINDOW_SECONDS,
             RATE_LIMIT_MAX_FLAGS,
+            RATE_LIMIT_WINDOW_SECONDS,
         )
 
         current_time = time.time()
@@ -125,9 +124,9 @@ class ValidationOrchestrator:
         import re
 
         # Remove script tags and javascript
-        text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.IGNORECASE | re.DOTALL)
-        text = re.sub(r'javascript:', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'on\w+\s*=', '', text, flags=re.IGNORECASE)
+        text = re.sub(r"<script[^>]*>.*?</script>", "", text, flags=re.IGNORECASE | re.DOTALL)
+        text = re.sub(r"javascript:", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"on\w+\s*=", "", text, flags=re.IGNORECASE)
 
         # Trim whitespace
         return text.strip()

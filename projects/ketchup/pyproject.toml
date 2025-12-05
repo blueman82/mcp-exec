@@ -134,16 +134,23 @@ select = [
     "W",      # pycodestyle warnings
     "F",      # Pyflakes
     "I",      # isort
-    "B",      # flake8-bugbear
-    "UP",     # pyupgrade
-    "SIM",    # flake8-simplify
+    "B",      # flake8-bugbear (subset)
 ]
 ignore = [
     "E501",   # line too long (handled by black)
     "E203",   # whitespace before ':'
+    # flake8-bugbear ignores (common patterns in tests)
+    "B007",   # loop variable not used (often intentional)
     "B008",   # function call in default argument (common in FastAPI)
+    "B011",   # do not assert False (used in tests)
+    "B017",   # assertRaises too broad (test pattern)
+    "B018",   # useless expression (sometimes intentional)
+    "B023",   # function definition in loop (test fixtures)
     "B904",   # raise without from (too noisy)
+    "B905",   # zip without strict (Python 3.10+ style preference)
 ]
+# Note: UP (pyupgrade) and SIM (flake8-simplify) removed - style preferences
+# that are too noisy for a large production codebase.
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py

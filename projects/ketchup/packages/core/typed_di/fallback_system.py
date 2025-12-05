@@ -74,9 +74,7 @@ class FallbackMetrics:
                 reason.value: count for reason, count in self.counts_by_reason.items()
             },
             "counts_by_service": dict(self.counts_by_service),
-            "recent_events": [
-                asdict(event) for event in self.events[-10:]
-            ],  # Last 10 events
+            "recent_events": [asdict(event) for event in self.events[-10:]],  # Last 10 events
         }
 
 
@@ -148,9 +146,7 @@ class GracefulFallbackManager:
             "last_check": time.time(),
         }
 
-        logger.info(
-            f"GracefulFallbackManager initialized with fallback_enabled={enable_fallback}"
-        )
+        logger.info(f"GracefulFallbackManager initialized with fallback_enabled={enable_fallback}")
 
     def should_fallback(
         self, service_type: Union[Type, str], qualifier: Optional[str] = None
@@ -273,9 +269,7 @@ class GracefulFallbackManager:
 
         # Remove common suffixes
         snake_case = (
-            snake_case.replace("_handler", "")
-            .replace("_service", "")
-            .replace("_manager", "")
+            snake_case.replace("_handler", "").replace("_service", "").replace("_manager", "")
         )
 
         return snake_case
@@ -355,9 +349,7 @@ def initialize_critical_service_mappings() -> None:
         fallback_manager.critical_registry.register_critical_service(
             SecretsManager, "secrets_manager"
         )
-        fallback_manager.critical_registry.register_critical_service(
-            SlackConfig, "slack_config"
-        )
+        fallback_manager.critical_registry.register_critical_service(SlackConfig, "slack_config")
         fallback_manager.critical_registry.register_critical_service(
             SlackPostingHandler, "slack_posting"
         )
@@ -374,9 +366,7 @@ def initialize_critical_service_mappings() -> None:
         )
 
         # Register Slack core operations services (Batch 1 additions)
-        fallback_manager.critical_registry.register_critical_service(
-            ChannelInfoOps, "info_ops"
-        )
+        fallback_manager.critical_registry.register_critical_service(ChannelInfoOps, "info_ops")
         fallback_manager.critical_registry.register_critical_service(
             ChannelMembershipOps, "membership_ops"
         )
@@ -388,12 +378,8 @@ def initialize_critical_service_mappings() -> None:
         )
 
         # Register Batch 2: High-traffic handlers
-        fallback_manager.critical_registry.register_critical_service(
-            MetricsStorage, "metrics"
-        )
-        fallback_manager.critical_registry.register_critical_service(
-            SlackUserOps, "user_ops"
-        )
+        fallback_manager.critical_registry.register_critical_service(MetricsStorage, "metrics")
+        fallback_manager.critical_registry.register_critical_service(SlackUserOps, "user_ops")
         fallback_manager.critical_registry.register_critical_service(
             FeedbackReactionsHandler, "feedback_reactions_handler"
         )
@@ -406,9 +392,7 @@ def initialize_critical_service_mappings() -> None:
         fallback_manager.critical_registry.register_critical_service(
             ShortcutHandler, "shortcut_handler"
         )
-        fallback_manager.critical_registry.register_critical_service(
-            UserVerifier, "user_verifier"
-        )
+        fallback_manager.critical_registry.register_critical_service(UserVerifier, "user_verifier")
 
         logger.info(
             "Critical service mappings initialized successfully (including DynamoDB + Slack core operations services + Batch 2 high-traffic handlers)"

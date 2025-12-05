@@ -4,7 +4,8 @@ Governance Service Implementation
 Provides governance rule application and policy management functionality.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -103,7 +104,7 @@ class GovernanceService:
             "resource_id": resource_id,
             "action": action,
             "restrictions": [],
-            "message": "Action approved under standard governance rules"
+            "message": "Action approved under standard governance rules",
         }
 
         # Add some basic governance restrictions

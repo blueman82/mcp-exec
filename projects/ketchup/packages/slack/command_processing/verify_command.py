@@ -84,9 +84,7 @@ async def verify_and_extract_command(
 
     try:
         # Extract command parameters
-        params = extract_command_params(
-            command, channel_name, incoming_channel, response_url
-        )
+        params = extract_command_params(command, channel_name, incoming_channel, response_url)
 
         if params:
             # Command successfully parsed

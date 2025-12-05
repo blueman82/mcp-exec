@@ -52,9 +52,7 @@ class ChannelNameResolver(SlackAsyncClient):
         )
         logger.info("ChannelNameResolver initialized.")
 
-    async def resolve_channel_parameter(
-        self, channel_param: str
-    ) -> Tuple[Optional[str], str]:
+    async def resolve_channel_parameter(self, channel_param: str) -> Tuple[Optional[str], str]:
         """
         Resolve a channel parameter to a channel ID.
 
@@ -74,9 +72,7 @@ class ChannelNameResolver(SlackAsyncClient):
 
         # Check if it's already a valid channel ID
         if SLACK_CHANNEL_ID_REGEX.match(channel_param):
-            logger.info(
-                "Channel parameter is already a valid channel ID: %s", channel_param
-            )
+            logger.info("Channel parameter is already a valid channel ID: %s", channel_param)
             return channel_param, "channel_id"
 
         # Check if it's a channel mention format <#CHANNEL_ID|channel-name>
@@ -84,9 +80,7 @@ class ChannelNameResolver(SlackAsyncClient):
         if mention_match:
             channel_id = mention_match.group(1)
             channel_name = mention_match.group(2)
-            logger.info(
-                "Parsed channel mention: ID=%s, Name=%s", channel_id, channel_name
-            )
+            logger.info("Parsed channel mention: ID=%s, Name=%s", channel_id, channel_name)
             return channel_id, "channel_mention"
 
         # Check if it's a channel name format #channel-name
@@ -139,9 +133,7 @@ class ChannelNameResolver(SlackAsyncClient):
                 if cursor:
                     params["cursor"] = cursor
 
-                response = await self._make_api_request(
-                    "GET", url, headers=headers, params=params
-                )
+                response = await self._make_api_request("GET", url, headers=headers, params=params)
 
                 if not response or not response.get("ok"):
                     logger.warning("Failed to fetch channels list: %s", response)
@@ -173,14 +165,10 @@ class ChannelNameResolver(SlackAsyncClient):
                 if cursor:
                     params["cursor"] = cursor
 
-                response = await self._make_api_request(
-                    "GET", url, headers=headers, params=params
-                )
+                response = await self._make_api_request("GET", url, headers=headers, params=params)
 
                 if not response or not response.get("ok"):
-                    logger.warning(
-                        "Failed to fetch private channels list: %s", response
-                    )
+                    logger.warning("Failed to fetch private channels list: %s", response)
                     break
 
                 channels = response.get("channels", [])
@@ -201,9 +189,7 @@ class ChannelNameResolver(SlackAsyncClient):
                 if not cursor:
                     break
 
-            logger.warning(
-                "Channel name '%s' not found in accessible channels", channel_name
-            )
+            logger.warning("Channel name '%s' not found in accessible channels", channel_name)
             return None
 
         except Exception as e:

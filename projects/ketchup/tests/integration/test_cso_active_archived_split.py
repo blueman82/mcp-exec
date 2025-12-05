@@ -1,11 +1,14 @@
 """Integration test for CSO active vs archived split."""
+
 import asyncio
 
 try:
     import pytest
+
     PYTEST_AVAILABLE = True
 except ImportError:
     PYTEST_AVAILABLE = False
+
     # Create dummy decorator for standalone execution
     class pytest:
         class mark:
@@ -13,9 +16,10 @@ except ImportError:
             def asyncio(func):
                 return func
 
+
+from packages.core.exports.html_generator import MetricsHTMLGenerator
 from packages.core.typed_di_integration import get_unified_container
 from packages.slack.services.metrics_data_collector import MetricsDataCollector
-from packages.core.exports.html_generator import MetricsHTMLGenerator
 
 
 class TestCSOActiveArchivedIntegration:
@@ -74,6 +78,7 @@ class TestCSOActiveArchivedIntegration:
 
         # Act - Generate HTML with MetricsHTMLGenerator
         from datetime import datetime, timezone
+
         start_date = datetime.fromtimestamp(0, tz=timezone.utc)
         end_date = datetime.fromtimestamp(9999999999, tz=timezone.utc)
 
@@ -133,8 +138,8 @@ class TestCSOActiveArchivedIntegration:
         cso_metrics = metrics["cso_metrics"]
 
         # Get raw channel data directly from DynamoDB
-        from packages.db.operations.channel_operations import ChannelOperations
         from packages.core.config.system_channels import get_excluded_channels
+        from packages.db.operations.channel_operations import ChannelOperations
 
         channel_ops = container.get(ChannelOperations)
         channels = await channel_ops.get_all_channel_details()
@@ -144,8 +149,7 @@ class TestCSOActiveArchivedIntegration:
         cso_channels = [
             ch
             for ch_id, ch in channels.items()
-            if ch.get("product") in ["campaign", "ajo"]
-            and ch_id not in excluded_channels
+            if ch.get("product") in ["campaign", "ajo"] and ch_id not in excluded_channels
         ]
 
         # Count active vs archived from raw data
@@ -156,9 +160,7 @@ class TestCSOActiveArchivedIntegration:
         assert cso_metrics.currently_active.total == active_count
         assert cso_metrics.archived.total == archived_count
 
-        print(
-            f"✅ Counts match DynamoDB query: {active_count} active, {archived_count} archived"
-        )
+        print(f"✅ Counts match DynamoDB query: {active_count} active, {archived_count} archived")
 
 
 if __name__ == "__main__":

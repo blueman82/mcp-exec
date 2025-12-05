@@ -44,9 +44,7 @@ class ChannelMetricsService:
 
         try:
             # Get basic channel information
-            channel_info = await self.channel_info_ops.get_channel_info_from_api(
-                channel_id
-            )
+            channel_info = await self.channel_info_ops.get_channel_info_from_api(channel_id)
 
             if not channel_info:
                 logger.warning("Could not retrieve channel info for %s", channel_id)
@@ -105,7 +103,7 @@ class ChannelMetricsService:
                 "channel_id": channel_id,
                 "active_members": 0,
                 "posting_frequency": {},
-                "top_contributors": []
+                "top_contributors": [],
             }
 
             return activity_data
@@ -138,14 +136,11 @@ class ChannelMetricsService:
                 "metrics": metrics,
                 "message_count": message_count,
                 "member_activity": member_activity,
-                "generated_at": None  # Would add timestamp
+                "generated_at": None,  # Would add timestamp
             }
 
             return report
 
         except Exception as e:
             logger.error("Error generating metrics report for channel %s: %s", channel_id, str(e))
-            return {
-                "channel_id": channel_id,
-                "error": str(e)
-            }
+            return {"channel_id": channel_id, "error": str(e)}

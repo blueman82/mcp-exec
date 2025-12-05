@@ -86,8 +86,8 @@ class TestProcessorDynamicChannels:
         )
 
         # Mock feature service - only first two channels enabled
-        processor.feature_service.is_status_updater_enabled_for_channel = (
-            AsyncMock(side_effect=[True, True, False])
+        processor.feature_service.is_status_updater_enabled_for_channel = AsyncMock(
+            side_effect=[True, True, False]
         )
 
         # Mock processing methods
@@ -98,10 +98,7 @@ class TestProcessorDynamicChannels:
 
         assert result["processed"] == 2
         assert processor._process_channel.call_count == 2
-        assert (
-            processor.feature_service.is_status_updater_enabled_for_channel.call_count
-            == 3
-        )
+        assert processor.feature_service.is_status_updater_enabled_for_channel.call_count == 3
 
     @patch.dict(os.environ, {"KETCHUP_STATUS_UPDATER_ENABLED": "true"})
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_enabled")
@@ -119,15 +116,19 @@ class TestProcessorDynamicChannels:
         sample_channels = [
             {"channel_id": "C1234567890", "channel_name": "general", "auto_status_last_run": 0},
             {"channel_id": "C0987654321", "channel_name": "random", "auto_status_last_run": 0},
-            {"channel_id": "C094DQY7HLH", "channel_name": "test-channel", "auto_status_last_run": 0},
+            {
+                "channel_id": "C094DQY7HLH",
+                "channel_name": "test-channel",
+                "auto_status_last_run": 0,
+            },
         ]
         mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
             return_value=sample_channels
         )
 
         # Mock feature service - no channels enabled
-        processor.feature_service.is_status_updater_enabled_for_channel = (
-            AsyncMock(return_value=False)
+        processor.feature_service.is_status_updater_enabled_for_channel = AsyncMock(
+            return_value=False
         )
 
         # Mock processing methods
@@ -196,8 +197,8 @@ class TestProcessorDynamicChannels:
             {"channel_id": "C1234567890", "channel_name": "general", "auto_status_last_run": 0},
             {"channel_id": "C0987654321", "channel_name": "random", "auto_status_last_run": 0},
         ]
-        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = (
-            AsyncMock(return_value=channels)
+        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
+            return_value=channels
         )
 
         # Mock db_store client for pause check
@@ -231,8 +232,8 @@ class TestProcessorDynamicChannels:
             {"channel_id": "C0987654321", "channel_name": "random", "auto_status_last_run": 0},
             {"channel_id": "C1111111111", "channel_name": "testing", "auto_status_last_run": 0},
         ]
-        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = (
-            AsyncMock(return_value=channels)
+        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
+            return_value=channels
         )
 
         # Mock db_store client
@@ -265,8 +266,8 @@ class TestProcessorDynamicChannels:
             {"channel_id": "C1234567890", "channel_name": "general", "auto_status_last_run": 0},
             {"channel_id": "C0987654321", "channel_name": "random", "auto_status_last_run": 0},
         ]
-        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = (
-            AsyncMock(return_value=channels)
+        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
+            return_value=channels
         )
 
         # Mock db_store client
@@ -323,13 +324,13 @@ class TestProcessorDynamicChannels:
             {"channel_id": "C0987654321", "channel_name": "random", "auto_status_last_run": 0},
             {"channel_id": "C1111111111", "channel_name": "testing", "auto_status_last_run": 0},
         ]
-        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = (
-            AsyncMock(return_value=all_channels)
+        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
+            return_value=all_channels
         )
 
         # Mock feature service - only first two channels enabled
-        mock_dependencies["feature_service"].is_status_updater_enabled_for_channel = (
-            AsyncMock(side_effect=[True, True, False])
+        mock_dependencies["feature_service"].is_status_updater_enabled_for_channel = AsyncMock(
+            side_effect=[True, True, False]
         )
 
         # Mock db_store client
@@ -363,8 +364,8 @@ class TestProcessorDynamicChannels:
             {"channel_id": "C1234567890", "channel_name": "general", "auto_status_last_run": 0},
             {"channel_id": "C0987654321", "channel_name": "random", "auto_status_last_run": 0},
         ]
-        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = (
-            AsyncMock(return_value=channels)
+        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
+            return_value=channels
         )
 
         # Mock db_store client
@@ -399,8 +400,8 @@ class TestProcessorDynamicChannels:
             {"channel_id": f"C{i:010d}", "channel_name": f"channel-{i}", "auto_status_last_run": 0}
             for i in range(50)  # 50 channels
         ]
-        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = (
-            AsyncMock(return_value=channels)
+        mock_dependencies["channel_operations"].query_ops.get_all_active_channels = AsyncMock(
+            return_value=channels
         )
 
         # Mock db_store client

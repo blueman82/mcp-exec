@@ -116,7 +116,9 @@ class TestAsyncMCPClient:
         # Mock cleanup, setup, and _establish_mcp_session to avoid real network calls
         mocker.patch.object(client, "cleanup", AsyncMock())
         mocker.patch.object(client, "setup", AsyncMock())
-        mocker.patch.object(client, "_establish_mcp_session", AsyncMock(return_value="test-session-id"))
+        mocker.patch.object(
+            client, "_establish_mcp_session", AsyncMock(return_value="test-session-id")
+        )
 
         sleep_mock = AsyncMock()
         sleep_patch = mocker.patch("asyncio.sleep", sleep_mock)
@@ -200,13 +202,7 @@ class TestAsyncMCPClient:
                 "status": 200,
                 "headers": {},
                 "body": _real_orjson_dumps(
-                    {
-                        "result": {
-                            "content": [
-                                {"text": '{"issues": [{"key": "TEST-1"}]}' }
-                            ]
-                        }
-                    }
+                    {"result": {"content": [{"text": '{"issues": [{"key": "TEST-1"}]}'}]}}
                 ),
                 "content_type": "application/json",
                 "url": url,
@@ -230,13 +226,7 @@ class TestAsyncMCPClient:
                 "status": 200,
                 "headers": {},
                 "body": _real_orjson_dumps(
-                    {
-                        "result": {
-                            "content": [
-                                {"text": '{"issues": [{"key": "TEST-1"}]}' }
-                            ]
-                        }
-                    }
+                    {"result": {"content": [{"text": '{"issues": [{"key": "TEST-1"}]}'}]}}
                 ),
                 "content_type": "application/json",
                 "url": url,
@@ -323,9 +313,7 @@ class TestAsyncMCPClient:
                     {
                         "result": {
                             "content": [
-                                {
-                                    "text": '{"success": true, "data": {"comments": [{"id": "1"}]}}'
-                                }
+                                {"text": '{"success": true, "data": {"comments": [{"id": "1"}]}}'}
                             ]
                         }
                     }

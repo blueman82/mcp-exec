@@ -73,13 +73,8 @@ class TestTrustOperationsCleanup:
         delete_call = underlying_client.batch_write_item.call_args[1]
         request_items = delete_call["RequestItems"]["test_table"]
         assert len(request_items) == 2
-        assert (
-            request_items[0]["DeleteRequest"]["Key"]["PK"]["S"] == "CHANNEL#C1234567890"
-        )
-        assert (
-            request_items[0]["DeleteRequest"]["Key"]["SK"]["S"]
-            == "STATUS#1751756295_abc123"
-        )
+        assert request_items[0]["DeleteRequest"]["Key"]["PK"]["S"] == "CHANNEL#C1234567890"
+        assert request_items[0]["DeleteRequest"]["Key"]["SK"]["S"] == "STATUS#1751756295_abc123"
 
     @pytest.mark.asyncio
     async def test_cleanup_channel_trust_data_no_items(self, trust_ops, mock_client):
@@ -150,9 +145,7 @@ class TestTrustOperationsCleanup:
         underlying_client.batch_write_item.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_cleanup_channel_trust_data_delete_error(
-        self, trust_ops, mock_client
-    ):
+    async def test_cleanup_channel_trust_data_delete_error(self, trust_ops, mock_client):
         """Test cleanup when batch delete fails."""
         # Mock successful query
         mock_client.query.return_value = {
@@ -166,9 +159,7 @@ class TestTrustOperationsCleanup:
 
         # Mock batch delete error
         underlying_client = await mock_client._get_client()
-        underlying_client.batch_write_item.side_effect = Exception(
-            "DynamoDB batch delete failed"
-        )
+        underlying_client.batch_write_item.side_effect = Exception("DynamoDB batch delete failed")
 
         # Execute cleanup
         result = await trust_ops.cleanup_channel_trust_data("C1234567890")
@@ -225,9 +216,7 @@ class TestTrustOperationsCleanup:
         delete_call = underlying_client.batch_write_item.call_args[1]
         request_items = delete_call["RequestItems"]["test_table"]
         assert len(request_items) == 2
-        assert (
-            request_items[0]["DeleteRequest"]["Key"]["PK"]["S"] == "CHANNEL#C1234567890"
-        )
+        assert request_items[0]["DeleteRequest"]["Key"]["PK"]["S"] == "CHANNEL#C1234567890"
 
     @pytest.mark.asyncio
     async def test_cleanup_trust_data_empty(self, trust_ops, mock_client):
@@ -306,20 +295,22 @@ class TestTrustOperationsCleanup:
 
         # Mock _get_client() properly with partial failure (unprocessed items)
         underlying_client = AsyncMock()
-        underlying_client.batch_write_item = AsyncMock(return_value={
-            "UnprocessedItems": {
-                "test_table": [
-                    {
-                        "DeleteRequest": {
-                            "Key": {
-                                "PK": {"S": "CHANNEL#C1234567890"},
-                                "SK": {"S": "STATUS#1751756300_def456"},
+        underlying_client.batch_write_item = AsyncMock(
+            return_value={
+                "UnprocessedItems": {
+                    "test_table": [
+                        {
+                            "DeleteRequest": {
+                                "Key": {
+                                    "PK": {"S": "CHANNEL#C1234567890"},
+                                    "SK": {"S": "STATUS#1751756300_def456"},
+                                }
                             }
                         }
-                    }
-                ]
+                    ]
+                }
             }
-        })
+        )
         mock_client._get_client = AsyncMock(return_value=underlying_client)
 
         # Execute cleanup

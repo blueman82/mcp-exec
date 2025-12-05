@@ -112,9 +112,7 @@ class AutomatedRollbackSystem:
 
         for server_name, server_info in self.production_servers.items():
             try:
-                current_version = await self._get_current_version(
-                    server_info["hostname"]
-                )
+                current_version = await self._get_current_version(server_info["hostname"])
                 self.current_versions[server_name] = current_version
                 logger.info(f"{server_name} current version: {current_version}")
             except Exception as e:
@@ -152,9 +150,7 @@ class AutomatedRollbackSystem:
             rollback_record["status"] = RollbackStatus.IN_PROGRESS.value
 
             if not force:
-                validation_result = await self._validate_rollback_safety(
-                    target_version, servers
-                )
+                validation_result = await self._validate_rollback_safety(target_version, servers)
                 rollback_record["validation_results"] = validation_result
 
                 if not validation_result["safe_to_rollback"]:
@@ -202,9 +198,7 @@ class AutomatedRollbackSystem:
 
                     if not force:
                         # Attempt to restore other servers if possible
-                        await self._attempt_partial_recovery(
-                            rollback_record, rollback_servers
-                        )
+                        await self._attempt_partial_recovery(rollback_record, rollback_servers)
                         rollback_record["status"] = RollbackStatus.FAILED.value
                         return rollback_record
 
@@ -270,9 +264,7 @@ class AutomatedRollbackSystem:
             validation_result["version_available"] = version_check["available"]
 
             if not version_check["available"]:
-                validation_result["errors"].append(
-                    f"Version {target_version} not available in ECR"
-                )
+                validation_result["errors"].append(f"Version {target_version} not available in ECR")
 
             # Check 2: Production servers are accessible
             server_check = await self._check_server_accessibility(servers)
@@ -280,9 +272,7 @@ class AutomatedRollbackSystem:
             validation_result["servers_accessible"] = server_check["all_accessible"]
 
             if not server_check["all_accessible"]:
-                validation_result["errors"].append(
-                    "Not all production servers are accessible"
-                )
+                validation_result["errors"].append("Not all production servers are accessible")
 
             # Check 3: Current services are stable
             stability_check = await self._check_service_stability(servers)
@@ -290,9 +280,7 @@ class AutomatedRollbackSystem:
             validation_result["services_stable"] = stability_check["stable"]
 
             if not stability_check["stable"]:
-                validation_result["warnings"].append(
-                    "Some services are currently unstable"
-                )
+                validation_result["warnings"].append("Some services are currently unstable")
 
             # Check 4: No recent rollbacks (safety cooldown)
             cooldown_check = await self._check_rollback_cooldown()
@@ -313,17 +301,13 @@ class AutomatedRollbackSystem:
             return validation_result
 
         except Exception as e:
-            validation_result["errors"].append(
-                f"Validation failed with exception: {str(e)}"
-            )
+            validation_result["errors"].append(f"Validation failed with exception: {str(e)}")
             return validation_result
 
     async def _check_version_availability(self, version: str) -> Dict:
         """Check if target version is available in ECR"""
         try:
-            session = boto3.Session(
-                profile_name=self.aws_profile, region_name=self.aws_region
-            )
+            session = boto3.Session(profile_name=self.aws_profile, region_name=self.aws_region)
             ecr = session.client("ecr")
 
             availability = {}
@@ -340,9 +324,7 @@ class AutomatedRollbackSystem:
                     else:
                         raise
 
-            available_services = [
-                svc for svc, available in availability.items() if available
-            ]
+            available_services = [svc for svc, available in availability.items() if available]
 
             return {
                 "available": len(available_services) == len(self.services),
@@ -401,9 +383,7 @@ class AutomatedRollbackSystem:
                     "error": str(e),
                 }
 
-        accessible_count = sum(
-            1 for info in accessibility.values() if info["accessible"]
-        )
+        accessible_count = sum(1 for info in accessibility.values() if info["accessible"])
 
         return {
             "all_accessible": accessible_count == len(servers_to_check),
@@ -434,14 +414,8 @@ class AutomatedRollbackSystem:
                 )
 
                 if result.returncode == 0:
-                    services = (
-                        result.stdout.strip().split("\n")
-                        if result.stdout.strip()
-                        else []
-                    )
-                    unstable_services = [
-                        s for s in services if "Restarting" in s or "Exit" in s
-                    ]
+                    services = result.stdout.strip().split("\n") if result.stdout.strip() else []
+                    unstable_services = [s for s in services if "Restarting" in s or "Exit" in s]
 
                     stability[server_name] = {
                         "stable": len(unstable_services) == 0,
@@ -458,9 +432,7 @@ class AutomatedRollbackSystem:
             except Exception as e:
                 stability[server_name] = {"stable": False, "error": str(e)}
 
-        stable_servers = sum(
-            1 for info in stability.values() if info.get("stable", False)
-        )
+        stable_servers = sum(1 for info in stability.values() if info.get("stable", False))
 
         return {
             "stable": stable_servers == len(servers_to_check),
@@ -475,9 +447,7 @@ class AutomatedRollbackSystem:
 
         try:
             # Check for recent rollback records
-            rollback_logs_dir = (
-                self.project_root / "tests" / "deployment" / "rollback_logs"
-            )
+            rollback_logs_dir = self.project_root / "tests" / "deployment" / "rollback_logs"
 
             if not rollback_logs_dir.exists():
                 return {"safe": True, "no_previous_rollbacks": True}
@@ -631,9 +601,7 @@ class AutomatedRollbackSystem:
         except Exception as e:
             return {"success": False, "server": server_name, "error": str(e)}
 
-    async def _verify_server_rollback(
-        self, hostname: str, expected_version: str
-    ) -> Dict:
+    async def _verify_server_rollback(self, hostname: str, expected_version: str) -> Dict:
         """Verify that rollback was successful on a server"""
         try:
             # Check running container versions
@@ -673,9 +641,7 @@ class AutomatedRollbackSystem:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    async def _validate_rollback_success(
-        self, target_version: str, servers: List[str]
-    ) -> Dict:
+    async def _validate_rollback_success(self, target_version: str, servers: List[str]) -> Dict:
         """Validate that rollback was successful across all servers"""
         logger.info("Validating rollback success")
 
@@ -702,13 +668,11 @@ class AutomatedRollbackSystem:
 
         # Determine overall success
         all_versions_correct = all(
-            result.get("success", False)
-            for result in validation_result["servers"].values()
+            result.get("success", False) for result in validation_result["servers"].values()
         )
 
         all_healthy = all(
-            result.get("healthy", False)
-            for result in validation_result["health_checks"].values()
+            result.get("healthy", False) for result in validation_result["health_checks"].values()
         )
 
         validation_result["success"] = all_versions_correct
@@ -750,9 +714,7 @@ class AutomatedRollbackSystem:
         except Exception as e:
             return {"healthy": False, "error": str(e), "hostname": hostname}
 
-    async def _attempt_partial_recovery(
-        self, rollback_record: Dict, servers: List[str]
-    ):
+    async def _attempt_partial_recovery(self, rollback_record: Dict, servers: List[str]):
         """Attempt to recover from partial rollback failure"""
         logger.warning("Attempting partial recovery from rollback failure")
 
@@ -771,9 +733,7 @@ class AutomatedRollbackSystem:
     async def _save_rollback_record(self, rollback_record: Dict):
         """Save rollback record for audit and troubleshooting"""
         try:
-            rollback_logs_dir = (
-                self.project_root / "tests" / "deployment" / "rollback_logs"
-            )
+            rollback_logs_dir = self.project_root / "tests" / "deployment" / "rollback_logs"
             rollback_logs_dir.mkdir(exist_ok=True)
 
             log_file = rollback_logs_dir / f"{rollback_record['rollback_id']}.json"
@@ -819,9 +779,7 @@ class AutomatedRollbackSystem:
             )
 
             if result.returncode == 0:
-                return (
-                    result.stdout.strip().split("\n") if result.stdout.strip() else []
-                )
+                return result.stdout.strip().split("\n") if result.stdout.strip() else []
             else:
                 return []
 
@@ -893,9 +851,7 @@ async def main():
     parser.add_argument("--version", required=True, help="Target version for rollback")
     parser.add_argument("--reason", default="manual", help="Reason for rollback")
     parser.add_argument("--servers", nargs="+", help="Specific servers to rollback")
-    parser.add_argument(
-        "--force", action="store_true", help="Force rollback without validation"
-    )
+    parser.add_argument("--force", action="store_true", help="Force rollback without validation")
 
     args = parser.parse_args()
 

@@ -131,9 +131,7 @@ class ProductionSimulator:
         test_results["tests"]["health_checks"] = await self._test_health_checks()
 
         # Environment variable tests
-        test_results["tests"][
-            "environment_variables"
-        ] = await self._test_environment_variables()
+        test_results["tests"]["environment_variables"] = await self._test_environment_variables()
 
         # Feature flag tests
         test_results["tests"]["feature_flags"] = await self._test_feature_flags()
@@ -142,14 +140,10 @@ class ProductionSimulator:
         test_results["tests"]["api_endpoints"] = await self._test_api_endpoints()
 
         # Service dependency tests
-        test_results["tests"][
-            "service_dependencies"
-        ] = await self._test_service_dependencies()
+        test_results["tests"]["service_dependencies"] = await self._test_service_dependencies()
 
         # Resource utilization tests
-        test_results["tests"][
-            "resource_utilization"
-        ] = await self._test_resource_utilization()
+        test_results["tests"]["resource_utilization"] = await self._test_resource_utilization()
 
         # Load testing
         test_results["tests"]["load_testing"] = await self._test_load_handling()
@@ -426,15 +420,11 @@ class ProductionSimulator:
 
             # Find containers for this service
             service_containers = [
-                c
-                for c in self.simulation_containers
-                if c.labels.get("service") == service_name
+                c for c in self.simulation_containers if c.labels.get("service") == service_name
             ]
 
             for container in service_containers:
-                container_health = await self._check_container_health(
-                    container, health_check_path
-                )
+                container_health = await self._check_container_health(container, health_check_path)
                 health_results[container.name] = container_health
 
                 if not container_health.get("healthy", False):
@@ -535,9 +525,7 @@ class ProductionSimulator:
 
         return {
             "passed": True,
-            "feature_flags": {
-                flag: self.production_env.get(flag) for flag in feature_flags
-            },
+            "feature_flags": {flag: self.production_env.get(flag) for flag in feature_flags},
             "message": f"Feature flags configured: {len(feature_flags)}",
         }
 
@@ -640,9 +628,7 @@ class ProductionSimulator:
             except Exception as e:
                 resource_stats[container.name] = {"error": str(e), "acceptable": False}
 
-        all_acceptable = all(
-            stats.get("acceptable", False) for stats in resource_stats.values()
-        )
+        all_acceptable = all(stats.get("acceptable", False) for stats in resource_stats.values())
 
         return {
             "passed": all_acceptable,
@@ -658,8 +644,7 @@ class ProductionSimulator:
                 - stats["precpu_stats"]["cpu_usage"]["total_usage"]
             )
             system_delta = (
-                stats["cpu_stats"]["system_cpu_usage"]
-                - stats["precpu_stats"]["system_cpu_usage"]
+                stats["cpu_stats"]["system_cpu_usage"] - stats["precpu_stats"]["system_cpu_usage"]
             )
 
             if system_delta > 0:
@@ -802,9 +787,7 @@ async def main():
 
         for test_name, test_result in results["tests"].items():
             status_icon = "✅" if test_result.get("passed", False) else "❌"
-            print(
-                f"{status_icon} {test_name}: {test_result.get('message', 'No message')}"
-            )
+            print(f"{status_icon} {test_name}: {test_result.get('message', 'No message')}")
 
         if results.get("failed_tests"):
             print(f"\nFailed Tests: {', '.join(results['failed_tests'])}")

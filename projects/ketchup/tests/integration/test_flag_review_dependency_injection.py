@@ -26,11 +26,11 @@ class TestDependencyInjection:
         from packages.slack.interactive_elements.flag_review.api_client import FlagReviewApiClient
 
         # Create container as CommandFlagProcessor does (the buggy way)
-        buggy_container = type('Container', (), {
-            'posting_handler': Mock(),
-            'db_store': Mock(),
-            'secrets_manager': Mock()
-        })()
+        buggy_container = type(
+            "Container",
+            (),
+            {"posting_handler": Mock(), "db_store": Mock(), "secrets_manager": Mock()},
+        )()
 
         api_client = FlagReviewApiClient(buggy_container)
 
@@ -38,7 +38,7 @@ class TestDependencyInjection:
         with pytest.raises(AttributeError) as exc:
             _ = api_client.db_store  # Property calls container.get_db_store()
 
-        assert 'get_db_store' in str(exc.value), "Should fail on missing get_db_store method"
+        assert "get_db_store" in str(exc.value), "Should fail on missing get_db_store method"
 
     @pytest.mark.asyncio
     async def test_correct_container_interface(self):
@@ -50,11 +50,15 @@ class TestDependencyInjection:
         db_store = Mock()
         secrets_manager = Mock()
 
-        correct_container = type('Container', (), {
-            'get_posting_handler': lambda self: posting_handler,
-            'get_db_store': lambda self: db_store,
-            'get_secrets_manager': lambda self: secrets_manager
-        })()
+        correct_container = type(
+            "Container",
+            (),
+            {
+                "get_posting_handler": lambda self: posting_handler,
+                "get_db_store": lambda self: db_store,
+                "get_secrets_manager": lambda self: secrets_manager,
+            },
+        )()
 
         api_client = FlagReviewApiClient(correct_container)
 
@@ -67,28 +71,34 @@ class TestDependencyInjection:
     async def test_all_modules_use_consistent_container(self):
         """Test that all modules expecting containers use same interface."""
         from packages.slack.interactive_elements.flag_review.api_client import FlagReviewApiClient
-        from packages.slack.interactive_elements.flag_review.notification_sender import NotificationSender
         from packages.slack.interactive_elements.flag_review.block_builder import BlockBuilder
+        from packages.slack.interactive_elements.flag_review.notification_sender import (
+            NotificationSender,
+        )
         from packages.slack.interactive_elements.flag_review.review_poster import ReviewPoster
 
         # Create correct container
-        container = type('Container', (), {
-            'get_posting_handler': lambda self: Mock(),
-            'get_db_store': lambda self: Mock(),
-            'get_secrets_manager': lambda self: Mock()
-        })()
+        container = type(
+            "Container",
+            (),
+            {
+                "get_posting_handler": lambda self: Mock(),
+                "get_db_store": lambda self: Mock(),
+                "get_secrets_manager": lambda self: Mock(),
+            },
+        )()
 
         # All these should initialize without error
         modules = [
             FlagReviewApiClient(container),
             NotificationSender(container),
             BlockBuilder(container),
-            ReviewPoster(container)
+            ReviewPoster(container),
         ]
 
         # Verify all can access their dependencies
         for module in modules:
-            if hasattr(module, 'db_store'):
+            if hasattr(module, "db_store"):
                 _ = module.db_store  # Should not raise
 
     @pytest.mark.asyncio
@@ -97,7 +107,9 @@ class TestDependencyInjection:
 
         This is the exact test that would catch the production bug.
         """
-        from packages.slack.interactive_elements.flag_review.command_flag_processor import CommandFlagProcessor
+        from packages.slack.interactive_elements.flag_review.command_flag_processor import (
+            CommandFlagProcessor,
+        )
 
         posting_handler = Mock()
         posting_handler.post_message = AsyncMock(return_value={"ok": True})
@@ -117,7 +129,7 @@ class TestDependencyInjection:
             pass
             # If we get here, the container has correct methods
         except AttributeError as e:
-            if 'get_db_store' in str(e):
+            if "get_db_store" in str(e):
                 pytest.fail("Container missing get_db_store() method - exact production bug!")
             raise
 
@@ -126,17 +138,21 @@ class TestDependencyInjection:
         """Test that container methods have correct signatures."""
         # The correct container interface
         expected_methods = {
-            'get_db_store': 0,  # Takes no args (besides self)
-            'get_posting_handler': 0,
-            'get_secrets_manager': 0
+            "get_db_store": 0,  # Takes no args (besides self)
+            "get_posting_handler": 0,
+            "get_secrets_manager": 0,
         }
 
         # Create a correct container
-        container = type('Container', (), {
-            'get_posting_handler': lambda self: Mock(),
-            'get_db_store': lambda self: Mock(),
-            'get_secrets_manager': lambda self: Mock()
-        })()
+        container = type(
+            "Container",
+            (),
+            {
+                "get_posting_handler": lambda self: Mock(),
+                "get_db_store": lambda self: Mock(),
+                "get_secrets_manager": lambda self: Mock(),
+            },
+        )()
 
         for method_name, expected_args in expected_methods.items():
             assert hasattr(container, method_name), f"Missing method: {method_name}"
@@ -179,12 +195,10 @@ class TestDependencyInjection:
                 "private_metadata": "D0840EX80R5|1758273886_04da7904|status|D0840EX80R5",
                 "state": {
                     "values": {
-                        "feedback_block": {
-                            "feedback_input": {"value": "this is just a test"}
-                        }
+                        "feedback_block": {"feedback_input": {"value": "this is just a test"}}
                     }
-                }
-            }
+                },
+            },
         }
 
         # This should work if container is fixed

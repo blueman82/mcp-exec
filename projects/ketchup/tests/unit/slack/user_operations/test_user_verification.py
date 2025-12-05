@@ -46,9 +46,7 @@ class TestUserVerifier:
     @pytest.mark.asyncio
     async def test_validate_user_authorized(self) -> None:
         """Test user authorized in secrets and database."""
-        with patch(
-            "packages.slack.authorisation.user_verification.logger"
-        ) as mock_logger:
+        with patch("packages.slack.authorisation.user_verification.logger") as mock_logger:
             # User exists in DB and is authorized
             self.mock_user_store.get_user = AsyncMock(
                 return_value={"user_id": "U12345", "authorized": True}
@@ -56,28 +54,20 @@ class TestUserVerifier:
 
             result: bool = await self.verifier.validate_user_id("U12345")
             assert result is True
-            mock_logger.info.assert_any_call(
-                "Validating authorization for user ID: U12345"
-            )
-            mock_logger.info.assert_any_call(
-                "User U12345 found in authorized seed list"
-            )
+            mock_logger.info.assert_any_call("Validating authorization for user ID: U12345")
+            mock_logger.info.assert_any_call("User U12345 found in authorized seed list")
             mock_logger.info.assert_any_call("User U12345 is authorized (from secrets)")
 
     @pytest.mark.asyncio
     async def test_validate_user_unauthorized(self) -> None:
         """Test user not authorized."""
-        with patch(
-            "packages.slack.authorisation.user_verification.logger"
-        ) as mock_logger:
+        with patch("packages.slack.authorisation.user_verification.logger") as mock_logger:
             # User not in seed list
             self.mock_user_store.get_user = AsyncMock(return_value=None)
 
             result: bool = await self.verifier.validate_user_id("U99999")
             assert result is False
-            mock_logger.info.assert_any_call(
-                "Validating authorization for user ID: U99999"
-            )
+            mock_logger.info.assert_any_call("Validating authorization for user ID: U99999")
             mock_logger.info.assert_any_call(
                 "User U99999 is not in authorized seed list from secrets"
             )
@@ -85,9 +75,7 @@ class TestUserVerifier:
     @pytest.mark.asyncio
     async def test_validate_user_exception(self) -> None:
         """Test exception during validation."""
-        with patch(
-            "packages.slack.authorisation.user_verification.logger"
-        ) as mock_logger:
+        with patch("packages.slack.authorisation.user_verification.logger") as mock_logger:
             # Secrets manager throws exception
             self.mock_secrets_manager.get_authorised_slack_user_ids = AsyncMock(
                 side_effect=Exception("Secrets error")
@@ -95,9 +83,7 @@ class TestUserVerifier:
 
             result: bool = await self.verifier.validate_user_id("U12345")
             assert result is False
-            mock_logger.info.assert_any_call(
-                "Validating authorization for user ID: U12345"
-            )
+            mock_logger.info.assert_any_call("Validating authorization for user ID: U12345")
             mock_logger.error.assert_called_once()
             # Check that error was logged with the user ID
             error_call_args = str(mock_logger.error.call_args)
@@ -107,9 +93,7 @@ class TestUserVerifier:
     @pytest.mark.asyncio
     async def test_validate_user_in_secrets_not_in_db(self) -> None:
         """Test user in secrets but not in database - should add to DB."""
-        with patch(
-            "packages.slack.authorisation.user_verification.logger"
-        ) as mock_logger:
+        with patch("packages.slack.authorisation.user_verification.logger") as mock_logger:
             # User not in DB
             self.mock_user_store.get_user = AsyncMock(return_value=None)
             self.mock_user_store.store_user = AsyncMock()
@@ -124,7 +108,5 @@ class TestUserVerifier:
             self.mock_user_store.store_user.assert_called_once_with(
                 {"user_id": "U12345", "real_name": "Test User", "authorized": True}
             )
-            mock_logger.info.assert_any_call(
-                "User U12345 not in DB, fetching from Slack"
-            )
+            mock_logger.info.assert_any_call("User U12345 not in DB, fetching from Slack")
             mock_logger.info.assert_any_call("User U12345 is authorized (from secrets)")

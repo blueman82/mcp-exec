@@ -38,9 +38,7 @@ async def test_jira_with_direct_token_refresh():
         pytest.fail(f"Could not get fresh IMS token: {e}")
 
     # Create JIRA service with dependencies
-    jira_service = JiraService(
-        secrets_manager=secrets_manager, ims_token_manager=ims_token_manager
-    )
+    jira_service = JiraService(secrets_manager=secrets_manager, ims_token_manager=ims_token_manager)
 
     # Override MCP base URL for testing
     jira_service.mcp_base_url = "http://localhost:8081"

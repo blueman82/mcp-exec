@@ -147,9 +147,7 @@ class ECRCleanup:
             format=log_format,
             handlers=[
                 logging.StreamHandler(sys.stdout),
-                logging.FileHandler(
-                    f'ecr_cleanup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
-                ),
+                logging.FileHandler(f'ecr_cleanup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
             ],
         )
         self.logger = logging.getLogger(__name__)
@@ -222,16 +220,12 @@ class ECRCleanup:
                 )
                 break
             else:
-                self.logger.debug(
-                    f"Tag {image.repository_name}:{tag} - marked for deletion"
-                )
+                self.logger.debug(f"Tag {image.repository_name}:{tag} - marked for deletion")
 
         if should_preserve:
             # Check if image has mixed tags (some good, some bad) and log warnings
             for tag in image.image_tags:
-                if not VersionComparator.should_preserve_image(
-                    image.repository_name, tag
-                ):
+                if not VersionComparator.should_preserve_image(image.repository_name, tag):
                     self.logger.warning(
                         f"Image {image.repository_name} has mixed tags - preserving due to good tag but noting bad tag: {tag}"
                     )
@@ -247,9 +241,7 @@ class ECRCleanup:
     def delete_image(self, image: ImageInfo) -> bool:
         """Delete a single image"""
         if self.dry_run:
-            self.logger.info(
-                f"DRY RUN: Would delete {image.repository_name}:{image.image_tags}"
-            )
+            self.logger.info(f"DRY RUN: Would delete {image.repository_name}:{image.image_tags}")
             return True
 
         try:
@@ -261,9 +253,7 @@ class ECRCleanup:
             return True
 
         except ClientError as e:
-            self.logger.error(
-                f"Failed to delete {image.repository_name}:{image.image_tags}: {e}"
-            )
+            self.logger.error(f"Failed to delete {image.repository_name}:{image.image_tags}: {e}")
             return False
 
     def cleanup_repository(self, repository_name: str):
@@ -329,27 +319,17 @@ class ECRCleanup:
         mode = "DRY RUN" if self.dry_run else "LIVE DELETION"
         self.logger.warning(f"Mode: {mode}")
         self.logger.warning(f"Duration: {duration:.2f} seconds")
-        self.logger.warning(
-            f"Repositories processed: {self.metrics.total_repositories}"
-        )
-        self.logger.warning(
-            f"Total images scanned: {self.metrics.total_images_scanned}"
-        )
+        self.logger.warning(f"Repositories processed: {self.metrics.total_repositories}")
+        self.logger.warning(f"Total images scanned: {self.metrics.total_images_scanned}")
         self.logger.warning(f"Images preserved: {self.metrics.images_preserved}")
-        self.logger.warning(
-            f"Images marked for deletion: {self.metrics.images_to_delete}"
-        )
+        self.logger.warning(f"Images marked for deletion: {self.metrics.images_to_delete}")
 
         if not self.dry_run:
-            self.logger.warning(
-                f"Images successfully deleted: {self.metrics.images_deleted}"
-            )
+            self.logger.warning(f"Images successfully deleted: {self.metrics.images_deleted}")
             self.logger.warning(f"Deletion failures: {self.metrics.deletion_failures}")
             self.logger.warning(f"Bytes deleted: {self.metrics.bytes_deleted:,}")
         else:
-            self.logger.warning(
-                f"Bytes that would be deleted: {self.metrics.bytes_to_delete:,}"
-            )
+            self.logger.warning(f"Bytes that would be deleted: {self.metrics.bytes_to_delete:,}")
 
         self.logger.warning(
             f"Repositories with deletions: {len(self.metrics.repositories_with_deletions)}"
@@ -358,9 +338,7 @@ class ECRCleanup:
             self.logger.warning(f"  - {repo}")
 
         # Save metrics to JSON file
-        metrics_file = (
-            f'ecr_cleanup_metrics_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
-        )
+        metrics_file = f'ecr_cleanup_metrics_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
         with open(metrics_file, "w") as f:
             json.dump(
                 {

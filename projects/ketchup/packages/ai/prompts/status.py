@@ -75,9 +75,7 @@ For current status:
     if "last" in time_window or "past" in time_window:
         time_window_note = f"If no information is available from the {time_window.replace('_', ' ')}, use the most recent information."
     elif "complete" in time_window:
-        time_window_note = (
-            "Include all relevant information from the entire channel history."
-        )
+        time_window_note = "Include all relevant information from the entire channel history."
     else:
         time_window_note = "Focus on the most recent and relevant information."
 
@@ -255,7 +253,7 @@ Generate the status report based on these instructions, ensuring all formatting 
 
     # Add JSON schema instruction when feature flag enabled
     if FeatureFlags.is_structured_json_output_enabled():
-        prompt += '\n\nIMPORTANT: Return your response as JSON with this exact structure:\n'
+        prompt += "\n\nIMPORTANT: Return your response as JSON with this exact structure:\n"
         prompt += '{"response_text": "your complete formatted response here using markdown"}\n'
 
     return prompt

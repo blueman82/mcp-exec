@@ -45,9 +45,7 @@ async def process_eligible_channel_creation(
         dynamodb_store: DynamoDB store instance.
         posting_handler: Slack posting handler instance.
     """
-    logger.info(
-        "Processing eligible channel creation for %s (%s)", channel_name, channel_id
-    )
+    logger.info("Processing eligible channel creation for %s (%s)", channel_name, channel_id)
 
     try:
         # Get bot user ID
@@ -87,12 +85,8 @@ async def process_eligible_channel_creation(
                 creation_epoch = int(time.time())
 
             # Determine product type
-            product_type = dynamodb_store.channel_ops.determine_product_type(
-                channel_name
-            )
-            logger.info(
-                "Determined product type for %s as: %s", channel_id, product_type
-            )
+            product_type = dynamodb_store.channel_ops.determine_product_type(channel_name)
+            logger.info("Determined product type for %s as: %s", channel_id, product_type)
 
             # Create a ChannelMetadata object - remove 'created_by'
             metadata = ChannelMetadata(
@@ -207,9 +201,7 @@ async def handle_channel_creation_event(
             )
 
     except Exception as e:
-        logger.error(
-            "Error processing channel_created event: %s", str(e), exc_info=True
-        )
+        logger.error("Error processing channel_created event: %s", str(e), exc_info=True)
 
         # Try to notify about the error if we have channel info
         if channel_id and creator_id:

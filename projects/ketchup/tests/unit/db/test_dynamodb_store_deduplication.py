@@ -51,9 +51,7 @@ class TestDynamoDBStoreDeduplication:
 
         # Mock put_item to raise an exception with ConditionalCheckFailedException in the message
         mock_client.put_item = AsyncMock(
-            side_effect=Exception(
-                "ConditionalCheckFailedException: Item already exists"
-            )
+            side_effect=Exception("ConditionalCheckFailedException: Item already exists")
         )
 
         # Act
@@ -72,9 +70,7 @@ class TestDynamoDBStoreDeduplication:
         store = DynamoDBStore(client=mock_client, table_name="test-table")
 
         # Mock put_item to raise a general exception
-        mock_client.put_item = AsyncMock(
-            side_effect=Exception("Unexpected DynamoDB error")
-        )
+        mock_client.put_item = AsyncMock(side_effect=Exception("Unexpected DynamoDB error"))
 
         # Act
         result = await store.is_duplicate_event(

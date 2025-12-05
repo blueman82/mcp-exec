@@ -15,7 +15,6 @@ Test Coverage:
 Requires: AWS configured via .env.test (see .env.test.example)
 """
 
-import os
 import time
 from unittest.mock import AsyncMock
 
@@ -45,7 +44,7 @@ class TestUserPreferencesIntegration:
     @pytest_asyncio.fixture
     async def real_dynamodb_client(self):
         """Create a real DynamoDB client for testing.
-        
+
         AWS profile is loaded from .env.test by root conftest.py.
         Tests are auto-skipped if AWS is not configured.
         """
@@ -143,19 +142,13 @@ class TestUserPreferencesIntegration:
                             }
                         },
                         "product_focus_selection": {
-                            "product_focus_select": {
-                                "selected_option": {"value": "all_products"}
-                            }
+                            "product_focus_select": {"selected_option": {"value": "all_products"}}
                         },
                         "detail_level_selection": {
-                            "detail_level_select": {
-                                "selected_option": {"value": "balanced"}
-                            }
+                            "detail_level_select": {"selected_option": {"value": "balanced"}}
                         },
                         "time_window_selection": {
-                            "time_window_select": {
-                                "selected_option": {"value": "past_24_hours"}
-                            }
+                            "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                         },
                     }
                 }
@@ -213,19 +206,13 @@ class TestUserPreferencesIntegration:
                             }
                         },
                         "product_focus_selection": {
-                            "product_focus_select": {
-                                "selected_option": {"value": "all_products"}
-                            }
+                            "product_focus_select": {"selected_option": {"value": "all_products"}}
                         },
                         "detail_level_selection": {
-                            "detail_level_select": {
-                                "selected_option": {"value": "balanced"}
-                            }
+                            "detail_level_select": {"selected_option": {"value": "balanced"}}
                         },
                         "time_window_selection": {
-                            "time_window_select": {
-                                "selected_option": {"value": "past_24_hours"}
-                            }
+                            "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                         },
                     }
                 }
@@ -289,9 +276,7 @@ class TestUserPreferencesIntegration:
         # Verify notification was sent (default behavior - service calls _post_ephemeral)
         mock_dependencies["posting"]._post_ephemeral.assert_called_once()
 
-    async def test_preference_persistence_and_retrieval(
-        self, user_store, real_dynamodb_client
-    ):
+    async def test_preference_persistence_and_retrieval(self, user_store, real_dynamodb_client):
         """Test that preferences are correctly persisted and retrieved."""
         user_id = f"{self.TEST_USER_ID}_PERSIST"
 
@@ -356,14 +341,10 @@ async def test_home_tab_preference_extraction():
                         "product_focus_select": {"selected_option": {"value": "stock"}}
                     },
                     "detail_level_selection": {
-                        "detail_level_select": {
-                            "selected_option": {"value": "high_level"}
-                        }
+                        "detail_level_select": {"selected_option": {"value": "high_level"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {
-                            "selected_option": {"value": "always_ask"}
-                        }
+                        "time_window_select": {"selected_option": {"value": "always_ask"}}
                     },
                 }
             }
@@ -385,19 +366,13 @@ async def test_home_tab_preference_extraction():
                         }
                     },
                     "product_focus_selection": {
-                        "product_focus_select": {
-                            "selected_option": {"value": "all_products"}
-                        }
+                        "product_focus_select": {"selected_option": {"value": "all_products"}}
                     },
                     "detail_level_selection": {
-                        "detail_level_select": {
-                            "selected_option": {"value": "balanced"}
-                        }
+                        "detail_level_select": {"selected_option": {"value": "balanced"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {
-                            "selected_option": {"value": "past_24_hours"}
-                        }
+                        "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                     },
                 }
             }
@@ -413,19 +388,13 @@ async def test_home_tab_preference_extraction():
             "state": {
                 "values": {
                     "product_focus_selection": {
-                        "product_focus_select": {
-                            "selected_option": {"value": "all_products"}
-                        }
+                        "product_focus_select": {"selected_option": {"value": "all_products"}}
                     },
                     "detail_level_selection": {
-                        "detail_level_select": {
-                            "selected_option": {"value": "balanced"}
-                        }
+                        "detail_level_select": {"selected_option": {"value": "balanced"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {
-                            "selected_option": {"value": "past_24_hours"}
-                        }
+                        "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                     },
                 }
             }

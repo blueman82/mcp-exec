@@ -74,9 +74,7 @@ class TestMetadataExtractorJiraParsing:
         """Test extracting ID from JIRA URL with query parameters."""
         mock_ai_handler = MagicMock()
         extractor = MetadataExtractor(ai_handler=mock_ai_handler)
-        ai_response = (
-            "Acme Corp\nhttps://jira.corp.adobe.com/browse/CPGNTT-125206?filter=123"
-        )
+        ai_response = "Acme Corp\nhttps://jira.corp.adobe.com/browse/CPGNTT-125206?filter=123"
 
         result = extractor.parse_ai_response(ai_response)
 

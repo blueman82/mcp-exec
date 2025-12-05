@@ -94,9 +94,7 @@ class SQSClient:
             True if message was deleted successfully, False otherwise
         """
         try:
-            self.client.delete_message(
-                QueueUrl=self.queue_url, ReceiptHandle=receipt_handle
-            )
+            self.client.delete_message(QueueUrl=self.queue_url, ReceiptHandle=receipt_handle)
             return True
         except Exception as e:
             logger.error(f"Failed to delete SQS message: {e}")

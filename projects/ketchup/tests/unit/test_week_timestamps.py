@@ -20,9 +20,7 @@ class TestWeekTimestamps:
     def test_get_current_week_timestamps_monday(self):
         """Test that Monday is correctly identified as start of week."""
         # Mock a Monday at 10:30 AM UTC
-        mock_monday = datetime(
-            2024, 12, 16, 10, 30, 0, tzinfo=timezone.utc
-        )  # Monday, Dec 16, 2024
+        mock_monday = datetime(2024, 12, 16, 10, 30, 0, tzinfo=timezone.utc)  # Monday, Dec 16, 2024
 
         with patch("packages.db.operations.command_tracking_operations.dt") as mock_dt:
             mock_dt.now.return_value = mock_monday
@@ -52,9 +50,7 @@ class TestWeekTimestamps:
     def test_get_current_week_timestamps_sunday(self):
         """Test that Sunday is correctly included in current week."""
         # Mock a Sunday at 8:00 PM UTC
-        mock_sunday = datetime(
-            2024, 12, 22, 20, 0, 0, tzinfo=timezone.utc
-        )  # Sunday, Dec 22, 2024
+        mock_sunday = datetime(2024, 12, 22, 20, 0, 0, tzinfo=timezone.utc)  # Sunday, Dec 22, 2024
 
         with patch("packages.db.operations.command_tracking_operations.dt") as mock_dt:
             mock_dt.now.return_value = mock_sunday

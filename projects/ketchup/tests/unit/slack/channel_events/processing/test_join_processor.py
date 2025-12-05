@@ -63,9 +63,7 @@ class TestProcessEligibleBotJoin:
         dynamodb.get_channel_details = AsyncMock(return_value=None)
         dynamodb.channel_ops.store_metadata = AsyncMock()
         channel_info_ops = MagicMock()
-        channel_info_ops.get_channel_info_from_api = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        channel_info_ops.get_channel_info_from_api = AsyncMock(side_effect=Exception("fail"))
         posting_handler = MagicMock()
         event = {"event_ts": "1234567890"}
         await process_eligible_bot_join(
@@ -215,9 +213,7 @@ class TestHandleMemberJoinedEvent:
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_eligibility_service = MagicMock()
-        channel_eligibility_service.is_channel_eligible = AsyncMock(
-            return_value=(True, "")
-        )
+        channel_eligibility_service.is_channel_eligible = AsyncMock(return_value=(True, ""))
         dynamodb = MagicMock()
         channel_info_ops = MagicMock()
         posting_handler = MagicMock()
@@ -326,9 +322,7 @@ class TestHandleMemberJoinedEvent:
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_eligibility_service = MagicMock()
-        channel_eligibility_service.is_channel_eligible = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        channel_eligibility_service.is_channel_eligible = AsyncMock(side_effect=Exception("fail"))
         dynamodb = MagicMock()
         channel_info_ops = MagicMock()
         posting_handler = MagicMock()
@@ -384,9 +378,7 @@ class TestProcessRegularUserJoin:
     def mock_feature_service(self) -> AsyncMock:
         """Create a mock FeatureService."""
         mock = AsyncMock()
-        mock.is_user_join_notifications_enabled_for_channel = AsyncMock(
-            return_value=True
-        )
+        mock.is_user_join_notifications_enabled_for_channel = AsyncMock(return_value=True)
         return mock
 
     @pytest.fixture
@@ -441,9 +433,7 @@ class TestProcessRegularUserJoin:
         mock_user_join_notification_service: AsyncMock,
     ) -> None:
         """Test regular user join when feature is disabled for channel."""
-        mock_feature_service.is_user_join_notifications_enabled_for_channel.return_value = (
-            False
-        )
+        mock_feature_service.is_user_join_notifications_enabled_for_channel.return_value = False
         event = {"channel": "C12345", "user": "U12345"}
 
         await process_regular_user_join(

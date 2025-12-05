@@ -48,28 +48,23 @@ async def process_regular_user_join(
                 logger.info(
                     "Skipping auto-join notification for user %s in channel %s - "
                     "channel is temporarily unarchived for command execution",
-                    user_id, channel_id
+                    user_id,
+                    channel_id,
                 )
                 return
 
         # Check if user join notifications feature is enabled for this user
         if not feature_service:
-            logger.info(
-                "Feature service not available, skipping user join notification"
-            )
+            logger.info("Feature service not available, skipping user join notification")
             return
 
         if not user_join_notification_service:
-            logger.info(
-                "User join notification service not available, skipping notification"
-            )
+            logger.info("User join notification service not available, skipping notification")
             return
 
         # Check if feature is enabled for this channel
-        is_enabled = (
-            await feature_service.is_user_join_notifications_enabled_for_channel(
-                channel_id
-            )
+        is_enabled = await feature_service.is_user_join_notifications_enabled_for_channel(
+            channel_id
         )
         if not is_enabled:
             logger.info(f"User join notifications not enabled for channel {channel_id}")
@@ -80,7 +75,7 @@ async def process_regular_user_join(
                     "channel_id": channel_id,
                     "delivery_status": "disabled",
                     "notification_attempted": False,
-                    "timestamp": int(time.time())
+                    "timestamp": int(time.time()),
                 }
                 await join_notification_ops.track_notification(tracking_data)
             return
@@ -93,9 +88,7 @@ async def process_regular_user_join(
         )
 
         if not is_eligible:
-            logger.info(
-                f"Channel {channel_id} not eligible for user join notifications: {reason}"
-            )
+            logger.info(f"Channel {channel_id} not eligible for user join notifications: {reason}")
             # Track ineligible notification attempt
             if join_notification_ops:
                 tracking_data = {
@@ -105,7 +98,7 @@ async def process_regular_user_join(
                     "notification_attempted": False,
                     "failure_reason_code": "CHANNEL_INELIGIBLE",
                     "error_message": f"Channel not eligible: {reason}",
-                    "timestamp": int(time.time())
+                    "timestamp": int(time.time()),
                 }
                 await join_notification_ops.track_notification(tracking_data)
             return
@@ -123,35 +116,28 @@ async def process_regular_user_join(
             channel_name = channel_id
 
         # Send notification to user
-        notification_success = (
-            await user_join_notification_service.send_join_notification(
-                user_id=user_id, channel_id=channel_id
-            )
+        notification_success = await user_join_notification_service.send_join_notification(
+            user_id=user_id, channel_id=channel_id
         )
 
         # Increment monthly metrics counters for war room notifications
         if dynamodb_store:
             try:
                 from datetime import datetime, timezone
+
                 month_key = datetime.now(timezone.utc).strftime("%Y_%m")
 
                 # Always increment sent counter
-                await dynamodb_store.increment_monthly_counter(
-                    "war_room_sent", month_key, 1
-                )
+                await dynamodb_store.increment_monthly_counter("war_room_sent", month_key, 1)
 
                 # Increment success or failed counter based on result
                 if notification_success:
-                    await dynamodb_store.increment_monthly_counter(
-                        "war_room_success", month_key, 1
-                    )
+                    await dynamodb_store.increment_monthly_counter("war_room_success", month_key, 1)
                     logger.info(
                         f"Successfully sent join notification to user {user_id} in channel {channel_id}"
                     )
                 else:
-                    await dynamodb_store.increment_monthly_counter(
-                        "war_room_failed", month_key, 1
-                    )
+                    await dynamodb_store.increment_monthly_counter("war_room_failed", month_key, 1)
                     logger.warning(
                         f"Failed to send join notification to user {user_id} in channel {channel_id}"
                     )
@@ -168,7 +154,5 @@ async def process_regular_user_join(
                     )
 
     except Exception as e:
-        logger.error(
-            f"Error processing regular user join for {user_id} in {channel_id}: {e}"
-        )
+        logger.error(f"Error processing regular user join for {user_id} in {channel_id}: {e}")
         # Don't raise - this should not block the user's join process

@@ -208,9 +208,7 @@ def build_admin_usage_stats_blocks(
     # Format top users list (excluding Gary Harrison)
     top_users_formatted = []
     rank = 1
-    for user_id, user_name, count in top_users[
-        : limit * 2
-    ]:  # Get extra in case we filter some out
+    for user_id, user_name, count in top_users[: limit * 2]:  # Get extra in case we filter some out
         # Skip Gary Harrison
         if user_id == "W7MGASQ2K":
             continue

@@ -70,8 +70,12 @@ class SlackEventHandlerProtocol(Protocol):
 class ChannelEligibilityServiceProtocol(Protocol):
     """Protocol for channel eligibility checking."""
 
-    async def is_channel_eligible(self, channel_id: str, user_id: str, response_url: str = None) -> tuple: ...
-    async def handle_ineligible_channel(self, channel_id: str, inviter_id: str, reason: str) -> None: ...
+    async def is_channel_eligible(
+        self, channel_id: str, user_id: str, response_url: str = None
+    ) -> tuple: ...
+    async def handle_ineligible_channel(
+        self, channel_id: str, inviter_id: str, reason: str
+    ) -> None: ...
 
 
 @runtime_checkable
@@ -160,14 +164,18 @@ class SlackUserOpsProtocol(Protocol):
 class UserJoinNotificationServiceProtocol(Protocol):
     """Protocol for user join notification service operations."""
 
-    async def send_join_notification(self, user_id: str, channel_id: str, user_profile: dict = None) -> bool: ...
+    async def send_join_notification(
+        self, user_id: str, channel_id: str, user_profile: dict = None
+    ) -> bool: ...
 
 
 @runtime_checkable
 class ChannelNotificationServiceProtocol(Protocol):
     """Protocol for channel notification service operations."""
 
-    async def send_channel_update(self, channel_id: str, update_type: str, message: str) -> bool: ...
+    async def send_channel_update(
+        self, channel_id: str, update_type: str, message: str
+    ) -> bool: ...
     async def send_channel_alert(self, channel_id: str, alert_type: str, details: dict) -> bool: ...
 
 

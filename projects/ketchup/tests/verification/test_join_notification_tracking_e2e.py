@@ -8,12 +8,13 @@ implementation including DynamoDB operations, service integration, and error han
 import asyncio
 import time
 from unittest.mock import AsyncMock
+
 import pytest
 
+from packages.db.models.notification_tracking import FailureReason
 from packages.db.operations.join_notification_ops import (
     JoinNotificationOps,
 )
-from packages.db.models.notification_tracking import FailureReason
 from packages.slack.services.user_join_notification_service import (
     UserJoinNotificationService,
 )
@@ -34,9 +35,7 @@ class TestJoinNotificationTrackingE2E:
     @pytest.fixture
     def join_notification_ops(self, mock_dynamodb_client):
         """Create JoinNotificationOps instance with mocked client."""
-        return JoinNotificationOps(
-            client=mock_dynamodb_client, table_name="test_table"
-        )
+        return JoinNotificationOps(client=mock_dynamodb_client, table_name="test_table")
 
     @pytest.fixture
     def mock_user_join_service(self, join_notification_ops):
@@ -164,9 +163,7 @@ class TestJoinNotificationTrackingE2E:
         assert mock_dynamodb_client.put_item.call_count >= 10
 
     @pytest.mark.asyncio
-    async def test_error_message_truncation(
-        self, join_notification_ops, mock_dynamodb_client
-    ):
+    async def test_error_message_truncation(self, join_notification_ops, mock_dynamodb_client):
         """Test error message truncation to 512 characters."""
         # Arrange
         long_error = "x" * 1000  # 1000 character error message
@@ -193,9 +190,7 @@ class TestJoinNotificationTrackingE2E:
         assert error_message == "x" * 512
 
     @pytest.mark.asyncio
-    async def test_weekly_stats_structure(
-        self, join_notification_ops, mock_dynamodb_client
-    ):
+    async def test_weekly_stats_structure(self, join_notification_ops, mock_dynamodb_client):
         """Test weekly statistics structure and format."""
         # Arrange
         tracking_data = {
@@ -324,7 +319,9 @@ class TestJoinNotificationTrackingE2E:
         mock_user_join_service._send_ephemeral_notification.return_value = True
 
         # Mock the track_notification method
-        mock_user_join_service.join_notification_ops.track_notification = AsyncMock(return_value=True)
+        mock_user_join_service.join_notification_ops.track_notification = AsyncMock(
+            return_value=True
+        )
 
         # Act
         result = await mock_user_join_service.send_join_notification(
@@ -351,7 +348,9 @@ class TestJoinNotificationTrackingE2E:
         }
 
         # Mock the track_notification method
-        mock_user_join_service.join_notification_ops.track_notification = AsyncMock(return_value=True)
+        mock_user_join_service.join_notification_ops.track_notification = AsyncMock(
+            return_value=True
+        )
 
         # Act
         result = await mock_user_join_service.send_join_notification(
@@ -458,9 +457,7 @@ class TestJoinNotificationTrackingRegression:
         )
 
     @pytest.mark.asyncio
-    async def test_notification_service_without_tracking_ops(
-        self, mock_services_without_tracking
-    ):
+    async def test_notification_service_without_tracking_ops(self, mock_services_without_tracking):
         """Test that notification service works without tracking ops."""
         # Arrange
         service = mock_services_without_tracking
@@ -481,9 +478,7 @@ class TestJoinNotificationTrackingRegression:
         service._send_ephemeral_notification.return_value = True
 
         # Act
-        result = await service.send_join_notification(
-            user_id="U12345", channel_id="C67890"
-        )
+        result = await service.send_join_notification(user_id="U12345", channel_id="C67890")
 
         # Assert
         assert result is True  # Should work without tracking

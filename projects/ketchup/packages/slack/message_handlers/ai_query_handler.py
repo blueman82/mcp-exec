@@ -79,10 +79,10 @@ class AIQueryMessageHandler:
 
         # Determine format type
         if SLACK_CHANNEL_MENTION_REGEX.match(channel_ref):
-            return channel_ref, 'mention'
-        elif channel_ref.startswith('#'):
-            return channel_ref, 'name'
+            return channel_ref, "mention"
+        elif channel_ref.startswith("#"):
+            return channel_ref, "name"
         elif SLACK_CHANNEL_ID_REGEX.match(channel_ref):
-            return channel_ref, 'id'
+            return channel_ref, "id"
         else:
-            return channel_ref, 'unknown'
+            return channel_ref, "unknown"

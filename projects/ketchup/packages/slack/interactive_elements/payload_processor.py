@@ -140,17 +140,13 @@ async def process_interactive_payload(
             # Handle edit channel metadata action via injected handler
             if action_id == "edit_channel_metadata":
                 try:
-                    initial_values: Dict[str, str] = json.loads(
-                        action.get("value", "{}")
-                    )
+                    initial_values: Dict[str, str] = json.loads(action.get("value", "{}"))
                 except json.JSONDecodeError:
                     initial_values = {}
                 trigger_id = payload.get("trigger_id")
                 # Get both origin and target channel IDs
                 origin_channel_id = payload.get("channel", {}).get("id")
-                target_channel_id = (
-                    initial_values.get("channel_id") or origin_channel_id
-                )
+                target_channel_id = initial_values.get("channel_id") or origin_channel_id
                 if not origin_channel_id:
                     logger.error("No origin_channel_id found for edit modal open")
                     await posting_handler.post_message(
@@ -181,23 +177,13 @@ async def process_interactive_payload(
                     return True
 
                 # Try status update handler first (more common for automated updates)
-                success = await trust_endorsement_handler.process_trust_action(
-                    payload=payload
-                )
+                success = await trust_endorsement_handler.process_trust_action(payload=payload)
 
                 # If status handler failed to find record, try command handler
-                if (
-                    not success
-                    and "_" in button_value
-                    and len(button_value.split("_")) == 2
-                ):
-                    logger.info(
-                        f"Status handler failed for {button_value}, trying command handler"
-                    )
-                    success = (
-                        await trust_endorsement_handler.process_command_trust_action(
-                            payload=payload
-                        )
+                if not success and "_" in button_value and len(button_value.split("_")) == 2:
+                    logger.info(f"Status handler failed for {button_value}, trying command handler")
+                    success = await trust_endorsement_handler.process_command_trust_action(
+                        payload=payload
                     )
 
                 if not success:
@@ -218,14 +204,10 @@ async def process_interactive_payload(
 
                 if is_ephemeral:
                     # Command outputs are ephemeral
-                    success = await flag_review_handler.process_command_flag_action(
-                        payload=payload
-                    )
+                    success = await flag_review_handler.process_command_flag_action(payload=payload)
                 else:
                     # Status updates are persistent messages
-                    success = await flag_review_handler.process_flag_action(
-                        payload=payload
-                    )
+                    success = await flag_review_handler.process_flag_action(payload=payload)
 
                 if not success:
                     logger.error("Failed to process flag action")
@@ -238,9 +220,7 @@ async def process_interactive_payload(
                         logger.error("Access request handler not available")
                         return True
                     logger.info("Processing access request action")
-                    response = await access_request_handler.handle_request_access(
-                        payload
-                    )
+                    response = await access_request_handler.handle_request_access(payload)
                     # Send response to user
                     if response:
                         response_url = payload.get("response_url")
@@ -258,9 +238,7 @@ async def process_interactive_payload(
                         logger.error("Access request handler not available")
                         return True
                     logger.info("Processing access approval action")
-                    response = await access_request_handler.handle_approve_access(
-                        payload
-                    )
+                    response = await access_request_handler.handle_approve_access(payload)
                     # Send response to approver
                     if response:
                         await posting_handler.post_message(
@@ -299,9 +277,7 @@ async def process_interactive_payload(
                     logger.error("Flag review handler not available")
                     return True
                 logger.info("Processing command flag review action: %s", action_id)
-                success = await flag_review_handler.process_command_flag_action(
-                    payload=payload
-                )
+                success = await flag_review_handler.process_command_flag_action(payload=payload)
                 if not success:
                     logger.error("Failed to process command flag review action")
                 return True
@@ -329,23 +305,17 @@ async def process_interactive_payload(
                 and FeatureFlags.is_access_request_automation_enabled()
             ):
                 if access_request_handler is None:
-                    logger.error(
-                        "Access request handler not available for modal submission"
-                    )
+                    logger.error("Access request handler not available for modal submission")
                     return True
                 logger.info("Processing access request rejection modal submission")
-                response = await access_request_handler.handle_rejection_submission(
-                    payload
-                )
+                response = await access_request_handler.handle_rejection_submission(payload)
                 # The handler returns a response_type: "clear" for successful handling
                 return True
 
             # Handle flag review modal submission
             if callback_id == "flag_review_modal":
                 if flag_review_handler is None:
-                    logger.error(
-                        "Flag review handler not available for modal submission"
-                    )
+                    logger.error("Flag review handler not available for modal submission")
                     return True
                 logger.info("Processing flag review modal submission")
                 success = await flag_review_handler.process_flag_action(payload=payload)
@@ -354,12 +324,8 @@ async def process_interactive_payload(
             if callback_id == "edit_channel_metadata":
                 # Extract modal values
                 values = payload["view"]["state"]["values"]
-                customer_name = values["customer_name_block"]["customer_name_input"][
-                    "value"
-                ]
-                jira_ticket_input = values["jira_ticket_block"]["jira_ticket_input"][
-                    "value"
-                ]
+                customer_name = values["customer_name_block"]["customer_name_input"]["value"]
+                jira_ticket_input = values["jira_ticket_block"]["jira_ticket_input"]["value"]
                 user_id = payload.get("user", {}).get("id")
 
                 # Validate customer_name
@@ -367,9 +333,7 @@ async def process_interactive_payload(
                 if not customer_name or not customer_name.strip():
                     errors["customer_name_block"] = "Customer name is required."
                 elif len(customer_name) > 100:
-                    errors["customer_name_block"] = (
-                        "Customer name must be 100 characters or less."
-                    )
+                    errors["customer_name_block"] = "Customer name must be 100 characters or less."
                 if errors:
                     return {"response_action": "errors", "errors": errors}
 
@@ -377,9 +341,7 @@ async def process_interactive_payload(
                 ticket_match = re.search(
                     r"([A-Z][A-Z0-9]+-\d+)", jira_ticket_input or "", re.IGNORECASE
                 )
-                jira_ticket = (
-                    ticket_match.group(1).upper() if ticket_match else jira_ticket_input
-                )
+                jira_ticket = ticket_match.group(1).upper() if ticket_match else jira_ticket_input
 
                 # Extract target_channel_id from private_metadata (REQUIRED)
                 # This prevents data corruption by ensuring the correct channel is updated
@@ -398,35 +360,29 @@ async def process_interactive_payload(
                             )
                             return False
                     except json.JSONDecodeError as e:
-                        logger.error(
-                            "Failed to parse private_metadata JSON: %s", str(e)
-                        )
+                        logger.error("Failed to parse private_metadata JSON: %s", str(e))
                         return False
                 else:
-                    logger.error(
-                        "private_metadata is missing or empty for edit_channel_metadata"
-                    )
+                    logger.error("private_metadata is missing or empty for edit_channel_metadata")
                     return False
 
                 # Update DB (snake_case args)
                 try:
-                    customer_name = (
-                        customer_name.upper() if customer_name else customer_name
-                    )
-                    db_success = await channel_metadata_edit_handler.dynamodb_store.update_channel_metadata(
-                        channel_id=channel_id,
-                        customer_name=customer_name,
-                        jira_ticket=jira_ticket,
-                        user_id=user_id,
+                    customer_name = customer_name.upper() if customer_name else customer_name
+                    db_success = (
+                        await channel_metadata_edit_handler.dynamodb_store.update_channel_metadata(
+                            channel_id=channel_id,
+                            customer_name=customer_name,
+                            jira_ticket=jira_ticket,
+                            user_id=user_id,
+                        )
                     )
                 except Exception as e:
                     logger.error("Exception during DB update: %s", str(e))
                     db_success = False
 
                 if not db_success:
-                    logger.error(
-                        "Failed to update channel metadata in DB for %s", channel_id
-                    )
+                    logger.error("Failed to update channel metadata in DB for %s", channel_id)
                     return False
 
                 # Only show success modal confirmation

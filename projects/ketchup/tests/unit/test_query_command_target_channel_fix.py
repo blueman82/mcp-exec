@@ -115,9 +115,7 @@ class TestQueryCommandTargetChannelFix:
 
         assert params.context == CommandContext.PUBLIC_CHANNEL
         assert params.channel_id == incoming_channel
-        assert (
-            params.target_channel_id == incoming_channel
-        )  # Same as channel_id in public
+        assert params.target_channel_id == incoming_channel  # Same as channel_id in public
         assert params.query_text == "what is happening in this channel?"
 
     def test_extract_query_params_public_channel_rejects_channel_param(self):
@@ -211,9 +209,7 @@ class TestQueryCommandTargetChannelFix:
         call_args = mock_query_handler.process_query_request.call_args
 
         # Check that target_channel_id is passed correctly
-        assert (
-            call_args.kwargs["channel_id"] == "C123456"
-        )  # Should use target_channel_id
+        assert call_args.kwargs["channel_id"] == "C123456"  # Should use target_channel_id
         assert call_args.kwargs["dm_channel_id"] == "D67890"
         assert call_args.kwargs["params"].target_channel_id == "C123456"
         assert result == {"text": "Query response"}
@@ -269,9 +265,7 @@ class TestQueryCommandTargetChannelFix:
             mock_resolve.return_value = "C123456"
 
             # Mock channel validation
-            with patch.object(
-                handler, "validate_and_get_channel_info"
-            ) as mock_validate:
+            with patch.object(handler, "validate_and_get_channel_info") as mock_validate:
                 mock_validate.return_value = {
                     "channel_id": "C123456",
                     "channel_name": "general",

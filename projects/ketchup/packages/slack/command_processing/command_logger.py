@@ -53,9 +53,7 @@ async def log_command_execution(
     except Exception as e:
         # Log the error but don't raise it - we don't want to disrupt command execution
         logger.error(f"Failed to log command execution: {str(e)}")
-        logger.info(
-            f"Command details: user={user_name}, type={command_type}", exc_info=True
-        )
+        logger.info(f"Command details: user={user_name}, type={command_type}", exc_info=True)
 
 
 async def extract_command_details(params: Any) -> Dict[str, str]:

@@ -54,9 +54,7 @@ async def test_openai_handler_enriches_with_jira_context():
     test_messages = [{"role": "user", "content": "What is the status of CAMP-12345?"}]
 
     # Enrich messages
-    enriched_messages = await handler._enrich_with_jira_context(
-        test_messages, "C123456"
-    )
+    enriched_messages = await handler._enrich_with_jira_context(test_messages, "C123456")
 
     # Verify JIRA context was called
     mock_jira_extractor.get_jira_context.assert_called_once_with(
@@ -101,9 +99,7 @@ async def test_openai_handler_works_without_jira():
     test_messages = [{"role": "user", "content": "What is the status of CAMP-12345?"}]
 
     # Try to enrich messages
-    enriched_messages = await handler._enrich_with_jira_context(
-        test_messages, "C123456"
-    )
+    enriched_messages = await handler._enrich_with_jira_context(test_messages, "C123456")
 
     # Should return original messages unchanged
     assert enriched_messages == test_messages

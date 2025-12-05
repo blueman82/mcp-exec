@@ -18,10 +18,10 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from tests.setup.test_templates import (
+    DYNAMIC_SMOKE_CHECK_TEMPLATE,
+    PARAMETERIZED_TEST_TEMPLATE,
     SERVICE_RESOLUTION_TEMPLATE,
     SMOKE_CHECK_TEMPLATE,
-    PARAMETERIZED_TEST_TEMPLATE,
-    DYNAMIC_SMOKE_CHECK_TEMPLATE
 )
 
 
@@ -39,26 +39,20 @@ class TestTemplateGenerator:
     ) -> str:
         """Generate test template for service resolution validation."""
         return SERVICE_RESOLUTION_TEMPLATE.format(
-            service_name=service_name,
-            service_type=service_type,
-            dependencies=dependencies
+            service_name=service_name, service_type=service_type, dependencies=dependencies
         )
 
-    def generate_smoke_check_template(
-        self, service_list: List[Dict[str, str]]
-    ) -> str:
+    def generate_smoke_check_template(self, service_list: List[Dict[str, str]]) -> str:
         """Generate smoke check template for service list."""
         service_names = [svc["name"] for svc in service_list]
         return SMOKE_CHECK_TEMPLATE.format(
-            service_list=service_list,
-            service_names=service_names,
-            service_count=len(service_list)
+            service_list=service_list, service_names=service_names, service_count=len(service_list)
         )
 
     def create_test_file(self, filename: str, content: str) -> Path:
         """Create test file with generated content."""
         test_file = self.templates_dir / filename
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write(content)
         return test_file
 
@@ -70,9 +64,7 @@ class ParameterizedTestGenerator:
         """Initialize with project root."""
         self.project_root = Path(project_root)
 
-    def generate_parameterized_resolution_tests(
-        self, services: List[Dict[str, str]]
-    ) -> str:
+    def generate_parameterized_resolution_tests(self, services: List[Dict[str, str]]) -> str:
         """Generate parameterized tests for multiple services."""
         service_params = []
         for svc in services:
@@ -82,8 +74,7 @@ class ParameterizedTestGenerator:
 
         param_string = ",\n        ".join(service_params)
         return PARAMETERIZED_TEST_TEMPLATE.format(
-            param_string=param_string,
-            service_count=len(services)
+            param_string=param_string, service_count=len(services)
         )
 
 
@@ -94,16 +85,14 @@ class AutomatedSmokeCheckGenerator:
         """Initialize with project root."""
         self.project_root = Path(project_root)
 
-    def generate_from_service_list(
-        self, service_list_file: str
-    ) -> Tuple[str, List[Dict]]:
+    def generate_from_service_list(self, service_list_file: str) -> Tuple[str, List[Dict]]:
         """Generate smoke check from service list file."""
         service_list_path = self.project_root / service_list_file
 
         if not service_list_path.exists():
             raise FileNotFoundError(f"Service list file not found: {service_list_file}")
 
-        with open(service_list_path, 'r') as f:
+        with open(service_list_path, "r") as f:
             services = json.load(f)
 
         if isinstance(services, dict) and "services" in services:
@@ -118,9 +107,7 @@ class AutomatedSmokeCheckGenerator:
         service_names = [svc.get("name", "Unknown") for svc in services]
 
         return DYNAMIC_SMOKE_CHECK_TEMPLATE.format(
-            service_count=service_count,
-            services=services,
-            service_names=service_names
+            service_count=service_count, services=services, service_names=service_names
         )
 
 
@@ -137,7 +124,7 @@ class TestDiscoveryEngine:
         if not self.mapping_file.exists():
             return []
 
-        with open(self.mapping_file, 'r') as f:
+        with open(self.mapping_file, "r") as f:
             mapping = json.load(f)
 
         unmapped = []
@@ -158,9 +145,7 @@ class TestDiscoveryEngine:
 
         for service_key in unmapped:
             test_content = template_gen.generate_service_resolution_test(
-                service_name=service_key,
-                service_type=f"{service_key}Protocol",
-                dependencies=[]
+                service_name=service_key, service_type=f"{service_key}Protocol", dependencies=[]
             )
 
             test_file = f"test_{service_key.lower()}_resolution.py"
@@ -181,6 +166,7 @@ class TestCoverageValidator:
         """Validate test coverage for all registered services."""
         try:
             from packages.core.typed_di.service_registrations import get_all_registrations
+
             registrations = get_all_registrations()
         except ImportError:
             return {}
@@ -191,7 +177,7 @@ class TestCoverageValidator:
         for reg in registrations:
             service_type = reg.get("service_type")
             if service_type:
-                service_name = getattr(service_type, '__name__', str(service_type))
+                service_name = getattr(service_type, "__name__", str(service_type))
                 test_file = f"test_{service_name.lower()}_resolution.py"
                 test_path = test_dir / test_file
                 coverage_report[service_name] = test_path.exists()

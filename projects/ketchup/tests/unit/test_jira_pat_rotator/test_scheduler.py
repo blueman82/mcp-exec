@@ -10,11 +10,9 @@ Verifies:
 """
 
 import asyncio
-import os
 import signal
-import time
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -63,7 +61,7 @@ class TestSchedulerStartup:
 
         scheduler.run_rotation_check = rotation_check
 
-        with patch.object(scheduler, 'start', mock_start):
+        with patch.object(scheduler, "start", mock_start):
             await scheduler.start()
 
         rotation_check.assert_called_once()
@@ -80,7 +78,7 @@ class TestSchedulerStartup:
 
         scheduler.run_rotation_check = rotation_check
 
-        with patch.object(scheduler, 'start', mock_start):
+        with patch.object(scheduler, "start", mock_start):
             await scheduler.start()
 
         # Health file should exist with proper format
@@ -111,7 +109,8 @@ class TestSchedulerTiming:
         scheduler.run_rotation_check = counting_run
 
         # Simulate 2 full 24-hour cycles (would take too long, so we mock the wait)
-        with patch('asyncio.sleep', new_callable=AsyncMock):
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+
             async def mock_start():
                 # First run at startup
                 await scheduler.run_rotation_check()
@@ -119,7 +118,7 @@ class TestSchedulerTiming:
                 # Simulate 24 hour wait
                 scheduler.running = False
 
-            with patch.object(scheduler, 'start', mock_start):
+            with patch.object(scheduler, "start", mock_start):
                 await scheduler.start()
 
         # Should be called at least once
@@ -137,7 +136,7 @@ class TestSchedulerTiming:
 
         scheduler.run_rotation_check = AsyncMock()
 
-        with patch('asyncio.sleep', side_effect=mock_sleep):
+        with patch("asyncio.sleep", side_effect=mock_sleep):
             await scheduler.start()
 
         # Should have multiple sleep calls of 60 seconds (1 minute)
@@ -185,7 +184,7 @@ class TestSchedulerGracefulShutdown:
             scheduler.running = False
             scheduler._update_health_status("stopped")
 
-        with patch.object(scheduler, 'start', mock_start):
+        with patch.object(scheduler, "start", mock_start):
             await scheduler.start()
 
         # Check health file contains 'stopped'
@@ -220,10 +219,11 @@ class TestHealthFileOperations:
 
     def test_health_file_write_error_handling(self, scheduler, monkeypatch):
         """Test that health file write errors are handled gracefully."""
+
         def mock_write_text(self, content):
             raise IOError("Permission denied")
 
-        with patch.object(Path, 'write_text', mock_write_text):
+        with patch.object(Path, "write_text", mock_write_text):
             # Should not raise exception
             scheduler._update_health_status("running")
 
@@ -256,6 +256,7 @@ class TestRotationCheckExecution:
     @pytest.mark.asyncio
     async def test_rotation_check_exception_sets_error_status(self, scheduler, temp_health_file):
         """Test that exceptions during rotation check set error status."""
+
         async def failing_rotation_check():
             raise RuntimeError("Rotation check failed")
 
@@ -280,13 +281,15 @@ class TestSchedulerIntegration:
             scheduler.running = False
             scheduler._update_health_status("stopped")
 
-        with patch.object(scheduler, 'start', mock_start):
+        with patch.object(scheduler, "start", mock_start):
             await scheduler.start()
 
         assert scheduler.running is False
 
     @pytest.mark.asyncio
-    async def test_scheduler_updates_last_run_after_rotation_check(self, scheduler, temp_last_run_file):
+    async def test_scheduler_updates_last_run_after_rotation_check(
+        self, scheduler, temp_last_run_file
+    ):
         """Test that last run timestamp is updated after rotation check."""
         scheduler.run_rotation_check = AsyncMock()
 
@@ -295,7 +298,7 @@ class TestSchedulerIntegration:
             scheduler._update_last_run()
             scheduler.running = False
 
-        with patch.object(scheduler, 'start', mock_start):
+        with patch.object(scheduler, "start", mock_start):
             await scheduler.start()
 
         # Last run file should exist with timestamp

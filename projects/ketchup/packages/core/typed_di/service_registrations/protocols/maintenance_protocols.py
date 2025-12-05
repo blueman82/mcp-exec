@@ -7,7 +7,6 @@ SOAP client, maintenance checker, and JIRA prompt handling.
 
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
-
 __all__ = [
     "RavenMaintenanceClientProtocol",
     "MaintenanceCheckerProtocol",
@@ -68,9 +67,7 @@ class MaintenanceCheckerProtocol(Protocol):
 class JiraPromptHandlerProtocol(Protocol):
     """Protocol for JIRA ticket prompting workflow."""
 
-    async def start_jira_prompt_workflow(
-        self, channel_id: str, inviter_id: str
-    ) -> None:
+    async def start_jira_prompt_workflow(self, channel_id: str, inviter_id: str) -> None:
         """
         Start JIRA prompt workflow with 3 retry attempts.
 

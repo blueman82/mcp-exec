@@ -73,9 +73,7 @@ class ChannelInfoOps(SlackAsyncClient):
             headers = self.headers  # Access as property
             params = {"channel": channel_id}
 
-            response = await self._make_api_request(
-                url, "GET", headers=headers, params=params
-            )
+            response = await self._make_api_request(url, "GET", headers=headers, params=params)
             # Response is now a SafeResponse dict, parse the body
             response_data = orjson.loads(response["body"])
 
@@ -119,9 +117,7 @@ class ChannelInfoOps(SlackAsyncClient):
                 response_url=response_url,
             )
         except Exception as post_error:
-            logger.error(
-                "Failed to send 'not a member' message to user: %s", post_error
-            )
+            logger.error("Failed to send 'not a member' message to user: %s", post_error)
         # Return details indicating bot is not member, regardless of posting success
         return channel_name, False, is_archived, is_private
 
@@ -134,17 +130,19 @@ class ChannelInfoOps(SlackAsyncClient):
         api_error: Optional[str],
     ):
         """Handles API errors during channel lookup and notifies the user."""
-        error_message_to_user = f"Error accessing channel `{channel_id}`. Please check the ID or my permissions."
+        error_message_to_user = (
+            f"Error accessing channel `{channel_id}`. Please check the ID or my permissions."
+        )
         if api_error == "channel_not_found":
             error_message_to_user = f"Error: Could not find channel `{channel_id}`. Please verify the channel ID is correct."
             logger.error("Channel %s not found.", channel_id)
         elif api_error == "not_in_channel":
-            error_message_to_user = f"I am not currently a member of channel `{channel_id}`. Please invite me."
+            error_message_to_user = (
+                f"I am not currently a member of channel `{channel_id}`. Please invite me."
+            )
             logger.warning("Bot is not in channel %s (API error).", channel_id)
         else:
-            logger.error(
-                "Slack API error when looking up channel %s: %s", channel_id, api_error
-            )
+            logger.error("Slack API error when looking up channel %s: %s", channel_id, api_error)
 
         # Attempt to post the error message
         try:
@@ -155,9 +153,7 @@ class ChannelInfoOps(SlackAsyncClient):
                 response_url=response_url,
             )
         except Exception as post_error:
-            logger.error(
-                "Failed to send API error '%s' to user: %s", api_error, post_error
-            )
+            logger.error("Failed to send API error '%s' to user: %s", api_error, post_error)
         return None
 
     async def _fetch_channel_details_core(
@@ -174,9 +170,7 @@ class ChannelInfoOps(SlackAsyncClient):
             headers = self.headers  # Access as property
             params = {"channel": channel_id}
 
-            response = await self._make_api_request(
-                url, "GET", headers=headers, params=params
-            )
+            response = await self._make_api_request(url, "GET", headers=headers, params=params)
             # Response is now a SafeResponse dict, parse the body
             response_data = orjson.loads(response["body"])
 
@@ -221,9 +215,7 @@ class ChannelInfoOps(SlackAsyncClient):
                 )
 
         except Exception as e:
-            logger.error(
-                "Error retrieving channel info for %s: %s", channel_id, e, exc_info=True
-            )
+            logger.error("Error retrieving channel info for %s: %s", channel_id, e, exc_info=True)
             # Attempt to post a generic error message
             try:
                 await self.posting_handler.post_message(
@@ -233,9 +225,7 @@ class ChannelInfoOps(SlackAsyncClient):
                     response_url=response_url,
                 )
             except Exception as post_error:
-                logger.error(
-                    "Failed to send general error message to user: %s", post_error
-                )
+                logger.error("Failed to send general error message to user: %s", post_error)
             return None
 
     @with_exponential_backoff()

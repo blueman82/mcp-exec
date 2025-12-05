@@ -154,13 +154,11 @@ class TestUserJoinNotificationService:
         notification_service.posting_handler._post_ephemeral.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_join_notification_data_collection_failure(
-        self, notification_service
-    ):
+    async def test_send_join_notification_data_collection_failure(self, notification_service):
         """Test handling of data collection failure."""
         # Make channel info lookup fail
-        notification_service.channel_info_ops.get_channel_info_from_api.side_effect = (
-            Exception("API error")
+        notification_service.channel_info_ops.get_channel_info_from_api.side_effect = Exception(
+            "API error"
         )
 
         result = await notification_service.send_join_notification(
@@ -171,14 +169,10 @@ class TestUserJoinNotificationService:
         notification_service.posting_handler._post_ephemeral.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_send_join_notification_ai_generation_failure(
-        self, notification_service
-    ):
+    async def test_send_join_notification_ai_generation_failure(self, notification_service):
         """Test handling of AI content generation failure."""
         # Make OpenAI call return invalid format
-        notification_service.openai_handler._api_executor.execute_request.return_value = (
-            {}
-        )
+        notification_service.openai_handler._api_executor.execute_request.return_value = {}
 
         result = await notification_service.send_join_notification(
             user_id="U12345", channel_id="C12345"
@@ -188,9 +182,7 @@ class TestUserJoinNotificationService:
         notification_service.posting_handler._post_ephemeral.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_send_join_notification_ephemeral_posting_failure(
-        self, notification_service
-    ):
+    async def test_send_join_notification_ephemeral_posting_failure(self, notification_service):
         """Test handling of ephemeral posting failure."""
         # Make ephemeral posting fail
         notification_service.posting_handler._post_ephemeral.return_value = {
@@ -261,18 +253,14 @@ class TestUserJoinNotificationService:
             "channel_name": "test-channel",
         }
 
-        content = await notification_service._generate_notification_content(
-            channel_data
-        )
+        content = await notification_service._generate_notification_content(channel_data)
 
         assert content is not None
         assert "Overview: Test channel is active" in content
         assert "What's been done / What's next:" in content
 
     @pytest.mark.asyncio
-    async def test_generate_notification_content_invalid_response(
-        self, notification_service
-    ):
+    async def test_generate_notification_content_invalid_response(self, notification_service):
         """Test AI content generation with invalid OpenAI response."""
         # Mock invalid response format
         notification_service.openai_handler._api_executor.execute_request.return_value = {
@@ -291,9 +279,7 @@ class TestUserJoinNotificationService:
             "channel_name": "test",
         }
 
-        content = await notification_service._generate_notification_content(
-            channel_data
-        )
+        content = await notification_service._generate_notification_content(channel_data)
 
         assert content is None
 
@@ -312,9 +298,7 @@ class TestUserJoinNotificationService:
             "packages.slack.services.user_join_notification_service.datetime"
         ) as mock_datetime:
             # Mock specific datetime for consistent testing
-            mock_datetime.now.return_value = datetime(
-                2025, 1, 28, 15, 30, 0, tzinfo=timezone.utc
-            )
+            mock_datetime.now.return_value = datetime(2025, 1, 28, 15, 30, 0, tzinfo=timezone.utc)
             mock_datetime.strftime = datetime.strftime
 
             message = notification_service._format_final_notification(
@@ -326,24 +310,18 @@ class TestUserJoinNotificationService:
         # Verify exact format per plan specification
         assert message.startswith("👋 Hi *John!* Welcome to <#C12345|test-channel>!")
         assert (
-            "Here's what's happening in this channel (Generated: 28-Jan-2025, 15:30 UTC)"
-            in message
+            "Here's what's happening in this channel (Generated: 28-Jan-2025, 15:30 UTC)" in message
         )
         assert "Overview: Test overview" in message
         assert "• Bullet 1" in message
         assert (
-            "JIRA Ticket: <https://jira.corp.adobe.com/browse/CPGNCX-12345|CPGNCX-12345>"
-            in message
+            "JIRA Ticket: <https://jira.corp.adobe.com/browse/CPGNCX-12345|CPGNCX-12345>" in message
         )
-        assert (
-            "Want more details? Try `/ketchup status` or `/ketchup report`" in message
-        )
+        assert "Want more details? Try `/ketchup status` or `/ketchup report`" in message
 
     def test_format_final_notification_without_jira(self, notification_service):
         """Test final notification formatting without JIRA ticket."""
-        ai_content = (
-            "Overview: Test overview\n\nWhat's been done / What's next:\n• Bullet 1"
-        )
+        ai_content = "Overview: Test overview\n\nWhat's been done / What's next:\n• Bullet 1"
         channel_data = {
             "channel_id": "C12345",
             "channel_name": "test-channel",
@@ -359,9 +337,7 @@ class TestUserJoinNotificationService:
         assert "JIRA Ticket:" not in message
         assert "👋 Hi *there!* Welcome to <#C12345|test-channel>!" in message
 
-    def test_format_final_notification_first_name_extraction(
-        self, notification_service
-    ):
+    def test_format_final_notification_first_name_extraction(self, notification_service):
         """Test first name extraction from user profile."""
         ai_content = "Test content"
         channel_data = {
@@ -440,9 +416,7 @@ class TestUserJoinNotificationService:
         assert channel_data["messages"] == ["(No messages found in channel)"]
 
     @pytest.mark.asyncio
-    async def test_collect_channel_data_jira_enrichment_failure(
-        self, notification_service
-    ):
+    async def test_collect_channel_data_jira_enrichment_failure(self, notification_service):
         """Test data collection when JIRA enrichment fails."""
         # Make JIRA enrichment fail
         notification_service.jira_extractor.get_jira_context.side_effect = Exception(
@@ -483,10 +457,7 @@ class TestUserJoinNotificationService:
             "JIRA Ticket: <https://jira.corp.adobe.com/browse/CPGNCX-12345|CPGNCX-12345>"
             in final_message
         )
-        assert (
-            "Want more details? Try `/ketchup status` or `/ketchup report`"
-            in final_message
-        )
+        assert "Want more details? Try `/ketchup status` or `/ketchup report`" in final_message
 
     @pytest.mark.asyncio
     async def test_notification_disabled_by_user_preference(self, notification_service):
@@ -555,9 +526,7 @@ class TestUserJoinNotificationService:
             user_store=None,  # No user store
         )
 
-        result = await service.send_join_notification(
-            user_id="U12345", channel_id="C12345"
-        )
+        result = await service.send_join_notification(user_id="U12345", channel_id="C12345")
 
         # Should send notification when user_store is not available
         assert result is True

@@ -53,9 +53,7 @@ class FeedbackOperations(BaseOperations):
         for key, value in item.items():
             if isinstance(value, str):
                 dynamodb_item[key] = {"S": value}
-            elif isinstance(value, int):
-                dynamodb_item[key] = {"N": str(value)}
-            elif isinstance(value, float):
+            elif isinstance(value, int) or isinstance(value, float):
                 dynamodb_item[key] = {"N": str(value)}
             elif isinstance(value, bool):
                 dynamodb_item[key] = cast(Any, {"BOOL": value})  # type: ignore[dict-item]
@@ -79,9 +77,7 @@ class FeedbackOperations(BaseOperations):
                         )
                         formatted_list.append({"S": str(item_in_list)})
                     elif isinstance(item_in_list, dict):
-                        formatted_list.append(
-                            {"M": self._format_for_dynamodb(item_in_list)}
-                        )
+                        formatted_list.append({"M": self._format_for_dynamodb(item_in_list)})
                     else:
                         formatted_list.append({"S": str(item_in_list)})
                 dynamodb_item[key] = cast(Any, {"L": formatted_list})
@@ -133,11 +129,7 @@ class FeedbackOperations(BaseOperations):
 
                 for item in batch:
                     delete_requests.append(
-                        {
-                            "DeleteRequest": {
-                                "Key": {"PK": item.get("PK"), "SK": item.get("SK")}
-                            }
-                        }
+                        {"DeleteRequest": {"Key": {"PK": item.get("PK"), "SK": item.get("SK")}}}
                     )
 
                 if delete_requests:
@@ -148,23 +140,15 @@ class FeedbackOperations(BaseOperations):
                     )
 
                     # Handle any unprocessed items
-                    unprocessed = response.get("UnprocessedItems", {}).get(
-                        self.table_name, []
-                    )
+                    unprocessed = response.get("UnprocessedItems", {}).get(self.table_name, [])
                     if unprocessed:
-                        logger.warning(
-                            f"Failed to delete {len(unprocessed)} feedback flag records"
-                        )
+                        logger.warning(f"Failed to delete {len(unprocessed)} feedback flag records")
 
-            logger.info(
-                f"Deleted {len(items)} feedback flag records for channel {channel_id}"
-            )
+            logger.info(f"Deleted {len(items)} feedback flag records for channel {channel_id}")
             return True
 
         except Exception as e:
-            logger.error(
-                f"Error cleaning up feedback data for channel {channel_id}: {e}"
-            )
+            logger.error(f"Error cleaning up feedback data for channel {channel_id}: {e}")
             return False
 
     async def cleanup(self) -> None:

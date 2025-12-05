@@ -60,10 +60,7 @@ class TestCounterRebuild:
         # Verify query was called with correct parameters
         mock_client.query.assert_called_once()
         call_args = mock_client.query.call_args[1]
-        assert (
-            call_args["expression_attribute_values"][":pk"]["S"]
-            == "USER_JOIN#C1234567890"
-        )
+        assert call_args["expression_attribute_values"][":pk"]["S"] == "USER_JOIN#C1234567890"
         assert call_args["expression_attribute_values"][":sk_prefix"]["S"] == "TS#"
 
         # Verify update was called with SET expression (overwrites counters)

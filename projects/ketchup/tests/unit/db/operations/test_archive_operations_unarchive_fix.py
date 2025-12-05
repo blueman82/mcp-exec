@@ -36,9 +36,7 @@ class TestArchiveOperationsUnarchiveFix:
         channel_id = "C12345"
 
         # Act
-        await archive_ops.update_channel_archived_status(
-            channel_id=channel_id, archived=False
-        )
+        await archive_ops.update_channel_archived_status(channel_id=channel_id, archived=False)
 
         # Assert
         mock_client.update_item.assert_awaited_once()
@@ -50,9 +48,7 @@ class TestArchiveOperationsUnarchiveFix:
             "SK": {"S": "CSO_DETAILS"},
         }
         assert call_kwargs["update_expression"] == "SET archived = :archived"
-        assert call_kwargs["expression_attribute_values"] == {
-            ":archived": {"BOOL": False}
-        }
+        assert call_kwargs["expression_attribute_values"] == {":archived": {"BOOL": False}}
         assert call_kwargs["table_name"] == "test-table"
 
     async def test_archive_with_timestamp_still_works(self, archive_ops, mock_client):
@@ -86,18 +82,14 @@ class TestArchiveOperationsUnarchiveFix:
         channel_id = "C34567"
 
         # Act
-        await archive_ops.update_channel_archived_status(
-            channel_id=channel_id, archived=True
-        )
+        await archive_ops.update_channel_archived_status(channel_id=channel_id, archived=True)
 
         # Assert
         mock_client.update_item.assert_awaited_once()
         call_kwargs = mock_client.update_item.call_args.kwargs
 
         assert call_kwargs["update_expression"] == "SET archived = :archived"
-        assert call_kwargs["expression_attribute_values"] == {
-            ":archived": {"BOOL": True}
-        }
+        assert call_kwargs["expression_attribute_values"] == {":archived": {"BOOL": True}}
 
     async def test_archive_preserves_existing_timestamp(self, archive_ops, mock_client):
         """Test that archiving preserves existing archived_at timestamp."""
@@ -106,9 +98,7 @@ class TestArchiveOperationsUnarchiveFix:
         new_archived_at = 1234567890
         existing_archived_at = "1111111111"
 
-        mock_client.get_item.return_value = {
-            "Item": {"archived_at": {"N": existing_archived_at}}
-        }
+        mock_client.get_item.return_value = {"Item": {"archived_at": {"N": existing_archived_at}}}
 
         # Act
         await archive_ops.update_channel_archived_status(
@@ -120,8 +110,7 @@ class TestArchiveOperationsUnarchiveFix:
         call_kwargs = mock_client.update_item.call_args.kwargs
 
         assert (
-            call_kwargs["expression_attribute_values"][":archived_at"]["N"]
-            == existing_archived_at
+            call_kwargs["expression_attribute_values"][":archived_at"]["N"] == existing_archived_at
         )
 
     async def test_unarchive_with_archived_at_ignored(self, archive_ops, mock_client):
@@ -142,9 +131,7 @@ class TestArchiveOperationsUnarchiveFix:
 
         # Should only update archived field, not archived_at
         assert call_kwargs["update_expression"] == "SET archived = :archived"
-        assert call_kwargs["expression_attribute_values"] == {
-            ":archived": {"BOOL": False}
-        }
+        assert call_kwargs["expression_attribute_values"] == {":archived": {"BOOL": False}}
         assert ":archived_at" not in call_kwargs["expression_attribute_values"]
 
     async def test_unarchive_error_handling(self, archive_ops, mock_client):
@@ -154,9 +141,7 @@ class TestArchiveOperationsUnarchiveFix:
         mock_client.update_item.side_effect = Exception("DynamoDB error")
 
         # Act - should not raise exception
-        await archive_ops.update_channel_archived_status(
-            channel_id=channel_id, archived=False
-        )
+        await archive_ops.update_channel_archived_status(channel_id=channel_id, archived=False)
 
         # Assert
         mock_client.update_item.assert_awaited_once()

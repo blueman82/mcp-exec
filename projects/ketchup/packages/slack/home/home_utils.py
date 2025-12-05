@@ -211,16 +211,12 @@ def build_home_tab_blocks(
                             "text": {
                                 "type": "plain_text",
                                 "text": product_map.get(
-                                    user_prefs.get("product_focus", ["all_products"])[
-                                        0
-                                    ],
+                                    user_prefs.get("product_focus", ["all_products"])[0],
                                     product_map["all_products"],
                                 ),
                                 "emoji": True,
                             },
-                            "value": user_prefs.get("product_focus", ["all_products"])[
-                                0
-                            ],
+                            "value": user_prefs.get("product_focus", ["all_products"])[0],
                         },
                     ),
                 }
@@ -428,17 +424,13 @@ def build_home_tab_blocks(
                             "type": "plain_text",
                             "text": (
                                 "Enabled - Show me a summary when I join channels"
-                                if user_prefs.get(
-                                    "join_notifications_enabled", "enabled"
-                                )
+                                if user_prefs.get("join_notifications_enabled", "enabled")
                                 == "enabled"
                                 else "Disabled - Don't show notifications"
                             ),
                             "emoji": True,
                         },
-                        "value": user_prefs.get(
-                            "join_notifications_enabled", "enabled"
-                        ),
+                        "value": user_prefs.get("join_notifications_enabled", "enabled"),
                     },
                 }
             ],
@@ -589,9 +581,7 @@ def extract_preferences_from_state(payload: Dict[str, Any]) -> Dict[str, Any]:
         Dict containing the user's preferences
     """
     state = (
-        payload.get("view", {}).get("state", {}).get("values", {})
-        if payload.get("view")
-        else {}
+        payload.get("view", {}).get("state", {}).get("values", {}) if payload.get("view") else {}
     )
     if not state:
         state = payload.get("state", {}).get("values", {})

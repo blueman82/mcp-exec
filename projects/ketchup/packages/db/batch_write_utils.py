@@ -56,9 +56,7 @@ async def batch_write_items_with_retries(
                     underlying_client = await get_underlying_client()
                 else:
                     underlying_client = await client._get_client()
-                response = await underlying_client.batch_write_item(
-                    RequestItems=request_items
-                )
+                response = await underlying_client.batch_write_item(RequestItems=request_items)
                 unprocessed = response.get("UnprocessedItems", {}).get(table_name, [])
                 current_success = len(batch) - len(unprocessed)
                 current_failure = len(unprocessed)
@@ -79,9 +77,7 @@ async def batch_write_items_with_retries(
                     await asyncio.sleep(throttle_success)
             except ClientError as e:
                 error_code = e.response.get("Error", {}).get("Code", "Unknown")
-                error_message = e.response.get("Error", {}).get(
-                    "Message", "Unknown error"
-                )
+                error_message = e.response.get("Error", {}).get("Message", "Unknown error")
                 logger.error(
                     "DynamoDB error in batch_write_items_with_retries: %s - %s",
                     error_code,

@@ -32,9 +32,7 @@ class TestFeatureServiceStatusUpdater:
         """Test enabling a feature for a channel."""
         mock_user_store.set_channel_feature = AsyncMock(return_value=True)
 
-        result = await feature_service.enable_feature_for_channel(
-            "C1234567890", "status_updater"
-        )
+        result = await feature_service.enable_feature_for_channel("C1234567890", "status_updater")
 
         assert result is True
         mock_user_store.set_channel_feature.assert_called_once_with(
@@ -46,9 +44,7 @@ class TestFeatureServiceStatusUpdater:
         """Test disabling a feature for a channel."""
         mock_user_store.set_channel_feature = AsyncMock(return_value=True)
 
-        result = await feature_service.disable_feature_for_channel(
-            "C1234567890", "status_updater"
-        )
+        result = await feature_service.disable_feature_for_channel("C1234567890", "status_updater")
 
         assert result is True
         mock_user_store.set_channel_feature.assert_called_once_with(
@@ -106,15 +102,11 @@ class TestFeatureServiceStatusUpdater:
 
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_global")
     @pytest.mark.asyncio
-    async def test_is_status_updater_enabled_for_channel_global(
-        self, mock_global, feature_service
-    ):
+    async def test_is_status_updater_enabled_for_channel_global(self, mock_global, feature_service):
         """Test status updater enabled when global flag is true."""
         mock_global.return_value = True
 
-        result = await feature_service.is_status_updater_enabled_for_channel(
-            "C1234567890"
-        )
+        result = await feature_service.is_status_updater_enabled_for_channel("C1234567890")
 
         assert result is True
 
@@ -127,9 +119,7 @@ class TestFeatureServiceStatusUpdater:
         mock_global.return_value = False
         mock_user_store.get_channel_feature = AsyncMock(return_value=True)
 
-        result = await feature_service.is_status_updater_enabled_for_channel(
-            "C1234567890"
-        )
+        result = await feature_service.is_status_updater_enabled_for_channel("C1234567890")
 
         assert result is True
         mock_user_store.get_channel_feature.assert_called_once_with(
@@ -138,12 +128,15 @@ class TestFeatureServiceStatusUpdater:
 
     def test_get_feature_status_status_updater(self, feature_service):
         """Test getting feature status for status_updater."""
-        with patch(
-            "packages.core.config.feature_flags.FeatureFlags.is_status_updater_enabled",
-            return_value=True,
-        ), patch(
-            "packages.core.config.feature_flags.FeatureFlags.is_status_updater_global",
-            return_value=False,
+        with (
+            patch(
+                "packages.core.config.feature_flags.FeatureFlags.is_status_updater_enabled",
+                return_value=True,
+            ),
+            patch(
+                "packages.core.config.feature_flags.FeatureFlags.is_status_updater_global",
+                return_value=False,
+            ),
         ):
 
             status = feature_service.get_feature_status("status_updater")

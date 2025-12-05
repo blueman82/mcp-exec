@@ -68,14 +68,18 @@ class TestJoinNotificationOpsPruning:
             "Items": [
                 {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#2023-W01"}},
                 {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#2023-W02"}},
-                {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#2024-W50"}},  # Recent, shouldn't be deleted
+                {
+                    "PK": {"S": "CHANNEL#C1234567890"},
+                    "SK": {"S": "WEEK#2024-W50"},
+                },  # Recent, shouldn't be deleted
             ]
         }
 
         with patch("packages.db.operations.join_notification_ops.datetime") as mock_datetime:
             # Mock current date as 2024-W51
             from collections import namedtuple
-            IsoCalendarDate = namedtuple('IsoCalendarDate', ['year', 'week', 'weekday'])
+
+            IsoCalendarDate = namedtuple("IsoCalendarDate", ["year", "week", "weekday"])
             mock_datetime.now.return_value.isocalendar.return_value = IsoCalendarDate(2024, 51, 1)
 
             await join_ops._prune_old_weeks("C1234567890")
@@ -108,7 +112,6 @@ class TestJoinNotificationOpsPruning:
         mock_client.delete_item.assert_not_called()
 
 
-
 class TestJoinNotificationOpsStats:
     """Test class for JoinNotificationOps statistics functionality."""
 
@@ -139,15 +142,15 @@ class TestJoinNotificationOpsStats:
                     "sent": {"N": "10"},
                     "success": {"N": "8"},
                     "failed": {"N": "1"},
-                    "disabled": {"N": "1"}
+                    "disabled": {"N": "1"},
                 },
                 {
                     "SK": {"S": "WEEK#2024-W44"},
                     "sent": {"N": "15"},
                     "success": {"N": "15"},
                     "failed": {"N": "0"},
-                    "disabled": {"N": "0"}
-                }
+                    "disabled": {"N": "0"},
+                },
             ]
         }
 
@@ -165,7 +168,7 @@ class TestJoinNotificationOpsStats:
                 },
                 # Mock normalize for weekly items
                 {"sent": 10, "success": 8, "failed": 1, "disabled": 1},
-                {"sent": 15, "success": 15, "failed": 0, "disabled": 0}
+                {"sent": 15, "success": 15, "failed": 0, "disabled": 0},
             ]
 
             result = await join_ops.get_channel_stats("C1234567890")
@@ -200,11 +203,7 @@ class TestJoinNotificationOpsStats:
         self, join_ops: JoinNotificationOps, mock_client: MagicMock
     ) -> None:
         """Test channel stats when no notification field exists."""
-        mock_client.get_item.return_value = {
-            "Item": {
-                "channel_id": {"S": "C1234567890"}
-            }
-        }
+        mock_client.get_item.return_value = {"Item": {"channel_id": {"S": "C1234567890"}}}
 
         result = await join_ops.get_channel_stats("C1234567890")
 
@@ -222,9 +221,7 @@ class TestJoinNotificationOpsStats:
         assert result == {}
 
     @pytest.mark.asyncio
-    async def test_get_weekly_report_basic(
-        self, join_ops: JoinNotificationOps
-    ) -> None:
+    async def test_get_weekly_report_basic(self, join_ops: JoinNotificationOps) -> None:
         """Test basic weekly report structure."""
         result = await join_ops.get_weekly_report("2024-W45")
 
@@ -236,7 +233,7 @@ class TestJoinNotificationOpsStats:
             "total_failed": 0,
             "total_disabled": 0,
             "success_rate": 0.0,
-            "channels": []
+            "channels": [],
         }
 
         assert result == expected_structure
@@ -262,7 +259,7 @@ class TestJoinNotificationOpsStats:
                 "total_failed": 0,
                 "total_disabled": 0,
                 "success_rate": 0.0,
-                "channels": []
+                "channels": [],
             }
             assert result == expected_structure
 
@@ -331,9 +328,7 @@ class TestJoinNotificationOpsUniqueUsers:
         }
 
         result = await join_ops.get_unique_users_count(
-            "C1234567890",
-            start_ts=1700000000,
-            end_ts=1700000200
+            "C1234567890", start_ts=1700000000, end_ts=1700000200
         )
 
         assert result == 2
@@ -382,10 +377,7 @@ class TestJoinNotificationOpsUniqueUsers:
             ]
         }
 
-        result = await join_ops.get_unique_users_for_week(
-            "C1234567890",
-            "2025-W01"
-        )
+        result = await join_ops.get_unique_users_for_week("C1234567890", "2025-W01")
 
         assert result == 2
 
@@ -394,10 +386,7 @@ class TestJoinNotificationOpsUniqueUsers:
         self, join_ops: JoinNotificationOps, mock_client: MagicMock
     ) -> None:
         """Test unique user count with invalid week format."""
-        result = await join_ops.get_unique_users_for_week(
-            "C1234567890",
-            "invalid-week"
-        )
+        result = await join_ops.get_unique_users_for_week("C1234567890", "invalid-week")
 
         assert result == 0
 
@@ -408,9 +397,6 @@ class TestJoinNotificationOpsUniqueUsers:
         """Test unique user count for week error handling."""
         mock_client.query.side_effect = Exception("DynamoDB Error")
 
-        result = await join_ops.get_unique_users_for_week(
-            "C1234567890",
-            "2025-W01"
-        )
+        result = await join_ops.get_unique_users_for_week("C1234567890", "2025-W01")
 
         assert result == 0

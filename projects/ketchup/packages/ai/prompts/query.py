@@ -64,7 +64,7 @@ END OF QUERY RESPONSE INSTRUCTIONS - DO NOT INCLUDE IN OUTPUT
 
     # Add JSON schema instruction when feature flag enabled
     if FeatureFlags.is_structured_json_output_enabled():
-        prompt += '\n\nIMPORTANT: Return your response as JSON with this exact structure:\n'
+        prompt += "\n\nIMPORTANT: Return your response as JSON with this exact structure:\n"
         prompt += '{"response_text": "your complete formatted response here using markdown"}\n'
 
     return prompt

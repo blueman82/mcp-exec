@@ -117,9 +117,7 @@ class TestArchiveAutoStatusCleanup:
         """Test that cleanup failure is logged but doesn't prevent archive."""
         # Arrange
         dynamodb_store = MagicMock()
-        dynamodb_store.get_channel_details_consistent = AsyncMock(
-            return_value={"archived": False}
-        )
+        dynamodb_store.get_channel_details_consistent = AsyncMock(return_value={"archived": False})
         dynamodb_store.update_channel_archived_status = AsyncMock()
         dynamodb_store.update_channel_fields = AsyncMock(
             side_effect=Exception("DynamoDB throttling error")
@@ -235,9 +233,7 @@ class TestArchiveAutoStatusCleanup:
         """Test successful cleanup of trust endorsement data during archive."""
         # Arrange
         dynamodb_store = MagicMock()
-        dynamodb_store.get_channel_details_consistent = AsyncMock(
-            return_value={"archived": False}
-        )
+        dynamodb_store.get_channel_details_consistent = AsyncMock(return_value={"archived": False})
         dynamodb_store.update_channel_archived_status = AsyncMock()
         dynamodb_store.update_channel_fields = AsyncMock()
 
@@ -257,9 +253,7 @@ class TestArchiveAutoStatusCleanup:
         """Test that trust cleanup failure is logged but doesn't prevent archive."""
         # Arrange
         dynamodb_store = MagicMock()
-        dynamodb_store.get_channel_details_consistent = AsyncMock(
-            return_value={"archived": False}
-        )
+        dynamodb_store.get_channel_details_consistent = AsyncMock(return_value={"archived": False})
         dynamodb_store.update_channel_archived_status = AsyncMock()
         dynamodb_store.update_channel_fields = AsyncMock()
 
@@ -287,9 +281,7 @@ class TestArchiveAutoStatusCleanup:
         """Test when trust cleanup returns False (no error but unsuccessful)."""
         # Arrange
         dynamodb_store = MagicMock()
-        dynamodb_store.get_channel_details_consistent = AsyncMock(
-            return_value={"archived": False}
-        )
+        dynamodb_store.get_channel_details_consistent = AsyncMock(return_value={"archived": False})
         dynamodb_store.update_channel_archived_status = AsyncMock()
         dynamodb_store.update_channel_fields = AsyncMock()
 
@@ -343,14 +335,10 @@ class TestArchiveAutoStatusCleanup:
         )
 
         # Assert - trust cleanup called
-        dynamodb_store.trust_ops.cleanup_channel_trust_data.assert_awaited_once_with(
-            "C12345"
-        )
+        dynamodb_store.trust_ops.cleanup_channel_trust_data.assert_awaited_once_with("C12345")
 
         # Assert - feedback cleanup called
-        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.assert_awaited_once_with(
-            "C12345"
-        )
+        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.assert_awaited_once_with("C12345")
 
     @patch("time.time", return_value=1234567890)
     async def test_archive_partial_cleanup(self, mock_time):
@@ -364,8 +352,8 @@ class TestArchiveAutoStatusCleanup:
 
         # Mock trust ops to succeed and feedback ops to fail
         dynamodb_store.trust_ops.cleanup_channel_trust_data.return_value = True
-        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.side_effect = (
-            Exception("Feedback cleanup failed")
+        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.side_effect = Exception(
+            "Feedback cleanup failed"
         )
 
         # Act - should not raise exception
@@ -380,14 +368,10 @@ class TestArchiveAutoStatusCleanup:
         dynamodb_store.update_channel_fields.assert_awaited_once()
 
         # Assert - trust cleanup was attempted and succeeded
-        dynamodb_store.trust_ops.cleanup_channel_trust_data.assert_awaited_once_with(
-            "C23456"
-        )
+        dynamodb_store.trust_ops.cleanup_channel_trust_data.assert_awaited_once_with("C23456")
 
         # Assert - feedback cleanup was attempted (but failed)
-        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.assert_awaited_once_with(
-            "C23456"
-        )
+        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.assert_awaited_once_with("C23456")
 
     @patch("time.time", return_value=1234567890)
     async def test_archive_cleanup_failures(self, mock_time):
@@ -400,14 +384,12 @@ class TestArchiveAutoStatusCleanup:
         }
 
         # Mock all cleanup operations to fail
-        dynamodb_store.update_channel_fields.side_effect = Exception(
-            "Auto-status cleanup failed"
-        )
+        dynamodb_store.update_channel_fields.side_effect = Exception("Auto-status cleanup failed")
         dynamodb_store.trust_ops.cleanup_channel_trust_data.side_effect = Exception(
             "Trust cleanup failed"
         )
-        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.side_effect = (
-            Exception("Feedback cleanup failed")
+        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.side_effect = Exception(
+            "Feedback cleanup failed"
         )
 
         # Act - should not raise exception
@@ -420,9 +402,5 @@ class TestArchiveAutoStatusCleanup:
 
         # Assert - all cleanup operations were attempted
         dynamodb_store.update_channel_fields.assert_awaited_once()
-        dynamodb_store.trust_ops.cleanup_channel_trust_data.assert_awaited_once_with(
-            "C34567"
-        )
-        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.assert_awaited_once_with(
-            "C34567"
-        )
+        dynamodb_store.trust_ops.cleanup_channel_trust_data.assert_awaited_once_with("C34567")
+        dynamodb_store.feedback_ops.cleanup_channel_feedback_data.assert_awaited_once_with("C34567")

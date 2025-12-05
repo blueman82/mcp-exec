@@ -9,12 +9,12 @@ from packages.core.utils import normalize_prompt_for_agent
 
 def test_identify_problematic_patterns():
     """Identify patterns in the normalized text that might cause issues."""
-    test_input = """Search for JIRA tickets using this JQL query and format the results according to the template below:  
-JQL: project in (CPGNREQ, CPGNTT, AMSE, CPGNCX, CSOPM) AND assignee in membersOf("ORG-VALLET-ALL") AND resolved >= startOfWeek() AND resolved <= now() ORDER BY created DESC  
+    test_input = """Search for JIRA tickets using this JQL query and format the results according to the template below:
+JQL: project in (CPGNREQ, CPGNTT, AMSE, CPGNCX, CSOPM) AND assignee in membersOf("ORG-VALLET-ALL") AND resolved >= startOfWeek() AND resolved <= now() ORDER BY created DESC
 
-Format the results as "MSE & MSPE EMEA – Weekly Highlights" following this exact structure:  
+Format the results as "MSE & MSPE EMEA – Weekly Highlights" following this exact structure:
 
-MSE & MSPE EMEA – Weekly Highlights  
+MSE & MSPE EMEA – Weekly Highlights
 Total issues resolved: [count] | CPGNREQ: [count] | CPGNTT: [count] | AMSE: [count] | CPGNCX: [count] | CSOPM: [count]"""
 
     normalized = normalize_prompt_for_agent(test_input)
@@ -43,9 +43,7 @@ Total issues resolved: [count] | CPGNREQ: [count] | CPGNTT: [count] | AMSE: [cou
                 # Show context around the phrase
                 context_start = max(0, pos - 20)
                 context_end = min(len(normalized), pos + len(phrase) + 20)
-                print(
-                    f"    Position {pos}: ...{normalized[context_start:context_end]}..."
-                )
+                print(f"    Position {pos}: ...{normalized[context_start:context_end]}...")
                 start = pos + 1
 
     # Check for action words at the beginning of "sentences" (after periods or colons)

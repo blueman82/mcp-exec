@@ -149,10 +149,7 @@ async def test_mcp_fetch_instance_urls_from_jira(
     assert "issues" in result
     issue = result["issues"][0]
     assert issue["key"] == "CPGNREQ-182819"
-    assert (
-        issue["fields"]["customfield_22302"]
-        == "https://samsungcis-mkt-prod3.campaign.adobe.com"
-    )
+    assert issue["fields"]["customfield_22302"] == "https://samsungcis-mkt-prod3.campaign.adobe.com"
 
 
 @pytest.mark.asyncio
@@ -160,9 +157,7 @@ async def test_instance_url_normalization_from_mcp(
     maintenance_checker, sample_jira_response_with_instance
 ):
     """Test instance URL normalization with MCP data."""
-    instance_url = sample_jira_response_with_instance["issues"][0]["fields"][
-        "customfield_22302"
-    ]
+    instance_url = sample_jira_response_with_instance["issues"][0]["fields"]["customfield_22302"]
     normalized = maintenance_checker.normalize_instance_name(instance_url)
 
     assert normalized == "samsungcis_mkt_prod3"

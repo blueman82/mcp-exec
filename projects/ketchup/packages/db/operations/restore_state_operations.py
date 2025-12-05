@@ -122,9 +122,7 @@ class RestoreStateOperations:
                 table_name=self._table_name, key=key, consistent_read=True
             )
             item_exists = "Item" in response
-            logger.info(
-                "Restore state check for channel %s: %s", channel_id, item_exists
-            )
+            logger.info("Restore state check for channel %s: %s", channel_id, item_exists)
             return item_exists
         except ClientError as e:
             logger.error(
@@ -158,18 +156,14 @@ class RestoreStateOperations:
             False otherwise.
         """
         key = self._get_key(channel_id)
-        logger.info(
-            "Checking for temporary unarchive attribute for channel %s", channel_id
-        )
+        logger.info("Checking for temporary unarchive attribute for channel %s", channel_id)
         try:
             response = await self._client.get_item(
                 table_name=self._table_name, key=key, consistent_read=True
             )
             item = response.get("Item")
             if item and "temp_unarchive_expiry" in item:
-                logger.info(
-                    "Temporary unarchive attribute found for channel %s.", channel_id
-                )
+                logger.info("Temporary unarchive attribute found for channel %s.", channel_id)
                 return True
             else:
                 logger.info(
@@ -211,9 +205,7 @@ class RestoreStateOperations:
             await self._client.delete_item(
                 table_name=self._table_name, key=key
             )  # delete_item doesn't error if item not found
-            logger.info(
-                "Successfully cleared restore state for channel %s.", channel_id
-            )
+            logger.info("Successfully cleared restore state for channel %s.", channel_id)
             return True
         except ClientError as e:
             logger.error(

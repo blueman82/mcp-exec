@@ -32,9 +32,7 @@ class TestInviteAndVerifyBotAfterUnarchive:
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
         channel_info_ops = MagicMock()
-        channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value={"is_member": True}
-        )
+        channel_info_ops.get_channel_info_from_api = AsyncMock(return_value={"is_member": True})
         result = await unarchive_processor.invite_and_verify_bot_after_unarchive(
             "C2", "chan", secrets_manager, channel_restore_ops, channel_info_ops
         )
@@ -45,9 +43,7 @@ class TestInviteAndVerifyBotAfterUnarchive:
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
         channel_info_ops = MagicMock()
-        channel_info_ops.get_channel_info_from_api = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        channel_info_ops.get_channel_info_from_api = AsyncMock(side_effect=Exception("fail"))
         result = await unarchive_processor.invite_and_verify_bot_after_unarchive(
             "C3", "chan", secrets_manager, channel_restore_ops, channel_info_ops
         )
@@ -58,9 +54,7 @@ class TestInviteAndVerifyBotAfterUnarchive:
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
-        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(
-            return_value={"ok": True}
-        )
+        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(return_value={"ok": True})
         channel_info_ops = MagicMock()
         # Simulate not a member for first 2 checks, then member
         channel_info_ops.get_channel_info_from_api = AsyncMock(
@@ -81,14 +75,10 @@ class TestInviteAndVerifyBotAfterUnarchive:
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
-        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(
-            return_value={"ok": True}
-        )
+        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(return_value={"ok": True})
         channel_info_ops = MagicMock()
         # Always not a member
-        channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value={"is_member": False}
-        )
+        channel_info_ops.get_channel_info_from_api = AsyncMock(return_value={"is_member": False})
         result = await unarchive_processor.invite_and_verify_bot_after_unarchive(
             "C5", "chan", secrets_manager, channel_restore_ops, channel_info_ops
         )
@@ -104,9 +94,7 @@ class TestInviteAndVerifyBotAfterUnarchive:
             return_value={"error": "already_in_channel"}
         )
         channel_info_ops = MagicMock()
-        channel_info_ops.get_channel_info_from_api = AsyncMock(
-            side_effect=[{"is_member": True}]
-        )
+        channel_info_ops.get_channel_info_from_api = AsyncMock(side_effect=[{"is_member": True}])
         result = await unarchive_processor.invite_and_verify_bot_after_unarchive(
             "C6", "chan", secrets_manager, channel_restore_ops, channel_info_ops
         )
@@ -131,9 +119,7 @@ class TestInviteAndVerifyBotAfterUnarchive:
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
-        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(side_effect=Exception("fail"))
         channel_info_ops = MagicMock()
         result = await unarchive_processor.invite_and_verify_bot_after_unarchive(
             "C8", "chan", secrets_manager, channel_restore_ops, channel_info_ops

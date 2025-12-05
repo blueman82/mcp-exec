@@ -92,9 +92,7 @@ class SecretsService(Protocol):
 class SlackService(Protocol):
     """Protocol for Slack API service interactions."""
 
-    async def post_message(
-        self, channel: str, text: str, blocks: Optional[List] = None
-    ) -> Dict:
+    async def post_message(self, channel: str, text: str, blocks: Optional[List] = None) -> Dict:
         """Post message to Slack channel."""
         ...
 
@@ -120,9 +118,7 @@ class MockDatabaseService:
 
     async def get_channel_info(self, channel_id: str) -> Dict:
         """Get channel information from mock database."""
-        return self.channel_data.get(
-            channel_id, {"channel_id": channel_id, "active": True}
-        )
+        return self.channel_data.get(channel_id, {"channel_id": channel_id, "active": True})
 
     async def update_channel_metadata(self, channel_id: str, metadata: Dict) -> None:
         """Update channel metadata in mock database."""
@@ -169,9 +165,7 @@ class MockSlackService:
         self.secrets_service = secrets_service
         self.test_channel = TEST_SLACK_CHANNEL
 
-    async def post_message(
-        self, channel: str, text: str, blocks: Optional[List] = None
-    ) -> Dict:
+    async def post_message(self, channel: str, text: str, blocks: Optional[List] = None) -> Dict:
         """Post message to mock Slack channel."""
         # In real implementation, would use self.secrets_service.get_slack_token()
         return {
@@ -283,9 +277,7 @@ async def test_basic_service_registration_and_resolution(
         Verifies that services can be registered and resolved correctly.
     """
     # Register simple service with no dependencies
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     # Initialize registry
     await registry.initialize_all()
@@ -339,17 +331,11 @@ async def test_complex_dependency_resolution(registry: TypedServiceRegistry):
         dependencies=[DependencySpec(SecretsService)],
     )
 
-    registry.register(
-        SecretsService, lambda resolver: MockSecretsService(), dependencies=[]
-    )
+    registry.register(SecretsService, lambda resolver: MockSecretsService(), dependencies=[])
 
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
-    registry.register(
-        DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[]
-    )
+    registry.register(DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[])
 
     # Initialize registry
     await registry.initialize_all()
@@ -377,9 +363,7 @@ async def test_complex_dependency_resolution(registry: TypedServiceRegistry):
 
 # Feature Flag Integration Tests
 @pytest.mark.asyncio
-async def test_feature_flag_disabled_fallback(
-    registry: TypedServiceRegistry, mock_environment
-):
+async def test_feature_flag_disabled_fallback(registry: TypedServiceRegistry, mock_environment):
     """
     Test behavior when KETCHUP_USE_TYPED_DI feature flag is disabled.
 
@@ -400,9 +384,7 @@ async def test_feature_flag_disabled_fallback(
     mock_environment(KETCHUP_USE_TYPED_DI="false")
 
     # Register a simple service
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     # Initialize registry - should still work but might have different behavior
     await registry.initialize_all()
@@ -413,9 +395,7 @@ async def test_feature_flag_disabled_fallback(
 
 
 @pytest.mark.asyncio
-async def test_feature_flag_enabled_behavior(
-    registry: TypedServiceRegistry, mock_environment
-):
+async def test_feature_flag_enabled_behavior(registry: TypedServiceRegistry, mock_environment):
     """
     Test behavior when KETCHUP_USE_TYPED_DI feature flag is enabled.
 
@@ -436,13 +416,9 @@ async def test_feature_flag_enabled_behavior(
     mock_environment(KETCHUP_USE_TYPED_DI="true")
 
     # Register services with dependencies
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
-    registry.register(
-        DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[]
-    )
+    registry.register(DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[])
 
     # Initialize and verify initialization stats are available
     await registry.initialize_all()
@@ -457,9 +433,7 @@ async def test_feature_flag_enabled_behavior(
 
 # Override System Testing
 @pytest.mark.asyncio
-async def test_service_override_in_test_mode(
-    registry: TypedServiceRegistry, mock_environment
-):
+async def test_service_override_in_test_mode(registry: TypedServiceRegistry, mock_environment):
     """
     Test service override system with KETCHUP_TEST_MODE integration.
 
@@ -480,9 +454,7 @@ async def test_service_override_in_test_mode(
     mock_environment(KETCHUP_TEST_MODE="true")
 
     # Register original service
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     await registry.initialize_all()
 
@@ -511,9 +483,7 @@ async def test_service_override_in_test_mode(
 
 
 @pytest.mark.asyncio
-async def test_clear_overrides_functionality(
-    registry: TypedServiceRegistry, mock_environment
-):
+async def test_clear_overrides_functionality(registry: TypedServiceRegistry, mock_environment):
     """
     Test clearing service overrides and restoring original services.
 
@@ -534,9 +504,7 @@ async def test_clear_overrides_functionality(
     mock_environment(KETCHUP_TEST_MODE="true")
 
     # Register and initialize service
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     await registry.initialize_all()
 
@@ -592,9 +560,9 @@ async def test_missing_dependency_error(registry: TypedServiceRegistry):
     with pytest.raises(MissingDependencyError) as exc_info:
         await registry.initialize_all()
 
-    assert "SecretsService" in str(
+    assert "SecretsService" in str(exc_info.value) or "Dependency validation failed" in str(
         exc_info.value
-    ) or "Dependency validation failed" in str(exc_info.value)
+    )
 
 
 @pytest.mark.asyncio
@@ -615,15 +583,11 @@ async def test_duplicate_registration_error(registry: TypedServiceRegistry):
         Verifies that duplicate service registrations are prevented.
     """
     # Register service once
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     # Attempt to register same service again should fail
     with pytest.raises(DuplicateRegistrationError) as exc_info:
-        registry.register(
-            CacheService, lambda resolver: MockCacheService(), dependencies=[]
-        )
+        registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     assert "already registered" in str(exc_info.value)
 
@@ -646,9 +610,7 @@ async def test_not_initialized_error(registry: TypedServiceRegistry):
         Verifies that services cannot be accessed before registry initialization.
     """
     # Register service but don't initialize
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     # Attempt to get service before initialization should fail
     with pytest.raises(NotInitializedError) as exc_info:
@@ -675,9 +637,7 @@ async def test_frozen_registry_protection(registry: TypedServiceRegistry):
         Verifies that frozen registries prevent further modifications.
     """
     # Register and initialize service
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
     await registry.initialize_all()
 
@@ -686,9 +646,7 @@ async def test_frozen_registry_protection(registry: TypedServiceRegistry):
 
     # Attempt to register new service should fail
     with pytest.raises(FrozenRegistryError) as exc_info:
-        registry.register(
-            DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[]
-        )
+        registry.register(DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[])
 
     assert "frozen" in str(exc_info.value)
 
@@ -712,9 +670,7 @@ async def test_slack_service_test_channel_integration(registry: TypedServiceRegi
         Prepares and validates Slack service for real channel testing.
     """
     # Register secrets and Slack services
-    registry.register(
-        SecretsService, lambda resolver: MockSecretsService(), dependencies=[]
-    )
+    registry.register(SecretsService, lambda resolver: MockSecretsService(), dependencies=[])
 
     registry.register(
         SlackService,
@@ -760,9 +716,7 @@ async def test_secrets_manager_integration(registry: TypedServiceRegistry):
         Verifies that secrets manager can retrieve bot tokens and other secrets.
     """
     # Register secrets service
-    registry.register(
-        SecretsService, lambda resolver: MockSecretsService(), dependencies=[]
-    )
+    registry.register(SecretsService, lambda resolver: MockSecretsService(), dependencies=[])
 
     await registry.initialize_all()
 
@@ -799,17 +753,11 @@ async def test_comprehensive_system_integration(registry: TypedServiceRegistry):
         Validates that all system components work together correctly.
     """
     # Register all services in complex dependency graph
-    registry.register(
-        SecretsService, lambda resolver: MockSecretsService(), dependencies=[]
-    )
+    registry.register(SecretsService, lambda resolver: MockSecretsService(), dependencies=[])
 
-    registry.register(
-        CacheService, lambda resolver: MockCacheService(), dependencies=[]
-    )
+    registry.register(CacheService, lambda resolver: MockCacheService(), dependencies=[])
 
-    registry.register(
-        DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[]
-    )
+    registry.register(DatabaseService, lambda resolver: MockDatabaseService(), dependencies=[])
 
     registry.register(
         SlackService,

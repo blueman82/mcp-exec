@@ -28,31 +28,59 @@ class ImportOrderValidator:
         """Get standard library module names."""
         # Common standard library modules
         return {
-            'abc', 'argparse', 'ast', 'asyncio', 'base64', 'calendar',
-            'collections', 'contextlib', 'copy', 'datetime', 'decimal',
-            'enum', 'functools', 'hashlib', 'http', 'io', 'itertools',
-            'json', 'logging', 'math', 'os', 'pathlib', 'queue', 're',
-            'socket', 'subprocess', 'sys', 'tempfile', 'threading',
-            'time', 'typing', 'urllib', 'uuid', 'warnings'
+            "abc",
+            "argparse",
+            "ast",
+            "asyncio",
+            "base64",
+            "calendar",
+            "collections",
+            "contextlib",
+            "copy",
+            "datetime",
+            "decimal",
+            "enum",
+            "functools",
+            "hashlib",
+            "http",
+            "io",
+            "itertools",
+            "json",
+            "logging",
+            "math",
+            "os",
+            "pathlib",
+            "queue",
+            "re",
+            "socket",
+            "subprocess",
+            "sys",
+            "tempfile",
+            "threading",
+            "time",
+            "typing",
+            "urllib",
+            "uuid",
+            "warnings",
         }
 
     def _categorize_import(self, import_name: str) -> str:
         """Categorize import as stdlib, third-party, or local."""
         # Remove any submodule parts for categorization
-        base_module = import_name.split('.')[0]
+        base_module = import_name.split(".")[0]
 
         if base_module in self.stdlib_modules:
-            return 'stdlib'
-        elif import_name.startswith('.') or import_name.startswith('packages.'):
-            return 'local'
+            return "stdlib"
+        elif import_name.startswith(".") or import_name.startswith("packages."):
+            return "local"
         else:
-            return 'third_party'
+            return "third_party"
 
     def _extract_imports(self, file_path: str) -> List[Tuple[int, str, str, str]]:
         """Extract import statements with line numbers and categories."""
         imports = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 tree = ast.parse(content)
 
@@ -87,29 +115,32 @@ class ImportOrderValidator:
 
         return imports
 
-    def _check_import_order(self, imports: List[Tuple[int, str, str, str]],
-                           file_path: str) -> List[CodeQualityViolation]:
+    def _check_import_order(
+        self, imports: List[Tuple[int, str, str, str]], file_path: str
+    ) -> List[CodeQualityViolation]:
         """Check if imports are in correct order."""
         violations = []
 
         if not imports:
             return violations
 
-        expected_order = ['stdlib', 'third_party', 'local']
+        expected_order = ["stdlib", "third_party", "local"]
         current_section = 0
 
         for line_no, import_text, category, module_name in imports:
             expected_section = expected_order.index(category)
 
             if expected_section < current_section:
-                violations.append(CodeQualityViolation(
-                    violation_type="import_order",
-                    file_path=file_path,
-                    line_number=line_no,
-                    message=f"Import '{module_name}' ({category}) should come before "
-                           f"current section ({expected_order[current_section]})",
-                    severity="warning"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="import_order",
+                        file_path=file_path,
+                        line_number=line_no,
+                        message=f"Import '{module_name}' ({category}) should come before "
+                        f"current section ({expected_order[current_section]})",
+                        severity="warning",
+                    )
+                )
 
             current_section = max(current_section, expected_section)
 
@@ -126,11 +157,11 @@ class ImportOrderValidator:
         local_imports = []
 
         for _, import_text, category, _ in imports:
-            if category == 'stdlib':
+            if category == "stdlib":
                 stdlib_imports.append(import_text)
-            elif category == 'third_party':
+            elif category == "third_party":
                 third_party_imports.append(import_text)
-            elif category == 'local':
+            elif category == "local":
                 local_imports.append(import_text)
 
         # Sort each group
@@ -168,11 +199,12 @@ class ImportOrderValidator:
             return self._generate_sorted_imports(imports)
         return None
 
-    def scan_directory_for_import_violations(self, directory_path: str,
-                                           file_patterns: List[str] = None) -> Dict[str, List[CodeQualityViolation]]:
+    def scan_directory_for_import_violations(
+        self, directory_path: str, file_patterns: List[str] = None
+    ) -> Dict[str, List[CodeQualityViolation]]:
         """Scan directory for import order violations."""
         if file_patterns is None:
-            file_patterns = ['*.py']
+            file_patterns = ["*.py"]
 
         results = {}
         directory = Path(directory_path)
@@ -186,7 +218,9 @@ class ImportOrderValidator:
 
         return results
 
-    def generate_import_order_report(self, violations: Dict[str, List[CodeQualityViolation]]) -> str:
+    def generate_import_order_report(
+        self, violations: Dict[str, List[CodeQualityViolation]]
+    ) -> str:
         """Generate comprehensive import order violation report."""
         if not violations:
             return "✅ All files pass import order validation (stdlib → third-party → local)\n"
@@ -203,13 +237,15 @@ class ImportOrderValidator:
 
         for file_path, file_violations in violations.items():
             relative_path = file_path.replace(
-                '/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/', ''
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/", ""
             )
             report.append(f"🔍 {relative_path}")
 
             for violation in file_violations:
                 severity_icon = "🚨" if violation.severity == "error" else "⚠️"
-                report.append(f"  {severity_icon} Line {violation.line_number}: {violation.message}")
+                report.append(
+                    f"  {severity_icon} Line {violation.line_number}: {violation.message}"
+                )
             report.append("")
 
         return "\n".join(report)

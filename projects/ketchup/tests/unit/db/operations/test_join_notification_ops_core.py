@@ -71,7 +71,9 @@ class TestJoinNotificationOpsCore:
         self, join_ops: JoinNotificationOps, sample_tracking_data: Dict[str, Any]
     ) -> None:
         """Test successful notification tracking."""
-        with patch.object(join_ops, "_update_channel_counters", new_callable=AsyncMock) as mock_update:
+        with patch.object(
+            join_ops, "_update_channel_counters", new_callable=AsyncMock
+        ) as mock_update:
             with patch.object(join_ops, "_put_detail_record", new_callable=AsyncMock) as mock_put:
                 result = await join_ops.track_notification(sample_tracking_data)
 
@@ -84,7 +86,9 @@ class TestJoinNotificationOpsCore:
         self, join_ops: JoinNotificationOps, sample_tracking_data: Dict[str, Any]
     ) -> None:
         """Test tracking failure when counter update fails."""
-        with patch.object(join_ops, "_update_channel_counters", new_callable=AsyncMock) as mock_update:
+        with patch.object(
+            join_ops, "_update_channel_counters", new_callable=AsyncMock
+        ) as mock_update:
             with patch.object(join_ops, "_put_detail_record", new_callable=AsyncMock) as mock_put:
                 mock_update.side_effect = Exception("DynamoDB error")
 
@@ -107,7 +111,9 @@ class TestJoinNotificationOpsCore:
             "notification_attempted": False,
         }
 
-        with patch.object(join_ops, "_update_channel_counters", new_callable=AsyncMock) as mock_update:
+        with patch.object(
+            join_ops, "_update_channel_counters", new_callable=AsyncMock
+        ) as mock_update:
             with patch.object(join_ops, "_put_detail_record", new_callable=AsyncMock) as mock_put:
                 result = await join_ops.track_notification(disabled_data)
 
@@ -120,7 +126,9 @@ class TestJoinNotificationOpsCore:
         self, join_ops: JoinNotificationOps, sample_tracking_data: Dict[str, Any]
     ) -> None:
         """Test exception handling in track_notification."""
-        with patch.object(join_ops, "_update_channel_counters", new_callable=AsyncMock) as mock_update:
+        with patch.object(
+            join_ops, "_update_channel_counters", new_callable=AsyncMock
+        ) as mock_update:
             mock_update.side_effect = Exception("Unexpected error")
 
             result = await join_ops.track_notification(sample_tracking_data)
@@ -158,9 +166,7 @@ class TestJoinNotificationOpsCore:
         assert all(results)
 
     @pytest.mark.asyncio
-    async def test_duplicate_event_handling(
-        self, join_ops: JoinNotificationOps
-    ) -> None:
+    async def test_duplicate_event_handling(self, join_ops: JoinNotificationOps) -> None:
         """Test handling of duplicate events within time window."""
         data = {
             "channel_id": "C1234567890",

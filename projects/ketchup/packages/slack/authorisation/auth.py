@@ -42,9 +42,7 @@ class SlackAuth:
         if self._slack_signing_secret:
             return self._slack_signing_secret
 
-        logger.info(
-            "Fetching Slack signing secret via SecretsManager.get_app_secrets()"
-        )
+        logger.info("Fetching Slack signing secret via SecretsManager.get_app_secrets()")
         try:
             # Use the injected secrets_manager instance and its method
             app_secrets = await self._secrets_manager.get_app_secrets()
@@ -53,9 +51,7 @@ class SlackAuth:
                 logger.debug("Slack signing secret retrieved successfully.")
                 return self._slack_signing_secret
             else:
-                logger.error(
-                    "SLACK_SIGNING_SECRET key not found in app secrets bundle."
-                )
+                logger.error("SLACK_SIGNING_SECRET key not found in app secrets bundle.")
                 return None
         except Exception as e:
             logger.error(
@@ -66,9 +62,7 @@ class SlackAuth:
             self._slack_signing_secret = None  # Ensure cache is None on error
             return None
 
-    async def verify_slack_signature(
-        self, headers: Dict[str, Any], raw_body_bytes: bytes
-    ) -> bool:
+    async def verify_slack_signature(self, headers: Dict[str, Any], raw_body_bytes: bytes) -> bool:
         """
         Verify the signature of an incoming Slack request.
 
@@ -108,9 +102,7 @@ class SlackAuth:
         try:
             signing_secret = await self.get_slack_signing_secret()
             if signing_secret is None:
-                logger.error(
-                    "Failed to retrieve Slack signing secret for verification."
-                )
+                logger.error("Failed to retrieve Slack signing secret for verification.")
                 return False
 
             logger.debug("Slack signature verification inputs:")

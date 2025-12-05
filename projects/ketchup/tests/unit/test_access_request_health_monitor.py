@@ -59,28 +59,30 @@ class TestAccessRequestHealthMonitor:
 
         # Mock secrets manager with webhook URL
         mock_secrets = AsyncMock()
-        mock_secrets.get_ketchup_alerts_webhook_url = AsyncMock(return_value="https://hooks.slack.com/test")
+        mock_secrets.get_ketchup_alerts_webhook_url = AsyncMock(
+            return_value="https://hooks.slack.com/test"
+        )
 
         # Mock access request handler
         mock_handler = AsyncMock()
 
         # Set up TypedDI container to return mocked services via aget()
         async def mock_aget(protocol):
-            from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
-                AccessRequestOperationsProtocol,
+            from packages.core.typed_di.service_registrations.protocols.core_protocols import (
+                SecretsManagerProtocol,
             )
             from packages.core.typed_di.service_registrations.protocols.handler_protocols import (
-                AccessRequestMonitorProtocol,
                 AccessRequestHandlerProtocol,
+                AccessRequestMonitorProtocol,
             )
             from packages.core.typed_di.service_registrations.protocols.infrastructure_protocols import (
                 DistributedLockProtocol,
             )
+            from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
+                AccessRequestOperationsProtocol,
+            )
             from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
                 SlackAsyncClientProtocol,
-            )
-            from packages.core.typed_di.service_registrations.protocols.core_protocols import (
-                SecretsManagerProtocol,
             )
 
             protocol_map = {
@@ -158,9 +160,7 @@ class TestAccessRequestHealthMonitor:
         issues = await monitor.run_health_checks()
 
         # Should have warning about old requests
-        old_issue = next(
-            (i for i in issues if i["category"] == "old_pending_requests"), None
-        )
+        old_issue = next((i for i in issues if i["category"] == "old_pending_requests"), None)
         assert old_issue is not None
         assert old_issue["severity"] == "warning"
         assert "3 requests pending > 12h" in old_issue["message"]
@@ -181,9 +181,7 @@ class TestAccessRequestHealthMonitor:
         issues = await monitor.run_health_checks()
 
         # Should have warning about high error rate
-        error_issue = next(
-            (i for i in issues if i["category"] == "high_error_rate"), None
-        )
+        error_issue = next((i for i in issues if i["category"] == "high_error_rate"), None)
         assert error_issue is not None
         assert error_issue["severity"] == "warning"
         assert "15.0%" in error_issue["message"]
@@ -192,11 +190,11 @@ class TestAccessRequestHealthMonitor:
     @pytest.mark.asyncio
     async def test_service_unavailable_trigger(self, monitor):
         """Test alert triggers for unavailable services."""
-        from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
-            AccessRequestOperationsProtocol,
-        )
         from packages.core.typed_di.service_registrations.protocols.handler_protocols import (
             AccessRequestMonitorProtocol,
+        )
+        from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
+            AccessRequestOperationsProtocol,
         )
 
         # Make a critical service unavailable
@@ -207,12 +205,9 @@ class TestAccessRequestHealthMonitor:
             mock = AsyncMock()
             if protocol == AccessRequestMonitorProtocol:
                 # Configure metrics service to return empty stats
-                mock.get_stats_summary = AsyncMock(return_value={
-                    'error_rate': 0.0,
-                    'error': 0,
-                    'created': 0,
-                    'rate_limited': 0
-                })
+                mock.get_stats_summary = AsyncMock(
+                    return_value={"error_rate": 0.0, "error": 0, "created": 0, "rate_limited": 0}
+                )
             return mock
 
         monitor.container.aget = mock_aget
@@ -221,15 +216,13 @@ class TestAccessRequestHealthMonitor:
         issues = await monitor.run_health_checks()
 
         # Should have critical alert about unavailable service
-        service_issue = next(
-            (i for i in issues if i["category"] == "service_unavailable"), None
-        )
+        service_issue = next((i for i in issues if i["category"] == "service_unavailable"), None)
         assert service_issue is not None
         assert service_issue["severity"] == "critical"
         assert "access_request_operations" in service_issue["message"]
 
     @pytest.mark.asyncio
-    @patch('aiohttp.ClientSession')
+    @patch("aiohttp.ClientSession")
     async def test_alert_message_formatting(self, mock_session_class, monitor, mock_services):
         """Test Slack alert message formatting."""
         # Mock aiohttp ClientSession
@@ -338,7 +331,7 @@ class TestAccessRequestHealthMonitor:
         assert monitor.should_send_alert(critical_issues) is True
 
     @pytest.mark.asyncio
-    @patch('aiohttp.ClientSession')
+    @patch("aiohttp.ClientSession")
     async def test_monitor_self_healing_detection(self, mock_session_class, monitor, mock_services):
         """Test monitor detects its own failures."""
         # Mock aiohttp ClientSession
@@ -354,9 +347,7 @@ class TestAccessRequestHealthMonitor:
         mock_session_class.return_value = mock_session
 
         # Mock health checks to fail repeatedly
-        with patch.object(
-            monitor, "run_health_checks", side_effect=Exception("Test failure")
-        ):
+        with patch.object(monitor, "run_health_checks", side_effect=Exception("Test failure")):
             # Track consecutive errors
             monitor.consecutive_errors = 2
 
@@ -389,13 +380,13 @@ class TestAccessRequestHealthMonitor:
     @pytest.mark.asyncio
     async def test_metrics_service_unavailable_handling(self, monitor):
         """Test graceful handling when metrics service is unavailable."""
-        from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
-            AccessRequestOperationsProtocol,
-        )
+        from packages.core.typed_di.exceptions import MissingDependencyError
         from packages.core.typed_di.service_registrations.protocols.handler_protocols import (
             AccessRequestMonitorProtocol,
         )
-        from packages.core.typed_di.exceptions import MissingDependencyError
+        from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
+            AccessRequestOperationsProtocol,
+        )
 
         # Make metrics service unavailable but other services available
         async def mock_aget(protocol):
@@ -420,7 +411,7 @@ class TestAccessRequestHealthMonitor:
         assert len(issues) >= 0  # May have 0 issues if all other checks pass
 
     @pytest.mark.asyncio
-    @patch('aiohttp.ClientSession')
+    @patch("aiohttp.ClientSession")
     async def test_alert_channel_configuration(self, mock_session_class, monitor, mock_services):
         """Test that alerts are sent to the correct channel."""
         # Mock aiohttp ClientSession

@@ -72,9 +72,7 @@ class AlertFireDrill:
         for i in range(75):
             mock_request = MagicMock()
             mock_request.user_id = f"U{i:06d}"
-            mock_request.request_timestamp = time.time() - (
-                i * 60
-            )  # Stagger timestamps
+            mock_request.request_timestamp = time.time() - (i * 60)  # Stagger timestamps
             mock_request.status = ACCESS_REQUEST_STATUS["PENDING"]
             mock_request.decision_timestamp = None
             mock_requests.append(mock_request)

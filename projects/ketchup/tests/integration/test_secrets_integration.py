@@ -53,9 +53,7 @@ def secrets_manager() -> SecretsManager:
 
 
 @pytest.mark.asyncio
-async def test_get_secret_success(
-    secrets_manager: SecretsManager, mocker: MockerFixture
-):
+async def test_get_secret_success(secrets_manager: SecretsManager, mocker: MockerFixture):
     """
     Verify successful secret retrieval and parsing.
 
@@ -74,9 +72,7 @@ async def test_get_secret_success(
     """
     # Arrange
     mock_boto_client = mocker.AsyncMock()
-    mock_boto_client.get_secret_value.return_value = {
-        "SecretString": MOCK_SECRET_VALUE_STRING
-    }
+    mock_boto_client.get_secret_value.return_value = {"SecretString": MOCK_SECRET_VALUE_STRING}
 
     # Patch aioboto3.Session.client to return an async context manager yielding our mock
     class AsyncContextManagerMock:
@@ -97,9 +93,7 @@ async def test_get_secret_success(
 
 
 @pytest.mark.asyncio
-async def test_get_secret_retrieval_error(
-    secrets_manager: SecretsManager, mocker: MockerFixture
-):
+async def test_get_secret_retrieval_error(secrets_manager: SecretsManager, mocker: MockerFixture):
     """
     Verify that ClientError from boto3 propagates correctly.
 
@@ -118,9 +112,7 @@ async def test_get_secret_retrieval_error(
     """
     # Arrange
     mock_boto_client = mocker.AsyncMock()
-    mock_error_response = {
-        "Error": {"Code": "ResourceNotFoundException", "Message": "Not found"}
-    }
+    mock_error_response = {"Error": {"Code": "ResourceNotFoundException", "Message": "Not found"}}
     mock_boto_client.get_secret_value.side_effect = ClientError(
         mock_error_response, "GetSecretValue"
     )
@@ -144,9 +136,7 @@ async def test_get_secret_retrieval_error(
 
 
 @pytest.mark.asyncio
-async def test_get_secret_parsing_error(
-    secrets_manager: SecretsManager, mocker: MockerFixture
-):
+async def test_get_secret_parsing_error(secrets_manager: SecretsManager, mocker: MockerFixture):
     """
     Verify that JSONDecodeError is raised for invalid JSON secret string.
 
@@ -185,9 +175,7 @@ async def test_get_secret_parsing_error(
 
 
 @pytest.mark.asyncio
-async def test_get_secret_missing_string(
-    secrets_manager: SecretsManager, mocker: MockerFixture
-):
+async def test_get_secret_missing_string(secrets_manager: SecretsManager, mocker: MockerFixture):
     """
     Verify that KeyError is raised if SecretString is missing and not handled.
 

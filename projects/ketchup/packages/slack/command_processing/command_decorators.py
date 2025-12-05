@@ -7,13 +7,13 @@ This module contains decorators for Slack command processing.
 from functools import wraps
 from typing import Any, Callable, Optional
 
-from packages.core.typed_di_integration import get_typed_registry
+from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
+from packages.core.logging import setup_logger
+from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     ChannelNameResolverProtocol,
 )
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
-from packages.core.logging import setup_logger
+from packages.core.typed_di_integration import get_typed_registry
 
 logger = setup_logger(__name__)
 
@@ -34,9 +34,7 @@ async def _resolve_channel_parameter_in_decorator(channel_param: str) -> Optiona
             pass
 
         if not channel_name_resolver:
-            logger.warning(
-                "ChannelNameResolver not available in decorator, using fallback parsing"
-            )
+            logger.warning("ChannelNameResolver not available in decorator, using fallback parsing")
             # Fallback: try to extract channel ID from Slack mention format
             mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
             if mention_match:
@@ -50,8 +48,8 @@ async def _resolve_channel_parameter_in_decorator(channel_param: str) -> Optiona
             # If not a mention format, return as-is (might be already a valid ID)
             return channel_param
 
-        resolved_id, format_type = (
-            await channel_name_resolver.resolve_channel_parameter(channel_param)
+        resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
+            channel_param
         )
         if resolved_id:
             logger.info(
@@ -89,10 +87,7 @@ def _extract_channel_params(kwargs):
 
 
 async def _post_error_to_slack(instance, user_id, channel_id, response_url, message):
-    if (
-        not hasattr(instance, "slack_posting_handler")
-        or instance.slack_posting_handler is None
-    ):
+    if not hasattr(instance, "slack_posting_handler") or instance.slack_posting_handler is None:
         raise ValueError(
             "slack_posting_handler must be provided via dependency injection on the handler instance"
         )
@@ -111,9 +106,7 @@ def _get_restore_ops(instance):
     return getattr(instance, "channel_restore_ops", None)
 
 
-async def _handle_missing_params(
-    instance, user_id, target_channel_id, dm_channel_id, response_url
-):
+async def _handle_missing_params(instance, user_id, target_channel_id, dm_channel_id, response_url):
     logger.error(
         "Missing required parameters (user_id=%s, target_channel_id=%s, dm_channel_id=%s) for handle_archived_channel decorator. Need user_id and at least one channel ID.",
         user_id,
@@ -158,9 +151,7 @@ async def _handle_missing_restore_ops(
         except Exception as post_err:
             logger.error("Failed to send error via response_url: %s", post_err)
     if hasattr(instance, "create_error_response"):
-        return instance.create_error_response(
-            "Internal configuration error", status_code=500
-        )
+        return instance.create_error_response("Internal configuration error", status_code=500)
     return {
         "statusCode": 500,
         "body": "Internal configuration error",
@@ -195,19 +186,14 @@ async def _handle_exception(instance, e, kwargs, response_url):
             await _post_error_to_slack(
                 instance,
                 kwargs.get("user_id"),
-                kwargs.get("dm_channel_id")
-                or kwargs.get("params", {}).get("channel_id"),
+                kwargs.get("dm_channel_id") or kwargs.get("params", {}).get("channel_id"),
                 response_url,
                 f"An internal error occurred: {str(e)}",
             )
         except Exception as post_err:
-            logger.error(
-                "Failed to send decorator exception via response_url: %s", post_err
-            )
+            logger.error("Failed to send decorator exception via response_url: %s", post_err)
     if hasattr(instance, "create_error_response"):
-        return instance.create_error_response(
-            f"Internal server error: {str(e)}", status_code=500
-        )
+        return instance.create_error_response(f"Internal server error: {str(e)}", status_code=500)
     return {
         "statusCode": 500,
         "body": f"Internal server error: {str(e)}",
@@ -266,8 +252,8 @@ def handle_archived_channel(func: Callable) -> Callable:
         channel_to_check = None
         response_url = None
         try:
-            user_id, target_channel_id, dm_channel_id, response_url = (
-                _extract_channel_params(kwargs)
+            user_id, target_channel_id, dm_channel_id, response_url = _extract_channel_params(
+                kwargs
             )
             if not user_id or not (target_channel_id or dm_channel_id):
                 return await _handle_missing_params(
@@ -282,9 +268,7 @@ def handle_archived_channel(func: Callable) -> Callable:
 
             # Resolve channel parameter before making API calls
             original_channel_param = channel_to_check
-            resolved_channel = await _resolve_channel_parameter_in_decorator(
-                channel_to_check
-            )
+            resolved_channel = await _resolve_channel_parameter_in_decorator(channel_to_check)
             if resolved_channel != channel_to_check:
                 logger.info(
                     "Decorator resolved channel '%s' to '%s'",
@@ -299,12 +283,8 @@ def handle_archived_channel(func: Callable) -> Callable:
                 text = kwargs.get("text", "")
                 if text and original_channel_param in text:
                     # Replace the original channel parameter with the resolved ID in the text
-                    kwargs["text"] = text.replace(
-                        original_channel_param, resolved_channel, 1
-                    )
-                    logger.info(
-                        "Updated text parameter: '%s' -> '%s'", text, kwargs["text"]
-                    )
+                    kwargs["text"] = text.replace(original_channel_param, resolved_channel, 1)
+                    logger.info("Updated text parameter: '%s' -> '%s'", text, kwargs["text"])
 
             success, originally_archived = await restore_ops.restore_archived_channel(
                 user_id=user_id,

@@ -87,9 +87,7 @@ async def test_channel_metadata_updater_happy_path():
     updater.metadata_storage.needs_metadata_update = AsyncMock(return_value=True)
     updater.metadata_storage.store_extracted_metadata = AsyncMock(return_value=True)
     updater.channel_processor = MagicMock()
-    updater.channel_processor.fetch_channel_messages = AsyncMock(
-        return_value=["msg1", "msg2"]
-    )
+    updater.channel_processor.fetch_channel_messages = AsyncMock(return_value=["msg1", "msg2"])
 
     # Should succeed
     result = await updater.extract_and_store_metadata("C123")
@@ -159,9 +157,7 @@ async def test_channel_processor_fetch_channel_messages_handles_error():
     """Test ChannelProcessor.fetch_channel_messages handles errors and retries."""
     mock_msg_ops = MagicMock()
     # Simulate error on first call, success on second
-    mock_msg_ops.fetch_channel_messages = AsyncMock(
-        side_effect=[Exception("fail"), ["msg1"]]
-    )
+    mock_msg_ops.fetch_channel_messages = AsyncMock(side_effect=[Exception("fail"), ["msg1"]])
     processor = ChannelProcessor(
         channel_msg_ops=mock_msg_ops, dynamodb_store=MagicMock(), max_concurrency=1
     )

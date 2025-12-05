@@ -159,9 +159,7 @@ async def test_execute_request_success_no_rearchive(
     assert response["metadata"]["input_tokens"] == 10
     assert response["metadata"]["output_tokens"] == 5
     assert response["metadata"]["total_tokens"] == 15
-    assert (
-        response["metadata"]["channel_id"] == MOCK_INCOMING_CHANNEL
-    )  # Not re-archived
+    assert response["metadata"]["channel_id"] == MOCK_INCOMING_CHANNEL  # Not re-archived
 
 
 @pytest.mark.asyncio
@@ -220,9 +218,7 @@ async def test_execute_request_success_with_rearchive(
 
 
 @pytest.mark.asyncio
-async def test_execute_request_api_failure(
-    api_executor: ApiExecutor, mock_dependencies: dict
-):
+async def test_execute_request_api_failure(api_executor: ApiExecutor, mock_dependencies: dict):
     """
     Verify error handling when the API request function fails.
 
@@ -325,6 +321,4 @@ async def test_execute_request_rearchive_failure(
     # 4. Response is still returned, containing metadata with TARGET channel ID
     assert response["choices"] == MOCK_API_RESPONSE["choices"]
     assert "metadata" in response
-    assert (
-        response["metadata"]["channel_id"] == MOCK_TARGET_CHANNEL
-    )  # Attempted re-archive
+    assert response["metadata"]["channel_id"] == MOCK_TARGET_CHANNEL  # Attempted re-archive

@@ -52,9 +52,7 @@ class TestSlackQueryHandler:
         self.user_ops = AsyncMock()
         self.channel_restore_ops = MagicMock()
         # Fix mock return value for the decorator
-        self.channel_restore_ops.restore_archived_channel = AsyncMock(
-            return_value=(True, False)
-        )
+        self.channel_restore_ops.restore_archived_channel = AsyncMock(return_value=(True, False))
         self.handler = SlackQueryHandler(
             channel_info_ops=self.channel_info_ops,
             archive_ops=self.archive_ops,
@@ -85,9 +83,7 @@ class TestSlackQueryHandler:
         self.handler.create_validation_error_response = lambda msg: {
             "status": "validation_error",
             "statusCode": 400,
-            "body": (
-                msg if "Invalid initial input" in str(msg) else "Invalid initial input"
-            ),
+            "body": (msg if "Invalid initial input" in str(msg) else "Invalid initial input"),
             "message": msg,
         }
 
@@ -144,9 +140,7 @@ class TestSlackQueryHandler:
             context=CommandContext.DIRECT_MESSAGE,
         )
         user_id = "U123"
-        with patch.object(
-            self.handler, "_process_query", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_query", new_callable=AsyncMock) as mock_proc:
             result = await self.handler.process_query_request(params, user_id)
             assert result is not None
             assert result["status"] == "validation_error"
@@ -242,9 +236,7 @@ class TestSlackQueryHandlerChannelResolution:
         self.secrets_manager = AsyncMock()
         self.user_ops = AsyncMock()
         self.channel_restore_ops = MagicMock()
-        self.channel_restore_ops.restore_archived_channel = AsyncMock(
-            return_value=(True, False)
-        )
+        self.channel_restore_ops.restore_archived_channel = AsyncMock(return_value=(True, False))
         self.handler = SlackQueryHandler(
             channel_info_ops=self.channel_info_ops,
             archive_ops=self.archive_ops,
@@ -371,9 +363,7 @@ class TestSlackQueryHandlerChannelResolution:
                 )
 
             assert result["status"] == "success"
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(
-                channel_name
-            )
+            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(channel_name)
 
     @pytest.mark.asyncio
     async def test_channel_resolution_failure(self) -> None:
@@ -416,9 +406,7 @@ class TestSlackQueryHandlerChannelResolution:
 
             assert result["status"] == "validation_error"
             assert "Could not resolve the specified channel" in result["message"]
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(
-                invalid_channel
-            )
+            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(invalid_channel)
 
     @pytest.mark.asyncio
     async def test_channel_resolution_unavailable(self) -> None:

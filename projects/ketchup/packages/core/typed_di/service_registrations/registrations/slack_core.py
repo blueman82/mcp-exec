@@ -41,6 +41,14 @@ if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
 # Import protocols from the protocols module to avoid circular dependencies
+# Import required dependencies from core primitives
+from packages.db.dynamodb_store import DynamoDBStore
+from packages.db.user_store import UserStore
+from packages.secrets.manager import SecretsManager
+from packages.slack.channel_operations.restore_state_manager import RestoreStateManager
+from packages.slack.config.slack_config import SlackConfig
+from packages.slack.messages.posting import SlackPostingHandler
+
 from ..protocols import (
     BatchSizeManagerProtocol,
     ChannelInfoOpsProtocol,
@@ -62,14 +70,6 @@ from ..protocols import (
     UserJoinNotificationServiceProtocol,
     UserStoreProtocol,
 )
-
-# Import required dependencies from core primitives
-from packages.db.dynamodb_store import DynamoDBStore
-from packages.db.user_store import UserStore
-from packages.secrets.manager import SecretsManager
-from packages.slack.channel_operations.restore_state_manager import RestoreStateManager
-from packages.slack.config.slack_config import SlackConfig
-from packages.slack.messages.posting import SlackPostingHandler
 
 logger = setup_logger(__name__)
 
@@ -103,6 +103,7 @@ def register_slack_core(manager: "ServiceRegistrationManager") -> None:
 
 def _register_basic_channel_ops(manager: "ServiceRegistrationManager") -> None:
     """Register basic channel operations: info, membership, and archiving."""
+
     # ChannelInfoOps with protocol
     async def create_channel_info_ops(resolver) -> ChannelInfoOps:
         """Factory function for ChannelInfoOps using TypedResolver."""
@@ -174,6 +175,7 @@ def _register_basic_channel_ops(manager: "ServiceRegistrationManager") -> None:
 
 def _register_advanced_channel_ops(manager: "ServiceRegistrationManager") -> None:
     """Register advanced channel operations: bot membership, restore, and messaging."""
+
     # SlackChannelBotMembershipOps with protocol
     async def create_slack_channel_bot_membership_ops(resolver) -> SlackChannelBotMembershipOps:
         """Factory function for SlackChannelBotMembershipOps using TypedResolver."""
@@ -262,6 +264,7 @@ def _register_advanced_channel_ops(manager: "ServiceRegistrationManager") -> Non
 
 def _register_user_and_utility_ops(manager: "ServiceRegistrationManager") -> None:
     """Register user operations and utility services."""
+
     # SlackUserOps with protocol (required by other services)
     async def create_slack_user_ops(resolver) -> SlackUserOps:
         """Factory function for SlackUserOps using TypedResolver."""
@@ -312,7 +315,9 @@ def _register_user_and_utility_ops(manager: "ServiceRegistrationManager") -> Non
     # UserJoinNotificationService with protocol
     async def create_user_join_notification_service(resolver) -> "UserJoinNotificationService":
         """Factory function for UserJoinNotificationService using TypedResolver."""
-        from packages.slack.services.user_join_notification_service import UserJoinNotificationService
+        from packages.slack.services.user_join_notification_service import (
+            UserJoinNotificationService,
+        )
 
         # Resolve required dependencies
         openai_handler = await resolver.aget(OpenAIHandlerProtocol)
@@ -346,7 +351,7 @@ def _register_user_and_utility_ops(manager: "ServiceRegistrationManager") -> Non
             channel_msg_ops=channel_msg_ops,
             jira_extractor=jira_extractor,
             user_store=user_store,
-            join_notification_ops=join_notification_ops
+            join_notification_ops=join_notification_ops,
         )
 
     # Import the concrete class for registration

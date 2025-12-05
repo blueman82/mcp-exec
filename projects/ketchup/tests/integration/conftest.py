@@ -20,7 +20,7 @@ def _is_aws_configured() -> bool:
 def aws_profile() -> str:
     """
     Get the AWS profile from environment.
-    
+
     Skips test if AWS is not configured.
     The profile is loaded from .env.test by the root conftest.py.
     """
@@ -42,13 +42,13 @@ def aws_region() -> str:
 def skip_without_aws(request):
     """
     Auto-skip integration tests if AWS is not configured.
-    
+
     Tests can opt-out by using the @pytest.mark.no_aws_required marker.
     """
     # Check if test has the no_aws_required marker
     if request.node.get_closest_marker("no_aws_required"):
         return
-    
+
     # Check if this is in the integration directory
     if "integration" in str(request.fspath):
         if not _is_aws_configured():

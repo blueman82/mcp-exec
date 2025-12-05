@@ -11,9 +11,7 @@ import orjson
 
 from packages.core.logging import setup_logger
 from packages.core.resilience.backoff import with_exponential_backoff
-from packages.core.utils import (
-    invite_ketchup_to_channel as core_invite_ketchup_to_channel,
-)
+from packages.core.utils import invite_ketchup_to_channel as core_invite_ketchup_to_channel
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.secrets.manager import SecretsManager
 from packages.slack.channel_operations.channel_archive_ops import SlackChannelArchiveOps
@@ -68,9 +66,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
         self.dynamodb_store = dynamodb_store
         self.restore_state_manager = restore_state_manager
         self.bot_membership_ops = bot_membership_ops
-        self._slack_token = (
-            None  # Initialize token attribute (used by _init_slack_token)
-        )
+        self._slack_token = None  # Initialize token attribute (used by _init_slack_token)
         logger.info(
             "SlackChannelRestoreOps initialized with injected dependencies (including BotMembershipOps)."
         )
@@ -136,9 +132,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
         channel_info = await self.archive_ops.get_channel_info(channel_id)
         if not channel_info.get("ok", False):
             error_message = channel_info.get("error", "unknown error")
-            logger.error(
-                "Failed to get channel info for %s: %s", channel_id, error_message
-            )
+            logger.error("Failed to get channel info for %s: %s", channel_id, error_message)
             # Check for the specific error
             if error_message == "channel_not_found":
                 user_friendly_message = f"Error: Could not find channel `{channel_id}`. Please verify the channel ID is correct."
@@ -166,9 +160,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
         unarchive_response = await self.archive_ops.unarchive_channel(channel_id)
         if not unarchive_response:
             error_message = "Failed to unarchive channel"
-            logger.error(
-                "Failed to unarchive channel %s: %s", channel_id, error_message
-            )
+            logger.error("Failed to unarchive channel %s: %s", channel_id, error_message)
             await self.posting_handler.post_message(
                 user_id=user_id,
                 channel_id=dm_channel_id,
@@ -207,9 +199,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
             return False
 
         # Delegate membership check to the new Ops class
-        is_member = await self.bot_membership_ops.check_bot_channel_membership(
-            channel_id
-        )
+        is_member = await self.bot_membership_ops.check_bot_channel_membership(channel_id)
         if not is_member:
             logger.info(
                 "Bot is not a member of the unarchived channel %s, attempting to join",
@@ -240,6 +230,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
             # Verify bot is actually in the channel after invite
             # (Slack invite API is async, poll with backoff until bot joins)
             import asyncio
+
             max_attempts = 5
             wait_times = [0.2, 0.5, 1.0, 2.0, 3.0]  # Total: ~6.7 seconds max
 
@@ -251,7 +242,9 @@ class SlackChannelRestoreOps(SlackAsyncClient):
                 if is_member_after_invite:
                     logger.info(
                         "Verified bot membership in channel %s after invite (attempt %d/%d)",
-                        channel_id, attempt + 1, max_attempts
+                        channel_id,
+                        attempt + 1,
+                        max_attempts,
                     )
                     break
 
@@ -259,14 +252,18 @@ class SlackChannelRestoreOps(SlackAsyncClient):
                     wait_time = wait_times[attempt]
                     logger.warning(
                         "Bot not yet in channel %s after invite (attempt %d/%d) - waiting %.1fs",
-                        channel_id, attempt + 1, max_attempts, wait_time
+                        channel_id,
+                        attempt + 1,
+                        max_attempts,
+                        wait_time,
                     )
                     await asyncio.sleep(wait_time)
 
             if not is_member_after_invite:
                 logger.error(
                     "Bot still not in channel %s after %d attempts over ~7 seconds",
-                    channel_id, max_attempts
+                    channel_id,
+                    max_attempts,
                 )
                 await self.archive_ops.archive_channel(
                     user_id=None, channel_id=channel_id, incoming_channel=dm_channel_id
@@ -329,9 +326,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
             return False, True  # Failure, but was originally archived
 
         # 5. Notify user of success
-        logger.info(
-            "Successfully unarchived channel %s and ensured bot membership", channel_id
-        )
+        logger.info("Successfully unarchived channel %s and ensured bot membership", channel_id)
         await self.posting_handler.post_message(
             user_id=user_id,
             channel_id=dm_channel_id,
@@ -371,17 +366,13 @@ class SlackChannelRestoreOps(SlackAsyncClient):
                 str(msg_e),
             )
 
-    async def _perform_rearchive_and_update_db(
-        self, channel_id: str, dm_channel_id: str
-    ) -> bool:
+    async def _perform_rearchive_and_update_db(self, channel_id: str, dm_channel_id: str) -> bool:
         """Performs the channel archive and updates the DB status."""
         # Retrieve original archived_at timestamp before archiving
         original_archived_at = None
         try:
             channel_item = await self.dynamodb_store.get_channel_details(channel_id)
-            original_archived_at = (
-                channel_item.get("archived_at") if channel_item else None
-            )
+            original_archived_at = channel_item.get("archived_at") if channel_item else None
         except Exception as db_e:
             logger.warning(
                 "Could not retrieve original archived_at value before re-archiving %s: %s",
@@ -485,9 +476,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
         try:
             # 2. Get channel name for messages
             channel_name_opt = await self._get_channel_name(channel_id)
-            channel_name_str = (
-                channel_name_opt if channel_name_opt is not None else channel_id
-            )
+            channel_name_str = channel_name_opt if channel_name_opt is not None else channel_id
 
             # 3. Notify user we are starting
             await self._notify_user_of_rearchive(
@@ -499,9 +488,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
                 await self._notify_channel_of_rearchive(channel_id)
 
             # 5. Perform re-archive and DB update
-            archive_success = await self._perform_rearchive_and_update_db(
-                channel_id, dm_channel_id
-            )
+            archive_success = await self._perform_rearchive_and_update_db(channel_id, dm_channel_id)
 
             if not archive_success:
                 # Notify user of failure
@@ -542,9 +529,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
                     response_url=response_url,
                 )
             except Exception as post_err:
-                logger.error(
-                    "Failed to notify user about rearchive exception: %s", post_err
-                )
+                logger.error("Failed to notify user about rearchive exception: %s", post_err)
             # Clean up state even on error using the state manager
             await self.restore_state_manager.cleanup_state(channel_id)
             return False
@@ -588,9 +573,7 @@ class SlackChannelRestoreOps(SlackAsyncClient):
         Clean up resources used by the SlackChannelRestoreOps instance,
         primarily the inherited SlackAsyncClient session.
         """
-        logger.info(
-            "Cleaning up SlackChannelRestoreOps (calling parent SlackAsyncClient cleanup)"
-        )
+        logger.info("Cleaning up SlackChannelRestoreOps (calling parent SlackAsyncClient cleanup)")
         # Call the base class cleanup to close the session
         await super().cleanup()
         # No need to call cleanup on restore_state_manager, as TTL handles its items

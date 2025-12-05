@@ -65,9 +65,9 @@ async def test_trust_button_only_on_enabled_channels(mock_dependencies):
 
         for test_case in test_cases:
             # Setup channel details mock
-            mock_dependencies["channel_operations"].get_channel_details.return_value = (
-                test_case["channel_details"]
-            )
+            mock_dependencies["channel_operations"].get_channel_details.return_value = test_case[
+                "channel_details"
+            ]
 
             # Call the method that posts to Slack
             await generator._post_to_slack_public(
@@ -77,9 +77,7 @@ async def test_trust_button_only_on_enabled_channels(mock_dependencies):
             )
 
             # Get the blocks that were sent
-            call_args = mock_dependencies[
-                "posting_handler"
-            ]._post_channel_message.call_args
+            call_args = mock_dependencies["posting_handler"]._post_channel_message.call_args
             blocks = call_args.kwargs["blocks"]
 
             # Check if trust button is present
@@ -134,8 +132,7 @@ async def test_trust_button_with_global_enabled(mock_dependencies):
         has_trust_button = any(
             block.get("type") == "actions"
             and any(
-                elem.get("action_id") == "trust_status_update"
-                for elem in block.get("elements", [])
+                elem.get("action_id") == "trust_status_update" for elem in block.get("elements", [])
             )
             for block in blocks
         )
@@ -167,9 +164,7 @@ async def test_trust_metadata_storage_respects_channel_enablement(mock_dependenc
         )
 
         # Should be called since we're directly calling the method
-        assert mock_dependencies[
-            "db_store"
-        ].trust_ops.store_status_update_metadata.called
+        assert mock_dependencies["db_store"].trust_ops.store_status_update_metadata.called
 
 
 @pytest.mark.asyncio
@@ -207,13 +202,14 @@ async def test_trust_endorsement_button_visibility(mock_dependencies):
         has_trust_button = any(
             block.get("type") == "actions"
             and any(
-                elem.get("action_id") == "trust_status_update"
-                for elem in block.get("elements", [])
+                elem.get("action_id") == "trust_status_update" for elem in block.get("elements", [])
             )
             for block in blocks
         )
 
-        assert not has_trust_button, f"Trust endorsement button should NOT be shown in unapproved channel {unapproved_channel_id}"
+        assert (
+            not has_trust_button
+        ), f"Trust endorsement button should NOT be shown in unapproved channel {unapproved_channel_id}"
 
         # Reset mock and test approved channel (C094DQY7HLH is in TRUST_ENABLED_CHANNELS)
         mock_dependencies["posting_handler"]._post_channel_message.reset_mock()
@@ -234,10 +230,11 @@ async def test_trust_endorsement_button_visibility(mock_dependencies):
         has_trust_button = any(
             block.get("type") == "actions"
             and any(
-                elem.get("action_id") == "trust_status_update"
-                for elem in block.get("elements", [])
+                elem.get("action_id") == "trust_status_update" for elem in block.get("elements", [])
             )
             for block in blocks
         )
 
-        assert has_trust_button, f"Trust endorsement button SHOULD be shown in approved channel {approved_channel_id}"
+        assert (
+            has_trust_button
+        ), f"Trust endorsement button SHOULD be shown in approved channel {approved_channel_id}"

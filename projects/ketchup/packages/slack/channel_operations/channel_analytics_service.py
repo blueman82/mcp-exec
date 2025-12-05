@@ -44,9 +44,7 @@ class ChannelAnalyticsService:
 
         try:
             # Get channel information
-            channel_info = await self.channel_info_ops.get_channel_info_from_api(
-                channel_id
-            )
+            channel_info = await self.channel_info_ops.get_channel_info_from_api(channel_id)
 
             if not channel_info:
                 logger.warning("Could not retrieve channel info for %s", channel_id)
@@ -59,8 +57,8 @@ class ChannelAnalyticsService:
                     "engagement_score": 0.0,
                     "activity_level": "low",
                     "growth_trend": "stable",
-                    "recommendations": []
-                }
+                    "recommendations": [],
+                },
             }
 
             return insights
@@ -86,13 +84,9 @@ class ChannelAnalyticsService:
                 "channel_id": channel_id,
                 "health_score": 85.0,
                 "status": "healthy",
-                "indicators": {
-                    "activity": "good",
-                    "engagement": "moderate",
-                    "growth": "stable"
-                },
+                "indicators": {"activity": "good", "engagement": "moderate", "growth": "stable"},
                 "issues": [],
-                "recommendations": []
+                "recommendations": [],
             }
 
             return health_analysis
@@ -118,16 +112,8 @@ class ChannelAnalyticsService:
             trends = {
                 "channel_id": channel_id,
                 "period": period,
-                "trends": {
-                    "message_volume": [],
-                    "user_engagement": [],
-                    "response_rate": []
-                },
-                "summary": {
-                    "trend_direction": "stable",
-                    "peak_hours": [],
-                    "engagement_rate": 0.0
-                }
+                "trends": {"message_volume": [], "user_engagement": [], "response_rate": []},
+                "summary": {"trend_direction": "stable", "peak_hours": [], "engagement_rate": 0.0},
             }
 
             return trends
@@ -155,13 +141,13 @@ class ChannelAnalyticsService:
                     "next_week_messages": 0,
                     "next_month_growth": 0.0,
                     "activity_forecast": "stable",
-                    "confidence": 0.75
+                    "confidence": 0.75,
                 },
                 "factors": {
                     "historical_trend": "stable",
                     "seasonal_patterns": [],
-                    "external_factors": []
-                }
+                    "external_factors": [],
+                },
             }
 
             return prediction

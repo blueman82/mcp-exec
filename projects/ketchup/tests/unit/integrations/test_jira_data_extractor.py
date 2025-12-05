@@ -101,9 +101,7 @@ class TestJIRADataExtractor:
         """Create mock cache."""
         return JIRACache()
 
-    def test_extract_jira_tickets_from_text(
-        self, mock_mcp_client, mock_dynamodb_store, mock_cache
-    ):
+    def test_extract_jira_tickets_from_text(self, mock_mcp_client, mock_dynamodb_store, mock_cache):
         """Test extracting JIRA ticket IDs from text."""
         extractor = JIRADataExtractor(mock_mcp_client, mock_dynamodb_store, mock_cache)
 
@@ -188,9 +186,7 @@ class TestJIRADataExtractor:
         assert result["all_tickets"] == ["BUG-789", "FEAT-101"]
 
     @pytest.mark.asyncio
-    async def test_caching_behavior(
-        self, mock_mcp_client, mock_dynamodb_store, mock_cache
-    ):
+    async def test_caching_behavior(self, mock_mcp_client, mock_dynamodb_store, mock_cache):
         """Test that cache is used to avoid duplicate API calls."""
         extractor = JIRADataExtractor(mock_mcp_client, mock_dynamodb_store, mock_cache)
 
@@ -216,9 +212,7 @@ class TestJIRADataExtractor:
         assert result1["ticket_id"] == result2["ticket_id"]
 
     @pytest.mark.asyncio
-    async def test_api_error_handling(
-        self, mock_mcp_client, mock_dynamodb_store, mock_cache
-    ):
+    async def test_api_error_handling(self, mock_mcp_client, mock_dynamodb_store, mock_cache):
         """Test handling of API errors."""
         extractor = JIRADataExtractor(mock_mcp_client, mock_dynamodb_store, mock_cache)
 
@@ -234,9 +228,7 @@ class TestJIRADataExtractor:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_search_related_tickets(
-        self, mock_mcp_client, mock_dynamodb_store, mock_cache
-    ):
+    async def test_search_related_tickets(self, mock_mcp_client, mock_dynamodb_store, mock_cache):
         """Test searching for related tickets with JQL."""
         extractor = JIRADataExtractor(mock_mcp_client, mock_dynamodb_store, mock_cache)
 
@@ -296,9 +288,7 @@ class TestJIRADataExtractor:
         assert "hit_rate" in stats
 
     @pytest.mark.asyncio
-    async def test_empty_channel_metadata(
-        self, mock_mcp_client, mock_dynamodb_store, mock_cache
-    ):
+    async def test_empty_channel_metadata(self, mock_mcp_client, mock_dynamodb_store, mock_cache):
         """Test handling empty channel metadata."""
         extractor = JIRADataExtractor(mock_mcp_client, mock_dynamodb_store, mock_cache)
 

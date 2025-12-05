@@ -73,9 +73,7 @@ class TestSlackSummaryHandler:
         self.handler.create_validation_error_response = lambda msg: {
             "status": "error",
             "statusCode": 400,
-            "body": (
-                msg if "Invalid initial input" in str(msg) else "Invalid initial input"
-            ),
+            "body": (msg if "Invalid initial input" in str(msg) else "Invalid initial input"),
             "message": msg,
         }
 
@@ -90,9 +88,7 @@ class TestSlackSummaryHandler:
         src_mod.handle_archived_channel = passthrough_decorator
 
         # Correct the mock return value for the decorator
-        self.channel_restore_ops.restore_archived_channel = AsyncMock(
-            return_value=(True, False)
-        )
+        self.channel_restore_ops.restore_archived_channel = AsyncMock(return_value=(True, False))
 
     @pytest.mark.asyncio
     async def test_process_summary_params_valid(self) -> None:
@@ -116,9 +112,7 @@ class TestSlackSummaryHandler:
         channel_id = "C123"
         dm_channel_id = "D123"
         self.channel_info_ops.get_channel_details.return_value = ["channel-name"]
-        with patch.object(
-            self.handler, "_process_summary", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
             mock_proc.return_value = "summary text"
             result = await self.handler.process_summary_params(
                 params=params,
@@ -156,9 +150,7 @@ class TestSlackSummaryHandler:
             context=CommandContext.DIRECT_MESSAGE,
         )
         user_id = "U123"
-        with patch.object(
-            self.handler, "_process_summary", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
             result = await self.handler.process_summary_params(params, user_id)
             assert result["status"] == "error"
             mock_proc.assert_not_called()
@@ -182,9 +174,7 @@ class TestSlackSummaryHandler:
             summary_type="short",
         )
         user_id = "U123"
-        with patch.object(
-            self.handler, "_process_summary", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
             result = await self.handler.process_summary_params(
                 params=params,
                 user_id=user_id,
@@ -217,9 +207,7 @@ class TestSlackSummaryHandler:
         user_id = "U123"
         channel_id = "C123"
         dm_channel_id = "D123"
-        with patch.object(
-            self.handler, "_process_summary", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
             mock_proc.side_effect = Exception("fail!")
             result = await self.handler.process_summary_params(
                 params=params,
@@ -259,13 +247,9 @@ class TestSlackSummaryHandler:
         channel_id = "CINVALID"
         dm_channel_id = "D123"
         # Simulate restore ops returning (False, False) for invalid channel
-        self.channel_restore_ops.restore_archived_channel = AsyncMock(
-            return_value=(False, False)
-        )
+        self.channel_restore_ops.restore_archived_channel = AsyncMock(return_value=(False, False))
         # Patch the decorator to call the handler directly (simulate decorator logic)
-        with patch.object(
-            self.handler, "_process_summary", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
             # _process_summary should not be called for invalid channel
             result = await self.handler.process_summary_params(
                 params=params,

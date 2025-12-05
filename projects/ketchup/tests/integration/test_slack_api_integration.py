@@ -193,38 +193,36 @@ async def test_post_message_uses_response_url_on_ephemeral_fail(
     mock_httpx_response.text = "ok"
     # Patch httpx.AsyncClient.post used within _post_response_url
     # This assumes _post_response_url uses httpx.AsyncClient().post directly
-    with patch("httpx.AsyncClient.post", return_value=mock_httpx_response):
-        with patch.object(
+    with (
+        patch("httpx.AsyncClient.post", return_value=mock_httpx_response),
+        patch.object(
             posting_handler, "_post_response_url", return_value=mock_httpx_response
-        ) as mock_post_url:
-            mock_make_request.side_effect = [
-                mock_ephemeral_response
-            ]  # Only fail ephemeral
+        ) as mock_post_url,
+    ):
+        mock_make_request.side_effect = [mock_ephemeral_response]  # Only fail ephemeral
 
-            # Act
-            response = await posting_handler.post_message(
-                user_id=MOCK_USER_ID,
-                channel_id=MOCK_CHANNEL_ID,
-                message=MOCK_MESSAGE,
-                blocks=MOCK_BLOCKS,
-                response_url=MOCK_RESPONSE_URL,
-            )
+        # Act
+        response = await posting_handler.post_message(
+            user_id=MOCK_USER_ID,
+            channel_id=MOCK_CHANNEL_ID,
+            message=MOCK_MESSAGE,
+            blocks=MOCK_BLOCKS,
+            response_url=MOCK_RESPONSE_URL,
+        )
 
-            # Assert
-            # Check ephemeral call was first
-            mock_make_request.assert_awaited_once_with(
-                f"{posting_handler.config.get_api_base_url()}/chat.postEphemeral",
-                "POST",
-                ANY,
-                None,
-                ANY,
-            )
-            # Check response_url call was second (via patch)
-            mock_post_url.assert_awaited_once_with(
-                MOCK_RESPONSE_URL, MOCK_MESSAGE, MOCK_BLOCKS
-            )
-            # The return value should be from the successful response_url call
-            assert response is mock_httpx_response
+        # Assert
+        # Check ephemeral call was first
+        mock_make_request.assert_awaited_once_with(
+            f"{posting_handler.config.get_api_base_url()}/chat.postEphemeral",
+            "POST",
+            ANY,
+            None,
+            ANY,
+        )
+        # Check response_url call was second (via patch)
+        mock_post_url.assert_awaited_once_with(MOCK_RESPONSE_URL, MOCK_MESSAGE, MOCK_BLOCKS)
+        # The return value should be from the successful response_url call
+        assert response is mock_httpx_response
 
 
 @pytest.mark.asyncio
@@ -362,7 +360,5 @@ async def test_post_message_reraises_invalid_blocks_error(
         # Assert ephemeral was called
         mock_make_request.assert_awaited_once()
         # Assert _post_response_url was called
-        mock_post_url.assert_awaited_once_with(
-            MOCK_RESPONSE_URL, MOCK_MESSAGE, MOCK_BLOCKS
-        )
+        mock_post_url.assert_awaited_once_with(MOCK_RESPONSE_URL, MOCK_MESSAGE, MOCK_BLOCKS)
         assert "Blocks not allowed" in str(excinfo.value)

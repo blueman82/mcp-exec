@@ -25,15 +25,11 @@ class TestRealNamesDisplay:
         return CommandTrackingOperations(mock_dynamodb_client, "test-table")
 
     @pytest.mark.asyncio
-    async def test_get_user_real_names(
-        self, command_tracking_ops, mock_dynamodb_client
-    ):
+    async def test_get_user_real_names(self, command_tracking_ops, mock_dynamodb_client):
         """Test the _get_user_real_names helper method."""
         # Mock the underlying client
         mock_underlying_client = Mock()
-        mock_dynamodb_client._get_client = AsyncMock(
-            return_value=mock_underlying_client
-        )
+        mock_dynamodb_client._get_client = AsyncMock(return_value=mock_underlying_client)
 
         # Mock batch_get_item response
         mock_underlying_client.batch_get_item = AsyncMock(
@@ -70,9 +66,7 @@ class TestRealNamesDisplay:
         assert len(call_args["RequestItems"]["test-table"]["Keys"]) == 3
 
     @pytest.mark.asyncio
-    async def test_get_top_users_with_real_names(
-        self, command_tracking_ops, mock_dynamodb_client
-    ):
+    async def test_get_top_users_with_real_names(self, command_tracking_ops, mock_dynamodb_client):
         """Test that get_top_users returns real names instead of usernames."""
         # Mock scan response for command records
         mock_dynamodb_client.scan = AsyncMock(
@@ -105,9 +99,7 @@ class TestRealNamesDisplay:
 
         # Mock the underlying client for batch_get_item
         mock_underlying_client = Mock()
-        mock_dynamodb_client._get_client = AsyncMock(
-            return_value=mock_underlying_client
-        )
+        mock_dynamodb_client._get_client = AsyncMock(return_value=mock_underlying_client)
 
         # Mock batch_get_item response for real names
         mock_underlying_client.batch_get_item = AsyncMock(
@@ -168,9 +160,7 @@ class TestRealNamesDisplay:
 
         # Mock the underlying client for batch_get_item
         mock_underlying_client = Mock()
-        mock_dynamodb_client._get_client = AsyncMock(
-            return_value=mock_underlying_client
-        )
+        mock_dynamodb_client._get_client = AsyncMock(return_value=mock_underlying_client)
 
         # Mock batch_get_item response
         mock_underlying_client.batch_get_item = AsyncMock(
@@ -218,9 +208,7 @@ class TestRealNamesDisplay:
 
         # Mock the underlying client for batch_get_item
         mock_underlying_client = Mock()
-        mock_dynamodb_client._get_client = AsyncMock(
-            return_value=mock_underlying_client
-        )
+        mock_dynamodb_client._get_client = AsyncMock(return_value=mock_underlying_client)
 
         # Mock empty batch_get_item response (no real name found)
         mock_underlying_client.batch_get_item = AsyncMock(

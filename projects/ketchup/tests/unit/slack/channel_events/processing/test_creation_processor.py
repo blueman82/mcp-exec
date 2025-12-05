@@ -18,9 +18,7 @@ import packages.slack.channel_events.processing.creation_processor as creation_p
 
 @pytest.mark.asyncio
 class TestProcessEligibleChannelCreation:
-    @patch(
-        "packages.slack.channel_events.processing.creation_processor.ChannelMetadata"
-    )
+    @patch("packages.slack.channel_events.processing.creation_processor.ChannelMetadata")
     async def test_successful_invite_and_metadata(self, mock_metadata):
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
@@ -86,18 +84,14 @@ class TestProcessEligibleChannelCreation:
         # Should not call store_metadata
         assert not dynamodb_store.channel_ops.store_metadata.called
 
-    @patch(
-        "packages.slack.channel_events.processing.creation_processor.ChannelMetadata"
-    )
+    @patch("packages.slack.channel_events.processing.creation_processor.ChannelMetadata")
     async def test_metadata_storage_error(self, mock_metadata):
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
         channel_restore_ops.invite_ketchup_to_channel = AsyncMock(return_value=True)
         dynamodb_store = MagicMock()
-        dynamodb_store.channel_ops.store_metadata = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        dynamodb_store.channel_ops.store_metadata = AsyncMock(side_effect=Exception("fail"))
         posting_handler = MagicMock()
         posting_handler.post_message = AsyncMock()
         await creation_processor.process_eligible_channel_creation(
@@ -113,9 +107,7 @@ class TestProcessEligibleChannelCreation:
         )
         posting_handler.post_message.assert_awaited_once()
 
-    @patch(
-        "packages.slack.channel_events.processing.creation_processor.ChannelMetadata"
-    )
+    @patch("packages.slack.channel_events.processing.creation_processor.ChannelMetadata")
     async def test_event_ts_parse_error(self, mock_metadata):
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
@@ -141,9 +133,7 @@ class TestProcessEligibleChannelCreation:
         secrets_manager = MagicMock()
         secrets_manager.get_bot_slack_user_id_async = AsyncMock(return_value="BOTID")
         channel_restore_ops = MagicMock()
-        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        channel_restore_ops.invite_ketchup_to_channel = AsyncMock(side_effect=Exception("fail"))
         dynamodb_store = MagicMock()
         posting_handler = MagicMock()
         posting_handler.post_message = AsyncMock()

@@ -20,9 +20,10 @@ from packages.core.typed_di.types import DependencySpec
 
 # Essential imports for archive processing services
 try:
-    from packages.slack.channel_events.processing.archive_processor import process_channel_archive
-    from packages.db.dynamodb_store import DynamoDBStore
     from packages.core.sqs_client import SQSClient
+    from packages.db.dynamodb_store import DynamoDBStore
+    from packages.slack.channel_events.processing.archive_processor import process_channel_archive
+
     _archive_imports_available = True
 except ImportError:
     # Allow module to load even with missing imports for testing
@@ -33,11 +34,11 @@ if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
 from ..protocols import (
-    ArchiveProcessorProtocol,
-    ArchiveValidationServiceProtocol,
-    ArchiveReportingServiceProtocol,
     ArchiveAnalyticsServiceProtocol,
     ArchiveCleanupServiceProtocol,
+    ArchiveProcessorProtocol,
+    ArchiveReportingServiceProtocol,
+    ArchiveValidationServiceProtocol,
 )
 
 logger = setup_logger(__name__)
@@ -146,6 +147,7 @@ def register_archive_processing_services(manager: "ServiceRegistrationManager") 
 
 def _register_archive_processor(manager: "ServiceRegistrationManager") -> None:
     """Register ArchiveProcessor service."""
+
     async def create_archive_processor(resolver) -> ArchiveProcessor:
         """Factory function for ArchiveProcessor using TypedResolver."""
         logger.info("Creating ArchiveProcessor instance via TypedDI")
@@ -164,6 +166,7 @@ def _register_archive_processor(manager: "ServiceRegistrationManager") -> None:
 
 def _register_archive_validation_service(manager: "ServiceRegistrationManager") -> None:
     """Register ArchiveValidationService."""
+
     async def create_archive_validation_service(resolver) -> ArchiveValidationService:
         """Factory function for ArchiveValidationService using TypedResolver."""
         logger.info("Creating ArchiveValidationService instance via TypedDI")
@@ -181,6 +184,7 @@ def _register_archive_validation_service(manager: "ServiceRegistrationManager") 
 
 def _register_archive_reporting_service(manager: "ServiceRegistrationManager") -> None:
     """Register ArchiveReportingService."""
+
     async def create_archive_reporting_service(resolver) -> ArchiveReportingService:
         """Factory function for ArchiveReportingService using TypedResolver."""
         logger.info("Creating ArchiveReportingService instance via TypedDI")
@@ -198,6 +202,7 @@ def _register_archive_reporting_service(manager: "ServiceRegistrationManager") -
 
 def _register_archive_analytics_service(manager: "ServiceRegistrationManager") -> None:
     """Register ArchiveAnalyticsService."""
+
     async def create_archive_analytics_service(resolver) -> ArchiveAnalyticsService:
         """Factory function for ArchiveAnalyticsService using TypedResolver."""
         logger.info("Creating ArchiveAnalyticsService instance via TypedDI")
@@ -215,6 +220,7 @@ def _register_archive_analytics_service(manager: "ServiceRegistrationManager") -
 
 def _register_archive_cleanup_service(manager: "ServiceRegistrationManager") -> None:
     """Register ArchiveCleanupService."""
+
     async def create_archive_cleanup_service(resolver) -> ArchiveCleanupService:
         """Factory function for ArchiveCleanupService using TypedResolver."""
         logger.info("Creating ArchiveCleanupService instance via TypedDI")

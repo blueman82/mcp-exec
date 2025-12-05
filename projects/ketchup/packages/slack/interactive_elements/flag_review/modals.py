@@ -53,9 +53,7 @@ class FlagReviewModalManager:
         Returns:
             True if modal opened successfully, False otherwise
         """
-        modal_view = self.create_feedback_modal_view(
-            channel_id, message_ts, status_update_id
-        )
+        modal_view = self.create_feedback_modal_view(channel_id, message_ts, status_update_id)
 
         # Modal view is created and validated
         # Actual modal opening is handled by Slack client elsewhere
@@ -111,9 +109,7 @@ class FlagReviewModalManager:
         Returns:
             True if modal opened successfully, False otherwise
         """
-        modal_view = self.create_reply_modal_view(
-            flag_id, user_id, feedback_text, is_command
-        )
+        modal_view = self.create_reply_modal_view(flag_id, user_id, feedback_text, is_command)
 
         # Modal view is created and validated
         # Actual modal opening is handled by Slack client elsewhere
@@ -170,7 +166,7 @@ class FlagReviewModalManager:
                         {
                             "type": "mrkdwn",
                             "text": "Examples:\n• Missing important context\n"
-                                     "• Incorrect facts\n• Misleading summary",
+                            "• Incorrect facts\n• Misleading summary",
                         }
                     ],
                 },
@@ -261,9 +257,7 @@ class FlagReviewModalManager:
         Returns:
             Modal view dictionary
         """
-        callback_id = (
-            MODAL_REPLY_COMMAND_FEEDBACK if is_command else MODAL_REPLY_FEEDBACK
-        )
+        callback_id = MODAL_REPLY_COMMAND_FEEDBACK if is_command else MODAL_REPLY_FEEDBACK
 
         return {
             "type": "modal",

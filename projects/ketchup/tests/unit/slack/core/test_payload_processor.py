@@ -126,9 +126,7 @@ async def test_block_actions_feedback_success(
         trust_endorsement_handler_mock,
     )
     assert result is True
-    feedback_handler_mock.process_feedback_reaction.assert_awaited_once_with(
-        payload=payload_input
-    )
+    feedback_handler_mock.process_feedback_reaction.assert_awaited_once_with(payload=payload_input)
     posting_handler_mock.post_message.assert_not_awaited()
 
 
@@ -167,9 +165,7 @@ async def test_block_actions_feedback_failure(
         trust_endorsement_handler_mock,
     )
     assert result is True
-    feedback_handler_mock.process_feedback_reaction.assert_awaited_once_with(
-        payload=payload
-    )
+    feedback_handler_mock.process_feedback_reaction.assert_awaited_once_with(payload=payload)
     posting_handler_mock.post_message.assert_awaited_once_with(
         user_id="U1",
         channel_id="C1",
@@ -289,9 +285,7 @@ async def test_shortcut_success(
         trust_endorsement_handler_mock,
     )
     assert result is True
-    shortcut_handler_mock.handle_shortcut.assert_awaited_once_with(
-        slack_payload=payload
-    )
+    shortcut_handler_mock.handle_shortcut.assert_awaited_once_with(slack_payload=payload)
 
 
 async def test_shortcut_failure(
@@ -324,9 +318,7 @@ async def test_shortcut_failure(
         trust_endorsement_handler_mock,
     )
     assert result is False
-    shortcut_handler_mock.handle_shortcut.assert_awaited_once_with(
-        slack_payload=payload
-    )
+    shortcut_handler_mock.handle_shortcut.assert_awaited_once_with(slack_payload=payload)
 
 
 async def test_view_submission_success(
@@ -355,9 +347,7 @@ async def test_view_submission_success(
         called_args["kwargs"] = kwargs
         return True
 
-    monkeypatch.setattr(
-        payload_processor, "process_view_submission", fake_process_view_submission
-    )
+    monkeypatch.setattr(payload_processor, "process_view_submission", fake_process_view_submission)
     result = await payload_processor.process_interactive_payload(
         payload,
         posting_handler_mock,
@@ -370,9 +360,7 @@ async def test_view_submission_success(
     )
     assert result is True
     assert called_args["kwargs"]["payload"] == payload
-    assert (
-        called_args["kwargs"]["feedback_report_handler"] == feedback_report_handler_mock
-    )
+    assert called_args["kwargs"]["feedback_report_handler"] == feedback_report_handler_mock
 
 
 async def test_view_submission_failure(
@@ -401,9 +389,7 @@ async def test_view_submission_failure(
         called_args["kwargs"] = kwargs
         return False
 
-    monkeypatch.setattr(
-        payload_processor, "process_view_submission", fake_process_view_submission
-    )
+    monkeypatch.setattr(payload_processor, "process_view_submission", fake_process_view_submission)
     result = await payload_processor.process_interactive_payload(
         payload,
         posting_handler_mock,
@@ -416,9 +402,7 @@ async def test_view_submission_failure(
     )
     assert result is False
     assert called_args["kwargs"]["payload"] == payload
-    assert (
-        called_args["kwargs"]["feedback_report_handler"] == feedback_report_handler_mock
-    )
+    assert called_args["kwargs"]["feedback_report_handler"] == feedback_report_handler_mock
 
 
 async def test_unknown_payload_type_with_user_and_channel(
@@ -666,18 +650,16 @@ async def test_edit_channel_metadata_with_valid_private_metadata(
         "channel": {"id": dm_channel_id},  # Modal opened from DM
         "view": {
             "callback_id": "edit_channel_metadata",
-            "private_metadata": json.dumps({
-                "origin_channel_id": dm_channel_id,
-                "target_channel_id": public_channel_id,  # This is what we want to update
-            }),
+            "private_metadata": json.dumps(
+                {
+                    "origin_channel_id": dm_channel_id,
+                    "target_channel_id": public_channel_id,  # This is what we want to update
+                }
+            ),
             "state": {
                 "values": {
-                    "customer_name_block": {
-                        "customer_name_input": {"value": "TEST CUSTOMER"}
-                    },
-                    "jira_ticket_block": {
-                        "jira_ticket_input": {"value": "CPGNREQ-12345"}
-                    },
+                    "customer_name_block": {"customer_name_input": {"value": "TEST CUSTOMER"}},
+                    "jira_ticket_block": {"jira_ticket_input": {"value": "CPGNREQ-12345"}},
                 }
             },
         },
@@ -704,7 +686,9 @@ async def test_edit_channel_metadata_with_valid_private_metadata(
     # Should succeed and call DB update with PUBLIC channel_id
     assert result is True
     channel_metadata_edit_handler_mock.dynamodb_store.update_channel_metadata.assert_awaited_once()
-    call_kwargs = channel_metadata_edit_handler_mock.dynamodb_store.update_channel_metadata.call_args[1]
+    call_kwargs = (
+        channel_metadata_edit_handler_mock.dynamodb_store.update_channel_metadata.call_args[1]
+    )
     # CRITICAL: Must use public channel, NOT DM channel
     assert call_kwargs["channel_id"] == public_channel_id, (
         f"Expected channel_id={public_channel_id} (public), "
@@ -746,12 +730,8 @@ async def test_edit_channel_metadata_with_missing_private_metadata(
             "private_metadata": "",  # EMPTY - the bug scenario
             "state": {
                 "values": {
-                    "customer_name_block": {
-                        "customer_name_input": {"value": "TEST CUSTOMER"}
-                    },
-                    "jira_ticket_block": {
-                        "jira_ticket_input": {"value": "CPGNREQ-12345"}
-                    },
+                    "customer_name_block": {"customer_name_input": {"value": "TEST CUSTOMER"}},
+                    "jira_ticket_block": {"jira_ticket_input": {"value": "CPGNREQ-12345"}},
                 }
             },
         },
@@ -776,7 +756,9 @@ async def test_edit_channel_metadata_with_missing_private_metadata(
     )
 
     # Test that the bug is FIXED: should fail gracefully instead of using wrong channel
-    assert result is False  # Should fail due to missing metadata, not corrupt data with wrong channel
+    assert (
+        result is False
+    )  # Should fail due to missing metadata, not corrupt data with wrong channel
     # Should NOT attempt to update metadata when private_metadata is missing
     channel_metadata_edit_handler_mock.dynamodb_store.update_channel_metadata.assert_not_awaited()
 
@@ -812,12 +794,8 @@ async def test_edit_channel_metadata_with_malformed_json_private_metadata(
             "private_metadata": "{invalid json}",  # MALFORMED JSON
             "state": {
                 "values": {
-                    "customer_name_block": {
-                        "customer_name_input": {"value": "TEST CUSTOMER"}
-                    },
-                    "jira_ticket_block": {
-                        "jira_ticket_input": {"value": "CPGNREQ-12345"}
-                    },
+                    "customer_name_block": {"customer_name_input": {"value": "TEST CUSTOMER"}},
+                    "jira_ticket_block": {"jira_ticket_input": {"value": "CPGNREQ-12345"}},
                 }
             },
         },

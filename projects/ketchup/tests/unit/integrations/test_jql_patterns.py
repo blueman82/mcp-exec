@@ -92,9 +92,7 @@ class TestJQLPatterns:
         assert result == expected_issues
 
     @pytest.mark.asyncio
-    async def test_complex_jql_with_multiple_conditions(
-        self, jira_extractor, mock_mcp_client
-    ):
+    async def test_complex_jql_with_multiple_conditions(self, jira_extractor, mock_mcp_client):
         """Test complex JQL with multiple conditions."""
         jql = 'project in ("CAMP", "INFRA") AND status != "Closed" AND (labels = "incident" OR priority = "P1") ORDER BY created DESC'
         expected_issues = [
@@ -136,9 +134,7 @@ class TestJQLPatterns:
     async def test_epic_link_jql(self, jira_extractor, mock_mcp_client):
         """Test JQL for issues linked to an epic."""
         jql = '"Epic Link" = EPIC-100 AND status != "Done"'
-        expected_issues = [
-            {"key": "STORY-555", "fields": {"summary": "Story under epic"}}
-        ]
+        expected_issues = [{"key": "STORY-555", "fields": {"summary": "Story under epic"}}]
         mock_mcp_client.search_issues.return_value = {"issues": expected_issues}
 
         result = await jira_extractor.search_related_tickets(jql)

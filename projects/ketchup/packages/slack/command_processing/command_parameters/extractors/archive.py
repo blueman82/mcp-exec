@@ -17,9 +17,7 @@ from packages.slack.command_processing.command_parameters.validation import (
 logger = setup_logger(__name__)
 
 
-def extract_archive_params(
-    command: str, context: CommandContext
-) -> ArchiveCommandParams:
+def extract_archive_params(command: str, context: CommandContext) -> ArchiveCommandParams:
     """
     Extract parameters for archive commands.
 

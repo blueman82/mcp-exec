@@ -84,9 +84,7 @@ class MetricsStorage:
             self.storage_dir.mkdir(parents=True, exist_ok=True)
             logger.info("Metrics storage directory ensured at: %s", self.storage_dir)
         except OSError as e:
-            logger.error(
-                "Failed to create metrics directory %s: %s", self.storage_dir, e
-            )
+            logger.error("Failed to create metrics directory %s: %s", self.storage_dir, e)
             # Try fallback to current directory
             try:
                 fallback_dir = Path.cwd() / "ketchup_metrics"
@@ -94,9 +92,7 @@ class MetricsStorage:
                 self.storage_dir = fallback_dir
                 logger.warning("Using fallback metrics directory: %s", self.storage_dir)
             except OSError:
-                logger.error(
-                    "Failed to create fallback directory, metrics will be lost"
-                )
+                logger.error("Failed to create fallback directory, metrics will be lost")
 
     async def put_metric(
         self,
@@ -251,8 +247,7 @@ class MetricsStorage:
             "errors_count": self._errors_count,
             "buffer_size": len(self._buffer),
             "last_flush": self._last_flush,
-            "storage_accessible": self.storage_dir.exists()
-            and self.storage_dir.is_dir(),
+            "storage_accessible": self.storage_dir.exists() and self.storage_dir.is_dir(),
         }
 
     async def cleanup(self) -> None:

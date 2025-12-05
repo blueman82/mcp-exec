@@ -30,7 +30,7 @@ from packages.core.resilience.backoff import BackoffStrategy, ExponentialBackoff
 logger = setup_logger(__name__)
 
 # Default maximum concurrent requests (configurable via environment variable)
-DEFAULT_MAX_CONCURRENT_REQUESTS = int(os.getenv('MAX_CONCURRENT_REQUESTS', '10'))
+DEFAULT_MAX_CONCURRENT_REQUESTS = int(os.getenv("MAX_CONCURRENT_REQUESTS", "10"))
 
 # Type variable for the return type of functions decorated with exponential backoff
 T = TypeVar("T")
@@ -107,14 +107,10 @@ class AsyncClient(Generic[ConfigType, ResponseType]):
             raise ValueError("Configuration (config) cannot be None for AsyncClient")
         self.config: ConfigType = config
         self._session: Optional[Union[aiohttp.ClientSession, httpx.AsyncClient]] = None
-        self._request_semaphore: asyncio.Semaphore = asyncio.Semaphore(
-            max_concurrent_requests
-        )
+        self._request_semaphore: asyncio.Semaphore = asyncio.Semaphore(max_concurrent_requests)
         self._batch_sizer: _AdaptiveBatcher = _AdaptiveBatcher(initial_size=BATCH_SIZE)
         self._request_timeout = aiohttp.ClientTimeout(total=request_timeout)
-        self._backoff_strategy: BackoffStrategy = (
-            backoff_strategy or ExponentialBackoffStrategy()
-        )
+        self._backoff_strategy: BackoffStrategy = backoff_strategy or ExponentialBackoffStrategy()
 
     async def execute_with_backoff(
         self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
@@ -200,42 +196,32 @@ class AsyncClient(Generic[ConfigType, ResponseType]):
             if isinstance(self._session, httpx.AsyncClient):
                 # httpx: use is_closed property and aclose() method
                 if not self._session.is_closed:
-                    logger.info(
-                        "Closing httpx session in %s.cleanup()",
-                        self.__class__.__name__
-                    )
+                    logger.info("Closing httpx session in %s.cleanup()", self.__class__.__name__)
                     try:
                         await self._session.aclose()
                         logger.info(
-                            "Successfully closed httpx session in %s",
-                            self.__class__.__name__
+                            "Successfully closed httpx session in %s", self.__class__.__name__
                         )
                     except Exception as e:
                         logger.error(
-                            "Error closing httpx session in %s: %s",
-                            self.__class__.__name__,
-                            str(e)
+                            "Error closing httpx session in %s: %s", self.__class__.__name__, str(e)
                         )
                     finally:
                         self._session = None
             elif isinstance(self._session, aiohttp.ClientSession):
                 # aiohttp: use closed property and close() method
                 if not self._session.closed:
-                    logger.info(
-                        "Closing aiohttp session in %s.cleanup()",
-                        self.__class__.__name__
-                    )
+                    logger.info("Closing aiohttp session in %s.cleanup()", self.__class__.__name__)
                     try:
                         await self._session.close()
                         logger.info(
-                            "Successfully closed aiohttp session in %s",
-                            self.__class__.__name__
+                            "Successfully closed aiohttp session in %s", self.__class__.__name__
                         )
                     except Exception as e:
                         logger.error(
                             "Error closing aiohttp session in %s: %s",
                             self.__class__.__name__,
-                            str(e)
+                            str(e),
                         )
                     finally:
                         self._session = None

@@ -57,9 +57,7 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
                     return self._client
                 except Exception as e:
                     # Session is closed or other error, clear the client to recreate it
-                    logger.warning(
-                        "DynamoDB client session invalid, recreating: %s", str(e)
-                    )
+                    logger.warning("DynamoDB client session invalid, recreating: %s", str(e))
                     await self.cleanup()
 
             # Initialize session and client if not already done
@@ -290,8 +288,7 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
             formatted_values = {}
             for key, value in expression_attribute_values.items():
                 if isinstance(value, dict) and any(
-                    k in value
-                    for k in ["S", "N", "B", "SS", "NS", "BS", "M", "L", "NULL", "BOOL"]
+                    k in value for k in ["S", "N", "B", "SS", "NS", "BS", "M", "L", "NULL", "BOOL"]
                 ):
                     # Already in DynamoDB format
                     formatted_values[key] = value
@@ -345,8 +342,7 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
         formatted_values = {}
         for key, value in expression_attribute_values.items():
             if isinstance(value, dict) and any(
-                k in value
-                for k in ["S", "N", "B", "SS", "NS", "BS", "M", "L", "NULL", "BOOL"]
+                k in value for k in ["S", "N", "B", "SS", "NS", "BS", "M", "L", "NULL", "BOOL"]
             ):
                 # Already in DynamoDB format
                 formatted_values[key] = value
@@ -406,9 +402,7 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
                 return {"L": [self._convert_to_dynamodb_format(v) for v in value]}
         elif isinstance(value, dict):
             # Map type
-            return {
-                "M": {k: self._convert_to_dynamodb_format(v) for k, v in value.items()}
-            }
+            return {"M": {k: self._convert_to_dynamodb_format(v) for k, v in value.items()}}
         else:
             # Default to string representation
             return {"S": str(value)}

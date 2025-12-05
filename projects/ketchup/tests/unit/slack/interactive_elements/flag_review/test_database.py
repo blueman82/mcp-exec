@@ -92,7 +92,7 @@ class TestFlagReviewDatabaseOperations:
                 {
                     "PK": {"S": "FLAG_REVIEW#test_key"},
                     "SK": {"S": "TIMESTAMP#test_ts"},
-                    "flag_id": {"S": "C123_1234567890.123456"}
+                    "flag_id": {"S": "C123_1234567890.123456"},
                 }
             ]
         }

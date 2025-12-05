@@ -133,9 +133,7 @@ class ChannelMetadataEditHandler:
             "Authorization": f"Bearer {slack_token}",
             "Content-Type": "application/json",
         }
-        view = await self._build_edit_modal(
-            initial_values, origin_channel_id, target_channel_id
-        )
+        view = await self._build_edit_modal(initial_values, origin_channel_id, target_channel_id)
         payload = {"trigger_id": trigger_id, "view": view}
 
         timeout = aiohttp.ClientTimeout(total=10)

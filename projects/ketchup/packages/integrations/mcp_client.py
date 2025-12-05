@@ -94,18 +94,18 @@ class MCPClient:
             True if healthy, False otherwise
         """
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(
                     f"{self.base_url}/health", timeout=aiohttp.ClientTimeout(total=5)
-                ) as response:
-                    self._is_healthy = response.status == 200
-                    if self._is_healthy:
-                        logger.info("MCP server health check passed")
-                    else:
-                        logger.warning(
-                            f"MCP server health check failed: {response.status}"
-                        )
-                    return self._is_healthy
+                ) as response,
+            ):
+                self._is_healthy = response.status == 200
+                if self._is_healthy:
+                    logger.info("MCP server health check passed")
+                else:
+                    logger.warning(f"MCP server health check failed: {response.status}")
+                return self._is_healthy
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             self._is_healthy = False
@@ -161,30 +161,28 @@ class MCPClient:
         try:
             headers = await self._get_headers()
 
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(
                     f"{self.base_url}/sse",
                     headers=headers,
                     timeout=aiohttp.ClientTimeout(total=10),
-                ) as response:
-                    if response.status != 200:
-                        raise Exception(
-                            f"Failed to establish SSE connection: {response.status}"
-                        )
+                ) as response,
+            ):
+                if response.status != 200:
+                    raise Exception(f"Failed to establish SSE connection: {response.status}")
 
-                    # Extract session ID from response headers or generate one
-                    session_id = response.headers.get("X-Session-ID", str(uuid.uuid4()))
-                    self._session_id = session_id
-                    logger.info(f"MCP session established: {session_id}")
-                    return session_id
+                # Extract session ID from response headers or generate one
+                session_id = response.headers.get("X-Session-ID", str(uuid.uuid4()))
+                self._session_id = session_id
+                logger.info(f"MCP session established: {session_id}")
+                return session_id
 
         except Exception as e:
             logger.error(f"Failed to establish MCP session: {e}")
             raise
 
-    async def _call_mcp_tool(
-        self, tool_name: str, arguments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _call_mcp_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Call an MCP tool using JSON-RPC protocol.
 
@@ -218,9 +216,7 @@ class MCPClient:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        logger.error(
-                            f"MCP tool call failed: {response.status} - {error_text}"
-                        )
+                        logger.error(f"MCP tool call failed: {response.status} - {error_text}")
                         raise Exception(f"MCP tool call failed: {response.status}")
 
                     result = await response.json()
@@ -236,9 +232,7 @@ class MCPClient:
                             error_data = error.get("data", {})
                             if "jiraError" in error_data:
                                 # Use the JIRA error message if available
-                                error_message = error_data.get(
-                                    "jiraError", error_message
-                                )
+                                error_message = error_data.get("jiraError", error_message)
                         raise Exception(f"{error_message}")
 
                     # Return the result content
@@ -306,9 +300,7 @@ class MCPClient:
 
         try:
             result = await self._call_mcp_tool("search_jira_issues", arguments)
-            logger.info(
-                f"JIRA search successful, found {len(result.get('issues', []))} issues"
-            )
+            logger.info(f"JIRA search successful, found {len(result.get('issues', []))} issues")
             return result
         except Exception as e:
             # Handle authentication errors
@@ -332,9 +324,7 @@ class MCPClient:
         await self.rate_limiter.acquire()
 
         try:
-            result = await self._call_mcp_tool(
-                "get_jira_comments", {"issueIdOrKey": issue_key}
-            )
+            result = await self._call_mcp_tool("get_jira_comments", {"issueIdOrKey": issue_key})
             # Handle the response format from MCP tool
             if isinstance(result, dict) and result.get("success"):
                 data = result.get("data", {})
@@ -398,9 +388,7 @@ class MCPClient:
             jql = f'key IN ({", ".join(escaped_keys)})'
 
             logger.info(f"Batch fetching {len(issue_keys)} issues")
-            result = await self.search_issues(
-                jql, fields=fields, max_results=len(issue_keys)
-            )
+            result = await self.search_issues(jql, fields=fields, max_results=len(issue_keys))
 
             # Build result map
             issues_map = {}
@@ -485,9 +473,7 @@ class MCPClient:
             # We return just the data portion for compatibility with rotator.py
             if result.get("success") and "data" in result:
                 data = result["data"]
-                logger.info(
-                    f"PAT created successfully: {data.get('id', 'unknown')}"
-                )
+                logger.info(f"PAT created successfully: {data.get('id', 'unknown')}")
                 return data
             else:
                 error_msg = result.get("message", "Unknown error")
@@ -526,9 +512,7 @@ class MCPClient:
             if result.get("valid"):
                 logger.info("PAT validation successful")
             else:
-                logger.warning(
-                    f"PAT validation failed: {result.get('message', 'Unknown error')}"
-                )
+                logger.warning(f"PAT validation failed: {result.get('message', 'Unknown error')}")
 
             return result
         except Exception as e:

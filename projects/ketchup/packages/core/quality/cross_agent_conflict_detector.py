@@ -21,8 +21,14 @@ from .code_quality_validator import CodeQualityViolation
 class WorkSession:
     """Represents an active work session by an agent."""
 
-    def __init__(self, agent_id: str, session_id: str, files: List[str],
-                 start_time: datetime, priority: int = 5):
+    def __init__(
+        self,
+        agent_id: str,
+        session_id: str,
+        files: List[str],
+        start_time: datetime,
+        priority: int = 5,
+    ):
         """Initialize a work session."""
         self.agent_id = agent_id
         self.session_id = session_id
@@ -60,7 +66,7 @@ class CrossAgentConflictDetector:
             return {"sessions": {}, "file_locks": {}, "resource_locks": {}}
 
         try:
-            with open(self.lock_file_path, 'r') as f:
+            with open(self.lock_file_path, "r") as f:
                 return json.load(f)
         except Exception:
             return {"sessions": {}, "file_locks": {}, "resource_locks": {}}
@@ -76,16 +82,16 @@ class CrossAgentConflictDetector:
                         "start_time": session.start_time.isoformat(),
                         "last_activity": session.last_activity.isoformat(),
                         "priority": session.priority,
-                        "locked_resources": list(session.locked_resources)
+                        "locked_resources": list(session.locked_resources),
                     }
                     for session_id, session in self.active_sessions.items()
                 },
                 "file_locks": self.file_locks,
-                "resource_locks": self.resource_locks
+                "resource_locks": self.resource_locks,
             }
 
             os.makedirs(os.path.dirname(self.lock_file_path), exist_ok=True)
-            with open(self.lock_file_path, 'w') as f:
+            with open(self.lock_file_path, "w") as f:
                 json.dump(lock_data, f, indent=2)
         except Exception:
             pass  # Fail silently for lock file issues
@@ -93,15 +99,17 @@ class CrossAgentConflictDetector:
     def _cleanup_expired_sessions(self):
         """Remove expired work sessions."""
         expired_sessions = [
-            session_id for session_id, session in self.active_sessions.items()
+            session_id
+            for session_id, session in self.active_sessions.items()
             if session.is_expired()
         ]
 
         for session_id in expired_sessions:
             self._release_session(session_id)
 
-    def register_work_session(self, agent_id: str, session_id: str,
-                            files: List[str], priority: int = 5) -> List[CodeQualityViolation]:
+    def register_work_session(
+        self, agent_id: str, session_id: str, files: List[str], priority: int = 5
+    ) -> List[CodeQualityViolation]:
         """Register a new work session and check for conflicts."""
         violations = []
 
@@ -119,13 +127,15 @@ class CrossAgentConflictDetector:
             if conflicting_files:
                 for file_path, existing_session in conflicting_files:
                     existing_agent = self.active_sessions.get(existing_session, {})
-                    agent_name = getattr(existing_agent, 'agent_id', 'unknown')
-                    violations.append(CodeQualityViolation(
-                        violation_type="file_conflict",
-                        file_path=file_path,
-                        line_number=0,
-                        message=f"File locked by {agent_name} (session: {existing_session})"
-                    ))
+                    agent_name = getattr(existing_agent, "agent_id", "unknown")
+                    violations.append(
+                        CodeQualityViolation(
+                            violation_type="file_conflict",
+                            file_path=file_path,
+                            line_number=0,
+                            message=f"File locked by {agent_name} (session: {existing_session})",
+                        )
+                    )
 
             # If no conflicts, register the session
             if not violations:
@@ -140,19 +150,21 @@ class CrossAgentConflictDetector:
 
         return violations
 
-    def acquire_resource_lock(self, session_id: str, resource_name: str) -> Optional[CodeQualityViolation]:
+    def acquire_resource_lock(
+        self, session_id: str, resource_name: str
+    ) -> Optional[CodeQualityViolation]:
         """Acquire a lock on a specific resource."""
         with self._lock:
             if resource_name in self.resource_locks:
                 existing_session = self.resource_locks[resource_name]
                 if existing_session != session_id:
                     existing_agent = self.active_sessions.get(existing_session, {})
-                    agent_name = getattr(existing_agent, 'agent_id', 'unknown')
+                    agent_name = getattr(existing_agent, "agent_id", "unknown")
                     return CodeQualityViolation(
                         violation_type="resource_conflict",
                         file_path=resource_name,
                         line_number=0,
-                        message=f"Resource locked by {agent_name} (session: {existing_session})"
+                        message=f"Resource locked by {agent_name} (session: {existing_session})",
                     )
 
             # Acquire the lock
@@ -167,7 +179,10 @@ class CrossAgentConflictDetector:
     def release_resource_lock(self, session_id: str, resource_name: str):
         """Release a lock on a specific resource."""
         with self._lock:
-            if resource_name in self.resource_locks and self.resource_locks[resource_name] == session_id:
+            if (
+                resource_name in self.resource_locks
+                and self.resource_locks[resource_name] == session_id
+            ):
                 del self.resource_locks[resource_name]
 
             if session_id in self.active_sessions:
@@ -185,7 +200,8 @@ class CrossAgentConflictDetector:
 
         # Release file locks
         files_to_release = [
-            file_path for file_path, locked_session in self.file_locks.items()
+            file_path
+            for file_path, locked_session in self.file_locks.items()
             if locked_session == session_id
         ]
         for file_path in files_to_release:
@@ -193,7 +209,8 @@ class CrossAgentConflictDetector:
 
         # Release resource locks
         resources_to_release = [
-            resource for resource, locked_session in self.resource_locks.items()
+            resource
+            for resource, locked_session in self.resource_locks.items()
             if locked_session == session_id
         ]
         for resource in resources_to_release:
@@ -233,12 +250,14 @@ class CrossAgentConflictDetector:
                 for blocking_session in waiting_for:
                     if blocking_session in waiting_sessions:
                         if session_id in waiting_sessions[blocking_session]:
-                            violations.append(CodeQualityViolation(
-                                violation_type="deadlock",
-                                file_path="system",
-                                line_number=0,
-                                message=f"Potential deadlock between sessions {session_id} and {blocking_session}"
-                            ))
+                            violations.append(
+                                CodeQualityViolation(
+                                    violation_type="deadlock",
+                                    file_path="system",
+                                    line_number=0,
+                                    message=f"Potential deadlock between sessions {session_id} and {blocking_session}",
+                                )
+                            )
 
         return violations
 
@@ -256,11 +275,12 @@ class CrossAgentConflictDetector:
                         "agent_id": session.agent_id,
                         "files": list(session.files),
                         "priority": session.priority,
-                        "duration_minutes": (datetime.now() - session.start_time).total_seconds() / 60,
-                        "locked_resources": list(session.locked_resources)
+                        "duration_minutes": (datetime.now() - session.start_time).total_seconds()
+                        / 60,
+                        "locked_resources": list(session.locked_resources),
                     }
                     for session_id, session in self.active_sessions.items()
-                }
+                },
             }
 
     def generate_conflict_report(self, violations: List[CodeQualityViolation]) -> str:

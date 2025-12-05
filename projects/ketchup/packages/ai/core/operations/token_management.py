@@ -82,9 +82,7 @@ class TokenManager:
             )
 
         # 2. Truncate Messages (preserving all system messages)
-        truncated_messages = self._truncate_messages_preserving_system(
-            messages, total_tokens
-        )
+        truncated_messages = self._truncate_messages_preserving_system(messages, total_tokens)
 
         return truncated_messages
 
@@ -97,10 +95,10 @@ class TokenManager:
     ):
         """Sends a notification to Slack about input truncation."""
         # Lazy import to avoid circular dependency with OpenAIHandler
-        from packages.core.typed_di_integration import get_typed_registry
         from packages.core.typed_di.service_registrations.protocols.core_protocols import (
             SlackPostingHandlerProtocol,
         )
+        from packages.core.typed_di_integration import get_typed_registry
 
         approx_words = tokens_to_words(total_tokens)
         limit_words = tokens_to_words(MAX_PROCESSABLE_TOKENS)
@@ -134,17 +132,13 @@ class TokenManager:
             )
             logger.info("Token limit notification sent successfully.")
         except Exception as e:
-            logger.error(
-                "Failed to send token limit notification: %s", str(e), exc_info=True
-            )
+            logger.error("Failed to send token limit notification: %s", str(e), exc_info=True)
         finally:
             if posting_handler:
                 try:
                     await posting_handler.cleanup()
                 except Exception as cleanup_error:
-                    logger.error(
-                        "Error during posting handler cleanup: %s", str(cleanup_error)
-                    )
+                    logger.error("Error during posting handler cleanup: %s", str(cleanup_error))
 
     def _truncate_messages_preserving_system(
         self,
@@ -170,9 +164,7 @@ class TokenManager:
         user_messages = [msg for msg in messages if msg.get("role") == "user"]
 
         # Combine all system message content
-        system_content = "\n\n".join(
-            str(msg.get("content", "")) for msg in system_messages
-        )
+        system_content = "\n\n".join(str(msg.get("content", "")) for msg in system_messages)
 
         # Combine all user message content
         user_content = "\n".join(str(msg.get("content", "")) for msg in user_messages)
@@ -212,9 +204,7 @@ class TokenManager:
                     char_limit = MAX_PROCESSABLE_TOKENS * 4
                     truncated_system_content = system_content[:char_limit]
 
-                final_messages = [
-                    {"role": "system", "content": truncated_system_content}
-                ]
+                final_messages = [{"role": "system", "content": truncated_system_content}]
             else:
                 # Single system message case
                 if is_tiktoken:
@@ -226,9 +216,7 @@ class TokenManager:
                     char_limit = MAX_PROCESSABLE_TOKENS * 4
                     truncated_system_content = system_content[:char_limit]
 
-                final_messages = [
-                    {"role": "system", "content": truncated_system_content}
-                ]
+                final_messages = [{"role": "system", "content": truncated_system_content}]
 
             new_total = count_tokens(truncated_system_content)
             logger.info("Messages after truncation (system only): %s tokens", new_total)
@@ -254,9 +242,7 @@ class TokenManager:
                 else:
                     # User content fits within the available tokens
                     truncated_user_content = user_content
-                    logger.info(
-                        "User content fits within available tokens, no truncation needed."
-                    )
+                    logger.info("User content fits within available tokens, no truncation needed.")
 
             except Exception as e:
                 logger.error(

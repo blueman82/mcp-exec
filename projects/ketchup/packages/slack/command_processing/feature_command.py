@@ -199,9 +199,7 @@ class FeatureCommand(BaseCommandHandler):
                 return {"statusCode": 200, "body": "Missing target user"}
 
             # Get user display name for a nicer message
-            user_names = await self.slack_user_ops.get_user_names(
-                [params.target_user_id]
-            )
+            user_names = await self.slack_user_ops.get_user_names([params.target_user_id])
             display_name = user_names.get(params.target_user_id, params.target_user_id)
 
             # Enable the feature
@@ -286,9 +284,7 @@ class FeatureCommand(BaseCommandHandler):
                 return {"statusCode": 200, "body": "Missing target user"}
 
             # Get user display name for a nicer message
-            user_names = await self.slack_user_ops.get_user_names(
-                [params.target_user_id]
-            )
+            user_names = await self.slack_user_ops.get_user_names([params.target_user_id])
             display_name = user_names.get(params.target_user_id, params.target_user_id)
 
             # Disable the feature
@@ -335,9 +331,7 @@ class FeatureCommand(BaseCommandHandler):
         # Handle based on feature type
         if feature_name in ["status_updater", "jira_reporter", "trust_endorsement"]:
             # Get channels with feature enabled
-            channels = await self.feature_service.get_channels_with_feature(
-                feature_name
-            )
+            channels = await self.feature_service.get_channels_with_feature(feature_name)
 
             if not channels:
                 await self.posting_handler.post_message(
@@ -433,9 +427,7 @@ class FeatureCommand(BaseCommandHandler):
                 # In global mode, individual channel flags are irrelevant
                 message += "\n• Mode: Global (all channels processed)"
             else:
-                channels = await self.feature_service.get_channels_with_feature(
-                    feature_name
-                )
+                channels = await self.feature_service.get_channels_with_feature(feature_name)
                 message += f"\n• Channels with feature enabled: {len(channels)}"
             if "channel_field" in status:
                 message += f"\n• DynamoDB field: {status['channel_field']}"
@@ -484,17 +476,11 @@ class FeatureCommand(BaseCommandHandler):
         logger.info(f"Processing access_management action: {action}")
 
         if action == "grant":
-            return await self._handle_grant_access(
-                user_id, incoming_channel, params, response_url
-            )
+            return await self._handle_grant_access(user_id, incoming_channel, params, response_url)
         elif action == "revoke":
-            return await self._handle_revoke_access(
-                user_id, incoming_channel, params, response_url
-            )
+            return await self._handle_revoke_access(user_id, incoming_channel, params, response_url)
         elif action == "list":
-            return await self._handle_list_authorized_users(
-                user_id, incoming_channel, response_url
-            )
+            return await self._handle_list_authorized_users(user_id, incoming_channel, response_url)
         elif action == "status":
             return await self._handle_access_management_status(
                 user_id, incoming_channel, response_url
@@ -534,9 +520,7 @@ class FeatureCommand(BaseCommandHandler):
 
         try:
             # Get user display name
-            user_names = await self.slack_user_ops.get_user_names(
-                [params.target_user_id]
-            )
+            user_names = await self.slack_user_ops.get_user_names([params.target_user_id])
             display_name = user_names.get(params.target_user_id, params.target_user_id)
 
             # Extract LDAP username from user profile (copy pattern from access_request_handler)
@@ -562,9 +546,7 @@ class FeatureCommand(BaseCommandHandler):
                 )
                 ldap_info = f" (ldap: {ldap_username})"
             else:
-                added = await self.secrets_manager.add_authorized_user(
-                    params.target_user_id
-                )
+                added = await self.secrets_manager.add_authorized_user(params.target_user_id)
                 ldap_info = ""
 
             if added:
@@ -625,9 +607,7 @@ class FeatureCommand(BaseCommandHandler):
 
         try:
             # Get user display name
-            user_names = await self.slack_user_ops.get_user_names(
-                [params.target_user_id]
-            )
+            user_names = await self.slack_user_ops.get_user_names([params.target_user_id])
             display_name = user_names.get(params.target_user_id, params.target_user_id)
 
             # Extract LDAP username from user profile (copy pattern from access_request_handler)
@@ -653,9 +633,7 @@ class FeatureCommand(BaseCommandHandler):
                 )
                 ldap_info = f" (ldap: {ldap_username})"
             else:
-                removed = await self.secrets_manager.remove_authorized_user(
-                    params.target_user_id
-                )
+                removed = await self.secrets_manager.remove_authorized_user(params.target_user_id)
                 ldap_info = ""
 
             if removed:
@@ -706,9 +684,7 @@ class FeatureCommand(BaseCommandHandler):
         """Handle listing authorized users."""
         try:
             # Get authorized users from SecretsManager
-            authorized_users = (
-                await self.secrets_manager.get_authorised_slack_user_ids()
-            )
+            authorized_users = await self.secrets_manager.get_authorised_slack_user_ids()
 
             if not authorized_users:
                 await self.posting_handler.post_message(
@@ -758,9 +734,7 @@ class FeatureCommand(BaseCommandHandler):
         """Handle access management status."""
         try:
             # Get counts from SecretsManager
-            authorized_users = (
-                await self.secrets_manager.get_authorised_slack_user_ids()
-            )
+            authorized_users = await self.secrets_manager.get_authorised_slack_user_ids()
             ldap_users = await self.secrets_manager.get_authorised_users_ldap_backup()
 
             # Format the message
@@ -809,25 +783,21 @@ class FeatureCommand(BaseCommandHandler):
             if action == "granted":
                 emoji = "✅"
                 message = f"{emoji} *Access Granted*\n\n"
-                message += (
-                    f"• *User:* <@{target_user_id}> ({display_name}){ldap_info}\n"
-                )
+                message += f"• *User:* <@{target_user_id}> ({display_name}){ldap_info}\n"
                 message += f"• *Granted by:* <@{granted_by_id}> ({granter_name})\n"
-                message += "• **Method:** Manual grant via `/ketchup feature access_management grant`\n"
                 message += (
-                    f"• *Time:* {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+                    "• **Method:** Manual grant via `/ketchup feature access_management grant`\n"
                 )
+                message += f"• *Time:* {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
             else:  # revoked
                 emoji = "❌"
                 message = f"{emoji} *Access Revoked*\n\n"
-                message += (
-                    f"• *User:* <@{target_user_id}> ({display_name}){ldap_info}\n"
-                )
+                message += f"• *User:* <@{target_user_id}> ({display_name}){ldap_info}\n"
                 message += f"• *Revoked by:* <@{granted_by_id}> ({granter_name})\n"
-                message += "• *Method:* Manual revoke via `/ketchup feature access_management revoke`\n"
                 message += (
-                    f"• *Time:* {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+                    "• *Method:* Manual revoke via `/ketchup feature access_management revoke`\n"
                 )
+                message += f"• *Time:* {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
 
             await self.posting_handler.post_message(
                 channel_id=ACCESS_REQUEST_CHANNEL, message=message
@@ -878,9 +848,7 @@ class FeatureCommand(BaseCommandHandler):
         """
         try:
             # Get the admin user list from secrets
-            kt_secrets = await self.secrets_manager.get_secret_async(
-                "Ketchup_Token_Secrets"
-            )
+            kt_secrets = await self.secrets_manager.get_secret_async("Ketchup_Token_Secrets")
             admin_users = kt_secrets.get("usage_stats_admin_users", [])
 
             # If it's a string (JSON), parse it

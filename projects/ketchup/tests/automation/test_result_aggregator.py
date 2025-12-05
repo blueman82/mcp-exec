@@ -19,22 +19,18 @@ import os
 import sys
 import time
 import unittest
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.getcwd())
 
 try:
-    from tests.integration.cross_service_validation_templates import (
-        generate_validation_report
-    )
+    from tests.integration.cross_service_validation_templates import generate_validation_report
 except ImportError:
     generate_validation_report = None
 
 try:
-    from tests.performance.regression_test_framework import (
-        generate_performance_report
-    )
+    from tests.performance.regression_test_framework import generate_performance_report
 except ImportError:
     generate_performance_report = None
 
@@ -62,6 +58,7 @@ if not TestExecutionPipeline:
 @dataclass
 class ValidationSummary:
     """Summary of validation results across all components."""
+
     timestamp: float
     total_services_tested: int
     services_with_issues: int
@@ -77,6 +74,7 @@ class ValidationSummary:
 @dataclass
 class AggregatedTestResults:
     """Aggregated results from all test components."""
+
     validation_summary: ValidationSummary
     dependency_results: Optional[Dict[str, Any]] = None
     performance_results: Optional[Dict[str, Any]] = None
@@ -86,6 +84,7 @@ class AggregatedTestResults:
 
 class TestResultAggregator:
     """Aggregates and validates test results for zero-error requirement."""
+
     __test__ = False  # Tell pytest this is not a test class
 
     def __init__(self):
@@ -99,6 +98,7 @@ class TestResultAggregator:
 
         # Initialize registry
         import packages.core.typed_di.service_registrations as svc_reg
+
         if hasattr(svc_reg, "_registration_manager"):
             svc_reg._registration_manager = None
 
@@ -119,7 +119,7 @@ class TestResultAggregator:
             zero_errors_achieved=True,
             critical_issues=[],
             warnings=[],
-            recommendations=[]
+            recommendations=[],
         )
 
         results = AggregatedTestResults(validation_summary=validation_summary)
@@ -149,8 +149,10 @@ class TestResultAggregator:
         # Collect cross-service validation results
         try:
             results.cross_service_results = self._collect_cross_service_results()
-            validation_summary.cross_service_validation_passed = self._validate_cross_service_results(
-                results.cross_service_results, validation_summary
+            validation_summary.cross_service_validation_passed = (
+                self._validate_cross_service_results(
+                    results.cross_service_results, validation_summary
+                )
             )
         except Exception as e:
             logger.error(f"Failed to collect cross-service results: {e}")
@@ -159,10 +161,10 @@ class TestResultAggregator:
 
         # Final zero-error validation
         validation_summary.zero_errors_achieved = (
-            validation_summary.dependency_validation_passed and
-            validation_summary.performance_validation_passed and
-            validation_summary.cross_service_validation_passed and
-            len(validation_summary.critical_issues) == 0
+            validation_summary.dependency_validation_passed
+            and validation_summary.performance_validation_passed
+            and validation_summary.cross_service_validation_passed
+            and len(validation_summary.critical_issues) == 0
         )
 
         self._generate_recommendations(validation_summary)
@@ -176,7 +178,9 @@ class TestResultAggregator:
         from tests.unit.core.typed_di.test_dependency_coverage import TestDependencyCoverage
 
         test_suite = unittest.TestSuite()
-        test_suite.addTest(TestDependencyCoverage('test_required_constructor_types_are_declared_as_dependencies'))
+        test_suite.addTest(
+            TestDependencyCoverage("test_required_constructor_types_are_declared_as_dependencies")
+        )
 
         result = unittest.TestResult()
         test_suite.run(result)
@@ -187,7 +191,7 @@ class TestResultAggregator:
             "errors": len(result.errors),
             "success": result.wasSuccessful(),
             "failure_details": [str(failure[1]) for failure in result.failures],
-            "error_details": [str(error[1]) for error in result.errors]
+            "error_details": [str(error[1]) for error in result.errors],
         }
 
     def _collect_performance_results(self) -> Dict[str, Any]:
@@ -202,25 +206,30 @@ class TestResultAggregator:
         logger.info("Collecting cross-service validation results...")
         return generate_validation_report(self.registry)
 
-    def _validate_dependency_results(self, results: Dict[str, Any],
-                                   summary: ValidationSummary) -> bool:
+    def _validate_dependency_results(
+        self, results: Dict[str, Any], summary: ValidationSummary
+    ) -> bool:
         """Validate dependency test results for zero-error requirement."""
         if not results["success"]:
-            summary.critical_issues.extend([
-                f"Dependency validation failure: {detail}"
-                for detail in results["failure_details"]
-            ])
-            summary.critical_issues.extend([
-                f"Dependency validation error: {detail}"
-                for detail in results["error_details"]
-            ])
+            summary.critical_issues.extend(
+                [
+                    f"Dependency validation failure: {detail}"
+                    for detail in results["failure_details"]
+                ]
+            )
+            summary.critical_issues.extend(
+                [f"Dependency validation error: {detail}" for detail in results["error_details"]]
+            )
             return False
 
-        summary.recommendations.append("Dependency validation: All services have valid dependencies")
+        summary.recommendations.append(
+            "Dependency validation: All services have valid dependencies"
+        )
         return True
 
-    def _validate_performance_results(self, results: Dict[str, Any],
-                                    summary: ValidationSummary) -> bool:
+    def _validate_performance_results(
+        self, results: Dict[str, Any], summary: ValidationSummary
+    ) -> bool:
         """Validate performance test results for regressions."""
         regressions = results.get("regressions_detected", 0)
 
@@ -238,11 +247,14 @@ class TestResultAggregator:
                 f"Average resolution time ({avg_time:.1f}ms) exceeds recommended threshold (10ms)"
             )
 
-        summary.recommendations.append("Performance validation: No significant regressions detected")
+        summary.recommendations.append(
+            "Performance validation: No significant regressions detected"
+        )
         return True
 
-    def _validate_cross_service_results(self, results: Dict[str, Any],
-                                      summary: ValidationSummary) -> bool:
+    def _validate_cross_service_results(
+        self, results: Dict[str, Any], summary: ValidationSummary
+    ) -> bool:
         """Validate cross-service test results."""
         valid_services = results.get("summary", {}).get("services_with_valid_dependencies", 0)
         circular_deps = results.get("summary", {}).get("services_with_circular_dependencies", 0)
@@ -251,11 +263,15 @@ class TestResultAggregator:
         has_issues = False
 
         if circular_deps > 0:
-            summary.critical_issues.append(f"Circular dependencies detected in {circular_deps} services")
+            summary.critical_issues.append(
+                f"Circular dependencies detected in {circular_deps} services"
+            )
             has_issues = True
 
         if missing_deps > 0:
-            summary.critical_issues.append(f"Missing dependencies detected in {missing_deps} services")
+            summary.critical_issues.append(
+                f"Missing dependencies detected in {missing_deps} services"
+            )
             has_issues = True
 
         if not has_issues:
@@ -270,18 +286,28 @@ class TestResultAggregator:
         """Generate actionable recommendations based on validation results."""
         if summary.zero_errors_achieved:
             summary.recommendations.append("🎉 All validations passed - TypedDI system is healthy!")
-            summary.recommendations.append("Consider establishing performance baselines for regression detection")
+            summary.recommendations.append(
+                "Consider establishing performance baselines for regression detection"
+            )
         else:
-            summary.recommendations.append("❌ Critical issues detected - immediate action required")
+            summary.recommendations.append(
+                "❌ Critical issues detected - immediate action required"
+            )
             if not summary.dependency_validation_passed:
                 summary.recommendations.append("Priority 1: Fix dependency validation issues")
-                summary.recommendations.append("- Review service registrations and constructor dependencies")
+                summary.recommendations.append(
+                    "- Review service registrations and constructor dependencies"
+                )
             if not summary.performance_validation_passed:
                 summary.recommendations.append("Priority 2: Address performance regressions")
-                summary.recommendations.append("- Review recent changes affecting service resolution")
+                summary.recommendations.append(
+                    "- Review recent changes affecting service resolution"
+                )
             if not summary.cross_service_validation_passed:
                 summary.recommendations.append("Priority 3: Fix cross-service dependency issues")
-                summary.recommendations.append("- Review service interactions and eliminate circular dependencies")
+                summary.recommendations.append(
+                    "- Review service interactions and eliminate circular dependencies"
+                )
 
     def generate_comprehensive_report(self) -> Dict[str, Any]:
         """Generate comprehensive validation report."""
@@ -293,19 +319,21 @@ class TestResultAggregator:
             "report_metadata": {
                 "generated_at": time.time(),
                 "generator": "TypedDI Test Result Aggregator",
-                "version": "1.0"
+                "version": "1.0",
             },
             "validation_summary": asdict(results.validation_summary),
             "detailed_results": {
                 "dependency_validation": results.dependency_results,
                 "performance_validation": results.performance_results,
-                "cross_service_validation": results.cross_service_results
+                "cross_service_validation": results.cross_service_results,
             },
             "compliance_status": {
                 "zero_errors_achieved": results.validation_summary.zero_errors_achieved,
                 "compliance_score": self._calculate_compliance_score(results.validation_summary),
-                "next_actions": results.validation_summary.recommendations[:3]  # Top 3 recommendations
-            }
+                "next_actions": results.validation_summary.recommendations[
+                    :3
+                ],  # Top 3 recommendations
+            },
         }
 
         self._save_comprehensive_report(report)
@@ -314,11 +342,13 @@ class TestResultAggregator:
     def _calculate_compliance_score(self, summary: ValidationSummary) -> float:
         """Calculate compliance score as percentage."""
         total_validations = 3  # dependency, performance, cross-service
-        passed_validations = sum([
-            summary.dependency_validation_passed,
-            summary.performance_validation_passed,
-            summary.cross_service_validation_passed
-        ])
+        passed_validations = sum(
+            [
+                summary.dependency_validation_passed,
+                summary.performance_validation_passed,
+                summary.cross_service_validation_passed,
+            ]
+        )
 
         base_score = (passed_validations / total_validations) * 100
 
@@ -332,14 +362,14 @@ class TestResultAggregator:
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
         report_file = os.path.join(self.results_dir, f"comprehensive_report_{timestamp_str}.json")
 
-        with open(report_file, 'w', encoding='utf-8') as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"Comprehensive report saved to {report_file}")
 
         # Also save latest report
         latest_file = os.path.join(self.results_dir, "latest_report.json")
-        with open(latest_file, 'w', encoding='utf-8') as f:
+        with open(latest_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
     def validate_zero_errors_requirement(self) -> Tuple[bool, List[str]]:
@@ -381,7 +411,9 @@ class ComplianceValidator(unittest.TestCase):
         zero_errors = report["compliance_status"]["zero_errors_achieved"]
 
         self.assertTrue(zero_errors, "Zero errors requirement not achieved")
-        self.assertGreaterEqual(compliance_score, 95.0, f"Compliance score too low: {compliance_score}%")
+        self.assertGreaterEqual(
+            compliance_score, 95.0, f"Compliance score too low: {compliance_score}%"
+        )
 
         logger.info(f"✅ System health validated - Compliance score: {compliance_score}%")
 

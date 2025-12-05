@@ -7,7 +7,6 @@ access request handlers, and other interactive element handlers.
 
 from typing import Protocol, runtime_checkable
 
-
 __all__ = [
     "BaseCommandHandlerProtocol",
     "FlagReviewDatabaseOperationsProtocol",

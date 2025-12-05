@@ -38,9 +38,7 @@ class TestDynamoDBStoreUpdateChannelFields:
         }
 
         # Act
-        result = await store.update_channel_fields(
-            channel_id=channel_id, updates=updates
-        )
+        result = await store.update_channel_fields(channel_id=channel_id, updates=updates)
 
         # Assert
         assert result is True
@@ -58,9 +56,7 @@ class TestDynamoDBStoreUpdateChannelFields:
         store.channel_ops.update_channel_fields = AsyncMock(return_value=False)
 
         # Act
-        result = await store.update_channel_fields(
-            channel_id="C67890", updates={"field": "value"}
-        )
+        result = await store.update_channel_fields(channel_id="C67890", updates={"field": "value"})
 
         # Assert
         assert result is False

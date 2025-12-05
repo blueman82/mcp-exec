@@ -7,12 +7,13 @@ This module contains TypedDI service registrations for workflow management servi
 from typing import Any, Dict, List, Optional
 
 from packages.core.typed_di.service_registrations.protocols.workflow_protocols import (
-    WorkflowEngineServiceProtocol,
-    TaskManagementServiceProtocol,
     ProcessAutomationServiceProtocol,
     StateManagementServiceProtocol,
-    TransitionServiceProtocol
+    TaskManagementServiceProtocol,
+    TransitionServiceProtocol,
+    WorkflowEngineServiceProtocol,
 )
+
 from ..manager import ServiceRegistrationManager
 
 
@@ -23,16 +24,9 @@ class WorkflowEngineService:
         """Initialize workflow engine service."""
         self.workflows: Dict[str, Dict[str, Any]] = {}
 
-    async def start_workflow(
-        self, workflow_id: str, data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def start_workflow(self, workflow_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         """Start a workflow with given data."""
-        workflow_data = {
-            "id": workflow_id,
-            "status": "running",
-            "data": data,
-            "started_at": "now"
-        }
+        workflow_data = {"id": workflow_id, "status": "running", "data": data, "started_at": "now"}
         self.workflows[workflow_id] = workflow_data
         return workflow_data
 
@@ -64,12 +58,7 @@ class TaskManagementService:
         """Create a new task and return task ID."""
         self.task_counter += 1
         task_id = f"task_{self.task_counter}"
-        task = {
-            "id": task_id,
-            "status": "created",
-            "data": task_data,
-            "created_at": "now"
-        }
+        task = {"id": task_id, "status": "created", "data": task_data, "created_at": "now"}
         self.tasks[task_id] = task
         return task_id
 
@@ -103,11 +92,7 @@ class ProcessAutomationService:
 
     async def automate_process(self, process_id: str, config: Dict[str, Any]) -> bool:
         """Automate a process with given configuration."""
-        automation = {
-            "process_id": process_id,
-            "config": config,
-            "status": "active"
-        }
+        automation = {"process_id": process_id, "config": config, "status": "active"}
         self.automations[process_id] = automation
         return True
 
@@ -168,18 +153,9 @@ class TransitionService:
         """Initialize transition service."""
         self.transition_history: Dict[str, List[Dict[str, Any]]] = {}
 
-    async def transition_state(
-        self,
-        entity_id: str,
-        from_state: str,
-        to_state: str
-    ) -> bool:
+    async def transition_state(self, entity_id: str, from_state: str, to_state: str) -> bool:
         """Transition entity from one state to another."""
-        transition = {
-            "from_state": from_state,
-            "to_state": to_state,
-            "timestamp": "now"
-        }
+        transition = {"from_state": from_state, "to_state": to_state, "timestamp": "now"}
 
         if entity_id not in self.transition_history:
             self.transition_history[entity_id] = []
@@ -187,12 +163,7 @@ class TransitionService:
         self.transition_history[entity_id].append(transition)
         return True
 
-    async def validate_transition(
-        self,
-        entity_id: str,
-        from_state: str,
-        to_state: str
-    ) -> bool:
+    async def validate_transition(self, entity_id: str, from_state: str, to_state: str) -> bool:
         """Validate if a transition is allowed."""
         # Simple validation logic
         return True
@@ -213,6 +184,7 @@ class TransitionService:
 
 
 # Factory functions for TypedDI
+
 
 async def create_workflow_engine_service(resolver) -> WorkflowEngineService:
     """Factory function for WorkflowEngineService."""

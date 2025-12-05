@@ -55,11 +55,7 @@ def format_message_header_with_channel_details(
         jira_ticket = channel_detail.get("jira_ticket", "NOT YET AVAILABLE")
         formatted_jira_ticket = jira_ticket
         jira_pattern = r"^[A-Z][A-Z0-9]+-\d+$"
-        if (
-            jira_ticket
-            and jira_ticket != "NOT YET AVAILABLE"
-            and isinstance(jira_ticket, str)
-        ):
+        if jira_ticket and jira_ticket != "NOT YET AVAILABLE" and isinstance(jira_ticket, str):
             if re.match(jira_pattern, jira_ticket, re.IGNORECASE):
                 formatted_jira_ticket = (
                     f"<https://jira.corp.adobe.com/browse/{jira_ticket}|{jira_ticket}>"
@@ -147,9 +143,7 @@ def create_message_blocks(message: str) -> List[Dict[str, Any]]:
 
     max_blocks = 50
     if len(blocks) > max_blocks:
-        logger.warning(
-            "Message resulted in %d blocks, truncating to %d.", len(blocks), max_blocks
-        )
+        logger.warning("Message resulted in %d blocks, truncating to %d.", len(blocks), max_blocks)
         truncation_block: Dict[str, Any] = {
             "type": "context",
             "elements": [
@@ -203,11 +197,7 @@ def format_channel_list_block(
     # Format JIRA ticket as clickable link if valid
     formatted_jira_ticket = jira_ticket
     jira_pattern = r"^[A-Z][A-Z0-9]+-\d+$"
-    if (
-        jira_ticket
-        and jira_ticket != "NOT YET AVAILABLE"
-        and isinstance(jira_ticket, str)
-    ):
+    if jira_ticket and jira_ticket != "NOT YET AVAILABLE" and isinstance(jira_ticket, str):
         if re.match(jira_pattern, jira_ticket, re.IGNORECASE):
             formatted_jira_ticket = (
                 f"<https://jira.corp.adobe.com/browse/{jira_ticket}|{jira_ticket}>"

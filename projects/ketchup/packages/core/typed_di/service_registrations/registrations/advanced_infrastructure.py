@@ -18,6 +18,7 @@ from packages.core.typed_di.types import DependencySpec
 # Core infrastructure imports
 try:
     from packages.core.async_client import AsyncClient
+
     _core_imports_available = True
 except ImportError as e:
     logger = setup_logger(__name__)
@@ -28,20 +29,23 @@ except ImportError as e:
 try:
     from packages.integrations.jira_cache import JIRACache
     from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
+
     _integration_imports_available = True
 except ImportError as e:
     logger = setup_logger(__name__)
     logger.warning(f"Integration services import failed: {e}")
     _integration_imports_available = False
+
     # Define fallback classes to prevent NameError
     class MCPAsyncClient:
         pass
-    
+
     class JIRACache:
         pass
-    
+
     class MCPConfig:
         pass
+
 
 if TYPE_CHECKING:
     from packages.core.typed_di.service_registrations.manager import ServiceRegistrationManager
@@ -86,9 +90,12 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     # Skip registration if async MCP is not enabled - MCPAsyncClient won't be registered
     try:
         from packages.core.config.mcp_feature_flags import MCPFeatureFlags
+
         use_async_mcp = MCPFeatureFlags.use_async_clients()
         if not use_async_mcp:
-            logger.warning("Skipping JIRA ticket service registration - async MCP disabled (KETCHUP_USE_ASYNC_MCP=false)")
+            logger.warning(
+                "Skipping JIRA ticket service registration - async MCP disabled (KETCHUP_USE_ASYNC_MCP=false)"
+            )
             return
     except Exception as e:
         logger.warning(f"Could not check async flag: {e}, skipping JIRA services")
@@ -98,12 +105,14 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class JIRAIntegrationServiceProtocol(Protocol):
         """Protocol for JIRA integration management."""
+
         async def configure_integration(self, config: dict) -> bool: ...
         async def test_connection(self) -> bool: ...
         async def get_integration_status(self) -> dict: ...
 
     class JIRAIntegrationServiceConcrete:
         """Concrete type placeholder for JIRAIntegrationService."""
+
         pass
 
     async def create_jira_integration_service(resolver) -> JIRAIntegrationServiceConcrete:
@@ -111,23 +120,28 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
         logger.info("Creating JIRAIntegrationService instance via TypedDI")
         secrets_manager = await resolver.aget(SecretsManagerProtocol)
         async_client = await resolver.aget(AsyncClient)
+
         class JIRAIntegrationService:
             def __init__(self, secrets_manager, async_client):
                 self.secrets = secrets_manager
                 self.client = async_client
-            async def configure_integration(self, config: dict): return True
-            async def test_connection(self): return True
-            async def get_integration_status(self): return {"status": "active"}
+
+            async def configure_integration(self, config: dict):
+                return True
+
+            async def test_connection(self):
+                return True
+
+            async def get_integration_status(self):
+                return {"status": "active"}
+
         return JIRAIntegrationService(secrets_manager, async_client)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=JIRAIntegrationServiceProtocol,
         concrete_type=JIRAIntegrationServiceConcrete,
         factory=create_jira_integration_service,
-        dependencies=[
-            DependencySpec(SecretsManagerProtocol),
-            DependencySpec(AsyncClient)
-        ],
+        dependencies=[DependencySpec(SecretsManagerProtocol), DependencySpec(AsyncClient)],
         lifetime="singleton",
     )
 
@@ -135,12 +149,14 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class JIRATicketServiceProtocol(Protocol):
         """Protocol for JIRA ticket operations."""
+
         async def create_ticket(self, ticket_data: dict) -> dict: ...
         async def update_ticket(self, ticket_id: str, updates: dict) -> bool: ...
         async def get_ticket(self, ticket_id: str) -> dict: ...
 
     class JIRATicketServiceConcrete:
         """Concrete type placeholder for JIRATicketService."""
+
         pass
 
     async def create_jira_ticket_service(resolver) -> JIRATicketServiceConcrete:
@@ -148,13 +164,21 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
         logger.info("Creating JIRATicketService instance via TypedDI")
         mcp_client = await resolver.aget(MCPAsyncClient)
         jira_cache = await resolver.aget(JIRACache)
+
         class JIRATicketService:
             def __init__(self, mcp_client, jira_cache):
                 self.mcp = mcp_client
                 self.cache = jira_cache
-            async def create_ticket(self, ticket_data: dict): return {"id": "TICKET-123"}
-            async def update_ticket(self, ticket_id: str, updates: dict): return True
-            async def get_ticket(self, ticket_id: str): return {"id": ticket_id}
+
+            async def create_ticket(self, ticket_data: dict):
+                return {"id": "TICKET-123"}
+
+            async def update_ticket(self, ticket_id: str, updates: dict):
+                return True
+
+            async def get_ticket(self, ticket_id: str):
+                return {"id": ticket_id}
+
         return JIRATicketService(mcp_client, jira_cache)
 
     manager.register_protocol_with_concrete_alias(
@@ -172,6 +196,7 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class JIRAWorkflowServiceProtocol(Protocol):
         """Protocol for JIRA workflow automation."""
+
         async def trigger_workflow(self, workflow_id: str, data: dict) -> bool: ...
         async def get_workflow_status(self, workflow_id: str) -> dict: ...
 
@@ -179,16 +204,24 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
         """Factory function for JIRAWorkflowService."""
         logger.info("Creating JIRAWorkflowService instance via TypedDI")
         jira_integration = await resolver.aget(JIRAIntegrationServiceProtocol)
+
         class JIRAWorkflowService:
             def __init__(self, jira_integration):
                 self.integration = jira_integration
-            async def trigger_workflow(self, workflow_id: str, data: dict): return True
-            async def get_workflow_status(self, workflow_id: str): return {"status": "running"}
+
+            async def trigger_workflow(self, workflow_id: str, data: dict):
+                return True
+
+            async def get_workflow_status(self, workflow_id: str):
+                return {"status": "running"}
+
         return JIRAWorkflowService(jira_integration)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=JIRAWorkflowServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_jira_workflow_service,
         dependencies=[DependencySpec(JIRAIntegrationServiceProtocol)],
         lifetime="singleton",
@@ -198,6 +231,7 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class JIRAWebhookServiceProtocol(Protocol):
         """Protocol for JIRA webhook handling."""
+
         async def register_webhook(self, webhook_config: dict) -> str: ...
         async def process_webhook(self, payload: dict) -> bool: ...
 
@@ -205,16 +239,24 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
         """Factory function for JIRAWebhookService."""
         logger.info("Creating JIRAWebhookService instance via TypedDI")
         jira_ticket = await resolver.aget(JIRATicketServiceProtocol)
+
         class JIRAWebhookService:
             def __init__(self, jira_ticket):
                 self.ticket_service = jira_ticket
-            async def register_webhook(self, webhook_config: dict): return "webhook-id-123"
-            async def process_webhook(self, payload: dict): return True
+
+            async def register_webhook(self, webhook_config: dict):
+                return "webhook-id-123"
+
+            async def process_webhook(self, payload: dict):
+                return True
+
         return JIRAWebhookService(jira_ticket)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=JIRAWebhookServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_jira_webhook_service,
         dependencies=[DependencySpec(JIRATicketServiceProtocol)],
         lifetime="singleton",
@@ -228,6 +270,7 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class MCPProtocolServiceProtocol(Protocol):
         """Protocol for MCP protocol implementation."""
+
         async def initialize_protocol(self) -> bool: ...
         async def send_message(self, message: dict) -> dict: ...
 
@@ -235,16 +278,24 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
         """Factory function for MCPProtocolService."""
         logger.info("Creating MCPProtocolService instance via TypedDI")
         mcp_config = await resolver.aget(MCPConfig)
+
         class MCPProtocolService:
             def __init__(self, mcp_config):
                 self.config = mcp_config
-            async def initialize_protocol(self): return True
-            async def send_message(self, message: dict): return {"status": "sent"}
+
+            async def initialize_protocol(self):
+                return True
+
+            async def send_message(self, message: dict):
+                return {"status": "sent"}
+
         return MCPProtocolService(mcp_config)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=MCPProtocolServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_mcp_protocol_service,
         dependencies=[DependencySpec(MCPConfig)],
         lifetime="singleton",
@@ -254,6 +305,7 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class MCPClientServiceProtocol(Protocol):
         """Protocol for MCP client management."""
+
         async def connect_client(self, client_id: str) -> bool: ...
         async def disconnect_client(self, client_id: str) -> bool: ...
 
@@ -261,16 +313,24 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
         """Factory function for MCPClientService."""
         logger.info("Creating MCPClientService instance via TypedDI")
         mcp_protocol = await resolver.aget(MCPProtocolServiceProtocol)
+
         class MCPClientService:
             def __init__(self, mcp_protocol):
                 self.protocol = mcp_protocol
-            async def connect_client(self, client_id: str): return True
-            async def disconnect_client(self, client_id: str): return True
+
+            async def connect_client(self, client_id: str):
+                return True
+
+            async def disconnect_client(self, client_id: str):
+                return True
+
         return MCPClientService(mcp_protocol)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=MCPClientServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_mcp_client_service,
         dependencies=[DependencySpec(MCPProtocolServiceProtocol)],
         lifetime="singleton",
@@ -280,6 +340,7 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
     @runtime_checkable
     class MCPServerServiceProtocol(Protocol):
         """Protocol for MCP server integration."""
+
         async def start_server(self) -> bool: ...
         async def stop_server(self) -> bool: ...
 
@@ -287,16 +348,24 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
         """Factory function for MCPServerService."""
         logger.info("Creating MCPServerService instance via TypedDI")
         mcp_client = await resolver.aget(MCPClientServiceProtocol)
+
         class MCPServerService:
             def __init__(self, mcp_client):
                 self.client = mcp_client
-            async def start_server(self): return True
-            async def stop_server(self): return True
+
+            async def start_server(self):
+                return True
+
+            async def stop_server(self):
+                return True
+
         return MCPServerService(mcp_client)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=MCPServerServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_mcp_server_service,
         dependencies=[DependencySpec(MCPClientServiceProtocol)],
         lifetime="singleton",
@@ -310,20 +379,28 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
     @runtime_checkable
     class WebhookProcessorServiceProtocol(Protocol):
         """Protocol for generic webhook processing."""
+
         async def process_webhook(self, source: str, payload: dict) -> bool: ...
         async def validate_webhook(self, payload: dict) -> bool: ...
 
     async def create_webhook_processor_service(resolver) -> object:
         """Factory function for WebhookProcessorService."""
         logger.info("Creating WebhookProcessorService instance via TypedDI")
+
         class WebhookProcessorService:
-            async def process_webhook(self, source: str, payload: dict): return True
-            async def validate_webhook(self, payload: dict): return True
+            async def process_webhook(self, source: str, payload: dict):
+                return True
+
+            async def validate_webhook(self, payload: dict):
+                return True
+
         return WebhookProcessorService()
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=WebhookProcessorServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_webhook_processor_service,
         dependencies=[],
         lifetime="singleton",
@@ -333,6 +410,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
     @runtime_checkable
     class APIGatewayServiceProtocol(Protocol):
         """Protocol for API gateway integration."""
+
         async def route_request(self, request: dict) -> dict: ...
         async def authenticate_request(self, headers: dict) -> bool: ...
 
@@ -340,16 +418,24 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
         """Factory function for APIGatewayService."""
         logger.info("Creating APIGatewayService instance via TypedDI")
         async_client = await resolver.aget(AsyncClient)
+
         class APIGatewayService:
             def __init__(self, async_client):
                 self.client = async_client
-            async def route_request(self, request: dict): return {"status": "routed"}
-            async def authenticate_request(self, headers: dict): return True
+
+            async def route_request(self, request: dict):
+                return {"status": "routed"}
+
+            async def authenticate_request(self, headers: dict):
+                return True
+
         return APIGatewayService(async_client)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=APIGatewayServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_api_gateway_service,
         dependencies=[DependencySpec(AsyncClient)],
         lifetime="singleton",
@@ -359,6 +445,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
     @runtime_checkable
     class ThirdPartyAuthServiceProtocol(Protocol):
         """Protocol for third-party authentication."""
+
         async def authenticate(self, credentials: dict) -> dict: ...
         async def refresh_token(self, refresh_token: str) -> dict: ...
 
@@ -366,16 +453,24 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
         """Factory function for ThirdPartyAuthService."""
         logger.info("Creating ThirdPartyAuthService instance via TypedDI")
         secrets_manager = await resolver.aget(SecretsManagerProtocol)
+
         class ThirdPartyAuthService:
             def __init__(self, secrets_manager):
                 self.secrets = secrets_manager
-            async def authenticate(self, credentials: dict): return {"token": "abc123"}
-            async def refresh_token(self, refresh_token: str): return {"token": "def456"}
+
+            async def authenticate(self, credentials: dict):
+                return {"token": "abc123"}
+
+            async def refresh_token(self, refresh_token: str):
+                return {"token": "def456"}
+
         return ThirdPartyAuthService(secrets_manager)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=ThirdPartyAuthServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_third_party_auth_service,
         dependencies=[DependencySpec(SecretsManagerProtocol)],
         lifetime="singleton",
@@ -385,6 +480,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
     @runtime_checkable
     class ExternalAPIServiceProtocol(Protocol):
         """Protocol for external API management."""
+
         async def call_api(self, endpoint: str, data: dict) -> dict: ...
         async def get_api_status(self, api_name: str) -> dict: ...
 
@@ -393,23 +489,26 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
         logger.info("Creating ExternalAPIService instance via TypedDI")
         async_client = await resolver.aget(AsyncClient)
         third_party_auth = await resolver.aget(ThirdPartyAuthServiceProtocol)
+
         class ExternalAPIService:
             def __init__(self, async_client, third_party_auth):
                 self.client = async_client
                 self.auth = third_party_auth
-            async def call_api(self, endpoint: str, data: dict): return {"result": "success"}
-            async def get_api_status(self, api_name: str): return {"status": "online"}
+
+            async def call_api(self, endpoint: str, data: dict):
+                return {"result": "success"}
+
+            async def get_api_status(self, api_name: str):
+                return {"status": "online"}
+
         return ExternalAPIService(async_client, third_party_auth)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=ExternalAPIServiceProtocol,
-        concrete_type=type("ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}),
+        concrete_type=type(
+            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
+        ),
         factory=create_external_api_service,
-        dependencies=[
-            DependencySpec(AsyncClient),
-            DependencySpec(ThirdPartyAuthServiceProtocol)
-        ],
+        dependencies=[DependencySpec(AsyncClient), DependencySpec(ThirdPartyAuthServiceProtocol)],
         lifetime="singleton",
     )
-
-

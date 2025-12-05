@@ -4,8 +4,9 @@ test_maintenance_checker.py
 Unit tests for maintenance checker service.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from packages.ai.maintenance_checker import MaintenanceChecker
 from packages.db.dynamodb_store import DynamoDBStore
@@ -36,29 +37,26 @@ def sample_maintenance_data():
                     "instances": [
                         {
                             "instance_name": "samsungcis_mkt_prod3",
-                            "starts_at": "2025-10-06T04:30:00Z"
+                            "starts_at": "2025-10-06T04:30:00Z",
                         }
                     ],
                     "release": "Build Upgrade",
-                    "release_url": "https://uco.adobe-campaign.com/release-summary/9517"
+                    "release_url": "https://uco.adobe-campaign.com/release-summary/9517",
                 }
-            ]
+            ],
         },
         {
             "customer": "PFA PENSION",
             "releases": [
                 {
                     "instances": [
-                        {
-                            "instance_name": "pfa_mkt_stage4",
-                            "starts_at": "2025-10-06T02:30:00Z"
-                        }
+                        {"instance_name": "pfa_mkt_stage4", "starts_at": "2025-10-06T02:30:00Z"}
                     ],
                     "release": "Build Upgrade",
-                    "release_url": "https://uco.adobe-campaign.com/release-summary/9518"
+                    "release_url": "https://uco.adobe-campaign.com/release-summary/9518",
                 }
-            ]
-        }
+            ],
+        },
     ]
 
 
@@ -94,8 +92,7 @@ async def test_check_maintenance_found(maintenance_checker, mock_db_store, sampl
     mock_db_store.get_maintenance_cache.return_value = sample_maintenance_data
 
     result = await maintenance_checker.check_maintenance(
-        "https://samsungcis-mkt-prod3.campaign.adobe.com",
-        date="2025-10-06"
+        "https://samsungcis-mkt-prod3.campaign.adobe.com", date="2025-10-06"
     )
 
     assert result is not None
@@ -105,13 +102,14 @@ async def test_check_maintenance_found(maintenance_checker, mock_db_store, sampl
 
 
 @pytest.mark.asyncio
-async def test_check_maintenance_not_found(maintenance_checker, mock_db_store, sample_maintenance_data):
+async def test_check_maintenance_not_found(
+    maintenance_checker, mock_db_store, sample_maintenance_data
+):
     """Test when instance is not in maintenance."""
     mock_db_store.get_maintenance_cache.return_value = sample_maintenance_data
 
     result = await maintenance_checker.check_maintenance(
-        "https://unknown-instance.campaign.adobe.com",
-        date="2025-10-06"
+        "https://unknown-instance.campaign.adobe.com", date="2025-10-06"
     )
 
     assert result is None
@@ -123,8 +121,7 @@ async def test_check_maintenance_no_cache(maintenance_checker, mock_db_store):
     mock_db_store.get_maintenance_cache.return_value = None
 
     result = await maintenance_checker.check_maintenance(
-        "https://samsungcis-mkt-prod3.campaign.adobe.com",
-        date="2025-10-06"
+        "https://samsungcis-mkt-prod3.campaign.adobe.com", date="2025-10-06"
     )
 
     assert result is None
@@ -136,8 +133,7 @@ async def test_check_maintenance_empty_cache(maintenance_checker, mock_db_store)
     mock_db_store.get_maintenance_cache.return_value = []
 
     result = await maintenance_checker.check_maintenance(
-        "https://samsungcis-mkt-prod3.campaign.adobe.com",
-        date="2025-10-06"
+        "https://samsungcis-mkt-prod3.campaign.adobe.com", date="2025-10-06"
     )
 
     assert result is None
@@ -158,8 +154,7 @@ def test_format_maintenance_start_time_invalid():
 def test_find_instance_match_case_insensitive(maintenance_checker, sample_maintenance_data):
     """Test case-insensitive matching."""
     result = maintenance_checker._find_instance_match(
-        "SAMSUNGCIS_MKT_PROD3",  # Uppercase
-        sample_maintenance_data
+        "SAMSUNGCIS_MKT_PROD3", sample_maintenance_data  # Uppercase
     )
 
     assert result is not None

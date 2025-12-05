@@ -27,9 +27,7 @@ def handler():
         }
     )
     h._build_feedback_blocks = AsyncMock(
-        return_value=[
-            {"type": "section", "text": {"type": "plain_text", "text": "Feedback"}}
-        ]
+        return_value=[{"type": "section", "text": {"type": "plain_text", "text": "Feedback"}}]
     )
     return h
 

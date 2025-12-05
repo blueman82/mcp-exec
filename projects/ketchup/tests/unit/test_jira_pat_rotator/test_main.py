@@ -10,10 +10,10 @@ Verifies:
 """
 
 import asyncio
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-from packages.core.typed_di_integration import get_unified_container
+import pytest
+
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
     DynamoDBStoreProtocol,
     SecretsManagerProtocol,
@@ -24,6 +24,7 @@ from packages.core.typed_di.service_registrations.protocols.infrastructure_proto
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
     MCPClientProtocol,
 )
+from packages.core.typed_di_integration import get_unified_container
 
 
 class TestMainTypeInitialization:

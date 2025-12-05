@@ -20,17 +20,17 @@ from packages.secrets.manager import SecretsManager
 from packages.slack.channel_events.eligibility.ineligible_handler import (
     handle_ineligible_bot_join,
 )
+
+# Extracted user join processing
+from packages.slack.channel_events.processing.user_join_processor import (
+    process_regular_user_join,
+)
 from packages.slack.channel_operations.channel_eligibility import (
     ChannelEligibilityService,
 )
 from packages.slack.channel_operations.channel_info_ops import ChannelInfoOps
 from packages.slack.maintenance import get_jira_prompt_handler
 from packages.slack.messages.posting import SlackPostingHandler
-
-# Extracted user join processing
-from packages.slack.channel_events.processing.user_join_processor import (
-    process_regular_user_join,
-)
 
 logger = setup_logger(__name__)
 
@@ -71,9 +71,7 @@ async def process_eligible_bot_join(
             )
             try:
                 # Correct the method name here
-                channel_info_result = await channel_info_ops.get_channel_info_from_api(
-                    channel_id
-                )
+                channel_info_result = await channel_info_ops.get_channel_info_from_api(channel_id)
                 if channel_info_result:
                     # Convert event_ts to integer for date_created_epoch
                     try:
@@ -96,16 +94,12 @@ async def process_eligible_bot_join(
                                 float(event.get("event_ts", str(int(time.time()))))
                             )
                         except (ValueError, TypeError):
-                            logger.warning(
-                                "Could not parse event_ts either, using current time."
-                            )
+                            logger.warning("Could not parse event_ts either, using current time.")
                             creation_epoch = int(time.time())
 
                     # Determine product type
                     channel_name = channel_info_result.get("name", "unknown")
-                    product_type = dynamodb_store.channel_ops.determine_product_type(
-                        channel_name
-                    )
+                    product_type = dynamodb_store.channel_ops.determine_product_type(channel_name)
                     logger.info(
                         "Determined product type for %s as: %s",
                         channel_id,
@@ -157,9 +151,7 @@ async def process_eligible_bot_join(
                 # Start workflow in background (don't block bot join)
                 asyncio.create_task(jira_handler.start_jira_prompt_workflow(channel_id))
 
-                logger.info(
-                    "Maintenance detection workflow started for channel %s", channel_id
-                )
+                logger.info("Maintenance detection workflow started for channel %s", channel_id)
 
             except Exception as maintenance_error:
                 logger.error(
@@ -258,9 +250,7 @@ async def handle_member_joined_event(
                 )
             return
 
-        logger.info(
-            "Bot %s joined channel %s (Inviter: %s)", user_id, channel_id, inviter_id
-        )
+        logger.info("Bot %s joined channel %s (Inviter: %s)", user_id, channel_id, inviter_id)
 
         # Use channel eligibility service to check if channel is eligible
         # Ensure inviter_id is a string before passing
@@ -295,9 +285,7 @@ async def handle_member_joined_event(
         )
 
     except Exception as e:
-        logger.error(
-            "Error processing member_joined_channel event: %s", str(e), exc_info=True
-        )
+        logger.error("Error processing member_joined_channel event: %s", str(e), exc_info=True)
 
         # Try to notify about the error if we have channel info
         if channel_id and inviter_id:

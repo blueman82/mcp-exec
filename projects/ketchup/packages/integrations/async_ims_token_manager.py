@@ -53,9 +53,13 @@ class AsyncIMSTokenManager(AsyncClient[IMSTokenManagerConfig, Dict[str, Any]]):
             max_concurrent_requests: Maximum concurrent HTTP requests.
             request_timeout: Request timeout in seconds.
         """
-        logger.info("Initializing AsyncIMSTokenManager (NEW ASYNC IMPLEMENTATION) with ims_base_url=%s, "
-                    "max_concurrent_requests=%d, request_timeout=%d",
-                    ims_base_url, max_concurrent_requests, request_timeout)
+        logger.info(
+            "Initializing AsyncIMSTokenManager (NEW ASYNC IMPLEMENTATION) with ims_base_url=%s, "
+            "max_concurrent_requests=%d, request_timeout=%d",
+            ims_base_url,
+            max_concurrent_requests,
+            request_timeout,
+        )
         config = IMSTokenManagerConfig(
             secrets_manager=secrets_manager,
             ims_base_url=ims_base_url.rstrip("/"),
@@ -66,7 +70,9 @@ class AsyncIMSTokenManager(AsyncClient[IMSTokenManagerConfig, Dict[str, Any]]):
             request_timeout=request_timeout,
         )
         self._token_cache: Dict[str, Any] = {}
-        logger.info("AsyncIMSTokenManager initialization complete - ready for httpx-based IMS token operations")
+        logger.info(
+            "AsyncIMSTokenManager initialization complete - ready for httpx-based IMS token operations"
+        )
 
     @property
     def secrets_manager(self) -> SecretsManager:
@@ -127,9 +133,7 @@ class AsyncIMSTokenManager(AsyncClient[IMSTokenManagerConfig, Dict[str, Any]]):
         refresh_token = secrets.get("IMS_REFRESH_TOKEN")
 
         if not refresh_token:
-            logger.warning(
-                "No refresh token available, attempting initial authentication"
-            )
+            logger.warning("No refresh token available, attempting initial authentication")
             return await self._initial_authentication()
 
         payload = {
@@ -151,14 +155,10 @@ class AsyncIMSTokenManager(AsyncClient[IMSTokenManagerConfig, Dict[str, Any]]):
 
         if response["status"] != 200:
             error_text = response["body"].decode(errors="ignore")
-            logger.error(
-                "IMS token refresh failed: %s - %s", response["status"], error_text
-            )
+            logger.error("IMS token refresh failed: %s - %s", response["status"], error_text)
 
             if response["status"] == 400:
-                logger.info(
-                    "Refresh token invalid, attempting initial authentication"
-                )
+                logger.info("Refresh token invalid, attempting initial authentication")
                 return await self._initial_authentication()
 
             raise Exception(f"IMS token refresh failed: {response['status']}")

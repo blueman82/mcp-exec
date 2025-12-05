@@ -43,9 +43,7 @@ class SlackUserOps(SlackAsyncClient):
 
         # Store injected UserStore
         self.user_store = user_store
-        self._user_cache: Dict[str, Dict[str, Any]] = (
-            {}
-        )  # In-memory cache for user info
+        self._user_cache: Dict[str, Dict[str, Any]] = {}  # In-memory cache for user info
         logger.info("SlackUserOps initialized with injected UserStore.")
 
     async def get_user_names(self, user_ids: List[str]) -> Dict[str, str]:
@@ -62,9 +60,7 @@ class SlackUserOps(SlackAsyncClient):
             return {}
 
         # Filter out duplicates and invalid IDs
-        valid_user_ids = list(
-            set([uid for uid in user_ids if uid and isinstance(uid, str)])
-        )
+        valid_user_ids = list(set([uid for uid in user_ids if uid and isinstance(uid, str)]))
 
         # Initialize cache with existing in-memory cache entries
         user_cache: Dict[str, Dict[str, Any]] = {}  # Define type for local cache
@@ -157,18 +153,12 @@ class SlackUserOps(SlackAsyncClient):
 
                 # Store new users in DynamoDB for future lookups
                 if new_user_data:
-                    success, failure = await self.user_store.batch_store_users(
-                        new_user_data
-                    )
-                    logger.info(
-                        "Stored %s new users in DB (failed: %s)", success, failure
-                    )
+                    success, failure = await self.user_store.batch_store_users(new_user_data)
+                    logger.info("Stored %s new users in DB (failed: %s)", success, failure)
 
         # Return map of user ID to user name, extracting from cache
         result_map: Dict[str, str] = {}
-        for (
-            uid
-        ) in user_ids:  # Iterate original list to preserve order/duplicates if needed
+        for uid in user_ids:  # Iterate original list to preserve order/duplicates if needed
             cached_info = user_cache.get(uid)
             if cached_info:  # Should contain {"name": ...} or full user dict
                 # Extract name, prioritizing real_name, then name, fallback to uid
@@ -216,9 +206,7 @@ class SlackUserOps(SlackAsyncClient):
             else:
                 # Fallback to user ID if not found
                 result_map[uid] = uid
-                logger.info(
-                    f"get_user_usernames: uid={uid} not in cache, using uid as fallback"
-                )
+                logger.info(f"get_user_usernames: uid={uid} not in cache, using uid as fallback")
 
         return result_map
 

@@ -10,7 +10,8 @@ Verifies:
 """
 
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from ketchup_jira_pat_rotator.rotator import PATRotator
@@ -35,15 +36,15 @@ class TestCompleteSuccessfulRotationFlow:
         rotator._mcp_client.create_pat.return_value = {
             "pat": "new-pat-token-xyz",
             "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
-            "id": "pat-123"
+            "id": "pat-123",
         }
         rotator._mcp_client.validate_pat.return_value = {
             "valid": True,
-            "jiraUser": "automation-user"
+            "jiraUser": "automation-user",
         }
         rotator._mcp_client.revoke_pat.return_value = {
             "success": True,
-            "revokedPatId": "old-pat-456"
+            "revokedPatId": "old-pat-456",
         }
 
         # Mock secrets manager with correct AWS field names
@@ -54,7 +55,7 @@ class TestCompleteSuccessfulRotationFlow:
             # Include other secrets that should be preserved
             "ipaas_username": "test-user",
             "ipaas_password": "test-pass",
-            "ims_access_token": "test-token"
+            "ims_access_token": "test-token",
         }
         rotator._secrets_manager.update_pat.return_value = True
 
@@ -119,19 +120,19 @@ class TestValidationFailureKeepsOldPAT:
         rotator._mcp_client.create_pat.return_value = {
             "pat": "new-invalid-pat",
             "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
-            "id": "pat-invalid"
+            "id": "pat-invalid",
         }
 
         # Mock validate_pat to fail
         rotator._mcp_client.validate_pat.return_value = {
             "valid": False,
-            "error": "Invalid token format"
+            "error": "Invalid token format",
         }
 
         # Mock get current PAT with correct field names
         rotator._secrets_manager.get_current_pat.return_value = {
             "ketchup_jira_pat": "old-pat-token-abc",
-            "ketchup_jira_pat_id": "old-pat-456"
+            "ketchup_jira_pat_id": "old-pat-456",
         }
 
         # Execute rotation - should fail gracefully
@@ -170,17 +171,17 @@ class TestSecretsUpdateFailureKeepsOldPAT:
         rotator._mcp_client.create_pat.return_value = {
             "pat": "new-pat-token-xyz",
             "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
-            "id": "pat-123"
+            "id": "pat-123",
         }
         rotator._mcp_client.validate_pat.return_value = {
             "valid": True,
-            "jiraUser": "automation-user"
+            "jiraUser": "automation-user",
         }
 
         # Mock secrets update to fail
         rotator._secrets_manager.get_current_pat.return_value = {
             "ketchup_jira_pat": "old-pat-token-abc",
-            "ketchup_jira_pat_id": "old-pat-456"
+            "ketchup_jira_pat_id": "old-pat-456",
         }
         rotator._secrets_manager.update_pat.side_effect = Exception("Secrets Manager error")
 
@@ -217,17 +218,17 @@ class TestRevocationFailureStillAlerts:
         rotator._mcp_client.create_pat.return_value = {
             "pat": "new-pat-token-xyz",
             "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
-            "id": "pat-123"
+            "id": "pat-123",
         }
         rotator._mcp_client.validate_pat.return_value = {
             "valid": True,
-            "jiraUser": "automation-user"
+            "jiraUser": "automation-user",
         }
         rotator._mcp_client.revoke_pat.side_effect = Exception("Failed to revoke PAT")
 
         rotator._secrets_manager.get_current_pat.return_value = {
             "ketchup_jira_pat": "old-pat-token-abc",
-            "ketchup_jira_pat_id": "old-pat-456"
+            "ketchup_jira_pat_id": "old-pat-456",
         }
         rotator._secrets_manager.update_pat.return_value = True
 
@@ -259,29 +260,38 @@ class TestRotationOrchestrationSequence:
         rotator._monitor.should_rotate.return_value = True
 
         rotator._mcp_client = AsyncMock()
-        rotator._mcp_client.create_pat.side_effect = lambda: (call_order.append("create"), {
-            "pat": "new-pat-token-xyz",
-            "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
-            "id": "pat-123"
-        })[1]
-        rotator._mcp_client.validate_pat.side_effect = lambda pat: (call_order.append("validate"), {
-            "valid": True,
-            "jiraUser": "automation-user"
-        })[1]
-        rotator._mcp_client.revoke_pat.side_effect = lambda pat_id: (call_order.append("revoke"), {
-            "success": True,
-            "revokedPatId": pat_id
-        })[1]
+        rotator._mcp_client.create_pat.side_effect = lambda: (
+            call_order.append("create"),
+            {
+                "pat": "new-pat-token-xyz",
+                "expiryDate": (datetime.utcnow() + timedelta(days=90)).isoformat(),
+                "id": "pat-123",
+            },
+        )[1]
+        rotator._mcp_client.validate_pat.side_effect = lambda pat: (
+            call_order.append("validate"),
+            {"valid": True, "jiraUser": "automation-user"},
+        )[1]
+        rotator._mcp_client.revoke_pat.side_effect = lambda pat_id: (
+            call_order.append("revoke"),
+            {"success": True, "revokedPatId": pat_id},
+        )[1]
 
         rotator._secrets_manager = AsyncMock()
-        rotator._secrets_manager.get_current_pat.side_effect = lambda: (call_order.append("get_current"), {
-            "ketchup_jira_pat": "old-pat-token-abc",
-            "ketchup_jira_pat_id": "old-pat-456"
-        })[1]
-        rotator._secrets_manager.update_pat.side_effect = lambda *args: (call_order.append("update_secrets"), True)[1]
+        rotator._secrets_manager.get_current_pat.side_effect = lambda: (
+            call_order.append("get_current"),
+            {"ketchup_jira_pat": "old-pat-token-abc", "ketchup_jira_pat_id": "old-pat-456"},
+        )[1]
+        rotator._secrets_manager.update_pat.side_effect = lambda *args: (
+            call_order.append("update_secrets"),
+            True,
+        )[1]
 
         rotator._slack_notifier = AsyncMock()
-        rotator._slack_notifier.notify_success.side_effect = lambda *args: (call_order.append("notify"), None)[1]
+        rotator._slack_notifier.notify_success.side_effect = lambda *args: (
+            call_order.append("notify"),
+            None,
+        )[1]
 
         # Execute rotation
         result = await rotator.rotate()

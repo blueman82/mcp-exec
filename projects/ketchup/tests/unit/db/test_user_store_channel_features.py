@@ -29,9 +29,7 @@ class TestUserStoreChannelFeatures:
         # Mock successful update
         mock_client.update_item = AsyncMock()
 
-        result = await user_store.set_channel_feature(
-            "C1234567890", "status_updater_enabled", True
-        )
+        result = await user_store.set_channel_feature("C1234567890", "status_updater_enabled", True)
 
         assert result is True
         # Check that update_item was called (implementation has fallback logic)
@@ -43,9 +41,7 @@ class TestUserStoreChannelFeatures:
         # Mock failed update
         mock_client.update_item = AsyncMock(side_effect=Exception("DynamoDB error"))
 
-        result = await user_store.set_channel_feature(
-            "C1234567890", "status_updater_enabled", True
-        )
+        result = await user_store.set_channel_feature("C1234567890", "status_updater_enabled", True)
 
         assert result is False
 
@@ -54,14 +50,10 @@ class TestUserStoreChannelFeatures:
         """Test getting an existing channel feature."""
         # Mock response with feature
         mock_client.get_item = AsyncMock(
-            return_value={
-                "Item": {"features": {"M": {"status_updater_enabled": {"BOOL": True}}}}
-            }
+            return_value={"Item": {"features": {"M": {"status_updater_enabled": {"BOOL": True}}}}}
         )
 
-        result = await user_store.get_channel_feature(
-            "C1234567890", "status_updater_enabled"
-        )
+        result = await user_store.get_channel_feature("C1234567890", "status_updater_enabled")
 
         assert result is True
 
@@ -71,9 +63,7 @@ class TestUserStoreChannelFeatures:
         # Mock empty response
         mock_client.get_item = AsyncMock(return_value={})
 
-        result = await user_store.get_channel_feature(
-            "C1234567890", "status_updater_enabled"
-        )
+        result = await user_store.get_channel_feature("C1234567890", "status_updater_enabled")
 
         assert result is None
 
@@ -94,9 +84,7 @@ class TestUserStoreChannelFeatures:
             }
         )
 
-        result = await user_store.get_channels_with_feature(
-            "status_updater_enabled", True
-        )
+        result = await user_store.get_channels_with_feature("status_updater_enabled", True)
 
         assert result == ["C1234567890", "C0987654321"]
         mock_underlying_client.scan.assert_called_once()
@@ -119,9 +107,7 @@ class TestUserStoreChannelFeatures:
             ]
         )
 
-        result = await user_store.get_channels_with_feature(
-            "status_updater_enabled", True
-        )
+        result = await user_store.get_channels_with_feature("status_updater_enabled", True)
 
         assert result == ["C1234567890", "C0987654321"]
         assert mock_underlying_client.scan.call_count == 2
@@ -136,16 +122,14 @@ class TestUserStoreChannelFeatures:
                     "features": {
                         "M": {
                             "status_updater_enabled": {"BOOL": True},
-                            "nlp_enabled": {"BOOL": False}
+                            "nlp_enabled": {"BOOL": False},
                         }
                     }
                 }
             }
         )
 
-        result = await user_store.get_channel_feature(
-            "C1234567890", "status_updater_enabled"
-        )
+        result = await user_store.get_channel_feature("C1234567890", "status_updater_enabled")
 
         assert result is True
 
@@ -155,9 +139,7 @@ class TestUserStoreChannelFeatures:
         # Mock empty response
         mock_client.get_item = AsyncMock(return_value={})
 
-        result = await user_store.get_channel_feature(
-            "C1234567890", "status_updater_enabled"
-        )
+        result = await user_store.get_channel_feature("C1234567890", "status_updater_enabled")
 
         assert result is None
 
@@ -166,15 +148,10 @@ class TestUserStoreChannelFeatures:
         """Test setting channel features for new channel."""
         # Mock update_item to raise ConditionalCheckFailedException first, then succeed
         mock_client.update_item = AsyncMock(
-            side_effect=[
-                Exception("ConditionalCheckFailedException"),
-                None  # Second call succeeds
-            ]
+            side_effect=[Exception("ConditionalCheckFailedException"), None]  # Second call succeeds
         )
 
-        result = await user_store.set_channel_feature(
-            "C1234567890", "status_updater_enabled", True
-        )
+        result = await user_store.set_channel_feature("C1234567890", "status_updater_enabled", True)
 
         assert result is True
         assert mock_client.update_item.call_count == 2
@@ -185,9 +162,7 @@ class TestUserStoreChannelFeatures:
         # Mock successful update on first try
         mock_client.update_item = AsyncMock()
 
-        result = await user_store.set_channel_feature(
-            "C1234567890", "status_updater_enabled", True
-        )
+        result = await user_store.set_channel_feature("C1234567890", "status_updater_enabled", True)
 
         assert result is True
         mock_client.update_item.assert_called_once()
@@ -210,9 +185,7 @@ class TestUserStoreChannelFeatures:
             }
         )
 
-        result = await user_store.get_channels_with_feature(
-            "status_updater_enabled", True
-        )
+        result = await user_store.get_channels_with_feature("status_updater_enabled", True)
 
         assert result == ["C1234567890", "C0987654321", "C1111111111"]
         mock_underlying_client.scan.assert_called_once()
@@ -230,22 +203,20 @@ class TestUserStoreChannelFeatures:
                 {
                     "Items": [
                         {"PK": {"S": "CHANNEL#C1234567890"}},
-                        {"PK": {"S": "CHANNEL#C2222222222"}}
+                        {"PK": {"S": "CHANNEL#C2222222222"}},
                     ],
                     "LastEvaluatedKey": {"PK": {"S": "CHANNEL#C2222222222"}},
                 },
                 {
                     "Items": [
                         {"PK": {"S": "CHANNEL#C0987654321"}},
-                        {"PK": {"S": "CHANNEL#C3333333333"}}
+                        {"PK": {"S": "CHANNEL#C3333333333"}},
                     ]
                 },
             ]
         )
 
-        result = await user_store.get_channels_with_feature(
-            "status_updater_enabled", True
-        )
+        result = await user_store.get_channels_with_feature("status_updater_enabled", True)
 
         assert result == ["C1234567890", "C2222222222", "C0987654321", "C3333333333"]
         assert mock_underlying_client.scan.call_count == 2

@@ -59,9 +59,7 @@ async def test_get_user_usernames_returns_username_not_display_name(user_ops):
     user_ops.user_store.batch_store_users = AsyncMock(return_value=(1, 0))
 
     # Mock the API request
-    with patch.object(
-        user_ops, "_make_api_request", AsyncMock(return_value=mock_response)
-    ):
+    with patch.object(user_ops, "_make_api_request", AsyncMock(return_value=mock_response)):
         # Call the method
         result = await user_ops.get_user_usernames([user_id])
 
@@ -117,9 +115,7 @@ async def test_get_user_usernames_fallback_to_id(user_ops):
     user_ops.user_store.batch_store_users = AsyncMock(return_value=(1, 0))
 
     # Mock the API request
-    with patch.object(
-        user_ops, "_make_api_request", AsyncMock(return_value=mock_response)
-    ):
+    with patch.object(user_ops, "_make_api_request", AsyncMock(return_value=mock_response)):
         # Call the method
         result = await user_ops.get_user_usernames([user_id])
 
@@ -205,9 +201,7 @@ async def test_get_user_names_still_returns_display_names(user_ops):
     user_ops.user_store.batch_store_users = AsyncMock(return_value=(1, 0))
 
     # Mock the API request
-    with patch.object(
-        user_ops, "_make_api_request", AsyncMock(return_value=mock_response)
-    ):
+    with patch.object(user_ops, "_make_api_request", AsyncMock(return_value=mock_response)):
         # Call the original method
         result = await user_ops.get_user_names([user_id])
 

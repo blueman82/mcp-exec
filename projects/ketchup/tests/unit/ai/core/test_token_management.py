@@ -73,9 +73,7 @@ async def test_enforce_token_limit_over_limit(
         {"role": "user", "content": "user content"},
     ]
     # Simulate truncation by replacing user content
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 140  # User content has 140 tokens
 
@@ -127,9 +125,7 @@ async def test_enforce_token_limit_notification_error(
         {"role": "user", "content": "user content"},
     ]
     # Simulate truncation by replacing user content
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 140  # User content has 140 tokens
 
@@ -181,9 +177,7 @@ async def test_enforce_token_limit_cleanup_error(
         {"role": "user", "content": "user content"},
     ]
     # Simulate truncation by replacing user content
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 140  # User content has 140 tokens
 
@@ -209,9 +203,7 @@ def test_truncate_messages_system_and_user(
         {"role": "system", "content": "sys"},
         {"role": "user", "content": "user content"},
     ]
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         # User content has 140 tokens, needs truncation to 90
         mock_tokenizer.return_value = [1] * 140
@@ -237,9 +229,7 @@ def test_truncate_messages_not_enough_tokens(
         {"role": "system", "content": "sys"},
         {"role": "user", "content": "user content"},
     ]
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 100
 
@@ -255,14 +245,10 @@ def test_truncate_messages_not_enough_tokens(
 
 @patch("packages.ai.core.operations.token_management.count_tokens")
 @patch("packages.ai.core.operations.token_management.MAX_PROCESSABLE_TOKENS", 100)
-def test_truncate_messages_user_only(
-    mock_count_tokens: MagicMock, manager: TokenManager
-) -> None:
+def test_truncate_messages_user_only(mock_count_tokens: MagicMock, manager: TokenManager) -> None:
     mock_count_tokens.side_effect = [0, 100, 50]  # system: 0, available: 100, final: 50
     messages = [{"role": "user", "content": "user content"}]
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 50
 
@@ -279,14 +265,10 @@ def test_truncate_messages_user_only(
 
 @patch("packages.ai.core.operations.token_management.count_tokens")
 @patch("packages.ai.core.operations.token_management.MAX_PROCESSABLE_TOKENS", 100)
-def test_truncate_messages_system_only(
-    mock_count_tokens: MagicMock, manager: TokenManager
-) -> None:
+def test_truncate_messages_system_only(mock_count_tokens: MagicMock, manager: TokenManager) -> None:
     mock_count_tokens.side_effect = [50, 50, 50]  # system: 50, available: 50, final: 50
     messages = [{"role": "system", "content": "sys"}]
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 50
 
@@ -303,14 +285,10 @@ def test_truncate_messages_system_only(
 
 @patch("packages.ai.core.operations.token_management.count_tokens")
 @patch("packages.ai.core.operations.token_management.MAX_PROCESSABLE_TOKENS", 100)
-def test_truncate_messages_neither(
-    mock_count_tokens: MagicMock, manager: TokenManager
-) -> None:
+def test_truncate_messages_neither(mock_count_tokens: MagicMock, manager: TokenManager) -> None:
     mock_count_tokens.side_effect = [0, 100, 0]  # no system, no user, final: 0
     messages = [{"role": "other", "content": "foo"}]
-    with patch(
-        "packages.ai.core.operations.token_management.get_tokenizer"
-    ) as mock_get_tokenizer:
+    with patch("packages.ai.core.operations.token_management.get_tokenizer") as mock_get_tokenizer:
         mock_tokenizer = MagicMock()
         mock_tokenizer.return_value = [1] * 50
 

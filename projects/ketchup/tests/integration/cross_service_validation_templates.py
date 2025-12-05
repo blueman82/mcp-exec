@@ -47,7 +47,7 @@ class ServiceDependencyValidator:
             "missing_dependencies": [],
             "circular_dependencies": [],
             "resolution_time": 0.0,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -74,8 +74,9 @@ class ServiceDependencyValidator:
 
         return result
 
-    def _validate_constructor_dependencies(self, service_type: Type,
-                                         result: Dict[str, Any]) -> None:
+    def _validate_constructor_dependencies(
+        self, service_type: Type, result: Dict[str, Any]
+    ) -> None:
         """Validate constructor parameter dependencies."""
         try:
             sig = inspect.signature(service_type.__init__)
@@ -88,24 +89,22 @@ class ServiceDependencyValidator:
                     try:
                         self.registry.get(param.annotation)
                     except Exception:
-                        result["missing_dependencies"].append({
-                            "parameter": name,
-                            "type": str(param.annotation)
-                        })
+                        result["missing_dependencies"].append(
+                            {"parameter": name, "type": str(param.annotation)}
+                        )
                         result["dependencies_valid"] = False
 
         except Exception as e:
             result["errors"].append(f"Constructor validation failed: {str(e)}")
 
-    def _detect_circular_dependencies(self, service_type: Type,
-                                    result: Dict[str, Any]) -> None:
+    def _detect_circular_dependencies(self, service_type: Type, result: Dict[str, Any]) -> None:
         """Detect circular dependency chains using DFS."""
         visited = set()
         visiting = set()
 
         def dfs(current_type: Type, path: List[str]) -> bool:
             if current_type in visiting:
-                circular_path = path[path.index(current_type.__name__):]
+                circular_path = path[path.index(current_type.__name__) :]
                 result["circular_dependencies"].append(circular_path)
                 return True
 
@@ -116,9 +115,9 @@ class ServiceDependencyValidator:
 
             try:
                 registration = self.registry._registrations.get(current_type)
-                if registration and hasattr(registration, 'dependencies'):
+                if registration and hasattr(registration, "dependencies"):
                     for dep in registration.dependencies:
-                        if hasattr(dep, 'type') and inspect.isclass(dep.type):
+                        if hasattr(dep, "type") and inspect.isclass(dep.type):
                             new_path = path + [current_type.__name__]
                             if dfs(dep.type, new_path):
                                 return True
@@ -138,8 +137,9 @@ class CrossServiceInteractionTester:
     def __init__(self, registry: TypedServiceRegistry):
         self.registry = registry
 
-    def test_service_communication(self, service_a: Type, service_b: Type,
-                                 interaction_method: str) -> Dict[str, Any]:
+    def test_service_communication(
+        self, service_a: Type, service_b: Type, interaction_method: str
+    ) -> Dict[str, Any]:
         """Test communication between two services."""
         result = {
             "service_a": service_a.__name__,
@@ -147,7 +147,7 @@ class CrossServiceInteractionTester:
             "interaction_method": interaction_method,
             "communication_successful": False,
             "response_time": 0.0,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -194,9 +194,7 @@ class CrossServiceInteractionTester:
             service_b = self._find_service_by_name(service_b_name)
 
             if service_a and service_b:
-                result = self.test_service_communication(
-                    service_a, service_b, "test_interaction"
-                )
+                result = self.test_service_communication(service_a, service_b, "test_interaction")
                 results.append(result)
 
         return results
@@ -222,7 +220,7 @@ class FailureScenarioTester:
             "handles_missing_deps": False,
             "error_message": "",
             "graceful_degradation": False,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -256,7 +254,7 @@ class FailureScenarioTester:
             "service_type": service_type.__name__,
             "handles_malformed_config": False,
             "error_recovery": False,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -283,12 +281,12 @@ class FailureScenarioTester:
             "service_type": service_type.__name__,
             "thread_safe": True,
             "concurrent_resolution_successful": True,
-            "errors": []
+            "errors": [],
         }
 
         try:
-            import threading
             import queue
+            import threading
 
             results_queue = queue.Queue()
             exceptions_queue = queue.Queue()
@@ -338,7 +336,7 @@ class FailureScenarioTester:
             "service_type": service_type.__name__,
             "handles_memory_pressure": True,
             "memory_efficient": True,
-            "errors": []
+            "errors": [],
         }
 
         try:
@@ -374,6 +372,7 @@ class FailureScenarioTester:
         """Get current memory usage in MB."""
         try:
             import psutil
+
             process = psutil.Process()
             return process.memory_info().rss / 1024 / 1024
         except ImportError:
@@ -387,6 +386,7 @@ class CrossServiceValidationTestSuite(unittest.TestCase):
     def setUpClass(cls):
         """Set up test registry with all services."""
         import packages.core.typed_di.service_registrations as svc_reg
+
         if hasattr(svc_reg, "_registration_manager"):
             svc_reg._registration_manager = None
 
@@ -414,9 +414,7 @@ class CrossServiceValidationTestSuite(unittest.TestCase):
             if result["dependencies_valid"]:
                 valid_services += 1
             else:
-                errors.append(
-                    f"{service_type.__name__}: {', '.join(result['errors'])}"
-                )
+                errors.append(f"{service_type.__name__}: {', '.join(result['errors'])}")
 
         logger.info(f"Dependency validation: {valid_services}/{total_services} services valid")
 
@@ -448,7 +446,10 @@ class CrossServiceValidationTestSuite(unittest.TestCase):
 
             # Test missing dependency handling
             missing_dep_result = self.failure_tester.test_missing_dependency_handling(service_type)
-            if not missing_dep_result["handles_missing_deps"] and not missing_dep_result["graceful_degradation"]:
+            if (
+                not missing_dep_result["handles_missing_deps"]
+                and not missing_dep_result["graceful_degradation"]
+            ):
                 errors.append(
                     f"{service_type.__name__}: poor missing dependency handling - {', '.join(missing_dep_result['errors'])}"
                 )
@@ -498,10 +499,11 @@ class CrossServiceValidationTestSuite(unittest.TestCase):
                     continue
 
                 # Test that instance has expected interface
-                if hasattr(service_type, '__init__'):
+                if hasattr(service_type, "__init__"):
                     sig = inspect.signature(service_type.__init__)
                     required_params = [
-                        name for name, param in sig.parameters.items()
+                        name
+                        for name, param in sig.parameters.items()
                         if name != "self" and param.default is inspect._empty
                     ]
 
@@ -532,8 +534,8 @@ def generate_validation_report(registry: TypedServiceRegistry) -> Dict[str, Any]
             "services_with_valid_dependencies": 0,
             "services_with_circular_dependencies": 0,
             "services_with_missing_dependencies": 0,
-            "average_resolution_time": 0.0
-        }
+            "average_resolution_time": 0.0,
+        },
     }
 
     # Initialize components
@@ -574,7 +576,7 @@ def generate_validation_report(registry: TypedServiceRegistry) -> Dict[str, Any]
         "missing_dependency_tests": [],
         "malformed_config_tests": [],
         "concurrent_access_tests": [],
-        "memory_pressure_tests": []
+        "memory_pressure_tests": [],
     }
 
     tested_count = 0
@@ -600,15 +602,23 @@ def generate_validation_report(registry: TypedServiceRegistry) -> Dict[str, Any]
     # Calculate comprehensive failure scenario summary
     report["summary"]["failure_scenario_coverage"] = {
         "services_tested": tested_count,
-        "thread_safe_services": sum(1 for r in report["failure_scenarios"]["concurrent_access_tests"] if r["thread_safe"]),
-        "memory_efficient_services": sum(1 for r in report["failure_scenarios"]["memory_pressure_tests"] if r["memory_efficient"]),
-        "graceful_degradation_services": sum(1 for r in report["failure_scenarios"]["missing_dependency_tests"] if r["graceful_degradation"])
+        "thread_safe_services": sum(
+            1 for r in report["failure_scenarios"]["concurrent_access_tests"] if r["thread_safe"]
+        ),
+        "memory_efficient_services": sum(
+            1 for r in report["failure_scenarios"]["memory_pressure_tests"] if r["memory_efficient"]
+        ),
+        "graceful_degradation_services": sum(
+            1
+            for r in report["failure_scenarios"]["missing_dependency_tests"]
+            if r["graceful_degradation"]
+        ),
     }
 
     # Calculate averages
     if report["dependency_results"]:
-        report["summary"]["average_resolution_time"] = (
-            total_resolution_time / len(report["dependency_results"])
+        report["summary"]["average_resolution_time"] = total_resolution_time / len(
+            report["dependency_results"]
         )
 
     return report

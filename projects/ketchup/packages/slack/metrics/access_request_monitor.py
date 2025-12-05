@@ -57,9 +57,7 @@ class AccessRequestMonitor:
         except OSError as e:
             logger.error("Failed to create legacy stats directory: %s", e)
 
-    async def increment_metric(
-        self, metric_name: str, value: int = 1, **kwargs
-    ) -> None:
+    async def increment_metric(self, metric_name: str, value: int = 1, **kwargs) -> None:
         """
         Increment a metric by the specified value.
 
@@ -71,9 +69,7 @@ class AccessRequestMonitor:
         try:
             # Store via MetricsStorage (primary storage)
             dimensions = (
-                [{"key": k, "value": str(v)} for k, v in kwargs.items()]
-                if kwargs
-                else None
+                [{"key": k, "value": str(v)} for k, v in kwargs.items()] if kwargs else None
             )
             await self._storage.put_metric(
                 metric_name, float(value), unit="Count", dimensions=dimensions
@@ -86,9 +82,7 @@ class AccessRequestMonitor:
             if self.slack_client:
                 await self._check_alert_thresholds(metric_name)
 
-            logger.info(
-                "Incremented metric %s by %d via MetricsStorage", metric_name, value
-            )
+            logger.info("Incremented metric %s by %d via MetricsStorage", metric_name, value)
 
         except Exception as e:
             logger.error("Failed to increment metric %s: %s", metric_name, e)
@@ -131,9 +125,7 @@ class AccessRequestMonitor:
             to_remove = []
             for hour_key in stats[metric_name]["hourly"]:
                 try:
-                    hour_timestamp = datetime.strptime(
-                        hour_key, "%Y-%m-%d_%H"
-                    ).timestamp()
+                    hour_timestamp = datetime.strptime(hour_key, "%Y-%m-%d_%H").timestamp()
                     if hour_timestamp < cutoff_time:
                         to_remove.append(hour_key)
                 except ValueError:
@@ -203,9 +195,7 @@ class AccessRequestMonitor:
                 logger.warning("No Slack client available for alert: %s", message)
                 return
 
-            await self.slack_client.chat_postMessage(
-                channel=KETCHUP_ALERTS_CHANNEL, text=message
-            )
+            await self.slack_client.chat_postMessage(channel=KETCHUP_ALERTS_CHANNEL, text=message)
 
         except Exception as e:
             logger.error("Failed to send alert: %s", e)

@@ -24,9 +24,7 @@ async def test_slack_channel_operations(services, logger):
     channel_config = await channel_ops.get_channel_details(test_channel)
 
     if channel_config:
-        logger.info(
-            f"✅ Found channel in database: {channel_config.get('channel_name')}"
-        )
+        logger.info(f"✅ Found channel in database: {channel_config.get('channel_name')}")
     else:
         logger.error("❌ Channel not found in database")
         return False
@@ -62,9 +60,7 @@ async def test_slack_message_fetching(services, logger):
 
     try:
         # Fetch last 10 messages
-        messages = await msg_ops.fetch_channel_messages(
-            channel_id=test_channel, limit=10
-        )
+        messages = await msg_ops.fetch_channel_messages(channel_id=test_channel, limit=10)
 
         if messages:
             logger.info(f"✅ Successfully fetched {len(messages)} messages")

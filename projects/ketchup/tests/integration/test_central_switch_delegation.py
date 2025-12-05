@@ -19,9 +19,9 @@ async def test_central_switch_uses_typed_di() -> None:
     container = await get_unified_container()
 
     # Verify it returns TypedServiceRegistry
-    assert isinstance(container, TypedServiceRegistry), (
-        f"Expected TypedServiceRegistry, got {type(container).__name__}"
-    )
+    assert isinstance(
+        container, TypedServiceRegistry
+    ), f"Expected TypedServiceRegistry, got {type(container).__name__}"
 
 
 @pytest.mark.asyncio

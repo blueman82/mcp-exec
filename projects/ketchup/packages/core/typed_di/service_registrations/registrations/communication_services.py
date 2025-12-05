@@ -26,9 +26,11 @@ logger = setup_logger(__name__)
 # PROTOCOL DEFINITIONS
 # =============================================================================
 
+
 @runtime_checkable
 class MessageBrokerServiceProtocol(Protocol):
     """Protocol for pub/sub messaging."""
+
     async def publish_message(self, topic: str, message: Dict[str, Any]) -> bool: ...
     async def subscribe_to_topic(self, topic: str, callback) -> str: ...
     async def unsubscribe(self, subscription_id: str) -> bool: ...
@@ -38,17 +40,25 @@ class MessageBrokerServiceProtocol(Protocol):
 @runtime_checkable
 class EventBusServiceProtocol(Protocol):
     """Protocol for event-driven communication."""
+
     async def emit_event(self, event_type: str, data: Dict[str, Any]) -> bool: ...
     async def register_handler(self, event_type: str, handler) -> str: ...
     async def unregister_handler(self, handler_id: str) -> bool: ...
-    async def get_event_history(self, event_type: str, limit: int = 100) -> List[Dict[str, Any]]: ...
+    async def get_event_history(
+        self, event_type: str, limit: int = 100
+    ) -> List[Dict[str, Any]]: ...
 
 
 @runtime_checkable
 class NotificationServiceProtocol(Protocol):
     """Protocol for general notifications."""
-    async def send_notification(self, user_id: str, notification_type: str, data: Dict[str, Any]) -> bool: ...
-    async def get_notifications(self, user_id: str, unread_only: bool = False) -> List[Dict[str, Any]]: ...
+
+    async def send_notification(
+        self, user_id: str, notification_type: str, data: Dict[str, Any]
+    ) -> bool: ...
+    async def get_notifications(
+        self, user_id: str, unread_only: bool = False
+    ) -> List[Dict[str, Any]]: ...
     async def mark_as_read(self, notification_id: str) -> bool: ...
     async def configure_preferences(self, user_id: str, preferences: Dict[str, Any]) -> bool: ...
 
@@ -56,6 +66,7 @@ class NotificationServiceProtocol(Protocol):
 @runtime_checkable
 class WorkflowEngineServiceProtocol(Protocol):
     """Protocol for business process workflows."""
+
     async def start_workflow(self, workflow_type: str, data: Dict[str, Any]) -> str: ...
     async def get_workflow_status(self, workflow_id: str) -> Dict[str, Any]: ...
     async def cancel_workflow(self, workflow_id: str) -> bool: ...
@@ -159,7 +170,9 @@ def register_communication_services(manager: "ServiceRegistrationManager") -> No
                 logger.debug(f"Unregistered handler: {handler_id}")
                 return True
 
-            async def get_event_history(self, event_type: str, limit: int = 100) -> List[Dict[str, Any]]:
+            async def get_event_history(
+                self, event_type: str, limit: int = 100
+            ) -> List[Dict[str, Any]]:
                 """Get event history for event type."""
                 events = [e for e in self.event_history if e["type"] == event_type]
                 return events[-limit:]
@@ -188,7 +201,9 @@ def register_communication_services(manager: "ServiceRegistrationManager") -> No
                 self.notifications = {}
                 self.preferences = {}
 
-            async def send_notification(self, user_id: str, notification_type: str, data: Dict[str, Any]) -> bool:
+            async def send_notification(
+                self, user_id: str, notification_type: str, data: Dict[str, Any]
+            ) -> bool:
                 """Send notification to user."""
                 notification_id = f"notif_{user_id}_{len(self.notifications)}"
                 notification = {
@@ -197,7 +212,7 @@ def register_communication_services(manager: "ServiceRegistrationManager") -> No
                     "type": notification_type,
                     "data": data,
                     "read": False,
-                    "timestamp": "now"
+                    "timestamp": "now",
                 }
                 if user_id not in self.notifications:
                     self.notifications[user_id] = []
@@ -205,7 +220,9 @@ def register_communication_services(manager: "ServiceRegistrationManager") -> No
                 logger.debug(f"Sent {notification_type} notification to user {user_id}")
                 return True
 
-            async def get_notifications(self, user_id: str, unread_only: bool = False) -> List[Dict[str, Any]]:
+            async def get_notifications(
+                self, user_id: str, unread_only: bool = False
+            ) -> List[Dict[str, Any]]:
                 """Get notifications for user."""
                 user_notifications = self.notifications.get(user_id, [])
                 if unread_only:
@@ -222,7 +239,9 @@ def register_communication_services(manager: "ServiceRegistrationManager") -> No
                             return True
                 return False
 
-            async def configure_preferences(self, user_id: str, preferences: Dict[str, Any]) -> bool:
+            async def configure_preferences(
+                self, user_id: str, preferences: Dict[str, Any]
+            ) -> bool:
                 """Configure notification preferences for user."""
                 self.preferences[user_id] = preferences
                 logger.debug(f"Configured preferences for user {user_id}")
@@ -260,7 +279,7 @@ def register_communication_services(manager: "ServiceRegistrationManager") -> No
                     "type": workflow_type,
                     "data": data,
                     "status": "running",
-                    "created_at": "now"
+                    "created_at": "now",
                 }
                 self.workflows[workflow_id] = workflow
                 logger.debug(f"Started workflow {workflow_type} with ID {workflow_id}")

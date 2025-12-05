@@ -103,8 +103,10 @@ class TestJoinNotificationOpsCounters:
 
     @pytest.mark.asyncio
     async def test_update_channel_counters_failed_status(
-        self, join_ops: JoinNotificationOps, mock_client: MagicMock,
-        sample_failed_tracking_data: Dict[str, Any]
+        self,
+        join_ops: JoinNotificationOps,
+        mock_client: MagicMock,
+        sample_failed_tracking_data: Dict[str, Any],
     ) -> None:
         """Test counter updates for failed status with failure tracking."""
         with patch.object(join_ops, "_get_iso_week", return_value="2024-W45"):
@@ -197,4 +199,3 @@ class TestJoinNotificationOpsCounters:
         assert "ADD #sent :one" in call_args["update_expression"]
         assert "SET #lut = :timestamp" in call_args["update_expression"]
         assert call_args["expression_attribute_values"][":week_key"]["S"] == "2024-W45"
-

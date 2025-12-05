@@ -183,16 +183,14 @@ class OpenAIHandler(AzureAsyncClient):
 
         try:
             # Attempt to prepare messages using the MessagePreparer
-            prepared_messages, channel_info = (
-                await self._message_preparer.prepare_messages(
-                    combined_command=combined_command,
-                    user_id=user_id,
-                    incoming_channel=incoming_channel,
-                    passed_channel_id=passed_channel_id,
-                    channel_name=channel_name,
-                    query_text=query_text,
-                    normalized_user_preferences=normalized_prefs_for_ai,
-                )
+            prepared_messages, channel_info = await self._message_preparer.prepare_messages(
+                combined_command=combined_command,
+                user_id=user_id,
+                incoming_channel=incoming_channel,
+                passed_channel_id=passed_channel_id,
+                channel_name=channel_name,
+                query_text=query_text,
+                normalized_user_preferences=normalized_prefs_for_ai,
             )
             # Enrich with JIRA context if available
             enriched_messages = await self._enrich_with_jira_context(
@@ -385,14 +383,8 @@ class OpenAIHandler(AzureAsyncClient):
             ValueError: If required parameters are missing or message prep fails.
         """
         logger.info("Starting call_openai_endpoint orchestration.")
-        if (
-            not self._message_preparer
-            or not self._token_manager
-            or not self._api_executor
-        ):
-            raise OpenAIError(
-                "OpenAIHandler submodules not initialized. Call initialize() first."
-            )
+        if not self._message_preparer or not self._token_manager or not self._api_executor:
+            raise OpenAIError("OpenAIHandler submodules not initialized. Call initialize() first.")
 
         try:
             # 1. Prepare messages if not provided directly
@@ -514,14 +506,10 @@ class OpenAIHandler(AzureAsyncClient):
             ]
 
             # Get JIRA context from the extractor
-            jira_context = await self._jira_extractor.get_jira_context(
-                channel_id, message_texts
-            )
+            jira_context = await self._jira_extractor.get_jira_context(channel_id, message_texts)
 
             if jira_context:
-                logger.info(
-                    f"Enriching messages with JIRA context for channel {channel_id}"
-                )
+                logger.info(f"Enriching messages with JIRA context for channel {channel_id}")
 
                 # Format basic ticket info
                 ticket_data = jira_context.get("data", {})
@@ -559,9 +547,7 @@ class OpenAIHandler(AzureAsyncClient):
                             try:
                                 from datetime import datetime
 
-                                dt = datetime.fromisoformat(
-                                    created.replace("Z", "+00:00")
-                                )
+                                dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
                                 formatted_date = dt.strftime("%d-%b-%Y, %H:%M UTC")
                             except Exception:
                                 formatted_date = created
@@ -579,12 +565,12 @@ class OpenAIHandler(AzureAsyncClient):
                         jira_content += f"- {formatted_date} - {author}:\n"
                         # Add basic 2-space indentation for readability
                         # The AI will handle proper formatting based on prompt instructions
-                        indented_body = "\n".join(
-                            ["  " + line for line in body.split("\n")]
-                        )
+                        indented_body = "\n".join(["  " + line for line in body.split("\n")])
                         jira_content += f"{indented_body}\n\n"
 
-                jira_content += "\nUse this JIRA context to provide more accurate and relevant responses."
+                jira_content += (
+                    "\nUse this JIRA context to provide more accurate and relevant responses."
+                )
 
                 # Format JIRA context as a system message
                 jira_system_msg = {"role": "system", "content": jira_content}

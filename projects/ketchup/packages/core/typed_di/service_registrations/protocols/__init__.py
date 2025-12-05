@@ -11,116 +11,69 @@ circular dependencies and improve maintainability.
 
 # Import protocols from modular files instead of service_registrations_original
 # Core infrastructure protocols
+# AI protocols
+from .ai_protocols import (
+    AIBatchProcessingServiceProtocol,
+    AIContextWindowServiceProtocol,
+    AICostCalculationServiceProtocol,
+    AIErrorHandlingServiceProtocol,
+    AIModelSelectionServiceProtocol,
+    AIPerformanceMonitoringServiceProtocol,
+    AIPromptTemplateServiceProtocol,
+    AIRateLimitServiceProtocol,
+    AIResponseCacheServiceProtocol,
+    AIRetryServiceProtocol,
+    AIStreamingServiceProtocol,
+    AITokenCountServiceProtocol,
+    ApiExecutorProtocol,
+    AzureConfigProtocol,
+    MessagePreparerProtocol,
+)
+
+# Archive processing protocols
+from .archive_processing_protocols import (
+    ArchiveAnalyticsServiceProtocol,
+    ArchiveCleanupServiceProtocol,
+    ArchiveReportingServiceProtocol,
+    ArchiveValidationServiceProtocol,
+)
+
+# Business rule protocols
+from .business_rule_protocols import (
+    AuditServiceProtocol,
+    ComplianceServiceProtocol,
+    GovernanceServiceProtocol,
+    PolicyValidationServiceProtocol,
+    RuleEngineServiceProtocol,
+)
+
+# Command protocols
+from .command_protocols import (
+    AccessCommandProtocol,
+    CommandRouterProtocol,
+    CommandTrackingOperationsProtocol,
+    CommandUsageCSVGeneratorProtocol,
+    FeatureCommandProtocol,
+    FeatureServiceProtocol,
+    ListCommandProtocol,
+    QueryCommandProtocol,
+    ShortLongCommandProtocol,
+    SlackArchiveCommandProtocol,
+    SlackListCommandProtocol,
+    SlackQueryHandlerProtocol,
+    SlackSummaryHandlerProtocol,
+    StatusReportCommandProtocol,
+    VerifyCommandProtocol,
+)
 from .core_protocols import (
-    UserStoreProtocol,
-    DynamoDBConfigProtocol,
     DynamoDBAsyncClientProtocol,
+    DynamoDBConfigProtocol,
     DynamoDBStoreProtocol,
     SecretsManagerProtocol,
     SlackConfigProtocol,
     SlackPostingHandlerProtocol,
     SQSClientProtocol,
-)
-
-# Infrastructure protocols
-from .infrastructure_protocols import (
-    AsyncClientProtocol,
-    ExponentialBackoffStrategyProtocol,
-    MetricsStorageProtocol,
-    TypedResolverProtocol,
-    EventProcessorProtocol,
-    BatchSizeManagerProtocol,
-    iPaaSRateLimiterProtocol,
-    DistributedLockProtocol,
-    IMSTokenManagerProtocol,
-    TokenTrackerProtocol,
-)
-
-# Slack protocols
-from .slack_protocols import (
-    SlackAsyncClientProtocol,
-    SlackAuthProtocol,
-    SlackChannelArchiveOpsProtocol,
-    SlackChannelMessageOpsProtocol,
-    SlackEventHandlerProtocol,
-    SlackUserStoreProtocol,
-    ChannelEligibilityServiceProtocol,
-    ChannelPolicyServiceProtocol,
-    ChannelMetricsServiceProtocol,
-    ChannelAnalyticsServiceProtocol,
-    ChannelValidationServiceProtocol,
-    ChannelInfoOpsProtocol,
-    ChannelMembershipOpsProtocol,
-    ChannelMetadataEditHandlerProtocol,
-    ChannelNameResolverProtocol,
-    ChannelOperationsProtocol,
-    SlackChannelBotMembershipOpsProtocol,
-    SlackChannelRestoreOpsProtocol,
-    SlackUserOpsProtocol,
-    UserJoinNotificationServiceProtocol,
-    ChannelNotificationServiceProtocol,
-    StatusNotificationServiceProtocol,
-    AlertNotificationServiceProtocol,
-    SystemNotificationServiceProtocol,
-    UserVerifierProtocol,
-    ArchiveProcessorProtocol,
-    CreationProcessorProtocol,
-    JoinProcessorProtocol,
-    PayloadProcessorProtocol,
-    UnarchiveProcessorProtocol,
-    UserManagementServiceProtocol,
-    UserPermissionServiceProtocol,
-    UserActivityServiceProtocol,
-    UserPreferenceServiceProtocol,
-    UserAnalyticsServiceProtocol,
-)
-
-# Operation protocols
-from .operation_protocols import (
-    BaseOperationsProtocol,
-    RestoreStateOperationsProtocol,
-    TrustOperationsProtocol,
-    JoinNotificationOpsProtocol,
-    RestoreStateManagerProtocol,
-    AccessRequestOperationsProtocol,
-    AccessRequestProtocol,
-)
-
-# Handler protocols
-from .handler_protocols import (
-    BaseCommandHandlerProtocol,
-    FlagReviewDatabaseOperationsProtocol,
-    FlagReviewDMHandlerProtocol,
-    FlagReviewMessageHandlerProtocol,
-    FlagReviewModalManagerProtocol,
-    AccessRequestHandlerProtocol,
-    AccessRequestBlocksProtocol,
-    AccessRequestMonitorProtocol,
-    FlagReviewHandlerProtocol,
-    HomeTabHandlerProtocol,
-    OpenAIHandlerProtocol,
-    ShortcutHandlerProtocol,
-    TrustEndorsementHandlerProtocol,
-    UsageExportHandlerProtocol,
-)
-
-# AI protocols
-from .ai_protocols import (
-    ApiExecutorProtocol,
-    MessagePreparerProtocol,
-    AzureConfigProtocol,
-    AIPromptTemplateServiceProtocol,
-    AIContextWindowServiceProtocol,
-    AITokenCountServiceProtocol,
-    AICostCalculationServiceProtocol,
-    AIModelSelectionServiceProtocol,
-    AIResponseCacheServiceProtocol,
-    AIStreamingServiceProtocol,
-    AIBatchProcessingServiceProtocol,
-    AIRateLimitServiceProtocol,
-    AIRetryServiceProtocol,
-    AIErrorHandlingServiceProtocol,
-    AIPerformanceMonitoringServiceProtocol,
+    UserStoreProtocol,
 )
 
 # Database protocols
@@ -136,47 +89,45 @@ from .database_protocols import (
     DatabaseTransactionServiceProtocol,
 )
 
-# MCP protocols
-from .mcp_protocols import (
-    MCPAsyncClientProtocol,
-    MCPClientProtocol,
-    MCPConfigProtocol,
+# External API integration protocols
+from .external_api_protocols import (
+    APIGatewayServiceProtocol,
+    CallbackServiceProtocol,
+    ExternalServiceClientProtocol,
+    IntegrationMonitoringServiceProtocol,
+    WebhookServiceProtocol,
 )
 
-# Command protocols
-from .command_protocols import (
-    AccessCommandProtocol,
-    ListCommandProtocol,
-    QueryCommandProtocol,
-    VerifyCommandProtocol,
-    StatusReportCommandProtocol,
-    ShortLongCommandProtocol,
-    SlackArchiveCommandProtocol,
-    SlackListCommandProtocol,
-    SlackQueryHandlerProtocol,
-    SlackSummaryHandlerProtocol,
-    CommandRouterProtocol,
-    CommandTrackingOperationsProtocol,
-    CommandUsageCSVGeneratorProtocol,
-    FeatureCommandProtocol,
-    FeatureServiceProtocol,
+# Handler protocols
+from .handler_protocols import (
+    AccessRequestBlocksProtocol,
+    AccessRequestHandlerProtocol,
+    AccessRequestMonitorProtocol,
+    BaseCommandHandlerProtocol,
+    FlagReviewDatabaseOperationsProtocol,
+    FlagReviewDMHandlerProtocol,
+    FlagReviewHandlerProtocol,
+    FlagReviewMessageHandlerProtocol,
+    FlagReviewModalManagerProtocol,
+    HomeTabHandlerProtocol,
+    OpenAIHandlerProtocol,
+    ShortcutHandlerProtocol,
+    TrustEndorsementHandlerProtocol,
+    UsageExportHandlerProtocol,
 )
 
-# UI protocols
-from .ui_protocols import (
-    BlockKitBuilderProtocol,
-    SlackMessageFormatterProtocol,
-    FeedbackOperationsProtocol,
-    BlockBuilderProtocol,
-    FeedbackReactionsHandlerProtocol,
-    FeedbackReportHandlerProtocol,
-    ArchiveMessageHandlerProtocol,
-    LookupMessageHandlerProtocol,
-    QueryMessageHandlerProtocol,
-    ReportMessageHandlerProtocol,
-    StatusMessageHandlerProtocol,
-    SummaryMessageHandlerProtocol,
-    ParameterMessageHandlerProtocol,
+# Infrastructure protocols
+from .infrastructure_protocols import (
+    AsyncClientProtocol,
+    BatchSizeManagerProtocol,
+    DistributedLockProtocol,
+    EventProcessorProtocol,
+    ExponentialBackoffStrategyProtocol,
+    IMSTokenManagerProtocol,
+    MetricsStorageProtocol,
+    TokenTrackerProtocol,
+    TypedResolverProtocol,
+    iPaaSRateLimiterProtocol,
 )
 
 # JIRA protocols
@@ -186,60 +137,108 @@ from .jira_protocols import (
     SlackReportsProtocol,
 )
 
+# Maintenance detection protocols
+from .maintenance_protocols import (
+    JiraPromptHandlerProtocol,
+    MaintenanceCheckerProtocol,
+    RavenMaintenanceClientProtocol,
+)
+
+# MCP protocols
+from .mcp_protocols import (
+    MCPAsyncClientProtocol,
+    MCPClientProtocol,
+    MCPConfigProtocol,
+)
+
+# Operation protocols
+from .operation_protocols import (
+    AccessRequestOperationsProtocol,
+    AccessRequestProtocol,
+    BaseOperationsProtocol,
+    JoinNotificationOpsProtocol,
+    RestoreStateManagerProtocol,
+    RestoreStateOperationsProtocol,
+    TrustOperationsProtocol,
+)
+
 # Registry protocols
 from .registry_protocols import (
     TypedServiceRegistryProtocol,
 )
 
-# Business rule protocols
-from .business_rule_protocols import (
-    RuleEngineServiceProtocol,
-    PolicyValidationServiceProtocol,
-    ComplianceServiceProtocol,
-    AuditServiceProtocol,
-    GovernanceServiceProtocol,
-)
-
-# Workflow management protocols
-from .workflow_protocols import (
-    WorkflowEngineServiceProtocol,
-    TaskManagementServiceProtocol,
-    ProcessAutomationServiceProtocol,
-    StateManagementServiceProtocol,
-    TransitionServiceProtocol,
+# Slack protocols
+from .slack_protocols import (
+    AlertNotificationServiceProtocol,
+    ArchiveProcessorProtocol,
+    ChannelAnalyticsServiceProtocol,
+    ChannelEligibilityServiceProtocol,
+    ChannelInfoOpsProtocol,
+    ChannelMembershipOpsProtocol,
+    ChannelMetadataEditHandlerProtocol,
+    ChannelMetricsServiceProtocol,
+    ChannelNameResolverProtocol,
+    ChannelNotificationServiceProtocol,
+    ChannelOperationsProtocol,
+    ChannelPolicyServiceProtocol,
+    ChannelValidationServiceProtocol,
+    CreationProcessorProtocol,
+    JoinProcessorProtocol,
+    PayloadProcessorProtocol,
+    SlackAsyncClientProtocol,
+    SlackAuthProtocol,
+    SlackChannelArchiveOpsProtocol,
+    SlackChannelBotMembershipOpsProtocol,
+    SlackChannelMessageOpsProtocol,
+    SlackChannelRestoreOpsProtocol,
+    SlackEventHandlerProtocol,
+    SlackUserOpsProtocol,
+    SlackUserStoreProtocol,
+    StatusNotificationServiceProtocol,
+    SystemNotificationServiceProtocol,
+    UnarchiveProcessorProtocol,
+    UserActivityServiceProtocol,
+    UserAnalyticsServiceProtocol,
+    UserJoinNotificationServiceProtocol,
+    UserManagementServiceProtocol,
+    UserPermissionServiceProtocol,
+    UserPreferenceServiceProtocol,
+    UserVerifierProtocol,
 )
 
 # Status update protocols
 from .status_update_protocols import (
-    StatusUpdateProcessorProtocol,
-    StatusGeneratorProtocol,
-    StatusValidationServiceProtocol,
-    StatusReportingServiceProtocol,
     StatusAnalyticsServiceProtocol,
+    StatusGeneratorProtocol,
+    StatusReportingServiceProtocol,
+    StatusUpdateProcessorProtocol,
+    StatusValidationServiceProtocol,
 )
 
-# Archive processing protocols
-from .archive_processing_protocols import (
-    ArchiveValidationServiceProtocol,
-    ArchiveReportingServiceProtocol,
-    ArchiveAnalyticsServiceProtocol,
-    ArchiveCleanupServiceProtocol,
+# UI protocols
+from .ui_protocols import (
+    ArchiveMessageHandlerProtocol,
+    BlockBuilderProtocol,
+    BlockKitBuilderProtocol,
+    FeedbackOperationsProtocol,
+    FeedbackReactionsHandlerProtocol,
+    FeedbackReportHandlerProtocol,
+    LookupMessageHandlerProtocol,
+    ParameterMessageHandlerProtocol,
+    QueryMessageHandlerProtocol,
+    ReportMessageHandlerProtocol,
+    SlackMessageFormatterProtocol,
+    StatusMessageHandlerProtocol,
+    SummaryMessageHandlerProtocol,
 )
 
-# External API integration protocols
-from .external_api_protocols import (
-    APIGatewayServiceProtocol,
-    ExternalServiceClientProtocol,
-    WebhookServiceProtocol,
-    CallbackServiceProtocol,
-    IntegrationMonitoringServiceProtocol,
-)
-
-# Maintenance detection protocols
-from .maintenance_protocols import (
-    RavenMaintenanceClientProtocol,
-    MaintenanceCheckerProtocol,
-    JiraPromptHandlerProtocol,
+# Workflow management protocols
+from .workflow_protocols import (
+    ProcessAutomationServiceProtocol,
+    StateManagementServiceProtocol,
+    TaskManagementServiceProtocol,
+    TransitionServiceProtocol,
+    WorkflowEngineServiceProtocol,
 )
 
 # All protocols are imported from modular domain-specific files

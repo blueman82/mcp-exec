@@ -12,9 +12,9 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from packages.core.config.system_channels import get_excluded_channels
 from packages.core.typed_di_integration import get_unified_container
 from packages.db.operations.channel_operations import ChannelOperations
-from packages.core.config.system_channels import get_excluded_channels
 
 
 async def debug_cso_channels():
@@ -71,17 +71,13 @@ async def debug_cso_channels():
     currently_active = [ch for ch in non_excluded_cso if not ch["archived"]]
     archived = [ch for ch in non_excluded_cso if ch["archived"]]
 
-    print(
-        f"✅ CURRENTLY ACTIVE CSO channels (after exclusions): {len(currently_active)}"
-    )
+    print(f"✅ CURRENTLY ACTIVE CSO channels (after exclusions): {len(currently_active)}")
     for ch in currently_active:
         print(f"  - {ch['channel_id']} ({ch['name']}): {ch['product']}")
     print()
 
     # Count by product
-    active_campaign = len(
-        [ch for ch in currently_active if ch["product"] == "campaign"]
-    )
+    active_campaign = len([ch for ch in currently_active if ch["product"] == "campaign"])
     active_ajo = len([ch for ch in currently_active if ch["product"] == "ajo"])
 
     print("📈 Product Breakdown:")

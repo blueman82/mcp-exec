@@ -97,9 +97,7 @@ class TestTrustEndorsementIntegration:
         # Step 2: Simulate first user trusting the status
         user1_payload = {
             "user": {"id": "U123456", "name": "user1"},
-            "actions": [
-                {"action_id": "trust_status_update", "value": status_update_id}
-            ],
+            "actions": [{"action_id": "trust_status_update", "value": status_update_id}],
             "channel": {"id": channel_id},
             "message": {
                 "ts": "1234567890.123456",
@@ -110,9 +108,7 @@ class TestTrustEndorsementIntegration:
                     },
                     {
                         "type": "actions",
-                        "elements": [
-                            {"type": "button", "action_id": "trust_status_update"}
-                        ],
+                        "elements": [{"type": "button", "action_id": "trust_status_update"}],
                     },
                 ],
             },
@@ -169,9 +165,7 @@ class TestTrustEndorsementIntegration:
         # Step 3: Simulate second user trusting
         user2_payload = {
             "user": {"id": "U789012", "name": "user2"},
-            "actions": [
-                {"action_id": "trust_status_update", "value": status_update_id}
-            ],
+            "actions": [{"action_id": "trust_status_update", "value": status_update_id}],
             "channel": {"id": channel_id},
             "message": user1_payload["message"],
         }
@@ -260,9 +254,7 @@ class TestTrustEndorsementIntegration:
 
         payload = {
             "user": {"id": "U123456", "name": "user1"},
-            "actions": [
-                {"action_id": "trust_status_update", "value": status_update_id}
-            ],
+            "actions": [{"action_id": "trust_status_update", "value": status_update_id}],
             "channel": {"id": channel_id},
             "message": {
                 "ts": "1234567890.123456",
@@ -348,9 +340,7 @@ class TestTrustEndorsementIntegration:
             assert result is True
 
         # 11th request should be rate limited
-        result = await trust_handler.process_trust_action(
-            make_payload("1234567890_test11")
-        )
+        result = await trust_handler.process_trust_action(make_payload("1234567890_test11"))
         assert result is True  # Still returns True but doesn't process
 
         # Verify no trust was added for rate-limited request

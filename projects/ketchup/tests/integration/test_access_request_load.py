@@ -52,9 +52,7 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
             passed = True
 
             # Test 1: Concurrent request creation
-            self.logger.info(
-                f"Test 1: {self.concurrent_users} concurrent request creations..."
-            )
+            self.logger.info(f"Test 1: {self.concurrent_users} concurrent request creations...")
             if not await self._test_concurrent_requests(services):
                 passed = False
 
@@ -143,12 +141,8 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
             successful = sum(1 for r in results if isinstance(r, tuple) and r[0])
             failed = len(results) - successful
 
-            self.logger.info(
-                f"Created {successful}/{len(test_users)} requests in {duration:.2f}s"
-            )
-            self.logger.info(
-                f"Average: {duration/len(test_users)*1000:.2f}ms per request"
-            )
+            self.logger.info(f"Created {successful}/{len(test_users)} requests in {duration:.2f}s")
+            self.logger.info(f"Average: {duration/len(test_users)*1000:.2f}ms per request")
 
             if successful < len(test_users) * 0.95:  # Allow 5% failure rate
                 self.logger.error(f"Too many failures: {failed}/{len(test_users)}")
@@ -199,9 +193,7 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
                         "user": {"id": f"UAPPROVER{i}", "name": f"approver_{i}"},
                         "channel": {"id": "C123456"},
                         "message": {"ts": "1234567890.123456", "blocks": []},
-                        "actions": [
-                            {"value": f"{request.user_id}|{request.request_timestamp}"}
-                        ],
+                        "actions": [{"value": f"{request.user_id}|{request.request_timestamp}"}],
                     }
 
                     async def timed_approval(p):
@@ -234,9 +226,7 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
             end_time = time.time()
 
             # Analyze results
-            successful_decisions = sum(
-                1 for r in results if r and not isinstance(r, Exception)
-            )
+            successful_decisions = sum(1 for r in results if r and not isinstance(r, Exception))
 
             self.logger.info(
                 f"Processed {successful_decisions}/{len(load_requests)} decisions in {end_time - start_time:.2f}s"
@@ -257,18 +247,14 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
                 )
 
             # Verify no duplicate approvals (distributed lock test)
-            for request in load_requests[
-                : int(len(load_requests) * self.approval_ratio)
-            ]:
+            for request in load_requests[: int(len(load_requests) * self.approval_ratio)]:
                 history = await ops.get_user_request_history(request.user_id)
                 approved_count = sum(
                     1 for h in history if h.status == ACCESS_REQUEST_STATUS["APPROVED"]
                 )
 
                 if approved_count > 1:
-                    self.logger.error(
-                        f"Duplicate approval detected for {request.user_id}"
-                    )
+                    self.logger.error(f"Duplicate approval detected for {request.user_id}")
                     return False
 
             self.logger.info("✓ Concurrent decision processing successful")
@@ -326,9 +312,7 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
             # Analyze rate limiting
             for i, user in enumerate(rate_limit_users):
                 user_results = results[i * 5 : (i + 1) * 5]
-                successful = sum(
-                    1 for r in user_results if isinstance(r, tuple) and r[0]
-                )
+                successful = sum(1 for r in user_results if isinstance(r, tuple) and r[0])
                 rate_limited = sum(
                     1
                     for r in user_results
@@ -386,9 +370,7 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
             )
 
             # Cache should be significantly faster
-            if (
-                avg_cache_time > uncached_time * 0.1
-            ):  # Cache should be at least 10x faster
+            if avg_cache_time > uncached_time * 0.1:  # Cache should be at least 10x faster
                 self.logger.error("Cache not providing expected performance benefit")
                 return False
 
@@ -415,12 +397,8 @@ class TestAccessRequestLoadTest(BaseIntegrationTest):
             self.logger.info(f"Errors: {summary.get('error', 0)}")
 
             if summary.get("created", 0) > 0:
-                self.logger.info(
-                    f"Approval rate: {summary.get('approval_rate', 0):.1%}"
-                )
-                self.logger.info(
-                    f"Rejection rate: {summary.get('rejection_rate', 0):.1%}"
-                )
+                self.logger.info(f"Approval rate: {summary.get('approval_rate', 0):.1%}")
+                self.logger.info(f"Rejection rate: {summary.get('rejection_rate', 0):.1%}")
                 self.logger.info(f"Error rate: {summary.get('error_rate', 0):.1%}")
 
         except Exception as e:

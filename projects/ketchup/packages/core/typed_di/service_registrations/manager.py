@@ -81,9 +81,7 @@ class ServiceRegistrationManager:
         self.registered_services[service_key] = {
             "protocol_type": protocol_type.__name__,
             "concrete_type": concrete_type.__name__,
-            "dependencies": [
-                getattr(dep.type, "__name__", str(dep.type)) for dep in dependencies
-            ],
+            "dependencies": [getattr(dep.type, "__name__", str(dep.type)) for dep in dependencies],
             "lifetime": lifetime,
             "qualifier": qualifier,
             "factory_type": type(factory).__name__,
@@ -93,16 +91,12 @@ class ServiceRegistrationManager:
             f"Registered protocol {protocol_type.__name__} with concrete alias {concrete_type.__name__}"
         )
 
-    def validate_protocol_compatibility(
-        self, protocol_type: Type, concrete_type: Type
-    ) -> bool:
+    def validate_protocol_compatibility(self, protocol_type: Type, concrete_type: Type) -> bool:
         """Validate that concrete type is compatible with protocol."""
         try:
             return isinstance(concrete_type(), protocol_type)
         except Exception as e:
-            logger.warning(
-                f"Protocol compatibility check failed for {protocol_type.__name__}: {e}"
-            )
+            logger.warning(f"Protocol compatibility check failed for {protocol_type.__name__}: {e}")
             return inspect.isclass(concrete_type)  # Basic fallback check
 
     def freeze_registry(self) -> None:

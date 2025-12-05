@@ -19,8 +19,8 @@ from packages.core.async_client import AsyncClient
 from packages.core.local_metrics import MetricsStorage
 from packages.core.logging import setup_logger
 from packages.core.sqs_client import SQSClient
-from packages.core.typed_di.types import DependencySpec
 from packages.core.typed_di.registry import TypedServiceRegistry
+from packages.core.typed_di.types import DependencySpec
 
 # Type hint imports
 if TYPE_CHECKING:
@@ -75,6 +75,7 @@ def register_core_infrastructure(manager: "ServiceRegistrationManager") -> None:
 
 def _register_messaging_and_metrics(manager: "ServiceRegistrationManager") -> None:
     """Register SQSClient and MetricsStorage infrastructure services."""
+
     # SQSClient with protocol - messaging infrastructure
     async def create_sqs_client(resolver) -> SQSClient:
         """Factory function for SQSClient using TypedResolver."""
@@ -108,6 +109,7 @@ def _register_messaging_and_metrics(manager: "ServiceRegistrationManager") -> No
 
 def _register_http_infrastructure(manager: "ServiceRegistrationManager") -> None:
     """Register AsyncClient HTTP infrastructure service."""
+
     # AsyncClient with protocol - HTTP client infrastructure
     async def create_async_client(resolver) -> AsyncClient:
         """Factory function for AsyncClient."""
@@ -151,11 +153,7 @@ def _register_typed_service_registry(manager: "ServiceRegistrationManager") -> N
         async def create_typed_service_registry(resolver) -> TypedServiceRegistry:
             """Factory function for TypedServiceRegistry - returns current instance."""
             # Return the current registry instance being used
-            return (
-                resolver._registry
-                if hasattr(resolver, "_registry")
-                else TypedServiceRegistry()
-            )
+            return resolver._registry if hasattr(resolver, "_registry") else TypedServiceRegistry()
 
         manager.register_protocol_with_concrete_alias(
             protocol_type=TypedServiceRegistryProtocol,
@@ -171,6 +169,7 @@ def _register_typed_service_registry(manager: "ServiceRegistrationManager") -> N
 
 def _register_typed_resolver(manager: "ServiceRegistrationManager") -> None:
     """Register TypedResolver - resolution infrastructure."""
+
     async def create_typed_resolver(resolver) -> "TypedResolver":
         """Factory function for TypedResolver."""
         from packages.core.typed_di.resolver import TypedResolver

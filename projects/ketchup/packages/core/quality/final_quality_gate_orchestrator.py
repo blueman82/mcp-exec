@@ -28,8 +28,14 @@ from .security_validator import SecurityValidator
 class QualityGateResult:
     """Represents the result of a quality gate check."""
 
-    def __init__(self, gate_name: str, passed: bool, violations: List[CodeQualityViolation],
-                 execution_time_ms: float, severity_counts: Dict[str, int]):
+    def __init__(
+        self,
+        gate_name: str,
+        passed: bool,
+        violations: List[CodeQualityViolation],
+        execution_time_ms: float,
+        severity_counts: Dict[str, int],
+    ):
         """Initialize a quality gate result."""
         self.gate_name = gate_name
         self.passed = passed
@@ -46,7 +52,7 @@ class QualityGateResult:
             "violation_count": len(self.violations),
             "execution_time_ms": self.execution_time_ms,
             "severity_counts": self.severity_counts,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
         }
 
 
@@ -76,10 +82,13 @@ class FinalQualityGateOrchestrator:
             "security": {"validator": self.security_validator, "critical": True},
             "docstrings": {"validator": self.docstring_validator, "critical": False},
             "import_order": {"validator": self.import_order_validator, "critical": False},
-            "production_readiness": {"validator": self.production_readiness_validator, "critical": True},
+            "production_readiness": {
+                "validator": self.production_readiness_validator,
+                "critical": True,
+            },
             "rollback_safety": {"validator": self.rollback_safety_validator, "critical": True},
             "completion_tracking": {"validator": self.completion_tracker, "critical": False},
-            "conflict_detection": {"validator": self.conflict_detector, "critical": False}
+            "conflict_detection": {"validator": self.conflict_detector, "critical": False},
         }
 
         self.results: Dict[str, QualityGateResult] = {}
@@ -88,7 +97,7 @@ class FinalQualityGateOrchestrator:
         """Count violations by severity."""
         counts = {"error": 0, "warning": 0}
         for violation in violations:
-            severity = getattr(violation, 'severity', 'error')
+            severity = getattr(violation, "severity", "error")
             counts[severity] = counts.get(severity, 0) + 1
         return counts
 
@@ -99,8 +108,7 @@ class FinalQualityGateOrchestrator:
 
         # Scan packages directory for violations
         violations = self.code_quality_validator.scan_directory_for_violations(
-            os.path.join(self.base_path, "packages"),
-            ['*.py']
+            os.path.join(self.base_path, "packages"), ["*.py"]
         )
 
         # Flatten violations from all files
@@ -198,7 +206,7 @@ class FinalQualityGateOrchestrator:
         # Register current session
         critical_files = [
             "packages/core/typed_di/service_registrations.py",
-            "packages/core/di_container.py"
+            "packages/core/di_container.py",
         ]
 
         violations = self.conflict_detector.register_work_session(
@@ -224,13 +232,10 @@ class FinalQualityGateOrchestrator:
             self._run_code_quality_gate(),
             self._run_security_gate(),
             self._run_completion_tracking_gate(),
-            self._run_conflict_detection_gate()
+            self._run_conflict_detection_gate(),
         ]
 
-        dependent_gates = [
-            self._run_production_readiness_gate(),
-            self._run_rollback_safety_gate()
-        ]
+        dependent_gates = [self._run_production_readiness_gate(), self._run_rollback_safety_gate()]
 
         # Run independent gates in parallel
         independent_results = await asyncio.gather(*independent_gates, return_exceptions=True)
@@ -241,9 +246,18 @@ class FinalQualityGateOrchestrator:
             if isinstance(result, Exception):
                 # Create error result for failed gate
                 self.results[gate_names[i]] = QualityGateResult(
-                    gate_names[i], False, [CodeQualityViolation(
-                        "execution_error", "orchestrator", 0, f"Gate execution failed: {str(result)}"
-                    )], 0, {"error": 1}
+                    gate_names[i],
+                    False,
+                    [
+                        CodeQualityViolation(
+                            "execution_error",
+                            "orchestrator",
+                            0,
+                            f"Gate execution failed: {str(result)}",
+                        )
+                    ],
+                    0,
+                    {"error": 1},
                 )
             else:
                 self.results[gate_names[i]] = result
@@ -256,9 +270,15 @@ class FinalQualityGateOrchestrator:
             except Exception as e:
                 gate_name = "unknown_dependent_gate"
                 self.results[gate_name] = QualityGateResult(
-                    gate_name, False, [CodeQualityViolation(
-                        "execution_error", "orchestrator", 0, f"Dependent gate failed: {str(e)}"
-                    )], 0, {"error": 1}
+                    gate_name,
+                    False,
+                    [
+                        CodeQualityViolation(
+                            "execution_error", "orchestrator", 0, f"Dependent gate failed: {str(e)}"
+                        )
+                    ],
+                    0,
+                    {"error": 1},
                 )
 
         return self.results
@@ -283,8 +303,11 @@ class FinalQualityGateOrchestrator:
         total_gates = len(self.results)
         passed_gates = sum(1 for result in self.results.values() if result.passed)
         critical_gates = ["code_quality", "security", "production_readiness", "rollback_safety"]
-        critical_passed = sum(1 for gate_name in critical_gates
-                            if gate_name in self.results and self.results[gate_name].passed)
+        critical_passed = sum(
+            1
+            for gate_name in critical_gates
+            if gate_name in self.results and self.results[gate_name].passed
+        )
 
         report.append(f"📊 OVERALL RESULTS: {passed_gates}/{total_gates} gates passed")
         report.append(f"🔒 CRITICAL GATES: {critical_passed}/{len(critical_gates)} passed")
@@ -309,7 +332,9 @@ class FinalQualityGateOrchestrator:
             status_icon = "✅" if result.passed else "❌"
 
             report.append(f"  {status_icon} {gate_name.upper()}{critical_marker}")
-            report.append(f"     Violations: {len(result.violations)} (Errors: {result.severity_counts.get('error', 0)}, Warnings: {result.severity_counts.get('warning', 0)})")
+            report.append(
+                f"     Violations: {len(result.violations)} (Errors: {result.severity_counts.get('error', 0)}, Warnings: {result.severity_counts.get('warning', 0)})"
+            )
             report.append(f"     Execution Time: {result.execution_time_ms:.1f}ms")
 
         report.append("")
@@ -319,7 +344,9 @@ class FinalQualityGateOrchestrator:
             percentages = self.completion_tracker.calculate_completion_percentage()
             report.append("📈 COMPLETION PROGRESS:")
             report.append(f"  Overall: {percentages['overall']:.1f}%")
-            report.append(f"  Target Discovery: {percentages['target_percentage']:.1f}% ({percentages['total_found']}/{percentages['target_total']} services)")
+            report.append(
+                f"  Target Discovery: {percentages['target_percentage']:.1f}% ({percentages['total_found']}/{percentages['target_total']} services)"
+            )
 
         # Performance summary
         total_execution_time = sum(result.execution_time_ms for result in self.results.values())

@@ -9,9 +9,9 @@ import asyncio
 import re
 import time
 from datetime import datetime, timezone
+from typing import Any, Dict, Optional
 
 import orjson
-from typing import Any, Dict, Optional
 
 from packages.ai.prompts.auto_status import (
     get_auto_status_prompt,
@@ -132,7 +132,7 @@ class UserJoinNotificationService:
                                 "channel_id": channel_id,
                                 "delivery_status": "disabled",
                                 "notification_attempted": False,
-                                "timestamp": int(time.time())
+                                "timestamp": int(time.time()),
                             }
                             await self.join_notification_ops.track_notification(tracking_data)
                         return True  # Return True since this is expected behavior
@@ -163,9 +163,11 @@ class UserJoinNotificationService:
                         "channel_id": channel_id,
                         "delivery_status": "failed",
                         "notification_attempted": True,
-                        "failure_reason_code": self._map_error_to_failure_reason("CHANNEL_DATA_COLLECTION_FAILED"),
+                        "failure_reason_code": self._map_error_to_failure_reason(
+                            "CHANNEL_DATA_COLLECTION_FAILED"
+                        ),
                         "error_message": "Failed to collect channel data",
-                        "timestamp": int(time.time())
+                        "timestamp": int(time.time()),
                     }
                     await self.join_notification_ops.track_notification(tracking_data)
                 return False
@@ -181,9 +183,11 @@ class UserJoinNotificationService:
                         "channel_id": channel_id,
                         "delivery_status": "failed",
                         "notification_attempted": True,
-                        "failure_reason_code": self._map_error_to_failure_reason("AI_CONTENT_GENERATION_FAILED"),
+                        "failure_reason_code": self._map_error_to_failure_reason(
+                            "AI_CONTENT_GENERATION_FAILED"
+                        ),
                         "error_message": "Failed to generate AI content",
-                        "timestamp": int(time.time())
+                        "timestamp": int(time.time()),
                     }
                     await self.join_notification_ops.track_notification(tracking_data)
                 return False
@@ -213,7 +217,7 @@ class UserJoinNotificationService:
                         "channel_id": channel_id,
                         "delivery_status": "success",
                         "notification_attempted": True,
-                        "timestamp": int(time.time())
+                        "timestamp": int(time.time()),
                     }
                     await self.join_notification_ops.track_notification(tracking_data)
             else:
@@ -229,9 +233,11 @@ class UserJoinNotificationService:
                         "channel_id": channel_id,
                         "delivery_status": "failed",
                         "notification_attempted": True,
-                        "failure_reason_code": self._map_error_to_failure_reason("NOTIFICATION_DELIVERY_FAILED"),
+                        "failure_reason_code": self._map_error_to_failure_reason(
+                            "NOTIFICATION_DELIVERY_FAILED"
+                        ),
                         "error_message": "Failed to send ephemeral notification",
-                        "timestamp": int(time.time())
+                        "timestamp": int(time.time()),
                     }
                     await self.join_notification_ops.track_notification(tracking_data)
 
@@ -252,9 +258,11 @@ class UserJoinNotificationService:
                     "channel_id": channel_id,
                     "delivery_status": "failed",
                     "notification_attempted": True,
-                    "failure_reason_code": self._map_error_to_failure_reason("EXCEPTION_DURING_PROCESSING"),
+                    "failure_reason_code": self._map_error_to_failure_reason(
+                        "EXCEPTION_DURING_PROCESSING"
+                    ),
                     "error_message": str(e)[:512],  # Truncate to avoid oversized messages
-                    "timestamp": int(time.time())
+                    "timestamp": int(time.time()),
                 }
                 try:
                     await self.join_notification_ops.track_notification(tracking_data)
@@ -350,13 +358,9 @@ class UserJoinNotificationService:
                     jira_context = await self.jira_extractor.get_jira_context(
                         channel_id, message_texts
                     )
-                    logger.info(
-                        "JIRA context enrichment completed for channel %s", channel_id
-                    )
+                    logger.info("JIRA context enrichment completed for channel %s", channel_id)
                 except Exception as e:
-                    logger.warning(
-                        "JIRA enrichment failed for channel %s: %s", channel_id, str(e)
-                    )
+                    logger.warning("JIRA enrichment failed for channel %s: %s", channel_id, str(e))
                     # Continue without JIRA context
 
             # Extract JIRA ticket from context if available
@@ -384,9 +388,7 @@ class UserJoinNotificationService:
             )
             return None
 
-    async def _generate_notification_content(
-        self, channel_data: Dict[str, Any]
-    ) -> Optional[str]:
+    async def _generate_notification_content(self, channel_data: Dict[str, Any]) -> Optional[str]:
         """
         Generate AI notification content using auto_status prompts.
 
@@ -448,11 +450,7 @@ class UserJoinNotificationService:
                 incoming_channel=None,  # No incoming channel context needed
             )
 
-            if (
-                not response_data
-                or "choices" not in response_data
-                or not response_data["choices"]
-            ):
+            if not response_data or "choices" not in response_data or not response_data["choices"]:
                 logger.error("Invalid OpenAI response format")
                 return None
 
@@ -482,9 +480,7 @@ class UserJoinNotificationService:
             return ai_content
 
         except Exception as e:
-            logger.error(
-                "Error generating AI notification content: %s", str(e), exc_info=True
-            )
+            logger.error("Error generating AI notification content: %s", str(e), exc_info=True)
             return None
 
     def _format_final_notification(
@@ -611,9 +607,7 @@ Don't want these notifications? New to Ketchup? Request access via `/ketchup acc
             )
             return False
 
-    def _apply_jira_corrections(
-        self, content: str, channel_data: Dict[str, Any]
-    ) -> str:
+    def _apply_jira_corrections(self, content: str, channel_data: Dict[str, Any]) -> str:
         """
         Apply JIRA ticket corrections using exact status-updater pattern.
 
@@ -640,7 +634,9 @@ Don't want these notifications? New to Ketchup? Request access via `/ketchup acc
 
         # Step 3: Add JIRA line only if we have a valid ticket
         if final_ticket:
-            jira_line = f"\nJIRA Ticket: <https://jira.corp.adobe.com/browse/{final_ticket}|{final_ticket}>"
+            jira_line = (
+                f"\nJIRA Ticket: <https://jira.corp.adobe.com/browse/{final_ticket}|{final_ticket}>"
+            )
             content = content.rstrip() + jira_line
         else:
             logger.warning("No valid JIRA ticket found for notification")

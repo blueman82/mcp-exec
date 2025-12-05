@@ -34,12 +34,15 @@ logger = setup_logger(__name__)
 @runtime_checkable
 class IntegrationConfigServiceProtocol(Protocol):
     """Protocol for integration configuration."""
+
     async def get_config(self, integration_name: str) -> dict: ...
     async def update_config(self, integration_name: str, config: dict) -> bool: ...
+
 
 @runtime_checkable
 class ExternalAPIServiceProtocol(Protocol):
     """Protocol for external API management."""
+
     async def call_api(self, endpoint: str, data: dict) -> dict: ...
     async def get_api_status(self, api_name: str) -> dict: ...
 
@@ -77,9 +80,14 @@ def _register_data_config_services(manager: "ServiceRegistrationManager") -> Non
     async def create_external_api_service(resolver) -> object:
         """Factory function for ExternalAPIService."""
         logger.info("Creating ExternalAPIService instance via TypedDI")
+
         class ExternalAPIService:
-            async def call_api(self, endpoint: str, data: dict): return {"status": "success"}
-            async def get_api_status(self, api_name: str): return {"status": "available"}
+            async def call_api(self, endpoint: str, data: dict):
+                return {"status": "success"}
+
+            async def get_api_status(self, api_name: str):
+                return {"status": "available"}
+
         return ExternalAPIService()
 
     manager.register_protocol_with_concrete_alias(
@@ -94,6 +102,7 @@ def _register_data_config_services(manager: "ServiceRegistrationManager") -> Non
     @runtime_checkable
     class DataSyncServiceProtocol(Protocol):
         """Protocol for data synchronization."""
+
         async def sync_data(self, source: str, target: str) -> bool: ...
         async def get_sync_status(self, sync_id: str) -> dict: ...
 
@@ -101,11 +110,17 @@ def _register_data_config_services(manager: "ServiceRegistrationManager") -> Non
         """Factory function for DataSyncService."""
         logger.info("Creating DataSyncService instance via TypedDI")
         external_api = await resolver.aget(ExternalAPIServiceProtocol)
+
         class DataSyncService:
             def __init__(self, external_api):
                 self.api = external_api
-            async def sync_data(self, source: str, target: str): return True
-            async def get_sync_status(self, sync_id: str): return {"status": "synced"}
+
+            async def sync_data(self, source: str, target: str):
+                return True
+
+            async def get_sync_status(self, sync_id: str):
+                return {"status": "synced"}
+
         return DataSyncService(external_api)
 
     manager.register_protocol_with_concrete_alias(
@@ -121,11 +136,17 @@ def _register_data_config_services(manager: "ServiceRegistrationManager") -> Non
         """Factory function for IntegrationConfigService."""
         logger.info("Creating IntegrationConfigService instance via TypedDI")
         secrets_manager = await resolver.aget(SecretsManager)
+
         class IntegrationConfigService:
             def __init__(self, secrets_manager):
                 self.secrets = secrets_manager
-            async def get_config(self, integration_name: str): return {"config": "value"}
-            async def update_config(self, integration_name: str, config: dict): return True
+
+            async def get_config(self, integration_name: str):
+                return {"config": "value"}
+
+            async def update_config(self, integration_name: str, config: dict):
+                return True
+
         return IntegrationConfigService(secrets_manager)
 
     manager.register_protocol_with_concrete_alias(
@@ -144,6 +165,7 @@ def _register_monitoring_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationHealthServiceProtocol(Protocol):
         """Protocol for integration health monitoring."""
+
         async def check_health(self, integration_name: str) -> dict: ...
         async def get_health_metrics(self) -> dict: ...
 
@@ -151,11 +173,17 @@ def _register_monitoring_services(manager: "ServiceRegistrationManager") -> None
         """Factory function for IntegrationHealthService."""
         logger.info("Creating IntegrationHealthService instance via TypedDI")
         metrics_storage = await resolver.aget(MetricsStorage)
+
         class IntegrationHealthService:
             def __init__(self, metrics_storage):
                 self.metrics = metrics_storage
-            async def check_health(self, integration_name: str): return {"status": "healthy"}
-            async def get_health_metrics(self): return {"uptime": "99.9%"}
+
+            async def check_health(self, integration_name: str):
+                return {"status": "healthy"}
+
+            async def get_health_metrics(self):
+                return {"uptime": "99.9%"}
+
         return IntegrationHealthService(metrics_storage)
 
     manager.register_protocol_with_concrete_alias(
@@ -170,6 +198,7 @@ def _register_monitoring_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationRetryServiceProtocol(Protocol):
         """Protocol for integration retry logic."""
+
         async def retry_operation(self, operation_id: str) -> bool: ...
         async def configure_retry_policy(self, policy: dict) -> bool: ...
 
@@ -177,11 +206,17 @@ def _register_monitoring_services(manager: "ServiceRegistrationManager") -> None
         """Factory function for IntegrationRetryService."""
         logger.info("Creating IntegrationRetryService instance via TypedDI")
         backoff_strategy = await resolver.aget(BackoffStrategy)
+
         class IntegrationRetryService:
             def __init__(self, backoff_strategy):
                 self.backoff = backoff_strategy
-            async def retry_operation(self, operation_id: str): return True
-            async def configure_retry_policy(self, policy: dict): return True
+
+            async def retry_operation(self, operation_id: str):
+                return True
+
+            async def configure_retry_policy(self, policy: dict):
+                return True
+
         return IntegrationRetryService(backoff_strategy)
 
     manager.register_protocol_with_concrete_alias(
@@ -200,15 +235,21 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationCacheServiceProtocol(Protocol):
         """Protocol for integration response caching."""
+
         async def get_cached_response(self, key: str) -> dict: ...
         async def cache_response(self, key: str, response: dict) -> bool: ...
 
     async def create_integration_cache_service(resolver) -> object:
         """Factory function for IntegrationCacheService."""
         logger.info("Creating IntegrationCacheService instance via TypedDI")
+
         class IntegrationCacheService:
-            async def get_cached_response(self, key: str): return {"cached": True}
-            async def cache_response(self, key: str, response: dict): return True
+            async def get_cached_response(self, key: str):
+                return {"cached": True}
+
+            async def cache_response(self, key: str, response: dict):
+                return True
+
         return IntegrationCacheService()
 
     manager.register_protocol_with_concrete_alias(
@@ -223,15 +264,21 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationLogServiceProtocol(Protocol):
         """Protocol for integration logging."""
+
         async def log_integration_event(self, event: dict) -> bool: ...
         async def get_integration_logs(self, integration_name: str) -> list: ...
 
     async def create_integration_log_service(resolver) -> object:
         """Factory function for IntegrationLogService."""
         logger.info("Creating IntegrationLogService instance via TypedDI")
+
         class IntegrationLogService:
-            async def log_integration_event(self, event: dict): return True
-            async def get_integration_logs(self, integration_name: str): return []
+            async def log_integration_event(self, event: dict):
+                return True
+
+            async def get_integration_logs(self, integration_name: str):
+                return []
+
         return IntegrationLogService()
 
     manager.register_protocol_with_concrete_alias(
@@ -246,6 +293,7 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationMetricsServiceProtocol(Protocol):
         """Protocol for integration metrics."""
+
         async def record_metric(self, metric_name: str, value: float) -> bool: ...
         async def get_metrics(self, integration_name: str) -> dict: ...
 
@@ -253,11 +301,17 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
         """Factory function for IntegrationMetricsService."""
         logger.info("Creating IntegrationMetricsService instance via TypedDI")
         metrics_storage = await resolver.aget(MetricsStorage)
+
         class IntegrationMetricsService:
             def __init__(self, metrics_storage):
                 self.storage = metrics_storage
-            async def record_metric(self, metric_name: str, value: float): return True
-            async def get_metrics(self, integration_name: str): return {"metrics": []}
+
+            async def record_metric(self, metric_name: str, value: float):
+                return True
+
+            async def get_metrics(self, integration_name: str):
+                return {"metrics": []}
+
         return IntegrationMetricsService(metrics_storage)
 
     manager.register_protocol_with_concrete_alias(
@@ -272,6 +326,7 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationSecurityServiceProtocol(Protocol):
         """Protocol for integration security."""
+
         async def validate_request(self, request: dict) -> bool: ...
         async def encrypt_payload(self, payload: dict) -> dict: ...
 
@@ -279,11 +334,17 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
         """Factory function for IntegrationSecurityService."""
         logger.info("Creating IntegrationSecurityService instance via TypedDI")
         secrets_manager = await resolver.aget(SecretsManager)
+
         class IntegrationSecurityService:
             def __init__(self, secrets_manager):
                 self.secrets = secrets_manager
-            async def validate_request(self, request: dict): return True
-            async def encrypt_payload(self, payload: dict): return {"encrypted": True}
+
+            async def validate_request(self, request: dict):
+                return True
+
+            async def encrypt_payload(self, payload: dict):
+                return {"encrypted": True}
+
         return IntegrationSecurityService(secrets_manager)
 
     manager.register_protocol_with_concrete_alias(
@@ -298,6 +359,7 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
     @runtime_checkable
     class IntegrationVersioningServiceProtocol(Protocol):
         """Protocol for integration versioning."""
+
         async def get_version(self, integration_name: str) -> str: ...
         async def upgrade_integration(self, integration_name: str, version: str) -> bool: ...
 
@@ -305,11 +367,17 @@ def _register_management_services(manager: "ServiceRegistrationManager") -> None
         """Factory function for IntegrationVersioningService."""
         logger.info("Creating IntegrationVersioningService instance via TypedDI")
         integration_config = await resolver.aget(IntegrationConfigServiceProtocol)
+
         class IntegrationVersioningService:
             def __init__(self, integration_config):
                 self.config = integration_config
-            async def get_version(self, integration_name: str): return "1.0.0"
-            async def upgrade_integration(self, integration_name: str, version: str): return True
+
+            async def get_version(self, integration_name: str):
+                return "1.0.0"
+
+            async def upgrade_integration(self, integration_name: str, version: str):
+                return True
+
         return IntegrationVersioningService(integration_config)
 
     manager.register_protocol_with_concrete_alias(

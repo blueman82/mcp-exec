@@ -22,8 +22,8 @@ try:
     from packages.core.async_client import AsyncClient
     from packages.core.local_metrics import MetricsStorage
     from packages.core.resilience.backoff import BackoffStrategy
-    from packages.secrets.manager import SecretsManager
     from packages.db.dynamodb_store import DynamoDBStore
+    from packages.secrets.manager import SecretsManager
 except ImportError as e:
     logger = setup_logger(__name__)
     logger.warning(f"Core infrastructure import failed: {e}")
@@ -38,9 +38,11 @@ logger = setup_logger(__name__)
 # PROTOCOL DEFINITIONS
 # =============================================================================
 
+
 @runtime_checkable
 class ConnectionPoolManagerProtocol(Protocol):
     """Protocol for managing database and HTTP connection pools."""
+
     async def get_connection(self, pool_name: str) -> Any: ...
     async def release_connection(self, pool_name: str, connection: Any) -> bool: ...
     async def get_pool_stats(self, pool_name: str) -> Dict[str, Any]: ...
@@ -50,6 +52,7 @@ class ConnectionPoolManagerProtocol(Protocol):
 @runtime_checkable
 class CircuitBreakerServiceProtocol(Protocol):
     """Protocol for circuit breaker resilience patterns."""
+
     async def call_with_breaker(self, service_name: str, func, *args, **kwargs) -> Any: ...
     async def get_breaker_state(self, service_name: str) -> str: ...
     async def reset_breaker(self, service_name: str) -> bool: ...
@@ -59,6 +62,7 @@ class CircuitBreakerServiceProtocol(Protocol):
 @runtime_checkable
 class HealthCheckServiceProtocol(Protocol):
     """Protocol for service health monitoring."""
+
     async def register_health_check(self, service_name: str, check_func) -> bool: ...
     async def run_health_check(self, service_name: str) -> Dict[str, Any]: ...
     async def get_system_health(self) -> Dict[str, Any]: ...
@@ -68,6 +72,7 @@ class HealthCheckServiceProtocol(Protocol):
 @runtime_checkable
 class ConfigurationServiceProtocol(Protocol):
     """Protocol for runtime configuration management."""
+
     async def get_config(self, key: str, default: Any = None) -> Any: ...
     async def set_config(self, key: str, value: Any) -> bool: ...
     async def reload_config(self) -> bool: ...
@@ -77,6 +82,7 @@ class ConfigurationServiceProtocol(Protocol):
 @runtime_checkable
 class DistributedLockServiceProtocol(Protocol):
     """Protocol for distributed lock coordination."""
+
     async def acquire_lock(self, lock_key: str, timeout: int = 30) -> bool: ...
     async def release_lock(self, lock_key: str) -> bool: ...
     async def is_locked(self, lock_key: str) -> bool: ...

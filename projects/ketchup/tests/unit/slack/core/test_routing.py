@@ -74,16 +74,12 @@ async def test_handle_slack_command_response_url(
     command_router = MagicMock()
     if not missing_url:
         command_router.route_command = AsyncMock()
-        result = await routing.handle_slack_command(
-            parsed_body_multivalue, command_router
-        )
+        result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
         assert result["statusCode"] == 200
         assert result["body"] == ""
         command_router.route_command.assert_awaited_once()
     else:
-        result = await routing.handle_slack_command(
-            parsed_body_multivalue, command_router
-        )
+        result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
         assert result["statusCode"] == 400
         assert "error" in json.loads(result["body"])
 
@@ -105,8 +101,7 @@ async def test_handle_slack_command_exception_and_posting_handler() -> None:
     result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
     assert result["statusCode"] == 200
     assert (
-        "Error processing command" in result["body"]
-        or result["body"] == "Error processing command"
+        "Error processing command" in result["body"] or result["body"] == "Error processing command"
     )
     posting_handler.post_message.assert_awaited_once()
 
@@ -126,8 +121,7 @@ async def test_handle_slack_command_exception_no_posting_handler() -> None:
     result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
     assert result["statusCode"] == 200
     assert (
-        "Error processing command" in result["body"]
-        or result["body"] == "Error processing command"
+        "Error processing command" in result["body"] or result["body"] == "Error processing command"
     )
 
 
@@ -148,9 +142,7 @@ async def test_handle_interactive_component_success(
     feedback_handler = MagicMock()
     shortcut_handler = MagicMock()
     feedback_report_handler = MagicMock()
-    with patch.object(
-        routing, "process_interactive_payload", new=AsyncMock()
-    ) as mock_proc:
+    with patch.object(routing, "process_interactive_payload", new=AsyncMock()) as mock_proc:
         trust_endorsement_handler = MagicMock()
         result = await routing.handle_interactive_component(
             parsed_body_multivalue,
@@ -514,9 +506,7 @@ async def test_handle_events_api_direct_event_type_processing() -> None:
     event_handler.handle_channel_archive.assert_awaited_once_with(parsed_body_dict)
 
 
-async def test_handle_events_api_direct_event_type_processing_multivalue_error() -> (
-    None
-):
+async def test_handle_events_api_direct_event_type_processing_multivalue_error() -> None:
     """Test handle_events_api for direct event type processing from multivalue dict (unexpected structure).
 
     This test covers:

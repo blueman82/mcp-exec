@@ -64,9 +64,7 @@ class ModalOrchestrator:
         )
 
         # Display modal via API call
-        return await self._display_modal_via_api(
-            trigger_id, modal_view, "command flag review"
-        )
+        return await self._display_modal_via_api(trigger_id, modal_view, "command flag review")
 
     def _validate_trigger_id(self, trigger_id: str) -> bool:
         """Validate Slack trigger ID format and length.
@@ -172,9 +170,7 @@ class ModalOrchestrator:
 
             api_payload = {"trigger_id": trigger_id, "view": modal_view}
 
-            return await self._make_modal_api_request(
-                url, headers, api_payload, modal_type
-            )
+            return await self._make_modal_api_request(url, headers, api_payload, modal_type)
 
         except Exception as e:
             logger.error(f"Error displaying {modal_type} modal: {e}")
@@ -217,8 +213,7 @@ class ModalOrchestrator:
                     return True
 
     def create_command_feedback_modal_view(
-        self, channel_id: str, command_execution_id: str,
-        command_type: str, original_channel: str
+        self, channel_id: str, command_execution_id: str, command_type: str, original_channel: str
     ) -> Dict[str, Any]:
         """Create modal view for command feedback."""
         return {
@@ -243,7 +238,10 @@ class ModalOrchestrator:
                         "type": "plain_text_input",
                         "action_id": "feedback_input",
                         "multiline": True,
-                        "placeholder": {"type": "plain_text", "text": "The output is incorrect because..."},
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": "The output is incorrect because...",
+                        },
                         "min_length": 10,
                         "max_length": 3000,
                     },
@@ -251,7 +249,12 @@ class ModalOrchestrator:
                 },
                 {
                     "type": "context",
-                    "elements": [{"type": "mrkdwn", "text": "Your feedback helps us improve Ketchup's responses"}],
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "Your feedback helps us improve Ketchup's responses",
+                        }
+                    ],
                 },
             ],
         }
@@ -270,7 +273,10 @@ class ModalOrchestrator:
             "blocks": [
                 {
                     "type": "section",
-                    "text": {"type": "mrkdwn", "text": f"Send a direct message reply to <@{flagged_user_id}>:"},
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"Send a direct message reply to <@{flagged_user_id}>:",
+                    },
                 },
                 {
                     "type": "input",
@@ -279,7 +285,10 @@ class ModalOrchestrator:
                         "type": "plain_text_input",
                         "action_id": "reply_input",
                         "multiline": True,
-                        "placeholder": {"type": "plain_text", "text": "Thank you for your feedback. Here's our response..."},
+                        "placeholder": {
+                            "type": "plain_text",
+                            "text": "Thank you for your feedback. Here's our response...",
+                        },
                         "min_length": 1,
                         "max_length": 3000,
                     },
@@ -287,7 +296,12 @@ class ModalOrchestrator:
                 },
                 {
                     "type": "context",
-                    "elements": [{"type": "mrkdwn", "text": "This will be sent as a direct message to the user."}],
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "This will be sent as a direct message to the user.",
+                        }
+                    ],
                 },
             ],
         }
@@ -324,9 +338,7 @@ class ModalOrchestrator:
             original_channel or channel_id,
         )
 
-        return await self._display_modal_via_api(
-            trigger_id, modal_view, "command flag review"
-        )
+        return await self._display_modal_via_api(trigger_id, modal_view, "command flag review")
 
     async def show_command_reply_modal(
         self,
@@ -356,6 +368,4 @@ class ModalOrchestrator:
             channel_id, command_execution_id, flagged_user_id
         )
 
-        return await self._display_modal_via_api(
-            trigger_id, modal_view, "command reply"
-        )
+        return await self._display_modal_via_api(trigger_id, modal_view, "command reply")

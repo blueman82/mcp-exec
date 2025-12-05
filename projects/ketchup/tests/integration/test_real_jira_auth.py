@@ -31,10 +31,10 @@ async def test_real_jira_authentication():
         "IPAAS_API_KEY": "test-api-key",
         "IPAAS_USERNAME": "test-username",
         "IPAAS_PASSWORD": "test-password",
-        "JIRA_IMS_TOKEN": "test-ims-token-12345"
+        "JIRA_IMS_TOKEN": "test-ims-token-12345",
     }
 
-    with patch('packages.secrets.manager.SecretsManager.get_app_secrets') as mock_get_secrets:
+    with patch("packages.secrets.manager.SecretsManager.get_app_secrets") as mock_get_secrets:
         mock_get_secrets.return_value = mock_secrets
 
         # Step 1: Initialize components
@@ -75,9 +75,7 @@ async def test_real_jira_authentication():
             print("   ✅ MCP server is healthy")
         else:
             print("   ❌ MCP server is not responding")
-            print(
-                "   💡 Make sure docker-compose is running: docker-compose up -d mcp-jira"
-            )
+            print("   💡 Make sure docker-compose is running: docker-compose up -d mcp-jira")
             pytest.fail("MCP server is not responding")
     except Exception as e:
         print(f"   ❌ Health check failed: {e}")
@@ -90,15 +88,9 @@ async def test_real_jira_authentication():
 
         if auth_result.get("success"):
             print("   ✅ JIRA authentication successful!")
-            print(
-                f"   ✅ User: {auth_result.get('user', {}).get('displayName', 'Unknown')}"
-            )
-            print(
-                f"   ✅ Email: {auth_result.get('user', {}).get('emailAddress', 'Unknown')}"
-            )
-            print(
-                f"   ✅ Server: {auth_result.get('serverInfo', {}).get('baseUrl', 'Unknown')}"
-            )
+            print(f"   ✅ User: {auth_result.get('user', {}).get('displayName', 'Unknown')}")
+            print(f"   ✅ Email: {auth_result.get('user', {}).get('emailAddress', 'Unknown')}")
+            print(f"   ✅ Server: {auth_result.get('serverInfo', {}).get('baseUrl', 'Unknown')}")
         else:
             print("   ❌ JIRA authentication failed")
             print(f"   ❌ Error: {auth_result.get('message', 'Unknown error')}")

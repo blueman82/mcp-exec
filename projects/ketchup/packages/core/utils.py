@@ -145,7 +145,10 @@ async def invite_ketchup_to_channel(
                 logger.info("Response from conversations.join: %s.", invite_data)
                 return invite_data
 
-    except (aiohttp.ClientError, httpx.HTTPError) as e:  # Handle network/client errors for both libraries
+    except (
+        aiohttp.ClientError,
+        httpx.HTTPError,
+    ) as e:  # Handle network/client errors for both libraries
         logger.error(
             "Request error while inviting user %s to channel %s (ID: %s): %s.",
             user_id,

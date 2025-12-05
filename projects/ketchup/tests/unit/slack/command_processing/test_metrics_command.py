@@ -22,22 +22,20 @@ Expected Outcomes:
 - Error handling
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock
 
 import pytest
 
-from packages.slack.command_processing.metrics_command import MetricsCommand
+from packages.secrets.manager import SecretsManager
 from packages.slack.command_processing.command_parameters.models import (
     CommandContext,
     CommandType,
     MetricsCommandParams,
 )
-from packages.slack.interactive_elements.metrics_export_handler import (
-    MetricsExportHandler
-)
+from packages.slack.command_processing.metrics_command import MetricsCommand
+from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
 from packages.slack.messages.posting import SlackPostingHandler
-from packages.secrets.manager import SecretsManager
 from packages.slack.user_operations.user_ops import SlackUserOps
 
 
@@ -61,9 +59,11 @@ class TestMetricsCommand:
         """Create a mock SecretsManager."""
         mock = AsyncMock(spec=SecretsManager)
         # Mock admin users list
-        mock.get_secret_async = AsyncMock(return_value={
-            "usage_stats_admin_users": '["Gary Harrison", "Alan O\'Meara", "Nicolas Vallet"]'
-        })
+        mock.get_secret_async = AsyncMock(
+            return_value={
+                "usage_stats_admin_users": '["Gary Harrison", "Alan O\'Meara", "Nicolas Vallet"]'
+            }
+        )
         return mock
 
     @pytest.fixture
@@ -71,9 +71,9 @@ class TestMetricsCommand:
         """Create a mock SlackUserOps."""
         mock = AsyncMock(spec=SlackUserOps)
         # Mock user info with admin user
-        mock._fetch_user_info_internal = AsyncMock(return_value={
-            "profile": {"real_name": "Gary Harrison", "email": "harrison@adobe.com"}
-        })
+        mock._fetch_user_info_internal = AsyncMock(
+            return_value={"profile": {"real_name": "Gary Harrison", "email": "harrison@adobe.com"}}
+        )
         return mock
 
     @pytest.fixture
@@ -291,9 +291,7 @@ class TestMetricsCommand:
         )
 
         # Mock export handler to raise exception
-        mock_metrics_export_handler.handle_metrics_request.side_effect = Exception(
-            "Test exception"
-        )
+        mock_metrics_export_handler.handle_metrics_request.side_effect = Exception("Test exception")
 
         # Should propagate exception (no try-except in process_metrics_params)
         with pytest.raises(Exception, match="Test exception"):

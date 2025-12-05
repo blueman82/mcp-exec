@@ -116,9 +116,7 @@ class DynamoDBStore:
             archived: Whether the channel is archived
             archived_at: Optional timestamp when the channel was archived
         """
-        await self.archive_ops.update_channel_archived_status(
-            channel_id, archived, archived_at
-        )
+        await self.archive_ops.update_channel_archived_status(channel_id, archived, archived_at)
 
     async def store_feedback(self, feedback_item: Dict[str, Any]) -> bool:
         """
@@ -148,9 +146,7 @@ class DynamoDBStore:
         """
         return await self.channel_ops.delete_channel_if_exists(channel_id)
 
-    async def ensure_channels_exist(
-        self, slack_channels: List[Dict[str, Any]]
-    ) -> List[str]:
+    async def ensure_channels_exist(self, slack_channels: List[Dict[str, Any]]) -> List[str]:
         """
         Ensure all Slack channels exist in DynamoDB.
 
@@ -224,9 +220,7 @@ class DynamoDBStore:
             user_id=user_id,
         )
 
-    async def update_channel_fields(
-        self, channel_id: str, updates: Dict[str, Any]
-    ) -> bool:
+    async def update_channel_fields(self, channel_id: str, updates: Dict[str, Any]) -> bool:
         """
         Generic method to update arbitrary fields on a channel.
 
@@ -237,13 +231,9 @@ class DynamoDBStore:
         Returns:
             bool: True if update succeeded, False otherwise
         """
-        return await self.channel_ops.update_channel_fields(
-            channel_id=channel_id, updates=updates
-        )
+        return await self.channel_ops.update_channel_fields(channel_id=channel_id, updates=updates)
 
-    async def get_channel_details_consistent(
-        self, channel_id: str
-    ) -> Optional[Dict[str, Any]]:
+    async def get_channel_details_consistent(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """
         Get details for a specific channel by ID using strongly consistent read.
 
@@ -256,13 +246,9 @@ class DynamoDBStore:
         Returns:
             Dictionary with channel details or None if not found or error occurs
         """
-        return await self.channel_ops.query_ops.get_channel_details_consistent(
-            channel_id
-        )
+        return await self.channel_ops.query_ops.get_channel_details_consistent(channel_id)
 
-    async def is_duplicate_event(
-        self, team_id: str, user_id: str, timestamp: str
-    ) -> bool:
+    async def is_duplicate_event(self, team_id: str, user_id: str, timestamp: str) -> bool:
         """
         Check if an event is a duplicate using atomic conditional put.
         Returns True if duplicate (already exists), False if new.
@@ -370,19 +356,19 @@ class DynamoDBStore:
     # No need for generic query_items or update_item methods without GSI
 
     # ==================== Maintenance Prompt State Methods ====================
-    
+
     async def put_maintenance_prompt(
         self, channel_id: str, prompt_ts: str, attempt: int, jira_ticket: Optional[str] = None
     ) -> bool:
         """
         Store maintenance prompt state so any container can see it.
-        
+
         Args:
             channel_id: Slack channel ID
             prompt_ts: Timestamp of the prompt message
             attempt: Current attempt number (1-3)
             jira_ticket: JIRA ticket if reply was received
-            
+
         Returns:
             True if stored successfully
         """
@@ -394,47 +380,44 @@ class DynamoDBStore:
             "started_at": {"N": str(int(time.time()))},
             "expires_at": {"N": str(int(time.time() + 120))},  # 2 minute timeout
         }
-        
+
         if jira_ticket:
             item["jira_ticket"] = {"S": jira_ticket}
-        
+
         try:
             await self.client.put_item(item=item, table_name=self.table_name)
             return True
         except Exception as e:
             logger.error(f"Failed to store maintenance prompt for {channel_id}: {e}")
             return False
-    
+
     async def get_maintenance_prompt(self, channel_id: str) -> Optional[Dict[str, Any]]:
         """
         Get active maintenance prompt state for a channel.
-        
+
         Args:
             channel_id: Slack channel ID
-            
+
         Returns:
             Prompt state dict or None if no active prompt
         """
         try:
             result = await self.client.get_item(
-                key={
-                    "PK": {"S": f"MAINTENANCE_PROMPT#{channel_id}"},
-                    "SK": {"S": "ACTIVE"}
-                },
-                table_name=self.table_name
+                key={"PK": {"S": f"MAINTENANCE_PROMPT#{channel_id}"}, "SK": {"S": "ACTIVE"}},
+                table_name=self.table_name,
             )
-            
+
             item = result.get("Item")
             if not item:
                 return None
-            
+
             # Check if expired (extract value from DynamoDB format)
             expires_at = int(item.get("expires_at", {}).get("N", 0))
             if expires_at < time.time():
                 # Expired - delete it
                 await self.delete_maintenance_prompt(channel_id)
                 return None
-            
+
             # Convert DynamoDB format to simple dict
             simple_item = {
                 "prompt_ts": item.get("prompt_ts", {}).get("S"),
@@ -442,49 +425,44 @@ class DynamoDBStore:
                 "started_at": int(item.get("started_at", {}).get("N", 0)),
                 "expires_at": expires_at,
             }
-            
+
             if "jira_ticket" in item:
                 simple_item["jira_ticket"] = item["jira_ticket"].get("S")
-            
+
             return simple_item
-            
+
         except Exception as e:
             logger.error(f"Failed to get maintenance prompt for {channel_id}: {e}")
             return None
-    
+
     async def delete_maintenance_prompt(self, channel_id: str) -> bool:
         """
         Delete maintenance prompt state.
-        
+
         Args:
             channel_id: Slack channel ID
-            
+
         Returns:
             True if deleted successfully
         """
         try:
             await self.client.delete_item(
-                key={
-                    "PK": {"S": f"MAINTENANCE_PROMPT#{channel_id}"},
-                    "SK": {"S": "ACTIVE"}
-                },
-                table_name=self.table_name
+                key={"PK": {"S": f"MAINTENANCE_PROMPT#{channel_id}"}, "SK": {"S": "ACTIVE"}},
+                table_name=self.table_name,
             )
             return True
         except Exception as e:
             logger.error(f"Failed to delete maintenance prompt for {channel_id}: {e}")
             return False
-    
-    async def store_maintenance_reply(
-        self, channel_id: str, jira_ticket: str
-    ) -> bool:
+
+    async def store_maintenance_reply(self, channel_id: str, jira_ticket: str) -> bool:
         """
         Store JIRA ticket reply so the waiting container can retrieve it.
-        
+
         Args:
             channel_id: Slack channel ID
             jira_ticket: The JIRA ticket number
-            
+
         Returns:
             True if stored successfully
         """
@@ -534,17 +512,14 @@ class DynamoDBStore:
             # Creates/increments: auto_status_posts_2025_10
         """
         field_name = f"{counter_name}_{month_key}"
-        
+
         try:
             await self.client.update_item(
                 table_name=self.table_name,
-                key={
-                    "PK": {"S": "METRICS_SUMMARY"},
-                    "SK": {"S": "AGGREGATES"}
-                },
+                key={"PK": {"S": "METRICS_SUMMARY"}, "SK": {"S": "AGGREGATES"}},
                 update_expression="ADD #field :inc",
                 expression_attribute_names={"#field": field_name},
-                expression_attribute_values={":inc": {"N": str(increment)}}
+                expression_attribute_values={":inc": {"N": str(increment)}},
             )
             logger.debug(f"Incremented {field_name} by {increment}")
             return True
@@ -552,9 +527,7 @@ class DynamoDBStore:
             logger.error(f"Failed to increment {field_name}: {e}")
             return False
 
-    async def get_monthly_aggregates(
-        self, month_keys: List[str]
-    ) -> Dict[str, Dict[str, int]]:
+    async def get_monthly_aggregates(self, month_keys: List[str]) -> Dict[str, Dict[str, int]]:
         """
         Retrieve monthly aggregate metrics for specified months.
 
@@ -587,32 +560,29 @@ class DynamoDBStore:
         try:
             response = await self.client.get_item(
                 table_name=self.table_name,
-                key={
-                    "PK": {"S": "METRICS_SUMMARY"},
-                    "SK": {"S": "AGGREGATES"}
-                }
+                key={"PK": {"S": "METRICS_SUMMARY"}, "SK": {"S": "AGGREGATES"}},
             )
-            
+
             if not response or "Item" not in response:
                 logger.warning("METRICS_SUMMARY record not found")
                 return {month_key: {} for month_key in month_keys}
-            
+
             item = response["Item"]
-            
+
             # Extract metrics for requested months
             result = {}
             for month_key in month_keys:
                 month_metrics = {}
-                
+
                 # Counter prefixes to look for
                 counter_prefixes = [
                     "auto_status_posts",
                     "war_room_sent",
                     "war_room_success",
                     "war_room_failed",
-                    "war_room_unique_users"
+                    "war_room_unique_users",
                 ]
-                
+
                 for prefix in counter_prefixes:
                     field_name = f"{prefix}_{month_key}"
                     if field_name in item:
@@ -621,12 +591,12 @@ class DynamoDBStore:
                         month_metrics[prefix] = int(value)
                     else:
                         month_metrics[prefix] = 0
-                
+
                 result[month_key] = month_metrics
-            
+
             logger.debug(f"Retrieved aggregates for {len(month_keys)} months")
             return result
-            
+
         except Exception as e:
             logger.error(f"Failed to get monthly aggregates: {e}")
             return {month_key: {} for month_key in month_keys}

@@ -87,9 +87,7 @@ class TestSmokeResolution(unittest.IsolatedAsyncioTestCase):
 
         # Create sync client mocks
         mock_sync_secrets_client = MagicMock()
-        mock_sync_secrets_client.get_secret_value.return_value = {
-            "SecretString": secrets_json
-        }
+        mock_sync_secrets_client.get_secret_value.return_value = {"SecretString": secrets_json}
 
         mock_sync_sqs_client = MagicMock()
         mock_sync_sqs_client.send_message.return_value = {"MessageId": "test-msg-id"}
@@ -119,7 +117,9 @@ class TestSmokeResolution(unittest.IsolatedAsyncioTestCase):
         SMOKE TEST: Resolve JoinNotificationOpsProtocol via TypedDI registry.
         """
         # Use the same protocol type as service_registrations uses
-        from packages.core.typed_di.service_registrations.protocols import JoinNotificationOpsProtocol
+        from packages.core.typed_di.service_registrations.protocols import (
+            JoinNotificationOpsProtocol,
+        )
 
         # AWS mocking is already set up in asyncSetUp method
         # Register all services and initialize
@@ -129,9 +129,7 @@ class TestSmokeResolution(unittest.IsolatedAsyncioTestCase):
 
         # Resolve JoinNotificationOpsProtocol
         join_ops = await self.registry.aget(JoinNotificationOpsProtocol)
-        self.assertIsNotNone(
-            join_ops, "JoinNotificationOpsProtocol should resolve to an instance"
-        )
+        self.assertIsNotNone(join_ops, "JoinNotificationOpsProtocol should resolve to an instance")
 
         logger.info("✓ JoinNotificationOpsProtocol smoke test passed")
 
@@ -153,9 +151,7 @@ class TestSmokeResolution(unittest.IsolatedAsyncioTestCase):
 
         # Resolve UserJoinNotificationService via its protocol
         service = await self.registry.aget(UserJoinNotificationServiceProtocol)
-        self.assertIsNotNone(
-            service, "UserJoinNotificationService should resolve to an instance"
-        )
+        self.assertIsNotNone(service, "UserJoinNotificationService should resolve to an instance")
 
         # CRITICAL: Assert join_notification_ops is set (not None)
         self.assertIsNotNone(
@@ -163,9 +159,7 @@ class TestSmokeResolution(unittest.IsolatedAsyncioTestCase):
             "join_notification_ops should be set on service instance - this was the production bug!",
         )
 
-        logger.info(
-            "✓ UserJoinNotificationService dependency injection smoke test passed"
-        )
+        logger.info("✓ UserJoinNotificationService dependency injection smoke test passed")
 
 
 class TestErrorCodeValidation(unittest.TestCase):
@@ -278,9 +272,7 @@ class TestNegativeResolution(unittest.IsolatedAsyncioTestCase):
 
         # Create sync client mocks
         mock_sync_secrets_client = MagicMock()
-        mock_sync_secrets_client.get_secret_value.return_value = {
-            "SecretString": secrets_json
-        }
+        mock_sync_secrets_client.get_secret_value.return_value = {"SecretString": secrets_json}
 
         mock_sync_sqs_client = MagicMock()
         mock_sync_sqs_client.send_message.return_value = {"MessageId": "test-msg-id"}
@@ -310,12 +302,16 @@ class TestNegativeResolution(unittest.IsolatedAsyncioTestCase):
         NEGATIVE TEST: Unregistered JoinNotificationOps should cause UserJoinNotificationService resolution to fail.
         """
         # Use the same protocol type as used in registrations
-        from packages.core.typed_di.service_registrations.protocols import UserJoinNotificationServiceProtocol
+        from packages.core.typed_di.service_registrations.protocols import (
+            UserJoinNotificationServiceProtocol,
+        )
 
         registry = TypedServiceRegistry()
 
         # Import protocol and concrete to remove both registration keys
-        from packages.core.typed_di.service_registrations.protocols import JoinNotificationOpsProtocol
+        from packages.core.typed_di.service_registrations.protocols import (
+            JoinNotificationOpsProtocol,
+        )
         from packages.db.operations.join_notification_ops import JoinNotificationOps
 
         # Proper mock classes
@@ -367,15 +363,14 @@ class TestNegativeResolution(unittest.IsolatedAsyncioTestCase):
                 for k, v in kwargs.items():
                     setattr(self, k, v)
 
-        with patch(
-            "packages.secrets.manager.SecretsManager", MockSecretsManager
-        ), patch(
-            "packages.slack.config.slack_config.SlackConfig", MockSlackConfig
-        ), patch(
-            "packages.db.core.dynamodb_async_client.DynamoDBAsyncClient",
-            MockDynamoDBAsyncClient,
-        ), patch(
-            "packages.ai.core.openai_handler.OpenAIHandler", MockOpenAIHandler
+        with (
+            patch("packages.secrets.manager.SecretsManager", MockSecretsManager),
+            patch("packages.slack.config.slack_config.SlackConfig", MockSlackConfig),
+            patch(
+                "packages.db.core.dynamodb_async_client.DynamoDBAsyncClient",
+                MockDynamoDBAsyncClient,
+            ),
+            patch("packages.ai.core.openai_handler.OpenAIHandler", MockOpenAIHandler),
         ):
 
             # Register all services
@@ -394,16 +389,12 @@ class TestNegativeResolution(unittest.IsolatedAsyncioTestCase):
             # if the factory tolerates missing deps. Validate that in that case the
             # dependency is not wired on the service instance.
             try:
-                service_instance = await registry.aget(
-                    UserJoinNotificationServiceProtocol
-                )
+                service_instance = await registry.aget(UserJoinNotificationServiceProtocol)
                 # If we got an instance, its join_notification_ops should be missing/None
                 has_attr = hasattr(service_instance, "join_notification_ops")
-                self.assertTrue(
-                    has_attr, "Resolved instance missing expected attribute"
-                )
+                self.assertTrue(has_attr, "Resolved instance missing expected attribute")
                 self.assertIsNone(
-                    getattr(service_instance, "join_notification_ops"),
+                    service_instance.join_notification_ops,
                     "Service should not have join_notification_ops when dependency is missing",
                 )
             except Exception as e:
@@ -510,10 +501,7 @@ class TestRealDIResolution(unittest.IsolatedAsyncioTestCase):
                             registration,
                         ) in self.registry._registrations.items():
                             concrete = getattr(registration, "concrete_type", None)
-                            if (
-                                concrete
-                                and getattr(concrete, "__name__", "") == service_name
-                            ):
+                            if concrete and getattr(concrete, "__name__", "") == service_name:
                                 service_type = registered_type
                                 break
 
@@ -541,9 +529,7 @@ class TestRealDIResolution(unittest.IsolatedAsyncioTestCase):
 
                 for service_name, status in resolution_results:
                     if "FAILED" in status:
-                        self.fail(
-                            f"Service resolution failed for {service_name}: {status}"
-                        )
+                        self.fail(f"Service resolution failed for {service_name}: {status}")
 
                 logger.info("✓ Critical services DI resolution passed")
 

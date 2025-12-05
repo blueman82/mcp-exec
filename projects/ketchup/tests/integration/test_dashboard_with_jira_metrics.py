@@ -23,17 +23,19 @@ import sys
 # Ketchup's home DM channel
 KETCHUP_DM = "D0840EX80R5"
 
+
 async def main():
     """Generate dashboard with JIRA metrics and send to Ketchup DM."""
     print("🚀 Starting metrics dashboard integration test with JIRA metrics...")
 
     try:
         # Initialize TypedDI container
+        import time
+
+        from packages.core.exports.html_generator import MetricsHTMLGenerator
         from packages.core.typed_di_integration import get_unified_container
         from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
         from packages.slack.services.metrics_data_collector import MetricsDataCollector
-        from packages.core.exports.html_generator import MetricsHTMLGenerator
-        import time
 
         print("📦 Initializing unified container...")
         container = await get_unified_container()
@@ -57,10 +59,7 @@ async def main():
         # Send dashboard to Ketchup's DM
         print(f"📤 Sending dashboard to Ketchup DM ({KETCHUP_DM})...")
 
-        success = await handler.handle_metrics_request(
-            user_id=KETCHUP_DM,
-            response_url=None
-        )
+        success = await handler.handle_metrics_request(user_id=KETCHUP_DM, response_url=None)
 
         if success:
             print(f"✅ Dashboard successfully sent to {KETCHUP_DM}")
@@ -88,6 +87,7 @@ async def main():
 
             # Generate HTML for validation
             from datetime import datetime, timezone
+
             start_date = datetime.fromtimestamp(start_ts, tz=timezone.utc)
             end_date = datetime.fromtimestamp(end_ts, tz=timezone.utc)
 
@@ -121,12 +121,14 @@ async def main():
         else:
             print(f"❌ Failed to send dashboard to {KETCHUP_DM}")
             return 1
-            
+
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
+
 
 if __name__ == "__main__":
     exit_code = asyncio.run(main())

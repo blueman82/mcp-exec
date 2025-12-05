@@ -57,14 +57,18 @@ class TestProcessChannelArchive:
         mock_dynamodb_store_with_ops.update_channel_fields.assert_not_awaited()
 
     async def test_channel_already_archived(self, mock_dynamodb_store_with_ops):
-        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {"archived": True}
+        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {
+            "archived": True
+        }
         await archive_processor.process_channel_archive("C2", mock_dynamodb_store_with_ops)
         mock_dynamodb_store_with_ops.update_channel_archived_status.assert_not_awaited()
         mock_dynamodb_store_with_ops.update_channel_fields.assert_not_awaited()
 
     @patch("time.time", return_value=1234567890)
     async def test_channel_no_archived_at_sets_new(self, mock_time, mock_dynamodb_store_with_ops):
-        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {"archived": False}
+        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {
+            "archived": False
+        }
         await archive_processor.process_channel_archive("C3", mock_dynamodb_store_with_ops)
         mock_dynamodb_store_with_ops.update_channel_archived_status.assert_awaited_once_with(
             channel_id="C3", archived=True, archived_at=1234567890
@@ -86,7 +90,10 @@ class TestProcessChannelArchive:
 
     @patch("time.time", return_value=1234567890)
     async def test_channel_archived_at_zero_sets_new(self, mock_time, mock_dynamodb_store_with_ops):
-        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {"archived": False, "archived_at": 0}
+        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {
+            "archived": False,
+            "archived_at": 0,
+        }
         await archive_processor.process_channel_archive("C4", mock_dynamodb_store_with_ops)
         mock_dynamodb_store_with_ops.update_channel_archived_status.assert_awaited_once_with(
             channel_id="C4", archived=True, archived_at=1234567890
@@ -107,7 +114,10 @@ class TestProcessChannelArchive:
         )
 
     async def test_channel_preserves_existing_archived_at(self, mock_dynamodb_store_with_ops):
-        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {"archived": False, "archived_at": 1111111111}
+        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {
+            "archived": False,
+            "archived_at": 1111111111,
+        }
         await archive_processor.process_channel_archive("C5", mock_dynamodb_store_with_ops)
         mock_dynamodb_store_with_ops.update_channel_archived_status.assert_awaited_once_with(
             channel_id="C5", archived=True, archived_at=1111111111
@@ -128,9 +138,13 @@ class TestProcessChannelArchive:
         )
 
     @patch("time.time", return_value=1234567890)
-    async def test_auto_status_cleanup_failure_does_not_fail_archive(self, mock_time, mock_dynamodb_store_with_ops):
+    async def test_auto_status_cleanup_failure_does_not_fail_archive(
+        self, mock_time, mock_dynamodb_store_with_ops
+    ):
         """Test that auto-status cleanup failure doesn't prevent channel archiving."""
-        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {"archived": False}
+        mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {
+            "archived": False
+        }
         # Mock update_channel_fields to raise an exception
         mock_dynamodb_store_with_ops.update_channel_fields.side_effect = Exception("DynamoDB error")
 
@@ -145,7 +159,9 @@ class TestProcessChannelArchive:
         mock_dynamodb_store_with_ops.update_channel_fields.assert_awaited_once()
 
     @patch("time.time", return_value=1234567890)
-    async def test_auto_status_fields_are_reset_correctly(self, mock_time, mock_dynamodb_store_with_ops):
+    async def test_auto_status_fields_are_reset_correctly(
+        self, mock_time, mock_dynamodb_store_with_ops
+    ):
         """Test that all auto-status fields are reset to their correct default values."""
         mock_dynamodb_store_with_ops.get_channel_details_consistent.return_value = {
             "archived": False,

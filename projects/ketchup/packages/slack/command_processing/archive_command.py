@@ -82,9 +82,7 @@ class SlackArchiveCommand(BaseCommandHandler):
         try:
             # Cast to ArchiveCommandParams for type safety
             archive_params = cast(ArchiveCommandParams, params)
-            logger.info(
-                "Processing archive request for %s days", archive_params.archive_days
-            )
+            logger.info("Processing archive request for %s days", archive_params.archive_days)
 
             # Convert days to epoch threshold
             epoch_threshold = convert_days_to_epoch(archive_params.archive_days)
@@ -106,9 +104,7 @@ class SlackArchiveCommand(BaseCommandHandler):
             product_preference = "all_products"  # Default
             try:
                 user_data = await self.user_store.get_user(user_id)
-                logger.info(
-                    "User data fetched for archive command %s: %s", user_id, user_data
-                )
+                logger.info("User data fetched for archive command %s: %s", user_id, user_data)
                 if user_data and "preferences" in user_data:
                     user_prefs = user_data["preferences"]
                     logger.info(
@@ -116,9 +112,7 @@ class SlackArchiveCommand(BaseCommandHandler):
                         user_id,
                         user_prefs,
                     )
-                    product_preference = user_prefs.get(
-                        "product_focus", ["all_products"]
-                    )[0]
+                    product_preference = user_prefs.get("product_focus", ["all_products"])[0]
                 else:
                     logger.info(
                         "No preferences found for user %s in archive command, using default 'all_products'.",

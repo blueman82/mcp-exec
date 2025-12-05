@@ -33,9 +33,7 @@ async def is_new_channel_eligible(
     # Check if this is an exempt channel that should always be eligible
     channel_name_normalized = channel_name.lower().replace("#", "")
     if channel_name_normalized in EXEMPT_CHANNELS:
-        logger.info(
-            "Channel '%s' is in exempt list - automatically eligible", channel_name
-        )
+        logger.info("Channel '%s' is in exempt list - automatically eligible", channel_name)
         return True
 
     # Get authorized user IDs from secrets

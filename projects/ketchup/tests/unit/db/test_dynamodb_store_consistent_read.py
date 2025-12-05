@@ -48,18 +48,14 @@ class TestDynamoDBStoreConsistentRead:
         store = DynamoDBStore(client=mock_client, table_name="test-table")
 
         # Mock to return None (channel not found)
-        store.channel_ops.query_ops.get_channel_details_consistent = AsyncMock(
-            return_value=None
-        )
+        store.channel_ops.query_ops.get_channel_details_consistent = AsyncMock(return_value=None)
 
         # Act
         result = await store.get_channel_details_consistent("C404")
 
         # Assert
         assert result is None
-        store.channel_ops.query_ops.get_channel_details_consistent.assert_awaited_once_with(
-            "C404"
-        )
+        store.channel_ops.query_ops.get_channel_details_consistent.assert_awaited_once_with("C404")
 
     async def test_get_channel_details_consistent_propagates_exceptions(self):
         """Test that exceptions from query_ops are propagated correctly."""

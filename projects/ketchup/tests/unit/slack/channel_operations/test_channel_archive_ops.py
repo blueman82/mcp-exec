@@ -113,9 +113,7 @@ async def test_check_channel_archived_api_error(
         "status": 200,
     }
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=mock_response))
-    with patch(
-        "packages.slack.channel_operations.channel_archive_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_archive_ops.logger") as mock_logger:
         result = await ops.check_channel_archived("C1")
         assert result is False
         assert mock_logger.warning.called
@@ -126,12 +124,8 @@ async def test_check_channel_archived_exception(
     ops: SlackChannelArchiveOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test check_channel_archived returns False and logs on exception."""
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
-    with patch(
-        "packages.slack.channel_operations.channel_archive_ops.logger"
-    ) as mock_logger:
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
+    with patch("packages.slack.channel_operations.channel_archive_ops.logger") as mock_logger:
         result = await ops.check_channel_archived("C1")
         assert result is False
         assert mock_logger.warning.called
@@ -228,9 +222,7 @@ async def test_archive_channel_exception(
         "get_user_api_headers",
         AsyncMock(return_value={"Authorization": "Bearer token"}),
     )
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
     ops.posting_handler.post_message = AsyncMock()  # type: ignore[method-assign]
     result = await ops.archive_channel("U1", "C1", "D1")
     assert result is False
@@ -271,9 +263,7 @@ async def test_unarchive_channel_api_error(
     }
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=mock_response))
     ops._restore_ops.set_restore_state = AsyncMock()
-    with patch(
-        "packages.slack.channel_operations.channel_archive_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_archive_ops.logger") as mock_logger:
         result = await ops.unarchive_channel("C1")
         assert result is False
         assert mock_logger.error.called
@@ -289,13 +279,9 @@ async def test_unarchive_channel_exception(
         "get_user_api_headers",
         AsyncMock(return_value={"Authorization": "Bearer token"}),
     )
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
     ops._restore_ops.set_restore_state = AsyncMock()
-    with patch(
-        "packages.slack.channel_operations.channel_archive_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_archive_ops.logger") as mock_logger:
         result = await ops.unarchive_channel("C1")
         assert result is False
         assert mock_logger.error.called
@@ -326,9 +312,7 @@ async def test_get_channel_info_api_error(
         "status": 200,
     }
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=mock_response))
-    with patch(
-        "packages.slack.channel_operations.channel_archive_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_archive_ops.logger") as mock_logger:
         result = await ops.get_channel_info("C1")
         assert result["ok"] is False
         assert mock_logger.warning.called
@@ -339,12 +323,8 @@ async def test_get_channel_info_exception(
     ops: SlackChannelArchiveOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test get_channel_info logs error and returns error on exception."""
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
-    with patch(
-        "packages.slack.channel_operations.channel_archive_ops.logger"
-    ) as mock_logger:
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
+    with patch("packages.slack.channel_operations.channel_archive_ops.logger") as mock_logger:
         result = await ops.get_channel_info("C1")
         assert result["ok"] is False
         assert "fail" in result["error"]

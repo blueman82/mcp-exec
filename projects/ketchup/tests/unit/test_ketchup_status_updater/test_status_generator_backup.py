@@ -43,9 +43,7 @@ class TestAutoStatusGenerator:
         assert result == "U123456"
 
     @pytest.mark.asyncio
-    async def test_get_ketchup_bot_user_id_not_found(
-        self, generator, mock_dependencies
-    ):
+    async def test_get_ketchup_bot_user_id_not_found(self, generator, mock_dependencies):
         """Test when bot user ID is not found"""
         mock_dependencies["secrets_manager"].get_bot_slack_user_id_async = AsyncMock(
             return_value=None
@@ -69,9 +67,7 @@ class TestAutoStatusGenerator:
                 "body": "Test comment 2",
             },
         ]
-        mock_dependencies["mcp_client"].get_issue_comments = AsyncMock(
-            return_value=mock_comments
-        )
+        mock_dependencies["mcp_client"].get_issue_comments = AsyncMock(return_value=mock_comments)
 
         result = await generator._fetch_jira_comments_raw("TEST-123")
 
@@ -80,9 +76,7 @@ class TestAutoStatusGenerator:
         assert "[2024-01-01] John Doe: Test comment 1" in result
 
     @pytest.mark.asyncio
-    async def test_fetch_jira_comments_raw_no_comments(
-        self, generator, mock_dependencies
-    ):
+    async def test_fetch_jira_comments_raw_no_comments(self, generator, mock_dependencies):
         """Test when no JIRA comments are found"""
         mock_dependencies["mcp_client"].get_issue_comments = AsyncMock(return_value=[])
 
@@ -183,9 +177,7 @@ class TestAutoStatusGenerator:
         assert call_args[1]["messages"][1]["role"] == "user"
 
     @pytest.mark.asyncio
-    async def test_generate_and_post_status_no_messages(
-        self, generator, mock_dependencies
-    ):
+    async def test_generate_and_post_status_no_messages(self, generator, mock_dependencies):
         """Test status generation when no messages are found"""
         channel_config = {"auto_status_last_message_ts": "0"}
 
@@ -199,8 +191,8 @@ class TestAutoStatusGenerator:
             )
 
             # Mock bot user ID
-            mock_dependencies["secrets_manager"].get_bot_slack_user_id_async = (
-                AsyncMock(return_value="U123456")
+            mock_dependencies["secrets_manager"].get_bot_slack_user_id_async = AsyncMock(
+                return_value="U123456"
             )
 
             # Mock channel details for both paths
@@ -246,15 +238,11 @@ class TestAutoStatusGenerator:
                 )
 
             assert result is True
-            post_call = mock_dependencies[
-                "posting_handler"
-            ]._post_channel_message.call_args
+            post_call = mock_dependencies["posting_handler"]._post_channel_message.call_args
             assert "No new activity detected" in post_call[1]["message"]
 
     @pytest.mark.asyncio
-    async def test_generate_and_post_status_with_jira(
-        self, generator, mock_dependencies
-    ):
+    async def test_generate_and_post_status_with_jira(self, generator, mock_dependencies):
         """Test status generation with JIRA comments"""
         channel_config = {
             "auto_status_last_message_ts": "0",
@@ -301,7 +289,9 @@ class TestAutoStatusGenerator:
                 return_value="https://slack.com/api"
             )
             mock_dependencies["channel_msg_ops"]._make_api_request = AsyncMock(
-                return_value={"body": '{"ok": true, "messages": [{"user": "U999999", "text": "Test message", "ts": "123456"}]}'}
+                return_value={
+                    "body": '{"ok": true, "messages": [{"user": "U999999", "text": "Test message", "ts": "123456"}]}'
+                }
             )
             mock_dependencies["channel_msg_ops"].check_recent_thread_activity = AsyncMock(
                 return_value=(False, "0", 0)
@@ -321,13 +311,11 @@ class TestAutoStatusGenerator:
                 )
 
                 # Mock field update
-                mock_dependencies[
-                    "db_store"
-                ].channel_operations.update_channel_fields = AsyncMock()
+                mock_dependencies["db_store"].channel_operations.update_channel_fields = AsyncMock()
 
                 # Mock bot user ID
-                mock_dependencies["secrets_manager"].get_bot_slack_user_id_async = (
-                    AsyncMock(return_value="U123456")
+                mock_dependencies["secrets_manager"].get_bot_slack_user_id_async = AsyncMock(
+                    return_value="U123456"
                 )
 
                 # Mock the verification to allow first-run posting

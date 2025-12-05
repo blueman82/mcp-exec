@@ -38,9 +38,7 @@ class TestIsNewChannelEligible:
         secrets_manager = AsyncMock()
         secrets_manager.get_exigence_user_id_async = AsyncMock(return_value="U1")
         # Creator is authorized, channel name does not contain approved keyword
-        result = await creation_checker.is_new_channel_eligible(
-            "random", "U1", secrets_manager
-        )
+        result = await creation_checker.is_new_channel_eligible("random", "U1", secrets_manager)
         assert result is False
 
     @patch(
@@ -65,9 +63,7 @@ class TestIsNewChannelEligible:
         secrets_manager = AsyncMock()
         secrets_manager.get_exigence_user_id_async = AsyncMock(return_value="U1")
         # Creator is not authorized, channel name does not contain approved keyword
-        result = await creation_checker.is_new_channel_eligible(
-            "random", "U2", secrets_manager
-        )
+        result = await creation_checker.is_new_channel_eligible("random", "U2", secrets_manager)
         assert result is False
 
     @patch(
@@ -77,9 +73,7 @@ class TestIsNewChannelEligible:
     async def test_empty_keywords(self):
         secrets_manager = AsyncMock()
         secrets_manager.get_exigence_user_id_async = AsyncMock(return_value="U1")
-        result = await creation_checker.is_new_channel_eligible(
-            "war-room", "U1", secrets_manager
-        )
+        result = await creation_checker.is_new_channel_eligible("war-room", "U1", secrets_manager)
         assert result is False
 
     @patch(

@@ -67,9 +67,7 @@ class TestProcessRequestModuleLevel:
         }
         mock_setup.return_value = deps
         processor = MagicMock()
-        processor.process_request = AsyncMock(
-            return_value={"statusCode": 200, "body": "ok"}
-        )
+        processor.process_request = AsyncMock(return_value={"statusCode": 200, "body": "ok"})
         mock_ep.return_value = processor
         event = {"foo": "bar"}
         result = await incoming_events.process_request(event, container)

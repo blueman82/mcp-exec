@@ -36,9 +36,7 @@ class SQSClientProtocol(Protocol):
     """Protocol for SQS client operations."""
 
     async def send_message(self, message_body: Dict[str, Any]) -> bool: ...
-    async def receive_messages(
-        self, max_messages: int = 10
-    ) -> List[Dict[str, Any]]: ...
+    async def receive_messages(self, max_messages: int = 10) -> List[Dict[str, Any]]: ...
     async def delete_message(self, receipt_handle: str) -> bool: ...
     def get_queue_depth(self) -> int: ...
 
@@ -73,7 +71,7 @@ class UserStoreProtocol(Protocol):
 
 __all__ = [
     "SecretsManagerProtocol",
-    "SlackConfigProtocol", 
+    "SlackConfigProtocol",
     "SlackPostingHandlerProtocol",
     "SQSClientProtocol",
     "DynamoDBConfigProtocol",

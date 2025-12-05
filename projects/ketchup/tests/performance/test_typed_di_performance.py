@@ -32,7 +32,6 @@ sys.path.insert(0, "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup
 
 from packages.core.typed_di import TypedServiceRegistry
 from packages.core.typed_di.types import DependencySpec
-
 from tests.performance.performance_utils import (
     create_service_factory,
     generate_271_service_graph,
@@ -74,7 +73,9 @@ class TestTypedDIPerformance:
 
         # Assertions
         assert startup_time < 60, f"Startup took {startup_time:.2f}s, expected <60s"
-        assert len(stats.service_order) == 271, f"Expected 271 services, got {len(stats.service_order)}"
+        assert (
+            len(stats.service_order) == 271
+        ), f"Expected 271 services, got {len(stats.service_order)}"
 
         print("\n=== Startup Performance ===")
         print(f"Total startup time: {startup_time:.3f}s")
@@ -141,7 +142,9 @@ class TestTypedDIPerformance:
         print("\nTop memory consumers:")
         for stat in top_stats[:5]:
             # Statistic object has these attributes
-            print(f"  Line {stat.traceback[0].lineno}: {stat.size / 1024:.2f}KB ({stat.count} blocks)")
+            print(
+                f"  Line {stat.traceback[0].lineno}: {stat.size / 1024:.2f}KB ({stat.count} blocks)"
+            )
 
     @pytest.mark.asyncio
     async def test_dependency_resolution_performance(self, registry_with_271_services):
@@ -171,7 +174,9 @@ class TestTypedDIPerformance:
         theoretical_complexity = len(services) + total_edges  # O(V + E)
 
         # Assertions
-        assert avg_resolution_ms < 5, f"Average resolution {avg_resolution_ms:.2f}ms exceeds 5ms limit"
+        assert (
+            avg_resolution_ms < 5
+        ), f"Average resolution {avg_resolution_ms:.2f}ms exceeds 5ms limit"
         assert resolution_time < 1, f"Total resolution {resolution_time:.2f}s exceeds 1s limit"
 
         print("\n=== Dependency Resolution Performance ===")
@@ -293,7 +298,9 @@ class TestTypedDIPerformance:
         print("  • CPU Usage: ✅ ACCEPTABLE")
 
         production_ready = startup_time < 60 and avg_resolution < 5
-        print(f"\n🎯 Production Readiness: {'✅ READY' if production_ready else '⚠️ NEEDS OPTIMIZATION'}")
+        print(
+            f"\n🎯 Production Readiness: {'✅ READY' if production_ready else '⚠️ NEEDS OPTIMIZATION'}"
+        )
 
         print("\n" + "=" * 60)
 

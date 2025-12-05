@@ -58,24 +58,26 @@ class RavenMaintenanceClient:
 
         headers = {
             "Content-Type": "application/xml",
-            "SOAPAction": "ketchup:maintenanceData#maintenanceData"
+            "SOAPAction": "ketchup:maintenanceData#maintenanceData",
         }
 
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
                     self.endpoint,
                     data=soap_body,
                     headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=30)
-                ) as response:
-                    response.raise_for_status()
-                    xml_text = await response.text()
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as response,
+            ):
+                response.raise_for_status()
+                xml_text = await response.text()
 
-                    # Parse response
-                    maintenance_data = self._parse_soap_response(xml_text)
-                    logger.info(f"Successfully fetched {len(maintenance_data)} maintenance records")
-                    return maintenance_data
+                # Parse response
+                maintenance_data = self._parse_soap_response(xml_text)
+                logger.info(f"Successfully fetched {len(maintenance_data)} maintenance records")
+                return maintenance_data
 
         except aiohttp.ClientError as e:
             logger.error(f"HTTP error fetching maintenance data: {e}")
@@ -88,7 +90,7 @@ class RavenMaintenanceClient:
         """Build SOAP XML request body."""
         credentials = f"{self.username}/{self.password}"
 
-        return f'''<?xml version="1.0" encoding="utf-8"?>
+        return f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <tns:maintenanceData xmlns:tns="urn:ketchup:maintenanceData">
@@ -96,7 +98,7 @@ class RavenMaintenanceClient:
       <tns:maintenanceDate>{date}</tns:maintenanceDate>
     </tns:maintenanceData>
   </soap:Body>
-</soap:Envelope>'''
+</soap:Envelope>"""
 
     def _parse_soap_response(self, xml_text: str) -> List[Dict]:
         """
@@ -116,11 +118,11 @@ class RavenMaintenanceClient:
             # Find the maintenanceData element (contains JSON)
             # Namespace handling for SOAP envelope
             namespaces = {
-                'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
-                'ns': 'urn:ketchup:maintenanceData'
+                "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+                "ns": "urn:ketchup:maintenanceData",
             }
 
-            maintenance_elem = root.find('.//ns:maintenanceData', namespaces)
+            maintenance_elem = root.find(".//ns:maintenanceData", namespaces)
             if maintenance_elem is None:
                 logger.warning("No maintenanceData element found in SOAP response")
                 return []

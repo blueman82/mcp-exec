@@ -28,20 +28,11 @@ from packages.slack.interactive_elements.feedback_reactions import (
 )
 from packages.slack.interactive_elements.feedback_report import FeedbackReportHandler
 
-
 # Protocol imports (conditional to avoid circular dependencies)
 if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
 # Import protocols from the protocols module to avoid circular dependencies
-from ..protocols import (
-    ChannelMetadataEditHandlerProtocol,
-    FeedbackReactionsHandlerProtocol,
-    FeedbackReportHandlerProtocol,
-
-    UserVerifierProtocol,
-)
-
 # Import required dependencies
 from packages.core.local_metrics import MetricsStorage
 from packages.db.dynamodb_store import DynamoDBStore
@@ -49,6 +40,13 @@ from packages.db.user_store import UserStore
 from packages.secrets.manager import SecretsManager
 from packages.slack.messages.posting import SlackPostingHandler
 from packages.slack.user_operations.user_ops import SlackUserOps
+
+from ..protocols import (
+    ChannelMetadataEditHandlerProtocol,
+    FeedbackReactionsHandlerProtocol,
+    FeedbackReportHandlerProtocol,
+    UserVerifierProtocol,
+)
 
 logger = setup_logger(__name__)
 
@@ -82,6 +80,7 @@ def register_slack_handlers(manager: "ServiceRegistrationManager") -> None:
 
 def _register_feedback_handlers(manager: "ServiceRegistrationManager") -> None:
     """Register feedback-related handlers for reactions and reports."""
+
     # FeedbackReactionsHandler with protocol
     async def create_feedback_reactions_handler(resolver) -> FeedbackReactionsHandler:
         """Factory function for FeedbackReactionsHandler using TypedResolver."""
@@ -113,9 +112,7 @@ def _register_feedback_handlers(manager: "ServiceRegistrationManager") -> None:
         logger.info("Creating FeedbackReportHandler instance via TypedDI")
         slack_posting = await resolver.aget(SlackPostingHandler)
         secrets_manager = await resolver.aget(SecretsManager)
-        return FeedbackReportHandler(
-            posting_handler=slack_posting, secrets_manager=secrets_manager
-        )
+        return FeedbackReportHandler(posting_handler=slack_posting, secrets_manager=secrets_manager)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=FeedbackReportHandlerProtocol,
@@ -131,6 +128,7 @@ def _register_feedback_handlers(manager: "ServiceRegistrationManager") -> None:
 
 def _register_metadata_and_interaction_handlers(manager: "ServiceRegistrationManager") -> None:
     """Register metadata editing and shortcut interaction handlers."""
+
     # ChannelMetadataEditHandler with protocol
     async def create_channel_metadata_edit_handler(resolver) -> ChannelMetadataEditHandler:
         """Factory function for ChannelMetadataEditHandler using TypedResolver."""
@@ -157,10 +155,9 @@ def _register_metadata_and_interaction_handlers(manager: "ServiceRegistrationMan
     )
 
 
-
-
 def _register_verification_handlers(manager: "ServiceRegistrationManager") -> None:
     """Register user verification handlers."""
+
     # UserVerifier with protocol
     async def create_user_verifier(resolver) -> UserVerifier:
         """Factory function for UserVerifier using TypedResolver."""

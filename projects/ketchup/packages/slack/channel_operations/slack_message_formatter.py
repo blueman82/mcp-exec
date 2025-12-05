@@ -47,9 +47,7 @@ class SlackMessageFormatter:
             logger.error("Error converting timestamp '%s': %s", timestamp, e)
             return "Invalid Timestamp"
 
-    async def replace_user_ids_with_names(
-        self, text: str, user_cache: Dict[str, str]
-    ) -> str:
+    async def replace_user_ids_with_names(self, text: str, user_cache: Dict[str, str]) -> str:
         """
         Replace Slack user ID mentions (<@Uxxxxxxx>) with actual usernames.
 
@@ -131,9 +129,7 @@ class SlackMessageFormatter:
 
             if text:
                 # Replace mentions using the fetched cache
-                text_with_names = await self.replace_user_ids_with_names(
-                    text, user_cache
-                )
+                text_with_names = await self.replace_user_ids_with_names(text, user_cache)
                 # Clean the text
                 cleaned_text = self.clean_text(text_with_names)
 

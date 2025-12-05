@@ -86,9 +86,7 @@ class TestCSOCardRendering:
             "cso_metrics": sample_cso_metrics,
             "products_using_ketchup": ["campaign"],
             "overall_cso_coverage": 100,
-            "product_coverage": {
-                "campaign": {"channels": 4, "total": 4, "percentage": 100}
-            },
+            "product_coverage": {"campaign": {"channels": 4, "total": 4, "percentage": 100}},
             "auto_notification_delivery": 95,
         }
         tech = {
@@ -144,9 +142,7 @@ class TestCSOCardRendering:
             "cso_metrics": sample_cso_metrics,
             "products_using_ketchup": ["campaign"],
             "overall_cso_coverage": 100,
-            "product_coverage": {
-                "campaign": {"channels": 4, "total": 4, "percentage": 100}
-            },
+            "product_coverage": {"campaign": {"channels": 4, "total": 4, "percentage": 100}},
             "auto_notification_delivery": 95,
         }
         tech = {
@@ -258,9 +254,7 @@ class TestCSOCardRendering:
             "cso_metrics": cso_metrics,
             "products_using_ketchup": ["campaign"],
             "overall_cso_coverage": 0,
-            "product_coverage": {
-                "campaign": {"channels": 0, "total": 1, "percentage": 0}
-            },
+            "product_coverage": {"campaign": {"channels": 0, "total": 1, "percentage": 0}},
             "auto_notification_delivery": 0,
         }
         tech = {
@@ -314,9 +308,7 @@ class TestCSOCardRendering:
             "cso_metrics": cso_metrics,
             "products_using_ketchup": ["campaign"],
             "overall_cso_coverage": 100,
-            "product_coverage": {
-                "campaign": {"channels": 4, "total": 4, "percentage": 100}
-            },
+            "product_coverage": {"campaign": {"channels": 4, "total": 4, "percentage": 100}},
             "auto_notification_delivery": 95,
         }
         tech = {

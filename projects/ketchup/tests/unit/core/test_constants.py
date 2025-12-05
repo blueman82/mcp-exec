@@ -23,9 +23,7 @@ class TestSlackChannelRegexPatterns:
         ]
 
         for channel_id in valid_channel_ids:
-            assert SLACK_CHANNEL_ID_REGEX.match(
-                channel_id
-            ), f"Should match: {channel_id}"
+            assert SLACK_CHANNEL_ID_REGEX.match(channel_id), f"Should match: {channel_id}"
 
     def test_slack_channel_id_regex_invalid_patterns(self):
         """Test that invalid channel IDs don't match the regex."""
@@ -42,9 +40,7 @@ class TestSlackChannelRegexPatterns:
         ]
 
         for channel_id in invalid_channel_ids:
-            assert not SLACK_CHANNEL_ID_REGEX.match(
-                channel_id
-            ), f"Should not match: {channel_id}"
+            assert not SLACK_CHANNEL_ID_REGEX.match(channel_id), f"Should not match: {channel_id}"
 
     def test_slack_channel_mention_regex_valid_patterns(self):
         """Test that valid channel mentions match the regex."""
@@ -81,9 +77,7 @@ class TestSlackChannelRegexPatterns:
         ]
 
         for mention in invalid_mentions:
-            assert not SLACK_CHANNEL_MENTION_REGEX.match(
-                mention
-            ), f"Should not match: {mention}"
+            assert not SLACK_CHANNEL_MENTION_REGEX.match(mention), f"Should not match: {mention}"
 
     def test_slack_channel_mention_regex_extraction(self):
         """Test extracting channel ID and name from mentions."""
@@ -101,9 +95,7 @@ class TestSlackChannelRegexPatterns:
             match = SLACK_CHANNEL_MENTION_REGEX.match(mention)
             assert match, f"Should match: {mention}"
             assert match.group(1) == expected_id, f"Channel ID mismatch for {mention}"
-            assert (
-                match.group(2) == expected_name
-            ), f"Channel name mismatch for {mention}"
+            assert match.group(2) == expected_name, f"Channel name mismatch for {mention}"
 
     def test_slack_channel_name_regex_valid_patterns(self):
         """Test that valid channel names match the regex."""
@@ -157,6 +149,4 @@ class TestSlackChannelRegexPatterns:
         for full_name, expected_name in test_cases:
             match = SLACK_CHANNEL_NAME_REGEX.match(full_name)
             assert match, f"Should match: {full_name}"
-            assert (
-                match.group(1) == expected_name
-            ), f"Name extraction failed for {full_name}"
+            assert match.group(1) == expected_name, f"Name extraction failed for {full_name}"

@@ -71,9 +71,7 @@ class TestAccessRequestHandler:
         }
 
     @pytest.mark.asyncio
-    async def test_handle_request_access_success(
-        self, handler, mock_dependencies, sample_payload
-    ):
+    async def test_handle_request_access_success(self, handler, mock_dependencies, sample_payload):
         """Test successful access request creation."""
         # Setup mocks - mock both api_call and _make_api_request for different parts
         mock_dependencies["slack_client"].api_call.return_value = {
@@ -93,9 +91,7 @@ class TestAccessRequestHandler:
             status=ACCESS_REQUEST_STATUS["PENDING"],
         )
 
-        mock_dependencies[
-            "access_request_ops"
-        ].create_request_with_validation.return_value = (
+        mock_dependencies["access_request_ops"].create_request_with_validation.return_value = (
             True,
             "Request created successfully",
             created_request,
@@ -117,9 +113,9 @@ class TestAccessRequestHandler:
             "chat.postMessage",
             {
                 "channel": ACCESS_REQUEST_CHANNEL,
-                "blocks": mock_dependencies["slack_client"].api_call.call_args_list[-1][
-                    0
-                ][1]["blocks"],
+                "blocks": mock_dependencies["slack_client"].api_call.call_args_list[-1][0][1][
+                    "blocks"
+                ],
                 "text": "New access request from testuser",
             },
         )
@@ -134,9 +130,7 @@ class TestAccessRequestHandler:
         self, handler, mock_dependencies, sample_payload
     ):
         """Test rate limited access request."""
-        mock_dependencies[
-            "access_request_ops"
-        ].create_request_with_validation.return_value = (
+        mock_dependencies["access_request_ops"].create_request_with_validation.return_value = (
             False,
             "Too many requests. Please try again later.",
             None,
@@ -156,9 +150,7 @@ class TestAccessRequestHandler:
         self, handler, mock_dependencies, sample_payload
     ):
         """Test duplicate request handling."""
-        mock_dependencies[
-            "access_request_ops"
-        ].create_request_with_validation.return_value = (
+        mock_dependencies["access_request_ops"].create_request_with_validation.return_value = (
             False,
             "You already have a pending request.",
             None,
@@ -187,9 +179,7 @@ class TestAccessRequestHandler:
         mock_lock_context = MagicMock()
         mock_lock_context.__aenter__ = AsyncMock(return_value=True)
         mock_lock_context.__aexit__ = AsyncMock()
-        mock_dependencies["distributed_lock"].acquire_lock = Mock(
-            return_value=mock_lock_context
-        )
+        mock_dependencies["distributed_lock"].acquire_lock = Mock(return_value=mock_lock_context)
 
         # Mock update success
         mock_dependencies["access_request_ops"].update_request_decision.return_value = (
@@ -216,9 +206,7 @@ class TestAccessRequestHandler:
         assert "<@U123456>" in response["text"]
 
         # Check that user was added to authorized list
-        mock_dependencies[
-            "secrets_manager"
-        ].add_authorized_user.assert_called_once_with("U123456")
+        mock_dependencies["secrets_manager"].add_authorized_user.assert_called_once_with("U123456")
 
         # Check that DM was sent
         dm_calls = [
@@ -245,9 +233,7 @@ class TestAccessRequestHandler:
         mock_lock_context = MagicMock()
         mock_lock_context.__aenter__ = AsyncMock(return_value=False)
         mock_lock_context.__aexit__ = AsyncMock()
-        mock_dependencies["distributed_lock"].acquire_lock = Mock(
-            return_value=mock_lock_context
-        )
+        mock_dependencies["distributed_lock"].acquire_lock = Mock(return_value=mock_lock_context)
 
         response = await handler.handle_approve_access(payload)
 
@@ -290,9 +276,7 @@ class TestAccessRequestHandler:
             "view": {
                 "state": {
                     "values": {
-                        "reason_block": {
-                            "reason_input": {"value": "Not eligible for access"}
-                        }
+                        "reason_block": {"reason_input": {"value": "Not eligible for access"}}
                     }
                 },
                 "private_metadata": json.dumps(
@@ -323,9 +307,7 @@ class TestAccessRequestHandler:
         assert response["response_type"] == "clear"
 
         # Check that rejection was recorded
-        mock_dependencies[
-            "access_request_ops"
-        ].update_request_decision.assert_called_once_with(
+        mock_dependencies["access_request_ops"].update_request_decision.assert_called_once_with(
             user_id="U123456",
             request_timestamp=1234567890.0,
             decision=ACCESS_REQUEST_STATUS["REJECTED"],
@@ -353,9 +335,9 @@ class TestAccessRequestHandler:
     ):
         """Test error handling in request access."""
         # Mock an exception
-        mock_dependencies[
-            "access_request_ops"
-        ].create_request_with_validation.side_effect = Exception("DB Error")
+        mock_dependencies["access_request_ops"].create_request_with_validation.side_effect = (
+            Exception("DB Error")
+        )
 
         response = await handler.handle_request_access(sample_payload)
 

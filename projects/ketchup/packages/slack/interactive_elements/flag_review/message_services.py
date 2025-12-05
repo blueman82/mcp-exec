@@ -24,7 +24,7 @@ class MessageFormattingService:
         """Format timestamp for display in messages."""
         if timestamp:
             try:
-                dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
                 return dt.strftime("%H:%M")
             except ValueError:
                 logger.warning(f"Invalid timestamp format: {timestamp}")
@@ -38,11 +38,9 @@ class MessageFormattingService:
         """Format channel ID as Slack mention."""
         return f"<#{channel_id}>"
 
-    def format_message_link(
-        self, channel_id: str, message_ts: str, link_text: str = "View"
-    ) -> str:
+    def format_message_link(self, channel_id: str, message_ts: str, link_text: str = "View") -> str:
         """Format message link for Slack."""
-        ts_no_dot = message_ts.replace('.', '')
+        ts_no_dot = message_ts.replace(".", "")
         url = f"https://adobe.enterprise.slack.com/archives/{channel_id}/p{ts_no_dot}"
         return f"<{url}|{link_text}>"
 
@@ -50,7 +48,7 @@ class MessageFormattingService:
         """Truncate text with ellipsis if too long."""
         if len(text) <= max_length:
             return text
-        return text[:max_length-3] + "..."
+        return text[: max_length - 3] + "..."
 
 
 class MessageValidationService:
@@ -69,7 +67,7 @@ class MessageValidationService:
         if len(content) > 3000:
             issues.append("Content too long")
         # Check for potentially harmful content
-        harmful_patterns = ['<script', 'javascript:', 'data:text/html']
+        harmful_patterns = ["<script", "javascript:", "data:text/html"]
         for pattern in harmful_patterns:
             if pattern.lower() in content.lower():
                 issues.append(f"Potentially harmful content: {pattern}")
@@ -78,31 +76,31 @@ class MessageValidationService:
     def parse_action_value(self, action_value: str) -> Dict[str, str]:
         """Parse action value from button clicks."""
         try:
-            parts = action_value.split('|')
+            parts = action_value.split("|")
             return {
-                'primary': parts[0] if parts else '',
-                'secondary': parts[1] if len(parts) > 1 else '',
-                'tertiary': parts[2] if len(parts) > 2 else '',
-                'quaternary': parts[3] if len(parts) > 3 else ''
+                "primary": parts[0] if parts else "",
+                "secondary": parts[1] if len(parts) > 1 else "",
+                "tertiary": parts[2] if len(parts) > 2 else "",
+                "quaternary": parts[3] if len(parts) > 3 else "",
             }
         except Exception as e:
             logger.error(f"Error parsing action value: {e}")
-            return {'primary': action_value, 'secondary': '', 'tertiary': '', 'quaternary': ''}
+            return {"primary": action_value, "secondary": "", "tertiary": "", "quaternary": ""}
 
     def extract_metadata_from_modal(self, modal_view: Dict[str, Any]) -> Dict[str, str]:
         """Extract metadata from modal private_metadata field."""
         try:
-            private_metadata = modal_view.get('private_metadata', '')
-            parts = private_metadata.split('|')
+            private_metadata = modal_view.get("private_metadata", "")
+            parts = private_metadata.split("|")
             return {
-                'channel_id': parts[0] if parts else '',
-                'message_ts': parts[1] if len(parts) > 1 else '',
-                'user_id': parts[2] if len(parts) > 2 else '',
-                'flag_id': parts[3] if len(parts) > 3 else ''
+                "channel_id": parts[0] if parts else "",
+                "message_ts": parts[1] if len(parts) > 1 else "",
+                "user_id": parts[2] if len(parts) > 2 else "",
+                "flag_id": parts[3] if len(parts) > 3 else "",
             }
         except Exception as e:
             logger.error(f"Error extracting metadata: {e}")
-            return {'channel_id': '', 'message_ts': '', 'user_id': '', 'flag_id': ''}
+            return {"channel_id": "", "message_ts": "", "user_id": "", "flag_id": ""}
 
 
 class MessageTransformationService:
@@ -113,43 +111,33 @@ class MessageTransformationService:
         pass
 
     def prepare_flag_context(
-        self,
-        channel_id: str,
-        user_id: str,
-        feedback_text: str,
-        message_ts: Optional[str] = None
+        self, channel_id: str, user_id: str, feedback_text: str, message_ts: Optional[str] = None
     ) -> Dict[str, Any]:
         """Prepare context data for flag operations."""
         return {
-            'channel_id': channel_id,
-            'user_id': user_id,
-            'feedback_text': feedback_text,
-            'message_ts': message_ts,
-            'flag_id': f"{channel_id}_{message_ts or 'no_ts'}_{user_id}",
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'display_time': self._format_display_time()
+            "channel_id": channel_id,
+            "user_id": user_id,
+            "feedback_text": feedback_text,
+            "message_ts": message_ts,
+            "flag_id": f"{channel_id}_{message_ts or 'no_ts'}_{user_id}",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "display_time": self._format_display_time(),
         }
 
     def prepare_notification_data(
-        self,
-        recipient_id: str,
-        message_type: str,
-        context_data: Dict[str, Any]
+        self, recipient_id: str, message_type: str, context_data: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Prepare notification data for sending."""
         return {
-            'recipient_id': recipient_id,
-            'message_type': message_type,
-            'context': context_data,
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'notification_id': f"{recipient_id}_{message_type}_{int(datetime.now().timestamp())}"
+            "recipient_id": recipient_id,
+            "message_type": message_type,
+            "context": context_data,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "notification_id": f"{recipient_id}_{message_type}_{int(datetime.now().timestamp())}",
         }
 
     def transform_blocks_for_update(
-        self,
-        original_blocks: List[Dict[str, Any]],
-        update_type: str,
-        update_data: Dict[str, Any]
+        self, original_blocks: List[Dict[str, Any]], update_type: str, update_data: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Transform message blocks for updates."""
         try:
@@ -166,7 +154,7 @@ class MessageTransformationService:
             # Find or add context block
             context_block = {
                 "type": "context",
-                "elements": [{"type": "mrkdwn", "text": context_text}]
+                "elements": [{"type": "mrkdwn", "text": context_text}],
             }
             # Remove existing context blocks with flags
             blocks = [b for b in blocks if not self._is_flag_context_block(b)]
@@ -182,13 +170,13 @@ class MessageTransformationService:
 
     def _is_flag_context_block(self, block: Dict[str, Any]) -> bool:
         """Check if block is a flag-related context block."""
-        if block.get('type') != 'context':
+        if block.get("type") != "context":
             return False
-            
-        elements = block.get('elements', [])
+
+        elements = block.get("elements", [])
         for element in elements:
-            text = element.get('text', '')
-            if any(flag in text for flag in ['Flagged', 'Acknowledged', 'Reply sent']):
+            text = element.get("text", "")
+            if any(flag in text for flag in ["Flagged", "Acknowledged", "Reply sent"]):
                 return True
         return False
 
@@ -203,15 +191,14 @@ class MessageQueueService:
 
     def queue_message(self, message_data: Dict[str, Any]) -> None:
         """Add message to processing queue."""
-        self.pending_messages.append({
-            **message_data,
-            'queued_at': datetime.now(timezone.utc).isoformat()
-        })
+        self.pending_messages.append(
+            {**message_data, "queued_at": datetime.now(timezone.utc).isoformat()}
+        )
 
     def get_pending_batch(self) -> List[Dict[str, Any]]:
         """Get a batch of pending messages for processing."""
-        batch = self.pending_messages[:self.batch_size]
-        self.pending_messages = self.pending_messages[self.batch_size:]
+        batch = self.pending_messages[: self.batch_size]
+        self.pending_messages = self.pending_messages[self.batch_size :]
         return batch
 
     def get_queue_size(self) -> int:
@@ -231,45 +218,42 @@ class MessageAnalyticsService:
     def __init__(self):
         """Initialize the message analytics service."""
         self.message_stats = {
-            'total_messages': 0,
-            'successful_sends': 0,
-            'failed_sends': 0,
-            'updates': 0
+            "total_messages": 0,
+            "successful_sends": 0,
+            "failed_sends": 0,
+            "updates": 0,
         }
 
     def track_message_sent(self, success: bool) -> None:
         """Track a message send attempt."""
-        self.message_stats['total_messages'] += 1
+        self.message_stats["total_messages"] += 1
         if success:
-            self.message_stats['successful_sends'] += 1
+            self.message_stats["successful_sends"] += 1
         else:
-            self.message_stats['failed_sends'] += 1
+            self.message_stats["failed_sends"] += 1
 
     def track_message_update(self) -> None:
         """Track a message update operation."""
-        self.message_stats['updates'] += 1
+        self.message_stats["updates"] += 1
 
     def get_success_rate(self) -> float:
         """Calculate message send success rate."""
-        total = self.message_stats['total_messages']
+        total = self.message_stats["total_messages"]
         if total == 0:
             return 0.0
-        return (self.message_stats['successful_sends'] / total) * 100
+        return (self.message_stats["successful_sends"] / total) * 100
 
     def get_stats_summary(self) -> Dict[str, Union[int, float]]:
         """Get comprehensive statistics summary."""
-        return {
-            **self.message_stats,
-            'success_rate': self.get_success_rate()
-        }
+        return {**self.message_stats, "success_rate": self.get_success_rate()}
 
     def reset_stats(self) -> None:
         """Reset all statistics counters."""
         self.message_stats = {
-            'total_messages': 0,
-            'successful_sends': 0,
-            'failed_sends': 0,
-            'updates': 0
+            "total_messages": 0,
+            "successful_sends": 0,
+            "failed_sends": 0,
+            "updates": 0,
         }
 
 
@@ -308,7 +292,7 @@ class MessageOrchestratorService:
 # Factory function for service creation
 def create_message_services() -> MessageOrchestratorService:
     """Create and return a configured message services orchestrator.
-    
+
     Returns:
         Configured MessageOrchestratorService instance.
     """

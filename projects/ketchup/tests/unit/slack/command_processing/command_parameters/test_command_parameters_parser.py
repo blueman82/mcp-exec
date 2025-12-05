@@ -54,9 +54,7 @@ class TestExtractCommandType:
             ("", None),
         ],
     )
-    def test_extract_command_type(
-        self, command: str, expected: Optional[CommandType]
-    ) -> None:
+    def test_extract_command_type(self, command: str, expected: Optional[CommandType]) -> None:
         """Test extract_command_type for all valid and invalid command strings."""
         result = parser.extract_command_type(command)
         assert result == expected
@@ -112,13 +110,9 @@ class TestExtractCommandParams:
             ("/ketchup list", "list"),
         ],
     )
-    def test_extract_command_params_valid(
-        self, command: str, expected_extractor: str
-    ) -> None:
+    def test_extract_command_params_valid(self, command: str, expected_extractor: str) -> None:
         """Test extract_command_params calls correct extractor and returns params."""
-        params = parser.extract_command_params(
-            command, "chan", "C123", response_url="url"
-        )
+        params = parser.extract_command_params(command, "chan", "C123", response_url="url")
         # The correct extractor should have been called
         if expected_extractor == "summary":
             assert self.mock_summary.called

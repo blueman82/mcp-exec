@@ -66,9 +66,7 @@ class UsageExportHandler:
                 # Extract the actual DM channel ID from the response
                 if ack_response and ack_response.get("ok"):
                     dm_channel_id = ack_response.get("channel")
-                    logger.info(
-                        f"Got DM channel ID {dm_channel_id} from acknowledgment message"
-                    )
+                    logger.info(f"Got DM channel ID {dm_channel_id} from acknowledgment message")
 
             # Fetch export data
             export_data = await self._command_tracking_ops.get_full_export_data(days=7)
@@ -163,11 +161,11 @@ class UsageExportHandler:
 
             form_data = urllib.parse.urlencode(upload_url_payload)
 
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    url, headers=headers, data=form_data
-                ) as response:
-                    upload_url_response = await response.json()
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(url, headers=headers, data=form_data) as response,
+            ):
+                upload_url_response = await response.json()
 
             if not upload_url_response.get("ok"):
                 logger.error(
@@ -180,15 +178,15 @@ class UsageExportHandler:
             file_id = upload_url_response["file_id"]
 
             # Step 2: Upload file to the URL
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
                     upload_url, data=csv_bytes, headers={"Content-Type": "text/csv"}
-                ) as response:
-                    if response.status != 200:
-                        logger.error(
-                            f"Failed to upload file to URL, status: {response.status}"
-                        )
-                        return False
+                ) as response,
+            ):
+                if response.status != 200:
+                    logger.error(f"Failed to upload file to URL, status: {response.status}")
+                    return False
 
             # Step 3: Complete the upload and share to channel
             complete_payload = {

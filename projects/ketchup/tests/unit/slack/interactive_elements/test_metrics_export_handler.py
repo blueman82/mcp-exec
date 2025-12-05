@@ -81,9 +81,7 @@ class TestMetricsExportHandler:
     def mock_html_generator(self) -> MagicMock:
         """Create a mock MetricsHTMLGenerator."""
         mock = MagicMock(spec=MetricsHTMLGenerator)
-        mock.generate = MagicMock(
-            return_value="<html><body>Metrics Dashboard</body></html>"
-        )
+        mock.generate = MagicMock(return_value="<html><body>Metrics Dashboard</body></html>")
         return mock
 
     @pytest.fixture
@@ -110,9 +108,7 @@ class TestMetricsExportHandler:
     ) -> None:
         """Test MetricsExportHandler initializes with correct dependencies."""
         assert metrics_export_handler._metrics_collector == mock_metrics_data_collector
-        assert (
-            metrics_export_handler._slack_posting_handler == mock_slack_posting_handler
-        )
+        assert metrics_export_handler._slack_posting_handler == mock_slack_posting_handler
         assert metrics_export_handler._html_generator == mock_html_generator
 
     @pytest.mark.asyncio
@@ -203,10 +199,7 @@ class TestMetricsExportHandler:
         mock_session_class.return_value = mock_session
 
         # Mock api_call for conversations.open and complete upload
-        mock_slack_posting_handler.api_call.return_value = {
-            "ok": True,
-            "channel": {"id": "D12345"}
-        }
+        mock_slack_posting_handler.api_call.return_value = {"ok": True, "channel": {"id": "D12345"}}
         # Mock post_message for acknowledgment and completion messages
         mock_slack_posting_handler.post_message = AsyncMock()
 

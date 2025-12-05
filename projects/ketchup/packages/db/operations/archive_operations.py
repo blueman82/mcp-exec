@@ -47,9 +47,7 @@ class ArchiveOperations(BaseOperations):
 
                     # Check if item exists and has a non-zero archived_at value
                     existing_item = get_item_response.get("Item", {})
-                    existing_archived_at = existing_item.get("archived_at", {}).get(
-                        "N", "0"
-                    )
+                    existing_archived_at = existing_item.get("archived_at", {}).get("N", "0")
 
                     # Only use the new timestamp if there's no existing non-zero value
                     if existing_archived_at and existing_archived_at != "0":
@@ -57,18 +55,14 @@ class ArchiveOperations(BaseOperations):
                             "Preserving existing archived_at timestamp: %s",
                             existing_archived_at,
                         )
-                        update_expression = (
-                            "SET archived = :archived, archived_at = :archived_at"
-                        )
+                        update_expression = "SET archived = :archived, archived_at = :archived_at"
                         expression_values = {
                             ":archived": {"BOOL": archived},
                             ":archived_at": {"N": existing_archived_at},
                         }
                     else:
                         # Set both archived status and timestamp with new value
-                        update_expression = (
-                            "SET archived = :archived, archived_at = :archived_at"
-                        )
+                        update_expression = "SET archived = :archived, archived_at = :archived_at"
                         expression_values = {
                             ":archived": {"BOOL": archived},
                             ":archived_at": {"N": str(archived_at)},
@@ -100,9 +94,7 @@ class ArchiveOperations(BaseOperations):
                 "archived" if archived else "unarchived",
             )
         except Exception as e:
-            logger.error(
-                "Error updating archived status for channel %s: %s", channel_id, str(e)
-            )
+            logger.error("Error updating archived status for channel %s: %s", channel_id, str(e))
 
     async def cleanup(self) -> None:
         """

@@ -65,9 +65,7 @@ class CommandUsageCSVGenerator:
             logger.error(f"Error generating CSV: {str(e)}")
             return "Error generating CSV report"
 
-    def _write_header_section(
-        self, writer: csv.writer, export_data: Dict[str, Any]
-    ) -> None:
+    def _write_header_section(self, writer: csv.writer, export_data: Dict[str, Any]) -> None:
         """Write the header section of the CSV file."""
         # Write metadata
         writer.writerow(["Ketchup Command Usage Report"])
@@ -97,9 +95,7 @@ class CommandUsageCSVGenerator:
         writer.writerow(["Active Users", len(export_data.get("user_breakdown", {}))])
         writer.writerow([""])
 
-    def _write_top_users_section(
-        self, writer: csv.writer, export_data: Dict[str, Any]
-    ) -> None:
+    def _write_top_users_section(self, writer: csv.writer, export_data: Dict[str, Any]) -> None:
         """Write the top users section of the CSV file."""
         writer.writerow(["TOP 10 USERS"])
         writer.writerow(["Rank", "User ID", "User Name", "Command Count"])
@@ -123,9 +119,7 @@ class CommandUsageCSVGenerator:
         )
 
         trends = export_data.get("trends", {}).get("trends", {}).get("commands", {})
-        for cmd, data in sorted(
-            trends.items(), key=lambda x: x[1].get("current", 0), reverse=True
-        ):
+        for cmd, data in sorted(trends.items(), key=lambda x: x[1].get("current", 0), reverse=True):
             delta = data.get("delta", 0)
             trend_indicator = "Up" if delta > 0 else "Down" if delta < 0 else "Stable"
             writer.writerow(
@@ -140,9 +134,7 @@ class CommandUsageCSVGenerator:
             )
 
         # Add total row
-        total_usage = (
-            export_data.get("trends", {}).get("trends", {}).get("total_usage", {})
-        )
+        total_usage = export_data.get("trends", {}).get("trends", {}).get("total_usage", {})
         writer.writerow(
             [
                 "TOTAL",

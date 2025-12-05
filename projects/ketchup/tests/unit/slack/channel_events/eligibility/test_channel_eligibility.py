@@ -60,16 +60,14 @@ class TestChannelEligibilityService:
         monkeypatch.setattr(constants, "CHANNEL_KEYWORD_TO_PRODUCT", test_keywords)
         import packages.slack.channel_operations.channel_eligibility as eligibility_mod
 
-        monkeypatch.setattr(
-            eligibility_mod, "CHANNEL_KEYWORD_TO_PRODUCT", test_keywords
-        )
+        monkeypatch.setattr(eligibility_mod, "CHANNEL_KEYWORD_TO_PRODUCT", test_keywords)
         monkeypatch.setattr(constants, "ELIGIBILITY_MAX_CHANNEL_AGE_DAYS", 30)
         # Debug: ensure the patch is effective in both places
         assert (
-            constants.CHANNEL_KEYWORD_TO_PRODUCT == test_keywords
+            test_keywords == constants.CHANNEL_KEYWORD_TO_PRODUCT
         ), f"Patched constants: {constants.CHANNEL_KEYWORD_TO_PRODUCT}"
         assert (
-            eligibility_mod.CHANNEL_KEYWORD_TO_PRODUCT == test_keywords
+            test_keywords == eligibility_mod.CHANNEL_KEYWORD_TO_PRODUCT
         ), f"Patched eligibility_mod: {eligibility_mod.CHANNEL_KEYWORD_TO_PRODUCT}"
 
         # Mocks
@@ -258,21 +256,15 @@ class TestChannelEligibilityService:
         patch_time: float,
     ) -> None:
         """Test is_channel_eligible for all major logic branches and edge cases."""
-        self.mock_dynamodb_store.get_channel_details = AsyncMock(
-            return_value=dynamo_data
-        )
-        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value=channel_info
-        )
+        self.mock_dynamodb_store.get_channel_details = AsyncMock(return_value=dynamo_data)
+        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(return_value=channel_info)
         self.mock_posting_handler.post_message = AsyncMock()
 
         with patch("time.time", return_value=patch_time):
             result = await self.svc.is_channel_eligible("C123", "U123")
 
         expected_reason: Optional[str] = expected[1]
-        if expected_reason is not None and expected_reason.startswith(
-            "Channel is over"
-        ):
+        if expected_reason is not None and expected_reason.startswith("Channel is over"):
             # Partial match for age string
             assert result[0] is False
             assert result[1] is not None and result[1].startswith("Channel is over")
@@ -282,12 +274,8 @@ class TestChannelEligibilityService:
     @pytest.mark.asyncio
     async def test_is_channel_eligible_dynamo_exception(self) -> None:
         """Test fallback to API if DynamoDB raises exception."""
-        self.mock_dynamodb_store.get_channel_details = AsyncMock(
-            side_effect=Exception("fail")
-        )
-        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value=None
-        )
+        self.mock_dynamodb_store.get_channel_details = AsyncMock(side_effect=Exception("fail"))
+        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(return_value=None)
         self.mock_posting_handler.post_message = AsyncMock()
         result = await self.svc.is_channel_eligible("C123", "U123")
         assert result == (False, "Could not retrieve channel information")
@@ -308,9 +296,7 @@ class TestChannelEligibilityService:
     async def test_is_channel_eligible_posts_message_on_api_none(self) -> None:
         """Test that post_message is called if channel info is None and response_url is given."""
         self.mock_dynamodb_store.get_channel_details = AsyncMock(return_value=None)
-        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value=None
-        )
+        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(return_value=None)
         self.mock_posting_handler.post_message = AsyncMock()
         await self.svc.is_channel_eligible("C123", "U123", response_url="url")
         self.mock_posting_handler.post_message.assert_awaited_once()
@@ -335,9 +321,7 @@ class TestChannelEligibilityService:
         )
         self.mock_channel_info_ops.headers = {"Authorization": "Bearer x"}
         # _make_api_request returns a dict, not a response object
-        self.mock_channel_info_ops._make_api_request = AsyncMock(
-            return_value={"ok": True}
-        )
+        self.mock_channel_info_ops._make_api_request = AsyncMock(return_value={"ok": True})
         self.mock_dynamodb_store.delete_channel_if_exists = AsyncMock(return_value=True)
         await self.svc.handle_ineligible_channel("C123", "U123", "reason")
         self.mock_posting_handler.post_message.assert_awaited_once()
@@ -372,12 +356,8 @@ class TestChannelEligibilityService:
         self.mock_channel_info_ops.headers = {"Authorization": "Bearer x"}
         mock_response = MagicMock()
         mock_response.json = AsyncMock(return_value={"ok": True})
-        self.mock_channel_info_ops._make_api_request = AsyncMock(
-            return_value=mock_response
-        )
-        self.mock_dynamodb_store.delete_channel_if_exists = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        self.mock_channel_info_ops._make_api_request = AsyncMock(return_value=mock_response)
+        self.mock_dynamodb_store.delete_channel_if_exists = AsyncMock(side_effect=Exception("fail"))
         await self.svc.handle_ineligible_channel("C123", "U123", "reason")
         self.mock_posting_handler.post_message.assert_awaited_once()
         self.mock_channel_info_ops._make_api_request.assert_awaited_once()
@@ -391,9 +371,7 @@ class TestChannelEligibilityService:
             return_value="https://slack.com/api"
         )
         self.mock_channel_info_ops.headers = {"Authorization": "Bearer x"}
-        self.mock_channel_info_ops._make_api_request = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        self.mock_channel_info_ops._make_api_request = AsyncMock(side_effect=Exception("fail"))
         self.mock_dynamodb_store.delete_channel_if_exists = AsyncMock(return_value=True)
         await self.svc.handle_ineligible_channel("C123", "U123", "reason")
         self.mock_posting_handler.post_message.assert_awaited_once()
@@ -417,9 +395,7 @@ class TestChannelEligibilityService:
             "created": channel_created_time,
         }
 
-        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value=channel_info
-        )
+        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(return_value=channel_info)
 
         with patch("time.time", return_value=current_time):
             result = await self.svc.is_channel_eligible("C123", "U123")
@@ -444,9 +420,7 @@ class TestChannelEligibilityService:
             "created": channel_created_time,
         }
 
-        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(
-            return_value=channel_info
-        )
+        self.mock_channel_info_ops.get_channel_info_from_api = AsyncMock(return_value=channel_info)
 
         with patch("time.time", return_value=current_time):
             result = await self.svc.is_channel_eligible("C123", "U123")

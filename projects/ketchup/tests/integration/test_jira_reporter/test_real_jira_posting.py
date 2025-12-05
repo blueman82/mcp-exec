@@ -11,9 +11,7 @@ import time
 from unittest.mock import AsyncMock, MagicMock
 
 # Import test configuration
-sys.path.append(
-    os.path.join(os.path.dirname(__file__), "../../unit/test_jira_reporter")
-)
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../unit/test_jira_reporter"))
 from test_config import TEST_JIRA_TICKETS, TEST_MESSAGES
 
 

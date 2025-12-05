@@ -17,14 +17,15 @@ from __future__ import annotations
 import gc
 import json
 import os
-import psutil
 import statistics
 import sys
 import time
 import tracemalloc
 import unittest
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, Optional, Type
+
+import psutil
 
 # Add ketchup root to path for imports
 ketchup_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -40,6 +41,7 @@ logger = setup_logger(__name__)
 @dataclass
 class PerformanceMetrics:
     """Container for performance measurement data."""
+
     service_name: str
     resolution_time_ms: float
     memory_peak_mb: float
@@ -54,6 +56,7 @@ class PerformanceMetrics:
 @dataclass
 class PerformanceBaseline:
     """Container for performance baseline data."""
+
     service_name: str
     avg_resolution_time_ms: float
     max_resolution_time_ms: float
@@ -76,7 +79,7 @@ class PerformanceMonitor:
         """Load existing performance baselines from file."""
         if os.path.exists(self.baseline_file):
             try:
-                with open(self.baseline_file, 'r', encoding='utf-8') as f:
+                with open(self.baseline_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 self.baselines = {
                     name: PerformanceBaseline(**baseline_data)
@@ -89,15 +92,14 @@ class PerformanceMonitor:
     def save_baselines(self) -> None:
         """Save current baselines to file."""
         os.makedirs(os.path.dirname(self.baseline_file), exist_ok=True)
-        baseline_data = {
-            name: asdict(baseline) for name, baseline in self.baselines.items()
-        }
-        with open(self.baseline_file, 'w', encoding='utf-8') as f:
+        baseline_data = {name: asdict(baseline) for name, baseline in self.baselines.items()}
+        with open(self.baseline_file, "w", encoding="utf-8") as f:
             json.dump(baseline_data, f, indent=2)
         logger.info(f"Saved {len(self.baselines)} performance baselines")
 
-    def measure_service_resolution(self, registry: TypedServiceRegistry,
-                                 service_type: Type, iterations: int = 100) -> PerformanceMetrics:
+    def measure_service_resolution(
+        self, registry: TypedServiceRegistry, service_type: Type, iterations: int = 100
+    ) -> PerformanceMetrics:
         """Measure performance of service resolution with detailed metrics."""
         service_name = service_type.__name__
         resolution_times = []
@@ -141,18 +143,26 @@ class PerformanceMonitor:
 
         if not resolution_times:
             return PerformanceMetrics(
-                service_name=service_name, resolution_time_ms=0.0, memory_peak_mb=0.0,
-                memory_current_mb=current_memory - initial_memory, cpu_percent=cpu_percent,
-                iterations=0, timestamp=time.time()
+                service_name=service_name,
+                resolution_time_ms=0.0,
+                memory_peak_mb=0.0,
+                memory_current_mb=current_memory - initial_memory,
+                cpu_percent=cpu_percent,
+                iterations=0,
+                timestamp=time.time(),
             )
 
         avg_resolution_time = statistics.mean(resolution_times)
         avg_memory_peak = statistics.mean(memory_peaks)
 
         metrics = PerformanceMetrics(
-            service_name=service_name, resolution_time_ms=avg_resolution_time,
-            memory_peak_mb=avg_memory_peak, memory_current_mb=current_memory - initial_memory,
-            cpu_percent=cpu_percent, iterations=len(resolution_times), timestamp=time.time()
+            service_name=service_name,
+            resolution_time_ms=avg_resolution_time,
+            memory_peak_mb=avg_memory_peak,
+            memory_current_mb=current_memory - initial_memory,
+            cpu_percent=cpu_percent,
+            iterations=len(resolution_times),
+            timestamp=time.time(),
         )
 
         self._analyze_regression(metrics)
@@ -167,11 +177,13 @@ class PerformanceMonitor:
         # Calculate deviation percentage
         time_deviation = (
             (metrics.resolution_time_ms - baseline.avg_resolution_time_ms)
-            / baseline.avg_resolution_time_ms * 100
+            / baseline.avg_resolution_time_ms
+            * 100
         )
         memory_deviation = (
             (metrics.memory_peak_mb - baseline.avg_memory_peak_mb)
-            / baseline.avg_memory_peak_mb * 100
+            / baseline.avg_memory_peak_mb
+            * 100
         )
 
         metrics.baseline_deviation = max(time_deviation, memory_deviation)
@@ -184,8 +196,9 @@ class PerformanceMonitor:
                 f"time +{time_deviation:.1f}%, memory +{memory_deviation:.1f}%"
             )
 
-    def establish_baseline(self, registry: TypedServiceRegistry,
-                         service_type: Type, iterations: int = 200) -> None:
+    def establish_baseline(
+        self, registry: TypedServiceRegistry, service_type: Type, iterations: int = 200
+    ) -> None:
         """Establish performance baseline for a service."""
         service_name = service_type.__name__
         logger.info(f"Establishing baseline for {service_name}")
@@ -220,12 +233,14 @@ class PerformanceMonitor:
                 avg_memory_peak_mb=statistics.mean(memory_peaks),
                 max_memory_peak_mb=max(memory_peaks),
                 samples=len(resolution_times),
-                created_timestamp=time.time()
+                created_timestamp=time.time(),
             )
 
             self.baselines[service_name] = baseline
-            logger.info(f"Baseline established for {service_name}: "
-                       f"{baseline.avg_resolution_time_ms:.2f}ms avg")
+            logger.info(
+                f"Baseline established for {service_name}: "
+                f"{baseline.avg_resolution_time_ms:.2f}ms avg"
+            )
 
 
 class PerformanceRegressionTestSuite(unittest.TestCase):
@@ -235,6 +250,7 @@ class PerformanceRegressionTestSuite(unittest.TestCase):
     def setUpClass(cls):
         """Set up performance testing environment."""
         import packages.core.typed_di.service_registrations as svc_reg
+
         if hasattr(svc_reg, "_registration_manager"):
             svc_reg._registration_manager = None
 
@@ -332,7 +348,9 @@ class PerformanceRegressionTestSuite(unittest.TestCase):
             self.fail("Memory efficiency issues:\n" + "\n".join(errors))
 
 
-def establish_performance_baselines(registry: TypedServiceRegistry) -> Dict[str, PerformanceBaseline]:
+def establish_performance_baselines(
+    registry: TypedServiceRegistry,
+) -> Dict[str, PerformanceBaseline]:
     """Establish performance baselines for all services."""
     monitor = PerformanceMonitor()
     baselines_created = {}
@@ -366,7 +384,7 @@ def generate_performance_report(registry: TypedServiceRegistry) -> Dict[str, Any
         "total_services": len(registry._registrations),
         "performance_metrics": [],
         "regressions_detected": 0,
-        "summary": {"avg_resolution_time_ms": 0.0, "services_with_regressions": []}
+        "summary": {"avg_resolution_time_ms": 0.0, "services_with_regressions": []},
     }
 
     resolution_times = []

@@ -29,17 +29,13 @@ class JIRATicketService:
         self, channel_name: str, channel_metadata: Dict[str, Any]
     ) -> Optional[str]:
         """Discover JIRA ticket for a channel."""
-        return await self.discovery.discover_jira_ticket(
-            channel_name, channel_metadata
-        )
+        return await self.discovery.discover_jira_ticket(channel_name, channel_metadata)
 
     async def search_jira_by_exigence_url(
         self, exigence_url: str, customer_name: Optional[str] = None
     ) -> Optional[str]:
         """Search JIRA for tickets containing the Exigence URL."""
-        return await self.discovery.search_jira_by_exigence_url(
-            exigence_url, customer_name
-        )
+        return await self.discovery.search_jira_by_exigence_url(exigence_url, customer_name)
 
     def extract_exigence_id(self, channel_name: str) -> Optional[str]:
         """Extract Exigence event ID from channel name."""

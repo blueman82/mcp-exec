@@ -19,9 +19,7 @@ class TestTrustEndorsementUpdateFix:
         posting_handler = Mock()
         posting_handler.update_message = AsyncMock()
         secrets_manager = Mock()
-        secrets_manager.get_slack_api_token_async = AsyncMock(
-            return_value="xoxb-test-token"
-        )
+        secrets_manager.get_slack_api_token_async = AsyncMock(return_value="xoxb-test-token")
 
         return TrustEndorsementHandler(
             db_store=db_store,
@@ -79,8 +77,7 @@ class TestTrustEndorsementUpdateFix:
         trust_blocks = [
             b
             for b in updated_blocks
-            if b.get("type") == "section"
-            and "✓ Trusted by:" in b.get("text", {}).get("text", "")
+            if b.get("type") == "section" and "✓ Trusted by:" in b.get("text", {}).get("text", "")
         ]
         assert len(trust_blocks) == 1
 
@@ -179,7 +176,6 @@ class TestTrustEndorsementUpdateFix:
         trust_blocks = [
             b
             for b in updated_blocks
-            if b.get("type") == "section"
-            and "✓ Trusted by:" in b.get("text", {}).get("text", "")
+            if b.get("type") == "section" and "✓ Trusted by:" in b.get("text", {}).get("text", "")
         ]
         assert len(trust_blocks) == 1

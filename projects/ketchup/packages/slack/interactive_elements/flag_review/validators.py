@@ -27,9 +27,7 @@ class FlagReviewValidator:
         """Initialize the validator with rate limit tracking."""
         self.rate_limit_store = defaultdict(list)  # user_id -> list of timestamps
 
-    def validate_flag_input(
-        self, text: str, user_id: str, channel_id: str
-    ) -> Dict[str, Any]:
+    def validate_flag_input(self, text: str, user_id: str, channel_id: str) -> Dict[str, Any]:
         """
         Validate feedback text for potential issues.
 
@@ -200,9 +198,7 @@ class FlagReviewValidator:
             reset_timestamp = oldest_entry.timestamp() + RATE_LIMIT_WINDOW_SECONDS
             reset_time = int(reset_timestamp)
 
-        return RateLimitResult(
-            allowed=remaining > 0, remaining=remaining, reset_time=reset_time
-        )
+        return RateLimitResult(allowed=remaining > 0, remaining=remaining, reset_time=reset_time)
 
     def sanitize_text(self, text: str) -> str:
         """

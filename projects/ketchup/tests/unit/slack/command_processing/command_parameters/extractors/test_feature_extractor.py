@@ -46,27 +46,24 @@ class TestExtractFeatureParams:
         with pytest.raises(ValidationError) as exc:
             extract_feature_params("/ketchup feature", CommandContext.DIRECT_MESSAGE)
         assert "Incomplete feature command" in exc.value.message
-        assert (
-            "requires at least a feature name and an action" in exc.value.user_message
-        )
+        assert "requires at least a feature name and an action" in exc.value.user_message
 
     def test_missing_action(self) -> None:
         """Test raises ValidationError if action is missing."""
         with pytest.raises(ValidationError) as exc:
-            extract_feature_params(
-                "/ketchup feature status_updater", CommandContext.DIRECT_MESSAGE
-            )
+            extract_feature_params("/ketchup feature status_updater", CommandContext.DIRECT_MESSAGE)
         assert "Missing action for feature command" in exc.value.message
         assert "Available actions:" in exc.value.user_message
 
     def test_invalid_feature_name(self) -> None:
         """Test raises ValidationError for invalid feature name."""
         with pytest.raises(ValidationError) as exc:
-            extract_feature_params(
-                "/ketchup feature unknown status", CommandContext.DIRECT_MESSAGE
-            )
+            extract_feature_params("/ketchup feature unknown status", CommandContext.DIRECT_MESSAGE)
         assert "Invalid feature name: unknown" in exc.value.message
-        assert "Currently supported features: status_updater, jira_reporter, trust_endorsement, access_management" in exc.value.user_message
+        assert (
+            "Currently supported features: status_updater, jira_reporter, trust_endorsement, access_management"
+            in exc.value.user_message
+        )
 
     def test_invalid_action(self) -> None:
         """Test raises ValidationError for invalid action."""
@@ -76,7 +73,8 @@ class TestExtractFeatureParams:
             )
         assert "Invalid feature action: invalid" in exc.value.message
         assert (
-            "Available actions: enable, disable, list, status, grant, revoke" in exc.value.user_message
+            "Available actions: enable, disable, list, status, grant, revoke"
+            in exc.value.user_message
         )
 
     def test_enable_without_user(self) -> None:
@@ -128,7 +126,8 @@ class TestExtractFeatureParams:
     def test_valid_enable_with_user(self) -> None:
         """Test valid enable action with channel mention."""
         params = extract_feature_params(
-            "/ketchup feature status_updater enable <#C12345678|general>", CommandContext.DIRECT_MESSAGE
+            "/ketchup feature status_updater enable <#C12345678|general>",
+            CommandContext.DIRECT_MESSAGE,
         )
         assert params.command_type == CommandType.FEATURE
         assert params.feature_name == "status_updater"
@@ -138,7 +137,8 @@ class TestExtractFeatureParams:
     def test_valid_disable_with_user(self) -> None:
         """Test valid disable action with channel mention."""
         params = extract_feature_params(
-            "/ketchup feature status_updater disable <#C67890123|random>", CommandContext.DIRECT_MESSAGE
+            "/ketchup feature status_updater disable <#C67890123|random>",
+            CommandContext.DIRECT_MESSAGE,
         )
         assert params.command_type == CommandType.FEATURE
         assert params.feature_name == "status_updater"

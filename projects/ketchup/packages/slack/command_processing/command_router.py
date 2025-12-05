@@ -68,13 +68,9 @@ class CommandRouter:
         self._user_store = user_store
         # Optional – if provided we will log each successful command invocation
         self._command_tracking_ops = command_tracking_ops
-        logger.info(
-            "CommandRouter initialized with injected command handlers and user verifier."
-        )
+        logger.info("CommandRouter initialized with injected command handlers and user verifier.")
 
-    async def route_command(
-        self, body: Dict[str, Any], response_url: str = ""
-    ) -> Dict[str, Any]:
+    async def route_command(self, body: Dict[str, Any], response_url: str = "") -> Dict[str, Any]:
         """
         Route a Slack command to the appropriate handler.
 
@@ -121,10 +117,7 @@ class CommandRouter:
                 # Check if access request automation is enabled
                 if FeatureFlags.is_access_request_automation_enabled():
                     # Check if this is a DM channel (Slack uses "directmessage" or channel starts with "D")
-                    is_dm = (
-                        channel_name == "directmessage"
-                        or incoming_channel.startswith("D")
-                    )
+                    is_dm = channel_name == "directmessage" or incoming_channel.startswith("D")
                     if is_dm:
                         # Show access request UI in DMs
                         try:
@@ -141,9 +134,7 @@ class CommandRouter:
                                 response_url=response_url,
                             )
                         except Exception as e:
-                            logger.error(
-                                "Error posting access request UI to Slack: %s", str(e)
-                            )
+                            logger.error("Error posting access request UI to Slack: %s", str(e))
                             # Fallback to simple message
                             non_authorised_message = "You don't have access to Ketchup. Please try running any Ketchup command in a DM to request access."
                             await self.slack_posting_handler.post_message(
@@ -227,14 +218,11 @@ class CommandRouter:
                         user_id=user_id,
                         user_name=user_name,
                         command_type=command_type_value,
-                        channel_id=cmd_details.get("channel_id", incoming_channel)
-                        or "",
+                        channel_id=cmd_details.get("channel_id", incoming_channel) or "",
                         command_text=cmd_details.get("command_text", combined_command),
                     )
                 else:
-                    logger.info(
-                        "Skipping command usage logging because command_type is 'unknown'."
-                    )
+                    logger.info("Skipping command usage logging because command_type is 'unknown'.")
             except Exception as e:  # noqa: BLE001 – we must never break main flow
                 logger.error("Failed to log command execution: %s", str(e))
 
@@ -358,7 +346,9 @@ class CommandRouter:
 
         except Exception as e:
             # Handle unexpected errors during handler execution
-            error_message = f"Error processing command with handler {type(handler).__name__}: {str(e)}"
+            error_message = (
+                f"Error processing command with handler {type(handler).__name__}: {str(e)}"
+            )
             logger.exception(error_message)
 
             # Reuse existing TaskGroup check and general error posting logic

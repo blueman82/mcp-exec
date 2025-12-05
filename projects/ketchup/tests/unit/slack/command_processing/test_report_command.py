@@ -51,9 +51,7 @@ class TestSlackReports:
         self.secrets_manager = MagicMock(spec=SecretsManager)
         self.slack_config = MagicMock(spec=SlackConfig)
         self.channel_restore_ops = AsyncMock()
-        self.channel_restore_ops.restore_archived_channel = AsyncMock(
-            return_value=(True, False)
-        )
+        self.channel_restore_ops.restore_archived_channel = AsyncMock(return_value=(True, False))
         self.handler = SlackReports(
             channel_info_ops=self.channel_info_ops,
             archive_ops=self.archive_ops,
@@ -102,9 +100,7 @@ class TestSlackReports:
             "choices": [{"message": {"content": "Incident report content."}}]
         }
         # Mock DynamoDB correction
-        self.dynamodb_store.get_channel_details.return_value = {
-            "jira_ticket": "JIRA-123"
-        }
+        self.dynamodb_store.get_channel_details.return_value = {"jira_ticket": "JIRA-123"}
 
         with patch(
             PATCH_PATH_NORMALIZE_PREFS, return_value=mock_normalized_prefs
@@ -280,9 +276,7 @@ class TestSlackReports:
             "choices": [{"message": {"content": "Incident report content."}}]
         }
         # Mock DynamoDB correction
-        self.dynamodb_store.get_channel_details.return_value = {
-            "jira_ticket": "JIRA-123"
-        }
+        self.dynamodb_store.get_channel_details.return_value = {"jira_ticket": "JIRA-123"}
 
         with patch(
             PATCH_PATH_NORMALIZE_PREFS, return_value={"detail_level": "high"}

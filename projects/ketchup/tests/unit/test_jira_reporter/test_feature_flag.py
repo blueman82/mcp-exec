@@ -108,18 +108,14 @@ class TestJiraReporterFeatureService:
         service = FeatureService(user_store, channel_ops)
 
         # Test enable
-        result = await service.enable_feature_for_channel(
-            "C1234567890", "jira_reporter"
-        )
+        result = await service.enable_feature_for_channel("C1234567890", "jira_reporter")
         assert result is True
         user_store.set_channel_feature.assert_called_with(
             "C1234567890", "jira_reporter_enabled", True
         )
 
         # Test disable
-        result = await service.disable_feature_for_channel(
-            "C1234567890", "jira_reporter"
-        )
+        result = await service.disable_feature_for_channel("C1234567890", "jira_reporter")
         assert result is True
         user_store.set_channel_feature.assert_called_with(
             "C1234567890", "jira_reporter_enabled", False

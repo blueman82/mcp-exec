@@ -77,9 +77,7 @@ async def debug_dm_trust_button():
     logger.info(f"Storing with SK: {sk_value}")
 
     try:
-        await db_store.client.put_item(
-            table_name=db_store.table_name, item=command_item
-        )
+        await db_store.client.put_item(table_name=db_store.table_name, item=command_item)
         logger.info("✅ Command execution record stored successfully")
     except Exception as e:
         logger.error(f"❌ Failed to store command execution: {e}")
@@ -122,9 +120,7 @@ async def debug_dm_trust_button():
 
         if count > 0:
             item = response["Items"][0]
-            logger.info(
-                f"✅ Scan successful! Found item with channel_id: {item.get('channel_id')}"
-            )
+            logger.info(f"✅ Scan successful! Found item with channel_id: {item.get('channel_id')}")
         else:
             logger.error("❌ Scan failed - no items found")
 
@@ -172,9 +168,7 @@ async def debug_dm_trust_button():
     )
 
     # Try to find the command execution channel
-    found_channel = await trust_handler._find_command_execution_channel(
-        command_execution_id
-    )
+    found_channel = await trust_handler._find_command_execution_channel(command_execution_id)
 
     if found_channel:
         logger.info(f"✅ Trust handler found channel: {found_channel}")

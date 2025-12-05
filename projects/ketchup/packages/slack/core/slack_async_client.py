@@ -27,9 +27,7 @@ class SlackAsyncClient(AsyncClient[SlackConfig, aiohttp.ClientResponse]):
         self,
         slack_config: SlackConfig,
         max_concurrent_requests: int = 10,
-        request_timeout: Optional[
-            float
-        ] = (  # Use .total as SLACK_API_TIMEOUT is ClientTimeout
+        request_timeout: Optional[float] = (  # Use .total as SLACK_API_TIMEOUT is ClientTimeout
             SLACK_API_TIMEOUT.total if SLACK_API_TIMEOUT else None
         ),
         backoff_strategy: Optional[BackoffStrategy] = None,
@@ -71,9 +69,7 @@ class SlackAsyncClient(AsyncClient[SlackConfig, aiohttp.ClientResponse]):
         # otherwise it will create a new one.
         if aiohttp_session and not aiohttp_session.closed:
             self._session = aiohttp_session
-            logger.info(
-                "Using provided aiohttp session for %s", self.__class__.__name__
-            )
+            logger.info("Using provided aiohttp session for %s", self.__class__.__name__)
         # Base AsyncClient.setup() handles session creation if none is provided or invalid.
 
     @property
@@ -138,9 +134,7 @@ class SlackAsyncClient(AsyncClient[SlackConfig, aiohttp.ClientResponse]):
                 )
                 return False
         except Exception as e:
-            logger.warning(
-                "Exception checking bot membership for channel %s: %s", channel_id, e
-            )
+            logger.warning("Exception checking bot membership for channel %s: %s", channel_id, e)
             return False
 
     async def cleanup(self) -> None:

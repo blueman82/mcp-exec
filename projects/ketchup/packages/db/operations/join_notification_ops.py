@@ -206,29 +206,21 @@ class JoinNotificationOps(BaseOperations):
         item = self._build_detail_record_item(tracking_data)
         await self.client.put_item(table_name=self.table_name, item=item)
 
-    def _build_detail_record_item(
-        self, tracking_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _build_detail_record_item(self, tracking_data: Dict[str, Any]) -> Dict[str, Any]:
         """Build DynamoDB item for detail record storage."""
         item = {
             "PK": {"S": f"USER_JOIN#{tracking_data['channel_id']}"},
-            "SK": {
-                "S": f"TS#{tracking_data['timestamp']}#USER#{tracking_data['user_id']}"
-            },
+            "SK": {"S": f"TS#{tracking_data['timestamp']}#USER#{tracking_data['user_id']}"},
             "user_id": {"S": tracking_data["user_id"]},
             "channel_id": {"S": tracking_data["channel_id"]},
-            "notification_attempted": {
-                "BOOL": tracking_data.get("notification_attempted", False)
-            },
+            "notification_attempted": {"BOOL": tracking_data.get("notification_attempted", False)},
             "delivery_status": {"S": tracking_data["delivery_status"]},
             "timestamp": {"N": str(tracking_data["timestamp"])},
             # NOTE: Using temp_unarchive_expiry (not "ttl") because DynamoDB only supports
             # ONE TTL attribute per table, and this table already has TTL configured for
             # temp_unarchive_expiry (used by restore_state_operations). All records using
             # this attribute will be automatically deleted after expiration.
-            "temp_unarchive_expiry": {
-                "N": str(tracking_data["timestamp"] + 2592000)
-            },  # 30 days
+            "temp_unarchive_expiry": {"N": str(tracking_data["timestamp"] + 2592000)},  # 30 days
         }
 
         # Add optional fields with consistent truncation
@@ -292,9 +284,7 @@ class JoinNotificationOps(BaseOperations):
                 week_key = item["SK"]["S"].replace("WEEK#", "")
                 try:
                     year, week = map(int, week_key.split("-W"))
-                    if (year < cutoff_year) or (
-                        year == cutoff_year and week < cutoff_week
-                    ):
+                    if (year < cutoff_year) or (year == cutoff_year and week < cutoff_week):
                         keys_to_delete.append({"PK": item["PK"], "SK": item["SK"]})
                 except (ValueError, AttributeError):
                     continue
@@ -403,9 +393,7 @@ class JoinNotificationOps(BaseOperations):
                 query_params["key_condition_expression"] = " AND ".join(conditions)
                 start_key = f"TS#{start_ts}" if start_ts else "TS#0"
                 end_key = f"TS#{end_ts}" if end_ts else "TS#9999999999999"
-                query_params["expression_attribute_values"][":start_sk"] = {
-                    "S": start_key
-                }
+                query_params["expression_attribute_values"][":start_sk"] = {"S": start_key}
                 query_params["expression_attribute_values"][":end_sk"] = {"S": end_key}
 
             response = await self.client.query(**query_params)
@@ -449,14 +437,11 @@ class JoinNotificationOps(BaseOperations):
             start_ts = int(target_week_start.timestamp())
             end_ts = int(target_week_end.timestamp())
 
-            return await self.get_unique_users_count(
-                channel_id, start_ts=start_ts, end_ts=end_ts
-            )
+            return await self.get_unique_users_count(channel_id, start_ts=start_ts, end_ts=end_ts)
 
         except Exception as e:
             logger.error(
-                f"Error getting unique users for week {week_key} "
-                f"in channel {channel_id}: {e}",
+                f"Error getting unique users for week {week_key} " f"in channel {channel_id}: {e}",
                 exc_info=True,
             )
             return 0

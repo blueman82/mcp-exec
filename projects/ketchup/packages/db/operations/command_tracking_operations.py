@@ -107,9 +107,7 @@ class CommandTrackingOperations(BaseOperations):
         super().__init__(dynamodb_client, effective_table_name)
         # Store table name for local reference/consistency
         self.table_name = effective_table_name
-        logger.info(
-            f"CommandTrackingOperations initialized with table: {self.table_name}"
-        )
+        logger.info(f"CommandTrackingOperations initialized with table: {self.table_name}")
 
     async def log_command(
         self,
@@ -168,9 +166,7 @@ class CommandTrackingOperations(BaseOperations):
             logger.error(f"Error logging command: {str(e)}")
             return False
 
-    async def get_user_command_stats(
-        self, user_id: str, days: int = 7
-    ) -> Dict[str, int]:
+    async def get_user_command_stats(self, user_id: str, days: int = 7) -> Dict[str, int]:
         """
         Get aggregated command statistics for a user for the current week.
 
@@ -186,9 +182,7 @@ class CommandTrackingOperations(BaseOperations):
             start_timestamp, end_timestamp = get_current_week_timestamps()
 
             # Query DynamoDB for commands within the current week
-            commands = await self.get_recent_commands(
-                user_id, start_timestamp, end_timestamp
-            )
+            commands = await self.get_recent_commands(user_id, start_timestamp, end_timestamp)
 
             # Aggregate commands by type
             command_counts: Dict[str, int] = {}
@@ -235,9 +229,7 @@ class CommandTrackingOperations(BaseOperations):
 
                 if end_timestamp is not None:
                     # Override end_sk with specific timestamp if provided
-                    expression_values[":end_sk"] = {
-                        "S": f"COMMAND#{end_timestamp + 1}#~"
-                    }
+                    expression_values[":end_sk"] = {"S": f"COMMAND#{end_timestamp + 1}#~"}
             else:
                 # No start timestamp, so just filter for COMMAND# prefix
                 key_condition += " AND begins_with(SK, :sk_prefix)"
@@ -263,9 +255,7 @@ class CommandTrackingOperations(BaseOperations):
             logger.error(f"Error getting recent commands: {str(e)}")
             return []
 
-    async def get_top_users(
-        self, days: int = 7, limit: int = 10
-    ) -> List[Tuple[str, str, int]]:
+    async def get_top_users(self, days: int = 7, limit: int = 10) -> List[Tuple[str, str, int]]:
         """
         Get the top users by command count for the current week.
 
@@ -324,8 +314,7 @@ class CommandTrackingOperations(BaseOperations):
 
             # Convert to list of tuples and sort by count (descending)
             user_list = [
-                (uid, data["user_name"], data["count"])
-                for uid, data in user_counts.items()
+                (uid, data["user_name"], data["count"]) for uid, data in user_counts.items()
             ]
             user_list.sort(key=lambda x: x[2], reverse=True)
 
@@ -339,14 +328,10 @@ class CommandTrackingOperations(BaseOperations):
             # Replace usernames with real names
             enriched_top_users = []
             for user_id, user_name, count in top_users:
-                real_name = real_names.get(
-                    user_id, user_name
-                )  # Fallback to username if not found
+                real_name = real_names.get(user_id, user_name)  # Fallback to username if not found
                 enriched_top_users.append((user_id, real_name, count))
 
-            logger.info(
-                f"Retrieved top {len(enriched_top_users)} users over the past {days} days"
-            )
+            logger.info(f"Retrieved top {len(enriched_top_users)} users over the past {days} days")
             return enriched_top_users
 
         except Exception as e:
@@ -534,9 +519,7 @@ class CommandTrackingOperations(BaseOperations):
 
                 # Use the underlying client to make the batch_get_item call
                 request_items = {self.table_name: {"Keys": keys}}
-                response = await underlying_client.batch_get_item(
-                    RequestItems=request_items
-                )
+                response = await underlying_client.batch_get_item(RequestItems=request_items)
 
                 items = response.get("Responses", {}).get(self.table_name, [])
                 for item in items:
@@ -610,9 +593,7 @@ class CommandTrackingOperations(BaseOperations):
 
         return trends
 
-    async def get_command_trends(
-        self, days: int = 7, limit: int = 10
-    ) -> Dict[str, Any]:
+    async def get_command_trends(self, days: int = 7, limit: int = 10) -> Dict[str, Any]:
         """
         Get command usage trends comparing current period with previous period.
 
@@ -678,9 +659,7 @@ class CommandTrackingOperations(BaseOperations):
             trends_data = await self.get_command_trends(days=days, limit=None)
 
             # Get detailed user breakdown (no limit for export)
-            user_breakdown = await self.get_user_command_breakdown(
-                days=days, limit=None
-            )
+            user_breakdown = await self.get_user_command_breakdown(days=days, limit=None)
 
             # Get top metrics (no limit for export)
             top_users = await self.get_top_users(days=days, limit=None)
@@ -695,9 +674,7 @@ class CommandTrackingOperations(BaseOperations):
                 "export_timestamp": dt.now(timezone.utc).isoformat(),
                 "period_days": days,
                 "current_week_range": current_week_range,
-                "previous_week_range": get_week_date_range(
-                    get_previous_week_timestamps()[0]
-                ),
+                "previous_week_range": get_week_date_range(get_previous_week_timestamps()[0]),
             }
 
         except Exception as e:

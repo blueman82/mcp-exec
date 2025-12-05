@@ -48,16 +48,12 @@ class DependencySpec:
 class InitializationStats:
     """Statistics captured during registry initialization."""
 
-    service_order: List[
-        Type
-    ]  # Actual initialization order (topological + tie-breaking)
+    service_order: List[Type]  # Actual initialization order (topological + tie-breaking)
     timings: Dict[Type, float]  # Per-service initialization duration in seconds
     failures: List[Tuple[Type, Exception]]  # Services that failed to initialize
     retries: Dict[Type, int]  # Retry attempts per service (always 0 in v1)
     total_duration: float  # Total initialization time in seconds
-    deterministic_tie_breaks: List[
-        Tuple[Type, Type]
-    ]  # Registration-order tie-breaks applied
+    deterministic_tie_breaks: List[Tuple[Type, Type]]  # Registration-order tie-breaks applied
 
 
 @dataclass

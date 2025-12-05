@@ -42,9 +42,7 @@ class DeploymentDashboard:
         current_status = self._get_current_status()
 
         # Generate visualizations
-        charts = self._generate_charts(
-            validation_history, rollback_history, monitoring_data
-        )
+        charts = self._generate_charts(validation_history, rollback_history, monitoring_data)
 
         # Generate HTML dashboard
         dashboard_html = self._generate_html_dashboard(
@@ -121,9 +119,7 @@ class DeploymentDashboard:
             except Exception as e:
                 logger.warning(f"Failed to load rollback log {rollback_file}: {e}")
 
-        return sorted(
-            rollback_history, key=lambda x: x.get("start_time", ""), reverse=True
-        )
+        return sorted(rollback_history, key=lambda x: x.get("start_time", ""), reverse=True)
 
     def _load_monitoring_data(self) -> List[Dict]:
         """Load monitoring data"""
@@ -139,9 +135,7 @@ class DeploymentDashboard:
             except Exception as e:
                 logger.warning(f"Failed to load monitoring data {monitoring_file}: {e}")
 
-        return sorted(
-            monitoring_data, key=lambda x: x.get("start_time", ""), reverse=True
-        )
+        return sorted(monitoring_data, key=lambda x: x.get("start_time", ""), reverse=True)
 
     def _get_current_status(self) -> Dict:
         """Get current deployment status"""
@@ -186,23 +180,17 @@ class DeploymentDashboard:
                     pass
             elif "Passed:" in line and "✅" in line:
                 try:
-                    summary["passed_tests"] = int(
-                        line.split("✅")[1].strip().split()[0]
-                    )
+                    summary["passed_tests"] = int(line.split("✅")[1].strip().split()[0])
                 except (ValueError, IndexError):
                     pass
             elif "Failed:" in line and "❌" in line:
                 try:
-                    summary["failed_tests"] = int(
-                        line.split("❌")[1].strip().split()[0]
-                    )
+                    summary["failed_tests"] = int(line.split("❌")[1].strip().split()[0])
                 except (ValueError, IndexError):
                     pass
             elif "Warnings:" in line and "⚠️" in line:
                 try:
-                    summary["warning_tests"] = int(
-                        line.split("⚠️")[1].strip().split()[0]
-                    )
+                    summary["warning_tests"] = int(line.split("⚠️")[1].strip().split()[0])
                 except (ValueError, IndexError):
                     pass
 
@@ -219,27 +207,19 @@ class DeploymentDashboard:
 
         # Validation trend chart
         if validation_history:
-            charts["validation_trend"] = self._create_validation_trend_chart(
-                validation_history
-            )
+            charts["validation_trend"] = self._create_validation_trend_chart(validation_history)
 
         # Rollback frequency chart
         if rollback_history:
-            charts["rollback_frequency"] = self._create_rollback_frequency_chart(
-                rollback_history
-            )
+            charts["rollback_frequency"] = self._create_rollback_frequency_chart(rollback_history)
 
         # Test results pie chart
         if validation_history:
-            charts["test_results_pie"] = self._create_test_results_pie_chart(
-                validation_history
-            )
+            charts["test_results_pie"] = self._create_test_results_pie_chart(validation_history)
 
         # Monitoring overview
         if monitoring_data:
-            charts["monitoring_overview"] = self._create_monitoring_overview_chart(
-                monitoring_data
-            )
+            charts["monitoring_overview"] = self._create_monitoring_overview_chart(monitoring_data)
 
         return charts
 
@@ -275,9 +255,7 @@ class DeploymentDashboard:
 
             # Set y-axis labels
             ax.set_yticks([0, 1, 2, 3, 4])
-            ax.set_yticklabels(
-                ["Unknown", "Critical", "Not Ready", "Ready w/ Conditions", "Ready"]
-            )
+            ax.set_yticklabels(["Unknown", "Critical", "Not Ready", "Ready w/ Conditions", "Ready"])
 
             plt.xticks(rotation=45)
             plt.tight_layout()
@@ -387,8 +365,7 @@ class DeploymentDashboard:
 
                 # Truncate long alert names for display
                 display_names = [
-                    name[:30] + "..." if len(name) > 30 else name
-                    for name in alert_types
+                    name[:30] + "..." if len(name) > 30 else name for name in alert_types
                 ]
 
                 ax2.barh(display_names, alert_counts, alpha=0.7)
@@ -545,7 +522,7 @@ class DeploymentDashboard:
             <h1>🚀 Ketchup Deployment Dashboard</h1>
             <p class="subtitle">Production Readiness Monitoring & Validation</p>
         </div>
-        
+
         <div class="status-grid">
             <div class="status-item status-{{ 'ready' if current_status.infrastructure_healthy else 'error' }}">
                 <h4>{{ '✅' if current_status.infrastructure_healthy else '❌' }}</h4>
@@ -564,7 +541,7 @@ class DeploymentDashboard:
                 <p>Pending Validations</p>
             </div>
         </div>
-        
+
         <div class="dashboard-grid">
             <div class="card">
                 <h3>📊 Validation Trend</h3>
@@ -576,7 +553,7 @@ class DeploymentDashboard:
                 <p>No validation trend data available.</p>
                 {% endif %}
             </div>
-            
+
             <div class="card">
                 <h3>🔄 Latest Test Results</h3>
                 {% if charts.test_results_pie %}
@@ -587,7 +564,7 @@ class DeploymentDashboard:
                 <p>No test results data available.</p>
                 {% endif %}
             </div>
-            
+
             <div class="card full-width">
                 <h3>📈 Monitoring Overview</h3>
                 {% if charts.monitoring_overview %}
@@ -598,7 +575,7 @@ class DeploymentDashboard:
                 <p>No monitoring data available.</p>
                 {% endif %}
             </div>
-            
+
             <div class="card">
                 <h3>🏥 Recent Validations</h3>
                 {% if validation_history %}
@@ -632,7 +609,7 @@ class DeploymentDashboard:
                 <p>No validation history available.</p>
                 {% endif %}
             </div>
-            
+
             <div class="card">
                 <h3>🔙 Rollback History</h3>
                 {% if rollback_history %}
@@ -665,9 +642,9 @@ class DeploymentDashboard:
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="timestamp">
-            Generated on {{ current_status.timestamp[:19] }} | 
+            Generated on {{ current_status.timestamp[:19] }} |
             <a href="#" onclick="location.reload()">🔄 Refresh</a>
         </div>
     </div>

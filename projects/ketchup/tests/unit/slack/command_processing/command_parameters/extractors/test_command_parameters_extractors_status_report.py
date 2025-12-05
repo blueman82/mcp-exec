@@ -37,9 +37,7 @@ class TestExtractStatusReportParams:
     def test_dm_missing_channel_id(self) -> None:
         """Test DM: raises ValidationError if channel ID is missing."""
         with pytest.raises(ValidationError) as exc:
-            extract_status_report_params(
-                "/ketchup status", CommandContext.DIRECT_MESSAGE, "C123"
-            )
+            extract_status_report_params("/ketchup status", CommandContext.DIRECT_MESSAGE, "C123")
         assert "Missing channel parameter" in exc.value.message
 
     def test_dm_invalid_channel_id(self) -> None:
@@ -146,7 +144,4 @@ class TestExtractStatusReportParams:
                     CommandContext.DIRECT_MESSAGE,
                     "C123",
                 )
-            assert (
-                "Invalid channel" in exc.value.message
-                or "channel format" in exc.value.message
-            )
+            assert "Invalid channel" in exc.value.message or "channel format" in exc.value.message

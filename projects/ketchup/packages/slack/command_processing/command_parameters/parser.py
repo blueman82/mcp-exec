@@ -107,15 +107,9 @@ Please use one of the following:
 
     # Map command types to their extraction functions
     extractors: Dict[CommandType, Callable[[], CommandParams]] = {
-        CommandType.SHORT: lambda: extract_summary_params(
-            command, context, incoming_channel
-        ),
-        CommandType.LONG: lambda: extract_summary_params(
-            command, context, incoming_channel
-        ),
-        CommandType.QUERY: lambda: extract_query_params(
-            command, context, incoming_channel
-        ),
+        CommandType.SHORT: lambda: extract_summary_params(command, context, incoming_channel),
+        CommandType.LONG: lambda: extract_summary_params(command, context, incoming_channel),
+        CommandType.QUERY: lambda: extract_query_params(command, context, incoming_channel),
         CommandType.STATUS: lambda: extract_status_report_params(
             command, context, incoming_channel
         ),

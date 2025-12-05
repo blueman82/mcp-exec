@@ -94,9 +94,7 @@ class BridgeMappingGenerator:
             ValueError: If JSON is malformed
         """
         if not os.path.exists(self.analysis_file_path):
-            raise FileNotFoundError(
-                f"Analysis file not found: {self.analysis_file_path}"
-            )
+            raise FileNotFoundError(f"Analysis file not found: {self.analysis_file_path}")
 
         try:
             with open(self.analysis_file_path, "r") as f:
@@ -109,9 +107,7 @@ class BridgeMappingGenerator:
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in analysis file: {e}")
 
-    def _handle_qualifier(
-        self, service_key: str, qualifier: Optional[str]
-    ) -> Optional[str]:
+    def _handle_qualifier(self, service_key: str, qualifier: Optional[str]) -> Optional[str]:
         """
         Handle special qualifier cases and validation.
 
@@ -180,9 +176,7 @@ class BridgeMappingGenerator:
 
         return True
 
-    def _handle_edge_cases(
-        self, key: str, service_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _handle_edge_cases(self, key: str, service_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handle special edge cases in service mapping.
 
@@ -283,9 +277,7 @@ class BridgeMappingGenerator:
             qualifier_str = f'"{qualifier}"' if qualifier else "None"
 
             # Add mapping entry with proper formatting
-            lines.append(
-                f'            "{service_key}": ({protocol_type_ref}, {qualifier_str}),'
-            )
+            lines.append(f'            "{service_key}": ({protocol_type_ref}, {qualifier_str}),')
 
         lines.append("        }")
 
@@ -301,9 +293,7 @@ class BridgeMappingGenerator:
         mapping = self.generate_mapping_dict()
 
         total_services = len(mapping)
-        services_with_qualifiers = sum(
-            1 for _, (_, q) in mapping.items() if q is not None
-        )
+        services_with_qualifiers = sum(1 for _, (_, q) in mapping.items() if q is not None)
         unknown_protocols = sum(1 for _, (p, _) in mapping.items() if "Unknown" in p)
 
         return {

@@ -17,12 +17,11 @@ Test Scenarios:
 
 import asyncio
 import base64
-import json
 import urllib.parse
-from typing import Dict, Optional
+from typing import Dict
 
-import pytest
 import aiohttp
+import pytest
 
 from packages.core.logging import setup_logger
 from packages.secrets.manager import SecretsManager
@@ -47,17 +46,17 @@ class PasswordEncodingAnalyzer:
         Returns:
             Dictionary with analysis results
         """
-        slash_count = password.count('/')
-        positions = [i for i, c in enumerate(password) if c == '/']
+        slash_count = password.count("/")
+        positions = [i for i, c in enumerate(password) if c == "/"]
 
         return {
-            'has_slashes': slash_count > 0,
-            'slash_count': slash_count,
-            'positions': positions,
-            'is_at_start': password.startswith('/') if password else False,
-            'is_at_end': password.endswith('/') if password else False,
-            'original': password,
-            'length': len(password)
+            "has_slashes": slash_count > 0,
+            "slash_count": slash_count,
+            "positions": positions,
+            "is_at_start": password.startswith("/") if password else False,
+            "is_at_end": password.endswith("/") if password else False,
+            "original": password,
+            "length": len(password),
         }
 
     @staticmethod
@@ -72,12 +71,12 @@ class PasswordEncodingAnalyzer:
             Dictionary with various encoding representations
         """
         return {
-            'plain_text': password,
-            'url_encoded': urllib.parse.quote(password),
-            'url_encoded_safe': urllib.parse.quote(password, safe=''),
-            'base64': base64.b64encode(password.encode()).decode(),
-            'hex': password.encode().hex(),
-            'length': len(password)
+            "plain_text": password,
+            "url_encoded": urllib.parse.quote(password),
+            "url_encoded_safe": urllib.parse.quote(password, safe=""),
+            "base64": base64.b64encode(password.encode()).decode(),
+            "hex": password.encode().hex(),
+            "length": len(password),
         }
 
 
@@ -102,7 +101,7 @@ async def test_current_ipaas_password_analysis():
         ipaas_username = secrets.get("IPAAS_USERNAME", "")
         ipaas_api_key = secrets.get("IPAAS_API_KEY", "")
 
-        print(f"\nCredentials Retrieved:")
+        print("\nCredentials Retrieved:")
         print(f"  Username: {ipaas_username}")
         print(f"  API Key: {'Present' if ipaas_api_key else 'Missing'}")
         print(f"  Password: {'Present' if ipaas_password else 'Missing'}")
@@ -115,19 +114,19 @@ async def test_current_ipaas_password_analysis():
         analyzer = PasswordEncodingAnalyzer()
         analysis = analyzer.check_forward_slashes(ipaas_password)
 
-        print(f"\nPassword Analysis:")
+        print("\nPassword Analysis:")
         print(f"  Length: {analysis['length']} characters")
         print(f"  Contains forward slashes: {analysis['has_slashes']}")
         print(f"  Forward slash count: {analysis['slash_count']}")
 
-        if analysis['has_slashes']:
+        if analysis["has_slashes"]:
             print(f"  Slash positions: {analysis['positions']}")
             print(f"  Starts with /: {analysis['is_at_start']}")
             print(f"  Ends with /: {analysis['is_at_end']}")
 
             # Show encoding examples
             encodings = analyzer.show_encoding_methods(ipaas_password)
-            print(f"\nEncoding Examples:")
+            print("\nEncoding Examples:")
             print(f"  Plain text:    {encodings['plain_text']}")
             print(f"  URL encoded:   {encodings['url_encoded']}")
             print(f"  URL safe:      {encodings['url_encoded_safe']}")
@@ -162,29 +161,29 @@ async def test_ipaas_header_encoding_method():
 
     # Key findings from the code review:
     findings = {
-        'method': 'Plain text in HTTP headers',
-        'username_header': 'Username',
-        'password_header': 'Password',
-        'encoding': 'None - sent as-is',
-        'transport': 'HTTP headers (not URL parameters)',
-        'notes': [
+        "method": "Plain text in HTTP headers",
+        "username_header": "Username",
+        "password_header": "Password",
+        "encoding": "None - sent as-is",
+        "transport": "HTTP headers (not URL parameters)",
+        "notes": [
             'Password is sent as plain text in "Password" header',
             'Username is sent as plain text in "Username" header',
-            'NO URL encoding is applied',
-            'NO base64 encoding is applied',
-            'Headers are case-sensitive: "Username" and "Password"'
-        ]
+            "NO URL encoding is applied",
+            "NO base64 encoding is applied",
+            'Headers are case-sensitive: "Username" and "Password"',
+        ],
     }
 
-    print(f"\nFindings:")
+    print("\nFindings:")
     print(f"  Authentication Method: {findings['method']}")
     print(f"  Username Header: {findings['username_header']}")
     print(f"  Password Header: {findings['password_header']}")
     print(f"  Encoding Applied: {findings['encoding']}")
     print(f"  Transport Mechanism: {findings['transport']}")
 
-    print(f"\nKey Observations:")
-    for note in findings['notes']:
+    print("\nKey Observations:")
+    for note in findings["notes"]:
         print(f"  • {note}")
 
     print("\n📝 Code Reference (lines 156-159 in utils.ts):")
@@ -268,9 +267,9 @@ async def test_http_header_forward_slash_behavior():
     print("\nExample HTTP Request with forward slash in header:")
     print("  POST /api/endpoint HTTP/1.1")
     print("  Host: example.com")
-    print('  Username: ketchup')
-    print('  Password: Test/Pass/123')
-    print('  Content-Type: application/json')
+    print("  Username: ketchup")
+    print("  Password: Test/Pass/123")
+    print("  Content-Type: application/json")
 
     print("\n✅ Forward slashes in header values are VALID per RFC 7230")
     print("   URL encoding is NOT needed for HTTP headers")
@@ -283,26 +282,26 @@ async def test_http_header_forward_slash_behavior():
         # Make a test request to httpbin.org which echoes headers
         async with aiohttp.ClientSession() as session:
             headers = {
-                'Username': 'test-user',
-                'Password': test_password,
-                'X-Test-Header': 'test/with/slashes'
+                "Username": "test-user",
+                "Password": test_password,
+                "X-Test-Header": "test/with/slashes",
             }
 
-            async with session.get('https://httpbin.org/headers', headers=headers) as resp:
+            async with session.get("https://httpbin.org/headers", headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    received_headers = data.get('headers', {})
+                    received_headers = data.get("headers", {})
 
-                    print(f"\n✅ Server received headers successfully:")
+                    print("\n✅ Server received headers successfully:")
                     print(f"  Username: {received_headers.get('Username')}")
                     print(f"  Password: {received_headers.get('Password')}")
                     print(f"  X-Test-Header: {received_headers.get('X-Test-Header')}")
 
                     # Verify forward slashes were preserved
-                    if received_headers.get('Password') == test_password:
-                        print(f"\n✅ SUCCESS: Forward slashes preserved in header value!")
+                    if received_headers.get("Password") == test_password:
+                        print("\n✅ SUCCESS: Forward slashes preserved in header value!")
                     else:
-                        print(f"\n⚠️  WARNING: Password was modified during transmission")
+                        print("\n⚠️  WARNING: Password was modified during transmission")
 
     except Exception as e:
         print(f"\n⚠️  Could not complete HTTP test: {e}")
@@ -352,29 +351,29 @@ async def test_ipaas_authentication_recommendations():
 
     recommendations = [
         {
-            'priority': 'HIGH',
-            'action': 'Use PAT authentication instead of username/password',
-            'reason': 'Eliminates password encoding issues entirely',
-            'code': 'Set JIRA_PERSONAL_ACCESS_TOKEN in .env'
+            "priority": "HIGH",
+            "action": "Use PAT authentication instead of username/password",
+            "reason": "Eliminates password encoding issues entirely",
+            "code": "Set JIRA_PERSONAL_ACCESS_TOKEN in .env",
         },
         {
-            'priority': 'MEDIUM',
-            'action': 'If authentication fails with / in password',
-            'reason': 'Server may require URL encoding (non-standard)',
-            'code': 'Test with urllib.parse.quote(password)'
+            "priority": "MEDIUM",
+            "action": "If authentication fails with / in password",
+            "reason": "Server may require URL encoding (non-standard)",
+            "code": "Test with urllib.parse.quote(password)",
         },
         {
-            'priority': 'LOW',
-            'action': 'Monitor authentication logs for encoding issues',
-            'reason': 'Detect if middleware modifies passwords',
-            'code': 'Check MCP logs at /var/log/mcp-jira.log'
+            "priority": "LOW",
+            "action": "Monitor authentication logs for encoding issues",
+            "reason": "Detect if middleware modifies passwords",
+            "code": "Check MCP logs at /var/log/mcp-jira.log",
         },
         {
-            'priority': 'INFO',
-            'action': 'Document that / is valid in passwords',
-            'reason': 'Set correct expectations for password policy',
-            'code': 'Update password validation rules'
-        }
+            "priority": "INFO",
+            "action": "Document that / is valid in passwords",
+            "reason": "Set correct expectations for password policy",
+            "code": "Update password validation rules",
+        },
     ]
 
     for i, rec in enumerate(recommendations, 1):

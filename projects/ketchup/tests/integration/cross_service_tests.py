@@ -25,19 +25,19 @@ from typing import Any, Dict, Type, TypeVar
 
 import pytest
 
-from packages.core.typed_di_integration import get_unified_container
-from packages.core.typed_di import TypedServiceRegistry
 from packages.core.logging import setup_logger
+from packages.core.typed_di import TypedServiceRegistry
+from packages.core.typed_di_integration import get_unified_container
+from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
+from packages.db.dynamodb_store import DynamoDBStore
+from packages.db.operations.channel_operations import ChannelOperations
+from packages.db.user_store import UserStore
 
 # Import service types for type-safe resolution
 from packages.secrets.manager import SecretsManager
-from packages.db.dynamodb_store import DynamoDBStore
-from packages.db.user_store import UserStore
-from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
 from packages.slack.config.slack_config import SlackConfig
-from packages.slack.messages.posting import SlackPostingHandler
 from packages.slack.home.home import HomeTabHandler
-from packages.db.operations.channel_operations import ChannelOperations
+from packages.slack.messages.posting import SlackPostingHandler
 
 logger = setup_logger(__name__)
 
@@ -268,9 +268,7 @@ class CrossServiceIntegrationTest:
 
         for test_name, metrics in self.test_results.items():
             status = "✅ PASS" if metrics["passed"] else "❌ FAIL"
-            self.logger.info(
-                f"{test_name}: {status} ({metrics['execution_time']:.3f}s)"
-            )
+            self.logger.info(f"{test_name}: {status} ({metrics['execution_time']:.3f}s)")
 
 
 class ServiceInteractionValidator:
@@ -281,9 +279,7 @@ class ServiceInteractionValidator:
         self.container = container
         self.logger = setup_logger(f"{__name__}.ServiceInteractionValidator")
 
-    async def validate_service_communication(
-        self, source_type: Type, target_type: Type
-    ) -> bool:
+    async def validate_service_communication(self, source_type: Type, target_type: Type) -> bool:
         """
         Validate communication between two services.
 
@@ -302,20 +298,14 @@ class ServiceInteractionValidator:
             assert target is not None, f"Target {target_type.__name__} not found"
 
             # Validate service communication patterns
-            self.logger.info(
-                f"✅ {source_type.__name__} → {target_type.__name__} validated"
-            )
+            self.logger.info(f"✅ {source_type.__name__} → {target_type.__name__} validated")
             return True
 
         except Exception as e:
-            self.logger.error(
-                f"❌ {source_type.__name__} → {target_type.__name__} failed: {e}"
-            )
+            self.logger.error(f"❌ {source_type.__name__} → {target_type.__name__} failed: {e}")
             return False
 
-    async def validate_dependency_resolution(
-        self, service_type: Type
-    ) -> Dict[str, Any]:
+    async def validate_dependency_resolution(self, service_type: Type) -> Dict[str, Any]:
         """
         Validate that a service's dependencies are properly resolved.
 
@@ -373,9 +363,7 @@ async def test_service_interaction_validation():
 
     for source, target in interactions:
         result = await validator.validate_service_communication(source, target)
-        assert (
-            result
-        ), f"{source.__name__} → {target.__name__} interaction should be valid"
+        assert result, f"{source.__name__} → {target.__name__} interaction should be valid"
 
 
 if __name__ == "__main__":

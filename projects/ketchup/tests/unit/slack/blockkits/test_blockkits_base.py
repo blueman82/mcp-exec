@@ -25,19 +25,26 @@ from packages.slack.blockkits import base
 
 @pytest.fixture
 def builder():
-    with patch(
-        "packages.slack.blockkits.base.QueryMessageHandler", return_value=MagicMock()
-    ) as query_handler, patch(
-        "packages.slack.blockkits.base.StatusMessageHandler", return_value=MagicMock()
-    ) as status_handler, patch(
-        "packages.slack.blockkits.base.ReportMessageHandler", return_value=MagicMock()
-    ) as report_handler, patch(
-        "packages.slack.blockkits.base.SummaryMessageHandler", return_value=MagicMock()
-    ) as summary_handler, patch(
-        "packages.slack.blockkits.base.LookupMessageHandler", return_value=MagicMock()
-    ) as lookup_handler, patch(
-        "packages.slack.blockkits.base.ArchiveMessageHandler", return_value=MagicMock()
-    ) as archive_handler:
+    with (
+        patch(
+            "packages.slack.blockkits.base.QueryMessageHandler", return_value=MagicMock()
+        ) as query_handler,
+        patch(
+            "packages.slack.blockkits.base.StatusMessageHandler", return_value=MagicMock()
+        ) as status_handler,
+        patch(
+            "packages.slack.blockkits.base.ReportMessageHandler", return_value=MagicMock()
+        ) as report_handler,
+        patch(
+            "packages.slack.blockkits.base.SummaryMessageHandler", return_value=MagicMock()
+        ) as summary_handler,
+        patch(
+            "packages.slack.blockkits.base.LookupMessageHandler", return_value=MagicMock()
+        ) as lookup_handler,
+        patch(
+            "packages.slack.blockkits.base.ArchiveMessageHandler", return_value=MagicMock()
+        ) as archive_handler,
+    ):
         posting_handler = MagicMock()
         b = base.BlockKitBuilder(posting_handler)
         # Attach handler mocks for direct access
@@ -52,19 +59,26 @@ def builder():
 
 def test_init_wires_handlers() -> None:
     """Test __init__ wires all handler attributes."""
-    with patch(
-        "packages.slack.blockkits.base.QueryMessageHandler", return_value=MagicMock()
-    ) as query_handler, patch(
-        "packages.slack.blockkits.base.StatusMessageHandler", return_value=MagicMock()
-    ) as status_handler, patch(
-        "packages.slack.blockkits.base.ReportMessageHandler", return_value=MagicMock()
-    ) as report_handler, patch(
-        "packages.slack.blockkits.base.SummaryMessageHandler", return_value=MagicMock()
-    ) as summary_handler, patch(
-        "packages.slack.blockkits.base.LookupMessageHandler", return_value=MagicMock()
-    ) as lookup_handler, patch(
-        "packages.slack.blockkits.base.ArchiveMessageHandler", return_value=MagicMock()
-    ) as archive_handler:
+    with (
+        patch(
+            "packages.slack.blockkits.base.QueryMessageHandler", return_value=MagicMock()
+        ) as query_handler,
+        patch(
+            "packages.slack.blockkits.base.StatusMessageHandler", return_value=MagicMock()
+        ) as status_handler,
+        patch(
+            "packages.slack.blockkits.base.ReportMessageHandler", return_value=MagicMock()
+        ) as report_handler,
+        patch(
+            "packages.slack.blockkits.base.SummaryMessageHandler", return_value=MagicMock()
+        ) as summary_handler,
+        patch(
+            "packages.slack.blockkits.base.LookupMessageHandler", return_value=MagicMock()
+        ) as lookup_handler,
+        patch(
+            "packages.slack.blockkits.base.ArchiveMessageHandler", return_value=MagicMock()
+        ) as archive_handler,
+    ):
         posting_handler = MagicMock()
         b = base.BlockKitBuilder(posting_handler)
         assert b._query_handler is query_handler.return_value
@@ -141,9 +155,7 @@ async def test_get_channel_details_with_fallback_empty_result(builder) -> None:
 async def test_send_ketchup_query_block_kit(builder) -> None:
     """Test send_ketchup_query_block_kit delegates to query handler."""
     builder._query_handler.send_message = AsyncMock()
-    await builder.send_ketchup_query_block_kit(
-        "cmd", "url", "resp", query="q", target_channel="C1"
-    )
+    await builder.send_ketchup_query_block_kit("cmd", "url", "resp", query="q", target_channel="C1")
     builder._query_handler.send_message.assert_awaited_once()
 
 
@@ -181,9 +193,7 @@ async def test_send_ketchup_summary_block_kit(builder) -> None:
 async def test_send_ketchup_archive_block_kit(builder) -> None:
     """Test send_ketchup_archive_block_kit delegates to archive handler."""
     builder._archive_handler.send_message = AsyncMock()
-    await builder.send_ketchup_archive_block_kit(
-        "url", [{"summary": 1}], incoming_channel="C1"
-    )
+    await builder.send_ketchup_archive_block_kit("url", [{"summary": 1}], incoming_channel="C1")
     builder._archive_handler.send_message.assert_awaited_once()
 
 

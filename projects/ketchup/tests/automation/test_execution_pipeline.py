@@ -22,7 +22,7 @@ import os
 import sys
 import time
 import unittest
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, List, Optional
 
 sys.path.insert(0, os.getcwd())
@@ -33,12 +33,8 @@ from packages.core.typed_di.service_registrations import register_all_services
 
 # Import our test modules
 try:
-    from tests.integration.cross_service_validation_templates import (
-        CrossServiceValidationTestSuite
-    )
-    from tests.performance.regression_test_framework import (
-        PerformanceRegressionTestSuite
-    )
+    from tests.integration.cross_service_validation_templates import CrossServiceValidationTestSuite
+    from tests.performance.regression_test_framework import PerformanceRegressionTestSuite
 except ImportError:
     logger = setup_logger(__name__)
     logger.warning("Test modules not found - some functionality may be limited")
@@ -49,6 +45,7 @@ logger = setup_logger(__name__)
 @dataclass
 class TestExecutionResult:
     """Container for test execution results."""
+
     __test__ = False  # Tell pytest this is not a test class
     test_name: str
     status: str  # "passed", "failed", "error"
@@ -60,6 +57,7 @@ class TestExecutionResult:
 @dataclass
 class PipelineExecutionReport:
     """Container for complete pipeline execution report."""
+
     timestamp: float
     total_tests: int
     passed_tests: int
@@ -72,6 +70,7 @@ class PipelineExecutionReport:
 
 class TestExecutionPipeline:
     """Automated test execution pipeline for TypedDI validation."""
+
     __test__ = False  # Tell pytest this is not a test class
 
     def __init__(self):
@@ -86,6 +85,7 @@ class TestExecutionPipeline:
 
         # Initialize registry
         import packages.core.typed_di.service_registrations as svc_reg
+
         if hasattr(svc_reg, "_registration_manager"):
             svc_reg._registration_manager = None
 
@@ -94,11 +94,7 @@ class TestExecutionPipeline:
 
     def register_test_suite(self, test_suite_class: type, name: str) -> None:
         """Register a test suite for execution."""
-        self.test_suites.append({
-            "class": test_suite_class,
-            "name": name,
-            "enabled": True
-        })
+        self.test_suites.append({"class": test_suite_class, "name": name, "enabled": True})
 
     def execute_test_suite(self, test_suite_info: Dict[str, Any]) -> TestExecutionResult:
         """Execute a single test suite."""
@@ -117,8 +113,9 @@ class TestExecutionPipeline:
 
             # Run tests with custom result collector
             TestResultCollector()
-            runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'),
-                                           resultclass=TestResultCollector)
+            runner = unittest.TextTestRunner(
+                stream=open(os.devnull, "w"), resultclass=TestResultCollector
+            )
             test_result = runner.run(suite)
 
             execution_time = time.time() - start_time
@@ -128,7 +125,7 @@ class TestExecutionPipeline:
                     test_name=test_name,
                     status="passed",
                     execution_time=execution_time,
-                    details={"tests_run": test_result.testsRun}
+                    details={"tests_run": test_result.testsRun},
                 )
             else:
                 error_messages = []
@@ -145,8 +142,8 @@ class TestExecutionPipeline:
                     details={
                         "tests_run": test_result.testsRun,
                         "failures": len(test_result.failures),
-                        "errors": len(test_result.errors)
-                    }
+                        "errors": len(test_result.errors),
+                    },
                 )
 
         except Exception as e:
@@ -155,7 +152,7 @@ class TestExecutionPipeline:
                 test_name=test_name,
                 status="error",
                 execution_time=execution_time,
-                error_message=str(e)
+                error_message=str(e),
             )
 
     def execute_all_tests(self, parallel: bool = True) -> PipelineExecutionReport:
@@ -170,7 +167,8 @@ class TestExecutionPipeline:
             with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                 future_to_test = {
                     executor.submit(self.execute_test_suite, test_suite): test_suite
-                    for test_suite in self.test_suites if test_suite["enabled"]
+                    for test_suite in self.test_suites
+                    if test_suite["enabled"]
                 }
 
                 for future in concurrent.futures.as_completed(future_to_test):
@@ -202,7 +200,7 @@ class TestExecutionPipeline:
             error_tests=error_tests,
             execution_time=execution_time,
             test_results=test_results,
-            zero_errors_achieved=zero_errors_achieved
+            zero_errors_achieved=zero_errors_achieved,
         )
 
         self._save_execution_report(report)
@@ -214,7 +212,7 @@ class TestExecutionPipeline:
         report_file = os.path.join(self.results_dir, f"execution_report_{timestamp_str}.json")
 
         report_data = asdict(report)
-        with open(report_file, 'w', encoding='utf-8') as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2)
 
         logger.info(f"Execution report saved to {report_file}")
@@ -232,13 +230,16 @@ class TestExecutionPipeline:
         if report.zero_errors_achieved:
             logger.info("✅ All tests passed - zero errors/warnings achieved")
         else:
-            logger.error(f"❌ Test failures detected: {report.failed_tests} failed, {report.error_tests} errors")
+            logger.error(
+                f"❌ Test failures detected: {report.failed_tests} failed, {report.error_tests} errors"
+            )
 
         return report
 
 
 class TestResultCollector(unittest.TestResult):
     """Custom test result collector for detailed reporting."""
+
     __test__ = False  # Tell pytest this is not a test class
 
     def __init__(self):
@@ -247,26 +248,15 @@ class TestResultCollector(unittest.TestResult):
 
     def addSuccess(self, test):
         super().addSuccess(test)
-        self.test_details.append({
-            "test": str(test),
-            "status": "success"
-        })
+        self.test_details.append({"test": str(test), "status": "success"})
 
     def addError(self, test, err):
         super().addError(test, err)
-        self.test_details.append({
-            "test": str(test),
-            "status": "error",
-            "error": str(err[1])
-        })
+        self.test_details.append({"test": str(test), "status": "error", "error": str(err[1])})
 
     def addFailure(self, test, err):
         super().addFailure(test, err)
-        self.test_details.append({
-            "test": str(test),
-            "status": "failure",
-            "error": str(err[1])
-        })
+        self.test_details.append({"test": str(test), "status": "failure", "error": str(err[1])})
 
 
 class CIIntegrationManager:
@@ -279,23 +269,31 @@ class CIIntegrationManager:
             "name": "TypedDI Validation Pipeline",
             "on": {
                 "push": {"branches": ["main", "develop"]},
-                "pull_request": {"branches": ["main"]}
+                "pull_request": {"branches": ["main"]},
             },
             "jobs": {
                 "typeddi-validation": {
                     "runs-on": "ubuntu-latest",
                     "steps": [
                         {"uses": "actions/checkout@v3"},
-                        {"name": "Set up Python", "uses": "actions/setup-python@v4",
-                         "with": {"python-version": "3.12"}},
+                        {
+                            "name": "Set up Python",
+                            "uses": "actions/setup-python@v4",
+                            "with": {"python-version": "3.12"},
+                        },
                         {"name": "Install dependencies", "run": "pip install -r requirements.txt"},
-                        {"name": "Run TypedDI validation",
-                         "run": "python -m tests.automation.test_execution_pipeline"},
-                        {"name": "Upload test results", "uses": "actions/upload-artifact@v3",
-                         "with": {"name": "test-results", "path": "tests/automation/results/"}}
-                    ]
+                        {
+                            "name": "Run TypedDI validation",
+                            "run": "python -m tests.automation.test_execution_pipeline",
+                        },
+                        {
+                            "name": "Upload test results",
+                            "uses": "actions/upload-artifact@v3",
+                            "with": {"name": "test-results", "path": "tests/automation/results/"},
+                        },
+                    ],
                 }
-            }
+            },
         }
 
     @staticmethod
@@ -305,7 +303,7 @@ class CIIntegrationManager:
         pre_commit_hook = os.path.join(hooks_dir, "pre-commit")
 
         if os.path.exists(pre_commit_hook):
-            with open(pre_commit_hook, 'r') as f:
+            with open(pre_commit_hook, "r") as f:
                 content = f.read()
                 return "test_execution_pipeline" in content
         return False
@@ -327,7 +325,7 @@ fi
 echo "✅ TypedDI validation passed"
 """
 
-        with open(pre_commit_hook, 'w') as f:
+        with open(pre_commit_hook, "w") as f:
             f.write(hook_content)
 
         os.chmod(pre_commit_hook, 0o755)

@@ -37,9 +37,7 @@ class TestExtractSummaryParams:
     def test_dm_missing_channel_id(self) -> None:
         """Test DM: raises ValidationError if channel ID is missing."""
         with pytest.raises(ValidationError) as exc:
-            extract_summary_params(
-                "/ketchup short", CommandContext.DIRECT_MESSAGE, "C123"
-            )
+            extract_summary_params("/ketchup short", CommandContext.DIRECT_MESSAGE, "C123")
         assert "Missing channel ID" in exc.value.message
 
     def test_dm_invalid_channel_id(self) -> None:
@@ -73,9 +71,7 @@ class TestExtractSummaryParams:
 
     def test_public_valid(self) -> None:
         """Test public: returns SummaryCommandParams for valid input."""
-        params = extract_summary_params(
-            "/ketchup short", CommandContext.PUBLIC_CHANNEL, "C123"
-        )
+        params = extract_summary_params("/ketchup short", CommandContext.PUBLIC_CHANNEL, "C123")
         assert isinstance(params, SummaryCommandParams)
         assert params.command_type == CommandType.SHORT
         assert params.target_channel_id == "C123"
@@ -143,7 +139,4 @@ class TestExtractSummaryParams:
                     CommandContext.DIRECT_MESSAGE,
                     "C123",
                 )
-            assert (
-                "Invalid channel" in exc.value.message
-                or "channel format" in exc.value.message
-            )
+            assert "Invalid channel" in exc.value.message or "channel format" in exc.value.message

@@ -21,7 +21,7 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             "max_resolution_ms": 1.0,
             "avg_resolution_ms": 0.5,
             "p99_resolution_ms": 2.0,
-            "memory_delta_mb": 0.1
+            "memory_delta_mb": 0.1,
         }
 
     def test_batch_1_core_services_performance(self) -> None:
@@ -31,7 +31,7 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             "DynamoDBClient",
             "SecretsManager",
             "HTTPClient",
-            "ConfigManager"
+            "ConfigManager",
         ]
 
         results = self._benchmark_service_batch(services)
@@ -41,7 +41,7 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             results["avg_resolution_ms"],
             self.performance_thresholds["avg_resolution_ms"],
             f"Batch 1 avg resolution {results['avg_resolution_ms']:.3f}ms "
-            f"exceeds threshold {self.performance_thresholds['avg_resolution_ms']}ms"
+            f"exceeds threshold {self.performance_thresholds['avg_resolution_ms']}ms",
         )
 
     def test_batch_2_slack_services_performance(self) -> None:
@@ -51,48 +51,33 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             "SlackEventHandler",
             "SlackCommandHandler",
             "SlackInteractionHandler",
-            "SlackMessagePoster"
+            "SlackMessagePoster",
         ]
 
         results = self._benchmark_service_batch(services)
 
         self.assertLess(
-            results["avg_resolution_ms"],
-            self.performance_thresholds["avg_resolution_ms"]
+            results["avg_resolution_ms"], self.performance_thresholds["avg_resolution_ms"]
         )
 
     def test_batch_3_ai_services_performance(self) -> None:
         """Validate performance for batch 3 AI services."""
-        services = [
-            "AIFactory",
-            "TokenUtils",
-            "ModelManager",
-            "PromptBuilder",
-            "ResponseParser"
-        ]
+        services = ["AIFactory", "TokenUtils", "ModelManager", "PromptBuilder", "ResponseParser"]
 
         results = self._benchmark_service_batch(services)
 
         self.assertLess(
-            results["avg_resolution_ms"],
-            self.performance_thresholds["avg_resolution_ms"]
+            results["avg_resolution_ms"], self.performance_thresholds["avg_resolution_ms"]
         )
 
     def test_batch_4_integration_services_performance(self) -> None:
         """Validate performance for batch 4 integration services."""
-        services = [
-            "JiraClient",
-            "GitHubClient",
-            "EmailSender",
-            "WebhookHandler",
-            "APIGateway"
-        ]
+        services = ["JiraClient", "GitHubClient", "EmailSender", "WebhookHandler", "APIGateway"]
 
         results = self._benchmark_service_batch(services)
 
         self.assertLess(
-            results["avg_resolution_ms"],
-            self.performance_thresholds["avg_resolution_ms"]
+            results["avg_resolution_ms"], self.performance_thresholds["avg_resolution_ms"]
         )
 
     def test_cumulative_performance_degradation(self) -> None:
@@ -107,7 +92,7 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
 
         # Check that performance doesn't degrade significantly
         for i in range(1, len(results_by_size)):
-            prev_avg = results_by_size[i-1]["avg_resolution_ms"]
+            prev_avg = results_by_size[i - 1]["avg_resolution_ms"]
             curr_avg = results_by_size[i]["avg_resolution_ms"]
 
             # Allow max 3x degradation per doubling (realistic for microsecond mock operations)
@@ -116,8 +101,9 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             # Note: actual values are < 0.01ms which is excellent performance
             max_degradation = prev_avg * 3.0
             self.assertLess(
-                curr_avg, max_degradation,
-                f"Performance degraded >3x from {prev_avg:.3f}ms to {curr_avg:.3f}ms"
+                curr_avg,
+                max_degradation,
+                f"Performance degraded >3x from {prev_avg:.3f}ms to {curr_avg:.3f}ms",
             )
 
     def test_memory_footprint_validation(self) -> None:
@@ -133,7 +119,7 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             self.mock_container.register(service, Mock())
 
         snapshot_after = tracemalloc.take_snapshot()
-        stats = snapshot_after.compare_to(snapshot_before, 'lineno')
+        stats = snapshot_after.compare_to(snapshot_before, "lineno")
 
         memory_delta_bytes = sum(stat.size_diff for stat in stats)
         memory_delta_mb = memory_delta_bytes / (1024 * 1024)
@@ -143,7 +129,7 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
         self.assertLess(
             memory_delta_mb,
             self.performance_thresholds["memory_delta_mb"] * len(services),
-            f"Memory usage {memory_delta_mb:.2f}MB exceeds threshold"
+            f"Memory usage {memory_delta_mb:.2f}MB exceeds threshold",
         )
 
     def test_startup_time_validation(self) -> None:
@@ -159,8 +145,9 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
         startup_time_ms = (time.perf_counter() - start_time) * 1000
 
         self.assertLess(
-            startup_time_ms, max_startup_ms,
-            f"Startup time {startup_time_ms:.1f}ms exceeds {max_startup_ms}ms"
+            startup_time_ms,
+            max_startup_ms,
+            f"Startup time {startup_time_ms:.1f}ms exceeds {max_startup_ms}ms",
         )
 
     def test_resolution_consistency(self) -> None:
@@ -184,8 +171,9 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
         # Note: These are microsecond-level operations where timing variance can exceed
         # the mean due to OS scheduling, CPU cache effects, and timer resolution limits
         self.assertLess(
-            std_dev, avg_time * 10.0,
-            f"Resolution time variance too high: std={std_dev:.3f}ms, avg={avg_time:.3f}ms"
+            std_dev,
+            avg_time * 10.0,
+            f"Resolution time variance too high: std={std_dev:.3f}ms, avg={avg_time:.3f}ms",
         )
 
     def test_concurrent_resolution_performance(self) -> None:
@@ -213,14 +201,12 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
         avg_time = statistics.mean(results) if results else 0
 
         self.assertLess(
-            avg_time, self.performance_thresholds["avg_resolution_ms"],
-            f"Concurrent resolution avg {avg_time:.3f}ms exceeds threshold"
+            avg_time,
+            self.performance_thresholds["avg_resolution_ms"],
+            f"Concurrent resolution avg {avg_time:.3f}ms exceeds threshold",
         )
 
-    def _benchmark_service_batch(
-        self,
-        services: List[str]
-    ) -> Dict[str, float]:
+    def _benchmark_service_batch(self, services: List[str]) -> Dict[str, float]:
         """Benchmark a batch of services.
 
         Args:
@@ -249,9 +235,11 @@ class ServiceBatchPerformanceTest(unittest.TestCase):
             "avg_resolution_ms": statistics.mean(resolution_times),
             "max_resolution_ms": max(resolution_times),
             "min_resolution_ms": min(resolution_times),
-            "p99_resolution_ms": statistics.quantiles(
-                resolution_times, n=100
-            )[98] if len(resolution_times) > 1 else resolution_times[0]
+            "p99_resolution_ms": (
+                statistics.quantiles(resolution_times, n=100)[98]
+                if len(resolution_times) > 1
+                else resolution_times[0]
+            ),
         }
 
 

@@ -30,6 +30,11 @@ if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
 # Import protocols from the protocols module to avoid circular dependencies
+# Import required dependencies
+from packages.db.dynamodb_store import DynamoDBStore
+from packages.slack.channel_operations.channel_info_ops import ChannelInfoOps
+from packages.slack.messages.posting import SlackPostingHandler
+
 from ..protocols import (
     ChannelAnalyticsServiceProtocol,
     ChannelEligibilityServiceProtocol,
@@ -37,11 +42,6 @@ from ..protocols import (
     ChannelPolicyServiceProtocol,
     ChannelValidationServiceProtocol,
 )
-
-# Import required dependencies
-from packages.db.dynamodb_store import DynamoDBStore
-from packages.slack.channel_operations.channel_info_ops import ChannelInfoOps
-from packages.slack.messages.posting import SlackPostingHandler
 
 logger = setup_logger(__name__)
 

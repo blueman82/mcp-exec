@@ -7,7 +7,6 @@ data extraction, reporting, and core JIRA integration services.
 
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
-
 __all__ = [
     "JIRACacheProtocol",
     "JIRADataExtractorProtocol",
@@ -77,9 +76,7 @@ class SlackReportsProtocol(Protocol):
 class JIRAServiceProtocol(Protocol):
     """Protocol for core JIRA service operations via MCP."""
 
-    async def post_comment_to_ticket(
-        self, jira_ticket_id: str, comment_text: str
-    ) -> bool:
+    async def post_comment_to_ticket(self, jira_ticket_id: str, comment_text: str) -> bool:
         """Post a comment to a JIRA ticket."""
         ...
 
@@ -117,15 +114,11 @@ class JIRAWorkflowServiceProtocol(Protocol):
         """Get current workflow status for a ticket."""
         ...
 
-    async def transition_ticket_status(
-        self, ticket_id: str, transition: str
-    ) -> bool:
+    async def transition_ticket_status(self, ticket_id: str, transition: str) -> bool:
         """Transition ticket to new status."""
         ...
 
-    async def get_available_transitions(
-        self, ticket_id: str
-    ) -> List[Dict[str, Any]]:
+    async def get_available_transitions(self, ticket_id: str) -> List[Dict[str, Any]]:
         """Get available transitions for a ticket."""
         ...
 
@@ -140,9 +133,7 @@ class JIRAReportingServiceProtocol(Protocol):
         """Generate comprehensive report for a channel's JIRA data."""
         ...
 
-    async def aggregate_ticket_metrics(
-        self, ticket_ids: List[str]
-    ) -> Dict[str, Any]:
+    async def aggregate_ticket_metrics(self, ticket_ids: List[str]) -> Dict[str, Any]:
         """Aggregate metrics across multiple tickets."""
         ...
 
@@ -163,14 +154,10 @@ class JIRAAnalyticsServiceProtocol(Protocol):
         """Track interactions with JIRA tickets for analytics."""
         ...
 
-    async def get_performance_metrics(
-        self, time_range: str = "last_7_days"
-    ) -> Dict[str, Any]:
+    async def get_performance_metrics(self, time_range: str = "last_7_days") -> Dict[str, Any]:
         """Get JIRA integration performance metrics."""
         ...
 
-    async def analyze_ticket_patterns(
-        self, channel_patterns: List[str]
-    ) -> Dict[str, Any]:
+    async def analyze_ticket_patterns(self, channel_patterns: List[str]) -> Dict[str, Any]:
         """Analyze patterns in ticket creation and resolution."""
         ...

@@ -103,9 +103,7 @@ class DistributedLock:
                 logger.error(f"Error acquiring lock: {e}")
                 return False
 
-    async def _try_steal_expired_lock(
-        self, lock_key: str, timeout_seconds: int
-    ) -> bool:
+    async def _try_steal_expired_lock(self, lock_key: str, timeout_seconds: int) -> bool:
         """
         Try to steal an expired lock.
 

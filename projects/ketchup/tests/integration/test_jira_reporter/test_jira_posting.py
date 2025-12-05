@@ -36,7 +36,7 @@ async def test_jira_comment_posting():
     comment_text = f"""✅ **JIRA Reporter Integration Test Success!**
 
 This comment confirms the complete JIRA reporter implementation:
-- MCP service with all tools (including add_jira_comment)  
+- MCP service with all tools (including add_jira_comment)
 - IMS token authentication via Bearer header
 - Proper JSON-RPC message formatting
 - JiraService updated with IMSTokenManager DI
@@ -63,9 +63,7 @@ Ready for production deployment.
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            "http://localhost:8081/message", json=payload, headers=headers
-        )
+        response = await client.post("http://localhost:8081/message", json=payload, headers=headers)
 
         assert (
             response.status_code == 200
@@ -80,6 +78,4 @@ Ready for production deployment.
         assert content[0].get("type") == "text", "Expected text content"
 
         result_data = json.loads(content[0]["text"])
-        assert (
-            result_data.get("success") is True
-        ), f"JIRA operation failed: {result_data}"
+        assert result_data.get("success") is True, f"JIRA operation failed: {result_data}"

@@ -90,17 +90,11 @@ class BlockKitBuilder:
             self._build_feedback_blocks,
         )
 
-        self._lookup_handler.configure(
-            self._posting_handler, self._channel_details_getter
-        )
+        self._lookup_handler.configure(self._posting_handler, self._channel_details_getter)
 
-        self._archive_handler.configure(
-            self._posting_handler, self._channel_details_getter
-        )
+        self._archive_handler.configure(self._posting_handler, self._channel_details_getter)
 
-    async def _get_channel_details_with_fallback(
-        self, channel_id: str
-    ) -> Dict[str, Any]:
+    async def _get_channel_details_with_fallback(self, channel_id: str) -> Dict[str, Any]:
         """
         Get channel details with fallback mechanisms.
 

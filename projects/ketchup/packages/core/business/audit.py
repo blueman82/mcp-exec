@@ -4,8 +4,9 @@ Audit Service Implementation
 Provides audit logging and trail functionality.
 """
 
-from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -45,7 +46,7 @@ class AuditService:
             "event_id": event_id,
             "event_type": event_type,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "details": details
+            "details": details,
         }
 
         entity_id = details.get("entity_id", "system")
@@ -56,10 +57,7 @@ class AuditService:
         return event_id
 
     async def get_audit_trail(
-        self,
-        entity_id: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None
+        self, entity_id: str, start_date: Optional[str] = None, end_date: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Get audit trail for an entity.
@@ -82,10 +80,7 @@ class AuditService:
         return self._filter_events_by_date(events, start_date, end_date)
 
     def _filter_events_by_date(
-        self,
-        events: List[Dict[str, Any]],
-        start_date: Optional[str],
-        end_date: Optional[str]
+        self, events: List[Dict[str, Any]], start_date: Optional[str], end_date: Optional[str]
     ) -> List[Dict[str, Any]]:
         """
         Filter events by date range.

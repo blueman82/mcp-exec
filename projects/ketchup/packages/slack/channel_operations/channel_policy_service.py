@@ -30,9 +30,7 @@ class ChannelPolicyService:
         self.dynamodb_store = dynamodb_store
         logger.info("ChannelPolicyService initialized.")
 
-    async def validate_channel_policy(
-        self, channel_id: str, policy_name: str
-    ) -> bool:
+    async def validate_channel_policy(self, channel_id: str, policy_name: str) -> bool:
         """
         Validate if a channel complies with a specific policy.
 
@@ -43,15 +41,11 @@ class ChannelPolicyService:
         Returns:
             bool: True if channel complies with the policy, False otherwise.
         """
-        logger.info(
-            "Validating channel %s against policy %s", channel_id, policy_name
-        )
+        logger.info("Validating channel %s against policy %s", channel_id, policy_name)
 
         try:
             # Get channel information
-            channel_info = await self.channel_info_ops.get_channel_info_from_api(
-                channel_id
-            )
+            channel_info = await self.channel_info_ops.get_channel_info_from_api(channel_id)
 
             if not channel_info:
                 logger.warning("Could not retrieve channel info for %s", channel_id)
@@ -106,7 +100,9 @@ class ChannelPolicyService:
             return True
 
         except Exception as e:
-            logger.error("Error applying policy %s to channel %s: %s", policy_name, channel_id, str(e))
+            logger.error(
+                "Error applying policy %s to channel %s: %s", policy_name, channel_id, str(e)
+            )
             return False
 
     async def check_policy_compliance(self, channel_id: str) -> dict:
@@ -129,7 +125,7 @@ class ChannelPolicyService:
                 "compliant": True,
                 "policies_checked": len(policies),
                 "violations": [],
-                "recommendations": []
+                "recommendations": [],
             }
 
             # Compliance checking logic would go here
@@ -137,8 +133,4 @@ class ChannelPolicyService:
 
         except Exception as e:
             logger.error("Error checking compliance for channel %s: %s", channel_id, str(e))
-            return {
-                "channel_id": channel_id,
-                "compliant": False,
-                "error": str(e)
-            }
+            return {"channel_id": channel_id, "compliant": False, "error": str(e)}

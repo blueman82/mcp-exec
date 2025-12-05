@@ -28,9 +28,7 @@ async def test_update_channel_archived_status_preserves_existing(
     mock_client = AsyncMock()
     ops = ArchiveOperations(client=mock_client, table_name="tbl")
     # Simulate existing item with non-zero archived_at
-    mock_client.get_item = AsyncMock(
-        return_value={"Item": {"archived_at": {"N": "123"}}}
-    )
+    mock_client.get_item = AsyncMock(return_value={"Item": {"archived_at": {"N": "123"}}})
     mock_client.update_item = AsyncMock()
     with patch("packages.db.operations.archive_operations.logger") as mock_logger:
         await ops.update_channel_archived_status("C1", True, 456)
@@ -87,9 +85,7 @@ async def test_update_channel_archived_status_error(
 
 @pytest.mark.asyncio
 @patch("packages.db.operations.archive_operations.logger")
-async def test_cleanup_calls_parent(
-    mock_logger, monkeypatch: pytest.MonkeyPatch
-) -> None:
+async def test_cleanup_calls_parent(mock_logger, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test cleanup calls parent cleanup and logs debug."""
     mock_client = AsyncMock()
     ops = ArchiveOperations(client=mock_client, table_name="tbl")

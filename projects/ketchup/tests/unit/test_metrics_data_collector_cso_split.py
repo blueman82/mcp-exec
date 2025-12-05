@@ -31,13 +31,12 @@ class TestCSOMetricsSplit:
     @pytest.fixture
     def collector(self, mock_channel_ops, mock_join_ops, mock_membership_ops):
         """Create MetricsDataCollector instance."""
-        return MetricsDataCollector(
-            mock_channel_ops, mock_join_ops, mock_membership_ops
-        )
+        return MetricsDataCollector(mock_channel_ops, mock_join_ops, mock_membership_ops)
 
     @pytest.mark.asyncio
     async def test_filter_excluded_channels(self, collector, mock_channel_ops):
         """Test that system channels are excluded from metrics."""
+
         # Arrange
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):
@@ -70,6 +69,7 @@ class TestCSOMetricsSplit:
     @pytest.mark.asyncio
     async def test_split_active_vs_archived(self, collector, mock_channel_ops):
         """Test splitting channels by archived status."""
+
         # Arrange
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):
@@ -103,6 +103,7 @@ class TestCSOMetricsSplit:
     @pytest.mark.asyncio
     async def test_count_campaign_vs_ajo_active(self, collector, mock_channel_ops):
         """Test Campaign vs AJO count for currently active channels."""
+
         # Arrange
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):
@@ -134,6 +135,7 @@ class TestCSOMetricsSplit:
     @pytest.mark.asyncio
     async def test_count_campaign_vs_ajo_archived(self, collector, mock_channel_ops):
         """Test Campaign vs AJO count for archived channels."""
+
         # Arrange
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):
@@ -165,6 +167,7 @@ class TestCSOMetricsSplit:
     @pytest.mark.asyncio
     async def test_all_channels_archived(self, collector, mock_channel_ops):
         """Test edge case: all channels archived."""
+
         # Arrange
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):
@@ -194,6 +197,7 @@ class TestCSOMetricsSplit:
     @pytest.mark.asyncio
     async def test_no_channels_archived(self, collector, mock_channel_ops):
         """Test edge case: no channels archived."""
+
         # Arrange
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):
@@ -224,6 +228,7 @@ class TestCSOMetricsSplit:
     @pytest.mark.asyncio
     async def test_mixed_scenario(self, collector, mock_channel_ops):
         """Test realistic mixed scenario from production."""
+
         # Arrange - Real production data structure
         # Configure mock to return different data based on archive_lookup parameter
         async def mock_get_channels(archive_lookup=False, days_threshold=None):

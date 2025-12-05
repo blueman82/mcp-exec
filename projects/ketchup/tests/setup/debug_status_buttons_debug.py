@@ -31,9 +31,7 @@ async def test_status_button_creation():
 
     channel_msg_ops = MagicMock()
     channel_msg_ops.get_api_base_url = AsyncMock(return_value="https://slack.com/api")
-    channel_msg_ops.check_recent_thread_activity = AsyncMock(
-        return_value=(False, "0", [])
-    )
+    channel_msg_ops.check_recent_thread_activity = AsyncMock(return_value=(False, "0", []))
     channel_msg_ops._make_api_request = AsyncMock(
         return_value={"body": json.dumps({"ok": True, "messages": []})}
     )
@@ -84,16 +82,12 @@ async def test_status_button_creation():
     )
 
     # Mock feature flags
-    with patch(
-        "ketchup_status_updater.status_generator.FeatureFlags"
-    ) as MockFeatureFlags:
+    with patch("ketchup_status_updater.status_generator.FeatureFlags") as MockFeatureFlags:
         MockFeatureFlags.is_trust_endorsement_enabled.return_value = True
         MockFeatureFlags.is_trust_endorsement_global.return_value = True
 
         # Mock MessagePreparer
-        with patch(
-            "ketchup_status_updater.status_generator.MessagePreparer"
-        ) as MockPreparer:
+        with patch("ketchup_status_updater.status_generator.MessagePreparer") as MockPreparer:
             mock_preparer = MagicMock()
             mock_preparer.prepare_messages_for_auto_status = AsyncMock(
                 return_value=(
@@ -116,9 +110,7 @@ async def test_status_button_creation():
 
             print("\n=== POST TO SLACK PUBLIC RESULTS ===")
             print(f"Result: {result}")
-            print(
-                f"Post channel message called: {posting_handler._post_channel_message.called}"
-            )
+            print(f"Post channel message called: {posting_handler._post_channel_message.called}")
 
             if posting_handler._post_channel_message.called:
                 call_args = posting_handler._post_channel_message.call_args
@@ -130,24 +122,18 @@ async def test_status_button_creation():
                     print(json.dumps(blocks, indent=2))
 
                     # Check for action blocks
-                    action_blocks = [
-                        b for b in blocks if b.get("type") == "actions"
-                    ]
+                    action_blocks = [b for b in blocks if b.get("type") == "actions"]
                     if action_blocks:
                         print(f"\n✅ Found {len(action_blocks)} action block(s)")
                         for block in action_blocks:
                             elements = block.get("elements", [])
                             print(f"  - Block has {len(elements)} element(s)")
                             for elem in elements:
-                                print(
-                                    f"    - {elem.get('text', {}).get('text', 'No text')}"
-                                )
+                                print(f"    - {elem.get('text', {}).get('text', 'No text')}")
                     else:
                         print("\n❌ No action blocks found")
 
-            print(
-                f"\nUpdate message called: {posting_handler.update_message.called}"
-            )
+            print(f"\nUpdate message called: {posting_handler.update_message.called}")
             if posting_handler.update_message.called:
                 update_call_args = posting_handler.update_message.call_args
                 print(f"Update call args: {update_call_args}")
@@ -158,20 +144,14 @@ async def test_status_button_creation():
                     print(json.dumps(blocks, indent=2))
 
                     # Check for action blocks
-                    action_blocks = [
-                        b for b in blocks if b.get("type") == "actions"
-                    ]
+                    action_blocks = [b for b in blocks if b.get("type") == "actions"]
                     if action_blocks:
-                        print(
-                            f"\n✅ Found {len(action_blocks)} action block(s) in update"
-                        )
+                        print(f"\n✅ Found {len(action_blocks)} action block(s) in update")
                         for block in action_blocks:
                             elements = block.get("elements", [])
                             print(f"  - Block has {len(elements)} element(s)")
                             for elem in elements:
-                                print(
-                                    f"    - {elem.get('text', {}).get('text', 'No text')}"
-                                )
+                                print(f"    - {elem.get('text', {}).get('text', 'No text')}")
                     else:
                         print("\n❌ No action blocks found in update")
 

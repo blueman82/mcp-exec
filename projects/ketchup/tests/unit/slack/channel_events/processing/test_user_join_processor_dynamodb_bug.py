@@ -7,9 +7,10 @@ This test follows TDD RED-GREEN-REFACTOR cycle:
 3. REFACTOR: Clean up if needed
 """
 
-import pytest
-from unittest.mock import AsyncMock
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock
+
+import pytest
 
 # Import the original function that had the bug
 from packages.slack.channel_events.processing.user_join_processor import process_regular_user_join
@@ -36,7 +37,7 @@ class TestUserJoinProcessorDynamoDBStoreBug:
         mock_event = {
             "channel": "C1234567890",
             "channel_name": "test-channel",
-            "event_ts": "1694745600.123456"
+            "event_ts": "1694745600.123456",
         }
         channel_id = "C1234567890"
         user_id = "U1234567890"
@@ -89,7 +90,7 @@ class TestUserJoinProcessorDynamoDBStoreBug:
         mock_event = {
             "channel": "C1234567890",
             "channel_name": "test-channel",
-            "event_ts": "1694745600.123456"
+            "event_ts": "1694745600.123456",
         }
         channel_id = "C1234567890"
         user_id = "U1234567890"
@@ -119,7 +120,7 @@ class TestUserJoinProcessorDynamoDBStoreBug:
             user_join_notification_service=mock_user_join_notification_service,
             join_notification_ops=None,
             restore_state_manager=None,
-            dynamodb_store=mock_dynamodb_store  # ← THE FIX
+            dynamodb_store=mock_dynamodb_store,  # ← THE FIX
         )
 
         # Assert - Verify the function completed successfully
@@ -173,7 +174,7 @@ class TestUserJoinProcessorDynamoDBStoreBug:
             user_join_notification_service=mock_user_join_notification_service,
             join_notification_ops=None,
             restore_state_manager=None,
-            dynamodb_store=None  # Edge case: None
+            dynamodb_store=None,  # Edge case: None
         )
 
         # Assert - Function should complete without error
@@ -222,7 +223,7 @@ class TestUserJoinProcessorDynamoDBStoreBug:
             user_join_notification_service=mock_user_join_notification_service,
             join_notification_ops=None,
             restore_state_manager=None,
-            dynamodb_store=mock_dynamodb_store
+            dynamodb_store=mock_dynamodb_store,
         )
 
         # Assert - Check that correct counters were incremented for success case
@@ -230,18 +231,15 @@ class TestUserJoinProcessorDynamoDBStoreBug:
 
         # Should increment war_room_sent
         assert any(
-            call.args == ("war_room_sent", expected_month_key, 1)
-            for call in success_calls
+            call.args == ("war_room_sent", expected_month_key, 1) for call in success_calls
         ), f"Expected war_room_sent call in: {success_calls}"
 
         # Should increment war_room_success (since notification was successful)
         assert any(
-            call.args == ("war_room_success", expected_month_key, 1)
-            for call in success_calls
+            call.args == ("war_room_success", expected_month_key, 1) for call in success_calls
         ), f"Expected war_room_success call in: {success_calls}"
 
         # Should NOT increment war_room_failed for successful case
         assert not any(
-            call.args[0] == "war_room_failed"
-            for call in success_calls
+            call.args[0] == "war_room_failed" for call in success_calls
         ), "war_room_failed should not be incremented for successful notification"

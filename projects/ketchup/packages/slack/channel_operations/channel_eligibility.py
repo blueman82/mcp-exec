@@ -85,9 +85,7 @@ class ChannelEligibilityService:
 
         # 2. Fetch channel details from Slack API using ChannelInfoOps
         try:
-            channel_info = await self.channel_info_ops.get_channel_info_from_api(
-                channel_id
-            )
+            channel_info = await self.channel_info_ops.get_channel_info_from_api(channel_id)
 
             if not channel_info:
                 logger.warning("Could not retrieve channel info for %s", channel_id)
@@ -126,9 +124,7 @@ class ChannelEligibilityService:
             # Reinstate and modify name check: check if name *contains* any keyword
             # from CHANNEL_KEYWORD_TO_PRODUCT (case-insensitive)
             channel_name_lower = channel_name.lower()
-            approved_keywords = [
-                key.lower() for key in CHANNEL_KEYWORD_TO_PRODUCT.keys()
-            ]
+            approved_keywords = [key.lower() for key in CHANNEL_KEYWORD_TO_PRODUCT.keys()]
             if not (
                 "cso" in channel_name_lower
                 and any(keyword in channel_name_lower for keyword in approved_keywords)
@@ -180,9 +176,7 @@ class ChannelEligibilityService:
             return True, None
 
         except Exception as e:
-            logger.error(
-                "Error checking channel eligibility for %s: %s", channel_id, str(e)
-            )
+            logger.error("Error checking channel eligibility for %s: %s", channel_id, str(e))
             if response_url:
                 await self.posting_handler.post_message(
                     user_id=user_id,
@@ -217,9 +211,7 @@ class ChannelEligibilityService:
             )
 
             # Leave channel using the Slack API directly via the existing client method
-            url = (
-                f"{await self.channel_info_ops.get_api_base_url()}/conversations.leave"
-            )
+            url = f"{await self.channel_info_ops.get_api_base_url()}/conversations.leave"
             payload = {"channel": channel_id}
 
             # Fetch necessary headers (including auth token) using the public headers property
@@ -246,8 +238,6 @@ class ChannelEligibilityService:
             # Delete DynamoDB record if exists
             await self.dynamodb_store.delete_channel_if_exists(channel_id)
 
-            logger.info(
-                "Successfully handled ineligible channel %s: %s", channel_id, reason
-            )
+            logger.info("Successfully handled ineligible channel %s: %s", channel_id, reason)
         except Exception as e:
             logger.error("Error handling ineligible channel %s: %s", channel_id, str(e))

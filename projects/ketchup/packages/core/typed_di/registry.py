@@ -49,9 +49,7 @@ class TypedServiceRegistry:
         self._logger = setup_logger(__name__)
         self._registrations: Dict[str, ServiceRegistration] = {}
         self._instances: Dict[str, ServiceInstance] = {}
-        self._original_instances: Dict[str, ServiceInstance] = (
-            {}
-        )  # Backup for overrides
+        self._original_instances: Dict[str, ServiceInstance] = {}  # Backup for overrides
         self._resolver = ServiceDependencyResolver()
         self._typed_resolver = TypedResolver(self)
         self._initialization_order: List[ServiceRegistration] = []
@@ -61,7 +59,9 @@ class TypedServiceRegistry:
         self._lock = asyncio.Lock()
         self._registration_counter = 0
         self._lazy_services: set[str] = set()  # Track services that support lazy initialization
-        self._essential_services: set[str] = set()  # Track essential services that need immediate init
+        self._essential_services: set[str] = (
+            set()
+        )  # Track essential services that need immediate init
 
     def register(
         self,
@@ -84,16 +84,12 @@ class TypedServiceRegistry:
             qualifier: Optional qualifier for multiple implementations
         """
         if self._frozen and not self._is_test_environment():
-            raise FrozenRegistryError(
-                "Cannot register services after registry is frozen"
-            )
+            raise FrozenRegistryError("Cannot register services after registry is frozen")
 
         service_key = self._get_service_key(service_type, qualifier)
 
         if service_key in self._registrations:
-            raise DuplicateRegistrationError(
-                f"Service {service_key} is already registered"
-            )
+            raise DuplicateRegistrationError(f"Service {service_key} is already registered")
 
         # Determine if factory is async
         is_async = inspect.iscoroutinefunction(factory)
@@ -179,9 +175,7 @@ class TypedServiceRegistry:
                 total_duration = time.time() - start_time
 
                 self._initialization_stats = InitializationStats(
-                    service_order=[
-                        reg.service_type for reg in self._initialization_order
-                    ],
+                    service_order=[reg.service_type for reg in self._initialization_order],
                     timings=timings,
                     failures=failures,
                     retries={},  # No retry logic in v1
@@ -237,9 +231,7 @@ class TypedServiceRegistry:
 
         # Registry must be initialized before accessing services
         if not self._initialized:
-            raise NotInitializedError(
-                "Registry not initialized. Call initialize_all() first."
-            )
+            raise NotInitializedError("Registry not initialized. Call initialize_all() first.")
 
         return self._get_initialized_singleton(service_type, qualifier)
 
@@ -269,15 +261,11 @@ class TypedServiceRegistry:
 
         # Registry must be initialized before accessing services
         if not self._initialized:
-            raise NotInitializedError(
-                "Registry not initialized. Call initialize_all() first."
-            )
+            raise NotInitializedError("Registry not initialized. Call initialize_all() first.")
 
         return self._get_initialized_singleton(service_type, qualifier)
 
-    def try_get(
-        self, service_type: Type[T], qualifier: Optional[str] = None
-    ) -> Optional[T]:
+    def try_get(self, service_type: Type[T], qualifier: Optional[str] = None) -> Optional[T]:
         """
         Try to get an initialized singleton service.
 
@@ -291,26 +279,19 @@ class TypedServiceRegistry:
         except (MissingDependencyError, RuntimeError):
             return None
 
-    def override(
-        self, service_type: Type[T], instance: T, qualifier: Optional[str] = None
-    ) -> None:
+    def override(self, service_type: Type[T], instance: T, qualifier: Optional[str] = None) -> None:
         """
         Override a service instance for testing.
 
         Allowed only before freeze or in test environments.
         """
         if self._frozen and not self._is_test_environment():
-            raise FrozenRegistryError(
-                "Cannot override services after freeze in production mode"
-            )
+            raise FrozenRegistryError("Cannot override services after freeze in production mode")
 
         service_key = self._get_service_key(service_type, qualifier)
 
         # Backup original instance before overriding
-        if (
-            service_key in self._instances
-            and service_key not in self._original_instances
-        ):
+        if service_key in self._instances and service_key not in self._original_instances:
             self._original_instances[service_key] = self._instances[service_key]
 
         # Create a mock service instance record
@@ -323,9 +304,7 @@ class TypedServiceRegistry:
     def clear_overrides(self) -> None:
         """Clear all service overrides and restore original instances."""
         if self._frozen and not self._is_test_environment():
-            raise FrozenRegistryError(
-                "Cannot clear overrides after freeze in production mode"
-            )
+            raise FrozenRegistryError("Cannot clear overrides after freeze in production mode")
 
         # Remove override instances and restore originals
         override_keys = [
@@ -360,9 +339,7 @@ class TypedServiceRegistry:
 
     async def _initialize_service(self, registration: ServiceRegistration) -> None:
         """Initialize a single service with two-phase initialization support."""
-        service_key = self._get_service_key(
-            registration.service_type, registration.qualifier
-        )
+        service_key = self._get_service_key(registration.service_type, registration.qualifier)
 
         # Skip if already initialized (could happen with overrides)
         if service_key in self._instances:
@@ -382,21 +359,18 @@ class TypedServiceRegistry:
 
             # Phase 2: Call async initialize() if service supports it
             from .initialization_lifecycle import initialize_if_needed
+
             instance = await initialize_if_needed(instance)
 
             # Store instance
             self._instances[service_key] = ServiceInstance(
                 instance=instance,
                 initialization_time=time.time(),
-                dependencies_resolved=[
-                    dep.type.__name__ for dep in registration.dependencies
-                ],
+                dependencies_resolved=[dep.type.__name__ for dep in registration.dependencies],
             )
 
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to initialize service {service_key}: {e}"
-            ) from e
+            raise RuntimeError(f"Failed to initialize service {service_key}: {e}") from e
 
     def _get_initialized_singleton(
         self, service_type: Type[T], qualifier: Optional[str] = None
@@ -405,9 +379,7 @@ class TypedServiceRegistry:
         service_key = self._get_service_key(service_type, qualifier)
 
         if service_key not in self._instances:
-            raise MissingDependencyError(
-                f"Service {service_key} not found or not initialized"
-            )
+            raise MissingDependencyError(f"Service {service_key} not found or not initialized")
 
         return self._instances[service_key].instance
 
@@ -421,9 +393,7 @@ class TypedServiceRegistry:
         # For now, delegate to sync resolution since we use eager singleton model
         return self._get_initialized_singleton(service_type, qualifier)
 
-    def _get_service_key(
-        self, service_type: Type, qualifier: Optional[str] = None
-    ) -> str:
+    def _get_service_key(self, service_type: Type, qualifier: Optional[str] = None) -> str:
         """Generate unique service key."""
         base_key = f"{service_type.__module__}.{service_type.__qualname__}"
         if qualifier:
@@ -435,9 +405,7 @@ class TypedServiceRegistry:
         service_key = self._get_service_key(service_type, qualifier)
 
         if service_key not in self._registrations:
-            raise MissingDependencyError(
-                f"Service {service_key} not registered"
-            )
+            raise MissingDependencyError(f"Service {service_key} not registered")
 
         registration = self._registrations[service_key]
 
@@ -456,25 +424,21 @@ class TypedServiceRegistry:
             self._instances[service_key] = ServiceInstance(
                 instance=instance,
                 initialization_time=time.time(),
-                dependencies_resolved=[
-                    dep.type.__name__ for dep in registration.dependencies
-                ],
+                dependencies_resolved=[dep.type.__name__ for dep in registration.dependencies],
             )
 
             return instance
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to lazy initialize service {service_key}: {e}"
-            ) from e
+            raise RuntimeError(f"Failed to lazy initialize service {service_key}: {e}") from e
 
-    async def _async_lazy_initialize_service(self, service_type: Type[T], qualifier: Optional[str] = None) -> T:
+    async def _async_lazy_initialize_service(
+        self, service_type: Type[T], qualifier: Optional[str] = None
+    ) -> T:
         """Asynchronously lazy-initialize a single service."""
         service_key = self._get_service_key(service_type, qualifier)
 
         if service_key not in self._registrations:
-            raise MissingDependencyError(
-                f"Service {service_key} not registered"
-            )
+            raise MissingDependencyError(f"Service {service_key} not registered")
 
         registration = self._registrations[service_key]
 
@@ -483,9 +447,7 @@ class TypedServiceRegistry:
             await self._initialize_service(registration)
             return self._instances[service_key].instance
         except Exception as e:
-            raise RuntimeError(
-                f"Failed to async lazy initialize service {service_key}: {e}"
-            ) from e
+            raise RuntimeError(f"Failed to async lazy initialize service {service_key}: {e}") from e
 
     def _is_test_environment(self) -> bool:
         """Detect if running in test mode."""
@@ -503,7 +465,9 @@ class TypedServiceRegistry:
         """
         raise NotInitializedError("Lazy initialization disabled. Call initialize_all() first.")
 
-    async def _async_lazy_initialize_service(self, service_type: Type[T], qualifier: Optional[str] = None) -> T:
+    async def _async_lazy_initialize_service(
+        self, service_type: Type[T], qualifier: Optional[str] = None
+    ) -> T:
         """
         Lazy initialization is disabled - use initialize_all() first.
 

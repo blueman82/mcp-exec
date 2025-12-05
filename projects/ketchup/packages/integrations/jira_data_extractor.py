@@ -102,9 +102,7 @@ class JIRADataExtractor:
                             "data": ticket_data,
                         }
                 else:
-                    logger.debug(
-                        f"Skipping invalid JIRA ticket placeholder: {ticket_id}"
-                    )
+                    logger.debug(f"Skipping invalid JIRA ticket placeholder: {ticket_id}")
 
             # If not in metadata, search messages for ticket references
             ticket_ids = self.extract_ticket_ids(message_texts)
@@ -197,9 +195,7 @@ class JIRADataExtractor:
                     author_key = author.get("key", "").lower()
 
                     # Skip if author is a bot
-                    if any(
-                        bot in author_name or bot in author_key for bot in bot_users
-                    ):
+                    if any(bot in author_name or bot in author_key for bot in bot_users):
                         continue
 
                     filtered_comments.append(
@@ -301,9 +297,7 @@ class JIRADataExtractor:
                     if ticket_data:
                         # Optionally fetch comments (still one by one, but could be parallelized)
                         if include_comments:
-                            comments = await self.mcp_client.get_issue_comments(
-                                ticket_id
-                            )
+                            comments = await self.mcp_client.get_issue_comments(ticket_id)
 
                             # Filter out bot comments
                             bot_users = ["jiradydx", "monserv", "jarvis"]
@@ -316,8 +310,7 @@ class JIRADataExtractor:
 
                                 # Skip if author is a bot
                                 if any(
-                                    bot in author_name or bot in author_key
-                                    for bot in bot_users
+                                    bot in author_name or bot in author_key for bot in bot_users
                                 ):
                                     continue
 

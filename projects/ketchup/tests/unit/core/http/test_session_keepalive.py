@@ -65,115 +65,121 @@ class TestSessionKeepAliveEnabled:
     @pytest.mark.asyncio
     async def test_session_creation_with_keepalive_enabled(self) -> None:
         """Test create_session_with_retries creates session with keep-alive settings."""
-        with patch.dict(
-            os.environ,
-            {
-                "KETCHUP_KEEPALIVE_ENABLED": "true",
-                "KETCHUP_KEEPALIVE_TIMEOUT": "60",
-                "KETCHUP_DNS_CACHE_TTL": "300",
-            },
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "KETCHUP_KEEPALIVE_ENABLED": "true",
+                    "KETCHUP_KEEPALIVE_TIMEOUT": "60",
+                    "KETCHUP_DNS_CACHE_TTL": "300",
+                },
+            ),
+            patch("aiohttp.TCPConnector") as mock_connector_class,
         ):
-            with patch("aiohttp.TCPConnector") as mock_connector_class:
-                mock_connector = MagicMock()
-                mock_connector_class.return_value = mock_connector
+            mock_connector = MagicMock()
+            mock_connector_class.return_value = mock_connector
 
-                with patch("aiohttp.ClientSession") as mock_session_class:
-                    mock_session = MagicMock()
-                    mock_session.closed = False
-                    mock_session_class.return_value = mock_session
+            with patch("aiohttp.ClientSession") as mock_session_class:
+                mock_session = MagicMock()
+                mock_session.closed = False
+                mock_session_class.return_value = mock_session
 
-                    session, error = await create_session_with_retries(
-                        client_name="test_client",
-                        semaphore_limit=10,
-                        request_timeout_total=60.0,
-                    )
+                session, error = await create_session_with_retries(
+                    client_name="test_client",
+                    semaphore_limit=10,
+                    request_timeout_total=60.0,
+                )
 
-                    # Verify session was created successfully
-                    assert session is mock_session
-                    assert error is None
+                # Verify session was created successfully
+                assert session is mock_session
+                assert error is None
 
-                    # Verify TCPConnector was called with keep-alive settings
-                    mock_connector_class.assert_called_once_with(
-                        limit=10,
-                        ttl_dns_cache=300,
-                        enable_cleanup_closed=True,
-                        force_close=False,
-                        keepalive_timeout=60,
-                    )
+                # Verify TCPConnector was called with keep-alive settings
+                mock_connector_class.assert_called_once_with(
+                    limit=10,
+                    ttl_dns_cache=300,
+                    enable_cleanup_closed=True,
+                    force_close=False,
+                    keepalive_timeout=60,
+                )
 
     @pytest.mark.asyncio
     async def test_session_creation_with_custom_timeout(self) -> None:
         """Test session creation with custom keep-alive timeout."""
-        with patch.dict(
-            os.environ,
-            {
-                "KETCHUP_KEEPALIVE_ENABLED": "true",
-                "KETCHUP_KEEPALIVE_TIMEOUT": "120",
-                "KETCHUP_DNS_CACHE_TTL": "300",
-            },
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "KETCHUP_KEEPALIVE_ENABLED": "true",
+                    "KETCHUP_KEEPALIVE_TIMEOUT": "120",
+                    "KETCHUP_DNS_CACHE_TTL": "300",
+                },
+            ),
+            patch("aiohttp.TCPConnector") as mock_connector_class,
         ):
-            with patch("aiohttp.TCPConnector") as mock_connector_class:
-                mock_connector = MagicMock()
-                mock_connector_class.return_value = mock_connector
+            mock_connector = MagicMock()
+            mock_connector_class.return_value = mock_connector
 
-                with patch("aiohttp.ClientSession") as mock_session_class:
-                    mock_session = MagicMock()
-                    mock_session.closed = False
-                    mock_session_class.return_value = mock_session
+            with patch("aiohttp.ClientSession") as mock_session_class:
+                mock_session = MagicMock()
+                mock_session.closed = False
+                mock_session_class.return_value = mock_session
 
-                    session, error = await create_session_with_retries(
-                        client_name="test_client",
-                        semaphore_limit=10,
-                    )
+                session, error = await create_session_with_retries(
+                    client_name="test_client",
+                    semaphore_limit=10,
+                )
 
-                    assert session is mock_session
-                    assert error is None
+                assert session is mock_session
+                assert error is None
 
-                    # Verify custom timeout was used
-                    mock_connector_class.assert_called_once_with(
-                        limit=10,
-                        ttl_dns_cache=300,
-                        enable_cleanup_closed=True,
-                        force_close=False,
-                        keepalive_timeout=120,
-                    )
+                # Verify custom timeout was used
+                mock_connector_class.assert_called_once_with(
+                    limit=10,
+                    ttl_dns_cache=300,
+                    enable_cleanup_closed=True,
+                    force_close=False,
+                    keepalive_timeout=120,
+                )
 
     @pytest.mark.asyncio
     async def test_session_creation_with_custom_dns_cache(self) -> None:
         """Test session creation with custom DNS cache TTL."""
-        with patch.dict(
-            os.environ,
-            {
-                "KETCHUP_KEEPALIVE_ENABLED": "true",
-                "KETCHUP_KEEPALIVE_TIMEOUT": "60",
-                "KETCHUP_DNS_CACHE_TTL": "600",
-            },
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "KETCHUP_KEEPALIVE_ENABLED": "true",
+                    "KETCHUP_KEEPALIVE_TIMEOUT": "60",
+                    "KETCHUP_DNS_CACHE_TTL": "600",
+                },
+            ),
+            patch("aiohttp.TCPConnector") as mock_connector_class,
         ):
-            with patch("aiohttp.TCPConnector") as mock_connector_class:
-                mock_connector = MagicMock()
-                mock_connector_class.return_value = mock_connector
+            mock_connector = MagicMock()
+            mock_connector_class.return_value = mock_connector
 
-                with patch("aiohttp.ClientSession") as mock_session_class:
-                    mock_session = MagicMock()
-                    mock_session.closed = False
-                    mock_session_class.return_value = mock_session
+            with patch("aiohttp.ClientSession") as mock_session_class:
+                mock_session = MagicMock()
+                mock_session.closed = False
+                mock_session_class.return_value = mock_session
 
-                    session, error = await create_session_with_retries(
-                        client_name="test_client",
-                        semaphore_limit=10,
-                    )
+                session, error = await create_session_with_retries(
+                    client_name="test_client",
+                    semaphore_limit=10,
+                )
 
-                    assert session is mock_session
-                    assert error is None
+                assert session is mock_session
+                assert error is None
 
-                    # Verify custom DNS cache TTL was used
-                    mock_connector_class.assert_called_once_with(
-                        limit=10,
-                        ttl_dns_cache=600,
-                        enable_cleanup_closed=True,
-                        force_close=False,
-                        keepalive_timeout=60,
-                    )
+                # Verify custom DNS cache TTL was used
+                mock_connector_class.assert_called_once_with(
+                    limit=10,
+                    ttl_dns_cache=600,
+                    enable_cleanup_closed=True,
+                    force_close=False,
+                    keepalive_timeout=60,
+                )
 
 
 class TestSessionKeepAliveDisabled:
@@ -236,47 +242,46 @@ class TestSessionKeepAliveLogging:
     @pytest.mark.asyncio
     async def test_logging_when_keepalive_enabled(self) -> None:
         """Test appropriate logging when keep-alive is enabled."""
-        with patch.dict(
-            os.environ,
-            {
-                "KETCHUP_KEEPALIVE_ENABLED": "true",
-                "KETCHUP_KEEPALIVE_TIMEOUT": "60",
-                "KETCHUP_DNS_CACHE_TTL": "300",
-            },
+        with (
+            patch.dict(
+                os.environ,
+                {
+                    "KETCHUP_KEEPALIVE_ENABLED": "true",
+                    "KETCHUP_KEEPALIVE_TIMEOUT": "60",
+                    "KETCHUP_DNS_CACHE_TTL": "300",
+                },
+            ),
+            patch("aiohttp.TCPConnector"),
+            patch("aiohttp.ClientSession") as mock_session_class,
+            patch("logging.Logger.info") as mock_logger_info,
         ):
-            with patch("aiohttp.TCPConnector"), patch(
-                "aiohttp.ClientSession"
-            ) as mock_session_class, patch(
-                "logging.Logger.info"
-            ) as mock_logger_info:
-                mock_session = MagicMock()
-                mock_session.closed = False
-                mock_session_class.return_value = mock_session
+            mock_session = MagicMock()
+            mock_session.closed = False
+            mock_session_class.return_value = mock_session
 
-                session, error = await create_session_with_retries(
-                    client_name="test_client",
-                    semaphore_limit=10,
-                )
+            session, error = await create_session_with_retries(
+                client_name="test_client",
+                semaphore_limit=10,
+            )
 
-                assert session is mock_session
-                assert error is None
+            assert session is mock_session
+            assert error is None
 
-                # Verify logging was called with keep-alive info
-                log_calls = [str(call) for call in mock_logger_info.call_args_list]
-                assert any(
-                    "Keep-alive tuning enabled" in call or "timeout=" in call
-                    for call in log_calls
-                )
+            # Verify logging was called with keep-alive info
+            log_calls = [str(call) for call in mock_logger_info.call_args_list]
+            assert any(
+                "Keep-alive tuning enabled" in call or "timeout=" in call for call in log_calls
+            )
 
     @pytest.mark.asyncio
     async def test_logging_when_keepalive_disabled(self) -> None:
         """Test appropriate logging when keep-alive is disabled."""
         with patch.dict(os.environ, {"KETCHUP_KEEPALIVE_ENABLED": "false"}):
-            with patch("aiohttp.TCPConnector"), patch(
-                "aiohttp.ClientSession"
-            ) as mock_session_class, patch(
-                "logging.Logger.debug"
-            ) as mock_logger_debug:
+            with (
+                patch("aiohttp.TCPConnector"),
+                patch("aiohttp.ClientSession") as mock_session_class,
+                patch("logging.Logger.debug") as mock_logger_debug,
+            ):
                 mock_session = MagicMock()
                 mock_session.closed = False
                 mock_session_class.return_value = mock_session
@@ -325,9 +330,11 @@ class TestSessionKeepAliveBackwardCompatibility:
     async def test_backward_compatibility_existing_parameters(self) -> None:
         """Test existing parameters still work as expected."""
         with patch.dict(os.environ, {"KETCHUP_KEEPALIVE_ENABLED": "false"}):
-            with patch("aiohttp.TCPConnector"), patch(
-                "aiohttp.ClientSession"
-            ) as mock_session_class, patch("aiohttp.ClientTimeout") as mock_timeout:
+            with (
+                patch("aiohttp.TCPConnector"),
+                patch("aiohttp.ClientSession") as mock_session_class,
+                patch("aiohttp.ClientTimeout") as mock_timeout,
+            ):
                 mock_session = MagicMock()
                 mock_session.closed = False
                 mock_session_class.return_value = mock_session

@@ -96,21 +96,11 @@ class StateManagementServiceProtocol(Protocol):
 class TransitionServiceProtocol(Protocol):
     """Protocol for state transition operations."""
 
-    async def transition_state(
-        self,
-        entity_id: str,
-        from_state: str,
-        to_state: str
-    ) -> bool:
+    async def transition_state(self, entity_id: str, from_state: str, to_state: str) -> bool:
         """Transition entity from one state to another."""
         ...
 
-    async def validate_transition(
-        self,
-        entity_id: str,
-        from_state: str,
-        to_state: str
-    ) -> bool:
+    async def validate_transition(self, entity_id: str, from_state: str, to_state: str) -> bool:
         """Validate if a transition is allowed."""
         ...
 
