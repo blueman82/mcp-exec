@@ -1,139 +1,14 @@
-# Token Economics
-
-> **80% token reduction** through lazy loading.
-
----
-
-## Strategy Comparison
-
-```mermaid
 flowchart TB
-  subgraph Traditional["Traditional"]
+  subgraph Traditional["Traditional: 16k+ tokens"]
     T1[Start] --> T2[Load ALL schemas]
-    T2 --> T3["16,000+ tokens"]
-    style T3 fill:#ff6b6b
+    T2 --> T3["57,600 tokens"]
   end
 
-  subgraph Meta["Meta-MCP"]
+  subgraph Meta["Meta-MCP: 80% savings"]
     M1[Start] --> M2["3 meta-tools: 1.9k"]
-    M2 --> M3["per tool: +640"]
+    M2 --> M3["per backend tool: +640"]
     M3 --> M4["typical: 3.2k"]
-    style M4 fill:#51cf66
-  end
-```
-
----
-
-## Savings by Tool Count
-
-| Tools | Traditional | Meta-MCP | Savings |
-|-------|-------------|----------|---------|
-| 1 | 16,000 | 2,500 | **84%** |
-| 2 | 16,000 | 3,200 | **80%** |
-| 5 | 16,000 | 5,100 | **68%** |
-| 10 | 16,000 | 8,300 | **48%** |
-
-Formula: `1,900 + (tools × 640)`
-
----
-
-## Request Flow
-
-```mermaid
-sequenceDiagram
-  participant AI
-  participant Meta as Meta-MCP
-  participant Cache
-  participant Backend
-
-  rect rgb(230,245,255)
-    Note over AI,Backend: Startup: 1.9k tokens
-    AI->>Meta: (3 meta-tools loaded)
   end
 
-  rect rgb(255,243,224)
-    AI->>Meta: list_servers()
-    Meta-->>AI: ["jira", "slack"]
-
-    AI->>Meta: get_server_tools(jira, summary_only=true)
-    Meta->>Backend: listTools()
-    Meta-->>AI: [tool summaries]
-  end
-
-  rect rgb(232,245,233)
-    Note over AI,Backend: Per tool: +640 tokens
-    AI->>Meta: get_server_tools(jira, tools=["search"])
-    Meta->>Cache: HIT
-    Meta-->>AI: [full schema]
-  end
-
-  rect rgb(243,229,245)
-    AI->>Meta: call_tool(jira, search, {...})
-    Meta->>Backend: execute
-    Backend-->>AI: results
-  end
-```
-
----
-
-## When to Use
-
-```mermaid
-flowchart TD
-  A{Tools needed?} --> B["1-5"]
-  A --> C["5-10"]
-  A --> D["10+"]
-
-  B --> E["Meta-MCP: 68-84%"]
-  C --> F["Meta-MCP: 48-68%"]
-  D --> G["Consider traditional"]
-
-  style E fill:#51cf66
-  style F fill:#ffd43b
-  style G fill:#ff6b6b
-```
-
----
-
-## Real-World Impact
-
-**Traditional** (3 servers):
-```
-Jira + Slack + GitHub = 57,600 tokens upfront
-```
-
-**Meta-MCP** (using 2 backend tools):
-```
-Startup:    1,900
-2 tools:    1,280
-────────────────────
-Total:      3,180 tokens (94% savings)
-```
-
----
-
-## API
-
-```typescript
-// Discover
-await call_tool("list_servers", {});
-
-// Summary
-await call_tool("get_server_tools", {
-  server_name: "jira",
-  summary_only: true
-});
-
-// Full schema
-await call_tool("get_server_tools", {
-  server_name: "jira",
-  tools: ["search_issues"]
-});
-
-// Execute
-await call_tool("call_tool", {
-  server_name: "jira",
-  tool_name: "search_issues",
-  arguments: { jql: "..." }
-});
-```
+  style T3 fill:#ff6b6b
+  style M4 fill:#51cf66
