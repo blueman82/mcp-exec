@@ -346,9 +346,13 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             const result = await this.toolConfigurator.autoConfigure(payload.toolId);
             
             if (result.success) {
+                const toolName = result.toolName || payload.toolId;
                 vscode.window.showInformationMessage(
-                    `meta-mcp configured for ${payload.toolId}${result.backupPath ? '. Backup created.' : ''}`
+                    `meta-mcp configured for ${toolName}. Restart ${toolName} to apply changes.`
                 );
+                
+                // Open both config files for user to review
+                await this.openConfigFiles(result.configPath, result.serversConfigPath);
             } else {
                 vscode.window.showErrorMessage(result.error || 'Configuration failed');
             }
@@ -374,13 +378,18 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             const result = await this.toolConfigurator.migrateServers(payload.toolId);
             
             if (result.success) {
+                const toolName = result.toolName || payload.toolId;
                 if (result.migratedCount > 0) {
                     vscode.window.showInformationMessage(
-                        `Migrated ${result.migratedCount} server(s) to servers.json. Backup saved.`
+                        `Migrated ${result.migratedCount} server(s) to servers.json. Restart ${toolName} to apply changes.`
                     );
                 } else {
                     vscode.window.showInformationMessage('No servers to migrate.');
                 }
+                
+                // Open both config files for user to review
+                await this.openConfigFiles(result.configPath, result.serversConfigPath);
+                
                 // Refresh server list and setup
                 this.sendServerList();
                 await this.handleLoadSetup();
@@ -589,5 +598,26 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      */
     public refresh(): void {
         this.sendServerList();
+    }
+
+    /**
+     * Open config files in editor for user to review
+     */
+    private async openConfigFiles(configPath?: string, serversConfigPath?: string): Promise<void> {
+        try {
+            // Open servers.json first (in first column)
+            if (serversConfigPath) {
+                const serversDoc = await vscode.workspace.openTextDocument(serversConfigPath);
+                await vscode.window.showTextDocument(serversDoc, { viewColumn: vscode.ViewColumn.One, preview: false });
+            }
+            
+            // Open tool config second (in second column, side by side)
+            if (configPath) {
+                const configDoc = await vscode.workspace.openTextDocument(configPath);
+                await vscode.window.showTextDocument(configDoc, { viewColumn: vscode.ViewColumn.Two, preview: false });
+            }
+        } catch (err) {
+            console.error('[Meta-MCP] Failed to open config files:', err);
+        }
     }
 }

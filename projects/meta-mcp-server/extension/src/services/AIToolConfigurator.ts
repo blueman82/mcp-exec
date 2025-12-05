@@ -104,9 +104,17 @@ export class AIToolConfigurator {
     
     /**
      * Migrate servers from a tool's config to servers.json
-     * Returns { success, migratedCount, backupPath, error }
+     * Returns { success, migratedCount, backupPath, configPath, serversConfigPath, toolName, error }
      */
-    async migrateServers(toolId: string): Promise<{ success: boolean; migratedCount: number; backupPath?: string; error?: string }> {
+    async migrateServers(toolId: string): Promise<{ 
+        success: boolean; 
+        migratedCount: number; 
+        backupPath?: string; 
+        configPath?: string;
+        serversConfigPath?: string;
+        toolName?: string;
+        error?: string 
+    }> {
         const tool = getToolById(toolId);
         if (!tool) {
             return { success: false, migratedCount: 0, error: `Unknown tool: ${toolId}` };
@@ -128,7 +136,7 @@ export class AIToolConfigurator {
                 .filter(([name]) => name !== META_MCP_SERVER_NAME);
             
             if (serversToMigrate.length === 0) {
-                return { success: true, migratedCount: 0 };
+                return { success: true, migratedCount: 0, configPath, serversConfigPath: this.serversConfigPath, toolName: tool.name };
             }
             
             // Load or create servers.json
@@ -170,7 +178,14 @@ export class AIToolConfigurator {
                 : {};
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
             
-            return { success: true, migratedCount: serversToMigrate.length, backupPath };
+            return { 
+                success: true, 
+                migratedCount: serversToMigrate.length, 
+                backupPath,
+                configPath,
+                serversConfigPath: this.serversConfigPath,
+                toolName: tool.name
+            };
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             return { success: false, migratedCount: 0, error: errorMsg };
@@ -263,9 +278,16 @@ export class AIToolConfigurator {
     /**
      * Auto-configure a tool with meta-mcp (creates backup first)
      * Uses npx if no local path configured, creates servers.json if needed
-     * @returns Path to backup file, or null if no changes made
+     * @returns Paths to config files and backup
      */
-    async autoConfigure(toolId: string): Promise<{ backupPath?: string; success: boolean; error?: string }> {
+    async autoConfigure(toolId: string): Promise<{ 
+        backupPath?: string; 
+        configPath?: string;
+        serversConfigPath?: string;
+        toolName?: string;
+        success: boolean; 
+        error?: string 
+    }> {
         // If local path is set, verify it exists
         if (this.metaMcpPath && !fs.existsSync(this.metaMcpPath)) {
             return { 
@@ -310,7 +332,13 @@ export class AIToolConfigurator {
         // Check if already configured
         const servers = (existingConfig[tool.configKey] as Record<string, unknown>) ?? {};
         if (META_MCP_SERVER_NAME in servers) {
-            return { success: true, backupPath }; // Already configured
+            return { 
+                success: true, 
+                backupPath, 
+                configPath, 
+                serversConfigPath: this.serversConfigPath,
+                toolName: tool.name
+            }; // Already configured
         }
 
         // Merge in meta-mcp entry
@@ -323,7 +351,13 @@ export class AIToolConfigurator {
         // Write updated config
         try {
             fs.writeFileSync(configPath, JSON.stringify(existingConfig, null, 2), 'utf-8');
-            return { success: true, backupPath };
+            return { 
+                success: true, 
+                backupPath, 
+                configPath, 
+                serversConfigPath: this.serversConfigPath,
+                toolName: tool.name
+            };
         } catch (e) {
             return { success: false, error: `Failed to write config: ${e}` };
         }
