@@ -149,6 +149,11 @@ ignore = [
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
 "tests/*" = ["F841", "E402", "B018"]  # Allow unused variables and late imports in tests
 "conftest.py" = ["F401", "F403"]  # Allow star imports in conftest
+# TypedDI uses lazy imports intentionally to break circular dependencies
+# and enable Kahn's algorithm for topological sorting of the dependency graph
+"packages/core/typed_di/*" = ["E402"]  # Late imports for DI resolution
+"packages/core/typed_di/service_registrations/*" = ["E402"]  # Factory function imports
+"packages/core/typed_di/service_registrations/registrations/*" = ["E402"]  # Service registration imports
 
 [tool.ruff.lint.isort]
 known-first-party = ["packages", "ketchup_app", "jira_reporter", "channel_metadata_updater", "ketchup_status_updater", "ketchup_maintenance_fetcher", "ketchup_access_request_monitor"]
