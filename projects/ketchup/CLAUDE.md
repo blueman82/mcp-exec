@@ -50,53 +50,64 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 - These are explicitly stopped/removed on prod2 during deployment (see deploy-ketchup.sh:505-506)
 - Prevents duplicate scheduled jobs and conflicting operations
 
-## Common Development Commands
+## Developer Setup
 
-### Setup and Testing
-All commands run from the `tests/setup/` directory:
-
+**First time setup** (run once from project root):
 ```bash
-# Initial setup
-make setup                 # Create venv and install dependencies
-
-# Testing
-make test-unit            # Unit tests (preferred for development)
-make test-integration     # Integration tests (requires AWS profile)
-make test-typed-di        # TypedDI validation tests
-make pylint               # Code quality: ruff, black, isort, pylint
-
-# JIRA Reporter Testing
-make test-jira-reporter-unit
-make test-jira-reporter-integration
+./setup
 ```
 
-**Critical**: Always run `make pylint` and `make test-unit` after code changes.
+This installs dependencies and configures git hooks for automated quality checks.
+
+## Developer Workflow
+
+**Daily workflow is automated via git hooks:**
+- **Pre-commit**: Quick lint check (ruff) ~5s
+- **Pre-push**: Full lint check (ruff, black, isort) ~10s
+- **Deploy**: Validation gate built-in
+
+**You rarely need manual commands.** Just code, commit, and push.
+
+### Manual Commands (if needed)
+
+From project root:
+```bash
+./check              # Run lint checks
+./check --fix        # Auto-fix lint issues
+./deploy             # Deploy to production
+```
+
+### Testing
+
+From `tests/setup/` directory:
+```bash
+make test-fast       # Critical tests (~10s) - during development
+make test-parallel   # All unit tests (~15s) - before PR
+make test-typed-di   # TypedDI validation
+make test-integration # AWS tests (requires AWS_PROFILE)
+```
 
 ### Deployment
-From the `infrastructure/` directory:
 
 ```bash
-./deploy-ketchup.sh              # Deploy to both production servers
-./deploy-ketchup.sh --prod1-only # Deploy to prod1 only
-./deploy-ketchup.sh --prod2-only # Deploy to prod2 only
-./deploy-ketchup.sh --verify     # Verify deployment status
-./deploy-ketchup.sh --rollback vX.XXX.XXX  # Rollback to specific version
+./deploy                         # Deploy to both servers
+./deploy --prod1-only            # Deploy to prod1 only
+./deploy --prod2-only            # Deploy to prod2 only
+./deploy --verify                # Verify deployment status
+./deploy --rollback vX.XXX.XXX   # Rollback to specific version
 ```
 
 The deployment script:
-1. Auto-increments version from latest in ECR
-2. Builds Docker images locally
-3. Pushes to ECR
-4. Updates docker-compose.yml on servers
+1. Runs validation checks automatically
+2. Auto-increments version from latest in ECR
+3. Builds Docker images locally
+4. Pushes to ECR
 5. Deploys with zero-downtime sequential rollout
 
 ### Local Development
 ```bash
-# Start local services
 cd infrastructure
 docker-compose -f docker-compose.local.yml up -d
-
-# View logs
 docker-compose logs -f ketchup-app
 ```
 

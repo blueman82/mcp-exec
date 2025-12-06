@@ -1,0 +1,51 @@
+#!/bin/bash
+# Ketchup Developer Setup
+# Run once after cloning: ./setup
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
+
+echo "================================"
+echo "  Ketchup Developer Setup"
+echo "================================"
+echo ""
+
+# 1. Set up Python virtual environment
+echo "[1/3] Setting up Python environment..."
+cd tests/setup
+if [ ! -d ".venv" ]; then
+    python3 -m venv .venv
+fi
+.venv/bin/pip install --upgrade pip -q
+.venv/bin/pip install -r requirements.txt -q
+cd "$SCRIPT_DIR"
+echo "      Python environment ready"
+
+# 2. Configure git hooks
+echo "[2/3] Configuring git hooks..."
+git config core.hooksPath .githooks
+chmod +x .githooks/*
+echo "      Git hooks configured"
+
+# 3. Verify setup
+echo "[3/3] Verifying setup..."
+./infrastructure/validate.sh --quick > /dev/null 2>&1 && echo "      Validation working" || echo "      Warning: Validation check failed"
+
+echo ""
+echo "================================"
+echo "  Setup Complete!"
+echo "================================"
+echo ""
+echo "Your workflow is now automated:"
+echo "  - Pre-commit: Quick lint check (ruff)"
+echo "  - Pre-push:   Full lint check (ruff, black, isort)"
+echo "  - Deploy:     ./deploy"
+echo ""
+echo "Manual commands if needed:"
+echo "  ./check              - Run lint checks"
+echo "  ./check --fix        - Auto-fix lint issues"
+echo "  cd tests/setup && make test-fast     - Quick tests"
+echo "  cd tests/setup && make test-parallel - Full tests"
+echo ""
