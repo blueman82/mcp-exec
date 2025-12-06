@@ -99,9 +99,7 @@ def enhance_structured_text(text: str) -> str:
 
             if heading_level == 1:
                 # For top-level headings (# Heading)
-                enhanced_sections.append(
-                    f"\n\n:page_facing_up: *{heading_text.upper()}*\n"
-                )
+                enhanced_sections.append(f"\n\n:page_facing_up: *{heading_text.upper()}*\n")
             elif heading_level == 2:
                 # For second-level headings (## Heading)
                 enhanced_sections.append(f"\n\n:bookmark_tabs: *{heading_text}*\n")
@@ -122,12 +120,8 @@ def enhance_structured_text(text: str) -> str:
     # Double-check for any remaining hyphens used as bullet points
     # This catches any hyphens that might have been missed in the initial pass
     # or introduced during processing
-    result = re.sub(
-        r"(\n|^)\s*-\s+", r"\1• ", result
-    )  # Beginning of line or after newline
-    result = re.sub(
-        r"(\n[A-Za-z0-9&\s]+:)\s*-\s+", r"\1 • ", result
-    )  # After section labels
+    result = re.sub(r"(\n|^)\s*-\s+", r"\1• ", result)  # Beginning of line or after newline
+    result = re.sub(r"(\n[A-Za-z0-9&\s]+:)\s*-\s+", r"\1 • ", result)  # After section labels
     result = re.sub(r"(\n\s+)-\s+", r"\1• ", result)  # Indented list items
 
     # Add an extra line before blockquotes for better separation

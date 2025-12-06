@@ -17,11 +17,11 @@ All registrations use protocol-first pattern with concrete class aliasing.
 
 from typing import TYPE_CHECKING
 
-from packages.ai.cost_calculator import TokenTracker
 from packages.ai.core.azure_async_client import AzureConfig
 from packages.ai.core.openai_handler import OpenAIHandler
 from packages.ai.core.operations.api_interaction import ApiExecutor
 from packages.ai.core.operations.message_preparation import MessagePreparer
+from packages.ai.cost_calculator import TokenTracker
 from packages.core.logging import setup_logger
 from packages.core.typed_di.types import DependencySpec
 from packages.slack.blockkits.base import BlockKitBuilder
@@ -84,6 +84,7 @@ def register_ai_operational(manager: "ServiceRegistrationManager") -> None:
 
 def _register_ai_core_services(manager: "ServiceRegistrationManager") -> None:
     """Register core AI services: TokenTracker and OpenAIHandler."""
+
     # TokenTracker with protocol (no dependencies)
     async def create_token_tracker(resolver) -> TokenTracker:
         """Factory function for TokenTracker using TypedResolver."""
@@ -138,12 +139,18 @@ def _register_ai_core_services(manager: "ServiceRegistrationManager") -> None:
 
 def _register_ui_and_command_services(manager: "ServiceRegistrationManager") -> None:
     """Register UI and command services: BlockKitBuilder and SlackArchiveCommand."""
+
     # BlockKitBuilder with protocol
     async def create_block_kit_builder(resolver) -> BlockKitBuilder:
         """Factory function for BlockKitBuilder using TypedResolver."""
         logger.info("Creating BlockKitBuilder instance via TypedDI")
-        from packages.core.typed_di.service_registrations.protocols.core_protocols import SlackPostingHandlerProtocol
-        from packages.core.typed_di.service_registrations.protocols.ui_protocols import FeedbackReactionsHandlerProtocol
+        from packages.core.typed_di.service_registrations.protocols.core_protocols import (
+            SlackPostingHandlerProtocol,
+        )
+        from packages.core.typed_di.service_registrations.protocols.ui_protocols import (
+            FeedbackReactionsHandlerProtocol,
+        )
+
         posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
         dynamodb_store = await resolver.aget(DynamoDBStoreProtocol)
 
@@ -163,7 +170,7 @@ def _register_ui_and_command_services(manager: "ServiceRegistrationManager") -> 
         builder = BlockKitBuilder(posting_handler=posting_handler)
         builder.configure(
             channel_details_getter=dynamodb_store.get_channel_details,
-            build_feedback_blocks_func=build_feedback_blocks_func
+            build_feedback_blocks_func=build_feedback_blocks_func,
         )
         return builder
 
@@ -218,6 +225,7 @@ def _register_ui_and_command_services(manager: "ServiceRegistrationManager") -> 
 
 def _register_ai_operations_and_config(manager: "ServiceRegistrationManager") -> None:
     """Register AI operations and configuration: ApiExecutor, MessagePreparer, AzureConfig."""
+
     # ApiExecutor with protocol
     async def create_api_executor(resolver) -> ApiExecutor:
         """Factory function for ApiExecutor."""

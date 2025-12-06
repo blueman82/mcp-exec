@@ -83,9 +83,7 @@ async def test_verify_and_parse_body_base64_decoding_failure(slack_auth_mock) ->
     slack_auth_mock.verify_slack_signature.assert_not_awaited()
 
 
-async def test_verify_and_parse_body_string_body(
-    slack_auth_mock, parse_event_body_patch
-) -> None:
+async def test_verify_and_parse_body_string_body(slack_auth_mock, parse_event_body_patch) -> None:
     """Test string body branch.
 
     Covers:
@@ -103,9 +101,7 @@ async def test_verify_and_parse_body_string_body(
     parse_event_body_patch.assert_called_once()
 
 
-async def test_verify_and_parse_body_bytes_body(
-    slack_auth_mock, parse_event_body_patch
-) -> None:
+async def test_verify_and_parse_body_bytes_body(slack_auth_mock, parse_event_body_patch) -> None:
     """Test bytes body branch.
 
     Covers:
@@ -136,9 +132,7 @@ async def test_verify_and_parse_body_unexpected_body_type(slack_auth_mock) -> No
     slack_auth_mock.verify_slack_signature.assert_not_awaited()
 
 
-async def test_verify_and_parse_body_missing_body(
-    slack_auth_mock, parse_event_body_patch
-) -> None:
+async def test_verify_and_parse_body_missing_body(slack_auth_mock, parse_event_body_patch) -> None:
     """Test missing or empty body branch.
 
     Covers:

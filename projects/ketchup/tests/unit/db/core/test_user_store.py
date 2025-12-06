@@ -46,9 +46,7 @@ def store(mock_client: MagicMock) -> UserStore:
 
 
 @pytest.mark.asyncio
-async def test_init_sets_client_and_table(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_init_sets_client_and_table(store: UserStore, mock_client: MagicMock) -> None:
     """Test __init__ sets client and table_name attributes."""
     assert store.client is mock_client
     assert store.table_name == "test-table"
@@ -88,9 +86,7 @@ async def test_get_user_not_found(store: UserStore, mock_client: MagicMock) -> N
 async def test_get_user_client_error(store: UserStore, mock_client: MagicMock) -> None:
     """Test get_user returns None on ClientError."""
     mock_client.get_item = AsyncMock(
-        side_effect=ClientError(
-            {"Error": {"Code": "fail", "Message": "bad"}}, "get_item"
-        )
+        side_effect=ClientError({"Error": {"Code": "fail", "Message": "bad"}}, "get_item")
     )
     result = await store.get_user("U3")
     assert result is None
@@ -98,9 +94,7 @@ async def test_get_user_client_error(store: UserStore, mock_client: MagicMock) -
 
 
 @pytest.mark.asyncio
-async def test_get_user_generic_exception(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_get_user_generic_exception(store: UserStore, mock_client: MagicMock) -> None:
     """Test get_user returns None on generic Exception."""
     mock_client.get_item = AsyncMock(side_effect=Exception("fail"))
     result = await store.get_user("U4")
@@ -138,9 +132,7 @@ async def test_get_users_empty_input(store: UserStore) -> None:
 
 
 @pytest.mark.asyncio
-async def test_get_users_unprocessed_keys(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_get_users_unprocessed_keys(store: UserStore, mock_client: MagicMock) -> None:
     """Test get_users logs warning for unprocessed keys."""
     aioboto3_client = AsyncMock()
     aioboto3_client.batch_get_item = AsyncMock(
@@ -160,9 +152,7 @@ async def test_get_users_client_error(store: UserStore, mock_client: MagicMock) 
     """Test get_users returns empty dict on ClientError."""
     aioboto3_client = AsyncMock()
     aioboto3_client.batch_get_item = AsyncMock(
-        side_effect=ClientError(
-            {"Error": {"Code": "fail", "Message": "bad"}}, "batch_get_item"
-        )
+        side_effect=ClientError({"Error": {"Code": "fail", "Message": "bad"}}, "batch_get_item")
     )
     mock_client._get_client = AsyncMock(return_value=aioboto3_client)
     result = await store.get_users(["U1"])
@@ -171,9 +161,7 @@ async def test_get_users_client_error(store: UserStore, mock_client: MagicMock) 
 
 
 @pytest.mark.asyncio
-async def test_get_users_generic_exception(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_get_users_generic_exception(store: UserStore, mock_client: MagicMock) -> None:
     """Test get_users returns empty dict on generic Exception."""
     aioboto3_client = AsyncMock()
     aioboto3_client.batch_get_item = AsyncMock(side_effect=Exception("fail"))
@@ -184,9 +172,7 @@ async def test_get_users_generic_exception(
 
 
 @pytest.mark.asyncio
-async def test_batch_store_users_success(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_batch_store_users_success(store: UserStore, mock_client: MagicMock) -> None:
     """Test batch_store_users returns correct (success, failure) tuple on success."""
     aioboto3_client = AsyncMock()
     aioboto3_client.batch_write_item = AsyncMock(
@@ -211,9 +197,7 @@ async def test_batch_store_users_empty_input(store: UserStore) -> None:
 
 
 @pytest.mark.asyncio
-async def test_store_user_preserves_preferences(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_store_user_preserves_preferences(store: UserStore, mock_client: MagicMock) -> None:
     """Test store_user preserves preferences field when updating user data."""
     # Arrange
     user_data = {
@@ -312,11 +296,7 @@ async def test_batch_store_users_unprocessed_items(
     aioboto3_client = AsyncMock()
     # Simulate one unprocessed item initially, then success on retry
     aioboto3_client.batch_write_item.side_effect = [
-        {
-            "UnprocessedItems": {
-                "test-table": [{"PutRequest": {"Item": {"PK": {"S": "USER#U2"}}}}]
-            }
-        },
+        {"UnprocessedItems": {"test-table": [{"PutRequest": {"Item": {"PK": {"S": "USER#U2"}}}}]}},
         {"UnprocessedItems": {"test-table": []}},  # Simulate success on retry
     ]
 
@@ -334,15 +314,11 @@ async def test_batch_store_users_unprocessed_items(
 
 
 @pytest.mark.asyncio
-async def test_batch_store_users_client_error(
-    store: UserStore, mock_client: MagicMock
-) -> None:
+async def test_batch_store_users_client_error(store: UserStore, mock_client: MagicMock) -> None:
     """Test batch_store_users returns correct tuple on ClientError."""
     aioboto3_client = AsyncMock()
     aioboto3_client.batch_write_item = AsyncMock(
-        side_effect=ClientError(
-            {"Error": {"Code": "fail", "Message": "bad"}}, "batch_write_item"
-        )
+        side_effect=ClientError({"Error": {"Code": "fail", "Message": "bad"}}, "batch_write_item")
     )
     mock_client._get_client = AsyncMock(return_value=aioboto3_client)
     result = await store.batch_store_users(

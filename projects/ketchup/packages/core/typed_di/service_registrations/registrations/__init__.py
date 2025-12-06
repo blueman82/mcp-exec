@@ -6,38 +6,45 @@ Each module contains ≤400 lines and handles a specific domain of services.
 """
 
 # Import all registration functions from focused modules
-from .core_primitives import register_core_primitives
-from .core_infrastructure import register_core_infrastructure
-from .slack_core import register_slack_core
-from .slack_handlers import register_slack_handlers
-from .ai_operational import register_ai_operational
-from .integrations import register_integrations
-from .database_batches import register_database_batches
-from .ai_enhancements import register_ai_enhancements
-from .command_processing import register_command_processing
-from .event_processing import register_event_processing
-from .ui_services import register_ui_services
 from .advanced_infrastructure import register_advanced_infrastructure
-from .integration_management import register_integration_management
-# Core infrastructure extensions (16 services) - modular breakdown
-from .basic_infrastructure import register_basic_infrastructure
-from .caching_storage import register_caching_storage
-from .security_monitoring import register_security_monitoring
-from .communication_services import register_communication_services
-# Channel management services (5 services) - business logic
-from .channel_management import register_channel_management
-# Business rule services (5 services) - rule engine, policy, compliance, audit, governance
-from .business_rule_services import register_business_rule_services
-# Workflow management services (5 services) - workflow engine, task management, process automation, state management, transitions
-from .workflow_management import register_workflow_management_services
+from .ai_enhancements import register_ai_enhancements
+from .ai_operational import register_ai_operational
+
 # Archive processing services (5 services) - archive processor, validation, reporting, analytics, cleanup
 from .archive_processing import register_archive_processing_services
+
+# Core infrastructure extensions (16 services) - modular breakdown
+from .basic_infrastructure import register_basic_infrastructure
+
+# Business rule services (5 services) - rule engine, policy, compliance, audit, governance
+from .business_rule_services import register_business_rule_services
+from .caching_storage import register_caching_storage
+
+# Channel management services (5 services) - business logic
+from .channel_management import register_channel_management
+from .command_processing import register_command_processing
+from .communication_services import register_communication_services
+from .core_infrastructure import register_core_infrastructure
+from .core_primitives import register_core_primitives
+
 # Missing modules for service expansion (3 functional modules)
 from .cross_component_integration import register_cross_component_integration
+from .database_batches import register_database_batches
+from .event_processing import register_event_processing
 from .external_api_services import register_external_api_services
+from .integration_management import register_integration_management
+from .integrations import register_integrations
 from .jira_services import register_jira_services
+
 # Maintenance detection services (3 services) - Raven client, maintenance checker, JIRA prompt handler
 from .maintenance_registrations import register_maintenance_services
+from .security_monitoring import register_security_monitoring
+from .slack_core import register_slack_core
+from .slack_handlers import register_slack_handlers
+from .ui_services import register_ui_services
+
+# Workflow management services (5 services) - workflow engine, task management, process automation, state management, transitions
+from .workflow_management import register_workflow_management_services
 
 __all__ = [
     "register_core_primitives",

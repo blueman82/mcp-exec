@@ -69,9 +69,7 @@ async def handle_slack_command(
                     message=f"Error processing command: {e}",
                 )
             else:
-                logger.warning(
-                    "Cannot post command routing error: posting_handler unavailable."
-                )
+                logger.warning("Cannot post command routing error: posting_handler unavailable.")
         except Exception as post_err:
             logger.error("Failed to post command routing error: %s", post_err)
         # Return 200 to ack receipt, even if internal processing failed
@@ -139,9 +137,7 @@ async def handle_interactive_component(
     except Exception as e:
         logger.error("Error processing interactive payload: %s", e, exc_info=True)
         # Attempt to notify if possible (e.g., via response_url if available in payload)
-        response_url = (
-            payload.get("response_url") if isinstance(payload, dict) else None
-        )
+        response_url = payload.get("response_url") if isinstance(payload, dict) else None
         if response_url:
             try:
                 await posting_handler.post_message(
@@ -149,9 +145,7 @@ async def handle_interactive_component(
                     message=f"Error processing interaction: {e}",
                 )
             except Exception as post_error:
-                logger.error(
-                    "Failed to send interaction error via response_url: %s", post_error
-                )
+                logger.error("Failed to send interaction error via response_url: %s", post_error)
 
         # Ack receipt even on error to prevent Slack retries
         return {"statusCode": 200, "body": "Error processing interaction"}
@@ -184,9 +178,7 @@ async def handle_events_api(
         event_type = parsed_body_dict.get("type")
         source_dict = "single-value"
         if event_type:
-            logger.warning(
-                "Event type found in single-value dict, processing may be incomplete"
-            )
+            logger.warning("Event type found in single-value dict, processing may be incomplete")
 
     logger.info(
         "Request identified as an Events API Event: %s (source: %s)",
@@ -197,9 +189,7 @@ async def handle_events_api(
     # Handle URL Verification
     if event_type == "url_verification":
         challenge_list = parsed_body_multivalue.get("challenge")
-        challenge = (
-            challenge_list[0] if challenge_list else parsed_body_dict.get("challenge")
-        )
+        challenge = challenge_list[0] if challenge_list else parsed_body_dict.get("challenge")
         logger.info("Returning URL verification challenge: %s", challenge)
         return {"statusCode": 200, "body": challenge or ""}
 
@@ -207,11 +197,7 @@ async def handle_events_api(
     nested_event_data = None
     if "event" in parsed_body_multivalue:
         nested_event_list = parsed_body_multivalue.get("event")
-        if (
-            nested_event_list
-            and isinstance(nested_event_list, list)
-            and nested_event_list[0]
-        ):
+        if nested_event_list and isinstance(nested_event_list, list) and nested_event_list[0]:
             try:
                 nested_event_data = json.loads(nested_event_list[0])
             except (json.JSONDecodeError, TypeError):
@@ -228,9 +214,7 @@ async def handle_events_api(
                     )
                     return {"statusCode": 400, "body": "Invalid event format"}
         else:
-            logger.error(
-                "Missing or invalid 'event' field in multivalue dict for event_callback"
-            )
+            logger.error("Missing or invalid 'event' field in multivalue dict for event_callback")
             return {"statusCode": 400, "body": "Invalid event_callback structure"}
 
     elif "event" in parsed_body_dict:
@@ -256,9 +240,7 @@ async def handle_events_api(
                 dict_to_process = parsed_body_dict
             # Add handling if source was multivalue but event wasn't nested (less common)
             elif source_dict == "multivalue":
-                logger.error(
-                    "Cannot process non-nested direct event from multivalue source."
-                )
+                logger.error("Cannot process non-nested direct event from multivalue source.")
                 return {"statusCode": 400, "body": "Unexpected event structure"}
 
         # If we have a dictionary to process, dispatch it
@@ -328,8 +310,6 @@ async def handle_events_api(
         return {"statusCode": 200, "body": "Event received"}
 
     except Exception as e:
-        logger.error(
-            "Error during event processing by SlackEventHandler: %s", e, exc_info=True
-        )
+        logger.error("Error during event processing by SlackEventHandler: %s", e, exc_info=True)
         # Return 200 to ack receipt to Slack, but log the internal error
         return {"statusCode": 200, "body": "Error processing event"}

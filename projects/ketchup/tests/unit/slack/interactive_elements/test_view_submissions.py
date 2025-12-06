@@ -47,9 +47,7 @@ async def test_feedback_report_submission_success(feedback_report_handler_mock) 
         "user": {"id": "U1"},
         "trigger_id": "TRIGGER123",
     }
-    result = await view_submissions.process_view_submission(
-        payload, feedback_report_handler_mock
-    )
+    result = await view_submissions.process_view_submission(payload, feedback_report_handler_mock)
     assert result is True
     feedback_report_handler_mock.send_feedback_report_to_channel.assert_awaited_once_with(
         user_id="U1",
@@ -64,9 +62,7 @@ async def test_feedback_report_submission_handler_false(
     feedback_report_handler_mock,
 ) -> None:
     """Test feedback report submission with handler returning False."""
-    feedback_report_handler_mock.send_feedback_report_to_channel = AsyncMock(
-        return_value=False
-    )
+    feedback_report_handler_mock.send_feedback_report_to_channel = AsyncMock(return_value=False)
     payload = {
         "view": {
             "callback_id": "submit_feedback_report",
@@ -80,9 +76,7 @@ async def test_feedback_report_submission_handler_false(
         "user": {"id": "U1"},
         "trigger_id": "TRIGGER123",
     }
-    result = await view_submissions.process_view_submission(
-        payload, feedback_report_handler_mock
-    )
+    result = await view_submissions.process_view_submission(payload, feedback_report_handler_mock)
     assert result is False
     feedback_report_handler_mock.send_feedback_report_to_channel.assert_awaited_once()
 
@@ -123,9 +117,7 @@ async def test_feedback_report_submission_handler_false(
             {
                 "view": {
                     "callback_id": "submit_feedback_report",
-                    "state": {
-                        "values": {"feedback_name": {"name_input": {"value": "title"}}}
-                    },
+                    "state": {"values": {"feedback_name": {"name_input": {"value": "title"}}}},
                 }
             },
             "feedback_description",
@@ -165,9 +157,7 @@ async def test_feedback_report_submission_handler_false(
                     "state": {
                         "values": {
                             "feedback_name": {"name_input": {"value": "title"}},
-                            "feedback_description": {
-                                "description_input": {"value": "desc"}
-                            },
+                            "feedback_description": {"description_input": {"value": "desc"}},
                         }
                     },
                 }
@@ -181,9 +171,7 @@ async def test_feedback_report_submission_handler_false(
                     "state": {
                         "values": {
                             "feedback_name": {"name_input": {"value": "title"}},
-                            "feedback_description": {
-                                "description_input": {"value": "desc"}
-                            },
+                            "feedback_description": {"description_input": {"value": "desc"}},
                         }
                     },
                 },
@@ -199,9 +187,7 @@ async def test_feedback_report_submission_missing_fields(
     feedback_report_handler_mock,
 ) -> None:
     """Test feedback report submission with missing required fields (should return False)."""
-    result = await view_submissions.process_view_submission(
-        payload, feedback_report_handler_mock
-    )
+    result = await view_submissions.process_view_submission(payload, feedback_report_handler_mock)
     assert result is False
     feedback_report_handler_mock.send_feedback_report_to_channel.assert_not_awaited()
 
@@ -209,9 +195,7 @@ async def test_feedback_report_submission_missing_fields(
 async def test_unhandled_callback_id(feedback_report_handler_mock) -> None:
     """Test unhandled callback_id returns True."""
     payload = {"view": {"callback_id": "other_callback"}}
-    result = await view_submissions.process_view_submission(
-        payload, feedback_report_handler_mock
-    )
+    result = await view_submissions.process_view_submission(payload, feedback_report_handler_mock)
     assert result is True
     feedback_report_handler_mock.send_feedback_report_to_channel.assert_not_awaited()
 
@@ -219,8 +203,6 @@ async def test_unhandled_callback_id(feedback_report_handler_mock) -> None:
 async def test_missing_view_returns_true(feedback_report_handler_mock) -> None:
     """Test missing view in payload returns True (unhandled)."""
     payload = {}
-    result = await view_submissions.process_view_submission(
-        payload, feedback_report_handler_mock
-    )
+    result = await view_submissions.process_view_submission(payload, feedback_report_handler_mock)
     assert result is True
     feedback_report_handler_mock.send_feedback_report_to_channel.assert_not_awaited()

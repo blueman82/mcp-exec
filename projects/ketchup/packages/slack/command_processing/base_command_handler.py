@@ -49,9 +49,7 @@ class BaseCommandHandler:
         """
         return {"statusCode": 200, "body": message, "feedback_sent": True}
 
-    def create_error_response(
-        self, message: str, status_code: int = 500
-    ) -> Dict[str, Any]:
+    def create_error_response(self, message: str, status_code: int = 500) -> Dict[str, Any]:
         """
         Create a standardized error response.
 

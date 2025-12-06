@@ -134,9 +134,7 @@ class StatusMessageHandler:
                         "value": json.dumps(
                             {
                                 "channel_id": channel_details.get("channel_id", ""),
-                                "customer_name": channel_details.get(
-                                    "customer_name", ""
-                                ),
+                                "customer_name": channel_details.get("customer_name", ""),
                                 "jira_ticket": channel_details.get("jira_ticket", ""),
                             }
                         ),

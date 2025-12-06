@@ -150,9 +150,7 @@ class NotificationSender:
         except Exception as e:
             logger.error(f"Error sending DM error message: {e}")
 
-    async def send_dm_confirmation(
-        self, user_id: str, confirmation_message: str
-    ) -> None:
+    async def send_dm_confirmation(self, user_id: str, confirmation_message: str) -> None:
         """Send a confirmation message via DM.
 
         Args:
@@ -177,9 +175,7 @@ class NotificationSender:
         # Implementation would retrieve flag details and display them
         logger.info(f"Showing flag details for {flag_id} to user {user_id}")
 
-    async def handle_quick_reply_from_dm(
-        self, payload: Dict[str, Any], flag_id: str
-    ) -> None:
+    async def handle_quick_reply_from_dm(self, payload: Dict[str, Any], flag_id: str) -> None:
         """Handle a quick reply action from DM.
 
         Args:
@@ -190,9 +186,7 @@ class NotificationSender:
         user_id = payload.get("user", {}).get("id")
         logger.info(f"Processing quick reply for flag {flag_id} from user {user_id}")
 
-    async def send_notification_batch(
-        self, notifications: list[Dict[str, Any]]
-    ) -> Dict[str, bool]:
+    async def send_notification_batch(self, notifications: list[Dict[str, Any]]) -> Dict[str, bool]:
         """Send a batch of notifications.
 
         Args:
@@ -207,7 +201,7 @@ class NotificationSender:
                 user_id = notification.get("user_id")
                 message_type = notification.get("type", "info")
                 message = notification.get("message")
-                
+
                 if message_type == "error":
                     await self.send_dm_error(user_id, message)
                 elif message_type == "confirmation":
@@ -217,12 +211,12 @@ class NotificationSender:
                         channel_id=user_id,
                         message=message,
                     )
-                
+
                 results[notification.get("id", user_id)] = True
             except Exception as e:
                 logger.error(f"Error sending notification batch item: {e}")
                 results[notification.get("id", user_id)] = False
-        
+
         return results
 
     def format_notification_timestamp(self, timestamp: Optional[str] = None) -> str:
@@ -238,7 +232,7 @@ class NotificationSender:
             dt = datetime.fromisoformat(timestamp)
         else:
             dt = datetime.now(timezone.utc)
-        
+
         return dt.strftime("%Y-%m-%d %H:%M:%S UTC")
 
     def create_notification_footer(self, notification_id: str) -> Dict[str, Any]:

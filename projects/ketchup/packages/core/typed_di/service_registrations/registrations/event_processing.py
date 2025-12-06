@@ -29,31 +29,32 @@ except ImportError as e:
     _IMPORTS_AVAILABLE = False
     # Define placeholder types to prevent NameError
     # EventProcessor and SlackEventHandler will be imported lazily in factory
-    EventProcessor = type('EventProcessor', (), {})
-    SlackEventHandler = type('SlackEventHandler', (), {})
+    EventProcessor = type("EventProcessor", (), {})
+    SlackEventHandler = type("SlackEventHandler", (), {})
 
 # Protocol imports
 if TYPE_CHECKING:
-    from ..manager import ServiceRegistrationManager
     from packages.slack.channel_events.events import SlackEventHandler
     from packages.slack.channel_events.incoming_events import EventProcessor
 
+    from ..manager import ServiceRegistrationManager
+
 from ..protocols import (
-    SlackEventHandlerProtocol,
-    EventProcessorProtocol,
-    CreationProcessorProtocol,
-    PayloadProcessorProtocol,
-    SlackPostingHandlerProtocol,
-    CommandRouterProtocol,
     BlockKitBuilderProtocol,
     ChannelEligibilityServiceProtocol,
     ChannelInfoOpsProtocol,
     ChannelMembershipOpsProtocol,
+    CommandRouterProtocol,
+    CreationProcessorProtocol,
     DynamoDBStoreProtocol,
+    EventProcessorProtocol,
+    PayloadProcessorProtocol,
+    RestoreStateManagerProtocol,
     SecretsManagerProtocol,
     SlackAuthProtocol,
     SlackChannelRestoreOpsProtocol,
-    RestoreStateManagerProtocol,
+    SlackEventHandlerProtocol,
+    SlackPostingHandlerProtocol,
 )
 
 logger = setup_logger(__name__)
@@ -86,8 +87,8 @@ def _register_core_event_services(manager: "ServiceRegistrationManager") -> None
 
     # Lazy imports to avoid circular dependency at module load time
     # incoming_events.py imports from dependency_setup.py which imports protocols
-    from packages.slack.channel_events.incoming_events import EventProcessor
     from packages.slack.channel_events.events import SlackEventHandler
+    from packages.slack.channel_events.incoming_events import EventProcessor
 
     # SlackEventHandler
     async def create_slack_event_handler(resolver) -> SlackEventHandler:
@@ -184,18 +185,18 @@ def _register_channel_lifecycle_processors(manager: "ServiceRegistrationManager"
     # Define unique placeholder classes to avoid duplicate registrations
     class ArchiveProcessorPlaceholder:
         """Placeholder for archive processing functionality."""
+
         pass
 
     class CreationProcessorPlaceholder:
         """Placeholder for channel creation processing functionality."""
+
         pass
 
     # ArchiveProcessor (placeholder implementation) - Registration handled by archive_processing.py
     async def create_archive_processor(resolver) -> ArchiveProcessorPlaceholder:
         """Factory function for ArchiveProcessor (placeholder)."""
         return ArchiveProcessorPlaceholder()
-
-
 
     # CreationProcessor (placeholder implementation)
     async def create_creation_processor(resolver) -> CreationProcessorPlaceholder:
@@ -218,6 +219,7 @@ def _register_channel_lifecycle_processors(manager: "ServiceRegistrationManager"
     # Define unique placeholder class for UnarchiveProcessor
     class UnarchiveProcessorPlaceholder:
         """Placeholder for channel unarchive processing functionality."""
+
         pass
 
     # UnarchiveProcessor (placeholder implementation)
@@ -226,14 +228,13 @@ def _register_channel_lifecycle_processors(manager: "ServiceRegistrationManager"
         return UnarchiveProcessorPlaceholder()
 
 
-
-
 def _register_event_filtering_services(manager: "ServiceRegistrationManager") -> None:
     """Register event filtering and verification services."""
 
     # Define unique placeholder class for PayloadProcessor
     class PayloadProcessorPlaceholder:
         """Placeholder for event payload processing functionality."""
+
         pass
 
     # PayloadProcessor (placeholder implementation)

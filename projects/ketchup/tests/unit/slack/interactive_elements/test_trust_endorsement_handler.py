@@ -60,9 +60,7 @@ def sample_payload():
     """Create a sample Slack interactive payload."""
     return {
         "user": {"id": "U123456", "name": "testuser"},
-        "actions": [
-            {"action_id": "trust_status_update", "value": "1234567890_abcd1234"}
-        ],
+        "actions": [{"action_id": "trust_status_update", "value": "1234567890_abcd1234"}],
         "channel": {"id": "C123456"},
         "message": {
             "ts": "1234567890.123456",
@@ -190,9 +188,7 @@ class TestTrustEndorsementHandler:
 
     @pytest.mark.asyncio
     @patch.object(FeatureFlags, "is_trust_endorsement_enabled", return_value=True)
-    async def test_process_trust_action_missing_data(
-        self, mock_feature_flag, trust_handler
-    ):
+    async def test_process_trust_action_missing_data(self, mock_feature_flag, trust_handler):
         """Test trust endorsement with missing required data."""
         invalid_payload = {
             "user": {"id": "U123456"},
@@ -274,9 +270,7 @@ class TestTrustEndorsementHandler:
 
         # Verify trust display was added
         blocks = call_args["blocks"]
-        trust_blocks = [
-            b for b in blocks if "✓ Trusted by:" in b.get("text", {}).get("text", "")
-        ]
+        trust_blocks = [b for b in blocks if "✓ Trusted by:" in b.get("text", {}).get("text", "")]
         assert len(trust_blocks) == 1
 
     @pytest.mark.asyncio
@@ -289,9 +283,7 @@ class TestTrustEndorsementHandler:
         mock_response = MockAiohttpResponse(status=200, json_data={"ok": True})
 
         # Patch aiohttp.ClientSession with proper mock
-        with patch(
-            "aiohttp.ClientSession", create_mock_session_class({"post": mock_response})
-        ):
+        with patch("aiohttp.ClientSession", create_mock_session_class({"post": mock_response})):
             # Setup trust data response
             mock_db_store.trust_ops.add_command_trust_endorsement.return_value = {
                 "trust_count": 1,
@@ -301,16 +293,12 @@ class TestTrustEndorsementHandler:
 
             # Setup command execution lookup
             mock_scan_response = {
-                "Items": [
-                    {"PK": {"S": "CHANNEL#C789012"}, "channel_id": {"S": "C789012"}}
-                ]
+                "Items": [{"PK": {"S": "CHANNEL#C789012"}, "channel_id": {"S": "C789012"}}]
             }
             mock_underlying_client = AsyncMock()
             mock_underlying_client.scan = AsyncMock(return_value=mock_scan_response)
             mock_db_store.client = MagicMock()
-            mock_db_store.client._get_client = AsyncMock(
-                return_value=mock_underlying_client
-            )
+            mock_db_store.client._get_client = AsyncMock(return_value=mock_underlying_client)
 
             # Create payload with trigger_id
             payload = {
@@ -341,9 +329,7 @@ class TestTrustEndorsementHandler:
         mock_response = MockAiohttpResponse(status=200, json_data={"ok": True})
 
         # Patch aiohttp.ClientSession with proper mock
-        with patch(
-            "aiohttp.ClientSession", create_mock_session_class({"post": mock_response})
-        ):
+        with patch("aiohttp.ClientSession", create_mock_session_class({"post": mock_response})):
             # Setup trust data response - user already trusted
             mock_db_store.trust_ops.add_command_trust_endorsement.return_value = {
                 "trust_count": 5,
@@ -353,16 +339,12 @@ class TestTrustEndorsementHandler:
 
             # Setup command execution lookup
             mock_scan_response = {
-                "Items": [
-                    {"PK": {"S": "CHANNEL#C789012"}, "channel_id": {"S": "C789012"}}
-                ]
+                "Items": [{"PK": {"S": "CHANNEL#C789012"}, "channel_id": {"S": "C789012"}}]
             }
             mock_underlying_client = AsyncMock()
             mock_underlying_client.scan = AsyncMock(return_value=mock_scan_response)
             mock_db_store.client = MagicMock()
-            mock_db_store.client._get_client = AsyncMock(
-                return_value=mock_underlying_client
-            )
+            mock_db_store.client._get_client = AsyncMock(return_value=mock_underlying_client)
 
             # Create payload with trigger_id
             payload = {
@@ -402,9 +384,7 @@ class TestTrustEndorsementHandler:
         mock_underlying_client = AsyncMock()
         mock_underlying_client.scan = AsyncMock(return_value=mock_scan_response)
         mock_db_store.client = MagicMock()
-        mock_db_store.client._get_client = AsyncMock(
-            return_value=mock_underlying_client
-        )
+        mock_db_store.client._get_client = AsyncMock(return_value=mock_underlying_client)
 
         # Create payload WITHOUT trigger_id
         payload = {
@@ -432,9 +412,7 @@ class TestTrustEndorsementHandler:
             status=200, json_data={"ok": False, "error": "invalid_trigger"}
         )
 
-        with patch(
-            "aiohttp.ClientSession", create_mock_session_class({"post": mock_response})
-        ):
+        with patch("aiohttp.ClientSession", create_mock_session_class({"post": mock_response})):
             result = await trust_handler._show_trust_acknowledgment_modal(
                 trigger_id="invalid_trigger", already_trusted=False
             )

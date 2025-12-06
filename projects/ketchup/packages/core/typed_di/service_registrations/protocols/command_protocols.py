@@ -6,7 +6,6 @@ Protocol definitions for command-related services.
 
 from typing import Any, Dict, Protocol, runtime_checkable
 
-
 __all__ = [
     "AccessCommandProtocol",
     "ListCommandProtocol",
@@ -100,9 +99,7 @@ class SlackSummaryHandlerProtocol(Protocol):
 class CommandRouterProtocol(Protocol):
     """Protocol for command router operations."""
 
-    async def route_command(
-        self, body: dict[str, any], response_url: str = ""
-    ) -> dict[str, any]:
+    async def route_command(self, body: dict[str, any], response_url: str = "") -> dict[str, any]:
         """
         Route a Slack command to the appropriate handler.
 

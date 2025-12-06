@@ -8,20 +8,18 @@ from typing import Any, Dict, Optional
 
 import orjson
 
+from packages.core.exports.time_period_formatter import (
+    format_confirmation_message,
+)
 from packages.core.logging import setup_logger
-from packages.slack.user_operations.user_ops import SlackUserOps
+from packages.secrets.manager import SecretsManager
 from packages.slack.command_processing.base_command_handler import BaseCommandHandler
 from packages.slack.command_processing.command_parameters.models import (
     MetricsCommandParams,
 )
-from packages.slack.interactive_elements.metrics_export_handler import (
-    MetricsExportHandler
-)
+from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
 from packages.slack.messages.posting import SlackPostingHandler
-from packages.secrets.manager import SecretsManager
-from packages.core.exports.time_period_formatter import (
-    format_confirmation_message,
-)
+from packages.slack.user_operations.user_ops import SlackUserOps
 
 logger = setup_logger(__name__)
 
@@ -81,8 +79,7 @@ class MetricsCommand(BaseCommandHandler):
             Dict with status code and body
         """
         logger.info(
-            f"Processing metrics command for user {user_id} "
-            f"(period: {params.time_period_type})"
+            f"Processing metrics command for user {user_id} " f"(period: {params.time_period_type})"
         )
 
         # Check if user is admin
@@ -107,12 +104,12 @@ class MetricsCommand(BaseCommandHandler):
             params.start_date,
             params.end_date,
         )
-        
+
         await self.posting_handler.post_message(
             channel_id=user_id,
             message=confirmation_msg,
         )
-        
+
         logger.info(f"Sent confirmation: {confirmation_msg}")
 
         # Call metrics export handler to generate and deliver dashboard
@@ -149,9 +146,7 @@ class MetricsCommand(BaseCommandHandler):
         """
         try:
             # Get the admin user list from secrets
-            kt_secrets = await self.secrets_manager.get_secret_async(
-                "Ketchup_Token_Secrets"
-            )
+            kt_secrets = await self.secrets_manager.get_secret_async("Ketchup_Token_Secrets")
             admin_users = kt_secrets.get("usage_stats_admin_users", [])
 
             # If it's a string (JSON), parse it

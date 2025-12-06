@@ -82,9 +82,7 @@ class ChannelOperations(BaseOperations):
 
             # Fetch channels based on lookup type
             if list_of_channels:
-                channels = await self.query_ops._get_channels_from_list(
-                    list_of_channels
-                )
+                channels = await self.query_ops._get_channels_from_list(list_of_channels)
                 # Apply product filtering post-fetch for list lookup
                 if product_preference and product_preference != "all_products":
                     filtered_channels = {}
@@ -136,7 +134,12 @@ class ChannelOperations(BaseOperations):
             # If scan was performed with filters, post-filtering is likely not needed or redundant
             # If scan was performed *without* filters (archive_lookup=False), we still need to filter out archived ones
             # UNLESS include_all=True, which means caller wants ALL channels (active + archived)
-            if not archive_lookup and not list_of_channels and not targeted_lookup and not include_all:
+            if (
+                not archive_lookup
+                and not list_of_channels
+                and not targeted_lookup
+                and not include_all
+            ):
                 # Filter out archived channels if a general scan was done
                 channels = {
                     ch_id: item
@@ -157,9 +160,7 @@ class ChannelOperations(BaseOperations):
             logger.error("Unexpected error during %s: %s", operation_type, str(e))
             return {}
 
-    async def ensure_channels_exist(
-        self, slack_channels: List[Dict[str, Any]]
-    ) -> List[str]:
+    async def ensure_channels_exist(self, slack_channels: List[Dict[str, Any]]) -> List[str]:
         """
         Ensure all Slack channels exist in DynamoDB, creating missing ones using batch operations.
 
@@ -184,9 +185,7 @@ class ChannelOperations(BaseOperations):
             # Get existing channels from DynamoDB (still using scan for simplicity)
             existing_channels = await self.query_ops._get_all_channels_scan()
             existing_channel_ids = set(existing_channels.keys())
-            logger.info(
-                "Found %d existing channel IDs in DB", len(existing_channel_ids)
-            )
+            logger.info("Found %d existing channel IDs in DB", len(existing_channel_ids))
 
             for channel in slack_channels:
                 channel_id = channel.get("id")
@@ -230,9 +229,7 @@ class ChannelOperations(BaseOperations):
                     "Attempting to batch write %d new channel items.",
                     len(items_to_create),
                 )
-                put_requests = [
-                    {"PutRequest": {"Item": item}} for item in items_to_create
-                ]
+                put_requests = [{"PutRequest": {"Item": item}} for item in items_to_create]
                 # Use the shared batch write utility
                 success_count, failure_count = await batch_write_items_with_retries(
                     client=self.client,
@@ -255,9 +252,7 @@ class ChannelOperations(BaseOperations):
             )
             return []  # Return empty on major error
 
-        logger.info(
-            "Finished ensure_channels_exist. Added channels: %s", added_channels
-        )
+        logger.info("Finished ensure_channels_exist. Added channels: %s", added_channels)
         return added_channels
 
     async def get_channel_details(self, channel_id: str) -> Optional[Dict[str, Any]]:
@@ -425,14 +420,10 @@ class ChannelOperations(BaseOperations):
             logger.info("Channel metadata updated for %s", channel_id)
             return True
         except Exception as e:
-            logger.error(
-                "Failed to update channel metadata for %s: %s", channel_id, str(e)
-            )
+            logger.error("Failed to update channel metadata for %s: %s", channel_id, str(e))
             return False
 
-    async def update_channel_fields(
-        self, channel_id: str, updates: Dict[str, Any]
-    ) -> bool:
+    async def update_channel_fields(self, channel_id: str, updates: Dict[str, Any]) -> bool:
         """
         Generic method to update arbitrary fields on a channel.
 
@@ -507,8 +498,7 @@ class ChannelOperations(BaseOperations):
 
         try:
             update_expression = (
-                "SET jira_report_status = :status, "
-                "jira_report_timestamp = :timestamp"
+                "SET jira_report_status = :status, " "jira_report_timestamp = :timestamp"
             )
 
             expression_values = {
@@ -536,9 +526,7 @@ class ChannelOperations(BaseOperations):
             logger.info(log_msg)
             return True
         except Exception as e:
-            logger.error(
-                f"Failed to update JIRA report status for channel {channel_id}: {str(e)}"
-            )
+            logger.error(f"Failed to update JIRA report status for channel {channel_id}: {str(e)}")
             return False
 
     async def get_jira_posting_metrics(
@@ -552,7 +540,7 @@ class ChannelOperations(BaseOperations):
         Analyzes JIRA reporter posting status for dashboard metrics.
         Only counts PROCESSED postings that occurred within the time window.
         FAILED/PENDING statuses are counted regardless of age.
-        
+
         Success is defined as: primary_success OR (primary_invalid AND csopm_success)
 
         Args:
@@ -578,16 +566,14 @@ class ChannelOperations(BaseOperations):
             # Get all channels (campaign/ajo only for CSO metrics)
             all_channels = await self.query_ops._get_all_channels_scan()
             normalized_channels = {
-                ch_id: self._normalize_item(item)
-                for ch_id, item in all_channels.items()
+                ch_id: self._normalize_item(item) for ch_id, item in all_channels.items()
             }
 
             # Filter to campaign/ajo channels only (CSO channels)
             cso_channels = {
                 ch_id: ch
                 for ch_id, ch in normalized_channels.items()
-                if ch.get("product") in ["campaign", "ajo"]
-                and not ch.get("archived", False)
+                if ch.get("product") in ["campaign", "ajo"] and not ch.get("archived", False)
             }
 
             total_channels = len(cso_channels)
@@ -640,9 +626,7 @@ class ChannelOperations(BaseOperations):
             # Calculate success rate
             successful = posted_primary + posted_csopm - posted_both
             success_rate = (
-                round((successful / total_channels) * 100, 1)
-                if total_channels > 0
-                else 0.0
+                round((successful / total_channels) * 100, 1) if total_channels > 0 else 0.0
             )
 
             metrics = {
@@ -678,4 +662,3 @@ class ChannelOperations(BaseOperations):
                 "success_rate": 0.0,
                 "channels_needing_attention": [],
             }
-

@@ -384,9 +384,7 @@ def validate_es_query_dict(query_dict: Dict[str, Any]) -> Dict[str, Any]:
 
     for pattern in dangerous_patterns:
         if pattern.lower() in query_str.lower():
-            logger.warning(
-                f"Potentially dangerous pattern detected in query: {pattern}"
-            )
+            logger.warning(f"Potentially dangerous pattern detected in query: {pattern}")
             raise ValueError(f"Query contains potentially dangerous pattern: {pattern}")
 
     # Check query size to prevent DoS
@@ -482,9 +480,7 @@ def sanitize_jql_value(value: str) -> str:
     # Check for excessive special character density (potential obfuscation)
     special_char_count = len(re.findall(r"[^\w\s\-.]", value))
     if len(value) > 0 and (special_char_count / len(value)) > 0.3:
-        logger.warning(
-            f"High special character density detected: value='{original_value[:100]}'"
-        )
+        logger.warning(f"High special character density detected: value='{original_value[:100]}'")
         raise ValueError("Input contains excessive special characters")
 
     # For organization names, validate format if it looks like an org pattern
@@ -540,9 +536,7 @@ def sanitize_jql_value(value: str) -> str:
 
     # Strict length limit to prevent DoS
     if len(sanitized) > 200:
-        logger.warning(
-            f"Input too long, truncating: original_length={len(original_value)}"
-        )
+        logger.warning(f"Input too long, truncating: original_length={len(original_value)}")
         sanitized = sanitized[:200].rstrip()
 
     # Final validation - ensure we haven't accidentally created dangerous patterns

@@ -82,25 +82,19 @@ class TestCustomerExtractionContextValidation:
         assert "Potential domain-based misidentification detected" in caplog.text
         assert "MICROSOFT" in caplog.text
 
-    def test_validate_customer_extraction_legitimate_customer_no_warning(
-        self, extractor, caplog
-    ):
+    def test_validate_customer_extraction_legitimate_customer_no_warning(self, extractor, caplog):
         """Test that legitimate customer names don't trigger warnings."""
         extractor._validate_customer_extraction("ZENIMAX MEDIA INC")
 
         assert "Potential domain-based misidentification detected" not in caplog.text
 
-    def test_validate_customer_extraction_not_available_no_warning(
-        self, extractor, caplog
-    ):
+    def test_validate_customer_extraction_not_available_no_warning(self, extractor, caplog):
         """Test that NOT YET AVAILABLE doesn't trigger warnings."""
         extractor._validate_customer_extraction("NOT YET AVAILABLE")
 
         assert "Potential domain-based misidentification detected" not in caplog.text
 
-    def test_validate_customer_extraction_mixed_names_with_adobe(
-        self, extractor, caplog
-    ):
+    def test_validate_customer_extraction_mixed_names_with_adobe(self, extractor, caplog):
         """Test validation for mixed customer names including Adobe.
 
         Note: The production code only checks for exact matches of 'ADOBE' or 'MICROSOFT',

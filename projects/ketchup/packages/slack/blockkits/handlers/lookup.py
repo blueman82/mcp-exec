@@ -33,9 +33,7 @@ class LookupMessageHandler:
         self._posting_handler = None
         self._channel_details_getter = None
 
-    def configure(
-        self, posting_handler: SlackPostingHandler, channel_details_getter: Callable
-    ):
+    def configure(self, posting_handler: SlackPostingHandler, channel_details_getter: Callable):
         """
         Configure the handler with dependencies.
 

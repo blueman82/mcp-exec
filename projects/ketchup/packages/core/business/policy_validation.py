@@ -4,7 +4,8 @@ Policy Validation Service Implementation
 Provides policy validation and requirement checking functionality.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -62,7 +63,9 @@ class PolicyValidationService:
         policy = self._policies[policy_id]
         return policy.get("requirements", [])
 
-    def _validate_against_policy(self, policy: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_against_policy(
+        self, policy: Dict[str, Any], data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Validate data against policy rules.
 

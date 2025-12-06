@@ -5,7 +5,7 @@ This module provides simplified async functions for resolving services
 from the TypedDI registry without requiring direct registry access.
 """
 
-from typing import TypeVar, Type
+from typing import Type, TypeVar
 
 from packages.core.typed_di.resolver import TypedResolver
 from packages.core.typed_di_integration import get_typed_registry

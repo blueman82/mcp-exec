@@ -6,8 +6,36 @@ Module for setting up dependencies required for Slack event/command processing.
 
 from typing import Any, Awaitable, Callable, Dict, cast
 
-from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.logging import setup_logger
+from packages.core.typed_di.registry import TypedServiceRegistry
+
+# Additional protocols for Phase 2 Tier 1 migration
+from packages.core.typed_di.service_registrations import (
+    AccessRequestHandlerProtocol,
+    ChannelInfoOpsProtocol,
+    ChannelMembershipOpsProtocol,
+    FeatureServiceProtocol,
+    FlagReviewHandlerProtocol,
+    HomeTabHandlerProtocol,
+    OpenAIHandlerProtocol,
+    RestoreStateManagerProtocol,
+    SlackChannelArchiveOpsProtocol,
+    SlackChannelBotMembershipOpsProtocol,
+    SlackChannelMessageOpsProtocol,
+    SlackChannelRestoreOpsProtocol,
+    SlackConfigProtocol,
+    SlackUserOpsProtocol,
+    TrustEndorsementHandlerProtocol,
+    UserJoinNotificationServiceProtocol,
+    UserStoreProtocol,
+)
+from packages.core.typed_di.service_registrations.protocols import (
+    ChannelMetadataEditHandlerProtocol,
+    CommandRouterProtocol,
+    FeedbackReactionsHandlerProtocol,
+    FeedbackReportHandlerProtocol,
+    ShortcutHandlerProtocol,
+)
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.db.user_store import UserStore
 from packages.secrets.manager import SecretsManager
@@ -41,33 +69,6 @@ from packages.slack.interactive_elements.feedback_reactions import (
 )
 from packages.slack.interactive_elements.feedback_report import FeedbackReportHandler
 from packages.slack.interactive_elements.shortcuts import ShortcutHandler
-from packages.core.typed_di.service_registrations.protocols import (
-    FeedbackReactionsHandlerProtocol,
-    FeedbackReportHandlerProtocol,
-    ChannelMetadataEditHandlerProtocol,
-    ShortcutHandlerProtocol,
-    CommandRouterProtocol,
-)
-# Additional protocols for Phase 2 Tier 1 migration
-from packages.core.typed_di.service_registrations import (
-    UserStoreProtocol,
-    SlackConfigProtocol,
-    OpenAIHandlerProtocol,
-    SlackChannelArchiveOpsProtocol,
-    ChannelInfoOpsProtocol,
-    ChannelMembershipOpsProtocol,
-    SlackUserOpsProtocol,
-    SlackChannelMessageOpsProtocol,
-    RestoreStateManagerProtocol,
-    SlackChannelBotMembershipOpsProtocol,
-    SlackChannelRestoreOpsProtocol,
-    TrustEndorsementHandlerProtocol,
-    AccessRequestHandlerProtocol,
-    FlagReviewHandlerProtocol,
-    HomeTabHandlerProtocol,
-    FeatureServiceProtocol,
-    UserJoinNotificationServiceProtocol,
-)
 from packages.slack.messages.posting import SlackPostingHandler
 from packages.slack.user_operations.user_ops import SlackUserOps
 
@@ -92,17 +93,11 @@ def instantiate_command_handlers(
     """
     # Hinting expected types for handler clients (no runtime checks)
     channel_info_ops = cast(ChannelInfoOps, handler_clients["info_ops"])
-    channel_membership_ops = cast(
-        ChannelMembershipOps, handler_clients["membership_ops"]
-    )
-    slack_posting_handler = cast(
-        SlackPostingHandler, handler_clients["slack_posting_handler"]
-    )
+    channel_membership_ops = cast(ChannelMembershipOps, handler_clients["membership_ops"])
+    slack_posting_handler = cast(SlackPostingHandler, handler_clients["slack_posting_handler"])
     dynamodb_store = cast(DynamoDBStore, handler_clients["dynamodb_store"])
     archive_ops = cast(SlackChannelArchiveOps, handler_clients["archive_ops"])
-    channel_message_ops = cast(
-        SlackChannelMessageOps, handler_clients["channel_message_ops"]
-    )
+    channel_message_ops = cast(SlackChannelMessageOps, handler_clients["channel_message_ops"])
     openai_handler = handler_clients["openai_handler"]
     channel_restore_ops = handler_clients["restore_ops"]
     slack_config = handler_clients["slack_config"]
@@ -233,9 +228,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
     slack_config = None
 
     try:
-        slack_posting_handler = cast(
-            SlackPostingHandler, container.get(SlackPostingHandler)
-        )
+        slack_posting_handler = cast(SlackPostingHandler, container.get(SlackPostingHandler))
         logger.info("SlackPostingHandler available")
     except Exception as e:
         logger.warning("SlackPostingHandler not available: %s", e)
@@ -275,7 +268,9 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
         logger.warning("OpenAI handler not available: %s", e)
 
     try:
-        archive_ops = cast(SlackChannelArchiveOps, await container.aget(SlackChannelArchiveOpsProtocol))
+        archive_ops = cast(
+            SlackChannelArchiveOps, await container.aget(SlackChannelArchiveOpsProtocol)
+        )
     except Exception as e:
         logger.warning("Archive ops not available: %s", e)
 
@@ -389,9 +384,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
     if not hasattr(slack_posting_handler, "post_message") or not callable(
         slack_posting_handler.post_message
     ):
-        logger.error(
-            "SlackPostingHandler or its post_message method is missing/not callable."
-        )
+        logger.error("SlackPostingHandler or its post_message method is missing/not callable.")
         raise ValueError("Missing message sender for BlockKitBuilder configuration.")
 
     if not hasattr(dynamodb_store, "get_channel_details") or not callable(
@@ -400,9 +393,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
         logger.error(
             "Required channel details getter method (get_channel_details) is missing/not callable from DynamoDBStore."
         )
-        raise ValueError(
-            "Missing channel details getter for BlockKitBuilder configuration."
-        )
+        raise ValueError("Missing channel details getter for BlockKitBuilder configuration.")
     channel_details_getter = cast(
         Callable[..., Awaitable[Dict[str, Any]]], dynamodb_store.get_channel_details
     )
@@ -438,9 +429,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
         )
         logger.info("ChannelEligibilityService instantiated")
     else:
-        logger.warning(
-            "ChannelEligibilityService not available due to missing dependencies"
-        )
+        logger.warning("ChannelEligibilityService not available due to missing dependencies")
 
     # --- Instantiate Command Handlers --- #
     command_handlers = {"command_handlers_dict": {}}
@@ -480,9 +469,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
             logger.warning("Failed to instantiate command handlers: %s", e)
             command_handlers = {"command_handlers_dict": {}}
     else:
-        logger.warning(
-            "Insufficient dependencies for command handlers - skipping instantiation"
-        )
+        logger.warning("Insufficient dependencies for command handlers - skipping instantiation")
 
     # Get optional services from container
     feature_service = None
@@ -494,9 +481,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
         logger.warning("Feature service not available: %s", e)
 
     try:
-        user_join_notification_service = await container.aget(
-            UserJoinNotificationServiceProtocol
-        )
+        user_join_notification_service = await container.aget(UserJoinNotificationServiceProtocol)
     except Exception as e:
         logger.warning("User join notification service not available: %s", e)
 
@@ -510,9 +495,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
                 secrets_manager=secrets_manager,
             )
             # Add feature handler to command handlers dictionary
-            command_handlers["command_handlers_dict"][
-                CommandType.FEATURE.value
-            ] = feature_handler
+            command_handlers["command_handlers_dict"][CommandType.FEATURE.value] = feature_handler
             command_handlers["feature_handler"] = feature_handler
             logger.info("Feature command handler instantiated")
         except Exception as e:
@@ -525,9 +508,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
                 slack_posting_handler=slack_posting_handler, user_verifier=user_verifier
             )
             # Add to command handlers dictionary
-            command_handlers["command_handlers_dict"][
-                CommandType.ACCESS.value
-            ] = access_handler
+            command_handlers["command_handlers_dict"][CommandType.ACCESS.value] = access_handler
             command_handlers["access_handler"] = access_handler
             logger.info("Access command handler instantiated")
         except Exception as e:
@@ -565,9 +546,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
                 )
                 logger.info("CommandRouter successfully instantiated as fallback")
             except Exception as fallback_error:
-                logger.error(
-                    "Failed to manually instantiate CommandRouter: %s", fallback_error
-                )
+                logger.error("Failed to manually instantiate CommandRouter: %s", fallback_error)
 
     # --- Instantiate SlackEventHandler --- #
     event_handler = None

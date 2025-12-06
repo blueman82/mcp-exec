@@ -46,9 +46,7 @@ class TypedResolver:
             MissingDependencyError: If the service is not registered.
             CircularDependencyError: If circular dependencies are detected.
         """
-        return await self._registry._resolve_service(
-            service_type, qualifier, async_context=True
-        )
+        return await self._registry._resolve_service(service_type, qualifier, async_context=True)
 
     def get(self, service_type: Type[T], qualifier: Optional[str] = None) -> T:
         """Get service synchronously - only for already-initialized singletons.
@@ -66,9 +64,7 @@ class TypedResolver:
         """
         return self._registry._get_initialized_singleton(service_type, qualifier)
 
-    def try_get(
-        self, service_type: Type[T], qualifier: Optional[str] = None
-    ) -> Optional[T]:
+    def try_get(self, service_type: Type[T], qualifier: Optional[str] = None) -> Optional[T]:
         """Get service synchronously, returns None if not initialized.
 
         Args:
@@ -83,9 +79,7 @@ class TypedResolver:
         except (MissingDependencyError, RuntimeError):
             return None
 
-    def build_provider(
-        self, service_type: Type[T], qualifier: Optional[str] = None
-    ) -> Provider[T]:
+    def build_provider(self, service_type: Type[T], qualifier: Optional[str] = None) -> Provider[T]:
         """Build sync provider for cycle-breaking dependencies.
 
         Args:
@@ -152,9 +146,7 @@ class ServiceDependencyResolver:
             Ensures all services have entries in dependency graphs, even those without
             dependencies, to prevent KeyError during topological sorting.
         """
-        service_key = self._get_service_key(
-            registration.service_type, registration.qualifier
-        )
+        service_key = self._get_service_key(registration.service_type, registration.qualifier)
         self.registrations[service_key] = registration
 
         # ALWAYS ensure service exists in dependency graph (even with empty set)
@@ -234,8 +226,7 @@ class ServiceDependencyResolver:
                         for key in queue:
                             if (
                                 key in self.registrations
-                                and self.registrations[key].registration_index
-                                == neighbor_reg_idx
+                                and self.registrations[key].registration_index == neighbor_reg_idx
                             ):
                                 tie_breaks.append(
                                     (
@@ -250,8 +241,7 @@ class ServiceDependencyResolver:
                     for i, key in enumerate(queue):
                         if (
                             key in self.registrations
-                            and self.registrations[key].registration_index
-                            > neighbor_reg_idx
+                            and self.registrations[key].registration_index > neighbor_reg_idx
                         ):
                             queue.insert(i, neighbor)
                             inserted = True
@@ -261,9 +251,7 @@ class ServiceDependencyResolver:
 
         # Check for circular dependencies
         if len(result) != len([k for k in self.registrations.keys() if k in in_degree]):
-            remaining = [
-                k for k, v in in_degree.items() if v > 0 and k in self.registrations
-            ]
+            remaining = [k for k, v in in_degree.items() if v > 0 and k in self.registrations]
             cycles = self._find_cycles(remaining)
             raise CircularDependencyError(f"Circular dependencies detected: {cycles}")
 
@@ -319,9 +307,7 @@ class ServiceDependencyResolver:
 
         return errors
 
-    def _get_service_key(
-        self, service_type, qualifier: Optional[str] = None
-    ) -> str:
+    def _get_service_key(self, service_type, qualifier: Optional[str] = None) -> str:
         """Generate unique service key."""
         # Handle both Type objects and string dependencies
         if isinstance(service_type, str):

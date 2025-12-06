@@ -47,9 +47,7 @@ class JiraIntegrationTest(BaseIntegrationTest):
             self.logger.info(f"Getting details for issue {issue_key}...")
 
             try:
-                issue_details = await mcp_client.call_tool(
-                    "get_issue", {"issueIdOrKey": issue_key}
-                )
+                issue_details = await mcp_client.call_tool("get_issue", {"issueIdOrKey": issue_key})
 
                 if issue_details:
                     self.logger.info(

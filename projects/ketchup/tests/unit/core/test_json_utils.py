@@ -79,9 +79,7 @@ class TestJsonUtils:
     @pytest.mark.asyncio
     async def test_parse_json_response_nested(self):
         """Test parsing deeply nested JSON structures."""
-        nested_data = {
-            "level1": {"level2": {"level3": {"items": ["a", "b", "c"], "count": 3}}}
-        }
+        nested_data = {"level1": {"level2": {"level3": {"items": ["a", "b", "c"], "count": 3}}}}
 
         mock_response = AsyncMock()
         mock_response.read.return_value = _real_orjson_dumps(nested_data)
@@ -229,9 +227,7 @@ class TestJsonUtils:
         mock_response.status = 200
         mock_response.url = "https://api.example.com/test"
         mock_response.headers = {"x-request-id": "test-123"}
-        mock_response.read.side_effect = aiohttp.ClientConnectionError(
-            "Connection closed"
-        )
+        mock_response.read.side_effect = aiohttp.ClientConnectionError("Connection closed")
 
         with pytest.raises(aiohttp.ClientConnectionError) as exc_info:
             await parse_json_response(mock_response)
@@ -247,9 +243,7 @@ class TestJsonUtils:
         mock_response.status = 200
         mock_response.url = "https://api.example.com/test"
         mock_response.headers = {"x-request-id": "test-123"}
-        mock_response.read.side_effect = aiohttp.ClientConnectionError(
-            "Connection closed"
-        )
+        mock_response.read.side_effect = aiohttp.ClientConnectionError("Connection closed")
 
         with pytest.raises(aiohttp.ClientConnectionError) as exc_info:
             await parse_json_response(mock_response)

@@ -14,9 +14,7 @@ for r in results:
 total = len(all_connections)
 total_successes = sum(1 for _, s, *_ in all_connections if s == "Success (Handler)")
 failures = sum(
-    1
-    for _, s, *_ in all_connections
-    if isinstance(s, str) and s.startswith("Failed (Handler")
+    1 for _, s, *_ in all_connections if isinstance(s, str) and s.startswith("Failed (Handler")
 )
 total_input_tokens = sum(inp for *_, inp, _ in all_connections if inp is not None)
 total_output_tokens = sum(out for *_, _, out in all_connections if out is not None)
@@ -56,11 +54,7 @@ summary_table = [
     ],
     [
         color("Average total tokens per request", Fore.CYAN),
-        (
-            f"{(total_input_tokens + total_output_tokens) / total:,.2f}"
-            if total
-            else "0.00"
-        ),
+        (f"{(total_input_tokens + total_output_tokens) / total:,.2f}" if total else "0.00"),
     ],
     [
         color("Average input tokens per request", Fore.CYAN),
@@ -81,9 +75,7 @@ metrics_table = [
     [color("Total Requests", Fore.CYAN), color(total, Fore.GREEN)],
     [
         color("Success Rate", Fore.CYAN),
-        color(
-            f"{(total_successes / total) * 100:.2f}%" if total else "0.00%", Fore.GREEN
-        ),
+        color(f"{(total_successes / total) * 100:.2f}%" if total else "0.00%", Fore.GREEN),
     ],
     [
         color("Failure Rate", Fore.CYAN),

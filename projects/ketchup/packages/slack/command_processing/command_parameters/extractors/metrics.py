@@ -13,34 +13,32 @@ from packages.slack.command_processing.command_parameters.models import (
     CommandType,
     MetricsCommandParams,
 )
-from packages.slack.command_processing.command_parameters.validation import (
-    ValidationError,
-)
 from packages.slack.command_processing.command_parameters.time_period_parser import (
-    parse_month_name,
-    parse_quarter,
-    parse_year,
     get_month_start_end,
     get_quarter_start_end,
     is_ongoing_period,
+    parse_month_name,
+    parse_quarter,
+    parse_year,
 )
 from packages.slack.command_processing.command_parameters.time_period_validator import (
     validate_time_period,
+)
+from packages.slack.command_processing.command_parameters.validation import (
+    ValidationError,
 )
 
 logger = setup_logger(__name__)
 
 
-def extract_metrics_params(
-    command: str, context: CommandContext
-) -> MetricsCommandParams:
+def extract_metrics_params(command: str, context: CommandContext) -> MetricsCommandParams:
     """
     Extract parameters for metrics command.
 
     The metrics command generates a comprehensive HTML dashboard covering
     executive CSO management metrics and technical system health.
 
-    Format: 
+    Format:
     - /ketchup metrics (DM only) → Last 7 days
     - /ketchup metrics september 25 → Monthly
     - /ketchup metrics q1 25 → Quarterly
@@ -64,18 +62,18 @@ def extract_metrics_params(
 
     # Split command into tokens (skip "ketchup" and "metrics")
     tokens = command.strip().split()
-    
+
     # Find where "metrics" appears
     try:
         metrics_index = next(i for i, t in enumerate(tokens) if t.lower() == "metrics")
-        args = tokens[metrics_index + 1:]  # Everything after "metrics"
+        args = tokens[metrics_index + 1 :]  # Everything after "metrics"
     except StopIteration:
         args = []
 
     # No arguments = default 7-day mode
     if len(args) == 0:
         return _create_7_day_params(command, context)
-    
+
     # Must have exactly 2 arguments (period year)
     if len(args) != 2:
         raise ValidationError(
@@ -88,31 +86,30 @@ def extract_metrics_params(
                 "• /ketchup metrics q1 25"
             ),
         )
-    
+
     period_arg = args[0]
     year_arg = args[1]
-    
+
     # Parse year
     year = parse_year(year_arg)
     if year is None:
         raise ValidationError(
             message=f"Invalid year: {year_arg}",
             user_message=(
-                f"❌ Invalid year '{year_arg}'\n\n"
-                "Year must be 2-digit (25) or 4-digit (2025)"
+                f"❌ Invalid year '{year_arg}'\n\n" "Year must be 2-digit (25) or 4-digit (2025)"
             ),
         )
-    
+
     # Try parsing as quarter first
     quarter = parse_quarter(period_arg)
     if quarter is not None:
         return _create_quarterly_params(command, context, quarter, year)
-    
+
     # Try parsing as month
     month = parse_month_name(period_arg)
     if month is not None:
         return _create_monthly_params(command, context, month, year)
-    
+
     # Couldn't parse period
     raise ValidationError(
         message=f"Invalid time period: {period_arg}",
@@ -130,7 +127,7 @@ def _create_7_day_params(command: str, context: CommandContext) -> MetricsComman
     """Create parameters for 7-day default mode."""
     now = datetime.now(timezone.utc)
     start = datetime.fromtimestamp(int(time()) - (7 * 24 * 60 * 60), tz=timezone.utc)
-    
+
     return MetricsCommandParams(
         user_id="",  # Will be set by caller
         user_name="",  # Will be set by caller
@@ -156,7 +153,7 @@ def _create_monthly_params(
     """Create parameters for monthly mode."""
     # Calculate date range
     start, end = get_month_start_end(year, month)
-    
+
     # Validate
     is_valid, error_msg = validate_time_period(year, end)
     if not is_valid:
@@ -164,13 +161,13 @@ def _create_monthly_params(
             message=f"Invalid time period: {month}/{year}",
             user_message=error_msg,
         )
-    
+
     # Check if ongoing
     is_partial = is_ongoing_period(start, end)
     if is_partial:
         # Adjust end to current time
         end = datetime.now(timezone.utc)
-    
+
     return MetricsCommandParams(
         user_id="",  # Will be set by caller
         user_name="",  # Will be set by caller
@@ -196,7 +193,7 @@ def _create_quarterly_params(
     """Create parameters for quarterly mode."""
     # Calculate date range
     start, end = get_quarter_start_end(year, quarter)
-    
+
     # Validate
     is_valid, error_msg = validate_time_period(year, end)
     if not is_valid:
@@ -204,13 +201,13 @@ def _create_quarterly_params(
             message=f"Invalid time period: Q{quarter} {year}",
             user_message=error_msg,
         )
-    
+
     # Check if ongoing
     is_partial = is_ongoing_period(start, end)
     if is_partial:
         # Adjust end to current time
         end = datetime.now(timezone.utc)
-    
+
     return MetricsCommandParams(
         user_id="",  # Will be set by caller
         user_name="",  # Will be set by caller

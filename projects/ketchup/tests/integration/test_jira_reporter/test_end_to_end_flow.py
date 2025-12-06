@@ -41,9 +41,7 @@ class TestEndToEndFlow:
             TEST_CHANNELS["with_exigence_id"],
             TEST_CHANNELS["cso_no_ticket"],
         ]
-        store.channel_ops.get_channels_needing_jira_reports = AsyncMock(
-            return_value=test_channels
-        )
+        store.channel_ops.get_channels_needing_jira_reports = AsyncMock(return_value=test_channels)
         store.channel_ops.update_jira_report_status = AsyncMock()
         store.update_channel_metadata = AsyncMock()
 
@@ -109,9 +107,7 @@ Test resolution for integration testing.
             mock_client.get.return_value = AsyncMock(status_code=200)  # Ticket exists
             mock_client.post.return_value = AsyncMock(status_code=200)  # Comment posted
 
-            jira_service = JiraService(
-                secrets_manager=MagicMock(), ims_token_manager=MagicMock()
-            )
+            jira_service = JiraService(secrets_manager=MagicMock(), ims_token_manager=MagicMock())
 
             # Act
             result = await process_channel(
@@ -126,9 +122,7 @@ Test resolution for integration testing.
             assert result is True
 
             # Verify status updates
-            status_calls = (
-                mock_dynamodb_store.channel_ops.update_jira_report_status.call_args_list
-            )
+            status_calls = mock_dynamodb_store.channel_ops.update_jira_report_status.call_args_list
             assert len(status_calls) == 2
             assert status_calls[0].kwargs["status"] == "PROCESSING"
             assert status_calls[1].kwargs["status"] == "PROCESSED"
@@ -148,9 +142,7 @@ Test resolution for integration testing.
 
         # Create services
         jira_discovery = JiraTicketDiscovery(jira_search_tool=mock_jira_tool)
-        ChannelMonitor(
-            dynamodb_store=mock_dynamodb_store, jira_discovery=jira_discovery
-        )
+        ChannelMonitor(dynamodb_store=mock_dynamodb_store, jira_discovery=jira_discovery)
 
         # Test discovery first
         discovered_ticket = await jira_discovery.discover_jira_ticket(
@@ -173,9 +165,7 @@ Test resolution for integration testing.
             mock_client.get.return_value = AsyncMock(status_code=200)
             mock_client.post.return_value = AsyncMock(status_code=200)
 
-            jira_service = JiraService(
-                secrets_manager=MagicMock(), ims_token_manager=MagicMock()
-            )
+            jira_service = JiraService(secrets_manager=MagicMock(), ims_token_manager=MagicMock())
 
             # Act
             result = await process_channel(
@@ -199,13 +189,12 @@ Test resolution for integration testing.
     ):
         """Test a complete reporting cycle with multiple channels."""
         # Arrange
-        with patch("jira_reporter.main.get_container") as mock_get_container, patch(
-            "jira_reporter.main.initialize_all_clients"
-        ) as mock_init_clients, patch(
-            "jira_reporter.main.cleanup_all_clients"
-        ) as mock_cleanup_clients, patch(
-            "httpx.AsyncClient"
-        ) as mock_client_class:
+        with (
+            patch("jira_reporter.main.get_container") as mock_get_container,
+            patch("jira_reporter.main.initialize_all_clients") as mock_init_clients,
+            patch("jira_reporter.main.cleanup_all_clients") as mock_cleanup_clients,
+            patch("httpx.AsyncClient") as mock_client_class,
+        ):
 
             # Setup mocks
             mock_container = MagicMock()
@@ -261,9 +250,7 @@ Test resolution for integration testing.
         # Create JIRA discovery service
         jira_discovery = JiraTicketDiscovery(mcp_client=mock_jira_tool)
 
-        jira_service = JiraService(
-            secrets_manager=MagicMock(), ims_token_manager=MagicMock()
-        )
+        jira_service = JiraService(secrets_manager=MagicMock(), ims_token_manager=MagicMock())
 
         # Act
         result = await process_channel(
@@ -278,9 +265,9 @@ Test resolution for integration testing.
         assert result is False
 
         # Verify status was set to FAILED
-        last_status_call = (
-            mock_dynamodb_store.channel_ops.update_jira_report_status.call_args_list[-1]
-        )
+        last_status_call = mock_dynamodb_store.channel_ops.update_jira_report_status.call_args_list[
+            -1
+        ]
         assert last_status_call.kwargs["status"] == "FAILED"
 
     async def test_batch_processing(self, mock_dynamodb_store):
@@ -305,14 +292,12 @@ Test resolution for integration testing.
             processed_channels.append(channel_data["channel_id"])
             return True
 
-        with patch(
-            "jira_reporter.main.process_channel", side_effect=mock_process
-        ), patch("jira_reporter.main.get_container"), patch(
-            "jira_reporter.main.initialize_all_clients"
-        ), patch(
-            "jira_reporter.main.cleanup_all_clients"
-        ), patch.dict(
-            os.environ, {"BATCH_SIZE": "3"}
+        with (
+            patch("jira_reporter.main.process_channel", side_effect=mock_process),
+            patch("jira_reporter.main.get_container"),
+            patch("jira_reporter.main.initialize_all_clients"),
+            patch("jira_reporter.main.cleanup_all_clients"),
+            patch.dict(os.environ, {"BATCH_SIZE": "3"}),
         ):  # Process 3 at a time
 
             # Setup container mock
@@ -371,9 +356,7 @@ Test resolution for integration testing.
                 status_code=200, json=AsyncMock(return_value={"id": "comment-12345"})
             )
 
-            jira_service = JiraService(
-                secrets_manager=MagicMock(), ims_token_manager=MagicMock()
-            )
+            jira_service = JiraService(secrets_manager=MagicMock(), ims_token_manager=MagicMock())
 
             # Act
             result = await process_channel(
@@ -388,12 +371,9 @@ Test resolution for integration testing.
             assert result is True
 
             # Verify correct channel was processed
-            status_calls = (
-                mock_dynamodb_store.channel_ops.update_jira_report_status.call_args_list
-            )
+            status_calls = mock_dynamodb_store.channel_ops.update_jira_report_status.call_args_list
             assert any(
-                call.kwargs["channel_id"] == "C094DQY7HLH"
-                and call.kwargs["status"] == "PROCESSED"
+                call.kwargs["channel_id"] == "C094DQY7HLH" and call.kwargs["status"] == "PROCESSED"
                 for call in status_calls
             )
 

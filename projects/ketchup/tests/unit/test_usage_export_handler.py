@@ -37,9 +37,7 @@ def mock_csv_generator():
 
 
 @pytest.fixture
-def usage_export_handler(
-    mock_command_tracking_ops, mock_slack_posting_handler, mock_csv_generator
-):
+def usage_export_handler(mock_command_tracking_ops, mock_slack_posting_handler, mock_csv_generator):
     """Create a UsageExportHandler instance with mocked dependencies."""
     return UsageExportHandler(
         command_tracking_ops=mock_command_tracking_ops,
@@ -195,9 +193,7 @@ async def test_upload_csv_to_slack_success(
     # Setup posting handler
     mock_slack_posting_handler._slack_token = "test-token"
     mock_slack_posting_handler._init_slack_token = AsyncMock()
-    mock_slack_posting_handler.config.get_api_base_url.return_value = (
-        "https://slack.com/api"
-    )
+    mock_slack_posting_handler.config.get_api_base_url.return_value = "https://slack.com/api"
 
     # Mock the Slack API calls for the new upload process
     mock_slack_posting_handler.api_call = AsyncMock()
@@ -262,9 +258,7 @@ async def test_upload_csv_to_slack_failure(
     # Setup posting handler
     mock_slack_posting_handler._slack_token = "test-token"
     mock_slack_posting_handler._init_slack_token = AsyncMock()
-    mock_slack_posting_handler.config.get_api_base_url.return_value = (
-        "https://slack.com/api"
-    )
+    mock_slack_posting_handler.config.get_api_base_url.return_value = "https://slack.com/api"
 
     # Execute
     result = await usage_export_handler._upload_csv_to_slack(
@@ -329,9 +323,7 @@ async def test_filename_generation(
     mock_csv_generator.generate_csv.return_value = "CSV content"
     mock_slack_posting_handler._slack_token = "test-token"
     mock_slack_posting_handler._init_slack_token = AsyncMock()
-    mock_slack_posting_handler.config.get_api_base_url.return_value = (
-        "https://slack.com/api"
-    )
+    mock_slack_posting_handler.config.get_api_base_url.return_value = "https://slack.com/api"
 
     # Mock the Slack API calls for the new upload process
     mock_slack_posting_handler.api_call = AsyncMock()
@@ -402,9 +394,7 @@ async def test_handle_export_request_home_tab(
     mock_csv_generator.generate_csv.return_value = "CSV content"
     mock_slack_posting_handler._slack_token = "test-token"
     mock_slack_posting_handler._init_slack_token = AsyncMock()
-    mock_slack_posting_handler.config.get_api_base_url.return_value = (
-        "https://slack.com/api"
-    )
+    mock_slack_posting_handler.config.get_api_base_url.return_value = "https://slack.com/api"
 
     # Mock the Slack API calls for the new upload process
     mock_slack_posting_handler.api_call = AsyncMock()

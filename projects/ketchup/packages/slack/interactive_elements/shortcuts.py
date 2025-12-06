@@ -49,9 +49,7 @@ class ShortcutHandler:
         user_id = slack_payload.get("user", {}).get("id")
         # For shortcuts, we may not always have a channel
         channel_id = (
-            slack_payload.get("channel", {}).get("id")
-            if slack_payload.get("channel")
-            else None
+            slack_payload.get("channel", {}).get("id") if slack_payload.get("channel") else None
         )
 
         callback_id = slack_payload.get("callback_id")
@@ -74,9 +72,7 @@ class ShortcutHandler:
                 return False
 
             # Use the injected feedback report handler's method
-            success = await self._feedback_report_handler.open_feedback_report_modal(
-                trigger_id
-            )
+            success = await self._feedback_report_handler.open_feedback_report_modal(trigger_id)
             if not success and user_id and channel_id:
                 # Use injected posting handler
                 await self._posting_handler.post_message(

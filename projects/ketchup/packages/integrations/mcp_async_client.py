@@ -110,9 +110,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
             response = await self._make_api_request(url, method="GET")
             # Response is now a SafeResponse dict
             self._is_healthy = response["status"] == 200
-            logger.info(
-                f"MCP health check: {'healthy' if self._is_healthy else 'unhealthy'}"
-            )
+            logger.info(f"MCP health check: {'healthy' if self._is_healthy else 'unhealthy'}")
             return self._is_healthy
         except Exception as e:
             logger.error(f"MCP health check failed: {e}")
@@ -153,9 +151,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
 
             # Response is now a SafeResponse dict
             if response["status"] != 200:
-                raise Exception(
-                    f"Failed to establish SSE connection: {response['status']}"
-                )
+                raise Exception(f"Failed to establish SSE connection: {response['status']}")
 
             # Extract session ID from response headers or generate one
             session_id = response["headers"].get("X-Session-ID", str(uuid.uuid4()))
@@ -167,9 +163,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
             logger.error(f"Failed to establish MCP session: {e}")
             raise
 
-    async def _call_mcp_tool(
-        self, tool_name: str, arguments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _call_mcp_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """
         Call an MCP tool using JSON-RPC protocol.
 
@@ -201,9 +195,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
             # Response is now a SafeResponse dict
             if response["status"] != 200:
                 error_text = response["body"].decode("utf-8")
-                logger.error(
-                    f"MCP tool call failed: {response['status']} - {error_text}"
-                )
+                logger.error(f"MCP tool call failed: {response['status']} - {error_text}")
                 raise Exception(f"MCP tool call failed: {response['status']}")
 
             result = orjson.loads(response["body"])
@@ -285,9 +277,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
 
         try:
             result = await self._call_mcp_tool("search_jira_issues", arguments)
-            logger.info(
-                f"JIRA search successful, found {len(result.get('issues', []))} issues"
-            )
+            logger.info(f"JIRA search successful, found {len(result.get('issues', []))} issues")
             return result
         except Exception as e:
             # Handle authentication errors
@@ -348,9 +338,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
         logger.info(f"Batch fetching {len(issue_keys)} issues via MCP")
 
         try:
-            result = await self.search_issues(
-                jql, fields=fields, max_results=len(issue_keys)
-            )
+            result = await self.search_issues(jql, fields=fields, max_results=len(issue_keys))
 
             # Build result map
             issues_map = {key: None for key in issue_keys}
@@ -385,9 +373,7 @@ class MCPAsyncClient(AsyncClient[MCPConfig, aiohttp.ClientResponse]):
         await self.ensure_connection()
 
         try:
-            result = await self._call_mcp_tool(
-                "get_jira_comments", {"issueIdOrKey": issue_key}
-            )
+            result = await self._call_mcp_tool("get_jira_comments", {"issueIdOrKey": issue_key})
             # Handle the response format from MCP tool
             if isinstance(result, dict) and result.get("success"):
                 data = result.get("data", {})

@@ -83,9 +83,7 @@ class JiraPromptHandler:
         logger.info(f"Starting JIRA prompt workflow for channel: {channel_id}")
 
         for attempt in range(1, self.MAX_ATTEMPTS + 1):
-            logger.info(
-                f"JIRA prompt attempt {attempt}/{self.MAX_ATTEMPTS} for {channel_id}"
-            )
+            logger.info(f"JIRA prompt attempt {attempt}/{self.MAX_ATTEMPTS} for {channel_id}")
 
             # Post prompt message
             message_ts = await self._post_jira_prompt(channel_id, attempt)
@@ -118,8 +116,7 @@ class JiraPromptHandler:
 
         # All attempts failed - post timeout message
         logger.warning(
-            f"No JIRA ticket received after {self.MAX_ATTEMPTS} attempts "
-            f"for {channel_id}"
+            f"No JIRA ticket received after {self.MAX_ATTEMPTS} attempts " f"for {channel_id}"
         )
         await self._delete_prompt_message(channel_id)
         await self._post_timeout_message(channel_id)
@@ -172,7 +169,9 @@ class JiraPromptHandler:
             except Exception as e:
                 # For exceptions, check if error message contains transient error indicators
                 error_str = str(e).lower()
-                if ("channel_not_found" in error_str or "is_archived" in error_str) and retry < max_retries - 1:
+                if (
+                    "channel_not_found" in error_str or "is_archived" in error_str
+                ) and retry < max_retries - 1:
                     logger.warning(
                         f"Transient error '{e}' posting to {channel_id}, "
                         f"retrying in {retry_delay}s (attempt {retry+1}/{max_retries})"
@@ -221,9 +220,11 @@ class JiraPromptHandler:
         await self.db_store.put_maintenance_prompt(
             channel_id=channel_id,
             prompt_ts=prompt_ts,
-            attempt=self.active_prompts.get(channel_id, {}).get("attempt", 1)
-            if isinstance(self.active_prompts.get(channel_id), dict)
-            else 1,
+            attempt=(
+                self.active_prompts.get(channel_id, {}).get("attempt", 1)
+                if isinstance(self.active_prompts.get(channel_id), dict)
+                else 1
+            ),
         )
 
         # Poll DynamoDB for reply (every 5 seconds is efficient + responsive)
@@ -286,11 +287,11 @@ class JiraPromptHandler:
                 "oldest": "0",
                 "include_all_metadata": False,
             }
-            
+
             response = await self.channel_msg_ops._make_api_request(
                 url, "GET", self.channel_msg_ops.headers, params
             )
-            
+
             messages = response.get("messages", [])
             if not messages:
                 return None
@@ -333,9 +334,7 @@ class JiraPromptHandler:
                     continue
 
                 # All validations passed!
-                logger.info(
-                    f"Valid JIRA ticket reply from user {user_id}: {jira_ticket}"
-                )
+                logger.info(f"Valid JIRA ticket reply from user {user_id}: {jira_ticket}")
                 return jira_ticket
 
             return None
@@ -369,9 +368,7 @@ class JiraPromptHandler:
             'CPGNREQ-182819'
         """
         # Pattern 1: URL format
-        url_match = re.search(
-            r"jira\.corp\.adobe\.com/browse/([A-Z]+-\d+)", text, re.IGNORECASE
-        )
+        url_match = re.search(r"jira\.corp\.adobe\.com/browse/([A-Z]+-\d+)", text, re.IGNORECASE)
         if url_match:
             return url_match.group(1).upper()
 
@@ -407,7 +404,7 @@ class JiraPromptHandler:
                 await self.posting_handler.update_message(
                     channel_id=channel_id,
                     ts=message_ts,
-                    message=f"✅ Received {jira_ticket} - checking maintenance status..."
+                    message=f"✅ Received {jira_ticket} - checking maintenance status...",
                 )
                 # Keep message_ts in active_prompts for deletion after final result
                 logger.info(f"Updated JIRA prompt for {channel_id} with ticket {jira_ticket}")
@@ -416,7 +413,9 @@ class JiraPromptHandler:
             except Exception as e:
                 # Check if error message contains transient error indicators
                 error_str = str(e).lower()
-                if ("channel_not_found" in error_str or "is_archived" in error_str) and retry < max_retries - 1:
+                if (
+                    "channel_not_found" in error_str or "is_archived" in error_str
+                ) and retry < max_retries - 1:
                     logger.warning(
                         f"Transient error '{e}' updating message in {channel_id}, "
                         f"retrying in {retry_delay}s (attempt {retry+1}/{max_retries})"
@@ -446,9 +445,7 @@ class JiraPromptHandler:
 
         # Deletion failure is non-fatal - channel operations (rename, archive) can cause transient errors
         try:
-            await self.posting_handler.delete_message(
-                channel_id=channel_id, message_ts=message_ts
-            )
+            await self.posting_handler.delete_message(channel_id=channel_id, message_ts=message_ts)
             del self.active_prompts[channel_id]
             logger.info(f"Deleted JIRA prompt for {channel_id}")
             return True
@@ -460,9 +457,7 @@ class JiraPromptHandler:
             )
             return False
 
-    async def _process_maintenance_check(
-        self, channel_id: str, jira_ticket: str
-    ) -> None:
+    async def _process_maintenance_check(self, channel_id: str, jira_ticket: str) -> None:
         """
         Process maintenance check after receiving JIRA ticket.
 
@@ -490,9 +485,7 @@ class JiraPromptHandler:
             logger.info(f"Instance URL from JIRA: {instance_url}")
 
             # Check for maintenance
-            maintenance_info = await self.maintenance_checker.check_maintenance(
-                instance_url
-            )
+            maintenance_info = await self.maintenance_checker.check_maintenance(instance_url)
 
             if maintenance_info:
                 # Maintenance found - post pinned message
@@ -501,9 +494,7 @@ class JiraPromptHandler:
                 )
             else:
                 # No maintenance - post regular message
-                normalized_instance = self.maintenance_checker.normalize_instance_name(
-                    instance_url
-                )
+                normalized_instance = self.maintenance_checker.normalize_instance_name(instance_url)
                 await self._post_no_maintenance_message(
                     channel_id, normalized_instance, jira_ticket
                 )
@@ -526,8 +517,7 @@ class JiraPromptHandler:
             # Use MCP client to fetch JIRA ticket
             # Must explicitly request customfield_22302 (instance URL)
             response = await self.mcp_client.search_issues(
-                jql=f'key = "{jira_ticket}"',
-                fields=["summary", "status", "customfield_22302"]
+                jql=f'key = "{jira_ticket}"', fields=["summary", "status", "customfield_22302"]
             )
 
             if response and response.get("issues"):
@@ -536,9 +526,7 @@ class JiraPromptHandler:
             return None
 
         except Exception as e:
-            logger.error(
-                f"Error fetching JIRA ticket {jira_ticket}: {e}", exc_info=True
-            )
+            logger.error(f"Error fetching JIRA ticket {jira_ticket}: {e}", exc_info=True)
             return None
 
     async def _post_maintenance_found_message(
@@ -560,9 +548,7 @@ class JiraPromptHandler:
         instance_url = self.maintenance_checker.denormalize_instance_url(instance_name)
 
         # Format start time
-        starts_at_formatted = self.maintenance_checker.format_maintenance_start_time(
-            starts_at_iso
-        )
+        starts_at_formatted = self.maintenance_checker.format_maintenance_start_time(starts_at_iso)
 
         text = f"""🔧 **SCHEDULED MAINTENANCE DETECTED**
 
@@ -577,17 +563,13 @@ This channel may be related to scheduled maintenance rather than an incident."""
             await self._delete_prompt_message(channel_id)
 
             # Post message
-            response = await self.posting_handler.post_message(
-                channel_id=channel_id, message=text
-            )
+            response = await self.posting_handler.post_message(channel_id=channel_id, message=text)
 
             if response and response.get("ok"):
                 message_ts = response.get("ts")
 
                 # Pin the message
-                await self.posting_handler.pin_message(
-                    channel_id=channel_id, message_ts=message_ts
-                )
+                await self.posting_handler.pin_message(channel_id=channel_id, message_ts=message_ts)
 
                 # Update DynamoDB with customer_name and jira_ticket
                 await self.db_store.channel_ops.update_channel_metadata(
@@ -624,8 +606,7 @@ This channel may be related to scheduled maintenance rather than an incident."""
 
             # Update DynamoDB with jira_ticket (use generic update method)
             await self.db_store.channel_ops.update_channel_fields(
-                channel_id=channel_id,
-                updates={"jira_ticket": jira_ticket}
+                channel_id=channel_id, updates={"jira_ticket": jira_ticket}
             )
 
             logger.info(f"Posted no-maintenance message for {channel_id}")

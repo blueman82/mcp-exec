@@ -64,9 +64,7 @@ class TestAccessRequestFeatureFlag:
             # Check for button in blocks
             has_button = any(
                 block.get("type") == "actions"
-                and any(
-                    elem.get("type") == "button" for elem in block.get("elements", [])
-                )
+                and any(elem.get("type") == "button" for elem in block.get("elements", []))
                 for block in blocks
             )
             assert has_button, "Should show request button when feature is enabled"
@@ -118,14 +116,10 @@ class TestAccessRequestFeatureFlag:
             # Check no button in blocks
             has_button = any(
                 block.get("type") == "actions"
-                and any(
-                    elem.get("type") == "button" for elem in block.get("elements", [])
-                )
+                and any(elem.get("type") == "button" for elem in block.get("elements", []))
                 for block in blocks
             )
-            assert (
-                not has_button
-            ), "Should not show request button when feature is disabled"
+            assert not has_button, "Should not show request button when feature is disabled"
 
     @pytest.mark.asyncio
     async def test_payload_processor_with_feature_enabled(self):

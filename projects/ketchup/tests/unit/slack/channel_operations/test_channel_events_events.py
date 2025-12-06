@@ -83,9 +83,7 @@ class TestSlackEventHandler:
     async def test_handle_channel_archive(self, mock_archive: AsyncMock) -> None:
         event = {"channel": "C1"}
         await self.handler.handle_channel_archive(event)
-        mock_archive.assert_awaited_once_with(
-            channel_id="C1", dynamodb_store=self.dynamodb_store
-        )
+        mock_archive.assert_awaited_once_with(channel_id="C1", dynamodb_store=self.dynamodb_store)
 
     @patch(
         "packages.slack.channel_events.events.process_channel_archive",
@@ -102,9 +100,7 @@ class TestSlackEventHandler:
         "packages.slack.channel_events.events.invite_and_verify_bot_after_unarchive",
         new_callable=AsyncMock,
     )
-    async def test_handle_channel_unarchive_normal(
-        self, mock_invite: AsyncMock
-    ) -> None:
+    async def test_handle_channel_unarchive_normal(self, mock_invite: AsyncMock) -> None:
         event = {"channel": "C1"}
         self.dynamodb_store.get_channel_details_consistent.return_value = {
             "archived": True,
@@ -135,9 +131,7 @@ class TestSlackEventHandler:
         "packages.slack.channel_events.events.invite_and_verify_bot_after_unarchive",
         new_callable=AsyncMock,
     )
-    async def test_handle_channel_unarchive_not_found(
-        self, mock_invite: AsyncMock
-    ) -> None:
+    async def test_handle_channel_unarchive_not_found(self, mock_invite: AsyncMock) -> None:
         event = {"channel": "C1"}
         self.dynamodb_store.get_channel_details_consistent.return_value = None
         await self.handler.handle_channel_unarchive(event)
@@ -165,17 +159,13 @@ class TestSlackEventHandler:
         "packages.slack.channel_events.events.invite_and_verify_bot_after_unarchive",
         new_callable=AsyncMock,
     )
-    async def test_handle_channel_unarchive_update_error(
-        self, mock_invite: AsyncMock
-    ) -> None:
+    async def test_handle_channel_unarchive_update_error(self, mock_invite: AsyncMock) -> None:
         event = {"channel": "C1"}
         self.dynamodb_store.get_channel_details_consistent.return_value = {
             "archived": True,
             "channel_name": "foo",
         }
-        self.dynamodb_store.update_channel_archived_status.side_effect = Exception(
-            "fail"
-        )
+        self.dynamodb_store.update_channel_archived_status.side_effect = Exception("fail")
         mock_invite.return_value = True
         await self.handler.handle_channel_unarchive(event)
         self.dynamodb_store.get_channel_details_consistent.assert_awaited_once_with("C1")
@@ -186,9 +176,7 @@ class TestSlackEventHandler:
         "packages.slack.channel_events.events.invite_and_verify_bot_after_unarchive",
         new_callable=AsyncMock,
     )
-    async def test_handle_channel_unarchive_invite_error(
-        self, mock_invite: AsyncMock
-    ) -> None:
+    async def test_handle_channel_unarchive_invite_error(self, mock_invite: AsyncMock) -> None:
         event = {"channel": "C1"}
         self.dynamodb_store.get_channel_details_consistent.return_value = {
             "archived": True,

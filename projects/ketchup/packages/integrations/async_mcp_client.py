@@ -86,9 +86,13 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
             request_timeout: Timeout for individual requests in seconds.
             backoff_strategy: Optional custom backoff strategy.
         """
-        logger.info("Initializing AsyncMCPClient (NEW ASYNC IMPLEMENTATION) with base_url=%s, "
-                    "max_concurrent_requests=%d, request_timeout=%d",
-                    base_url, max_concurrent_requests, request_timeout)
+        logger.info(
+            "Initializing AsyncMCPClient (NEW ASYNC IMPLEMENTATION) with base_url=%s, "
+            "max_concurrent_requests=%d, request_timeout=%d",
+            base_url,
+            max_concurrent_requests,
+            request_timeout,
+        )
         super().__init__(
             config=MCPClientConfig(base_url=base_url, token_manager=token_manager),
             max_concurrent_requests=max_concurrent_requests,
@@ -180,9 +184,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         )
 
         if response["status"] != 200:
-            raise Exception(
-                f"Failed to establish SSE connection: {response['status']}"
-            )
+            raise Exception(f"Failed to establish SSE connection: {response['status']}")
 
         session_id = response["headers"].get("X-Session-ID", str(uuid.uuid4()))
         self._session_id = session_id
@@ -202,9 +204,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
             headers["X-Session-ID"] = self._session_id
         return headers
 
-    async def _call_mcp_tool(
-        self, tool_name: str, arguments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _call_mcp_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Call an MCP tool via JSON-RPC."""
 
         request_id = self._get_next_request_id()
@@ -334,9 +334,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         jql = f'key IN ({", ".join(escaped_keys)})'
 
         try:
-            result = await self.search_issues(
-                jql, fields=fields, max_results=len(issue_keys)
-            )
+            result = await self.search_issues(jql, fields=fields, max_results=len(issue_keys))
             issues_map = {key: None for key in issue_keys}
             for issue in result.get("issues", []):
                 issue_key = issue.get("key")
@@ -358,9 +356,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         await self.rate_limiter.acquire()
 
         try:
-            result = await self._call_mcp_tool(
-                "get_jira_comments", {"issueIdOrKey": issue_key}
-            )
+            result = await self._call_mcp_tool("get_jira_comments", {"issueIdOrKey": issue_key})
             if isinstance(result, dict) and result.get("success"):
                 return result.get("data", {}).get("comments", [])
             if isinstance(result, dict) and "comments" in result:

@@ -85,9 +85,7 @@ class TestSlackArchiveCommand:
                 "archived_at": 456,
             },
         }
-        await self.handler.process_archive_params(
-            params, user_id, incoming_channel, response_url
-        )
+        await self.handler.process_archive_params(params, user_id, incoming_channel, response_url)
         self.slack_posting_handler.post_message.assert_any_await(
             user_id=user_id,
             channel_id=incoming_channel,
@@ -117,9 +115,7 @@ class TestSlackArchiveCommand:
         incoming_channel = "C123"
         response_url = "https://slack.com/response"
         self.dynamodb_store.get_all_channel_details.return_value = {}
-        await self.handler.process_archive_params(
-            params, user_id, incoming_channel, response_url
-        )
+        await self.handler.process_archive_params(params, user_id, incoming_channel, response_url)
         self.slack_posting_handler.post_message.assert_any_await(
             user_id=user_id,
             channel_id=incoming_channel,
@@ -149,9 +145,7 @@ class TestSlackArchiveCommand:
         incoming_channel = "C123"
         response_url = "https://slack.com/response"
         self.dynamodb_store.get_all_channel_details.side_effect = Exception("fail!")
-        await self.handler.process_archive_params(
-            params, user_id, incoming_channel, response_url
-        )
+        await self.handler.process_archive_params(params, user_id, incoming_channel, response_url)
         self.slack_posting_handler.post_message.assert_any_await(
             user_id=user_id,
             channel_id=incoming_channel,

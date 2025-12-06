@@ -162,9 +162,7 @@ class TestAzureAsyncClient:
         """Test _make_azure_api_request for POST method with mocked internals."""
         client = AzureAsyncClient(api_key="abc", endpoint="https://foo")
         # The mock now returns a SafeResponse-like dictionary
-        mock_make_api.return_value = self._create_safe_response(
-            200, {}, b'{"ok": true}'
-        )
+        mock_make_api.return_value = self._create_safe_response(200, {}, b'{"ok": true}')
         mock_process.return_value = {"ok": True}
         result = await client._make_azure_api_request(
             url="https://foo", method="POST", headers=None, json_data={"a": 1}
@@ -182,9 +180,7 @@ class TestAzureAsyncClient:
         """Test _make_azure_api_request for GET method with mocked internals."""
         client = AzureAsyncClient(api_key="abc", endpoint="https://foo")
         # The mock now returns a SafeResponse-like dictionary
-        mock_make_api.return_value = self._create_safe_response(
-            200, {}, b'{"ok": true}'
-        )
+        mock_make_api.return_value = self._create_safe_response(200, {}, b'{"ok": true}')
         mock_process.return_value = {"ok": True}
         result = await client._make_azure_api_request(
             url="https://foo", method="GET", headers=None, json_data={"a": 1}
@@ -206,6 +202,7 @@ class TestAzureAsyncClient:
 
         # First call fails with retryable error, second succeeds
         call_count = 0
+
         async def mock_core_logic():
             nonlocal call_count
             call_count += 1
@@ -220,8 +217,10 @@ class TestAzureAsyncClient:
         mock_strategy.execute.side_effect = mock_execute
 
         # Mock the internal methods to control the flow
-        with patch.object(client, '_make_api_request', new_callable=AsyncMock) as mock_make_api, \
-             patch.object(client, '_process_response', new_callable=AsyncMock) as mock_process:
+        with (
+            patch.object(client, "_make_api_request", new_callable=AsyncMock) as mock_make_api,
+            patch.object(client, "_process_response", new_callable=AsyncMock) as mock_process,
+        ):
 
             # Set up the mock chain
             mock_make_api.return_value = self._create_safe_response(200, {}, b'{"success": true}')
@@ -242,7 +241,7 @@ class TestAzureAsyncClient:
         client = AzureAsyncClient(
             api_key="test-key",
             endpoint="https://test.com",
-            request_timeout=1  # Very short timeout for testing
+            request_timeout=1,  # Very short timeout for testing
         )
 
         # Mock the backoff strategy

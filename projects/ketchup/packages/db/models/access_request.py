@@ -98,9 +98,7 @@ class AccessRequest:
             raise ValueError("Missing required field: status")
 
         user_id = (
-            item["user_id"].get("S")
-            if isinstance(item.get("user_id"), dict)
-            else item["user_id"]
+            item["user_id"].get("S") if isinstance(item.get("user_id"), dict) else item["user_id"]
         )
         user_name = (
             item["user_name"].get("S")
@@ -112,11 +110,7 @@ class AccessRequest:
             if isinstance(item.get("request_timestamp"), dict)
             else item["request_timestamp"]
         )
-        status = (
-            item["status"].get("S")
-            if isinstance(item.get("status"), dict)
-            else item["status"]
-        )
+        status = item["status"].get("S") if isinstance(item.get("status"), dict) else item["status"]
 
         # Handle optional user_email
         user_email = None
@@ -130,11 +124,7 @@ class AccessRequest:
         # Handle optional fields
         ttl = None
         if "ttl" in item:
-            ttl = (
-                int(item["ttl"].get("N"))
-                if isinstance(item["ttl"], dict)
-                else item.get("ttl")
-            )
+            ttl = int(item["ttl"].get("N")) if isinstance(item["ttl"], dict) else item.get("ttl")
 
         reason_for_access = None
         if "reason_for_access" in item:
@@ -202,9 +192,7 @@ class AccessRequest:
             if metadata_str:
                 try:
                     request_metadata = (
-                        json.loads(metadata_str)
-                        if isinstance(metadata_str, str)
-                        else metadata_str
+                        json.loads(metadata_str) if isinstance(metadata_str, str) else metadata_str
                     )
                 except (json.JSONDecodeError, TypeError):
                     request_metadata = {}

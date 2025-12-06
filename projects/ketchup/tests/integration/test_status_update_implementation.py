@@ -82,9 +82,7 @@ class StatusUpdateIntegrationTest(BaseIntegrationTest):
 
         # Convert timestamp to readable format for verification
         if current_msg_ts != "0":
-            current_time = datetime.fromtimestamp(
-                float(current_msg_ts), tz=timezone.utc
-            )
+            current_time = datetime.fromtimestamp(float(current_msg_ts), tz=timezone.utc)
             self.logger.info(
                 f"  Last message time: {current_time.strftime('%Y-%m-%d %H:%M:%S UTC')}"
             )
@@ -133,9 +131,7 @@ class StatusUpdateIntegrationTest(BaseIntegrationTest):
             # Check if previous post was deleted (if there was one)
             if current_post_ts != "0":
                 self.logger.info(f"Previous post timestamp was: {current_post_ts}")
-                self.logger.info(
-                    "Check Slack channel to verify previous post was deleted"
-                )
+                self.logger.info("Check Slack channel to verify previous post was deleted")
             else:
                 self.logger.info("No previous post to delete (first run with new code)")
 
@@ -151,9 +147,7 @@ class StatusUpdateIntegrationTest(BaseIntegrationTest):
             if new_post_ts != "0" and new_post_ts != current_post_ts:
                 self.logger.info("✅ New post timestamp stored successfully!")
             else:
-                self.logger.warning(
-                    "⚠️ Post timestamp may not have been updated correctly"
-                )
+                self.logger.warning("⚠️ Post timestamp may not have been updated correctly")
 
             return True
         else:

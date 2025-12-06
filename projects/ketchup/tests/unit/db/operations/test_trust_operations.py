@@ -127,9 +127,7 @@ class TestTrustOperations:
 
     @pytest.mark.asyncio
     @patch.object(TrustOperations, "get_trust_data")
-    async def test_add_trust_endorsement_success(
-        self, mock_get_trust, trust_ops, mock_client
-    ):
+    async def test_add_trust_endorsement_success(self, mock_get_trust, trust_ops, mock_client):
         """Test successful addition of trust endorsement."""
         channel_id = "C123456"
         status_update_id = "1234567890_abcd1234"
@@ -141,19 +139,17 @@ class TestTrustOperations:
         mock_get_trust.side_effect = [
             {
                 "status_update_id": status_update_id,
-                "trusted_by": [
-                    {"user_id": "U123", "user_name": "user1", "trusted_at": 1234567890}
-                ],
+                "trusted_by": [{"user_id": "U123", "user_name": "user1", "trusted_at": 1234567890}],
                 "trust_count": 1,
             },
             {
                 "status_update_id": status_update_id,
                 "trusted_by": [
                     {"user_id": "U123", "user_name": "user1", "trusted_at": 1234567890},
-                    {"user_id": "U789", "user_name": "newuser", "trusted_at": 1234567891}
+                    {"user_id": "U789", "user_name": "newuser", "trusted_at": 1234567891},
                 ],
                 "trust_count": 2,
-            }
+            },
         ]
 
         # Mock update response (doesn't need to return data since method calls get_trust_data again)
@@ -178,18 +174,14 @@ class TestTrustOperations:
 
     @pytest.mark.asyncio
     @patch.object(TrustOperations, "get_trust_data")
-    async def test_add_trust_endorsement_already_trusted(
-        self, mock_get_trust, trust_ops
-    ):
+    async def test_add_trust_endorsement_already_trusted(self, mock_get_trust, trust_ops):
         """Test add_trust_endorsement when user already trusted."""
         user_id = "U123"
 
         # Mock existing trust data showing user already trusted
         mock_get_trust.return_value = {
             "status_update_id": "1234567890_abcd1234",
-            "trusted_by": [
-                {"user_id": user_id, "user_name": "user1", "trusted_at": 1234567890}
-            ],
+            "trusted_by": [{"user_id": user_id, "user_name": "user1", "trusted_at": 1234567890}],
             "trust_count": 1,
         }
 

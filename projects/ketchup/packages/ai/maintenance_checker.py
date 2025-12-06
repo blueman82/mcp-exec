@@ -158,7 +158,7 @@ class MaintenanceChecker:
                             "instance_name": instance_name,
                             "starts_at": instance.get("starts_at", ""),
                             "release": release.get("release", ""),
-                            "release_url": release.get("release_url", "")
+                            "release_url": release.get("release_url", ""),
                         }
 
         return None
@@ -180,7 +180,7 @@ class MaintenanceChecker:
         """
         try:
             # Parse ISO timestamp
-            dt = datetime.fromisoformat(iso_timestamp.replace('Z', '+00:00'))
+            dt = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
             # Format to DD-MM-YYYY HH:MM:SS
             return dt.strftime("%d-%m-%Y %H:%M:%S")
         except (ValueError, AttributeError) as e:

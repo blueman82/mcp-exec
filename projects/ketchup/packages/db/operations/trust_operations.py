@@ -98,9 +98,7 @@ class TrustOperations:
             try:
                 int(timestamp)
             except ValueError:
-                logger.error(
-                    f"Invalid timestamp in status_update_id: {status_update_id}"
-                )
+                logger.error(f"Invalid timestamp in status_update_id: {status_update_id}")
                 return None
 
             # Construct the full key
@@ -203,9 +201,7 @@ class TrustOperations:
         """
         try:
             # First get the current item to check if user already trusted
-            current = await self.get_command_trust_data(
-                channel_id, command_execution_id
-            )
+            current = await self.get_command_trust_data(channel_id, command_execution_id)
             if not current:
                 logger.error(f"Command execution {command_execution_id} not found")
                 return None
@@ -259,9 +255,7 @@ class TrustOperations:
 
             if result and result.get("Attributes"):
                 updated_data = self._deserialize_trust_item(result["Attributes"])
-                logger.info(
-                    f"Trust endorsement added for command {command_execution_id}"
-                )
+                logger.info(f"Trust endorsement added for command {command_execution_id}")
                 return updated_data
 
             return None
@@ -286,9 +280,7 @@ class TrustOperations:
             # Extract timestamp and uuid from command_execution_id
             parts = command_execution_id.split("_")
             if len(parts) != 2:
-                logger.error(
-                    f"Invalid command_execution_id format: {command_execution_id}"
-                )
+                logger.error(f"Invalid command_execution_id format: {command_execution_id}")
                 return None
 
             timestamp, uuid = parts
@@ -297,9 +289,7 @@ class TrustOperations:
             try:
                 int(timestamp)
             except ValueError:
-                logger.error(
-                    f"Invalid timestamp in command_execution_id: {command_execution_id}"
-                )
+                logger.error(f"Invalid timestamp in command_execution_id: {command_execution_id}")
                 return None
 
             # Construct the full key
@@ -344,9 +334,7 @@ class TrustOperations:
 
         # Add appropriate ID based on item type
         if is_command:
-            result["command_execution_id"] = item.get("command_execution_id", {}).get(
-                "S", ""
-            )
+            result["command_execution_id"] = item.get("command_execution_id", {}).get("S", "")
             result["command_type"] = item.get("command_type", {}).get("S", "")
             result["command_output"] = item.get("command_output", {}).get("S", "")
             result["channel_id"] = item.get("channel_id", {}).get("S", "")
@@ -415,15 +403,11 @@ class TrustOperations:
                 )
 
                 # Handle any unprocessed items
-                unprocessed = response.get("UnprocessedItems", {}).get(
-                    self.table_name, []
-                )
+                unprocessed = response.get("UnprocessedItems", {}).get(self.table_name, [])
                 deleted_count += len(delete_requests) - len(unprocessed)
 
                 if unprocessed:
-                    logger.warning(
-                        f"Failed to delete {len(unprocessed)} trust endorsement records"
-                    )
+                    logger.warning(f"Failed to delete {len(unprocessed)} trust endorsement records")
 
             logger.info(
                 f"Successfully cleaned up {deleted_count} trust endorsement records for channel {channel_id}"

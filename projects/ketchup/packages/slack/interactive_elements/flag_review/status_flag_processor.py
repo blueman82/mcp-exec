@@ -4,9 +4,10 @@ Handles flag status processing and validation for AI-generated summaries.
 Provides functionality for creating, storing, and managing status flags.
 """
 
-import aiohttp
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+
+import aiohttp
 
 from packages.core.logging import setup_logger
 from packages.db.dynamodb_store import DynamoDBStore
@@ -61,9 +62,7 @@ class StatusFlagProcessor:
                 return False
 
             # Display feedback modal
-            await self._show_feedback_modal(
-                trigger_id, channel_id, message_ts, status_update_id
-            )
+            await self._show_feedback_modal(trigger_id, channel_id, message_ts, status_update_id)
             return True
 
         except Exception as e:
@@ -87,9 +86,7 @@ class StatusFlagProcessor:
             # Extract feedback text from modal input
             values = payload.get("view", {}).get("state", {}).get("values", {})
             feedback_text = (
-                values.get("feedback_block", {})
-                .get("feedback_input", {})
-                .get("value", "")
+                values.get("feedback_block", {}).get("feedback_input", {}).get("value", "")
             )
 
             # Extract metadata from private_metadata
@@ -139,9 +136,7 @@ class StatusFlagProcessor:
                 user_id=user_id,
             )
 
-            logger.info(
-                f"Flag submission processed successfully for {channel_id}/{message_ts}"
-            )
+            logger.info(f"Flag submission processed successfully for {channel_id}/{message_ts}")
             return True
 
         except Exception as e:
@@ -206,28 +201,19 @@ class StatusFlagProcessor:
                 "user_name": {"S": user_name},
                 "original_text": {"S": feedback_text},
                 "sanitized_text": {"S": feedback_text},  # Could add sanitization
-                "sanitization_issues": {
-                    "L": [{"S": issue} for issue in validation_issues]
-                },
+                "sanitization_issues": {"L": [{"S": issue} for issue in validation_issues]},
                 "text_length": {"N": str(len(feedback_text))},
                 "status": {"S": "pending"},
                 "created_at": {"S": datetime.now(timezone.utc).isoformat()},
                 "ttl": {
-                    "N": str(
-                        int(
-                            (datetime.now(timezone.utc).timestamp())
-                            + (30 * 24 * 60 * 60)
-                        )
-                    )
+                    "N": str(int((datetime.now(timezone.utc).timestamp()) + (30 * 24 * 60 * 60)))
                 },
                 "review_channel_id": {"S": REVIEW_CHANNEL_ID},
                 "slack_team_id": {"S": "T018BPFUD75"},
                 "app_version": {"S": "2.1.0"},
             }
 
-            await self.db_store.client.put_item(
-                table_name=self.db_store.table_name, item=flag_item
-            )
+            await self.db_store.client.put_item(table_name=self.db_store.table_name, item=flag_item)
 
             logger.info(f"Stored flag for message {message_ts} from user {user_id}")
             return {"success": True}
@@ -259,9 +245,7 @@ class StatusFlagProcessor:
         """
         try:
             # Get original summary from trust data
-            original_summary = await self.get_original_summary(
-                channel_id, status_update_id
-            )
+            original_summary = await self.get_original_summary(channel_id, status_update_id)
 
             # Create message blocks for the review channel
             blocks = [
@@ -287,16 +271,18 @@ class StatusFlagProcessor:
 
             # Only add original summary if we found one (skip "Summary not found" messages)
             if original_summary and original_summary != "Summary not found":
-                blocks.extend([
-                    {"type": "divider"},
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"*Original Summary:*\n{original_summary[:500]}{'...' if len(original_summary) > 500 else ''}",
+                blocks.extend(
+                    [
+                        {"type": "divider"},
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": f"*Original Summary:*\n{original_summary[:500]}{'...' if len(original_summary) > 500 else ''}",
+                            },
                         },
-                    },
-                ])
+                    ]
+                )
 
             # Add validation warnings if any
             if validation_issues:
@@ -344,9 +330,7 @@ class StatusFlagProcessor:
         except Exception as e:
             logger.error(f"Error posting to review channel: {e}", exc_info=True)
 
-    async def get_original_summary(
-        self, channel_id: str, status_update_id: str
-    ) -> str:
+    async def get_original_summary(self, channel_id: str, status_update_id: str) -> str:
         """Get original summary from trust data.
 
         Args:
@@ -358,9 +342,7 @@ class StatusFlagProcessor:
         """
         original_summary = "Summary not found"
         if status_update_id:
-            trust_data = await self.db_store.trust_ops.get_trust_data(
-                channel_id, status_update_id
-            )
+            trust_data = await self.db_store.trust_ops.get_trust_data(channel_id, status_update_id)
             if trust_data:
                 original_summary = trust_data.get("content_preview", original_summary)
         return original_summary
@@ -394,9 +376,7 @@ class StatusFlagProcessor:
         except Exception as e:
             logger.error(f"Error posting summary review message: {e}")
 
-    async def get_feedback_data(
-        self, channel_id: str, message_ts: str
-    ) -> Optional[Dict[str, Any]]:
+    async def get_feedback_data(self, channel_id: str, message_ts: str) -> Optional[Dict[str, Any]]:
         """Get feedback data for a message.
 
         Args:

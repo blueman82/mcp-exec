@@ -7,7 +7,6 @@ restore state operations, trust operations, and join notification operations.
 
 from typing import Protocol, runtime_checkable
 
-
 __all__ = [
     "BaseOperationsProtocol",
     "RestoreStateOperationsProtocol",

@@ -40,9 +40,7 @@ class TestSlackAuth:
 
     async def test_get_slack_signing_secret_success(self) -> None:
         self.auth._slack_signing_secret = None
-        self.mock_secrets_manager.get_app_secrets.return_value = {
-            "SLACK_SIGNING_SECRET": "secret"
-        }
+        self.mock_secrets_manager.get_app_secrets.return_value = {"SLACK_SIGNING_SECRET": "secret"}
         result: str | None = await self.auth.get_slack_signing_secret()
         assert result == "secret"
         self.mock_secrets_manager.get_app_secrets.assert_awaited_once()
@@ -73,9 +71,7 @@ class TestSlackAuth:
         import hmac
 
         sig_basestring = "v0:1000000:".encode("utf-8") + raw_body_bytes
-        my_signature = (
-            "v0=" + hmac.new(b"secret", sig_basestring, hashlib.sha256).hexdigest()
-        )
+        my_signature = "v0=" + hmac.new(b"secret", sig_basestring, hashlib.sha256).hexdigest()
         headers["x-slack-signature"] = my_signature
         result: bool = await self.auth.verify_slack_signature(headers, raw_body_bytes)
         assert result is True
@@ -89,9 +85,7 @@ class TestSlackAuth:
         assert result is False
 
     @patch("packages.slack.authorisation.auth.time.time", return_value=1000000)
-    async def test_verify_slack_signature_invalid_timestamp(
-        self, mock_time: Any
-    ) -> None:
+    async def test_verify_slack_signature_invalid_timestamp(self, mock_time: Any) -> None:
         self.auth.get_slack_signing_secret = AsyncMock(return_value="secret")  # type: ignore[method-assign]
         headers: Dict[str, str] = {
             "x-slack-request-timestamp": "bad",
@@ -102,9 +96,7 @@ class TestSlackAuth:
         assert result is False
 
     @patch("packages.slack.authorisation.auth.time.time", return_value=1000000)
-    async def test_verify_slack_signature_expired_timestamp(
-        self, mock_time: Any
-    ) -> None:
+    async def test_verify_slack_signature_expired_timestamp(self, mock_time: Any) -> None:
         self.auth.get_slack_signing_secret = AsyncMock(return_value="secret")  # type: ignore[method-assign]
         headers: Dict[str, str] = {
             "x-slack-request-timestamp": str(1000000 - 4000),
@@ -126,9 +118,7 @@ class TestSlackAuth:
         assert result is False
 
     @patch("packages.slack.authorisation.auth.time.time", return_value=1000000)
-    async def test_verify_slack_signature_signature_mismatch(
-        self, mock_time: Any
-    ) -> None:
+    async def test_verify_slack_signature_signature_mismatch(self, mock_time: Any) -> None:
         self.auth.get_slack_signing_secret = AsyncMock(return_value="secret")  # type: ignore[method-assign]
         headers: Dict[str, str] = {
             "x-slack-request-timestamp": str(1000000),

@@ -83,9 +83,7 @@ def clean_response_text(response_text: str, query: Optional[str] = None) -> str:
         Cleaned response text
     """
     if query:
-        query_pattern = re.compile(
-            r"(?i)^(?:query|question):\s*" + re.escape(query) + r"\s*\n+"
-        )
+        query_pattern = re.compile(r"(?i)^(?:query|question):\s*" + re.escape(query) + r"\s*\n+")
         response_text = query_pattern.sub("", response_text)
 
     response_prefixes = [

@@ -37,7 +37,7 @@ async def test_temporarily_unarchive_channel_success():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test unarchive
@@ -79,7 +79,7 @@ async def test_temporarily_unarchive_channel_already_unarchived():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test unarchive
@@ -102,9 +102,7 @@ async def test_rearchive_channel_success():
 
     mock_dynamodb = Mock()
     # Mock channel data with archived_at timestamp
-    mock_dynamodb.get_channel_details = AsyncMock(
-        return_value={"archived_at": 1234567890}
-    )
+    mock_dynamodb.get_channel_details = AsyncMock(return_value={"archived_at": 1234567890})
     mock_dynamodb.update_channel_fields = AsyncMock()
 
     mock_bot_membership_ops = Mock()
@@ -115,7 +113,7 @@ async def test_rearchive_channel_success():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test rearchive
@@ -174,7 +172,7 @@ async def test_cleanup_stale_unarchives():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
     handler.rearchive_channel = AsyncMock(return_value=True)
 
@@ -204,7 +202,7 @@ async def test_is_channel_archived():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test
@@ -231,7 +229,7 @@ async def test_error_handling():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test - should handle exception and return False
@@ -250,9 +248,7 @@ async def test_rearchive_channel_already_archived():
     )
 
     mock_dynamodb = Mock()
-    mock_dynamodb.get_channel_details = AsyncMock(
-        return_value={"archived_at": 1234567890}
-    )
+    mock_dynamodb.get_channel_details = AsyncMock(return_value={"archived_at": 1234567890})
     mock_dynamodb.update_channel_fields = AsyncMock()
 
     mock_bot_membership_ops = Mock()
@@ -263,7 +259,7 @@ async def test_rearchive_channel_already_archived():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test rearchive
@@ -295,15 +291,11 @@ async def test_skip_status_check_optimization():
         check_channel_archived_called = True
         return False  # Channel is not archived
 
-    mock_archive_ops.check_channel_archived = AsyncMock(
-        side_effect=mock_check_channel_archived
-    )
+    mock_archive_ops.check_channel_archived = AsyncMock(side_effect=mock_check_channel_archived)
     mock_archive_ops.archive_channel = AsyncMock(return_value=True)
 
     mock_dynamodb = Mock()
-    mock_dynamodb.get_channel_details = AsyncMock(
-        return_value={"archived_at": 1234567890}
-    )
+    mock_dynamodb.get_channel_details = AsyncMock(return_value={"archived_at": 1234567890})
     mock_dynamodb.update_channel_fields = AsyncMock()
 
     mock_bot_membership_ops = Mock()
@@ -314,7 +306,7 @@ async def test_skip_status_check_optimization():
         archive_ops=mock_archive_ops,
         dynamodb_store=mock_dynamodb,
         bot_membership_ops=mock_bot_membership_ops,
-        secrets_manager=mock_secrets_manager
+        secrets_manager=mock_secrets_manager,
     )
 
     # Test rearchive which should use skip_status_check=True

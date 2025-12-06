@@ -14,14 +14,14 @@ from packages.core.typed_di.types import DependencySpec
 
 # Import protocols
 from ..protocols import (
-    RavenMaintenanceClientProtocol,
-    MaintenanceCheckerProtocol,
-    JiraPromptHandlerProtocol,
-    MCPClientProtocol,
     DynamoDBStoreProtocol,
-    SlackPostingHandlerProtocol,
-    SlackChannelMessageOpsProtocol,
+    JiraPromptHandlerProtocol,
+    MaintenanceCheckerProtocol,
+    MCPClientProtocol,
+    RavenMaintenanceClientProtocol,
     SecretsManagerProtocol,
+    SlackChannelMessageOpsProtocol,
+    SlackPostingHandlerProtocol,
 )
 
 if TYPE_CHECKING:
@@ -56,7 +56,7 @@ def register_maintenance_services(manager: "ServiceRegistrationManager") -> None
             # Append Adobe Campaign SOAP router path if not already present
             if not endpoint.endswith("/nl/jsp/soaprouter.jsp"):
                 endpoint = f"{endpoint}/nl/jsp/soaprouter.jsp"
-            
+
             return RavenMaintenanceClient(
                 endpoint=endpoint,
                 username=secrets.get("raven_maintenance_email_username"),

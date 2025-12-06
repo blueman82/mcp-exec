@@ -125,9 +125,7 @@ async def test_prepare_messages_for_auto_status_error_handling():
     )
 
     # Simulate an error in check_recent_thread_activity
-    mock_channel_msg_ops.check_recent_thread_activity.side_effect = Exception(
-        "API Error"
-    )
+    mock_channel_msg_ops.check_recent_thread_activity.side_effect = Exception("API Error")
 
     formatted_messages, metadata = await preparer.prepare_messages_for_auto_status(
         channel_id="C091GU7LT6J", since_ts="1736350000.000000"

@@ -17,8 +17,7 @@ class TestAutoStatusPrompts:
 
         assert isinstance(prompt, str)
         assert (
-            "AI assistant specialized in generating ultra-concise channel status reports"
-            in prompt
+            "AI assistant specialized in generating ultra-concise channel status reports" in prompt
         )
         assert "CRITICAL ACCURACY REQUIREMENTS" in prompt
         assert "technical details" in prompt
@@ -46,10 +45,7 @@ class TestAutoStatusPrompts:
 
     def test_get_auto_status_prompt_missing_info(self):
         """Test prompt generation with missing information"""
-        channel_info = {
-            "channel_name": "test-channel",
-            "channel_id": "C12345"
-        }
+        channel_info = {"channel_name": "test-channel", "channel_id": "C12345"}
 
         prompt = get_auto_status_prompt(channel_info)
 
@@ -75,10 +71,7 @@ class TestAutoStatusPrompts:
 
     def test_get_auto_status_prompt_formatting_rules(self):
         """Test that formatting rules are included in prompt"""
-        channel_info = {
-            "channel_name": "test-channel",
-            "channel_id": "C12345"
-        }
+        channel_info = {"channel_name": "test-channel", "channel_id": "C12345"}
 
         prompt = get_auto_status_prompt(channel_info)
 

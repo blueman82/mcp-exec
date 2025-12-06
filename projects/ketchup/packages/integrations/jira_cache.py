@@ -134,9 +134,7 @@ class JIRACache:
                 for key in keys_to_delete:
                     del self._cache[key]
 
-                logger.info(
-                    f"Invalidated {len(keys_to_delete)} cache entries matching '{pattern}'"
-                )
+                logger.info(f"Invalidated {len(keys_to_delete)} cache entries matching '{pattern}'")
                 return len(keys_to_delete)
 
     def get_stats(self) -> Dict[str, Any]:

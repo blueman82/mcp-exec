@@ -96,9 +96,7 @@ class SlackPostingHandler(SlackAsyncClient):
                     user_id,
                     channel_id,
                 )
-                response = await self._post_ephemeral(
-                    user_id, channel_id, message_text, blocks
-                )
+                response = await self._post_ephemeral(user_id, channel_id, message_text, blocks)
 
                 # Check if the ephemeral message was successful (ok: True or not present)
                 # If ok: False, log warning and try next method.
@@ -123,14 +121,10 @@ class SlackPostingHandler(SlackAsyncClient):
                 # Ensure message is a string, provide empty string as fallback
                 message_text = message if message is not None else ""
                 logger.info("Attempting to post via response_url: %s", response_url)
-                response = await self._post_response_url(
-                    response_url, message_text, blocks
-                )
+                response = await self._post_response_url(response_url, message_text, blocks)
                 # If response indicates a structured error (not ok), try fallback to channel_id
                 if isinstance(response, dict) and not response.get("ok", True):
-                    logger.warning(
-                        "Response_url post failed with error: %s", response.get("error")
-                    )
+                    logger.warning("Response_url post failed with error: %s", response.get("error"))
                     return response
                 logger.info("Response URL post successful.")
                 return response  # Return successful response
@@ -163,12 +157,8 @@ class SlackPostingHandler(SlackAsyncClient):
         ):
             try:
                 message_text = message if message is not None else ""
-                logger.info(
-                    "Attempting to post to channel via chat.postMessage: %s", channel_id
-                )
-                response = await self._post_channel_message(
-                    channel_id, message_text, blocks
-                )
+                logger.info("Attempting to post to channel via chat.postMessage: %s", channel_id)
+                response = await self._post_channel_message(channel_id, message_text, blocks)
                 logger.info("chat.postMessage successful.")
                 return response
             except Exception as e:
@@ -198,9 +188,7 @@ class SlackPostingHandler(SlackAsyncClient):
         """
         await self._init_slack_token()
 
-        logger.info(
-            "Posting ephemeral message. User: %s, Channel: %s", user_id, channel_id
-        )
+        logger.info("Posting ephemeral message. User: %s, Channel: %s", user_id, channel_id)
 
         url = f"{self.config.get_api_base_url()}/chat.postEphemeral"
         headers = self.config.get_headers()
@@ -266,8 +254,7 @@ class SlackPostingHandler(SlackAsyncClient):
                                 response.status >= 400  # Check for client/server errors
                                 and (
                                     "invalid_blocks" in response_text_for_error.lower()
-                                    or "block is too large"
-                                    in response_text_for_error.lower()
+                                    or "block is too large" in response_text_for_error.lower()
                                     or "invalid view" in response_text_for_error.lower()
                                 )  # Added other common block errors
                             ) or (
@@ -296,13 +283,8 @@ class SlackPostingHandler(SlackAsyncClient):
                                 # This is a regular aiohttp response, not SafeResponse
                                 response_data = await response.json()
 
-                            logger.info(
-                                "Response URL response (blocks): %s", response_data
-                            )
-                            if (
-                                isinstance(response_data, dict)
-                                and response_data.get("ok") is False
-                            ):
+                            logger.info("Response URL response (blocks): %s", response_data)
+                            if isinstance(response_data, dict) and response_data.get("ok") is False:
                                 logger.warning(
                                     "Slack API indicated failure for response_url with blocks: %s",
                                     response_data.get("error"),
@@ -321,9 +303,7 @@ class SlackPostingHandler(SlackAsyncClient):
                                     "ok": True,
                                     "assumed_success": True,
                                     "fallback_type": "mimetype_mismatch",
-                                    "content_type": response.headers.get(
-                                        "Content-Type"
-                                    ),
+                                    "content_type": response.headers.get("Content-Type"),
                                     "raw_body": text[:100],  # safely truncated
                                 }
                             logger.warning(
@@ -333,13 +313,9 @@ class SlackPostingHandler(SlackAsyncClient):
                             )
                             # Fall through to text-only retry
                         # --- Check for invalid_blocks error END --- ##
-                except (
-                    InvalidBlocksForResponseUrlError
-                ):  # Catch the specific error if raised above
+                except InvalidBlocksForResponseUrlError:  # Catch the specific error if raised above
                     raise  # Re-raise immediately for post_message to handle
-                except (
-                    Exception
-                ) as e:  # Catch *other* exceptions from the block post attempt
+                except Exception as e:  # Catch *other* exceptions from the block post attempt
                     logger.warning(
                         "Failed response_url post with blocks (non-block error): %s. Trying text-only.",
                         e,
@@ -355,19 +331,12 @@ class SlackPostingHandler(SlackAsyncClient):
                     "response_type": "ephemeral",
                 }
                 logger.info("Attempting POST via response_url (text-only).")
-                async with session.post(
-                    response_url, headers=headers, json=payload
-                ) as response:
+                async with session.post(response_url, headers=headers, json=payload) as response:
                     try:
                         # This is a regular aiohttp response, not SafeResponse
                         response_data = await response.json()
-                        logger.info(
-                            "Response URL response (text-only): %s", response_data
-                        )
-                        if (
-                            isinstance(response_data, dict)
-                            and response_data.get("ok") is False
-                        ):
+                        logger.info("Response URL response (text-only): %s", response_data)
+                        if isinstance(response_data, dict) and response_data.get("ok") is False:
                             logger.error(
                                 "Slack API indicated failure for response_url (text-only): %s",
                                 response_data.get("error"),
@@ -416,9 +385,7 @@ class SlackPostingHandler(SlackAsyncClient):
                         }
 
             except Exception as e:
-                logger.error(
-                    "Text-only attempt failed for response_url: %s", e, exc_info=True
-                )
+                logger.error("Text-only attempt failed for response_url: %s", e, exc_info=True)
                 # If we fall through after blocks failed (non-invalid_blocks error), or text fails directly, raise
                 raise Exception(f"Failed to post to response_url {response_url}") from e
 
@@ -552,9 +519,7 @@ class SlackPostingHandler(SlackAsyncClient):
                 response_data.get("error", "Unknown error"),
             )
         else:
-            logger.info(
-                "Message %s deleted successfully from channel %s", message_ts, channel_id
-            )
+            logger.info("Message %s deleted successfully from channel %s", message_ts, channel_id)
 
         return response_data
 
@@ -588,8 +553,6 @@ class SlackPostingHandler(SlackAsyncClient):
                 response_data.get("error", "Unknown error"),
             )
         else:
-            logger.info(
-                "Message %s pinned successfully in channel %s", message_ts, channel_id
-            )
+            logger.info("Message %s pinned successfully in channel %s", message_ts, channel_id)
 
         return response_data

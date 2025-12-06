@@ -34,7 +34,7 @@ async def test_final_jira_post():
 
 This comment was successfully posted using:
 - ✅ MCP service with all JIRA tools (including add_jira_comment)
-- ✅ Fresh IMS token from IMSTokenManager  
+- ✅ Fresh IMS token from IMSTokenManager
 - ✅ JiraService with dependency injection
 - ✅ Proper JSON-RPC formatting
 
@@ -64,9 +64,7 @@ The jira_reporter is fully functional and ready for production deployment.
 
     print("Posting comment to CPGNREQ-180375...")
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            "http://localhost:8081/message", json=payload, headers=headers
-        )
+        response = await client.post("http://localhost:8081/message", json=payload, headers=headers)
 
         print(f"Response status: {response.status_code}")
 
@@ -92,9 +90,7 @@ The jira_reporter is fully functional and ready for production deployment.
                     if result_data.get("error", {}).get("status") == 401:
                         print(f"Token used: {fresh_token[:50]}...")
                         secrets = await secrets_manager.get_app_secrets()
-                        print(
-                            f"Token expires at: {secrets.get('IMS_TOKEN_EXPIRES_AT', 'unknown')}"
-                        )
+                        print(f"Token expires at: {secrets.get('IMS_TOKEN_EXPIRES_AT', 'unknown')}")
                     pytest.fail(f"JIRA operation failed: {result_data}")
         else:
             print(f"HTTP Error: {response.text}")

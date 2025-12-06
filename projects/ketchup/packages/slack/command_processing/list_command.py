@@ -66,9 +66,7 @@ class SlackListCommand(BaseCommandHandler):
             posting_handler=slack_posting_handler,
             channel_details_getter=dynamodb_store.get_channel_details,
         )
-        logger.info(
-            "SlackListCommand.__init__: Info Ops ID: %s", id(self.channel_info_ops)
-        )
+        logger.info("SlackListCommand.__init__: Info Ops ID: %s", id(self.channel_info_ops))
         logger.info("SlackListCommand initialized with injected dependencies.")
 
     async def process_list_params(
@@ -115,9 +113,7 @@ class SlackListCommand(BaseCommandHandler):
             return self.create_success_response({"message": "List command processed"})
         except Exception as e:
             logger.error("Error processing list request: %s", str(e))
-            return self.create_error_response(
-                f"Error processing list request: {str(e)}"
-            )
+            return self.create_error_response(f"Error processing list request: {str(e)}")
 
     async def _process_list(
         self,
@@ -141,18 +137,14 @@ class SlackListCommand(BaseCommandHandler):
         product_preference = "all_products"  # Default
         try:
             user_data = await self.user_store.get_user(user_id)
-            logger.info(
-                "User data fetched for %s: %s", user_id, user_data
-            )  # Log raw user data
+            logger.info("User data fetched for %s: %s", user_id, user_data)  # Log raw user data
             if user_data and "preferences" in user_data:
                 user_prefs = user_data["preferences"]
                 logger.info(
                     "User preferences extracted for %s: %s", user_id, user_prefs
                 )  # Log extracted prefs
                 # Use the first product focus, default to 'all_products'
-                product_preference = user_prefs.get("product_focus", ["all_products"])[
-                    0
-                ]
+                product_preference = user_prefs.get("product_focus", ["all_products"])[0]
             else:
                 logger.info(
                     "No preferences found for user %s, using default 'all_products'.",
@@ -173,9 +165,7 @@ class SlackListCommand(BaseCommandHandler):
         # --- End Fetch User Preferences ---
 
         # Get the list of channels that the bot is a member of using membership_ops
-        slack_channels = (
-            await self.channel_membership_ops.lookup_membership_of_channels()
-        )
+        slack_channels = await self.channel_membership_ops.lookup_membership_of_channels()
 
         if not slack_channels:
             no_channels_message = "No channels found that Ketchup is a member of."

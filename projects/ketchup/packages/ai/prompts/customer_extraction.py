@@ -69,7 +69,7 @@ Provide your final output as plain text with no additional formatting or tags.
 
     # Add JSON schema instruction when feature flag enabled
     if FeatureFlags.is_structured_json_output_enabled():
-        prompt += '\n\nIMPORTANT: Return your response as JSON with this exact structure:\n'
+        prompt += "\n\nIMPORTANT: Return your response as JSON with this exact structure:\n"
         prompt += '{"response_text": "Line 1: Customer name\\nLine 2: JIRA ticket"}\n'
 
     return prompt

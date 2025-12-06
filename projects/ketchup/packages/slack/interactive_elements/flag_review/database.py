@@ -70,25 +70,17 @@ class FlagReviewDatabaseOperations:
                 "feedback_text": {"S": feedback_text},
                 "status_text": {"S": status_text},
                 "original_blocks": {"S": str(original_blocks)},
-                "sanitization_issues": {
-                    "L": [{"S": issue} for issue in validation_issues]
-                },
+                "sanitization_issues": {"L": [{"S": issue} for issue in validation_issues]},
                 "text_length": {"N": str(len(feedback_text))},
                 "status": {"S": "pending"},
                 "created_at": {"S": timestamp.isoformat()},
-                "ttl": {
-                    "N": str(
-                        int(timestamp.timestamp() + (30 * 24 * 60 * 60))
-                    )  # 30 days TTL
-                },
+                "ttl": {"N": str(int(timestamp.timestamp() + (30 * 24 * 60 * 60)))},  # 30 days TTL
                 "review_channel_id": {"S": REVIEW_CHANNEL_ID},
                 "slack_team_id": {"S": "T018BPFUD75"},
                 "app_version": {"S": "2.1.0"},
             }
 
-            await self.db_store.client.put_item(
-                table_name=self.table_name, item=flag_item
-            )
+            await self.db_store.client.put_item(table_name=self.table_name, item=flag_item)
 
             logger.info(f"Stored flag review for {flag_id} from user {user_id}")
             return {"success": True}
@@ -138,30 +130,20 @@ class FlagReviewDatabaseOperations:
                 "user_id": {"S": user_id},
                 "user_name": {"S": user_name},
                 "feedback_text": {"S": feedback_text},
-                "sanitization_issues": {
-                    "L": [{"S": issue} for issue in validation_issues]
-                },
+                "sanitization_issues": {"L": [{"S": issue} for issue in validation_issues]},
                 "text_length": {"N": str(len(feedback_text))},
                 "status": {"S": "pending"},
                 "created_at": {"S": timestamp.isoformat()},
-                "ttl": {
-                    "N": str(
-                        int(timestamp.timestamp() + (30 * 24 * 60 * 60))
-                    )  # 30 days TTL
-                },
+                "ttl": {"N": str(int(timestamp.timestamp() + (30 * 24 * 60 * 60)))},  # 30 days TTL
                 "review_channel_id": {"S": REVIEW_CHANNEL_ID},
                 "command_output": {"S": command_output or "Output not found"},
                 "slack_team_id": {"S": "T018BPFUD75"},
                 "app_version": {"S": "2.1.0"},
             }
 
-            await self.db_store.client.put_item(
-                table_name=self.table_name, item=flag_item
-            )
+            await self.db_store.client.put_item(table_name=self.table_name, item=flag_item)
 
-            logger.info(
-                f"Stored command flag for {command_execution_id} from user {user_id}"
-            )
+            logger.info(f"Stored command flag for {command_execution_id} from user {user_id}")
             return {"success": True}
 
         except Exception as e:
@@ -235,9 +217,7 @@ class FlagReviewDatabaseOperations:
                         ", acknowledged_by = :admin_id, acknowledged_at = :timestamp"
                     )
                 elif status == "replied":
-                    update_expression += (
-                        ", replied_by = :admin_id, replied_at = :timestamp"
-                    )
+                    update_expression += ", replied_by = :admin_id, replied_at = :timestamp"
                 expression_attribute_values[":admin_id"] = {"S": admin_id}
                 expression_attribute_values[":timestamp"] = {
                     "S": datetime.now(timezone.utc).isoformat()
@@ -265,9 +245,7 @@ class FlagReviewDatabaseOperations:
             logger.error(f"Error updating flag review status: {e}")
             return False
 
-    async def get_command_output(
-        self, channel_id: str, command_execution_id: str
-    ) -> Optional[str]:
+    async def get_command_output(self, channel_id: str, command_execution_id: str) -> Optional[str]:
         """
         Get the command output from the database.
 
@@ -538,11 +516,11 @@ class FlagReviewDatabaseOperations:
     async def get_feedback_data(self, channel_id: str, message_ts: str) -> Optional[Dict[str, Any]]:
         """
         Retrieve feedback data for a specific message.
-        
+
         Args:
             channel_id: The channel ID
             message_ts: The message timestamp
-            
+
         Returns:
             Feedback data if found, None otherwise
         """
@@ -572,10 +550,18 @@ class FlagReviewDatabaseOperations:
             logger.error(f"Error getting feedback data: {e}")
             return None
 
-    async def add_flag_atomically(self, channel_id: str, message_ts: str, user_id: str, user_name: str, feedback_text: str, validation_issues: list) -> Dict[str, Any]:
+    async def add_flag_atomically(
+        self,
+        channel_id: str,
+        message_ts: str,
+        user_id: str,
+        user_name: str,
+        feedback_text: str,
+        validation_issues: list,
+    ) -> Dict[str, Any]:
         """
         Add a flag atomically to the database.
-        
+
         Args:
             channel_id: The channel ID
             message_ts: The message timestamp
@@ -583,7 +569,7 @@ class FlagReviewDatabaseOperations:
             user_name: The user name
             feedback_text: The feedback text
             validation_issues: List of validation issues
-            
+
         Returns:
             Dict with success status and any additional info
         """
@@ -596,7 +582,7 @@ class FlagReviewDatabaseOperations:
             except Exception:
                 # If get_feedback_data fails (mocked), continue to create
                 pass
-            
+
             # Save the flag
             result = await self.save_flag_review_to_db(
                 channel_id=channel_id,
@@ -606,9 +592,9 @@ class FlagReviewDatabaseOperations:
                 feedback_text=feedback_text,
                 validation_issues=validation_issues,
                 status_text="pending",
-                original_blocks=[]
+                original_blocks=[],
             )
-            
+
             return result
 
         except Exception as e:
@@ -618,11 +604,11 @@ class FlagReviewDatabaseOperations:
     async def get_flag_status(self, channel_id: str, message_ts: str) -> Optional[Dict[str, Any]]:
         """
         Get flag status for a specific message.
-        
+
         Args:
             channel_id: The channel ID
             message_ts: The message timestamp
-            
+
         Returns:
             Flag status data if found, None otherwise
         """

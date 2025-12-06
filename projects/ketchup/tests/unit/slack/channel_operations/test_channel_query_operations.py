@@ -111,17 +111,14 @@ async def test_get_channels_from_list_valid(monkeypatch: pytest.MonkeyPatch) -> 
     batch_client = AsyncMock()
     batch_client.batch_get_item = AsyncMock(
         return_value={
-            "Responses": {
-                "tbl": [{"PK": {"S": "CHANNEL#C6"}, "SK": {"S": "CSO_DETAILS"}}]
-            },
+            "Responses": {"tbl": [{"PK": {"S": "CHANNEL#C6"}, "SK": {"S": "CSO_DETAILS"}}]},
             "UnprocessedKeys": {},
         }
     )
     mock_client._get_client = AsyncMock(return_value=batch_client)
-    with patch(
-        "packages.db.operations.channel_query_operations.logger"
-    ) as mock_logger, patch(
-        "packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25
+    with (
+        patch("packages.db.operations.channel_query_operations.logger") as mock_logger,
+        patch("packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25),
     ):
         result = await ops._get_channels_from_list(["C6"])
         assert "C6" in result
@@ -142,26 +139,19 @@ async def test_get_channels_from_list_unprocessed_keys(
             {
                 "Responses": {"tbl": []},
                 "UnprocessedKeys": {
-                    "tbl": {
-                        "Keys": [
-                            {"PK": {"S": "CHANNEL#C7"}, "SK": {"S": "CSO_DETAILS"}}
-                        ]
-                    }
+                    "tbl": {"Keys": [{"PK": {"S": "CHANNEL#C7"}, "SK": {"S": "CSO_DETAILS"}}]}
                 },
             },
             {
-                "Responses": {
-                    "tbl": [{"PK": {"S": "CHANNEL#C7"}, "SK": {"S": "CSO_DETAILS"}}]
-                },
+                "Responses": {"tbl": [{"PK": {"S": "CHANNEL#C7"}, "SK": {"S": "CSO_DETAILS"}}]},
                 "UnprocessedKeys": {},
             },
         ]
     )
     mock_client._get_client = AsyncMock(return_value=batch_client)
-    with patch(
-        "packages.db.operations.channel_query_operations.logger"
-    ) as mock_logger, patch(
-        "packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25
+    with (
+        patch("packages.db.operations.channel_query_operations.logger") as mock_logger,
+        patch("packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25),
     ):
         result = await ops._get_channels_from_list(["C7"])
         assert "C7" in result
@@ -181,10 +171,9 @@ async def test_get_channels_from_list_client_error(
     )
     mock_client._get_client = AsyncMock(return_value=batch_client)
     monkeypatch.setattr(ops, "_handle_dynamo_error", lambda e, op: None)
-    with patch(
-        "packages.db.operations.channel_query_operations.logger"
-    ) as mock_logger, patch(
-        "packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25
+    with (
+        patch("packages.db.operations.channel_query_operations.logger") as mock_logger,
+        patch("packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25),
     ):
         result = await ops._get_channels_from_list(["C8"])
         assert result == {}
@@ -201,10 +190,9 @@ async def test_get_channels_from_list_exception(
     batch_client = AsyncMock()
     batch_client.batch_get_item = AsyncMock(side_effect=Exception("fail"))
     mock_client._get_client = AsyncMock(return_value=batch_client)
-    with patch(
-        "packages.db.operations.channel_query_operations.logger"
-    ) as mock_logger, patch(
-        "packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25
+    with (
+        patch("packages.db.operations.channel_query_operations.logger") as mock_logger,
+        patch("packages.db.operations.channel_query_operations.MAX_BATCH_SIZE", 25),
     ):
         result = await ops._get_channels_from_list(["C9"])
         assert result == {}

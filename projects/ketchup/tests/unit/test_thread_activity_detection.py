@@ -54,30 +54,28 @@ class TestThreadActivityDetection:
                 },
                 {
                     "ts": "1234567880.000100",
-                    "thread_ts": "1234567880.000100", 
+                    "thread_ts": "1234567880.000100",
                     "reply_count": 3,
                     "latest_reply": "1234567885.000100"
                 }
             ]}"""
         }
 
-        with patch.object(
-            channel_ops, "_make_api_request", AsyncMock(return_value=mock_response)
-        ):
-            with patch.object(
+        with (
+            patch.object(channel_ops, "_make_api_request", AsyncMock(return_value=mock_response)),
+            patch.object(
                 channel_ops,
                 "get_api_base_url",
                 AsyncMock(return_value="https://slack.com/api"),
-            ):
-                # Check for activity since timestamp 1234567895
-                has_activity, latest_ts, active_threads = (
-                    await channel_ops.check_recent_thread_activity(
-                        "C123456", "1234567895.000000"
-                    )
-                )
+            ),
+        ):
+            # Check for activity since timestamp 1234567895
+            has_activity, latest_ts, active_threads = (
+                await channel_ops.check_recent_thread_activity("C123456", "1234567895.000000")
+            )
 
-                assert has_activity is True
-                assert latest_ts == "1234567900.000200"  # The newest thread reply
+            assert has_activity is True
+            assert latest_ts == "1234567900.000200"  # The newest thread reply
 
     @pytest.mark.asyncio
     async def test_check_recent_thread_activity_no_new_replies(self):
@@ -105,60 +103,53 @@ class TestThreadActivityDetection:
             ]}"""
         }
 
-        with patch.object(
-            channel_ops, "_make_api_request", AsyncMock(return_value=mock_response)
-        ):
-            with patch.object(
+        with (
+            patch.object(channel_ops, "_make_api_request", AsyncMock(return_value=mock_response)),
+            patch.object(
                 channel_ops,
                 "get_api_base_url",
                 AsyncMock(return_value="https://slack.com/api"),
-            ):
-                # Check for activity since a later timestamp
-                has_activity, latest_ts, active_threads = (
-                    await channel_ops.check_recent_thread_activity(
-                        "C123456", "1234567895.000000"
-                    )
-                )
+            ),
+        ):
+            # Check for activity since a later timestamp
+            has_activity, latest_ts, active_threads = (
+                await channel_ops.check_recent_thread_activity("C123456", "1234567895.000000")
+            )
 
-                assert has_activity is False
-                assert latest_ts == "1234567895.000000"  # No change from input
+            assert has_activity is False
+            assert latest_ts == "1234567895.000000"  # No change from input
 
     @pytest.mark.asyncio
-    async def test_status_generator_check_activity_includes_threads(
-        self, mock_dependencies
-    ):
+    async def test_status_generator_check_activity_includes_threads(self, mock_dependencies):
         """Test that status generator properly checks for thread activity."""
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock channel details with thread timestamp
-        mock_dependencies[
-            "channel_operations"
-        ].query_ops.get_channel_details.return_value = {
+        mock_dependencies["channel_operations"].query_ops.get_channel_details.return_value = {
             "auto_status_last_message_ts": "100000",
             "auto_status_last_thread_ts": "100000",
             "auto_status_last_jira_comment_ts": "0",
         }
 
         # Mock message preparer
-        with patch(
-            "ketchup_status_updater.status_generator.MessagePreparer"
-        ) as mock_preparer:
+        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
 
             # Mock no new messages but has thread activity
             preparer_instance = MagicMock()
             preparer_instance.prepare_messages_for_auto_status = AsyncMock(
-                return_value=("No messages found", {
-                    "latest_ts": "100000",
-                    "has_channel_messages": False,
-                    "has_thread_activity": True
-                })
+                return_value=(
+                    "No messages found",
+                    {
+                        "latest_ts": "100000",
+                        "has_channel_messages": False,
+                        "has_thread_activity": True,
+                    },
+                )
             )
             mock_preparer.return_value = preparer_instance
 
             # Mock thread activity check to return new activity
-            mock_dependencies[
-                "channel_msg_ops"
-            ].check_recent_thread_activity.return_value = (
+            mock_dependencies["channel_msg_ops"].check_recent_thread_activity.return_value = (
                 True,
                 "200000",
                 ["thread1", "thread2"],  # Has activity, new timestamp, active threads
@@ -182,33 +173,30 @@ class TestThreadActivityDetection:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock channel details
-        mock_dependencies[
-            "channel_operations"
-        ].query_ops.get_channel_details.return_value = {
+        mock_dependencies["channel_operations"].query_ops.get_channel_details.return_value = {
             "auto_status_last_message_ts": "100000",
             "auto_status_last_thread_ts": "100000",
             "auto_status_last_jira_comment_ts": "0",
         }
 
-        with patch(
-            "ketchup_status_updater.status_generator.MessagePreparer"
-        ) as mock_preparer:
+        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
 
             # Mock new messages and thread activity
             preparer_instance = MagicMock()
             preparer_instance.prepare_messages_for_auto_status = AsyncMock(
-                return_value=("New messages", {
-                    "latest_ts": "150000",
-                    "has_channel_messages": True,
-                    "has_thread_activity": True
-                })
+                return_value=(
+                    "New messages",
+                    {
+                        "latest_ts": "150000",
+                        "has_channel_messages": True,
+                        "has_thread_activity": True,
+                    },
+                )
             )
             mock_preparer.return_value = preparer_instance
 
             # Mock thread activity
-            mock_dependencies[
-                "channel_msg_ops"
-            ].check_recent_thread_activity.return_value = (
+            mock_dependencies["channel_msg_ops"].check_recent_thread_activity.return_value = (
                 True,
                 "200000",
                 [],  # Has activity, new timestamp, no specific threads

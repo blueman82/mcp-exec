@@ -11,12 +11,11 @@ Covers:
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+# Import session types for proper testing
+import aiohttp
 import pytest
 
 from packages.core.async_client import AsyncClient
-
-# Import session types for proper testing
-import aiohttp
 
 
 class DummyConfig:
@@ -101,9 +100,7 @@ class TestAsyncClient:
             "packages.core.async_client.create_session_with_retries",
             new_callable=AsyncMock,
         ) as mock_create:
-            mock_create.side_effect = SessionCreationError(
-                "fail", last_exception=Exception("bad")
-            )
+            mock_create.side_effect = SessionCreationError("fail", last_exception=Exception("bad"))
             with pytest.raises(ClientError, match="Failed to establish client session"):
                 await client.setup()
 
@@ -149,11 +146,10 @@ class TestAsyncClient:
         """Test async context manager calls setup and cleanup."""
         cfg: DummyConfig = DummyConfig()
         client: AsyncClient[DummyConfig, DummyResponse] = AsyncClient(config=cfg)
-        with patch.object(
-            client, "setup", new_callable=AsyncMock
-        ) as mock_setup, patch.object(
-            client, "cleanup", new_callable=AsyncMock
-        ) as mock_cleanup:
+        with (
+            patch.object(client, "setup", new_callable=AsyncMock) as mock_setup,
+            patch.object(client, "cleanup", new_callable=AsyncMock) as mock_cleanup,
+        ):
             async with client:
                 mock_setup.assert_awaited_once()
             mock_cleanup.assert_awaited_once()
@@ -164,13 +160,12 @@ class TestAsyncClient:
         cfg: DummyConfig = DummyConfig()
         client: AsyncClient[DummyConfig, DummyResponse] = AsyncClient(config=cfg)
         response: DummyResponse = DummyResponse()
-        with patch.object(client, "setup", new_callable=AsyncMock), patch.object(
-            client, "execute_with_backoff", new_callable=AsyncMock
-        ) as mock_backoff:
+        with (
+            patch.object(client, "setup", new_callable=AsyncMock),
+            patch.object(client, "execute_with_backoff", new_callable=AsyncMock) as mock_backoff,
+        ):
             mock_backoff.return_value = response
-            result: DummyResponse = await client._make_api_request(
-                url="http://foo", method="GET"
-            )
+            result: DummyResponse = await client._make_api_request(url="http://foo", method="GET")
             assert result is response
 
     @pytest.mark.asyncio
@@ -180,9 +175,10 @@ class TestAsyncClient:
         client: AsyncClient[DummyConfig, DummyResponse] = AsyncClient(config=cfg)
         from packages.core.exceptions import ClientError
 
-        with patch.object(client, "setup", new_callable=AsyncMock), patch.object(
-            client, "execute_with_backoff", new_callable=AsyncMock
-        ) as mock_backoff:
+        with (
+            patch.object(client, "setup", new_callable=AsyncMock),
+            patch.object(client, "execute_with_backoff", new_callable=AsyncMock) as mock_backoff,
+        ):
             import asyncio
 
             mock_backoff.side_effect = asyncio.TimeoutError()
@@ -198,9 +194,10 @@ class TestAsyncClient:
 
         from packages.core.exceptions import ClientError
 
-        with patch.object(client, "setup", new_callable=AsyncMock), patch.object(
-            client, "execute_with_backoff", new_callable=AsyncMock
-        ) as mock_backoff:
+        with (
+            patch.object(client, "setup", new_callable=AsyncMock),
+            patch.object(client, "execute_with_backoff", new_callable=AsyncMock) as mock_backoff,
+        ):
             mock_backoff.side_effect = aiohttp.ClientError("fail")
             with pytest.raises((ClientError, aiohttp.ClientError)):
                 await client._make_api_request(url="http://foo", method="GET")
@@ -212,9 +209,10 @@ class TestAsyncClient:
         client: AsyncClient[DummyConfig, DummyResponse] = AsyncClient(config=cfg)
         from packages.core.exceptions import ClientError
 
-        with patch.object(client, "setup", new_callable=AsyncMock), patch.object(
-            client, "execute_with_backoff", new_callable=AsyncMock
-        ) as mock_backoff:
+        with (
+            patch.object(client, "setup", new_callable=AsyncMock),
+            patch.object(client, "execute_with_backoff", new_callable=AsyncMock) as mock_backoff,
+        ):
             mock_backoff.side_effect = Exception("fail")
             with pytest.raises((ClientError, Exception)):
                 await client._make_api_request(url="http://foo", method="GET")

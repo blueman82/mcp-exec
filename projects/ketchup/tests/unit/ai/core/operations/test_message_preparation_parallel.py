@@ -32,9 +32,7 @@ class TestMessagePreparerParallel(unittest.TestCase):
             )
 
             # Act
-            messages, channel_info = await self.preparer.prepare_messages(
-                "command", "U123", "C123"
-            )
+            messages, channel_info = await self.preparer.prepare_messages("command", "U123", "C123")
 
             # Assert
             self.assertIn("role", messages[0])
@@ -52,9 +50,7 @@ class TestMessagePreparerParallel(unittest.TestCase):
             self.channel_info_ops.get_channel_info_from_api = AsyncMock(
                 side_effect=Exception("API Error")
             )
-            self.channel_msg_ops.fetch_channel_messages = AsyncMock(
-                return_value=["message 1"]
-            )
+            self.channel_msg_ops.fetch_channel_messages = AsyncMock(return_value=["message 1"])
 
             # Act & Assert
             with self.assertRaises(MessagePreparationError):

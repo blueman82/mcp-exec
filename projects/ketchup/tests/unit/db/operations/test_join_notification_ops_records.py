@@ -66,8 +66,10 @@ class TestJoinNotificationOpsRecords:
 
     @pytest.mark.asyncio
     async def test_put_detail_record_success(
-        self, join_ops: JoinNotificationOps, mock_client: MagicMock,
-        sample_tracking_data: Dict[str, Any]
+        self,
+        join_ops: JoinNotificationOps,
+        mock_client: MagicMock,
+        sample_tracking_data: Dict[str, Any],
     ) -> None:
         """Test successful detail record storage."""
         await join_ops._put_detail_record(sample_tracking_data)
@@ -118,7 +120,7 @@ class TestJoinNotificationOpsRecords:
             "timestamp": 1703123456,
             "delivery_status": "failed",
             "notification_attempted": True,
-            "error_message": "X" * 600  # Longer than 512 char limit
+            "error_message": "X" * 600,  # Longer than 512 char limit
         }
 
         item = join_ops._build_detail_record_item(data)
@@ -172,7 +174,7 @@ class TestJoinNotificationOpsRecords:
             "delivery_status": "failed",
             "notification_attempted": True,
             "failure_reason_code": FailureReason.INTERNAL_ERROR.value,
-            "error_message": "A" * 512
+            "error_message": "A" * 512,
         }
 
         item = join_ops._build_detail_record_item(data)
@@ -229,7 +231,7 @@ class TestJoinNotificationOpsRecords:
                 "channel_id": "C0123456789",
                 "user_id": "U0987654321",
                 "timestamp": 1000000000,
-            }
+            },
         ]
 
         for case in test_cases:

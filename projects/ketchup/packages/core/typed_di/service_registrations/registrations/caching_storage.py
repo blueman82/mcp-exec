@@ -32,9 +32,11 @@ logger = setup_logger(__name__)
 # PROTOCOL DEFINITIONS
 # =============================================================================
 
+
 @runtime_checkable
 class CacheManagerProtocol(Protocol):
     """Protocol for general purpose caching."""
+
     async def get(self, key: str) -> Any: ...
     async def set(self, key: str, value: Any, ttl: int = 3600) -> bool: ...
     async def delete(self, key: str) -> bool: ...
@@ -44,6 +46,7 @@ class CacheManagerProtocol(Protocol):
 @runtime_checkable
 class SessionManagerProtocol(Protocol):
     """Protocol for user session management."""
+
     async def create_session(self, user_id: str, data: Dict[str, Any]) -> str: ...
     async def get_session(self, session_id: str) -> Dict[str, Any]: ...
     async def update_session(self, session_id: str, data: Dict[str, Any]) -> bool: ...
@@ -53,7 +56,10 @@ class SessionManagerProtocol(Protocol):
 @runtime_checkable
 class FileStorageServiceProtocol(Protocol):
     """Protocol for file upload/download handling."""
-    async def upload_file(self, file_data: bytes, filename: str, metadata: Dict[str, Any] = None) -> str: ...
+
+    async def upload_file(
+        self, file_data: bytes, filename: str, metadata: Dict[str, Any] = None
+    ) -> str: ...
     async def download_file(self, file_id: str) -> bytes: ...
     async def delete_file(self, file_id: str) -> bool: ...
     async def get_file_metadata(self, file_id: str) -> Dict[str, Any]: ...
@@ -181,14 +187,16 @@ def register_caching_storage(manager: "ServiceRegistrationManager") -> None:
                 self.secrets = secrets_manager
                 self.files = {}
 
-            async def upload_file(self, file_data: bytes, filename: str, metadata: Dict[str, Any] = None) -> str:
+            async def upload_file(
+                self, file_data: bytes, filename: str, metadata: Dict[str, Any] = None
+            ) -> str:
                 """Upload a file and return file ID."""
                 file_id = f"file_{len(self.files)}_{filename}"
                 file_info = {
                     "filename": filename,
                     "size": len(file_data),
                     "metadata": metadata or {},
-                    "uploaded_at": "now"
+                    "uploaded_at": "now",
                 }
                 self.files[file_id] = file_info
                 logger.debug(f"Uploaded file {filename} as {file_id}")

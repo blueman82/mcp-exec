@@ -136,8 +136,7 @@ def test_create_message_blocks_over_max_blocks() -> None:
     # If the message is long enough, a truncation warning block should be present
     if len(blocks) == 50:
         assert any(
-            b.get("type") == "context" and "truncated" in b["elements"][0]["text"]
-            for b in blocks
+            b.get("type") == "context" and "truncated" in b["elements"][0]["text"] for b in blocks
         )
     else:
         # Otherwise, all blocks should be section blocks

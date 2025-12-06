@@ -31,17 +31,13 @@ print(f"Will add buttons: {add_buttons}")
 
 # Now simulate with channel-specific enabled
 trust_channel_enabled = True
-add_buttons_channel = trust_global_enabled and (
-    trust_global_all or trust_channel_enabled
-)
+add_buttons_channel = trust_global_enabled and (trust_global_all or trust_channel_enabled)
 print(f"\nWith channel-specific enabled: {add_buttons_channel}")
 
 # Now simulate with global disabled but feature enabled
 os.environ["KETCHUP_TRUST_ENDORSEMENT_GLOBAL"] = "false"
 trust_global_all = FeatureFlags.is_trust_endorsement_global()
-add_buttons_partial = trust_global_enabled and (
-    trust_global_all or trust_channel_enabled
-)
+add_buttons_partial = trust_global_enabled and (trust_global_all or trust_channel_enabled)
 print(f"\nWith global disabled but channel enabled: {add_buttons_partial}")
 
 print("\n=== BLOCK CREATION ===")

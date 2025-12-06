@@ -81,9 +81,7 @@ class TestChannelNameResolver:
         ) as mock_resolve:
             mock_resolve.return_value = expected_id
 
-            result_id, format_type = await resolver.resolve_channel_parameter(
-                channel_name
-            )
+            result_id, format_type = await resolver.resolve_channel_parameter(channel_name)
 
             assert result_id == expected_id
             assert format_type == "channel_name"
@@ -100,14 +98,10 @@ class TestChannelNameResolver:
         ) as mock_resolve:
             mock_resolve.return_value = None
 
-            result_id, format_type = await resolver.resolve_channel_parameter(
-                channel_name
-            )
+            result_id, format_type = await resolver.resolve_channel_parameter(channel_name)
 
             assert result_id is None
-            assert (
-                format_type == "Channel name '#nonexistent' not found or not accessible"
-            )
+            assert format_type == "Channel name '#nonexistent' not found or not accessible"
             mock_resolve.assert_called_once_with("nonexistent")
 
     @pytest.mark.asyncio
@@ -155,9 +149,7 @@ class TestChannelNameResolver:
             "response_metadata": {},
         }
 
-        with patch.object(
-            resolver, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(resolver, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = mock_response
 
             result = await resolver._resolve_channel_name_to_id(channel_name)
@@ -179,9 +171,7 @@ class TestChannelNameResolver:
             "response_metadata": {},
         }
 
-        with patch.object(
-            resolver, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(resolver, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.side_effect = [public_response, private_response]
 
             result = await resolver._resolve_channel_name_to_id(channel_name)
@@ -197,9 +187,7 @@ class TestChannelNameResolver:
         # Mock API responses - both public and private return empty
         empty_response = {"ok": True, "channels": [], "response_metadata": {}}
 
-        with patch.object(
-            resolver, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(resolver, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = empty_response
 
             result = await resolver._resolve_channel_name_to_id(channel_name)
@@ -225,9 +213,7 @@ class TestChannelNameResolver:
             "response_metadata": {},
         }
 
-        with patch.object(
-            resolver, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(resolver, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.side_effect = [first_response, second_response]
 
             result = await resolver._resolve_channel_name_to_id(channel_name)
@@ -243,9 +229,7 @@ class TestChannelNameResolver:
         # Mock API error response
         error_response = {"ok": False, "error": "invalid_auth"}
 
-        with patch.object(
-            resolver, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(resolver, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = error_response
 
             result = await resolver._resolve_channel_name_to_id(channel_name)
@@ -257,9 +241,7 @@ class TestChannelNameResolver:
         """Test resolving channel name when exception is raised."""
         channel_name = "test-channel"
 
-        with patch.object(
-            resolver, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(resolver, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.side_effect = Exception("Network error")
 
             result = await resolver._resolve_channel_name_to_id(channel_name)

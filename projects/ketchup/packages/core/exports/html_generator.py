@@ -123,12 +123,8 @@ class MetricsHTMLGenerator:
 
     def _inject_cso_values(self, html: str, cso: Dict[str, Any]) -> str:
         """Inject CSO metric values."""
-        html = html.replace(
-            "{{PRODUCTS_COUNT}}", str(len(cso.get("products_using_ketchup", [])))
-        )
-        html = html.replace(
-            "{{OVERALL_COVERAGE}}", f"{cso.get('overall_cso_coverage', 0)}%"
-        )
+        html = html.replace("{{PRODUCTS_COUNT}}", str(len(cso.get("products_using_ketchup", []))))
+        html = html.replace("{{OVERALL_COVERAGE}}", f"{cso.get('overall_cso_coverage', 0)}%")
 
         # Use consistent counts from product_coverage, not active_cso_channels
         product_coverage = cso.get("product_coverage", {})
@@ -146,9 +142,7 @@ class MetricsHTMLGenerator:
         )
 
         campaign = product_coverage.get("campaign", {})
-        html = html.replace(
-            "{{CAMPAIGN_PERCENTAGE}}", str(campaign.get("percentage", 0))
-        )
+        html = html.replace("{{CAMPAIGN_PERCENTAGE}}", str(campaign.get("percentage", 0)))
         html = html.replace(
             "{{CAMPAIGN_DETAIL}}",
             f"{campaign.get('channels', 0)} of " f"{campaign.get('total', 0)} channels",
@@ -169,9 +163,7 @@ class MetricsHTMLGenerator:
             archived = cso_metrics.archived
 
             # Currently Active card values
-            html = html.replace(
-                "{{CURRENTLY_ACTIVE_TOTAL}}", str(currently_active.total)
-            )
+            html = html.replace("{{CURRENTLY_ACTIVE_TOTAL}}", str(currently_active.total))
             html = html.replace(
                 "{{CURRENTLY_ACTIVE_BREAKDOWN}}",
                 f"{currently_active.campaign} Campaign, {currently_active.ajo} AJO",
@@ -197,12 +189,8 @@ class MetricsHTMLGenerator:
     def _inject_jira_values(self, html: str, jira: Dict[str, Any]) -> str:
         """Inject JIRA posting metric values."""
         html = html.replace("{{JIRA_POSTING_RATE}}", f"{jira.get('total_coverage', 0)}")
-        html = html.replace(
-            "{{CHANNELS_WITH_REPORTS}}", str(jira.get("channels_with_reports", 0))
-        )
-        html = html.replace(
-            "{{TOTAL_JIRA_CHANNELS}}", str(jira.get("total_channels", 0))
-        )
+        html = html.replace("{{CHANNELS_WITH_REPORTS}}", str(jira.get("channels_with_reports", 0)))
+        html = html.replace("{{TOTAL_JIRA_CHANNELS}}", str(jira.get("total_channels", 0)))
 
         # Technical breakdown details
         details = jira.get("posting_details", {})
@@ -213,9 +201,7 @@ class MetricsHTMLGenerator:
         html = html.replace("{{PRIMARY_POSTED}}", str(primary_only + both))
         html = html.replace("{{CSOPM_POSTED}}", str(csopm_only + both))
         html = html.replace("{{BOTH_POSTED}}", str(both))
-        html = html.replace(
-            "{{FAILED_NO_TICKET}}", str(details.get("no_valid_ticket", 0))
-        )
+        html = html.replace("{{FAILED_NO_TICKET}}", str(details.get("no_valid_ticket", 0)))
         html = html.replace(
             "{{API_FAILURES_PENDING}}",
             str(details.get("api_failures", 0) + details.get("pending", 0)),
@@ -236,17 +222,13 @@ class MetricsHTMLGenerator:
             html = html.replace("{{TOTAL_POSTS}}", "N/A")
 
         html = html.replace("{{UPDATES_POSTED}}", str(channels_with_updates))
-        html = html.replace(
-            "{{SUCCESS_RATE}}", f"{public_updates.get('success_rate', 0)}"
-        )
+        html = html.replace("{{SUCCESS_RATE}}", f"{public_updates.get('success_rate', 0)}")
 
         war_room_msg = tech.get("war_room_messages", {})
         unique_per_channel = war_room_msg.get("unique_users_per_channel", 0)
         total_sent = war_room_msg.get("total_sent", 0)
         html = html.replace("{{PEOPLE_JOINED}}", str(unique_per_channel))
-        html = html.replace(
-            "{{MESSAGE_DELIVERY_RATE}}", f"{war_room_msg.get('delivery_rate', 0)}"
-        )
+        html = html.replace("{{MESSAGE_DELIVERY_RATE}}", f"{war_room_msg.get('delivery_rate', 0)}")
         html = html.replace("{{TOTAL_MESSAGES}}", f"{total_sent:,}")
         html = html.replace(
             "{{NOTIFICATION_DETAIL}}",
@@ -254,9 +236,7 @@ class MetricsHTMLGenerator:
         )
 
         system_health = tech.get("system_health", {})
-        html = html.replace(
-            "{{RECENTLY_ARCHIVED}}", str(system_health.get("recently_archived", 0))
-        )
+        html = html.replace("{{RECENTLY_ARCHIVED}}", str(system_health.get("recently_archived", 0)))
 
         return html
 
@@ -289,9 +269,7 @@ class MetricsHTMLGenerator:
         """
         # Generate labels
         period_label = format_time_period_label(period_type, month, quarter, year)
-        period_full = format_time_period_full(
-            period_type, month, quarter, year, is_partial
-        )
+        period_full = format_time_period_full(period_type, month, quarter, year, is_partial)
         date_range = format_date_range(start_date, end_date)
 
         # Inject
@@ -325,7 +303,7 @@ class MetricsHTMLGenerator:
             --header-bg-end: #34495e;
             --header-text: white;
         }
-        
+
         [data-theme="dark"] {
             --bg-primary: #1a1a1a;
             --bg-secondary: #2d2d2d;
@@ -340,7 +318,7 @@ class MetricsHTMLGenerator:
             --header-bg-end: #2c3845;
             --header-text: #e0e0e0;
         }
-        
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -472,8 +450,8 @@ class MetricsHTMLGenerator:
             border-bottom: 1px solid var(--border-light);
         }
         .stat-row:last-child { border-bottom: none; }
-        .stat-label { 
-            color: var(--text-secondary); 
+        .stat-label {
+            color: var(--text-secondary);
             font-size: 14px;
             position: relative;
             display: inline-flex;
@@ -696,23 +674,23 @@ class MetricsHTMLGenerator:
             <p><strong>Ketchup Performance Dashboard</strong> • Generated: {{TIMESTAMP}}</p>
         </div>
     </div>
-    
+
     <script>
         // Theme toggle functionality with localStorage persistence
         function toggleTheme() {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('dashboard-theme', newTheme);
             updateThemeButton(newTheme);
         }
-        
+
         function updateThemeButton(theme) {
             const icon = document.getElementById('theme-icon');
             const text = document.getElementById('theme-text');
-            
+
             if (theme === 'dark') {
                 icon.textContent = '🌙';
                 text.textContent = 'Dark';
@@ -721,7 +699,7 @@ class MetricsHTMLGenerator:
                 text.textContent = 'Light';
             }
         }
-        
+
         // Load saved theme on page load
         (function() {
             const savedTheme = localStorage.getItem('dashboard-theme') || 'light';

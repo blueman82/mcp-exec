@@ -7,7 +7,6 @@ prompt management, token counting, cost calculation, embeddings, and analytics.
 
 from typing import Protocol, runtime_checkable
 
-
 __all__ = [
     "ApiExecutorProtocol",
     "MessagePreparerProtocol",

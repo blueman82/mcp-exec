@@ -51,9 +51,7 @@ class TestAccessRequestOperations:
         # Mock update_item for rate limit
         mock_client.update_item.return_value = {"Attributes": {"request_count": 1}}
 
-        success, message, created_request = (
-            await operations.create_request_with_validation(request)
-        )
+        success, message, created_request = await operations.create_request_with_validation(request)
 
         assert success is True
         assert message == "Access request created successfully"
@@ -93,9 +91,7 @@ class TestAccessRequestOperations:
             ]
         }
 
-        success, message, created_request = (
-            await operations.create_request_with_validation(request)
-        )
+        success, message, created_request = await operations.create_request_with_validation(request)
 
         assert success is False
         assert "already have a pending request" in message
@@ -123,9 +119,7 @@ class TestAccessRequestOperations:
             {"Error": {"Code": "ConditionalCheckFailedException"}}, "UpdateItem"
         )
 
-        success, message, created_request = (
-            await operations.create_request_with_validation(request)
-        )
+        success, message, created_request = await operations.create_request_with_validation(request)
 
         assert success is False
         assert "too many requests" in message.lower()
@@ -184,14 +178,10 @@ class TestAccessRequestOperations:
         }
 
     @pytest.mark.asyncio
-    async def test_update_request_decision_already_processed(
-        self, operations, mock_client
-    ):
+    async def test_update_request_decision_already_processed(self, operations, mock_client):
         """Test updating already processed request."""
         # Mock conditional check failure
-        error = ClientError(
-            {"Error": {"Code": "ConditionalCheckFailedException"}}, "UpdateItem"
-        )
+        error = ClientError({"Error": {"Code": "ConditionalCheckFailedException"}}, "UpdateItem")
         mock_client.update_item.side_effect = error
 
         # Mock get_item to return processed request

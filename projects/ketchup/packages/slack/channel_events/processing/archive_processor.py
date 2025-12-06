@@ -37,9 +37,7 @@ async def process_channel_archive(channel_id: str, dynamodb_store: DynamoDBStore
 
     # Skip if channel not found in DynamoDB
     if not channel_data:
-        not_found_message = (
-            f"Channel {channel_id} not found in DynamoDB. Skipping archive update."
-        )
+        not_found_message = f"Channel {channel_id} not found in DynamoDB. Skipping archive update."
         logger.warning(not_found_message)
         return
 
@@ -81,9 +79,7 @@ async def process_channel_archive(channel_id: str, dynamodb_store: DynamoDBStore
         channel_id=channel_id, archived=True, archived_at=archived_at
     )
 
-    success_message = (
-        f"Channel {channel_id} successfully marked as archived in DynamoDB."
-    )
+    success_message = f"Channel {channel_id} successfully marked as archived in DynamoDB."
     logger.info(success_message)
 
     # Clean up auto-status fields when channel is archived
@@ -100,13 +96,9 @@ async def process_channel_archive(channel_id: str, dynamodb_store: DynamoDBStore
             "auto_status_last_run": 0,
         }
 
-        await dynamodb_store.update_channel_fields(
-            channel_id=channel_id, updates=cleanup_updates
-        )
+        await dynamodb_store.update_channel_fields(channel_id=channel_id, updates=cleanup_updates)
 
-        logger.info(
-            f"Successfully cleaned up auto-status fields for archived channel {channel_id}"
-        )
+        logger.info(f"Successfully cleaned up auto-status fields for archived channel {channel_id}")
     except Exception as e:
         logger.error(
             f"Failed to clean up auto-status fields for channel {channel_id}: {e}",
@@ -122,9 +114,7 @@ async def process_channel_archive(channel_id: str, dynamodb_store: DynamoDBStore
                 f"Successfully cleaned up trust endorsement data for archived channel {channel_id}"
             )
         else:
-            logger.warning(
-                f"Trust endorsement cleanup returned failure for channel {channel_id}"
-            )
+            logger.warning(f"Trust endorsement cleanup returned failure for channel {channel_id}")
     except Exception as e:
         logger.error(
             f"Failed to clean up trust endorsement data for channel {channel_id}: {e}",
@@ -134,17 +124,13 @@ async def process_channel_archive(channel_id: str, dynamodb_store: DynamoDBStore
     # Clean up feedback flag data when channel is archived
     logger.info(f"Cleaning up feedback flag data for archived channel {channel_id}")
     try:
-        success = await dynamodb_store.feedback_ops.cleanup_channel_feedback_data(
-            channel_id
-        )
+        success = await dynamodb_store.feedback_ops.cleanup_channel_feedback_data(channel_id)
         if success:
             logger.info(
                 f"Successfully cleaned up feedback flag data for archived channel {channel_id}"
             )
         else:
-            logger.warning(
-                f"Feedback flag cleanup returned failure for channel {channel_id}"
-            )
+            logger.warning(f"Feedback flag cleanup returned failure for channel {channel_id}")
     except Exception as e:
         logger.error(
             f"Failed to clean up feedback flag data for channel {channel_id}: {e}",
@@ -170,11 +156,7 @@ async def _trigger_jira_report_if_needed(
     jira_report_status = channel_data.get("jira_report_status", "")
 
     # Check if eligible for JIRA report
-    if (
-        jira_ticket
-        and jira_ticket != "NOT YET AVAILABLE"
-        and jira_report_status != "PROCESSED"
-    ):
+    if jira_ticket and jira_ticket != "NOT YET AVAILABLE" and jira_report_status != "PROCESSED":
 
         # Check if JIRA reporter is enabled globally or for this channel
         # Since we don't have access to feature_service here, check the global flag
@@ -191,17 +173,13 @@ async def _trigger_jira_report_if_needed(
             # Need to check channel-specific flag
             features = channel_data.get("features", {})
             if not features.get("jira_reporter_enabled", False):
-                logger.info(
-                    f"JIRA reporter not enabled for channel {channel_id}, skipping trigger"
-                )
+                logger.info(f"JIRA reporter not enabled for channel {channel_id}, skipping trigger")
                 return
 
         # Send event to queue
         queue_url = os.environ.get("KETCHUP_EVENTS_QUEUE_URL")
         if not queue_url:
-            logger.warning(
-                "KETCHUP_EVENTS_QUEUE_URL not configured, skipping JIRA report trigger"
-            )
+            logger.warning("KETCHUP_EVENTS_QUEUE_URL not configured, skipping JIRA report trigger")
             return
 
         sqs_client = SQSClient(queue_url=queue_url)

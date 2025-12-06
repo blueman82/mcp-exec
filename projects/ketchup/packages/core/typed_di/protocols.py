@@ -2,77 +2,96 @@
 # This file acts as a central import point for all protocol definitions
 
 # Import all protocols from modular files
-from .core_protocols import (
-    # Type aliases and data classes
-    T, Factory, AsyncFactory, Provider, AsyncProvider, DependencySpec,
-    InitializationStats, ServiceRegistration, DIContainerProtocol,
-    TypedDIProtocol,
-    FallbackRegistryProtocol,
-    DistributedLockProtocol,
-    HTTPClientProtocol,
-)
-
-from .aws_protocols import (
-    # AWS-specific protocols
-    VersionComparatorProtocol,
-    SecretStoreProtocol,
-    SecretsManagerProtocol,
+from .aws_protocols import (  # AWS-specific protocols
     KetchupConfigProtocol,
+    SecretsManagerProtocol,
+    SecretStoreProtocol,
+    VersionComparatorProtocol,
 )
-
-from .slack_protocols import (
-    # Slack-specific protocols
+from .core_protocols import (  # Type aliases and data classes
+    AsyncFactory,
+    AsyncProvider,
+    DependencySpec,
+    DIContainerProtocol,
+    DistributedLockProtocol,
+    Factory,
+    FallbackRegistryProtocol,
+    HTTPClientProtocol,
+    InitializationStats,
+    Provider,
+    ServiceRegistration,
+    T,
+    TypedDIProtocol,
+)
+from .service_protocols import (  # Business service protocols
+    AccessRequestServiceProtocol,
+    AccessServiceProtocol,
+    ChannelDynamoDBServiceProtocol,
+    ChannelInfoOpsServiceProtocol,
+    ChannelMetadataServiceProtocol,
+    FeatureServiceProtocol,
+    JIRAReporterServiceProtocol,
+    JiraValidationServiceProtocol,
+    KetchupAIServiceProtocol,
+    KetchupJIRAClientProtocol,
+    RateLimiterProtocol,
+    StatusCommandServiceProtocol,
+)
+from .slack_protocols import (  # Slack-specific protocols
+    CommandHandlerProtocol,
+    EventHandlerProtocol,
+    HomeTabHandlerProtocol,
+    InteractiveHandlerProtocol,
+    KetchupSlackServiceProtocol,
+    MessageHandlerProtocol,
+    SlackPostingHandlerProtocol,
     SlackUserStoreProtocol,
     SlackWebClientProtocol,
-    KetchupSlackServiceProtocol,
-    SlackPostingHandlerProtocol,
-    HomeTabHandlerProtocol,
-    MessageHandlerProtocol,
-    CommandHandlerProtocol,
-    InteractiveHandlerProtocol,
-    EventHandlerProtocol,
-)
-
-from .service_protocols import (
-    # Business service protocols
-    ChannelMetadataServiceProtocol,
-    ChannelDynamoDBServiceProtocol,
-    AccessRequestServiceProtocol,
-    KetchupJIRAClientProtocol,
-    JIRAReporterServiceProtocol,
-    StatusCommandServiceProtocol,
-    KetchupAIServiceProtocol,
-    AccessServiceProtocol,
-    ChannelInfoOpsServiceProtocol,
-    JiraValidationServiceProtocol,
-    RateLimiterProtocol,
-    FeatureServiceProtocol,
 )
 
 # Re-export all protocols for backward compatibility
 __all__ = [
     # Type aliases and data classes
-    'T', 'Factory', 'AsyncFactory', 'Provider', 'AsyncProvider', 'DependencySpec',
-    'InitializationStats', 'ServiceRegistration',
-
+    "T",
+    "Factory",
+    "AsyncFactory",
+    "Provider",
+    "AsyncProvider",
+    "DependencySpec",
+    "InitializationStats",
+    "ServiceRegistration",
     # Core infrastructure protocols
-    'DIContainerProtocol', 'TypedDIProtocol', 'FallbackRegistryProtocol',
-    'DistributedLockProtocol', 'HTTPClientProtocol',
-
+    "DIContainerProtocol",
+    "TypedDIProtocol",
+    "FallbackRegistryProtocol",
+    "DistributedLockProtocol",
+    "HTTPClientProtocol",
     # AWS-specific protocols
-    'VersionComparatorProtocol', 'SecretStoreProtocol',
-    'SecretsManagerProtocol', 'KetchupConfigProtocol',
-
+    "VersionComparatorProtocol",
+    "SecretStoreProtocol",
+    "SecretsManagerProtocol",
+    "KetchupConfigProtocol",
     # Slack-specific protocols
-    'SlackUserStoreProtocol', 'SlackWebClientProtocol', 'KetchupSlackServiceProtocol',
-    'SlackPostingHandlerProtocol', 'HomeTabHandlerProtocol', 'MessageHandlerProtocol',
-    'CommandHandlerProtocol', 'InteractiveHandlerProtocol', 'EventHandlerProtocol',
-
+    "SlackUserStoreProtocol",
+    "SlackWebClientProtocol",
+    "KetchupSlackServiceProtocol",
+    "SlackPostingHandlerProtocol",
+    "HomeTabHandlerProtocol",
+    "MessageHandlerProtocol",
+    "CommandHandlerProtocol",
+    "InteractiveHandlerProtocol",
+    "EventHandlerProtocol",
     # Business service protocols
-    'ChannelMetadataServiceProtocol', 'ChannelDynamoDBServiceProtocol',
-    'AccessRequestServiceProtocol', 'KetchupJIRAClientProtocol',
-    'JIRAReporterServiceProtocol', 'StatusCommandServiceProtocol',
-    'KetchupAIServiceProtocol', 'AccessServiceProtocol',
-    'ChannelInfoOpsServiceProtocol', 'JiraValidationServiceProtocol',
-    'RateLimiterProtocol', 'FeatureServiceProtocol',
+    "ChannelMetadataServiceProtocol",
+    "ChannelDynamoDBServiceProtocol",
+    "AccessRequestServiceProtocol",
+    "KetchupJIRAClientProtocol",
+    "JIRAReporterServiceProtocol",
+    "StatusCommandServiceProtocol",
+    "KetchupAIServiceProtocol",
+    "AccessServiceProtocol",
+    "ChannelInfoOpsServiceProtocol",
+    "JiraValidationServiceProtocol",
+    "RateLimiterProtocol",
+    "FeatureServiceProtocol",
 ]

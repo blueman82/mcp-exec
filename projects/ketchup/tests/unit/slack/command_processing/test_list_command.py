@@ -65,9 +65,7 @@ class TestSlackListCommand:
         self.handler.create_validation_error_response = lambda msg: {
             "status": "validation_error",
             "statusCode": 400,
-            "body": (
-                msg if "Invalid initial input" in str(msg) else "Invalid initial input"
-            ),
+            "body": (msg if "Invalid initial input" in str(msg) else "Invalid initial input"),
             "message": msg,
         }
 
@@ -100,13 +98,15 @@ class TestSlackListCommand:
                 "last_updated": "2024-05-03",
             }
         ]
-        with patch.object(
-            self.handler, "_process_list", new_callable=AsyncMock
-        ) as mock_proc, patch.object(
-            self.handler.lookup_message_handler, "send_message", new_callable=AsyncMock
-        ) as mock_send_msg, patch.object(
-            self.handler.slack_posting_handler, "post_message", new_callable=AsyncMock
-        ) as mock_post_msg:
+        with (
+            patch.object(self.handler, "_process_list", new_callable=AsyncMock) as mock_proc,
+            patch.object(
+                self.handler.lookup_message_handler, "send_message", new_callable=AsyncMock
+            ) as mock_send_msg,
+            patch.object(
+                self.handler.slack_posting_handler, "post_message", new_callable=AsyncMock
+            ) as mock_post_msg,
+        ):
             mock_proc.return_value = channel_list
             result = await self.handler.process_list_params(
                 params, user_id, incoming_channel, response_url
@@ -137,9 +137,7 @@ class TestSlackListCommand:
         user_id = "U123"
         incoming_channel = "C123"
         response_url = "https://slack.com/response"
-        with patch.object(
-            self.handler, "_process_list", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_list", new_callable=AsyncMock) as mock_proc:
             result = await self.handler.process_list_params(
                 params, user_id, incoming_channel, response_url
             )
@@ -166,9 +164,7 @@ class TestSlackListCommand:
         user_id = "U123"
         incoming_channel = "C123"
         response_url = "https://slack.com/response"
-        with patch.object(
-            self.handler, "_process_list", new_callable=AsyncMock
-        ) as mock_proc:
+        with patch.object(self.handler, "_process_list", new_callable=AsyncMock) as mock_proc:
             mock_proc.side_effect = Exception("fail!")
             result = await self.handler.process_list_params(
                 params, user_id, incoming_channel, response_url

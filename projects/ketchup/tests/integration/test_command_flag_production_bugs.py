@@ -10,8 +10,9 @@ Test-Driven Development approach:
 - GREEN: Tests pass with new code (proves fix works)
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.secrets.manager import SecretsManager
@@ -62,9 +63,7 @@ class TestCommandFlagProductionBugs:
         )
 
     @pytest.mark.asyncio
-    async def test_dm_handler_bug_acknowledgment_uses_correct_handler(
-        self, command_processor
-    ):
+    async def test_dm_handler_bug_acknowledgment_uses_correct_handler(self, command_processor):
         """
         Test: Bug #4 - DM Sending Failure
 
@@ -174,9 +173,9 @@ class TestCommandFlagProductionBugs:
         )
 
         # Assert: Title should be the fixed value
-        assert title_text == "Reply to Feedback", (
-            f"Expected 'Reply to Feedback' (18 chars), got '{title_text}' ({len(title_text)} chars)"
-        )
+        assert (
+            title_text == "Reply to Feedback"
+        ), f"Expected 'Reply to Feedback' (18 chars), got '{title_text}' ({len(title_text)} chars)"
 
     def test_modal_title_length_validation_all_modals(
         self, mock_posting_handler, mock_secrets_manager
@@ -261,14 +260,12 @@ class TestCommandFlagProductionBugs:
         ]
 
         for method in async_methods:
-            assert method in available_methods, (
-                f"Expected NotificationSender to have {method} method"
-            )
+            assert (
+                method in available_methods
+            ), f"Expected NotificationSender to have {method} method"
 
     @pytest.mark.asyncio
-    async def test_integration_acknowledge_button_workflow(
-        self, command_processor, mock_db_store
-    ):
+    async def test_integration_acknowledge_button_workflow(self, command_processor, mock_db_store):
         """
         Test: Complete acknowledge button workflow
 
@@ -279,11 +276,14 @@ class TestCommandFlagProductionBugs:
         mock_db_store.client.update_item = AsyncMock()
 
         # Mock FlagReviewDMHandler
-        with patch(
-            "packages.slack.interactive_elements.flag_review.dm_handler.FlagReviewDMHandler"
-        ) as mock_dm_handler_class, patch(
-            "packages.slack.interactive_elements.flag_review.message_updater.MessageUpdater"
-        ) as mock_message_updater_class:
+        with (
+            patch(
+                "packages.slack.interactive_elements.flag_review.dm_handler.FlagReviewDMHandler"
+            ) as mock_dm_handler_class,
+            patch(
+                "packages.slack.interactive_elements.flag_review.message_updater.MessageUpdater"
+            ) as mock_message_updater_class,
+        ):
 
             # Setup mocks
             mock_dm_handler = MagicMock()

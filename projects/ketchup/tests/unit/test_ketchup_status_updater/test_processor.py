@@ -67,7 +67,9 @@ class TestAutoStatusProcessor:
     @patch.dict(os.environ, {"KETCHUP_STATUS_UPDATER_ENABLED": "true"})
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_enabled")
     @pytest.mark.asyncio
-    async def test_process_all_channels_when_paused(self, mock_enabled, processor, mock_dependencies):
+    async def test_process_all_channels_when_paused(
+        self, mock_enabled, processor, mock_dependencies
+    ):
         """Test process_all_channels returns early when globally paused"""
         mock_enabled.return_value = True
 
@@ -87,7 +89,9 @@ class TestAutoStatusProcessor:
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_enabled")
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_global")
     @pytest.mark.asyncio
-    async def test_process_all_channels_success(self, mock_global, mock_enabled, processor, mock_dependencies):
+    async def test_process_all_channels_success(
+        self, mock_global, mock_enabled, processor, mock_dependencies
+    ):
         """Test successful processing of multiple channels"""
         mock_enabled.return_value = True
         mock_global.return_value = True
@@ -135,9 +139,7 @@ class TestAutoStatusProcessor:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_process_channel_skip_after_failures(
-        self, processor, mock_dependencies
-    ):
+    async def test_process_channel_skip_after_failures(self, processor, mock_dependencies):
         """Test that processing is skipped after 5 failures"""
         channel = {
             "channel_id": "C123456",
@@ -152,21 +154,21 @@ class TestAutoStatusProcessor:
         )
 
         # Mock generator
-        with patch(
-            "ketchup_status_updater.processor.AutoStatusGenerator"
-        ) as mock_generator_class:
+        with patch("ketchup_status_updater.processor.AutoStatusGenerator") as mock_generator_class:
             mock_generator = mock_generator_class.return_value
-            mock_generator.check_for_activity = AsyncMock(return_value={
-                "has_activity": True,
-                "has_new_messages": True,
-                "has_jira_updates": False,
-                "latest_message_ts": "1234567890",
-                "latest_thread_ts": "1234567890"
-            })
+            mock_generator.check_for_activity = AsyncMock(
+                return_value={
+                    "has_activity": True,
+                    "has_new_messages": True,
+                    "has_jira_updates": False,
+                    "latest_message_ts": "1234567890",
+                    "latest_thread_ts": "1234567890",
+                }
+            )
 
             # Mock field update
-            mock_dependencies["channel_operations"].update_channel_fields = (
-                AsyncMock(return_value=True)
+            mock_dependencies["channel_operations"].update_channel_fields = AsyncMock(
+                return_value=True
             )
 
             result = await processor._process_channel(channel)
@@ -193,37 +195,31 @@ class TestAutoStatusProcessor:
         )
 
         # Mock generator to fail
-        with patch(
-            "ketchup_status_updater.processor.AutoStatusGenerator"
-        ) as mock_generator_class:
+        with patch("ketchup_status_updater.processor.AutoStatusGenerator") as mock_generator_class:
             mock_generator = mock_generator_class.return_value
-            mock_generator.check_for_activity = AsyncMock(return_value={
-                "has_activity": True,
-                "has_new_messages": True,
-                "has_jira_updates": False,
-                "latest_message_ts": "1234567890",
-                "latest_thread_ts": "1234567890"
-            })
+            mock_generator.check_for_activity = AsyncMock(
+                return_value={
+                    "has_activity": True,
+                    "has_new_messages": True,
+                    "has_jira_updates": False,
+                    "latest_message_ts": "1234567890",
+                    "latest_thread_ts": "1234567890",
+                }
+            )
             mock_generator.generate_and_post_status = AsyncMock(return_value=False)
 
             # Mock field update
-            mock_dependencies["channel_operations"].update_channel_fields = (
-                AsyncMock()
-            )
+            mock_dependencies["channel_operations"].update_channel_fields = AsyncMock()
 
             result = await processor._process_channel(channel)
 
             # Verify failure and attempt increment
             assert result is False
-            update_call = mock_dependencies[
-                "channel_operations"
-            ].update_channel_fields.call_args
+            update_call = mock_dependencies["channel_operations"].update_channel_fields.call_args
             assert update_call[1]["updates"]["auto_status_attempt_count"] == 3
 
     @pytest.mark.asyncio
-    async def test_process_channel_reset_attempts_on_success(
-        self, processor, mock_dependencies
-    ):
+    async def test_process_channel_reset_attempts_on_success(self, processor, mock_dependencies):
         """Test that attempt count is reset on success"""
         channel = {
             "channel_id": "C123456",
@@ -237,30 +233,26 @@ class TestAutoStatusProcessor:
         )
 
         # Mock generator to succeed
-        with patch(
-            "ketchup_status_updater.processor.AutoStatusGenerator"
-        ) as mock_generator_class:
+        with patch("ketchup_status_updater.processor.AutoStatusGenerator") as mock_generator_class:
             mock_generator = mock_generator_class.return_value
-            mock_generator.check_for_activity = AsyncMock(return_value={
-                "has_activity": True,
-                "has_new_messages": True,
-                "has_jira_updates": False,
-                "latest_message_ts": "1234567890",
-                "latest_thread_ts": "1234567890"
-            })
+            mock_generator.check_for_activity = AsyncMock(
+                return_value={
+                    "has_activity": True,
+                    "has_new_messages": True,
+                    "has_jira_updates": False,
+                    "latest_message_ts": "1234567890",
+                    "latest_thread_ts": "1234567890",
+                }
+            )
             mock_generator.generate_and_post_status = AsyncMock(return_value=True)
 
             # Mock field update
-            mock_dependencies["channel_operations"].update_channel_fields = (
-                AsyncMock()
-            )
+            mock_dependencies["channel_operations"].update_channel_fields = AsyncMock()
 
             result = await processor._process_channel(channel)
 
             # Verify success and fields updated
             assert result is True
-            update_call = mock_dependencies[
-                "channel_operations"
-            ].update_channel_fields.call_args
+            update_call = mock_dependencies["channel_operations"].update_channel_fields.call_args
             assert update_call[1]["updates"]["auto_status_attempt_count"] == 0
             assert "auto_status_last_run" in update_call[1]["updates"]

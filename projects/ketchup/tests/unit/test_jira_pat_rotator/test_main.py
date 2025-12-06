@@ -3,17 +3,20 @@
 Tests for main.py entry point with TypedDI integration.
 
 Verifies:
-- TypedDI container initializes correctly
+- TypedDI container initializes correctly with mocked AWS dependencies
 - All required protocols are resolved
 - Scheduler starts without errors
 - Services are properly initialized
+
+NOTE: These are unit tests with mocked AWS dependencies.
+AWS services are mocked via conftest.py fixtures.
 """
 
 import asyncio
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-from packages.core.typed_di_integration import get_unified_container
+import pytest
+
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
     DynamoDBStoreProtocol,
     SecretsManagerProtocol,
@@ -24,6 +27,7 @@ from packages.core.typed_di.service_registrations.protocols.infrastructure_proto
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
     MCPClientProtocol,
 )
+from packages.core.typed_di_integration import get_unified_container
 
 
 class TestMainTypeInitialization:

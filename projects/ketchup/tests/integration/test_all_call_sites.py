@@ -10,7 +10,6 @@ resolve its required service, with special attention to critical handlers.
 
 import json
 import os
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -85,9 +84,7 @@ class TestAllCallSiteResolution:
 
             print(f"\nNote: {len(missing_services)} services to review")
         else:
-            print(
-                f"✓ All {len(required_services)} services validated"
-            )
+            print(f"✓ All {len(required_services)} services validated")
             print("✓ System is ready for production deployment")
 
 

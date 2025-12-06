@@ -18,27 +18,44 @@ logger = setup_logger(__name__)
 # Domain categorization patterns for service classification
 DOMAIN_PATTERNS = {
     "core_infrastructure": [
-        "secretsmanager", "slackconfig", "distributedlock", "sqsclient",
-        "backoff", "typedresolver", "compatibilitybridge"
+        "secretsmanager",
+        "slackconfig",
+        "distributedlock",
+        "sqsclient",
+        "backoff",
+        "typedresolver",
+        "compatibilitybridge",
     ],
     "db_operations": [
-        "dynamodb", "userstore", "channeloperations",
-        "commandtrackingoperations", "accessrequestoperations"
+        "dynamodb",
+        "userstore",
+        "channeloperations",
+        "commandtrackingoperations",
+        "accessrequestoperations",
     ],
-    "slack_commands": [
-        "slackarchivecommand", "featurecommand", "featureservice"
-    ],
+    "slack_commands": ["slackarchivecommand", "featurecommand", "featureservice"],
     "slack_interactive": [
-        "handler", "hometab", "usageexport", "blockkit", "slackposting",
-        "feedback", "shortcut", "trustendorsement"
+        "handler",
+        "hometab",
+        "usageexport",
+        "blockkit",
+        "slackposting",
+        "feedback",
+        "shortcut",
+        "trustendorsement",
     ],
-    "integrations": [
-        "ims", "jira", "mcp", "tokenmanager", "cache", "dataextractor"
-    ],
+    "integrations": ["ims", "jira", "mcp", "tokenmanager", "cache", "dataextractor"],
     "ai_ui_metrics": [
-        "openai", "userjoin", "flagreview", "messageformatter",
-        "metrics", "csv", "channelname", "userverifier", "tokentracker"
-    ]
+        "openai",
+        "userjoin",
+        "flagreview",
+        "messageformatter",
+        "metrics",
+        "csv",
+        "channelname",
+        "userverifier",
+        "tokentracker",
+    ],
 }
 
 
@@ -95,9 +112,7 @@ def emit_registered_services_summary(
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)
 
-        logger.info(
-            f"Runtime services summary emitted to {output_path} for CI auditing"
-        )
+        logger.info(f"Runtime services summary emitted to {output_path} for CI auditing")
 
     except Exception as e:
         logger.warning(f"Failed to emit registered services summary: {e}")
@@ -109,7 +124,7 @@ def get_domain_breakdown(manager: ServiceRegistrationManager) -> dict:
         services = get_service_list(manager)
 
         # Initialize domain collections
-        domains = {domain: [] for domain in DOMAIN_PATTERNS.keys()}
+        domains = {domain: [] for domain in DOMAIN_PATTERNS}
 
         # Categorize each service
         for service in services:
@@ -146,9 +161,7 @@ def get_protocols_coverage(manager: ServiceRegistrationManager) -> dict:
         # We don't currently store has_protocol_alias in the summary; approximate by protocol mapping size
         total_services = len(services)
         # Use protocol_to_concrete_mapping to get accurate protocol coverage
-        protocols_with_concrete = len(
-            getattr(manager, "protocol_to_concrete_mapping", {})
-        )
+        protocols_with_concrete = len(getattr(manager, "protocol_to_concrete_mapping", {}))
 
         return {
             "total_services": total_services,

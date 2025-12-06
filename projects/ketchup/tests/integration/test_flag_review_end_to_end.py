@@ -17,6 +17,7 @@ Tests would catch ALL production bugs:
 """
 
 from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 
 
@@ -34,17 +35,17 @@ class TestEndToEndWorkflow:
 
         # Step 1: Setup production-like environment
         posting_handler = Mock()
-        posting_handler.post_message = AsyncMock(return_value={
-            "ok": True,
-            "ts": "1234567890.123456",
-            "channel": "C095LQ0H4KB"
-        })
+        posting_handler.post_message = AsyncMock(
+            return_value={"ok": True, "ts": "1234567890.123456", "channel": "C095LQ0H4KB"}
+        )
         posting_handler.post_ephemeral_message = AsyncMock(return_value={"ok": True})
         posting_handler.update_message = AsyncMock(return_value={"ok": True})
 
         db_store = Mock()
         db_store.client = Mock()
-        db_store.client.put_item = AsyncMock(return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
+        db_store.client.put_item = AsyncMock(
+            return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
+        )
         db_store.client.get_item = AsyncMock(return_value={})
         db_store.client.query = AsyncMock(return_value={"Items": []})
         db_store.table_name = "ketchup_channel_information"
@@ -60,21 +61,19 @@ class TestEndToEndWorkflow:
             "type": "block_actions",
             "trigger_id": "9574654848048.174214641840.6f217e14a0c9f526c845405f0774c4cd",
             "team": {"id": "T546AJVQQ", "domain": "adobecso"},
-            "user": {
-                "id": "W7MGASQ2K",
-                "username": "harrison",
-                "name": "harrison"
-            },
+            "user": {"id": "W7MGASQ2K", "username": "harrison", "name": "harrison"},
             "channel": {"id": "D0840EX80R5", "name": "directmessage"},
-            "actions": [{
-                "action_id": "flag_command_review",  # Command flag button
-                "value": "D0840EX80R5|1758273886_04da7904|status"
-            }],
-            "response_url": "test_response_url"  # Use test URL like other tests
+            "actions": [
+                {
+                    "action_id": "flag_command_review",  # Command flag button
+                    "value": "D0840EX80R5|1758273886_04da7904|status",
+                }
+            ],
+            "response_url": "test_response_url",  # Use test URL like other tests
         }
 
         # Mock the Slack API modal.open call with proper async context manager
-        with patch('aiohttp.ClientSession') as mock_session_class:
+        with patch("aiohttp.ClientSession") as mock_session_class:
             # Create the mock response that will be returned
             mock_response = AsyncMock()
             mock_response.status = 200
@@ -111,11 +110,7 @@ class TestEndToEndWorkflow:
             "type": "view_submission",
             "trigger_id": "9574654848048.174214641840.6f217e14a0c9f526c845405f0774c4cd",
             "team": {"id": "T546AJVQQ", "domain": "adobecso"},
-            "user": {
-                "id": "W7MGASQ2K",
-                "username": "harrison",
-                "name": "harrison"
-            },
+            "user": {"id": "W7MGASQ2K", "username": "harrison", "name": "harrison"},
             "view": {
                 "id": "V09FNJ4GRBR",
                 "type": "modal",
@@ -126,12 +121,12 @@ class TestEndToEndWorkflow:
                         "feedback_block": {
                             "feedback_input": {
                                 "type": "plain_text_input",
-                                "value": "this is just a test"
+                                "value": "this is just a test",
                             }
                         }
                     }
-                }
-            }
+                },
+            },
         }
 
         # Process modal submission
@@ -154,7 +149,9 @@ class TestEndToEndWorkflow:
     @pytest.mark.asyncio
     async def test_container_bug_detection(self):
         """Verify the Container.get_db_store bug is FIXED."""
-        from packages.slack.interactive_elements.flag_review.command_flag_processor import CommandFlagProcessor
+        from packages.slack.interactive_elements.flag_review.command_flag_processor import (
+            CommandFlagProcessor,
+        )
 
         # Create processor as production does
         posting_handler = Mock()
@@ -184,7 +181,9 @@ class TestEndToEndWorkflow:
     @pytest.mark.asyncio
     async def test_modal_validation_workflow(self):
         """Test the modal validation part of the workflow."""
-        from packages.slack.interactive_elements.flag_review.modal_orchestrator import ModalOrchestrator
+        from packages.slack.interactive_elements.flag_review.modal_orchestrator import (
+            ModalOrchestrator,
+        )
 
         posting_handler = Mock()
         secrets_manager = Mock()
@@ -201,7 +200,7 @@ class TestEndToEndWorkflow:
         assert orchestrator._validate_trigger_id(invalid_trigger) is False
 
         # This should NOT exist (the bug)
-        assert not hasattr(orchestrator, 'validate_trigger_id'), "Public method should not exist"
+        assert not hasattr(orchestrator, "validate_trigger_id"), "Public method should not exist"
 
     @pytest.mark.asyncio
     async def test_database_storage_workflow(self):
@@ -211,14 +210,20 @@ class TestEndToEndWorkflow:
         # Create CORRECT container with methods
         db_store = Mock()
         db_store.client = Mock()
-        db_store.client.put_item = AsyncMock(return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
+        db_store.client.put_item = AsyncMock(
+            return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
+        )
         db_store.table_name = "ketchup_channel_information"
 
-        container = type('Container', (), {
-            'get_db_store': lambda self: db_store,
-            'get_posting_handler': lambda self: Mock(),
-            'get_secrets_manager': lambda self: Mock()
-        })()
+        container = type(
+            "Container",
+            (),
+            {
+                "get_db_store": lambda self: db_store,
+                "get_posting_handler": lambda self: Mock(),
+                "get_secrets_manager": lambda self: Mock(),
+            },
+        )()
 
         api_client = FlagReviewApiClient(container)
 
@@ -230,7 +235,7 @@ class TestEndToEndWorkflow:
             user_name="testuser",
             original_text="test feedback",  # Must be original_text, not feedback_text
             command_type="status",
-            original_channel="C123"
+            original_channel="C123",
         )
 
         # Should succeed with correct parameters
@@ -240,15 +245,15 @@ class TestEndToEndWorkflow:
         # Verify the correct item was stored
         call_args = db_store.client.put_item.call_args
         # The API client uses lowercase kwargs
-        assert 'table_name' in call_args.kwargs, "table_name should be in kwargs"
-        assert 'item' in call_args.kwargs, "item should be in kwargs"
+        assert "table_name" in call_args.kwargs, "table_name should be in kwargs"
+        assert "item" in call_args.kwargs, "item should be in kwargs"
 
-        stored_item = call_args.kwargs['item']
+        stored_item = call_args.kwargs["item"]
         # The item is in DynamoDB format with type annotations
-        assert stored_item['user_id']['S'] == "U123"
-        assert stored_item['user_name']['S'] == "testuser"
-        assert stored_item['original_text']['S'] == "test feedback"  # Stored as original_text
-        assert stored_item['command_type']['S'] == "status"
+        assert stored_item["user_id"]["S"] == "U123"
+        assert stored_item["user_name"]["S"] == "testuser"
+        assert stored_item["original_text"]["S"] == "test feedback"  # Stored as original_text
+        assert stored_item["command_type"]["S"] == "status"
 
     @pytest.mark.asyncio
     async def test_import_resolution(self):
@@ -257,7 +262,8 @@ class TestEndToEndWorkflow:
 
         # Verify we can import Python's types module
         import types
-        assert hasattr(types, 'SimpleNamespace'), "Python stdlib types should be accessible"
+
+        assert hasattr(types, "SimpleNamespace"), "Python stdlib types should be accessible"
 
         # The old import should fail (file was renamed from types.py to flag_types.py)
         with pytest.raises(ImportError):

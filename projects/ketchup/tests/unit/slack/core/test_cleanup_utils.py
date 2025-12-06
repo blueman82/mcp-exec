@@ -44,31 +44,27 @@ class TestCleanupResources:
         """Test cleanup_resources finds and cleans up AsyncClient instances."""
         client = MagicMock()
         client.cleanup = AsyncMock()
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[client]
-        ), patch("packages.core.cleanup_utils.AsyncClient", new=MagicMock()), patch(
-            "packages.core.cleanup_utils.logger"
-        ) as mock_logger, patch(
-            "packages.core.cleanup_utils.isinstance", return_value=True
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[client]),
+            patch("packages.core.cleanup_utils.AsyncClient", new=MagicMock()),
+            patch("packages.core.cleanup_utils.logger") as mock_logger,
+            patch("packages.core.cleanup_utils.isinstance", return_value=True),
         ):
             type(client).cleanup = AsyncMock()
             await cleanup_resources([])
             client.cleanup.assert_awaited()
-            mock_logger.info.assert_any_call(
-                "Found %d AsyncClient instances for cleanup", 1
-            )
+            mock_logger.info.assert_any_call("Found %d AsyncClient instances for cleanup", 1)
 
     @pytest.mark.asyncio
     async def test_asyncclient_cleanup_exception_logged(self) -> None:
         """Test cleanup_resources logs error if AsyncClient cleanup raises."""
         client = MagicMock()
         client.cleanup = AsyncMock(side_effect=Exception("fail"))
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[client]
-        ), patch("packages.core.cleanup_utils.AsyncClient", new=MagicMock()), patch(
-            "packages.core.cleanup_utils.logger"
-        ) as mock_logger, patch(
-            "packages.core.cleanup_utils.isinstance", return_value=True
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[client]),
+            patch("packages.core.cleanup_utils.AsyncClient", new=MagicMock()),
+            patch("packages.core.cleanup_utils.logger") as mock_logger,
+            patch("packages.core.cleanup_utils.isinstance", return_value=True),
         ):
             type(client).cleanup = AsyncMock(side_effect=Exception("fail"))
             await cleanup_resources([])
@@ -80,14 +76,11 @@ class TestCleanupResources:
         session = MagicMock()
         session.closed = False
         session.close = AsyncMock()
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[session]
-        ), patch(
-            "packages.core.cleanup_utils.aiohttp.ClientSession", new=MagicMock()
-        ), patch(
-            "packages.core.cleanup_utils.logger"
-        ) as mock_logger, patch(
-            "packages.core.cleanup_utils.isinstance", return_value=True
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[session]),
+            patch("packages.core.cleanup_utils.aiohttp.ClientSession", new=MagicMock()),
+            patch("packages.core.cleanup_utils.logger") as mock_logger,
+            patch("packages.core.cleanup_utils.isinstance", return_value=True),
         ):
             await cleanup_resources([])
             await session.close()
@@ -101,9 +94,10 @@ class TestCleanupResources:
         session = MagicMock()
         session.closed = True
         session.close = AsyncMock()
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[session]
-        ), patch("packages.core.cleanup_utils.aiohttp.ClientSession", new=MagicMock()):
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[session]),
+            patch("packages.core.cleanup_utils.aiohttp.ClientSession", new=MagicMock()),
+        ):
             await cleanup_resources([])
             session.close.assert_not_awaited()
 
@@ -113,14 +107,11 @@ class TestCleanupResources:
         session = MagicMock()
         session.closed = False
         session.close = AsyncMock(side_effect=Exception("fail"))
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[session]
-        ), patch(
-            "packages.core.cleanup_utils.aiohttp.ClientSession", new=MagicMock()
-        ), patch(
-            "packages.core.cleanup_utils.logger"
-        ) as mock_logger, patch(
-            "packages.core.cleanup_utils.isinstance", return_value=True
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[session]),
+            patch("packages.core.cleanup_utils.aiohttp.ClientSession", new=MagicMock()),
+            patch("packages.core.cleanup_utils.logger") as mock_logger,
+            patch("packages.core.cleanup_utils.isinstance", return_value=True),
         ):
             try:
                 await cleanup_resources([])
@@ -135,14 +126,11 @@ class TestCleanupResources:
         connector = MagicMock()
         connector.closed = False
         connector.close = MagicMock()
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[connector]
-        ), patch(
-            "packages.core.cleanup_utils.aiohttp.TCPConnector", new=MagicMock()
-        ), patch(
-            "packages.core.cleanup_utils.logger"
-        ), patch(
-            "packages.core.cleanup_utils.isinstance", return_value=True
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[connector]),
+            patch("packages.core.cleanup_utils.aiohttp.TCPConnector", new=MagicMock()),
+            patch("packages.core.cleanup_utils.logger"),
+            patch("packages.core.cleanup_utils.isinstance", return_value=True),
         ):
             await cleanup_resources([])
             connector.close.assert_called()
@@ -153,9 +141,10 @@ class TestCleanupResources:
         connector = MagicMock()
         connector.closed = True
         connector.close = MagicMock()
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[connector]
-        ), patch("packages.core.cleanup_utils.aiohttp.TCPConnector", new=MagicMock()):
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[connector]),
+            patch("packages.core.cleanup_utils.aiohttp.TCPConnector", new=MagicMock()),
+        ):
             await cleanup_resources([])
             connector.close.assert_not_called()
 
@@ -165,14 +154,11 @@ class TestCleanupResources:
         connector = MagicMock()
         connector.closed = False
         connector.close = MagicMock(side_effect=Exception("fail"))
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", return_value=[connector]
-        ), patch(
-            "packages.core.cleanup_utils.aiohttp.TCPConnector", new=MagicMock()
-        ), patch(
-            "packages.core.cleanup_utils.logger"
-        ) as mock_logger, patch(
-            "packages.core.cleanup_utils.isinstance", return_value=True
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", return_value=[connector]),
+            patch("packages.core.cleanup_utils.aiohttp.TCPConnector", new=MagicMock()),
+            patch("packages.core.cleanup_utils.logger") as mock_logger,
+            patch("packages.core.cleanup_utils.isinstance", return_value=True),
         ):
             await cleanup_resources([])
             mock_logger.error.assert_any_call("Tier 4: Error closing connector: %s", "fail")
@@ -181,9 +167,10 @@ class TestCleanupResources:
     async def test_all_fallbacks_and_errors(self) -> None:
         """Test cleanup_resources handles all fallback and error paths gracefully."""
         # Simulate all gc lookups raising
-        with patch(
-            "packages.core.cleanup_utils.gc.get_objects", side_effect=Exception("fail")
-        ), patch("packages.core.cleanup_utils.logger") as mock_logger:
+        with (
+            patch("packages.core.cleanup_utils.gc.get_objects", side_effect=Exception("fail")),
+            patch("packages.core.cleanup_utils.logger") as mock_logger,
+        ):
             await cleanup_resources([])
             # Should log error for AsyncClient, session, and connector cleanup
             assert mock_logger.error.call_count >= 3

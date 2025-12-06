@@ -56,16 +56,17 @@ class SecretsManager:
         # Create a new session and client for AWS Secrets Manager
         # Use AWS profile from environment if available
         import os
-        profile_name = os.environ.get('AWS_PROFILE')
-        session = aioboto3.Session(profile_name=profile_name) if profile_name else aioboto3.Session()
+
+        profile_name = os.environ.get("AWS_PROFILE")
+        session = (
+            aioboto3.Session(profile_name=profile_name) if profile_name else aioboto3.Session()
+        )
         async with session.client(
             service_name="secretsmanager", region_name=self.region_name
         ) as client:
             try:
                 # Attempt to get the secret value from AWS Secrets Manager
-                get_secret_value_response = await client.get_secret_value(
-                    SecretId=secret_name
-                )
+                get_secret_value_response = await client.get_secret_value(SecretId=secret_name)
                 # If the secret is stored as a string, parse it as JSON and return the dictionary
                 if "SecretString" in get_secret_value_response:
                     return json.loads(get_secret_value_response["SecretString"])
@@ -85,10 +86,7 @@ class SecretsManager:
         current_time = time.time()
 
         # Check if we have a valid cache
-        if (
-            self._secrets_cache
-            and (current_time - self._cache_timestamp) < self._cache_ttl
-        ):
+        if self._secrets_cache and (current_time - self._cache_timestamp) < self._cache_ttl:
             logger.info(
                 "Returning cached secrets (age: %.1f seconds)",
                 current_time - self._cache_timestamp,
@@ -100,9 +98,7 @@ class SecretsManager:
 
         try:
             secrets_async = await self.get_secret_async(self.APP_SECRETS_NAME)
-            logger.info(
-                "Application secrets retrieved successfully from AWS Secrets Manager."
-            )
+            logger.info("Application secrets retrieved successfully from AWS Secrets Manager.")
         except Exception as e:
             logger.error("Failed to retrieve application secrets: %s", e)
             raise
@@ -317,16 +313,17 @@ class SecretsManager:
 
         # Use AWS profile from environment if available
         import os
-        profile_name = os.environ.get('AWS_PROFILE')
-        session = aioboto3.Session(profile_name=profile_name) if profile_name else aioboto3.Session()
+
+        profile_name = os.environ.get("AWS_PROFILE")
+        session = (
+            aioboto3.Session(profile_name=profile_name) if profile_name else aioboto3.Session()
+        )
         async with session.client(
             service_name="secretsmanager", region_name=self.region_name
         ) as client:
             try:
                 # First, get the current secret
-                get_response = await client.get_secret_value(
-                    SecretId=self.APP_SECRETS_NAME
-                )
+                get_response = await client.get_secret_value(SecretId=self.APP_SECRETS_NAME)
 
                 if "SecretString" not in get_response:
                     raise KeyError("SecretString not found in secret value response")
@@ -386,9 +383,7 @@ class SecretsManager:
             updated_users.append(user_id)
 
             # Update the secret with JSON-encoded list
-            await self.update_secret(
-                {"authorised_slack_user_ids": json.dumps(updated_users)}
-            )
+            await self.update_secret({"authorised_slack_user_ids": json.dumps(updated_users)})
 
             # Invalidate cache to force refresh on next access
             self._secrets_cache = {}
@@ -401,9 +396,7 @@ class SecretsManager:
             logger.error("Failed to add authorized user %s: %s", user_id, e)
             raise
 
-    async def add_authorized_user_with_ldap(
-        self, user_id: str, ldap_username: str
-    ) -> bool:
+    async def add_authorized_user_with_ldap(self, user_id: str, ldap_username: str) -> bool:
         """
         Add a user to both the authorized Slack users list and LDAP backup list.
 
@@ -513,9 +506,7 @@ class SecretsManager:
             updated_users.remove(user_id)
 
             # Update the secret with JSON-encoded list
-            await self.update_secret(
-                {"authorised_slack_user_ids": json.dumps(updated_users)}
-            )
+            await self.update_secret({"authorised_slack_user_ids": json.dumps(updated_users)})
 
             # Invalidate cache to force refresh on next access
             self._secrets_cache = {}
@@ -528,9 +519,7 @@ class SecretsManager:
             logger.error("Failed to remove authorized user %s: %s", user_id, e)
             raise
 
-    async def remove_authorized_user_with_ldap(
-        self, user_id: str, ldap_username: str
-    ) -> bool:
+    async def remove_authorized_user_with_ldap(self, user_id: str, ldap_username: str) -> bool:
         """
         Remove a user from both the authorized Slack users list and LDAP backup list.
 

@@ -139,9 +139,7 @@ class FeedbackReportHandler:
                         logger.info("Feedback report modal opened successfully")
                         return True
         except Exception as e:
-            logger.error(
-                "Error opening feedback report modal: %s", str(e), exc_info=True
-            )
+            logger.error("Error opening feedback report modal: %s", str(e), exc_info=True)
             return False
 
     async def _send_success_modal(self, trigger_id: str) -> bool:
@@ -270,9 +268,7 @@ class FeedbackReportHandler:
                 },
                 {
                     "type": "context",
-                    "elements": [
-                        {"type": "mrkdwn", "text": f"📝 Reported by <@{user_id}>"}
-                    ],
+                    "elements": [{"type": "mrkdwn", "text": f"📝 Reported by <@{user_id}>"}],
                 },
             ]
 
@@ -285,13 +281,9 @@ class FeedbackReportHandler:
                 # Open success modal using class method
                 modal_success = await self._send_success_modal(trigger_id)
                 if modal_success:
-                    logger.info(
-                        "Feedback report successfully sent and success modal opened"
-                    )
+                    logger.info("Feedback report successfully sent and success modal opened")
                 else:
-                    logger.warning(
-                        "Feedback report sent, but failed to open success modal."
-                    )
+                    logger.warning("Feedback report sent, but failed to open success modal.")
                 return True  # Report sent, even if modal failed
             else:
                 logger.error("Failed to post feedback report to channel")

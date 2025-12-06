@@ -46,11 +46,7 @@ class MockAiohttpResponse:
         if self._json_data is not None:
             return orjson.dumps(self._json_data)
         elif self._text_data is not None:
-            return (
-                self._text_data.encode()
-                if isinstance(self._text_data, str)
-                else self._text_data
-            )
+            return self._text_data.encode() if isinstance(self._text_data, str) else self._text_data
         return b"{}"
 
 

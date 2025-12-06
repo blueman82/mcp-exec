@@ -37,9 +37,7 @@ async def process_view_submission(
     # Handle flag review modal submission
     if callback_id == "reply_feedback_modal":
         if flag_review_handler is None:
-            logger.error(
-                "Flag review handler not available for reply_feedback_modal submission"
-            )
+            logger.error("Flag review handler not available for reply_feedback_modal submission")
             return False
         logger.info("Routing reply_feedback_modal to flag_review_handler")
         return await flag_review_handler.process_flag_action(payload)
@@ -74,13 +72,9 @@ async def process_view_submission(
         trigger_id = payload.get("trigger_id")
 
         # Get values from the input blocks
-        feedback_name = (
-            state_values.get("feedback_name", {}).get("name_input", {}).get("value")
-        )
+        feedback_name = state_values.get("feedback_name", {}).get("name_input", {}).get("value")
         feedback_description = (
-            state_values.get("feedback_description", {})
-            .get("description_input", {})
-            .get("value")
+            state_values.get("feedback_description", {}).get("description_input", {}).get("value")
         )
 
         if not all([user_id, feedback_name, feedback_description, trigger_id]):

@@ -10,9 +10,7 @@ from packages.core.constants import AWS_REGION, DYNAMODB_TABLE_NAME
 class DynamoDBConfig:
     """Configuration for DynamoDB operations."""
 
-    def __init__(
-        self, table_name: str = DYNAMODB_TABLE_NAME, region: str = AWS_REGION
-    ) -> None:
+    def __init__(self, table_name: str = DYNAMODB_TABLE_NAME, region: str = AWS_REGION) -> None:
         """Initialize the configuration.
 
         Args:

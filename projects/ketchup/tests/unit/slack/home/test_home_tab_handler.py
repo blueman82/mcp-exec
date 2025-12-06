@@ -28,11 +28,7 @@ from packages.slack.interactive_elements.feedback_report import FeedbackReportHa
 @pytest.fixture
 def mock_home_tab_deps():
     """Mock dependencies for HomeTabHandler tests to prevent production failures."""
-    return {
-        'user_store': AsyncMock(),
-        'slack_client': AsyncMock(),
-        'command_tracking': AsyncMock()
-    }
+    return {"user_store": AsyncMock(), "slack_client": AsyncMock(), "command_tracking": AsyncMock()}
 
 
 class TestHomeTabHandler:
@@ -42,8 +38,8 @@ class TestHomeTabHandler:
     def setup_handler(self, mock_home_tab_deps):
         # Set up all mocks with proper async behavior
         self.secrets_manager = MagicMock()
-        self.user_store = mock_home_tab_deps['user_store']
-        self.slack_client = mock_home_tab_deps['slack_client']
+        self.user_store = mock_home_tab_deps["user_store"]
+        self.slack_client = mock_home_tab_deps["slack_client"]
 
         # Mock Slack client api_call to return proper response
         self.slack_client.api_call = AsyncMock(return_value={"ok": True})
@@ -56,7 +52,7 @@ class TestHomeTabHandler:
         # Properly mock the async method
         self.feedback_report_handler.open_feedback_report_modal = AsyncMock(return_value=True)
 
-        self.command_tracking_ops = mock_home_tab_deps['command_tracking']
+        self.command_tracking_ops = mock_home_tab_deps["command_tracking"]
         # Mock the methods that HomeTabHandler uses
         self.command_tracking_ops.get_user_command_stats = AsyncMock(return_value=None)
         self.command_tracking_ops.get_team_command_stats = AsyncMock(return_value=None)
@@ -113,9 +109,7 @@ class TestHomeTabHandler:
             "detail_level": "technical_details",
             "time_window": "past_24_hours",
         }
-        normalized_defaults_mock = {
-            "detail_level": "balanced_normalized"
-        }  # Example mock
+        normalized_defaults_mock = {"detail_level": "balanced_normalized"}  # Example mock
 
         self.user_store.get_user.return_value = None  # Simulate no data for user
 
@@ -129,9 +123,7 @@ class TestHomeTabHandler:
 
             self.slack_user_ops.get_user_names.assert_called_once_with([user_id])
             self.user_store.get_user.assert_called_once_with(user_id)
-            mock_normalize.assert_called_once_with(
-                default_raw_prefs
-            )  # Should normalize defaults
+            mock_normalize.assert_called_once_with(default_raw_prefs)  # Should normalize defaults
             assert actual_raw_prefs == default_raw_prefs
             assert actual_normalized_prefs == normalized_defaults_mock
             assert actual_first_name == "there"  # Default name
@@ -145,9 +137,7 @@ class TestHomeTabHandler:
             "detail_level": "technical_details",
             "time_window": "past_24_hours",
         }
-        normalized_defaults_mock = {
-            "detail_level": "balanced_normalized"
-        }  # Example mock
+        normalized_defaults_mock = {"detail_level": "balanced_normalized"}  # Example mock
 
         self.user_store.get_user.side_effect = Exception("DB error")
 
@@ -221,7 +211,9 @@ class TestHomeTabHandler:
             new=AsyncMock(return_value=True),
         ):
             # Mock home tab rendering to prevent production calls
-            with patch.object(self.handler, 'handle_app_home_opened', new=AsyncMock(return_value=True)):
+            with patch.object(
+                self.handler, "handle_app_home_opened", new=AsyncMock(return_value=True)
+            ):
                 result = await self.handler.handle_block_actions(payload)
                 assert result is True
 
@@ -277,9 +269,7 @@ class TestHomeTabHandler:
                         # Verify _publish_home_tab was called with the new preferences
                         self.handler._publish_home_tab.assert_called_once()
                         call_args = self.handler._publish_home_tab.call_args
-                        assert (
-                            call_args[0][0] == user_id
-                        )  # First positional arg is user_id
+                        assert call_args[0][0] == user_id  # First positional arg is user_id
                         assert call_args[0][1] == {
                             "product_focus": ["campaign"],
                             "detail_level": "high_level",
@@ -340,9 +330,7 @@ class TestHomeTabHandler:
         result = await self.handler.handle_block_actions(payload)
 
         # Assert the modal was opened with the correct trigger ID
-        self.feedback_report_handler.open_feedback_report_modal.assert_called_once_with(
-            "TID123"
-        )
+        self.feedback_report_handler.open_feedback_report_modal.assert_called_once_with("TID123")
         assert result is True
 
     @pytest.mark.asyncio
@@ -423,9 +411,7 @@ class TestHomeTabHandler:
             "U123": {"status": 30, "query": 20},
             "U456": {"report": 25, "query": 20},
         }
-        handler._command_tracking_ops.get_top_users = AsyncMock(
-            return_value=mock_admin_stats
-        )
+        handler._command_tracking_ops.get_top_users = AsyncMock(return_value=mock_admin_stats)
         handler._command_tracking_ops.get_user_command_breakdown = AsyncMock(
             return_value=mock_command_breakdown
         )
@@ -470,9 +456,7 @@ class TestHomeTabHandler:
         event = {"user": user_id}
 
         # Mock Slack API returning the username
-        handler._slack_user_ops.get_user_names = AsyncMock(
-            return_value={user_id: "gary harrison"}
-        )
+        handler._slack_user_ops.get_user_names = AsyncMock(return_value={user_id: "gary harrison"})
 
         # Mock other dependencies
         handler._get_user_preferences = AsyncMock(

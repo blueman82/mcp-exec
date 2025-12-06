@@ -29,9 +29,7 @@ import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -157,9 +155,7 @@ class DeploymentReadinessValidator:
         total_duration = time.time() - start_time
 
         # Determine overall status
-        critical_failures = [
-            v for v in validations if v.status == ValidationStatus.CRITICAL
-        ]
+        critical_failures = [v for v in validations if v.status == ValidationStatus.CRITICAL]
         failures = [v for v in validations if v.status == ValidationStatus.FAILED]
 
         if critical_failures:
@@ -207,9 +203,7 @@ class DeploymentReadinessValidator:
         results.append(result)
 
         # Pylint analysis
-        result = await self._run_validation(
-            "Pylint Analysis", self._check_pylint, critical=False
-        )
+        result = await self._run_validation("Pylint Analysis", self._check_pylint, critical=False)
         results.append(result)
 
         return results
@@ -325,15 +319,11 @@ class DeploymentReadinessValidator:
         results.append(result)
 
         # ECR access
-        result = await self._run_validation(
-            "ECR Access", self._check_ecr_access, critical=True
-        )
+        result = await self._run_validation("ECR Access", self._check_ecr_access, critical=True)
         results.append(result)
 
         # SQS access
-        result = await self._run_validation(
-            "SQS Access", self._check_sqs_access, critical=False
-        )
+        result = await self._run_validation("SQS Access", self._check_sqs_access, critical=False)
         results.append(result)
 
         return results
@@ -415,9 +405,7 @@ class DeploymentReadinessValidator:
 
             return ValidationResult(
                 name=name,
-                status=(
-                    ValidationStatus.CRITICAL if critical else ValidationStatus.FAILED
-                ),
+                status=(ValidationStatus.CRITICAL if critical else ValidationStatus.FAILED),
                 message=f"Validation failed with exception: {str(e)}",
                 details={},
                 duration=duration,
@@ -654,16 +642,12 @@ class DeploymentReadinessValidator:
             services_available = {}
 
             try:
-                services_available["dynamodb"] = (
-                    container.get("dynamodb_client") is not None
-                )
+                services_available["dynamodb"] = container.get("dynamodb_client") is not None
             except Exception:
                 services_available["dynamodb"] = False
 
             try:
-                services_available["secrets"] = (
-                    container.get("secrets_client") is not None
-                )
+                services_available["secrets"] = container.get("secrets_client") is not None
             except Exception:
                 services_available["secrets"] = False
 
@@ -745,9 +729,7 @@ class DeploymentReadinessValidator:
         """Check Docker environment"""
         try:
             # Check if Docker is available
-            result = subprocess.run(
-                ["docker", "--version"], capture_output=True, text=True
-            )
+            result = subprocess.run(["docker", "--version"], capture_output=True, text=True)
 
             if result.returncode == 0:
                 return (
@@ -801,9 +783,7 @@ class DeploymentReadinessValidator:
                     "error": str(e),
                 }
 
-        accessible_servers = [
-            name for name, info in connectivity.items() if info["accessible"]
-        ]
+        accessible_servers = [name for name, info in connectivity.items() if info["accessible"]]
 
         if len(accessible_servers) == len(self.production_servers):
             return True, "All production servers accessible", connectivity
@@ -894,9 +874,7 @@ class DeploymentReadinessValidator:
     async def _check_aws_credentials(self) -> Tuple[bool, str, Dict]:
         """Check AWS credentials"""
         try:
-            session = boto3.Session(
-                profile_name=self.aws_profile, region_name=self.aws_region
-            )
+            session = boto3.Session(profile_name=self.aws_profile, region_name=self.aws_region)
             sts = session.client("sts")
 
             identity = sts.get_caller_identity()
@@ -926,9 +904,7 @@ class DeploymentReadinessValidator:
     async def _check_dynamodb_access(self) -> Tuple[bool, str, Dict]:
         """Check DynamoDB access"""
         try:
-            session = boto3.Session(
-                profile_name=self.aws_profile, region_name=self.aws_region
-            )
+            session = boto3.Session(profile_name=self.aws_profile, region_name=self.aws_region)
             dynamodb = session.client("dynamodb")
 
             table_name = "ketchup_channel_information"
@@ -954,9 +930,7 @@ class DeploymentReadinessValidator:
     async def _check_secrets_manager(self) -> Tuple[bool, str, Dict]:
         """Check Secrets Manager access"""
         try:
-            session = boto3.Session(
-                profile_name=self.aws_profile, region_name=self.aws_region
-            )
+            session = boto3.Session(profile_name=self.aws_profile, region_name=self.aws_region)
             secrets = session.client("secretsmanager")
 
             secret_name = "Ketchup_Token_Secrets"
@@ -981,9 +955,7 @@ class DeploymentReadinessValidator:
     async def _check_ecr_access(self) -> Tuple[bool, str, Dict]:
         """Check ECR access"""
         try:
-            session = boto3.Session(
-                profile_name=self.aws_profile, region_name=self.aws_region
-            )
+            session = boto3.Session(profile_name=self.aws_profile, region_name=self.aws_region)
             ecr = session.client("ecr")
 
             repositories = ecr.describe_repositories()["repositories"]
@@ -1011,9 +983,7 @@ class DeploymentReadinessValidator:
     async def _check_sqs_access(self) -> Tuple[bool, str, Dict]:
         """Check SQS access"""
         try:
-            session = boto3.Session(
-                profile_name=self.aws_profile, region_name=self.aws_region
-            )
+            session = boto3.Session(profile_name=self.aws_profile, region_name=self.aws_region)
             sqs = session.client("sqs")
 
             queues = sqs.list_queues(QueueNamePrefix="ketchup")
@@ -1109,33 +1079,33 @@ class DeploymentReadinessValidator:
 
         try:
             timeout = aiohttp.ClientTimeout(total=10)
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.get(
-                    f"http://{alb_dns}{health_check_path}"
-                ) as response:
-                    status = response.status
-                    text = await response.text()
+            async with (
+                aiohttp.ClientSession(timeout=timeout) as session,
+                session.get(f"http://{alb_dns}{health_check_path}") as response,
+            ):
+                status = response.status
+                text = await response.text()
 
-                    if status == 200:
-                        return (
-                            True,
-                            f"Health endpoint responding: {status}",
-                            {
-                                "url": f"http://{alb_dns}{health_check_path}",
-                                "status": status,
-                                "response": text[:200],  # First 200 chars
-                            },
-                        )
-                    else:
-                        return (
-                            False,
-                            f"Health endpoint error: {status}",
-                            {
-                                "url": f"http://{alb_dns}{health_check_path}",
-                                "status": status,
-                                "response": text[:200],
-                            },
-                        )
+                if status == 200:
+                    return (
+                        True,
+                        f"Health endpoint responding: {status}",
+                        {
+                            "url": f"http://{alb_dns}{health_check_path}",
+                            "status": status,
+                            "response": text[:200],  # First 200 chars
+                        },
+                    )
+                else:
+                    return (
+                        False,
+                        f"Health endpoint error: {status}",
+                        {
+                            "url": f"http://{alb_dns}{health_check_path}",
+                            "status": status,
+                            "response": text[:200],
+                        },
+                    )
         except Exception as e:
             return (
                 False,
@@ -1156,9 +1126,7 @@ class DeploymentReadinessValidator:
                 "matches": current_value == expected_value,
             }
 
-        mismatched = [
-            flag for flag, info in flags_status.items() if not info["matches"]
-        ]
+        mismatched = [flag for flag, info in flags_status.items() if not info["matches"]]
 
         if not mismatched:
             return True, "All feature flags properly configured", flags_status
@@ -1264,9 +1232,7 @@ class DeploymentReadinessValidator:
             lines.append("All validation checks passed. Deployment can proceed safely.")
         elif report.overall_status == ValidationStatus.WARNING:
             lines.append("⚠️  READY WITH CONDITIONS")
-            lines.append(
-                "Some warnings detected. Review warnings and proceed with caution."
-            )
+            lines.append("Some warnings detected. Review warnings and proceed with caution.")
             lines.append("Consider addressing warnings in next release cycle.")
         elif report.overall_status == ValidationStatus.FAILED:
             lines.append("❌ NOT READY FOR DEPLOYMENT")
@@ -1275,9 +1241,7 @@ class DeploymentReadinessValidator:
             )
         else:  # CRITICAL
             lines.append("🚨 CRITICAL ISSUES - DEPLOYMENT BLOCKED")
-            lines.append(
-                "Critical infrastructure or code quality issues prevent deployment."
-            )
+            lines.append("Critical infrastructure or code quality issues prevent deployment.")
             lines.append("Address all critical issues immediately.")
 
         lines.append("")
@@ -1285,9 +1249,7 @@ class DeploymentReadinessValidator:
 
         return "\n".join(lines)
 
-    def save_report(
-        self, report: DeploymentReadinessReport, filename: Optional[str] = None
-    ):
+    def save_report(self, report: DeploymentReadinessReport, filename: Optional[str] = None):
         """Save deployment readiness report to file"""
         if not filename:
             timestamp = report.timestamp.strftime("%Y%m%d_%H%M%S")
@@ -1315,9 +1277,7 @@ class RollbackManager:
         self.project_root = validator.project_root
         self.production_servers = validator.production_servers
 
-    async def validate_rollback_readiness(
-        self, target_version: str
-    ) -> DeploymentReadinessReport:
+    async def validate_rollback_readiness(self, target_version: str) -> DeploymentReadinessReport:
         """Validate that rollback to target version is safe"""
         logger.info(f"Validating rollback readiness to version {target_version}")
 
@@ -1352,9 +1312,7 @@ class RollbackManager:
         total_duration = time.time() - start_time
 
         # Determine overall status
-        critical_failures = [
-            v for v in validations if v.status == ValidationStatus.CRITICAL
-        ]
+        critical_failures = [v for v in validations if v.status == ValidationStatus.CRITICAL]
 
         if critical_failures:
             overall_status = ValidationStatus.CRITICAL
@@ -1396,9 +1354,7 @@ class RollbackManager:
                     else:
                         raise
 
-            available_services = [
-                svc for svc, available in version_status.items() if available
-            ]
+            available_services = [svc for svc, available in version_status.items() if available]
 
             if len(available_services) == len(self.validator.services):
                 return (
@@ -1462,20 +1418,14 @@ async def main():
     """Main entry point for deployment readiness validation"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Deployment Readiness Validation System"
-    )
-    parser.add_argument(
-        "--validate-all", action="store_true", help="Run comprehensive validation"
-    )
+    parser = argparse.ArgumentParser(description="Deployment Readiness Validation System")
+    parser.add_argument("--validate-all", action="store_true", help="Run comprehensive validation")
     parser.add_argument(
         "--rollback-check",
         metavar="VERSION",
         help="Check rollback readiness for version",
     )
-    parser.add_argument(
-        "--rollback", metavar="VERSION", help="Execute rollback to version"
-    )
+    parser.add_argument("--rollback", metavar="VERSION", help="Execute rollback to version")
     parser.add_argument(
         "--production-simulation",
         action="store_true",

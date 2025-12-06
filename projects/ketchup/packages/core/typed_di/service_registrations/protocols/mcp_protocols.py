@@ -7,7 +7,6 @@ client operations, configuration, and rate limiting.
 
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
-
 __all__ = [
     "MCPClientProtocol",
     "MCPAsyncClientProtocol",
@@ -74,9 +73,7 @@ class MCPAsyncClientProtocol(Protocol):
         """Search JIRA issues using JQL."""
         ...
 
-    async def get_issues_batch(
-        self, issue_keys: List[str]
-    ) -> Dict[str, Optional[Dict[str, Any]]]:
+    async def get_issues_batch(self, issue_keys: List[str]) -> Dict[str, Optional[Dict[str, Any]]]:
         """Get multiple JIRA issues in a batch."""
         ...
 

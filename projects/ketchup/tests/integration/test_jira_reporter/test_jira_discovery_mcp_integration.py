@@ -12,8 +12,7 @@ import pytest
 
 from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
 from packages.integrations.ims_token_manager import IMSTokenManager
-from packages.integrations.mcp_async_client import MCPAsyncClient
-from packages.integrations.mcp_async_client import MCPConfig
+from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
 
 
 @pytest.mark.asyncio
@@ -36,9 +35,7 @@ class TestJiraDiscoveryMCPIntegration:
         client = MCPAsyncClient(mcp_config=config)
 
         # Mock the session establishment
-        with patch.object(
-            client, "_establish_session", new_callable=AsyncMock
-        ) as mock_establish:
+        with patch.object(client, "_establish_session", new_callable=AsyncMock) as mock_establish:
             mock_establish.return_value = "test-session-id"
             yield client
 
@@ -47,9 +44,7 @@ class TestJiraDiscoveryMCPIntegration:
         """Create JiraTicketDiscovery with real MCP client."""
         return JiraTicketDiscovery(mcp_client=mcp_client)
 
-    async def test_discover_csopm_ticket_integration(
-        self, discovery_service, mcp_client
-    ):
+    async def test_discover_csopm_ticket_integration(self, discovery_service, mcp_client):
         """Test CSOPM ticket discovery with mocked MCP responses."""
         # Arrange
         channel_name = "cso_202506160038_adobe_campaign_78155"
@@ -83,9 +78,7 @@ class TestJiraDiscoveryMCPIntegration:
             },
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -93,9 +86,7 @@ class TestJiraDiscoveryMCPIntegration:
             }
 
             # Act
-            result = await discovery_service.discover_csopm_ticket(
-                channel_name, channel_metadata
-            )
+            result = await discovery_service.discover_csopm_ticket(channel_name, channel_metadata)
 
             # Assert
             assert result == "CSOPM-12345"
@@ -114,9 +105,7 @@ class TestJiraDiscoveryMCPIntegration:
             assert 'project = "CSO Problem Management"' in jql
             assert "78155/situationroom" in jql
 
-    async def test_search_with_no_results_integration(
-        self, discovery_service, mcp_client
-    ):
+    async def test_search_with_no_results_integration(self, discovery_service, mcp_client):
         """Test search when no JIRA tickets are found."""
         # Arrange
         exigence_url = "https://adobe.app.exigence.io/secure/index.html#/events/99999/situationroom"
@@ -125,14 +114,10 @@ class TestJiraDiscoveryMCPIntegration:
         mock_response = {
             "jsonrpc": "2.0",
             "id": 1,
-            "result": {
-                "content": [{"type": "text", "text": json.dumps({"issues": []})}]
-            },
+            "result": {"content": [{"type": "text", "text": json.dumps({"issues": []})}]},
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -147,9 +132,7 @@ class TestJiraDiscoveryMCPIntegration:
             # Should be called twice (CSOPM search + extended search)
             assert mock_request.call_count == 2
 
-    async def test_mcp_authentication_error_handling(
-        self, discovery_service, mcp_client
-    ):
+    async def test_mcp_authentication_error_handling(self, discovery_service, mcp_client):
         """Test handling of MCP authentication errors."""
         # Arrange
         channel_name = "cso_202506160038_adobe_campaign_78155"
@@ -162,9 +145,7 @@ class TestJiraDiscoveryMCPIntegration:
             "error": {"code": -32603, "message": "Authentication failed"},
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 401,
                 "body": json.dumps(mock_error_response),
@@ -172,16 +153,12 @@ class TestJiraDiscoveryMCPIntegration:
             }
 
             # Act
-            result = await discovery_service.discover_csopm_ticket(
-                channel_name, channel_metadata
-            )
+            result = await discovery_service.discover_csopm_ticket(channel_name, channel_metadata)
 
             # Assert
             assert result is None  # Should handle error gracefully
 
-    async def test_extended_search_with_customer_filter(
-        self, discovery_service, mcp_client
-    ):
+    async def test_extended_search_with_customer_filter(self, discovery_service, mcp_client):
         """Test extended search includes customer name in query."""
         # Arrange
         exigence_url = "https://adobe.app.exigence.io/secure/index.html#/events/78155/situationroom"
@@ -193,9 +170,7 @@ class TestJiraDiscoveryMCPIntegration:
             {
                 "jsonrpc": "2.0",
                 "id": 1,
-                "result": {
-                    "content": [{"type": "text", "text": json.dumps({"issues": []})}]
-                },
+                "result": {"content": [{"type": "text", "text": json.dumps({"issues": []})}]},
             },
             # Extended search - with results
             {
@@ -221,12 +196,9 @@ class TestJiraDiscoveryMCPIntegration:
             },
         ]
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.side_effect = [
-                {"status": 200, "body": json.dumps(resp), "headers": {}}
-                for resp in responses
+                {"status": 200, "body": json.dumps(resp), "headers": {}} for resp in responses
             ]
 
             # Act
@@ -274,9 +246,7 @@ class TestJiraDiscoveryMCPIntegration:
             },
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -328,9 +298,7 @@ class TestJiraDiscoveryMCPIntegration:
             },
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -338,9 +306,7 @@ class TestJiraDiscoveryMCPIntegration:
             }
 
             # Act
-            result = await discovery_service.discover_csopm_ticket(
-                channel_name, channel_metadata
-            )
+            result = await discovery_service.discover_csopm_ticket(channel_name, channel_metadata)
 
             # Assert
             assert result == "CSOPM-61627"

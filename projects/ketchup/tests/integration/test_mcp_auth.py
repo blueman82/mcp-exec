@@ -14,9 +14,7 @@ from unittest.mock import patch
 import pytest
 
 # Add project root to path
-project_root = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
 from packages.core.logging import setup_logger
@@ -89,24 +87,21 @@ async def run_mcp_authentication_test():
             return False
 
         # Step 5: Verify token is available via token manager
-        print("\n🔄 Step 5: Verifying fresh token is available via token "
-              "manager...")
+        print("\n🔄 Step 5: Verifying fresh token is available via token " "manager...")
         try:
             # The token manager may not have it cached if it was already valid
             # Let's verify by getting the token again - should return quickly
             # without refresh
             verify_token = await ims_manager.get_valid_token()
             if verify_token:
-                print(f"✅ Token manager returns valid token: "
-                      f"{verify_token[:20]}...")
+                print(f"✅ Token manager returns valid token: " f"{verify_token[:20]}...")
                 print("✅ Token manager is working correctly")
 
                 # Check cache (may or may not be populated depending on if
                 # refresh was needed)
                 cached_token = ims_manager.get_cached_token()
                 if cached_token:
-                    print(f"ℹ️  Token is also cached in memory: "
-                          f"{cached_token[:20]}...")
+                    print(f"ℹ️  Token is also cached in memory: " f"{cached_token[:20]}...")
                 else:
                     print("ℹ️  Token not cached (was already valid in AWS)")
             else:
@@ -176,9 +171,7 @@ async def run_mcp_authentication_test():
             else:
                 print("ℹ️  Skipping JIRA search test since MCP server is not running")
                 print("   To test JIRA integration, run: docker-compose up -d mcp-jira")
-                print(
-                    "   Then re-run this test to verify end-to-end JIRA authentication"
-                )
+                print("   Then re-run this test to verify end-to-end JIRA authentication")
         except Exception as e:
             print(f"⚠️  JIRA search test failed: {e}")
             print("   This may indicate authentication or connectivity issues")
@@ -254,35 +247,37 @@ def main():
 async def test_mcp_authentication():
     """Test MCP authentication flow for pytest."""
     # Mock AWS credentials and services
-    with patch.dict(os.environ, {
-        "AWS_PROFILE": "test_profile",
-        "AWS_DEFAULT_REGION": "eu-west-1"
-    }):
+    with patch.dict(os.environ, {"AWS_PROFILE": "test_profile", "AWS_DEFAULT_REGION": "eu-west-1"}):
         # Mock the secrets manager to return test data
         mock_secrets = {
             "IPAAS_API_KEY": "test-api-key",
             "IPAAS_USERNAME": "test-username",
             "IPAAS_PASSWORD": "test-password",
-            "JIRA_IMS_TOKEN": "test-ims-token-12345"
+            "JIRA_IMS_TOKEN": "test-ims-token-12345",
         }
 
         # Mock AWS SecretManager calls
-        with patch('packages.secrets.manager.SecretsManager.get_app_secrets') \
-                as mock_get_secrets:
+        with patch("packages.secrets.manager.SecretsManager.get_app_secrets") as mock_get_secrets:
             mock_get_secrets.return_value = mock_secrets
 
             # Mock IMS token manager
-            with patch('packages.integrations.ims_token_manager.'
-                      'IMSTokenManager.get_valid_token') as mock_get_token:
+            with patch(
+                "packages.integrations.ims_token_manager." "IMSTokenManager.get_valid_token"
+            ) as mock_get_token:
                 mock_get_token.return_value = "test-ims-token-12345"
 
                 # Mock MCP client health check and auth tests
-                with patch('packages.integrations.mcp_client.'
-                          'MCPClient.health_check') as mock_health, \
-                     patch('packages.integrations.mcp_client.'
-                          'MCPClient.test_jira_auth') as mock_auth, \
-                     patch('packages.integrations.mcp_client.'
-                          'MCPClient.search_issues') as mock_search:
+                with (
+                    patch(
+                        "packages.integrations.mcp_client." "MCPClient.health_check"
+                    ) as mock_health,
+                    patch(
+                        "packages.integrations.mcp_client." "MCPClient.test_jira_auth"
+                    ) as mock_auth,
+                    patch(
+                        "packages.integrations.mcp_client." "MCPClient.search_issues"
+                    ) as mock_search,
+                ):
 
                     # Simulate MCP server not running
                     mock_health.return_value = False

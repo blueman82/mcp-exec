@@ -145,9 +145,7 @@ class TestSlackStatusHandler:
             )
 
         self.user_store.get_user.assert_awaited_once_with(user_id)
-        mock_normalize_prefs.assert_called_once_with(
-            COMMON_MOCK_CONFIG["default_prefs"]
-        )
+        mock_normalize_prefs.assert_called_once_with(COMMON_MOCK_CONFIG["default_prefs"])
         self.openai_handler.call_openai_endpoint.assert_called_once()
 
         # Assert that status message was sent correctly via the block_kit_builder
@@ -293,7 +291,9 @@ class TestSlackStatusHandler:
 
         # Simulate AI response that needs JIRA correction
         ai_response_needs_correction = "Status: <jira_ADOBE-123> is in progress."
-        corrected_response = "Status: [ADOBE-123](https://jira.corp.adobe.com/browse/ADOBE-123) is in progress."
+        corrected_response = (
+            "Status: [ADOBE-123](https://jira.corp.adobe.com/browse/ADOBE-123) is in progress."
+        )
 
         self.channel_info_ops.get_channel_details.return_value = (
             channel_name,
@@ -306,13 +306,14 @@ class TestSlackStatusHandler:
             "choices": [{"message": {"content": ai_response_needs_correction}}]
         }
 
-        with patch(
-            PATCH_PATH_NORMALIZE_PREFS, return_value=mock_normalized_prefs
-        ), patch.object(
-            self.handler,
-            "_apply_corrections_to_response",
-            AsyncMock(return_value=corrected_response),
-        ) as mock_apply_corrections:
+        with (
+            patch(PATCH_PATH_NORMALIZE_PREFS, return_value=mock_normalized_prefs),
+            patch.object(
+                self.handler,
+                "_apply_corrections_to_response",
+                AsyncMock(return_value=corrected_response),
+            ) as mock_apply_corrections,
+        ):
 
             # The decorator returns the result directly, not as a tuple
             result = await self.handler.process_status_request(
@@ -370,9 +371,7 @@ class TestSlackStatusHandler:
     @pytest.mark.asyncio
     async def test_process_status_request_channel_not_found(self) -> None:
         """Test status request when channel details cannot be found."""
-        self.channel_info_ops.get_channel_details.return_value = (
-            None  # Simulate channel not found
-        )
+        self.channel_info_ops.get_channel_details.return_value = None  # Simulate channel not found
 
         result = await self.handler.process_status_request(
             command_verified=COMMON_MOCK_CONFIG["command_verified"],
@@ -444,9 +443,7 @@ class TestSlackStatusHandler:
 
         with patch(PATCH_PATH_NORMALIZE_PREFS) as mock_normalize_prefs:
             # Set a specific return value for the patched normalize_user_preferences
-            mock_normalize_prefs.return_value = COMMON_MOCK_CONFIG[
-                "normalized_default_prefs"
-            ]
+            mock_normalize_prefs.return_value = COMMON_MOCK_CONFIG["normalized_default_prefs"]
 
             # The decorator returns the result directly, not as a tuple
             result = await self.handler.process_status_request(

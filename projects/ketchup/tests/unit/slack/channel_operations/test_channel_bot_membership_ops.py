@@ -115,9 +115,7 @@ async def test_check_bot_channel_membership_not_member(
     """Test check_bot_channel_membership returns False if bot is not member."""
     monkeypatch.setattr(ops, "_init_slack_token", AsyncMock())
     mock_response = MagicMock()
-    mock_response.json = AsyncMock(
-        return_value={"ok": True, "channel": {"is_member": False}}
-    )
+    mock_response.json = AsyncMock(return_value={"ok": True, "channel": {"is_member": False}})
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=mock_response))
     result = await ops.check_bot_channel_membership("C1")
     assert result is False
@@ -146,9 +144,7 @@ async def test_check_bot_channel_membership_exception(
 ) -> None:
     """Test check_bot_channel_membership returns False and logs on exception."""
     monkeypatch.setattr(ops, "_init_slack_token", AsyncMock())
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
     with patch(
         "packages.slack.channel_operations.channel_bot_membership_ops.logger"
     ) as mock_logger:

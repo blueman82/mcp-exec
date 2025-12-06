@@ -73,7 +73,10 @@ def _register_message_integration_service(manager: "ServiceRegistrationManager")
     @runtime_checkable
     class MessageIntegrationServiceProtocol(Protocol):
         """Protocol for cross-component message coordination."""
-        async def coordinate_message_posting(self, channel_id: str, message: str, components: list) -> dict: ...
+
+        async def coordinate_message_posting(
+            self, channel_id: str, message: str, components: list
+        ) -> dict: ...
         async def aggregate_message_responses(self, message_id: str) -> dict: ...
         async def sync_message_state(self, message_id: str, components: list) -> bool: ...
         async def handle_message_workflow(self, workflow_id: str, message_data: dict) -> dict: ...
@@ -91,15 +94,21 @@ def _register_message_integration_service(manager: "ServiceRegistrationManager")
                 self.slack_posting = slack_posting
                 self.db = dynamodb_store
 
-            async def coordinate_message_posting(self, channel_id: str, message: str, components: list) -> dict:
+            async def coordinate_message_posting(
+                self, channel_id: str, message: str, components: list
+            ) -> dict:
                 """Coordinate message posting across multiple components."""
-                logger.debug(f"Coordinating message posting to {channel_id} across {len(components)} components")
+                logger.debug(
+                    f"Coordinating message posting to {channel_id} across {len(components)} components"
+                )
                 results = []
                 for component in components:
                     try:
                         # Coordinate with each component for message posting
                         result = await self._post_via_component(component, channel_id, message)
-                        results.append({"component": component, "status": "success", "result": result})
+                        results.append(
+                            {"component": component, "status": "success", "result": result}
+                        )
                     except Exception as e:
                         logger.error(f"Failed to post message via component {component}: {e}")
                         results.append({"component": component, "status": "error", "error": str(e)})
@@ -113,7 +122,9 @@ def _register_message_integration_service(manager: "ServiceRegistrationManager")
 
             async def sync_message_state(self, message_id: str, components: list) -> bool:
                 """Synchronize message state across components."""
-                logger.debug(f"Syncing message state {message_id} across {len(components)} components")
+                logger.debug(
+                    f"Syncing message state {message_id} across {len(components)} components"
+                )
                 # Sync state across components
                 return True
 
@@ -123,7 +134,9 @@ def _register_message_integration_service(manager: "ServiceRegistrationManager")
                 # Process workflow across components
                 return {"workflow_id": workflow_id, "status": "processed"}
 
-            async def _post_via_component(self, component: str, channel_id: str, message: str) -> dict:
+            async def _post_via_component(
+                self, component: str, channel_id: str, message: str
+            ) -> dict:
                 """Post message via specific component."""
                 # Component-specific posting logic
                 return {"posted": True, "component": component}
@@ -145,9 +158,14 @@ def _register_notification_integration_service(manager: "ServiceRegistrationMana
     @runtime_checkable
     class NotificationIntegrationServiceProtocol(Protocol):
         """Protocol for cross-component notification coordination."""
-        async def coordinate_notifications(self, notification_type: str, data: dict, targets: list) -> dict: ...
+
+        async def coordinate_notifications(
+            self, notification_type: str, data: dict, targets: list
+        ) -> dict: ...
         async def aggregate_notification_status(self, notification_id: str) -> dict: ...
-        async def manage_notification_preferences(self, user_id: str, preferences: dict) -> bool: ...
+        async def manage_notification_preferences(
+            self, user_id: str, preferences: dict
+        ) -> bool: ...
         async def handle_notification_delivery(self, notification_id: str) -> dict: ...
 
     async def create_notification_integration_service(resolver) -> object:
@@ -163,9 +181,13 @@ def _register_notification_integration_service(manager: "ServiceRegistrationMana
                 self.slack_config = slack_config
                 self.db = dynamodb_store
 
-            async def coordinate_notifications(self, notification_type: str, data: dict, targets: list) -> dict:
+            async def coordinate_notifications(
+                self, notification_type: str, data: dict, targets: list
+            ) -> dict:
                 """Coordinate notifications across multiple components."""
-                logger.debug(f"Coordinating {notification_type} notifications to {len(targets)} targets")
+                logger.debug(
+                    f"Coordinating {notification_type} notifications to {len(targets)} targets"
+                )
                 results = []
                 for target in targets:
                     try:
@@ -181,7 +203,9 @@ def _register_notification_integration_service(manager: "ServiceRegistrationMana
                 logger.debug(f"Aggregating notification status for {notification_id}")
                 return {"notification_id": notification_id, "status": "delivered", "components": []}
 
-            async def manage_notification_preferences(self, user_id: str, preferences: dict) -> bool:
+            async def manage_notification_preferences(
+                self, user_id: str, preferences: dict
+            ) -> bool:
                 """Manage user notification preferences across components."""
                 logger.debug(f"Managing notification preferences for user {user_id}")
                 return True
@@ -191,7 +215,9 @@ def _register_notification_integration_service(manager: "ServiceRegistrationMana
                 logger.debug(f"Handling notification delivery {notification_id}")
                 return {"notification_id": notification_id, "delivered": True}
 
-            async def _send_to_target(self, target: str, notification_type: str, data: dict) -> dict:
+            async def _send_to_target(
+                self, target: str, notification_type: str, data: dict
+            ) -> dict:
                 """Send notification to specific target."""
                 return {"sent": True, "target": target}
 
@@ -212,7 +238,10 @@ def _register_user_integration_service(manager: "ServiceRegistrationManager") ->
     @runtime_checkable
     class UserIntegrationServiceProtocol(Protocol):
         """Protocol for cross-component user operations coordination."""
-        async def coordinate_user_operations(self, user_id: str, operation: str, data: dict) -> dict: ...
+
+        async def coordinate_user_operations(
+            self, user_id: str, operation: str, data: dict
+        ) -> dict: ...
         async def sync_user_data(self, user_id: str, components: list) -> bool: ...
         async def aggregate_user_status(self, user_id: str) -> dict: ...
         async def handle_user_workflow(self, workflow_id: str, user_data: dict) -> dict: ...
@@ -230,7 +259,9 @@ def _register_user_integration_service(manager: "ServiceRegistrationManager") ->
                 self.secrets = secrets_manager
                 self.db = dynamodb_store
 
-            async def coordinate_user_operations(self, user_id: str, operation: str, data: dict) -> dict:
+            async def coordinate_user_operations(
+                self, user_id: str, operation: str, data: dict
+            ) -> dict:
                 """Coordinate user operations across components."""
                 logger.debug(f"Coordinating {operation} operation for user {user_id}")
                 return {"user_id": user_id, "operation": operation, "status": "completed"}
@@ -267,7 +298,10 @@ def _register_channel_integration_service(manager: "ServiceRegistrationManager")
     @runtime_checkable
     class ChannelIntegrationServiceProtocol(Protocol):
         """Protocol for cross-component channel operations coordination."""
-        async def coordinate_channel_operations(self, channel_id: str, operation: str, data: dict) -> dict: ...
+
+        async def coordinate_channel_operations(
+            self, channel_id: str, operation: str, data: dict
+        ) -> dict: ...
         async def sync_channel_state(self, channel_id: str, components: list) -> bool: ...
         async def aggregate_channel_metrics(self, channel_id: str) -> dict: ...
         async def handle_channel_workflow(self, workflow_id: str, channel_data: dict) -> dict: ...
@@ -285,14 +319,18 @@ def _register_channel_integration_service(manager: "ServiceRegistrationManager")
                 self.slack_config = slack_config
                 self.db = dynamodb_store
 
-            async def coordinate_channel_operations(self, channel_id: str, operation: str, data: dict) -> dict:
+            async def coordinate_channel_operations(
+                self, channel_id: str, operation: str, data: dict
+            ) -> dict:
                 """Coordinate channel operations across components."""
                 logger.debug(f"Coordinating {operation} operation for channel {channel_id}")
                 return {"channel_id": channel_id, "operation": operation, "status": "completed"}
 
             async def sync_channel_state(self, channel_id: str, components: list) -> bool:
                 """Synchronize channel state across components."""
-                logger.debug(f"Syncing channel state for {channel_id} across {len(components)} components")
+                logger.debug(
+                    f"Syncing channel state for {channel_id} across {len(components)} components"
+                )
                 return True
 
             async def aggregate_channel_metrics(self, channel_id: str) -> dict:
@@ -322,7 +360,10 @@ def _register_system_integration_service(manager: "ServiceRegistrationManager") 
     @runtime_checkable
     class SystemIntegrationServiceProtocol(Protocol):
         """Protocol for system-wide integration operations coordination."""
-        async def coordinate_system_operations(self, operation: str, data: dict, scope: str) -> dict: ...
+
+        async def coordinate_system_operations(
+            self, operation: str, data: dict, scope: str
+        ) -> dict: ...
         async def aggregate_system_health(self) -> dict: ...
         async def manage_cross_component_dependencies(self, dependency_map: dict) -> bool: ...
         async def handle_system_workflow(self, workflow_id: str, system_data: dict) -> dict: ...
@@ -342,7 +383,9 @@ def _register_system_integration_service(manager: "ServiceRegistrationManager") 
                 self.slack_config = slack_config
                 self.db = dynamodb_store
 
-            async def coordinate_system_operations(self, operation: str, data: dict, scope: str) -> dict:
+            async def coordinate_system_operations(
+                self, operation: str, data: dict, scope: str
+            ) -> dict:
                 """Coordinate system-wide operations across all components."""
                 logger.debug(f"Coordinating system operation {operation} with scope {scope}")
                 return {"operation": operation, "scope": scope, "status": "completed"}
@@ -368,6 +411,10 @@ def _register_system_integration_service(manager: "ServiceRegistrationManager") 
         protocol_type=SystemIntegrationServiceProtocol,
         concrete_type=type("ConcreteType1029", (), {}),
         factory=create_system_integration_service,
-        dependencies=[DependencySpec(SecretsManager), DependencySpec(SlackConfig), DependencySpec(DynamoDBStore)],
+        dependencies=[
+            DependencySpec(SecretsManager),
+            DependencySpec(SlackConfig),
+            DependencySpec(DynamoDBStore),
+        ],
         lifetime="singleton",
     )

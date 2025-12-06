@@ -23,9 +23,7 @@ class StatusUpdateProcessorProtocol(Protocol):
         """Validate status update data."""
         ...
 
-    async def queue_status_update(
-        self, channel_id: str, status_data: Dict[str, Any]
-    ) -> str:
+    async def queue_status_update(self, channel_id: str, status_data: Dict[str, Any]) -> str:
         """Queue a status update for processing."""
         ...
 
@@ -50,9 +48,7 @@ class StatusGeneratorProtocol(Protocol):
         """Generate overall system status information."""
         ...
 
-    async def generate_custom_status(
-        self, criteria: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def generate_custom_status(self, criteria: Dict[str, Any]) -> Dict[str, Any]:
         """Generate status based on custom criteria."""
         ...
 
@@ -65,9 +61,7 @@ class StatusValidationServiceProtocol(Protocol):
         """Validate status data format and structure."""
         ...
 
-    async def validate_status_permissions(
-        self, user_id: str, channel_id: str, action: str
-    ) -> bool:
+    async def validate_status_permissions(self, user_id: str, channel_id: str, action: str) -> bool:
         """Validate user permissions for status operations."""
         ...
 
@@ -90,21 +84,15 @@ class StatusReportingServiceProtocol(Protocol):
         """Generate a status report based on criteria."""
         ...
 
-    async def export_status_data(
-        self, format_type: str, date_range: Dict[str, Any]
-    ) -> str:
+    async def export_status_data(self, format_type: str, date_range: Dict[str, Any]) -> str:
         """Export status data in specified format."""
         ...
 
-    async def schedule_report(
-        self, report_config: Dict[str, Any]
-    ) -> str:
+    async def schedule_report(self, report_config: Dict[str, Any]) -> str:
         """Schedule a recurring status report."""
         ...
 
-    async def get_report_history(
-        self, report_id: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    async def get_report_history(self, report_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get history of status reports."""
         ...
 
@@ -119,9 +107,7 @@ class StatusAnalyticsServiceProtocol(Protocol):
         """Analyze status trends for a channel over time."""
         ...
 
-    async def generate_status_metrics(
-        self, criteria: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def generate_status_metrics(self, criteria: Dict[str, Any]) -> Dict[str, Any]:
         """Generate status metrics based on criteria."""
         ...
 
@@ -131,9 +117,7 @@ class StatusAnalyticsServiceProtocol(Protocol):
         """Compare status performance across different criteria."""
         ...
 
-    async def get_analytics_dashboard_data(
-        self, dashboard_type: str
-    ) -> Dict[str, Any]:
+    async def get_analytics_dashboard_data(self, dashboard_type: str) -> Dict[str, Any]:
         """Get data for status analytics dashboards."""
         ...
 

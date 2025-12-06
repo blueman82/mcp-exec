@@ -44,9 +44,7 @@ async def verify_and_parse_body(
                 # Unexpected type - raise error to be caught below
                 raise TypeError(f"Unsupported body type: {type(body)}")
     except Exception as e:
-        logger.warning(
-            "Unable to extract raw_body_bytes for signature verification: %s", e
-        )
+        logger.warning("Unable to extract raw_body_bytes for signature verification: %s", e)
         return None, None, None
 
     # --- Verify Slack signature using raw bytes ---

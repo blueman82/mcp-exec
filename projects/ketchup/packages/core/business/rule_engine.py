@@ -4,7 +4,8 @@ Rule Engine Service Implementation
 Provides business rule evaluation and management functionality.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)

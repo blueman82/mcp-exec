@@ -27,9 +27,10 @@ async def test_get_secret_async_success() -> None:
     mock_client.get_secret_value = AsyncMock(return_value=fake_secret)
     mock_session = MagicMock()
     mock_session.client.return_value.__aenter__.return_value = mock_client
-    with patch("aioboto3.Session", return_value=mock_session), patch(
-        "packages.secrets.manager.logger"
-    ) as mock_logger:
+    with (
+        patch("aioboto3.Session", return_value=mock_session),
+        patch("packages.secrets.manager.logger") as mock_logger,
+    ):
         result = await mgr.get_secret_async("name")  # type: ignore[no-untyped-call]
         assert result == {"foo": "bar"}
         assert mock_logger.info.called
@@ -43,9 +44,10 @@ async def test_get_secret_async_error() -> None:
     mock_client.get_secret_value = AsyncMock(side_effect=Exception("fail"))
     mock_session = MagicMock()
     mock_session.client.return_value.__aenter__.return_value = mock_client
-    with patch("aioboto3.Session", return_value=mock_session), patch(
-        "packages.secrets.manager.logger"
-    ) as mock_logger:
+    with (
+        patch("aioboto3.Session", return_value=mock_session),
+        patch("packages.secrets.manager.logger") as mock_logger,
+    ):
         with pytest.raises(Exception):
             await mgr.get_secret_async("name")  # type: ignore[no-untyped-call]
         assert mock_logger.error.called
@@ -83,9 +85,7 @@ async def test_get_app_secrets_success(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_get_app_secrets_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test get_app_secrets logs and raises on error."""
     mgr = SecretsManager()  # type: ignore[no-untyped-call]
-    monkeypatch.setattr(
-        mgr, "get_secret_async", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(mgr, "get_secret_async", AsyncMock(side_effect=Exception("fail")))
     with patch("packages.secrets.manager.logger") as mock_logger:
         with pytest.raises(Exception):
             await mgr.get_app_secrets()  # type: ignore[no-untyped-call]
@@ -120,8 +120,6 @@ async def test_specific_secret_methods(
 async def test_specific_secret_methods_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test all specific secret getter methods raise on error."""
     mgr = SecretsManager()  # type: ignore[no-untyped-call]
-    monkeypatch.setattr(
-        mgr, "get_app_secrets", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(mgr, "get_app_secrets", AsyncMock(side_effect=Exception("fail")))
     with pytest.raises(Exception):
         await mgr.get_slack_signing_secret()  # type: ignore[no-untyped-call]

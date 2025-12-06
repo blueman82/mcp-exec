@@ -26,9 +26,7 @@ pytestmark = pytest.mark.unit
 @pytest.mark.asyncio
 async def test_dynamodb_async_client_init_defaults() -> None:
     """Test DynamoDBAsyncClient initializes with default config and concurrency."""
-    with patch(
-        "packages.db.core.dynamodb_async_client.DynamoDBConfig", autospec=True
-    ) as mock_cfg:
+    with patch("packages.db.core.dynamodb_async_client.DynamoDBConfig", autospec=True) as mock_cfg:
         client = DynamoDBAsyncClient()
         assert client.config is mock_cfg.return_value
         assert client._client is None

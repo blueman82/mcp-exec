@@ -19,8 +19,8 @@ from packages.core.typed_di.types import DependencySpec
 # Core infrastructure imports
 try:
     from packages.core.local_metrics import MetricsStorage
-    from packages.secrets.manager import SecretsManager
     from packages.db.dynamodb_store import DynamoDBStore
+    from packages.secrets.manager import SecretsManager
 except ImportError as e:
     logger = setup_logger(__name__)
     logger.warning(f"Core infrastructure import failed: {e}")
@@ -35,9 +35,11 @@ logger = setup_logger(__name__)
 # PROTOCOL DEFINITIONS
 # =============================================================================
 
+
 @runtime_checkable
 class SecurityServiceProtocol(Protocol):
     """Protocol for authentication and authorization."""
+
     async def authenticate_user(self, credentials: Dict[str, Any]) -> Dict[str, Any]: ...
     async def authorize_action(self, user_id: str, action: str, resource: str) -> bool: ...
     async def validate_token(self, token: str) -> Dict[str, Any]: ...
@@ -47,23 +49,34 @@ class SecurityServiceProtocol(Protocol):
 @runtime_checkable
 class AuditServiceProtocol(Protocol):
     """Protocol for security and compliance auditing."""
+
     async def log_event(self, event_type: str, user_id: str, data: Dict[str, Any]) -> bool: ...
-    async def get_audit_trail(self, user_id: str, start_time: str, end_time: str) -> List[Dict[str, Any]]: ...
+    async def get_audit_trail(
+        self, user_id: str, start_time: str, end_time: str
+    ) -> List[Dict[str, Any]]: ...
     async def generate_audit_report(self, criteria: Dict[str, Any]) -> Dict[str, Any]: ...
 
 
 @runtime_checkable
 class PerformanceMonitorProtocol(Protocol):
     """Protocol for system performance tracking."""
-    async def record_metric(self, metric_name: str, value: float, tags: Dict[str, str] = None) -> bool: ...
-    async def get_metrics(self, metric_name: str, start_time: str, end_time: str) -> List[Dict[str, Any]]: ...
+
+    async def record_metric(
+        self, metric_name: str, value: float, tags: Dict[str, str] = None
+    ) -> bool: ...
+    async def get_metrics(
+        self, metric_name: str, start_time: str, end_time: str
+    ) -> List[Dict[str, Any]]: ...
     async def get_system_performance(self) -> Dict[str, Any]: ...
 
 
 @runtime_checkable
 class LoggingServiceProtocol(Protocol):
     """Protocol for centralized logging."""
-    async def log_message(self, level: str, message: str, context: Dict[str, Any] = None) -> bool: ...
+
+    async def log_message(
+        self, level: str, message: str, context: Dict[str, Any] = None
+    ) -> bool: ...
     async def get_logs(self, filters: Dict[str, Any]) -> List[Dict[str, Any]]: ...
     async def configure_logger(self, logger_name: str, config: Dict[str, Any]) -> bool: ...
 
@@ -148,13 +161,15 @@ def register_security_monitoring(manager: "ServiceRegistrationManager") -> None:
                     "event_type": event_type,
                     "user_id": user_id,
                     "data": data,
-                    "timestamp": "now"
+                    "timestamp": "now",
                 }
                 self.audit_log.append(event)
                 logger.debug(f"Logged audit event: {event_type} for user {user_id}")
                 return True
 
-            async def get_audit_trail(self, user_id: str, start_time: str, end_time: str) -> List[Dict[str, Any]]:
+            async def get_audit_trail(
+                self, user_id: str, start_time: str, end_time: str
+            ) -> List[Dict[str, Any]]:
                 """Get audit trail for user within time range."""
                 logger.debug(f"Getting audit trail for {user_id} from {start_time} to {end_time}")
                 return [e for e in self.audit_log if e["user_id"] == user_id]
@@ -187,19 +202,23 @@ def register_security_monitoring(manager: "ServiceRegistrationManager") -> None:
                 self.metrics = metrics_storage
                 self.performance_data = []
 
-            async def record_metric(self, metric_name: str, value: float, tags: Dict[str, str] = None) -> bool:
+            async def record_metric(
+                self, metric_name: str, value: float, tags: Dict[str, str] = None
+            ) -> bool:
                 """Record a performance metric."""
                 metric = {
                     "name": metric_name,
                     "value": value,
                     "tags": tags or {},
-                    "timestamp": "now"
+                    "timestamp": "now",
                 }
                 self.performance_data.append(metric)
                 logger.debug(f"Recorded metric {metric_name}: {value}")
                 return True
 
-            async def get_metrics(self, metric_name: str, start_time: str, end_time: str) -> List[Dict[str, Any]]:
+            async def get_metrics(
+                self, metric_name: str, start_time: str, end_time: str
+            ) -> List[Dict[str, Any]]:
                 """Get metrics within time range."""
                 logger.debug(f"Getting metrics for {metric_name} from {start_time} to {end_time}")
                 return [m for m in self.performance_data if m["name"] == metric_name]
@@ -211,7 +230,7 @@ def register_security_monitoring(manager: "ServiceRegistrationManager") -> None:
                     "memory_usage": 67.8,
                     "disk_usage": 23.1,
                     "network_io": 12.5,
-                    "timestamp": "now"
+                    "timestamp": "now",
                 }
 
         return PerformanceMonitor(metrics_storage)
@@ -236,13 +255,15 @@ def register_security_monitoring(manager: "ServiceRegistrationManager") -> None:
                 self.logs = []
                 self.loggers = {}
 
-            async def log_message(self, level: str, message: str, context: Dict[str, Any] = None) -> bool:
+            async def log_message(
+                self, level: str, message: str, context: Dict[str, Any] = None
+            ) -> bool:
                 """Log a message with level and context."""
                 log_entry = {
                     "level": level,
                     "message": message,
                     "context": context or {},
-                    "timestamp": "now"
+                    "timestamp": "now",
                 }
                 self.logs.append(log_entry)
                 logger.debug(f"Logged {level}: {message}")

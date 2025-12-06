@@ -11,22 +11,20 @@ import aiohttp
 
 # AWS Configuration
 AWS_REGION = os.environ.get("AWS_REGION", "eu-west-1")
-DYNAMODB_TABLE_NAME = os.environ.get(
-    "DYNAMODB_TABLE_NAME", "ketchup_channel_information"
-)
+DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", "ketchup_channel_information")
 AWS_SECRET_NAME = os.environ.get("AWS_SECRET_NAME", "Ketchup_Token_Secrets")
 
 # Azure OpenAI Configuration
 OPENAI_API_VERSION = "2025-01-01-preview"
 DEFAULT_AZURE_OPENAI_ENDPOINT = f"https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version={OPENAI_API_VERSION}"
 # Allow override via environment variable
-AZURE_OPENAI_ENDPOINT = os.environ.get(
-    "AZURE_OPENAI_ENDPOINT", DEFAULT_AZURE_OPENAI_ENDPOINT
-)
+AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", DEFAULT_AZURE_OPENAI_ENDPOINT)
 
 # Azure OpenAI Embeddings Configuration
 EMBEDDINGS_API_VERSION = "2023-05-15"
-AZURE_OPENAI_EMBEDDINGS_ENDPOINT = "https://ketchup-prod1.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings"
+AZURE_OPENAI_EMBEDDINGS_ENDPOINT = (
+    "https://ketchup-prod1.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings"
+)
 AZURE_OPENAI_EMBEDDINGS_ENDPOINT = os.environ.get(
     "AZURE_OPENAI_EMBEDDINGS_ENDPOINT", AZURE_OPENAI_EMBEDDINGS_ENDPOINT
 )
@@ -49,7 +47,9 @@ MAX_RETRIES = 10  # Maximum number of retries for API calls
 BATCH_SIZE = 100  # Batch size for fetching messages
 
 # Feature Flags
-USE_PIPELINE_PROCESSING = os.environ.get("USE_PIPELINE_PROCESSING", "false").lower() == "true"  # Enable pipeline processing for message retrieval
+USE_PIPELINE_PROCESSING = (
+    os.environ.get("USE_PIPELINE_PROCESSING", "false").lower() == "true"
+)  # Enable pipeline processing for message retrieval
 
 # Keep-Alive Connection Tuning
 # Enable optimized keep-alive settings for HTTP connections to reduce overhead
@@ -103,9 +103,7 @@ TEST_CHANNEL = "C094DQY7HLH"
 # Archive/Slack Fallback Batching Constants
 TEXT_BATCH_CHAR_LIMIT = 39000  # Maximum characters per text batch message
 MAX_TEXT_BATCHES = 4  # Maximum number of fallback text batches to send
-MAX_CHANNELS_PER_TEXT_BATCH = (
-    65  # Maximum channels per batch, regardless of character count
-)
+MAX_CHANNELS_PER_TEXT_BATCH = 65  # Maximum channels per batch, regardless of character count
 
 # Access Request Configuration
 ACCESS_REQUEST_CHANNEL = "C090V88CB1N"  # ketchup_access (for admin approvals)

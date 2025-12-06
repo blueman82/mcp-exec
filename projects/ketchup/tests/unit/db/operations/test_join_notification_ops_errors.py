@@ -67,7 +67,7 @@ class TestJoinNotificationOpsErrors:
             ("missing_scope", FailureReason.SLACK_PERMISSION_DENIED.value),
             ("cannot_post_ephemeral", FailureReason.SLACK_PERMISSION_DENIED.value),
             ("restricted_action", FailureReason.SLACK_PERMISSION_DENIED.value),
-        ]
+        ],
     )
     def test_classify_slack_error_known_mappings(
         self, join_ops: JoinNotificationOps, slack_error: str, expected_reason: str
@@ -83,7 +83,7 @@ class TestJoinNotificationOpsErrors:
             "unknown_error",
             "new_slack_error",
             "random_failure",
-            "unexpected_response"
+            "unexpected_response",
         ]
 
         for error in unknown_errors:
@@ -106,11 +106,7 @@ class TestJoinNotificationOpsErrors:
     def test_classify_slack_error_case_sensitivity(self, join_ops: JoinNotificationOps) -> None:
         """Test that error classification is case sensitive."""
         # Test uppercase versions should not match
-        uppercase_errors = [
-            "NOT_IN_CHANNEL",
-            "RATE_LIMITED",
-            "INVALID_AUTH"
-        ]
+        uppercase_errors = ["NOT_IN_CHANNEL", "RATE_LIMITED", "INVALID_AUTH"]
 
         for error in uppercase_errors:
             response = {"ok": False, "error": error}
@@ -155,8 +151,11 @@ class TestJoinNotificationOpsErrors:
 
         # Permission errors
         permission_errors = [
-            "not_authed", "invalid_auth", "missing_scope",
-            "cannot_post_ephemeral", "restricted_action"
+            "not_authed",
+            "invalid_auth",
+            "missing_scope",
+            "cannot_post_ephemeral",
+            "restricted_action",
         ]
         for error in permission_errors:
             assert mappings[error] == FailureReason.SLACK_PERMISSION_DENIED.value
@@ -186,9 +185,15 @@ class TestFailureReasonEnum:
     def test_failure_reason_enum_completeness(self) -> None:
         """Test that all expected failure reasons are defined."""
         expected_reasons = {
-            "slack_rate_limited", "not_in_channel", "permission_denied", "slack_api_error",
-            "ai_generation_failed", "ai_timeout", "network_error", "internal_error",
-            "data_collection_failed"
+            "slack_rate_limited",
+            "not_in_channel",
+            "permission_denied",
+            "slack_api_error",
+            "ai_generation_failed",
+            "ai_timeout",
+            "network_error",
+            "internal_error",
+            "data_collection_failed",
         }
 
         actual_reasons = {reason.value for reason in FailureReason}

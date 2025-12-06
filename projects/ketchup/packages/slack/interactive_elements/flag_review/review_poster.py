@@ -167,9 +167,7 @@ class ReviewPoster:
         # Add message link if available
         if message_ts:
             link = f"https://adobe.enterprise.slack.com/archives/{channel_id}/p{message_ts.replace('.', '')}"
-            blocks[1]["fields"].insert(
-                1, {"type": "mrkdwn", "text": f"*Message:*\n<{link}|View>"}
-            )
+            blocks[1]["fields"].insert(1, {"type": "mrkdwn", "text": f"*Message:*\n<{link}|View>"})
 
         # Add status text if available
         if status_text:
@@ -280,11 +278,7 @@ class ReviewPoster:
                 blocks=blocks,
             )
 
-            if (
-                result.get("ok")
-                and post_to_review_channel
-                and channel_id != REVIEW_CHANNEL_ID
-            ):
+            if result.get("ok") and post_to_review_channel and channel_id != REVIEW_CHANNEL_ID:
                 # Also post to the review channel
                 await self.posting_handler.post_message(
                     channel_id=REVIEW_CHANNEL_ID,
@@ -322,9 +316,7 @@ class ReviewPoster:
             "average_resolution_time": "N/A",
         }
 
-    def create_review_trend_blocks(
-        self, trend_data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def create_review_trend_blocks(self, trend_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Create blocks showing review trends.
 
         Args:

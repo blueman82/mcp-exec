@@ -33,20 +33,10 @@ class TestJIRAExtraction:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Test valid tickets
-        assert (
-            generator._extract_valid_jira_ticket("Working on CPGNREQ-12345")
-            == "CPGNREQ-12345"
-        )
-        assert (
-            generator._extract_valid_jira_ticket("Issue NEO-999 is fixed") == "NEO-999"
-        )
-        assert (
-            generator._extract_valid_jira_ticket("See PLATIR-1 for details")
-            == "PLATIR-1"
-        )
-        assert (
-            generator._extract_valid_jira_ticket("cpgncc-789 lowercase") == "CPGNCC-789"
-        )
+        assert generator._extract_valid_jira_ticket("Working on CPGNREQ-12345") == "CPGNREQ-12345"
+        assert generator._extract_valid_jira_ticket("Issue NEO-999 is fixed") == "NEO-999"
+        assert generator._extract_valid_jira_ticket("See PLATIR-1 for details") == "PLATIR-1"
+        assert generator._extract_valid_jira_ticket("cpgncc-789 lowercase") == "CPGNCC-789"
 
         # Test invalid tickets (not in approved list)
         assert generator._extract_valid_jira_ticket("Working on INVALID-12345") is None
@@ -61,10 +51,7 @@ class TestJIRAExtraction:
         )
 
         # Test multiple tickets - should return first valid one
-        assert (
-            generator._extract_valid_jira_ticket("INVALID-123 and CPGNREQ-456")
-            == "CPGNREQ-456"
-        )
+        assert generator._extract_valid_jira_ticket("INVALID-123 and CPGNREQ-456") == "CPGNREQ-456"
 
     def test_remove_jira_line(self, mock_dependencies):
         """Test removal of JIRA lines from content."""
@@ -72,7 +59,7 @@ class TestJIRAExtraction:
 
         # Test various JIRA line formats
         content = """Overview: Test content
-        
+
 JIRA Ticket: https://adobe.service-now.com/x/adosy/cso_portal/cso/202507030023"""
 
         result = generator._remove_jira_line(content)
@@ -132,10 +119,7 @@ What's been done / What's next:
         result = generator._apply_corrections(content, "test-channel", channel_details)
 
         # Should extract and format NEO-4567
-        assert (
-            "JIRA Ticket: <https://jira.corp.adobe.com/browse/NEO-4567|NEO-4567>"
-            in result
-        )
+        assert "JIRA Ticket: <https://jira.corp.adobe.com/browse/NEO-4567|NEO-4567>" in result
 
     def test_apply_corrections_no_jira(self, mock_dependencies):
         """Test corrections when no JIRA ticket exists."""

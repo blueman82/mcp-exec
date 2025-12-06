@@ -27,13 +27,13 @@ class ProductionReadinessValidator:
             "secrets": ["Ketchup_Token_Secrets"],
             "sqs": ["ketchup-events-queue"],
             "elb": ["ketchup-alb"],
-            "ec2": ["ketchup-prod1", "ketchup-prod2"]
+            "ec2": ["ketchup-prod1", "ketchup-prod2"],
         }
         self.performance_thresholds = {
             "latency_ms": 50,
             "cpu_percent": 1,
             "memory_mb": 512,
-            "disk_usage_percent": 80
+            "disk_usage_percent": 80,
         }
         self.violations: List[CodeQualityViolation] = []
 
@@ -42,24 +42,28 @@ class ProductionReadinessValidator:
         violations = []
 
         # Check AWS profile configuration
-        aws_profile = os.environ.get('AWS_PROFILE')
-        if aws_profile != 'campaign_prod_v7':
-            violations.append(CodeQualityViolation(
-                violation_type="aws_config",
-                file_path="environment",
-                line_number=0,
-                message=f"AWS_PROFILE should be 'campaign_prod_v7', got '{aws_profile}'"
-            ))
+        aws_profile = os.environ.get("AWS_PROFILE")
+        if aws_profile != "campaign_prod_v7":
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="aws_config",
+                    file_path="environment",
+                    line_number=0,
+                    message=f"AWS_PROFILE should be 'campaign_prod_v7', got '{aws_profile}'",
+                )
+            )
 
         # Check AWS region configuration
-        aws_region = os.environ.get('AWS_REGION', os.environ.get('AWS_DEFAULT_REGION'))
+        aws_region = os.environ.get("AWS_REGION", os.environ.get("AWS_DEFAULT_REGION"))
         if aws_region != self.aws_region:
-            violations.append(CodeQualityViolation(
-                violation_type="aws_config",
-                file_path="environment",
-                line_number=0,
-                message=f"AWS_REGION should be '{self.aws_region}', got '{aws_region}'"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="aws_config",
+                    file_path="environment",
+                    line_number=0,
+                    message=f"AWS_REGION should be '{self.aws_region}', got '{aws_region}'",
+                )
+            )
 
         return violations
 
@@ -68,50 +72,61 @@ class ProductionReadinessValidator:
         violations = []
 
         if not os.path.exists(compose_file_path):
-            violations.append(CodeQualityViolation(
-                violation_type="docker_config",
-                file_path=compose_file_path,
-                line_number=0,
-                message="Docker Compose file not found"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="docker_config",
+                    file_path=compose_file_path,
+                    line_number=0,
+                    message="Docker Compose file not found",
+                )
+            )
             return violations
 
         try:
-            with open(compose_file_path, 'r') as f:
+            with open(compose_file_path, "r") as f:
                 content = f.read()
 
             # Check for required environment variables
             required_env_vars = [
-                'AWS_REGION', 'DYNAMODB_TABLE_NAME', 'AWS_SECRET_NAME',
-                'LOG_LEVEL', 'PYTHONPATH'
+                "AWS_REGION",
+                "DYNAMODB_TABLE_NAME",
+                "AWS_SECRET_NAME",
+                "LOG_LEVEL",
+                "PYTHONPATH",
             ]
 
             for env_var in required_env_vars:
                 if env_var not in content:
-                    violations.append(CodeQualityViolation(
+                    violations.append(
+                        CodeQualityViolation(
+                            violation_type="docker_config",
+                            file_path=compose_file_path,
+                            line_number=0,
+                            message=f"Missing required environment variable: {env_var}",
+                        )
+                    )
+
+            # Check for resource limits
+            if "mem_limit" not in content:
+                violations.append(
+                    CodeQualityViolation(
                         violation_type="docker_config",
                         file_path=compose_file_path,
                         line_number=0,
-                        message=f"Missing required environment variable: {env_var}"
-                    ))
+                        message="Missing memory limits in Docker Compose",
+                        severity="warning",
+                    )
+                )
 
-            # Check for resource limits
-            if 'mem_limit' not in content:
-                violations.append(CodeQualityViolation(
+        except Exception as e:
+            violations.append(
+                CodeQualityViolation(
                     violation_type="docker_config",
                     file_path=compose_file_path,
                     line_number=0,
-                    message="Missing memory limits in Docker Compose",
-                    severity="warning"
-                ))
-
-        except Exception as e:
-            violations.append(CodeQualityViolation(
-                violation_type="docker_config",
-                file_path=compose_file_path,
-                line_number=0,
-                message=f"Failed to parse Docker Compose file: {str(e)}"
-            ))
+                    message=f"Failed to parse Docker Compose file: {str(e)}",
+                )
+            )
 
         return violations
 
@@ -120,131 +135,153 @@ class ProductionReadinessValidator:
         violations = []
 
         if not os.path.exists(service_file_path):
-            violations.append(CodeQualityViolation(
-                violation_type="dependency_config",
-                file_path=service_file_path,
-                line_number=0,
-                message="Service configuration file not found"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="dependency_config",
+                    file_path=service_file_path,
+                    line_number=0,
+                    message="Service configuration file not found",
+                )
+            )
             return violations
 
         try:
-            with open(service_file_path, 'r') as f:
+            with open(service_file_path, "r") as f:
                 content = f.read()
 
             # Check for proper error handling in service initialization
-            if 'try:' not in content or 'except' not in content:
-                violations.append(CodeQualityViolation(
-                    violation_type="dependency_config",
-                    file_path=service_file_path,
-                    line_number=0,
-                    message="Service lacks proper error handling for initialization",
-                    severity="warning"
-                ))
+            if "try:" not in content or "except" not in content:
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="dependency_config",
+                        file_path=service_file_path,
+                        line_number=0,
+                        message="Service lacks proper error handling for initialization",
+                        severity="warning",
+                    )
+                )
 
             # Check for health check endpoints
-            health_patterns = ['health', 'ping', 'status', 'ready']
+            health_patterns = ["health", "ping", "status", "ready"]
             has_health_check = any(pattern in content.lower() for pattern in health_patterns)
             if not has_health_check:
-                violations.append(CodeQualityViolation(
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="dependency_config",
+                        file_path=service_file_path,
+                        line_number=0,
+                        message="Service lacks health check endpoint",
+                        severity="warning",
+                    )
+                )
+
+        except Exception as e:
+            violations.append(
+                CodeQualityViolation(
                     violation_type="dependency_config",
                     file_path=service_file_path,
                     line_number=0,
-                    message="Service lacks health check endpoint",
-                    severity="warning"
-                ))
-
-        except Exception as e:
-            violations.append(CodeQualityViolation(
-                violation_type="dependency_config",
-                file_path=service_file_path,
-                line_number=0,
-                message=f"Failed to analyze service file: {str(e)}"
-            ))
+                    message=f"Failed to analyze service file: {str(e)}",
+                )
+            )
 
         return violations
 
-    def validate_performance_requirements(self, test_results_path: str = None) -> List[CodeQualityViolation]:
+    def validate_performance_requirements(
+        self, test_results_path: str = None
+    ) -> List[CodeQualityViolation]:
         """Validate performance requirements and benchmarks."""
         violations = []
 
         # If test results are provided, validate against thresholds
         if test_results_path and os.path.exists(test_results_path):
             try:
-                with open(test_results_path, 'r') as f:
+                with open(test_results_path, "r") as f:
                     results = json.load(f)
 
                 # Check latency requirements
-                if 'latency_ms' in results:
-                    latency = results['latency_ms']
-                    if latency > self.performance_thresholds['latency_ms']:
-                        violations.append(CodeQualityViolation(
-                            violation_type="performance",
-                            file_path=test_results_path,
-                            line_number=0,
-                            message=f"Latency {latency}ms exceeds threshold {self.performance_thresholds['latency_ms']}ms"
-                        ))
+                if "latency_ms" in results:
+                    latency = results["latency_ms"]
+                    if latency > self.performance_thresholds["latency_ms"]:
+                        violations.append(
+                            CodeQualityViolation(
+                                violation_type="performance",
+                                file_path=test_results_path,
+                                line_number=0,
+                                message=f"Latency {latency}ms exceeds threshold {self.performance_thresholds['latency_ms']}ms",
+                            )
+                        )
 
                 # Check CPU usage
-                if 'cpu_percent' in results:
-                    cpu_usage = results['cpu_percent']
-                    if cpu_usage > self.performance_thresholds['cpu_percent']:
-                        violations.append(CodeQualityViolation(
-                            violation_type="performance",
-                            file_path=test_results_path,
-                            line_number=0,
-                            message=f"CPU usage {cpu_usage}% exceeds threshold {self.performance_thresholds['cpu_percent']}%"
-                        ))
+                if "cpu_percent" in results:
+                    cpu_usage = results["cpu_percent"]
+                    if cpu_usage > self.performance_thresholds["cpu_percent"]:
+                        violations.append(
+                            CodeQualityViolation(
+                                violation_type="performance",
+                                file_path=test_results_path,
+                                line_number=0,
+                                message=f"CPU usage {cpu_usage}% exceeds threshold {self.performance_thresholds['cpu_percent']}%",
+                            )
+                        )
 
             except Exception as e:
-                violations.append(CodeQualityViolation(
-                    violation_type="performance",
-                    file_path=test_results_path,
-                    line_number=0,
-                    message=f"Failed to parse performance results: {str(e)}"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="performance",
+                        file_path=test_results_path,
+                        line_number=0,
+                        message=f"Failed to parse performance results: {str(e)}",
+                    )
+                )
         else:
-            violations.append(CodeQualityViolation(
-                violation_type="performance",
-                file_path="performance_tests",
-                line_number=0,
-                message="No performance test results found",
-                severity="warning"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="performance",
+                    file_path="performance_tests",
+                    line_number=0,
+                    message="No performance test results found",
+                    severity="warning",
+                )
+            )
 
         return violations
 
-    def validate_deployment_checklist(self, deployment_dir: str) -> Dict[str, List[CodeQualityViolation]]:
+    def validate_deployment_checklist(
+        self, deployment_dir: str
+    ) -> Dict[str, List[CodeQualityViolation]]:
         """Run comprehensive deployment checklist validation."""
         all_violations = {}
 
         # Validate AWS environment
         aws_violations = self.validate_aws_environment()
         if aws_violations:
-            all_violations['aws_environment'] = aws_violations
+            all_violations["aws_environment"] = aws_violations
 
         # Validate Docker configuration
-        compose_path = os.path.join(deployment_dir, 'docker-compose.yml')
+        compose_path = os.path.join(deployment_dir, "docker-compose.yml")
         docker_violations = self.validate_docker_configuration(compose_path)
         if docker_violations:
-            all_violations['docker_configuration'] = docker_violations
+            all_violations["docker_configuration"] = docker_violations
 
         # Validate service dependencies
         service_files = [
-            'packages/core/typed_di/service_registrations.py',
-            'packages/core/di_container.py'
+            "packages/core/typed_di/service_registrations.py",
+            "packages/core/di_container.py",
         ]
 
         for service_file in service_files:
-            full_path = os.path.join('/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup', service_file)
+            full_path = os.path.join(
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", service_file
+            )
             violations = self.validate_service_dependencies(full_path)
             if violations:
-                all_violations[f'service_dependencies_{service_file}'] = violations
+                all_violations[f"service_dependencies_{service_file}"] = violations
 
         # Validate performance requirements
         perf_violations = self.validate_performance_requirements()
         if perf_violations:
-            all_violations['performance_requirements'] = perf_violations
+            all_violations["performance_requirements"] = perf_violations
 
         return all_violations
 
@@ -257,8 +294,9 @@ class ProductionReadinessValidator:
         report.append("=" * 50)
 
         total_violations = sum(len(v) for v in violations.values())
-        error_count = sum(1 for v_list in violations.values()
-                         for v in v_list if v.severity == "error")
+        error_count = sum(
+            1 for v_list in violations.values() for v in v_list if v.severity == "error"
+        )
         warning_count = total_violations - error_count
 
         report.append(f"🚨 Total Issues: {total_violations}")

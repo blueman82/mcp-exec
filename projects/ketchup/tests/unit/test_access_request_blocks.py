@@ -39,10 +39,7 @@ class TestAccessRequestBlocks:
         section_block = blocks[1]
         assert section_block["type"] == "section"
         assert section_block["text"]["type"] == "mrkdwn"
-        assert (
-            "don't currently have access to Ketchup commands"
-            in section_block["text"]["text"]
-        )
+        assert "don't currently have access to Ketchup commands" in section_block["text"]["text"]
 
         # Check actions block
         actions_block = next(block for block in blocks if block["type"] == "actions")
@@ -332,9 +329,7 @@ class TestAccessRequestBlocks:
                 request_time=datetime.now(timezone.utc).timestamp(),
             ),
             AccessRequestBlocks.build_request_processed_blocks(
-                original_blocks=[
-                    {"type": "section", "text": {"type": "mrkdwn", "text": "Test"}}
-                ],
+                original_blocks=[{"type": "section", "text": {"type": "mrkdwn", "text": "Test"}}],
                 processed_by="admin",
                 decision="approved",
                 decision_time=datetime.now(timezone.utc).timestamp(),
@@ -382,9 +377,7 @@ class TestAccessRequestBlocks:
 
         # Test unauthorized message button
         unauthorized_blocks = AccessRequestBlocks.build_unauthorized_message(user_id)
-        actions_block = next(
-            block for block in unauthorized_blocks if block["type"] == "actions"
-        )
+        actions_block = next(block for block in unauthorized_blocks if block["type"] == "actions")
         button = actions_block["elements"][0]
         assert button["action_id"] == "request_access"
 
@@ -397,9 +390,7 @@ class TestAccessRequestBlocks:
             request_time=request_time,
         )
 
-        actions_block = next(
-            block for block in notification_blocks if block["type"] == "actions"
-        )
+        actions_block = next(block for block in notification_blocks if block["type"] == "actions")
         approve_button = actions_block["elements"][0]
         reject_button = actions_block["elements"][1]
 
@@ -417,9 +408,7 @@ class TestAccessRequestBlocks:
 
         # Test unauthorized message button value
         unauthorized_blocks = AccessRequestBlocks.build_unauthorized_message(user_id)
-        actions_block = next(
-            block for block in unauthorized_blocks if block["type"] == "actions"
-        )
+        actions_block = next(block for block in unauthorized_blocks if block["type"] == "actions")
         button = actions_block["elements"][0]
         assert button["value"] == user_id
 
@@ -432,9 +421,7 @@ class TestAccessRequestBlocks:
             request_time=request_time,
         )
 
-        actions_block = next(
-            block for block in notification_blocks if block["type"] == "actions"
-        )
+        actions_block = next(block for block in notification_blocks if block["type"] == "actions")
         approve_button = actions_block["elements"][0]
         reject_button = actions_block["elements"][1]
 
@@ -464,7 +451,5 @@ class TestAccessRequestBlocks:
             mock_convert.assert_called_once_with(request_time)
 
             # Verify formatted timestamp appears in blocks
-            timestamp_found = any(
-                "12:30:45, 01-Jan-2022" in str(block) for block in blocks
-            )
+            timestamp_found = any("12:30:45, 01-Jan-2022" in str(block) for block in blocks)
             assert timestamp_found

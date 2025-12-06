@@ -56,9 +56,7 @@ class TestAsyncIMSTokenManager:
             time.time() - 100
         )
 
-        mocker.patch.object(
-            manager, "_refresh_token", AsyncMock(return_value="new_token")
-        )
+        mocker.patch.object(manager, "_refresh_token", AsyncMock(return_value="new_token"))
 
         token = await manager.get_valid_token()
 
@@ -73,9 +71,7 @@ class TestAsyncIMSTokenManager:
             time.time() + 120
         )
 
-        mocker.patch.object(
-            manager, "_refresh_token", AsyncMock(return_value="buffer_refresh")
-        )
+        mocker.patch.object(manager, "_refresh_token", AsyncMock(return_value="buffer_refresh"))
 
         token = await manager.get_valid_token()
 

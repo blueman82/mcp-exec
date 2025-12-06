@@ -1,11 +1,12 @@
 """Comprehensive AWS mocking fixtures for testing."""
 
 import json
+from typing import Any, Dict
+from unittest.mock import AsyncMock, MagicMock
+
 import boto3
 import pytest
 from moto import mock_aws
-from unittest.mock import AsyncMock, MagicMock
-from typing import Dict, Any
 
 
 @pytest.fixture
@@ -17,9 +18,7 @@ def mock_aws_services():
         table = dynamodb.create_table(
             TableName="ketchup_channel_information",
             KeySchema=[{"AttributeName": "channel_id", "KeyType": "HASH"}],
-            AttributeDefinitions=[
-                {"AttributeName": "channel_id", "AttributeType": "S"}
-            ],
+            AttributeDefinitions=[{"AttributeName": "channel_id", "AttributeType": "S"}],
             BillingMode="PAY_PER_REQUEST",
         )
 
@@ -186,15 +185,9 @@ def mock_azure_openai_client():
     # Mock chat completion response
     mock_response = MagicMock()
     mock_response.choices = [
-        MagicMock(
-            message=MagicMock(
-                content="This is a test AI response for channel analysis."
-            )
-        )
+        MagicMock(message=MagicMock(content="This is a test AI response for channel analysis."))
     ]
-    mock_response.usage = MagicMock(
-        prompt_tokens=50, completion_tokens=25, total_tokens=75
-    )
+    mock_response.usage = MagicMock(prompt_tokens=50, completion_tokens=25, total_tokens=75)
 
     client.chat.completions.create.return_value = mock_response
 

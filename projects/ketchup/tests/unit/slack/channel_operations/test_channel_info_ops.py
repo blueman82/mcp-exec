@@ -34,12 +34,8 @@ def mock_slack_config() -> MagicMock:
 
 
 @pytest.fixture
-def ops(
-    mock_posting_handler: MagicMock, mock_slack_config: MagicMock
-) -> ChannelInfoOps:
-    return ChannelInfoOps(
-        posting_handler=mock_posting_handler, slack_config=mock_slack_config
-    )
+def ops(mock_posting_handler: MagicMock, mock_slack_config: MagicMock) -> ChannelInfoOps:
+    return ChannelInfoOps(posting_handler=mock_posting_handler, slack_config=mock_slack_config)
 
 
 def _create_safe_response(
@@ -70,13 +66,9 @@ async def test_get_channel_info_from_api_success(
         body={"ok": True, "channel": {"id": "C1", "name": "chan"}},
     )
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=safe_response))
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         result = await ops.get_channel_info_from_api("C1")
         assert result == {"id": "C1", "name": "chan"}
         assert mock_logger.info.called
@@ -93,13 +85,9 @@ async def test_get_channel_info_from_api_error(
         body={"ok": False, "error": "fail"},
     )
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=safe_response))
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         result = await ops.get_channel_info_from_api("C1")
         assert result is None
         assert mock_logger.warning.called
@@ -110,16 +98,10 @@ async def test_get_channel_info_from_api_exception(
     ops: ChannelInfoOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test get_channel_info_from_api returns None and logs on exception."""
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         result = await ops.get_channel_info_from_api("C1")
         assert result is None
         assert mock_logger.error.called
@@ -150,9 +132,7 @@ async def test_handle_bot_not_member_post_error(
 ) -> None:
     """Test _handle_bot_not_member logs error if posting fails."""
     mock_posting_handler.post_message = AsyncMock(side_effect=Exception("fail"))
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         result = await ops._handle_bot_not_member(
             user_id="U1",
             channel_id="C1",
@@ -183,9 +163,7 @@ async def test_handle_channel_lookup_error_logs_and_posts(
 ) -> None:
     """Test _handle_channel_lookup_error logs and posts correct error message."""
     mock_posting_handler.post_message = AsyncMock()
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         await ops._handle_channel_lookup_error(
             user_id="U1",
             channel_id="C1",
@@ -203,9 +181,7 @@ async def test_handle_channel_lookup_error_post_error(
 ) -> None:
     """Test _handle_channel_lookup_error logs error if posting fails."""
     mock_posting_handler.post_message = AsyncMock(side_effect=Exception("fail"))
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         await ops._handle_channel_lookup_error(
             user_id="U1",
             channel_id="C1",
@@ -235,9 +211,7 @@ async def test_fetch_channel_details_core_member(
         },
     )
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=safe_response))
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     result = await ops._fetch_channel_details_core(
         user_id="U1",
@@ -267,9 +241,7 @@ async def test_fetch_channel_details_core_not_member(
         },
     )
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=safe_response))
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     monkeypatch.setattr(
         ops,
@@ -294,13 +266,9 @@ async def test_fetch_channel_details_core_api_error(
         status=200, headers={}, body={"ok": False, "error": "fail"}
     )
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=safe_response))
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
-    monkeypatch.setattr(
-        ops, "_handle_channel_lookup_error", AsyncMock(return_value=None)
-    )
+    monkeypatch.setattr(ops, "_handle_channel_lookup_error", AsyncMock(return_value=None))
     result = await ops._fetch_channel_details_core(
         user_id="U1",
         channel_id="C1",
@@ -315,17 +283,11 @@ async def test_fetch_channel_details_core_exception(
     ops: ChannelInfoOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test _fetch_channel_details_core logs and posts on exception."""
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     ops.posting_handler.post_message = AsyncMock()  # type: ignore[method-assign]
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         result = await ops._fetch_channel_details_core(
             user_id="U1",
             channel_id="C1",
@@ -347,9 +309,7 @@ async def test_get_channel_details_delegates(
         "execute",
         AsyncMock(return_value=("chan", True, False, True)),
     )
-    with patch(
-        "packages.slack.channel_operations.channel_info_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_info_ops.logger") as mock_logger:
         result = await ops.get_channel_details("U1", "C1", "D1")
         assert result == ("chan", True, False, True)
         assert mock_logger.info.called

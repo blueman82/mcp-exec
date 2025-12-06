@@ -3,7 +3,6 @@
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
-
 _SECRETS_PAYLOAD = {
     "SLACK_SIGNING_SECRET": "test-signing-secret",
     "SLACK_API_TOKEN": "x-token",
@@ -46,10 +45,10 @@ class _SlackConfigStub:
 def patch_core_dependencies():
     """Patch critical external integrations to return deterministic test doubles."""
 
-    from packages.secrets.manager import SecretsManager
-    from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
     from packages.ai.core.openai_handler import OpenAIHandler
+    from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
     from packages.integrations.mcp_async_client import MCPAsyncClient
+    from packages.secrets.manager import SecretsManager
 
     slack_config_stub = _SlackConfigStub()
 
@@ -124,4 +123,3 @@ def patch_core_dependencies():
     finally:
         for p in reversed(patches):
             p.stop()
-

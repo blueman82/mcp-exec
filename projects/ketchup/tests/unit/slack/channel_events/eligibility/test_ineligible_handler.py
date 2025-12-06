@@ -63,9 +63,7 @@ class TestHandleIneligibleBotJoin:
         channel_eligibility_service = MagicMock()
         channel_eligibility_service.handle_ineligible_channel = AsyncMock()
         dynamodb_store = MagicMock()
-        dynamodb_store.check_if_temporary_unarchive = AsyncMock(
-            side_effect=Exception("fail")
-        )
+        dynamodb_store.check_if_temporary_unarchive = AsyncMock(side_effect=Exception("fail"))
         await ineligible_handler.handle_ineligible_bot_join(
             channel_id="C3",
             inviter_id="U3",

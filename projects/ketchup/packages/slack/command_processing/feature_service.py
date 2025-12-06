@@ -54,9 +54,7 @@ class FeatureService:
         Returns:
             True if successful, False otherwise
         """
-        return await self.user_store.set_user_feature(
-            user_id, f"{feature_name}_enabled", True
-        )
+        return await self.user_store.set_user_feature(user_id, f"{feature_name}_enabled", True)
 
     async def disable_feature_for_user(self, user_id: str, feature_name: str) -> bool:
         """
@@ -69,9 +67,7 @@ class FeatureService:
         Returns:
             True if successful, False otherwise
         """
-        return await self.user_store.set_user_feature(
-            user_id, f"{feature_name}_enabled", False
-        )
+        return await self.user_store.set_user_feature(user_id, f"{feature_name}_enabled", False)
 
     async def get_users_with_feature(self, feature_name: str) -> List[Dict]:
         """
@@ -83,13 +79,9 @@ class FeatureService:
         Returns:
             List of user dictionaries with the feature enabled
         """
-        return await self.user_store.get_users_with_feature(
-            f"{feature_name}_enabled", True
-        )
+        return await self.user_store.get_users_with_feature(f"{feature_name}_enabled", True)
 
-    async def enable_feature_for_channel(
-        self, channel_id: str, feature_name: str
-    ) -> bool:
+    async def enable_feature_for_channel(self, channel_id: str, feature_name: str) -> bool:
         """
         Enable a feature for a specific channel.
 
@@ -104,9 +96,7 @@ class FeatureService:
             channel_id, f"{feature_name}_enabled", True
         )
 
-    async def disable_feature_for_channel(
-        self, channel_id: str, feature_name: str
-    ) -> bool:
+    async def disable_feature_for_channel(self, channel_id: str, feature_name: str) -> bool:
         """
         Disable a feature for a specific channel.
 
@@ -121,9 +111,7 @@ class FeatureService:
             channel_id, f"{feature_name}_enabled", False
         )
 
-    async def get_channels_with_feature(
-        self, feature_name: str
-    ) -> List[Dict[str, str]]:
+    async def get_channels_with_feature(self, feature_name: str) -> List[Dict[str, str]]:
         """
         Get all channels with a feature enabled.
 
@@ -142,16 +130,12 @@ class FeatureService:
         for channel_id in channel_ids:
             try:
                 # Use existing channel operations to get details from DB
-                channel_details = await self.channel_operations.get_channel_details(
-                    channel_id
-                )
+                channel_details = await self.channel_operations.get_channel_details(channel_id)
                 if channel_details:
                     channels_with_names.append(
                         {
                             "channel_id": channel_id,
-                            "channel_name": channel_details.get(
-                                "channel_name", "unknown"
-                            ),
+                            "channel_name": channel_details.get("channel_name", "unknown"),
                         }
                     )
                 else:
@@ -161,9 +145,7 @@ class FeatureService:
                     )
             except Exception as e:
                 logger.warning(f"Could not fetch details for channel {channel_id}: {e}")
-                channels_with_names.append(
-                    {"channel_id": channel_id, "channel_name": "unknown"}
-                )
+                channels_with_names.append({"channel_id": channel_id, "channel_name": "unknown"})
 
         return channels_with_names
 
@@ -182,9 +164,7 @@ class FeatureService:
             return True
 
         # Then check channel-specific flag
-        enabled = await self.user_store.get_channel_feature(
-            channel_id, "status_updater_enabled"
-        )
+        enabled = await self.user_store.get_channel_feature(channel_id, "status_updater_enabled")
         return enabled is True
 
     async def is_jira_reporter_enabled_for_channel(self, channel_id: str) -> bool:
@@ -202,9 +182,7 @@ class FeatureService:
             return True
 
         # Then check channel-specific flag
-        enabled = await self.user_store.get_channel_feature(
-            channel_id, "jira_reporter_enabled"
-        )
+        enabled = await self.user_store.get_channel_feature(channel_id, "jira_reporter_enabled")
         return enabled is True
 
     async def is_trust_endorsement_enabled_for_channel(self, channel_id: str) -> bool:
@@ -222,14 +200,10 @@ class FeatureService:
             return True
 
         # Then check channel-specific flag
-        enabled = await self.user_store.get_channel_feature(
-            channel_id, "trust_endorsement_enabled"
-        )
+        enabled = await self.user_store.get_channel_feature(channel_id, "trust_endorsement_enabled")
         return enabled is True
 
-    async def is_user_join_notifications_enabled_for_channel(
-        self, channel_id: str
-    ) -> bool:
+    async def is_user_join_notifications_enabled_for_channel(self, channel_id: str) -> bool:
         """
         Check if user join notifications is enabled for a channel.
 

@@ -18,9 +18,7 @@ class TestFlagReviewHandler:
     def mock_posting_handler(self):
         """Create a mock posting handler."""
         mock = Mock()
-        mock.post_message = AsyncMock(
-            return_value={"ok": True, "ts": "1234567890.123456"}
-        )
+        mock.post_message = AsyncMock(return_value={"ok": True, "ts": "1234567890.123456"})
         mock.post_ephemeral_message = AsyncMock(return_value={"ok": True})
         mock.update_message = AsyncMock(return_value={"ok": True})
         mock.open_modal = AsyncMock(return_value={"ok": True})
@@ -50,9 +48,7 @@ class TestFlagReviewHandler:
         mock = Mock()
         mock.client = Mock()
         mock.client.get_item = AsyncMock(return_value={})
-        mock.client.put_item = AsyncMock(
-            return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
-        )
+        mock.client.put_item = AsyncMock(return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
         mock.client.update_item = AsyncMock(
             return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
         )
@@ -177,9 +173,7 @@ class TestFlagReviewHandler:
                 "private_metadata": "C123|1234567890.123456|123456_abc",
                 "state": {
                     "values": {
-                        "feedback_block": {
-                            "feedback_input": {"value": "This summary is incorrect"}
-                        }
+                        "feedback_block": {"feedback_input": {"value": "This summary is incorrect"}}
                     }
                 },
             },
@@ -199,9 +193,7 @@ class TestFlagReviewHandler:
         payload = {
             "type": "block_actions",
             "user": {"id": "U_ADMIN", "username": "admin"},
-            "actions": [
-                {"action_id": "acknowledge_feedback", "value": "C123|1234567890.123456"}
-            ],
+            "actions": [{"action_id": "acknowledge_feedback", "value": "C123|1234567890.123456"}],
             "channel": {"id": "C095LQ0H4KB"},
             "message": {"ts": "9876543210.654321"},
         }
@@ -285,17 +277,13 @@ class TestFlagReviewHandler:
         assert len(result["issues"]) == 0
 
         # Test short text (should fail validation)
-        result = handler._validate_feedback(
-            text="short", user_id="U123", channel_id="C123"
-        )
+        result = handler._validate_feedback(text="short", user_id="U123", channel_id="C123")
         assert result["valid"] is False
         assert "Feedback too short" in result["issues"]
 
         # Test long text (should fail validation)
         long_text = "x" * 4000
-        result = handler._validate_feedback(
-            text=long_text, user_id="U123", channel_id="C123"
-        )
+        result = handler._validate_feedback(text=long_text, user_id="U123", channel_id="C123")
         assert result["valid"] is False
         assert "Feedback exceeds maximum length" in result["issues"]
 

@@ -6,7 +6,7 @@ reporting, and analytics capabilities. Handles 5 services with enterprise-grade
 JIRA integration. All registrations use protocol-first pattern with concrete aliases.
 """
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di.types import DependencySpec
@@ -16,15 +16,16 @@ try:
     from jira_reporter.jira_service import JiraService as JIRAServiceImpl
     from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
     from packages.core.config.mcp_feature_flags import MCPFeatureFlags
-    from packages.integrations.jira_data_extractor import JIRADataExtractor
-    from packages.integrations.jira_cache import JIRACache
-    from packages.integrations.mcp_async_client import MCPAsyncClient
-    from packages.secrets.manager import SecretsManager
-    from packages.integrations.ims_token_manager import IMSTokenManager
+    from packages.core.local_metrics import MetricsStorage
+    from packages.db.dynamodb_store import DynamoDBStore
     from packages.integrations.async_ims_token_manager import AsyncIMSTokenManager
     from packages.integrations.async_mcp_client import AsyncMCPClient
-    from packages.db.dynamodb_store import DynamoDBStore
-    from packages.core.local_metrics import MetricsStorage
+    from packages.integrations.ims_token_manager import IMSTokenManager
+    from packages.integrations.jira_cache import JIRACache
+    from packages.integrations.jira_data_extractor import JIRADataExtractor
+    from packages.integrations.mcp_async_client import MCPAsyncClient
+    from packages.secrets.manager import SecretsManager
+
     _JIRA_IMPORTS_AVAILABLE = True
 except ImportError as e:
     logger = setup_logger(__name__)
@@ -46,11 +47,11 @@ except ImportError as e:
 
 # Protocol imports
 from ..protocols.jira_protocols import (
+    JIRAAnalyticsServiceProtocol,
+    JIRAReportingServiceProtocol,
     JIRAServiceProtocol,
     JIRATicketServiceProtocol,
     JIRAWorkflowServiceProtocol,
-    JIRAReportingServiceProtocol,
-    JIRAAnalyticsServiceProtocol,
 )
 
 if TYPE_CHECKING:
@@ -81,9 +82,7 @@ def register_jira_services(manager: "ServiceRegistrationManager") -> None:
     logger.info("Registering JIRA Integration Services (5 services)")
 
     use_async_clients = MCPFeatureFlags.use_async_clients()
-    ims_token_manager_cls = (
-        AsyncIMSTokenManager if use_async_clients else IMSTokenManager
-    )
+    ims_token_manager_cls = AsyncIMSTokenManager if use_async_clients else IMSTokenManager
     mcp_client_cls = AsyncMCPClient if use_async_clients else MCPAsyncClient
 
     # Core JIRA Service
@@ -160,17 +159,13 @@ def _register_ticket_service(
             self, channel_name: str, channel_metadata: Dict[str, Any]
         ) -> Optional[str]:
             """Discover JIRA ticket for a channel."""
-            return await self.discovery.discover_jira_ticket(
-                channel_name, channel_metadata
-            )
+            return await self.discovery.discover_jira_ticket(channel_name, channel_metadata)
 
         async def search_jira_by_exigence_url(
             self, exigence_url: str, customer_name: Optional[str] = None
         ) -> Optional[str]:
             """Search JIRA for tickets containing the Exigence URL."""
-            return await self.discovery.search_jira_by_exigence_url(
-                exigence_url, customer_name
-            )
+            return await self.discovery.search_jira_by_exigence_url(exigence_url, customer_name)
 
         def extract_exigence_id(self, channel_name: str) -> Optional[str]:
             """Extract Exigence event ID from channel name."""
@@ -204,28 +199,24 @@ def _register_workflow_service(
             """Initialize with MCP client."""
             self.mcp_client = mcp_client
 
-        async def get_workflow_status(
-            self, ticket_id: str
-        ) -> Optional[Dict[str, Any]]:
+        async def get_workflow_status(self, ticket_id: str) -> Optional[Dict[str, Any]]:
             """Get current workflow status for a ticket."""
             try:
                 issue = await self.mcp_client.get_issue(ticket_id)
-                if issue and 'fields' in issue:
-                    status = issue['fields'].get('status', {})
+                if issue and "fields" in issue:
+                    status = issue["fields"].get("status", {})
                     return {
-                        'id': status.get('id'),
-                        'name': status.get('name'),
-                        'category': status.get('statusCategory', {}).get('name'),
-                        'description': status.get('description', ''),
+                        "id": status.get("id"),
+                        "name": status.get("name"),
+                        "category": status.get("statusCategory", {}).get("name"),
+                        "description": status.get("description", ""),
                     }
                 return None
             except Exception as e:
                 logger.error(f"Error getting workflow status for {ticket_id}: {e}")
                 return None
 
-        async def transition_ticket_status(
-            self, ticket_id: str, transition: str
-        ) -> bool:
+        async def transition_ticket_status(self, ticket_id: str, transition: str) -> bool:
             """Transition ticket to new status."""
             try:
                 transitions = await self.get_available_transitions(ticket_id)
@@ -234,7 +225,7 @@ def _register_workflow_service(
 
                 target_transition = None
                 for trans in transitions:
-                    if trans.get('name', '').lower() == transition.lower():
+                    if trans.get("name", "").lower() == transition.lower():
                         target_transition = trans
                         break
 
@@ -242,17 +233,13 @@ def _register_workflow_service(
                     logger.warning(f"Transition '{transition}' not available for {ticket_id}")
                     return False
 
-                result = await self.mcp_client.transition_issue(
-                    ticket_id, target_transition['id']
-                )
+                result = await self.mcp_client.transition_issue(ticket_id, target_transition["id"])
                 return result is not None
             except Exception as e:
                 logger.error(f"Error transitioning ticket {ticket_id}: {e}")
                 return False
 
-        async def get_available_transitions(
-            self, ticket_id: str
-        ) -> List[Dict[str, Any]]:
+        async def get_available_transitions(self, ticket_id: str) -> List[Dict[str, Any]]:
             """Get available transitions for a ticket."""
             try:
                 transitions = await self.mcp_client.get_issue_transitions(ticket_id)
@@ -292,26 +279,22 @@ def _register_reporting_service(manager: "ServiceRegistrationManager") -> None:
             """Generate comprehensive report for a channel's JIRA data."""
             try:
                 # Get JIRA context for the channel
-                context = await self.data_extractor.get_jira_context(
-                    channel_id, []
-                )
+                context = await self.data_extractor.get_jira_context(channel_id, [])
 
                 report = {
-                    'channel_id': channel_id,
-                    'timestamp': None,  # Would use datetime.utcnow()
-                    'jira_context': context,
-                    'ticket_summary': self._summarize_ticket_data(ticket_data),
-                    'status': 'generated'
+                    "channel_id": channel_id,
+                    "timestamp": None,  # Would use datetime.utcnow()
+                    "jira_context": context,
+                    "ticket_summary": self._summarize_ticket_data(ticket_data),
+                    "status": "generated",
                 }
 
                 return report
             except Exception as e:
                 logger.error(f"Error generating channel report: {e}")
-                return {'error': str(e), 'status': 'failed'}
+                return {"error": str(e), "status": "failed"}
 
-        async def aggregate_ticket_metrics(
-            self, ticket_ids: List[str]
-        ) -> Dict[str, Any]:
+        async def aggregate_ticket_metrics(self, ticket_ids: List[str]) -> Dict[str, Any]:
             """Aggregate metrics across multiple tickets."""
             try:
                 batch_data = await self.data_extractor.get_tickets_batch(
@@ -319,25 +302,29 @@ def _register_reporting_service(manager: "ServiceRegistrationManager") -> None:
                 )
 
                 metrics = {
-                    'total_tickets': len(ticket_ids),
-                    'retrieved_tickets': len([t for t in batch_data.values() if t]),
-                    'failed_tickets': len([t for t in batch_data.values() if not t]),
-                    'comments_total': 0,
-                    'status_distribution': {},
+                    "total_tickets": len(ticket_ids),
+                    "retrieved_tickets": len([t for t in batch_data.values() if t]),
+                    "failed_tickets": len([t for t in batch_data.values() if not t]),
+                    "comments_total": 0,
+                    "status_distribution": {},
                 }
 
                 for ticket_data in batch_data.values():
                     if ticket_data:
-                        if 'comments' in ticket_data:
-                            metrics['comments_total'] += len(ticket_data['comments'])
+                        if "comments" in ticket_data:
+                            metrics["comments_total"] += len(ticket_data["comments"])
 
-                        status = ticket_data.get('fields', {}).get('status', {}).get('name', 'Unknown')
-                        metrics['status_distribution'][status] = metrics['status_distribution'].get(status, 0) + 1
+                        status = (
+                            ticket_data.get("fields", {}).get("status", {}).get("name", "Unknown")
+                        )
+                        metrics["status_distribution"][status] = (
+                            metrics["status_distribution"].get(status, 0) + 1
+                        )
 
                 return metrics
             except Exception as e:
                 logger.error(f"Error aggregating ticket metrics: {e}")
-                return {'error': str(e)}
+                return {"error": str(e)}
 
         async def export_report_data(
             self, report_data: Dict[str, Any], format_type: str = "json"
@@ -346,6 +333,7 @@ def _register_reporting_service(manager: "ServiceRegistrationManager") -> None:
             try:
                 if format_type.lower() == "json":
                     import json
+
                     return json.dumps(report_data, indent=2, default=str)
                 else:
                     return str(report_data)
@@ -358,14 +346,14 @@ def _register_reporting_service(manager: "ServiceRegistrationManager") -> None:
             if not ticket_data:
                 return {}
 
-            fields = ticket_data.get('fields', {})
+            fields = ticket_data.get("fields", {})
             return {
-                'key': ticket_data.get('key', ''),
-                'summary': fields.get('summary', ''),
-                'status': fields.get('status', {}).get('name', ''),
-                'assignee': fields.get('assignee', {}).get('displayName', 'Unassigned'),
-                'created': fields.get('created', ''),
-                'updated': fields.get('updated', ''),
+                "key": ticket_data.get("key", ""),
+                "summary": fields.get("summary", ""),
+                "status": fields.get("status", {}).get("name", ""),
+                "assignee": fields.get("assignee", {}).get("displayName", "Unassigned"),
+                "created": fields.get("created", ""),
+                "updated": fields.get("updated", ""),
             }
 
     async def create_reporting_service(resolver) -> JIRAReportingService:
@@ -406,45 +394,41 @@ def _register_analytics_service(manager: "ServiceRegistrationManager") -> None:
             except Exception as e:
                 logger.error(f"Error tracking ticket interaction: {e}")
 
-        async def get_performance_metrics(
-            self, time_range: str = "last_7_days"
-        ) -> Dict[str, Any]:
+        async def get_performance_metrics(self, time_range: str = "last_7_days") -> Dict[str, Any]:
             """Get JIRA integration performance metrics."""
             try:
                 cache_stats = self.cache.get_stats()
 
                 metrics = {
-                    'time_range': time_range,
-                    'cache_performance': cache_stats,
-                    'integration_status': 'active',
-                    'last_updated': None,  # Would use datetime.utcnow()
+                    "time_range": time_range,
+                    "cache_performance": cache_stats,
+                    "integration_status": "active",
+                    "last_updated": None,  # Would use datetime.utcnow()
                 }
 
                 return metrics
             except Exception as e:
                 logger.error(f"Error getting performance metrics: {e}")
-                return {'error': str(e)}
+                return {"error": str(e)}
 
-        async def analyze_ticket_patterns(
-            self, channel_patterns: List[str]
-        ) -> Dict[str, Any]:
+        async def analyze_ticket_patterns(self, channel_patterns: List[str]) -> Dict[str, Any]:
             """Analyze patterns in ticket creation and resolution."""
             try:
                 analysis = {
-                    'patterns_analyzed': len(channel_patterns),
-                    'common_patterns': [],
-                    'recommendations': [],
-                    'status': 'completed'
+                    "patterns_analyzed": len(channel_patterns),
+                    "common_patterns": [],
+                    "recommendations": [],
+                    "status": "completed",
                 }
 
                 # In real implementation, would analyze patterns
                 for pattern in channel_patterns[:5]:  # Limit for demo
-                    analysis['common_patterns'].append(f"Pattern: {pattern}")
+                    analysis["common_patterns"].append(f"Pattern: {pattern}")
 
                 return analysis
             except Exception as e:
                 logger.error(f"Error analyzing ticket patterns: {e}")
-                return {'error': str(e)}
+                return {"error": str(e)}
 
     async def create_analytics_service(resolver) -> JIRAAnalyticsService:
         """Factory function for JIRAAnalyticsService."""

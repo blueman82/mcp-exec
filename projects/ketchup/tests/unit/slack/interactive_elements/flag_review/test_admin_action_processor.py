@@ -46,9 +46,7 @@ class TestAdminActionProcessor:
     @pytest.fixture
     def admin_processor(self, mock_posting_handler, mock_db_store, mock_secrets_manager):
         """Create admin action processor with mocked dependencies."""
-        return AdminActionProcessor(
-            mock_posting_handler, mock_db_store, mock_secrets_manager
-        )
+        return AdminActionProcessor(mock_posting_handler, mock_db_store, mock_secrets_manager)
 
     @pytest.mark.asyncio
     async def test_acknowledge_with_user_id_finds_correct_flag(
@@ -124,9 +122,7 @@ class TestAdminActionProcessor:
             ), "Should update User 1's flag specifically"
 
     @pytest.mark.asyncio
-    async def test_acknowledge_command_execution_format(
-        self, admin_processor, mock_db_store
-    ):
+    async def test_acknowledge_command_execution_format(self, admin_processor, mock_db_store):
         """
         Test acknowledging a flag with command execution ID format.
 
@@ -163,9 +159,7 @@ class TestAdminActionProcessor:
         assert result is not None, "Should handle missing record gracefully"
 
     @pytest.mark.asyncio
-    async def test_acknowledge_backward_compatibility(
-        self, admin_processor, mock_db_store
-    ):
+    async def test_acknowledge_backward_compatibility(self, admin_processor, mock_db_store):
         """
         Test that acknowledge handles old 2-part button values for backward compatibility.
 
@@ -193,7 +187,9 @@ class TestAdminActionProcessor:
         payload = {
             "user": {"id": "UADMIN", "username": "admin"},
             "channel": {"id": "C_REVIEW_CHANNEL"},
-            "actions": [{"action_id": "acknowledge_feedback", "value": f"{channel_id}|{message_ts}"}],
+            "actions": [
+                {"action_id": "acknowledge_feedback", "value": f"{channel_id}|{message_ts}"}
+            ],
         }
 
         # Should still work with old format (backward compatibility)

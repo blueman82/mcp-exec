@@ -5,8 +5,7 @@ Protocol definitions for business rule engine services including rule engines,
 policy validation, compliance checking, auditing, and governance systems.
 """
 
-from typing import Protocol, runtime_checkable, Any, Dict, List, Optional
-
+from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 __all__ = [
     "RuleEngineServiceProtocol",
@@ -124,8 +123,9 @@ class AuditServiceProtocol(Protocol):
         """
         ...
 
-    async def get_audit_trail(self, entity_id: str, start_date: Optional[str] = None,
-                            end_date: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def get_audit_trail(
+        self, entity_id: str, start_date: Optional[str] = None, end_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Get audit trail for an entity.
 
@@ -187,7 +187,9 @@ class BusinessLogicServiceProtocol(Protocol):
         """
         ...
 
-    async def validate_business_rules(self, entity_type: str, entity_data: Dict[str, Any]) -> List[str]:
+    async def validate_business_rules(
+        self, entity_type: str, entity_data: Dict[str, Any]
+    ) -> List[str]:
         """
         Validate entity against business rules.
 

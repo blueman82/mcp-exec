@@ -68,9 +68,7 @@ class IMSTokenManager:
         refresh_token = secrets.get("IMS_REFRESH_TOKEN")
 
         if not refresh_token:
-            logger.warning(
-                "No refresh token available, attempting initial authentication"
-            )
+            logger.warning("No refresh token available, attempting initial authentication")
             return await self._initial_authentication()
 
         async with aiohttp.ClientSession() as session:
@@ -89,15 +87,11 @@ class IMSTokenManager:
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        logger.error(
-                            f"IMS token refresh failed: {response.status} - {error_text}"
-                        )
+                        logger.error(f"IMS token refresh failed: {response.status} - {error_text}")
 
                         if response.status == 400:
                             # Invalid refresh token, try initial authentication
-                            logger.info(
-                                "Refresh token invalid, attempting initial authentication"
-                            )
+                            logger.info("Refresh token invalid, attempting initial authentication")
                             return await self._initial_authentication()
 
                         raise Exception(f"IMS token refresh failed: {response.status}")

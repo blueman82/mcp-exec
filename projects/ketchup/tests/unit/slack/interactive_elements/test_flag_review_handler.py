@@ -19,9 +19,7 @@ class TestFlagReviewHandlerOrchestrator:
     def mock_posting_handler(self):
         """Create a mock posting handler."""
         mock = Mock()
-        mock.post_message = AsyncMock(
-            return_value={"ok": True, "ts": "1234567890.123456"}
-        )
+        mock.post_message = AsyncMock(return_value={"ok": True, "ts": "1234567890.123456"})
         mock.post_ephemeral_message = AsyncMock(return_value={"ok": True})
         mock.update_message = AsyncMock(return_value={"ok": True})
         mock.open_modal = AsyncMock(return_value={"ok": True})
@@ -47,9 +45,7 @@ class TestFlagReviewHandlerOrchestrator:
     @pytest.fixture
     def handler(self, mock_posting_handler, mock_db_store, mock_secrets_manager):
         """Create handler with mocked dependencies."""
-        return FlagReviewHandler(
-            mock_posting_handler, mock_db_store, mock_secrets_manager
-        )
+        return FlagReviewHandler(mock_posting_handler, mock_db_store, mock_secrets_manager)
 
     @pytest.mark.asyncio
     async def test_orchestrator_initialization(self, handler):
@@ -111,9 +107,7 @@ class TestFlagReviewHandlerOrchestrator:
         result = await handler.process_flag_action(payload)
 
         assert result is False  # Should return False when already flagged
-        handler.status_flag_processor.handle_flag_button_click.assert_called_once_with(
-            payload
-        )
+        handler.status_flag_processor.handle_flag_button_click.assert_called_once_with(payload)
 
     @pytest.mark.asyncio
     async def test_process_flag_action_rate_limited(self, handler):
@@ -163,16 +157,12 @@ class TestFlagReviewHandlerOrchestrator:
         }
 
         # Mock the command_flag_processor which handles command flag actions
-        handler.command_flag_processor.process_command_flag_action = AsyncMock(
-            return_value=True
-        )
+        handler.command_flag_processor.process_command_flag_action = AsyncMock(return_value=True)
 
         result = await handler.process_command_flag_action(payload)
 
         assert result is True
-        handler.command_flag_processor.process_command_flag_action.assert_called_once_with(
-            payload
-        )
+        handler.command_flag_processor.process_command_flag_action.assert_called_once_with(payload)
 
     @pytest.mark.asyncio
     async def test_public_interface_unchanged(self, handler):

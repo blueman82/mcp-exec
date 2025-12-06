@@ -4,9 +4,10 @@ test_raven_maintenance.py
 Unit tests for Raven maintenance SOAP API client.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import orjson
+import pytest
 
 from packages.integrations.raven_maintenance import RavenMaintenanceClient
 
@@ -22,7 +23,7 @@ def restore_orjson_functions(monkeypatch):
 
     This prevents test pollution from other test modules that may mock orjson globally.
     """
-    monkeypatch.setattr('packages.integrations.raven_maintenance.orjson.loads', _real_orjson_loads)
+    monkeypatch.setattr("packages.integrations.raven_maintenance.orjson.loads", _real_orjson_loads)
 
 
 @pytest.fixture
@@ -34,9 +35,7 @@ def soap_client():
         RavenMaintenanceClient: Configured test client instance.
     """
     return RavenMaintenanceClient(
-        endpoint="https://test.example.com/soap",
-        username="test_user",
-        password="test_pass"
+        endpoint="https://test.example.com/soap", username="test_user", password="test_pass"
     )
 
 
@@ -48,7 +47,7 @@ def sample_soap_response():
     Returns:
         str: Valid SOAP XML response containing maintenance records.
     """
-    return '''<?xml version='1.0'?>
+    return """<?xml version='1.0'?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'>
   <SOAP-ENV:Body>
     <maintenanceDataResponse xmlns='urn:ketchup:maintenanceData'>
@@ -73,7 +72,7 @@ def sample_soap_response():
       </maintenanceData>
     </maintenanceDataResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>'''
+</SOAP-ENV:Envelope>"""
 
 
 @pytest.mark.asyncio
@@ -97,7 +96,7 @@ async def test_fetch_maintenance_data_success(soap_client, sample_soap_response)
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock()
 
-    with patch('aiohttp.ClientSession', return_value=mock_session):
+    with patch("aiohttp.ClientSession", return_value=mock_session):
         result = await soap_client.fetch_maintenance_data("2025-10-06")
 
     # Assertions
@@ -125,14 +124,14 @@ async def test_fetch_maintenance_data_empty_response(soap_client):
     Verifies that empty maintenance arrays are correctly handled
     and return an empty list.
     """
-    empty_response = '''<?xml version='1.0'?>
+    empty_response = """<?xml version='1.0'?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'>
   <SOAP-ENV:Body>
     <maintenanceDataResponse xmlns='urn:ketchup:maintenanceData'>
       <maintenanceData>[]</maintenanceData>
     </maintenanceDataResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>'''
+</SOAP-ENV:Envelope>"""
 
     mock_response = AsyncMock()
     mock_response.status = 200
@@ -146,7 +145,7 @@ async def test_fetch_maintenance_data_empty_response(soap_client):
     mock_session.__aenter__ = AsyncMock(return_value=mock_session)
     mock_session.__aexit__ = AsyncMock()
 
-    with patch('aiohttp.ClientSession', return_value=mock_session):
+    with patch("aiohttp.ClientSession", return_value=mock_session):
         result = await soap_client.fetch_maintenance_data("2025-10-06")
 
     assert result == []
@@ -203,13 +202,13 @@ def test_parse_soap_response_missing_element(soap_client):
     Verifies that responses without the expected maintenanceData
     element return an empty list.
     """
-    missing_element_response = '''<?xml version='1.0'?>
+    missing_element_response = """<?xml version='1.0'?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'>
   <SOAP-ENV:Body>
     <maintenanceDataResponse xmlns='urn:ketchup:maintenanceData'>
     </maintenanceDataResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>'''
+</SOAP-ENV:Envelope>"""
 
     result = soap_client._parse_soap_response(missing_element_response)
     assert result == []
@@ -222,14 +221,14 @@ def test_parse_soap_response_invalid_json(soap_client):
     Verifies that invalid JSON within the SOAP response raises
     ValueError with descriptive error message.
     """
-    invalid_json_response = '''<?xml version='1.0'?>
+    invalid_json_response = """<?xml version='1.0'?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV='http://schemas.xmlsoap.org/soap/envelope/'>
   <SOAP-ENV:Body>
     <maintenanceDataResponse xmlns='urn:ketchup:maintenanceData'>
       <maintenanceData>not valid json</maintenanceData>
     </maintenanceDataResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>'''
+</SOAP-ENV:Envelope>"""
 
     with pytest.raises(ValueError, match="Invalid JSON in SOAP response"):
         soap_client._parse_soap_response(invalid_json_response)
@@ -246,7 +245,7 @@ def test_parse_soap_response_xxe_attack_blocked(soap_client):
     - Denial of Service (Billion Laughs attack)
     """
     # Malicious XML with external entity attempting to read /etc/passwd
-    xxe_payload = '''<?xml version='1.0'?>
+    xxe_payload = """<?xml version='1.0'?>
 <!DOCTYPE foo [
   <!ENTITY xxe SYSTEM "file:///etc/passwd">
 ]>
@@ -256,7 +255,7 @@ def test_parse_soap_response_xxe_attack_blocked(soap_client):
       <maintenanceData>&xxe;</maintenanceData>
     </maintenanceDataResponse>
   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>'''
+</SOAP-ENV:Envelope>"""
 
     # defusedxml should raise an exception when parsing XXE payloads
     from defusedxml.common import DTDForbidden

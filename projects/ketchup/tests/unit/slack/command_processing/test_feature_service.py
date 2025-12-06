@@ -63,9 +63,7 @@ class TestFeatureService:
         )
 
     @pytest.mark.asyncio
-    async def test_legacy_message_analysis_enabled(
-        self, feature_service: FeatureService
-    ) -> None:
+    async def test_legacy_message_analysis_enabled(self, feature_service: FeatureService) -> None:
         """Test legacy message analysis check."""
         with patch(
             "packages.slack.command_processing.feature_service.FeatureFlags.is_message_analysis_enabled"
@@ -85,9 +83,7 @@ class TestFeatureService:
         result = await feature_service.enable_feature_for_user("U12345", "nlp")
 
         assert result is True
-        mock_user_store.set_user_feature.assert_called_once_with(
-            "U12345", "nlp_enabled", True
-        )
+        mock_user_store.set_user_feature.assert_called_once_with("U12345", "nlp_enabled", True)
 
     @pytest.mark.asyncio
     async def test_disable_feature_for_user(
@@ -97,9 +93,7 @@ class TestFeatureService:
         result = await feature_service.disable_feature_for_user("U12345", "nlp")
 
         assert result is True
-        mock_user_store.set_user_feature.assert_called_once_with(
-            "U12345", "nlp_enabled", False
-        )
+        mock_user_store.set_user_feature.assert_called_once_with("U12345", "nlp_enabled", False)
 
     @pytest.mark.asyncio
     async def test_get_users_with_feature(
@@ -115,9 +109,7 @@ class TestFeatureService:
         result = await feature_service.get_users_with_feature("nlp")
 
         assert result == expected_users
-        mock_user_store.get_users_with_feature.assert_called_once_with(
-            "nlp_enabled", True
-        )
+        mock_user_store.get_users_with_feature.assert_called_once_with("nlp_enabled", True)
 
     def test_get_unknown_feature_status(self, feature_service: FeatureService) -> None:
         """Test getting status for unknown feature."""
@@ -163,9 +155,7 @@ class TestFeatureService:
         ) as mock_enabled:
             mock_enabled.return_value = False
 
-            result = await feature_service.is_user_join_notifications_enabled_for_user(
-                "U12345"
-            )
+            result = await feature_service.is_user_join_notifications_enabled_for_user("U12345")
 
             assert result is False
             mock_enabled.assert_called_once()
@@ -175,17 +165,18 @@ class TestFeatureService:
         self, feature_service: FeatureService
     ) -> None:
         """Test user join notifications enabled for all users when global flag is on."""
-        with patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
-        ) as mock_enabled, patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
-        ) as mock_global:
+        with (
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
+            ) as mock_enabled,
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
+            ) as mock_global,
+        ):
             mock_enabled.return_value = True
             mock_global.return_value = True
 
-            result = await feature_service.is_user_join_notifications_enabled_for_user(
-                "U12345"
-            )
+            result = await feature_service.is_user_join_notifications_enabled_for_user("U12345")
 
             assert result is True
             mock_global.assert_called_once()
@@ -195,18 +186,19 @@ class TestFeatureService:
         self, feature_service: FeatureService, mock_user_store: AsyncMock
     ) -> None:
         """Test user join notifications enabled for specific user with database flag."""
-        with patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
-        ) as mock_enabled, patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
-        ) as mock_global:
+        with (
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
+            ) as mock_enabled,
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
+            ) as mock_global,
+        ):
             mock_enabled.return_value = True
             mock_global.return_value = False
             mock_user_store.get_user_feature.return_value = True
 
-            result = await feature_service.is_user_join_notifications_enabled_for_user(
-                "U12345"
-            )
+            result = await feature_service.is_user_join_notifications_enabled_for_user("U12345")
 
             assert result is True
             mock_user_store.get_user_feature.assert_called_once_with(
@@ -218,18 +210,19 @@ class TestFeatureService:
         self, feature_service: FeatureService, mock_user_store: AsyncMock
     ) -> None:
         """Test user join notifications disabled for specific user without database flag."""
-        with patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
-        ) as mock_enabled, patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
-        ) as mock_global:
+        with (
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
+            ) as mock_enabled,
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
+            ) as mock_global,
+        ):
             mock_enabled.return_value = True
             mock_global.return_value = False
             mock_user_store.get_user_feature.return_value = False
 
-            result = await feature_service.is_user_join_notifications_enabled_for_user(
-                "U12345"
-            )
+            result = await feature_service.is_user_join_notifications_enabled_for_user("U12345")
 
             assert result is False
 
@@ -238,18 +231,19 @@ class TestFeatureService:
         self, feature_service: FeatureService, mock_user_store: AsyncMock
     ) -> None:
         """Test user join notifications disabled when database error occurs."""
-        with patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
-        ) as mock_enabled, patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
-        ) as mock_global:
+        with (
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
+            ) as mock_enabled,
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
+            ) as mock_global,
+        ):
             mock_enabled.return_value = True
             mock_global.return_value = False
             mock_user_store.get_user_feature.side_effect = Exception("Database error")
 
-            result = await feature_service.is_user_join_notifications_enabled_for_user(
-                "U12345"
-            )
+            result = await feature_service.is_user_join_notifications_enabled_for_user("U12345")
 
             assert result is False
 
@@ -257,11 +251,14 @@ class TestFeatureService:
         self, feature_service: FeatureService
     ) -> None:
         """Test getting user join notifications feature status."""
-        with patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
-        ) as mock_enabled, patch(
-            "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
-        ) as mock_global:
+        with (
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_enabled"
+            ) as mock_enabled,
+            patch(
+                "packages.slack.command_processing.feature_service.FeatureFlags.is_user_join_notifications_global"
+            ) as mock_global,
+        ):
             mock_enabled.return_value = True
             mock_global.return_value = False
 

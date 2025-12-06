@@ -163,9 +163,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
         try:
             was_unarchived = await self._temporarily_unarchive_if_needed(channel_id)
             if was_unarchived:
-                logger.info(
-                    "Successfully unarchived channel %s temporarily", channel_id
-                )
+                logger.info("Successfully unarchived channel %s temporarily", channel_id)
 
             url = f"{await self.get_api_base_url()}/conversations.history"
             headers = self.headers  # Access as property
@@ -182,12 +180,16 @@ class SlackChannelMessageOps(SlackAsyncClient):
                     # Convert to float, subtract 5 seconds for safety, then back to string
                     # This ensures messages with slightly larger decimal timestamps aren't missed
                     oldest_ts_buffered = str(float(oldest_ts) - 5)
-                    logger.debug(f"Applied 5-second buffer to oldest timestamp: {oldest_ts} -> {oldest_ts_buffered}")
+                    logger.debug(
+                        f"Applied 5-second buffer to oldest timestamp: {oldest_ts} -> {oldest_ts_buffered}"
+                    )
                 except (ValueError, TypeError):
                     # If conversion fails, use original value
                     oldest_ts_buffered = oldest_ts
-                    logger.warning(f"Could not apply buffer to timestamp {oldest_ts}, using original")
-            
+                    logger.warning(
+                        f"Could not apply buffer to timestamp {oldest_ts}, using original"
+                    )
+
             params = {
                 "channel": channel_id,
                 "limit": batch_size,
@@ -218,9 +220,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                             include_system_messages,
                         )
 
-                        next_cursor = response_data.get("response_metadata", {}).get(
-                            "next_cursor"
-                        )
+                        next_cursor = response_data.get("response_metadata", {}).get("next_cursor")
                         if not next_cursor:
                             break
                     else:
@@ -264,10 +264,8 @@ class SlackChannelMessageOps(SlackAsyncClient):
 
             # Fetch thread messages if any
             if thread_timestamps:
-                thread_messages, thread_user_mentions = (
-                    await self._fetch_thread_messages_parallel(
-                        channel_id, thread_timestamps
-                    )
+                thread_messages, thread_user_mentions = await self._fetch_thread_messages_parallel(
+                    channel_id, thread_timestamps
                 )
                 for _, replies in thread_messages.items():
                     for reply in replies:
@@ -285,8 +283,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                         snippet = await self.fetch_snippet_content(f["url_private"])
                         # Append snippet content to the message text
                         msg["text"] = (
-                            msg.get("text", "")
-                            + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
+                            msg.get("text", "") + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
                         )
             processed_messages, _ = await self._formatter.process_message_batch(
                 list(messages_dict.values()), user_mentions
@@ -303,9 +300,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
         finally:
             # Re-archive the channel if we unarchived it
             if was_unarchived:
-                logger.info(
-                    "Re-archiving channel %s after fetching messages", channel_id
-                )
+                logger.info("Re-archiving channel %s after fetching messages", channel_id)
                 await self.archive_ops.archive_channel(
                     user_id=None, channel_id=channel_id, incoming_channel=channel_id
                 )
@@ -347,20 +342,14 @@ class SlackChannelMessageOps(SlackAsyncClient):
             # Unarchive if needed (same as sequential)
             was_unarchived = await self._temporarily_unarchive_if_needed(channel_id)
             if was_unarchived:
-                logger.info(
-                    "Successfully unarchived channel %s temporarily", channel_id
-                )
+                logger.info("Successfully unarchived channel %s temporarily", channel_id)
 
             # Phase 1: Discover all available pages first
             cursors = await self._discover_pagination_cursors(channel_id, oldest_ts)
-            logger.info(
-                "Discovered %d pages to fetch for channel %s", len(cursors), channel_id
-            )
+            logger.info("Discovered %d pages to fetch for channel %s", len(cursors), channel_id)
 
             # Phase 2: Fetch all pages in parallel with controlled concurrency
-            all_pages_data = await self._fetch_pages_parallel(
-                channel_id, cursors, oldest_ts
-            )
+            all_pages_data = await self._fetch_pages_parallel(channel_id, cursors, oldest_ts)
 
             # Phase 3: Process all collected data (same as sequential)
             for page_data in all_pages_data:
@@ -384,10 +373,8 @@ class SlackChannelMessageOps(SlackAsyncClient):
 
             # Fetch thread messages if any (reuse existing parallel implementation)
             if thread_timestamps:
-                thread_messages, thread_user_mentions = (
-                    await self._fetch_thread_messages_parallel(
-                        channel_id, thread_timestamps
-                    )
+                thread_messages, thread_user_mentions = await self._fetch_thread_messages_parallel(
+                    channel_id, thread_timestamps
                 )
                 for _, replies in thread_messages.items():
                     for reply in replies:
@@ -401,8 +388,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                     if f.get("mode") == "snippet" and f.get("url_private"):
                         snippet = await self.fetch_snippet_content(f["url_private"])
                         msg["text"] = (
-                            msg.get("text", "")
-                            + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
+                            msg.get("text", "") + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
                         )
 
             # Process messages using existing formatter (same as sequential)
@@ -457,12 +443,16 @@ class SlackChannelMessageOps(SlackAsyncClient):
                 # Convert to float, subtract 5 seconds for safety, then back to string
                 # This ensures messages with slightly larger decimal timestamps aren't missed
                 oldest_ts_buffered = str(float(oldest_ts) - 5)
-                logger.debug(f"Applied 5-second buffer to oldest timestamp in cursor discovery: {oldest_ts} -> {oldest_ts_buffered}")
+                logger.debug(
+                    f"Applied 5-second buffer to oldest timestamp in cursor discovery: {oldest_ts} -> {oldest_ts_buffered}"
+                )
             except (ValueError, TypeError):
                 # If conversion fails, use original value
                 oldest_ts_buffered = oldest_ts
-                logger.warning(f"Could not apply buffer to timestamp {oldest_ts} in cursor discovery, using original")
-        
+                logger.warning(
+                    f"Could not apply buffer to timestamp {oldest_ts} in cursor discovery, using original"
+                )
+
         # Use a small batch size for quick cursor discovery
         params = {
             "channel": channel_id,
@@ -483,9 +473,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
             response_data = orjson.loads(response["body"])
 
             if response_data.get("ok"):
-                next_cursor = response_data.get("response_metadata", {}).get(
-                    "next_cursor"
-                )
+                next_cursor = response_data.get("response_metadata", {}).get("next_cursor")
                 if next_cursor:
                     cursors.append(next_cursor)
                     cursor_count += 1
@@ -493,9 +481,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                     break
             else:
                 error = response_data.get("error")
-                logger.error(
-                    "Error discovering cursors for channel %s: %s", channel_id, error
-                )
+                logger.error("Error discovering cursors for channel %s: %s", channel_id, error)
                 # Re-raise to trigger sequential fallback
                 raise Exception(f"Slack API error during cursor discovery: {error}")
 
@@ -532,12 +518,16 @@ class SlackChannelMessageOps(SlackAsyncClient):
                 # Convert to float, subtract 5 seconds for safety, then back to string
                 # This ensures messages with slightly larger decimal timestamps aren't missed
                 oldest_ts_buffered = str(float(oldest_ts) - 5)
-                logger.debug(f"Applied 5-second buffer to oldest timestamp in parallel fetch: {oldest_ts} -> {oldest_ts_buffered}")
+                logger.debug(
+                    f"Applied 5-second buffer to oldest timestamp in parallel fetch: {oldest_ts} -> {oldest_ts_buffered}"
+                )
             except (ValueError, TypeError):
                 # If conversion fails, use original value
                 oldest_ts_buffered = oldest_ts
-                logger.warning(f"Could not apply buffer to timestamp {oldest_ts} in parallel fetch, using original")
-        
+                logger.warning(
+                    f"Could not apply buffer to timestamp {oldest_ts} in parallel fetch, using original"
+                )
+
         url = f"{await self.get_api_base_url()}/conversations.history"
         headers = self.headers
         batch_size = min(self._batch_sizer.get_size(), 200)
@@ -573,7 +563,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
 
             # Store results
             for idx, (batch_idx, result) in enumerate(
-                zip(batch_indices, batch_results)
+                zip(batch_indices, batch_results, strict=False)
             ):
                 if isinstance(result, Exception):
                     logger.error(
@@ -589,9 +579,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
 
             # Delay between batches to respect rate limits
             if i + concurrent_workers < len(cursors):
-                await asyncio.sleep(
-                    0.5
-                )  # Optimized: 50% faster while staying under limits
+                await asyncio.sleep(0.5)  # Optimized: 50% faster while staying under limits
 
         # Filter out failed pages
         successful_pages = [page for page in results if page is not None]
@@ -663,9 +651,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
         Raises:
             Exception: If the fetch or processing fails
         """
-        logger.info(
-            "Starting fetch_channel_messages_streaming for channel %s", channel_id
-        )
+        logger.info("Starting fetch_channel_messages_streaming for channel %s", channel_id)
 
         messages_dict: Dict[str, Dict[str, Any]] = {}
         user_mentions: Set[str] = set()
@@ -676,9 +662,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
         try:
             was_unarchived = await self._temporarily_unarchive_if_needed(channel_id)
             if was_unarchived:
-                logger.info(
-                    "Successfully unarchived channel %s temporarily", channel_id
-                )
+                logger.info("Successfully unarchived channel %s temporarily", channel_id)
 
             # Apply buffer to oldest timestamp to prevent precision mismatches
             oldest_ts_buffered = oldest_ts
@@ -687,12 +671,16 @@ class SlackChannelMessageOps(SlackAsyncClient):
                     # Convert to float, subtract 5 seconds for safety, then back to string
                     # This ensures messages with slightly larger decimal timestamps aren't missed
                     oldest_ts_buffered = str(float(oldest_ts) - 5)
-                    logger.debug(f"Applied 5-second buffer to oldest timestamp in streaming: {oldest_ts} -> {oldest_ts_buffered}")
+                    logger.debug(
+                        f"Applied 5-second buffer to oldest timestamp in streaming: {oldest_ts} -> {oldest_ts_buffered}"
+                    )
                 except (ValueError, TypeError):
                     # If conversion fails, use original value
                     oldest_ts_buffered = oldest_ts
-                    logger.warning(f"Could not apply buffer to timestamp {oldest_ts} in streaming, using original")
-            
+                    logger.warning(
+                        f"Could not apply buffer to timestamp {oldest_ts} in streaming, using original"
+                    )
+
             url = f"{await self.get_api_base_url()}/conversations.history"
             headers = self.headers
 
@@ -736,9 +724,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                             files = msg.get("files", [])
                             for f in files:
                                 if f.get("mode") == "snippet" and f.get("url_private"):
-                                    snippet = await self.fetch_snippet_content(
-                                        f["url_private"]
-                                    )
+                                    snippet = await self.fetch_snippet_content(f["url_private"])
                                     msg["text"] = (
                                         msg.get("text", "")
                                         + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
@@ -757,16 +743,12 @@ class SlackChannelMessageOps(SlackAsyncClient):
                         user_mentions.update(page_user_mentions)
                         thread_timestamps.extend(page_thread_timestamps)
 
-                        next_cursor = response_data.get("response_metadata", {}).get(
-                            "next_cursor"
-                        )
+                        next_cursor = response_data.get("response_metadata", {}).get("next_cursor")
                         if not next_cursor:
                             break
                     else:
                         error = response_data.get("error")
-                        logger.error(
-                            "Slack API error for channel %s: %s", channel_id, error
-                        )
+                        logger.error("Slack API error for channel %s: %s", channel_id, error)
                         self._batch_sizer.decrease_size()
                         raise Exception(f"Slack API error: {error}")
 
@@ -783,10 +765,8 @@ class SlackChannelMessageOps(SlackAsyncClient):
                         thread_timestamps.append(ts)
 
             if thread_timestamps:
-                thread_messages, thread_user_mentions = (
-                    await self._fetch_thread_messages_parallel(
-                        channel_id, thread_timestamps
-                    )
+                thread_messages, thread_user_mentions = await self._fetch_thread_messages_parallel(
+                    channel_id, thread_timestamps
                 )
 
                 thread_msgs_dict: Dict[str, Dict[str, Any]] = {}
@@ -801,8 +781,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                         if f.get("mode") == "snippet" and f.get("url_private"):
                             snippet = await self.fetch_snippet_content(f["url_private"])
                             msg["text"] = (
-                                msg.get("text", "")
-                                + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
+                                msg.get("text", "") + f"\n\n[Snippet: {f.get('name')}]\n{snippet}"
                             )
 
                 # Format and yield thread messages
@@ -814,15 +793,11 @@ class SlackChannelMessageOps(SlackAsyncClient):
                     if processed:
                         yield processed
 
-            logger.info(
-                "Completed streaming fetch for channel %s", channel_id
-            )
+            logger.info("Completed streaming fetch for channel %s", channel_id)
 
         finally:
             if was_unarchived:
-                logger.info(
-                    "Re-archiving channel %s after streaming fetch", channel_id
-                )
+                logger.info("Re-archiving channel %s after streaming fetch", channel_id)
                 await self.archive_ops.archive_channel(
                     user_id=None, channel_id=channel_id, incoming_channel=channel_id
                 )
@@ -857,9 +832,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
         Raises:
             Exception: If the fetch or processing fails
         """
-        logger.info(
-            "Starting fetch_channel_messages_pipeline for channel %s", channel_id
-        )
+        logger.info("Starting fetch_channel_messages_pipeline for channel %s", channel_id)
 
         async for message_batch in self.fetch_channel_messages_streaming(
             channel_id,
@@ -872,9 +845,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
             for message in message_batch:
                 yield message
 
-        logger.info(
-            "Completed pipeline fetch for channel %s", channel_id
-        )
+        logger.info("Completed pipeline fetch for channel %s", channel_id)
 
     async def fetch_channel_messages_collected(
         self,
@@ -908,9 +879,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
         Raises:
             Exception: If the fetch or processing fails
         """
-        logger.info(
-            "Starting collected pipeline fetch for channel %s", channel_id
-        )
+        logger.info("Starting collected pipeline fetch for channel %s", channel_id)
 
         all_messages = []
         async for message_batch in self.fetch_channel_messages_streaming(
@@ -953,17 +922,14 @@ class SlackChannelMessageOps(SlackAsyncClient):
             # Skip ALL bot messages (not just Ketchup's) - unless include_bot_messages is True
             # Check both user field matching bot_user_id AND presence of bot_id field
             if not include_bot_messages:
-                if (
-                    self._bot_user_id and msg.get("user") == self._bot_user_id
-                ) or msg.get("bot_id"):
+                if (self._bot_user_id and msg.get("user") == self._bot_user_id) or msg.get(
+                    "bot_id"
+                ):
                     # logger.info(f"Filtering out bot message: user={msg.get('user')}, bot_id={msg.get('bot_id')}")
                     continue
 
             # Skip system messages (joins, leaves, topic changes, etc.) unless explicitly included
-            if (
-                not include_system_messages
-                and msg.get("subtype") in FILTERED_SYSTEM_SUBTYPES
-            ):
+            if not include_system_messages and msg.get("subtype") in FILTERED_SYSTEM_SUBTYPES:
                 # logger.info(f"Filtering out system message: subtype={msg.get('subtype')}")
                 continue
 
@@ -982,14 +948,14 @@ class SlackChannelMessageOps(SlackAsyncClient):
 
             # Skip messages that are ONLY valid JIRA tickets (maintenance detection workflow replies)
             # Check for VALID_JIRA_PROJECTS patterns (CPGNREQ-12345, NEO-456, etc.)
-            jira_pattern = r'\b(' + '|'.join(VALID_JIRA_PROJECTS) + r')-\d+\b'
+            jira_pattern = r"\b(" + "|".join(VALID_JIRA_PROJECTS) + r")-\d+\b"
             if re.search(jira_pattern, text, re.IGNORECASE):
                 # Remove JIRA tickets and mentions to check remaining content
-                clean_text = re.sub(jira_pattern, '', text, flags=re.IGNORECASE)
-                clean_text = re.sub(r'<@[A-Z0-9]+(?:\|[^>]+)?>', '', clean_text)
-                clean_text = re.sub(r'<https?://[^>]+>', '', clean_text)  # Remove URLs
+                clean_text = re.sub(jira_pattern, "", text, flags=re.IGNORECASE)
+                clean_text = re.sub(r"<@[A-Z0-9]+(?:\|[^>]+)?>", "", clean_text)
+                clean_text = re.sub(r"<https?://[^>]+>", "", clean_text)  # Remove URLs
                 clean_text = clean_text.strip()
-                
+
                 # If less than 10 chars remain, this is likely just a JIRA ticket reply
                 if len(clean_text) < 10:
                     continue
@@ -1004,9 +970,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                 if "user" in msg:
                     user_mentions.add(msg["user"])
                 # Regex to find user mentions like <@Uxxxxxxx> or <@Uxxxxxxx|username>
-                user_mentions.update(
-                    re.findall(r"<@([A-Z0-9]+)(?:\|[^>]+)?>", msg["text"])
-                )
+                user_mentions.update(re.findall(r"<@([A-Z0-9]+)(?:\|[^>]+)?>", msg["text"]))
 
             # Track thread parent messages
             if "thread_ts" in msg and msg.get("ts") == msg.get("thread_ts"):
@@ -1047,9 +1011,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                     if "user" in msg:
                         user_mentions.add(msg["user"])
                     if "text" in msg:
-                        user_mentions.update(
-                            re.findall(r"<@([A-Z0-9]+)(?:\|[^>]+)?>", msg["text"])
-                        )
+                        user_mentions.update(re.findall(r"<@([A-Z0-9]+)(?:\|[^>]+)?>", msg["text"]))
 
                 # Small delay between requests to avoid rate limits
                 await asyncio.sleep(0.3)  # Balanced with reduced concurrent workers
@@ -1094,11 +1056,9 @@ class SlackChannelMessageOps(SlackAsyncClient):
             tasks = [self.fetch_thread_messages(channel_id, ts) for ts in batch]
             batch_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-            for thread_ts, result in zip(batch, batch_results):
+            for thread_ts, result in zip(batch, batch_results, strict=False):
                 if isinstance(result, Exception):
-                    logger.error(
-                        "Failed to fetch thread %s in parallel: %s", thread_ts, result
-                    )
+                    logger.error("Failed to fetch thread %s in parallel: %s", thread_ts, result)
                     results[thread_ts] = []  # Fallback to empty list
                 else:
                     results[thread_ts] = result
@@ -1198,9 +1158,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
             logger.error(f"Error checking thread activity: {e}")
             return False, since_ts, []
 
-    async def fetch_thread_messages(
-        self, channel_id: str, thread_ts: str
-    ) -> List[Dict]:
+    async def fetch_thread_messages(self, channel_id: str, thread_ts: str) -> List[Dict]:
         """
         Fetch all messages from a Slack thread using cursor-based pagination.
 
@@ -1257,9 +1215,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                 messages.extend(response_data.get("messages", []))
 
                 # Check for more messages in thread
-                next_cursor = response_data.get("response_metadata", {}).get(
-                    "next_cursor"
-                )
+                next_cursor = response_data.get("response_metadata", {}).get("next_cursor")
                 if not next_cursor:
                     break
 
@@ -1301,9 +1257,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
                 return response_data["channel"].get("is_archived", False)
             return False
         except Exception as e:
-            logger.error(
-                "Error checking if channel %s is archived: %s", channel_id, str(e)
-            )
+            logger.error("Error checking if channel %s is archived: %s", channel_id, str(e))
             return False
 
     async def _temporarily_unarchive_if_needed(self, channel_id: str) -> bool:
@@ -1329,9 +1283,7 @@ class SlackChannelMessageOps(SlackAsyncClient):
 class BatchSizeManager:
     """Manages adaptive batch sizing for API requests."""
 
-    def __init__(
-        self, initial_size: int = 100, min_size: int = 20, max_size: int = 200
-    ):
+    def __init__(self, initial_size: int = 100, min_size: int = 20, max_size: int = 200):
         self.size = initial_size
         self.min_size = min_size
         self.max_size = max_size

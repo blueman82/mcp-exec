@@ -33,8 +33,7 @@ async def parse_json_response(response) -> Any:
     except aiohttp.ClientConnectionError as e:
         # Log additional context about the connection error
         logger.error(
-            "Connection closed while reading response body. "
-            "Status: %s, URL: %s, Headers: %s",
+            "Connection closed while reading response body. " "Status: %s, URL: %s, Headers: %s",
             getattr(response, "status", "unknown"),
             getattr(response, "url", "unknown"),
             dict(getattr(response, "headers", {})),

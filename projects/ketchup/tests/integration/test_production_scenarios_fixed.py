@@ -18,8 +18,6 @@ CRITICAL: These are the exact failures from production that must be fixed.
 import asyncio
 import os
 import unittest
-from typing import cast
-from unittest.mock import AsyncMock, Mock, patch
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di_integration import get_unified_container
@@ -75,7 +73,6 @@ class TestProductionScenariosFailed(unittest.IsolatedAsyncioTestCase):
         Production Issue: Status command handler couldn't access user_store
         Expected Fix: Resolution works through TypedDI
         """
-        from packages.slack.command_processing.status_report_command import SlackReports
 
         container = await get_unified_container()
 
@@ -109,6 +106,7 @@ class TestProductionScenariosFailed(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.INFO)
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
     unittest.main()

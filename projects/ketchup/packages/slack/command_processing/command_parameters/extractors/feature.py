@@ -23,9 +23,7 @@ from packages.slack.command_processing.command_parameters.validation import (
 logger = setup_logger(__name__)
 
 
-def extract_feature_params(
-    command: str, context: CommandContext
-) -> FeatureCommandParams:
+def extract_feature_params(command: str, context: CommandContext) -> FeatureCommandParams:
     """
     Extract parameters for feature commands.
 

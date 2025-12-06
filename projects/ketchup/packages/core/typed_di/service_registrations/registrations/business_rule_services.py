@@ -20,11 +20,11 @@ from packages.core.logging import setup_logger
 # Essential imports for business rule services
 try:
     from packages.core.business import (
-        RuleEngineService,
-        PolicyValidationService,
-        ComplianceService,
         AuditService,
+        ComplianceService,
         GovernanceService,
+        PolicyValidationService,
+        RuleEngineService,
     )
 except ImportError:
     # Allow module to load even with missing imports for testing
@@ -35,11 +35,11 @@ if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
 from ..protocols import (
-    RuleEngineServiceProtocol,
-    PolicyValidationServiceProtocol,
-    ComplianceServiceProtocol,
     AuditServiceProtocol,
+    ComplianceServiceProtocol,
     GovernanceServiceProtocol,
+    PolicyValidationServiceProtocol,
+    RuleEngineServiceProtocol,
 )
 
 logger = setup_logger(__name__)
@@ -68,6 +68,7 @@ def register_business_rule_services(manager: "ServiceRegistrationManager") -> No
 
 def _register_rule_engine_services(manager: "ServiceRegistrationManager") -> None:
     """Register rule engine services."""
+
     # RuleEngineService
     async def create_rule_engine_service(resolver) -> RuleEngineService:
         """Factory function for RuleEngineService using TypedResolver."""
@@ -85,6 +86,7 @@ def _register_rule_engine_services(manager: "ServiceRegistrationManager") -> Non
 
 def _register_policy_services(manager: "ServiceRegistrationManager") -> None:
     """Register policy validation services."""
+
     # PolicyValidationService
     async def create_policy_validation_service(resolver) -> PolicyValidationService:
         """Factory function for PolicyValidationService using TypedResolver."""
@@ -102,6 +104,7 @@ def _register_policy_services(manager: "ServiceRegistrationManager") -> None:
 
 def _register_compliance_services(manager: "ServiceRegistrationManager") -> None:
     """Register compliance checking services."""
+
     # ComplianceService
     async def create_compliance_service(resolver) -> ComplianceService:
         """Factory function for ComplianceService using TypedResolver."""
@@ -119,6 +122,7 @@ def _register_compliance_services(manager: "ServiceRegistrationManager") -> None
 
 def _register_audit_services(manager: "ServiceRegistrationManager") -> None:
     """Register audit and logging services."""
+
     # AuditService
     async def create_audit_service(resolver) -> AuditService:
         """Factory function for AuditService using TypedResolver."""
@@ -136,6 +140,7 @@ def _register_audit_services(manager: "ServiceRegistrationManager") -> None:
 
 def _register_governance_services(manager: "ServiceRegistrationManager") -> None:
     """Register governance and policy management services."""
+
     # GovernanceService
     async def create_governance_service(resolver) -> GovernanceService:
         """Factory function for GovernanceService using TypedResolver."""

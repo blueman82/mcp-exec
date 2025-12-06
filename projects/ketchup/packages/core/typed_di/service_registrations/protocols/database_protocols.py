@@ -7,7 +7,6 @@ migrations, backups, monitoring, and optimization operations.
 
 from typing import Protocol, runtime_checkable
 
-
 __all__ = [
     "DatabaseConnectionServiceProtocol",
     "DatabaseMigrationServiceProtocol",

@@ -41,9 +41,10 @@ def mock_table_name() -> str:
 
 @pytest.fixture
 def channel_ops(mock_client: MagicMock, mock_table_name: str) -> ChannelOperations:
-    with patch.object(
-        channel_ops_mod, "ChannelQueryOperations", autospec=True
-    ), patch.object(channel_ops_mod, "ChannelFilterOperations", autospec=True):
+    with (
+        patch.object(channel_ops_mod, "ChannelQueryOperations", autospec=True),
+        patch.object(channel_ops_mod, "ChannelFilterOperations", autospec=True),
+    ):
         return ChannelOperations(mock_client, mock_table_name)
 
 
@@ -123,9 +124,7 @@ async def test_get_all_channel_details_client_error(
 ) -> None:
     err = ClientError({"Error": {"Code": "X", "Message": "fail"}}, "op")
     channel_ops.query_ops._get_all_channels_scan = AsyncMock(side_effect=err)
-    channel_ops.query_ops._handle_dynamo_error = MagicMock(
-        return_value={"error": "handled"}
-    )
+    channel_ops.query_ops._handle_dynamo_error = MagicMock(return_value={"error": "handled"})
     monkeypatch.setattr(channel_ops, "_normalize_item", lambda x: x)
     result = await channel_ops.get_all_channel_details()
     assert result == {"error": "handled"}
@@ -135,9 +134,7 @@ async def test_get_all_channel_details_client_error(
 async def test_get_all_channel_details_unexpected_error(
     monkeypatch, channel_ops: ChannelOperations
 ) -> None:
-    channel_ops.query_ops._get_all_channels_scan = AsyncMock(
-        side_effect=Exception("fail")
-    )
+    channel_ops.query_ops._get_all_channels_scan = AsyncMock(side_effect=Exception("fail"))
     monkeypatch.setattr(channel_ops, "_normalize_item", lambda x: x)
     result = await channel_ops.get_all_channel_details()
     assert result == {}
@@ -149,13 +146,9 @@ async def test_ensure_channels_exist_empty(channel_ops: ChannelOperations) -> No
 
 
 @pytest.mark.asyncio
-async def test_ensure_channels_exist_all_exist(
-    monkeypatch, channel_ops: ChannelOperations
-) -> None:
+async def test_ensure_channels_exist_all_exist(monkeypatch, channel_ops: ChannelOperations) -> None:
     # All channels already exist
-    channel_ops.query_ops._get_all_channels_scan = AsyncMock(
-        return_value={"id1": {}, "id2": {}}
-    )
+    channel_ops.query_ops._get_all_channels_scan = AsyncMock(return_value={"id1": {}, "id2": {}})
     await channel_ops.ensure_channels_exist(
         [
             {"id": "id1", "name": "foo"},
@@ -228,9 +221,7 @@ async def test_ensure_channels_exist_batch_write_error(
 async def test_ensure_channels_exist_unexpected_error(
     channel_ops: ChannelOperations,
 ) -> None:
-    channel_ops.query_ops._get_all_channels_scan = AsyncMock(
-        side_effect=Exception("fail")
-    )
+    channel_ops.query_ops._get_all_channels_scan = AsyncMock(side_effect=Exception("fail"))
     await channel_ops.ensure_channels_exist(
         [
             {"id": "id1", "name": "foo"},
@@ -247,9 +238,7 @@ async def test_get_channel_details_delegates(channel_ops: ChannelOperations) -> 
 
 
 @pytest.mark.asyncio
-async def test_store_metadata_success(
-    monkeypatch, channel_ops: ChannelOperations
-) -> None:
+async def test_store_metadata_success(monkeypatch, channel_ops: ChannelOperations) -> None:
     mock_metadata = MagicMock()
     mock_metadata.channel_id = "id"
     mock_metadata.channel_name = "name"
@@ -260,9 +249,7 @@ async def test_store_metadata_success(
 
 
 @pytest.mark.asyncio
-async def test_store_metadata_client_error(
-    monkeypatch, channel_ops: ChannelOperations
-) -> None:
+async def test_store_metadata_client_error(monkeypatch, channel_ops: ChannelOperations) -> None:
     mock_metadata = MagicMock()
     mock_metadata.channel_id = "id"
     mock_metadata.channel_name = "name"
@@ -274,9 +261,7 @@ async def test_store_metadata_client_error(
 
 
 @pytest.mark.asyncio
-async def test_store_metadata_unexpected_error(
-    monkeypatch, channel_ops: ChannelOperations
-) -> None:
+async def test_store_metadata_unexpected_error(monkeypatch, channel_ops: ChannelOperations) -> None:
     mock_metadata = MagicMock()
     mock_metadata.channel_id = "id"
     mock_metadata.channel_name = "name"

@@ -34,18 +34,19 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch(
-            "ketchup_status_updater.status_generator.MessagePreparer"
-        ) as mock_preparer:
+        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
 
             # Mock MessagePreparer to return no new messages
             preparer_instance = MagicMock()
             preparer_instance.prepare_messages_for_auto_status = AsyncMock(
-                return_value=("No messages found", {
-                    "latest_ts": "100000",
-                    "has_channel_messages": False,
-                    "has_thread_activity": False
-                })
+                return_value=(
+                    "No messages found",
+                    {
+                        "latest_ts": "100000",
+                        "has_channel_messages": False,
+                        "has_thread_activity": False,
+                    },
+                )
             )
             mock_preparer.return_value = preparer_instance
 
@@ -89,8 +90,7 @@ class TestActivityIndicatorsFlow:
             ai_call_args = generator._generate_ai_response.call_args
             user_prompt = ai_call_args[1]["user_prompt"]
             assert (
-                "While there are no new Slack messages, there ARE new JIRA comments"
-                in user_prompt
+                "While there are no new Slack messages, there ARE new JIRA comments" in user_prompt
             )
             assert (
                 "Your Overview MUST mention that this update is based on JIRA activity"
@@ -110,18 +110,19 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch(
-            "ketchup_status_updater.status_generator.MessagePreparer"
-        ) as mock_preparer:
+        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
 
             # Mock MessagePreparer to return new messages
             preparer_instance = MagicMock()
             preparer_instance.prepare_messages_for_auto_status = AsyncMock(
-                return_value=("New Slack messages here", {
-                    "latest_ts": "200000",
-                    "has_channel_messages": True,
-                    "has_thread_activity": False
-                })
+                return_value=(
+                    "New Slack messages here",
+                    {
+                        "latest_ts": "200000",
+                        "has_channel_messages": True,
+                        "has_thread_activity": False,
+                    },
+                )
             )
             mock_preparer.return_value = preparer_instance
 
@@ -164,7 +165,8 @@ class TestActivityIndicatorsFlow:
             ai_call_args = generator._generate_ai_response.call_args
             user_prompt = ai_call_args[1]["user_prompt"]
             assert (
-                "There are both new Slack messages" in user_prompt and "AND new JIRA comments" in user_prompt
+                "There are both new Slack messages" in user_prompt
+                and "AND new JIRA comments" in user_prompt
             )
 
             # Verify the posted message includes both indicators
@@ -180,18 +182,19 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch(
-            "ketchup_status_updater.status_generator.MessagePreparer"
-        ) as mock_preparer:
+        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
 
             # Mock MessagePreparer to return new messages
             preparer_instance = MagicMock()
             preparer_instance.prepare_messages_for_auto_status = AsyncMock(
-                return_value=("New Slack messages here", {
-                    "latest_ts": "200000",
-                    "has_channel_messages": True,
-                    "has_thread_activity": False
-                })
+                return_value=(
+                    "New Slack messages here",
+                    {
+                        "latest_ts": "200000",
+                        "has_channel_messages": True,
+                        "has_thread_activity": False,
+                    },
+                )
             )
             mock_preparer.return_value = preparer_instance
 

@@ -9,22 +9,22 @@ from typing import Any, Dict
 
 from packages.core.logging import setup_logger
 from packages.db.dynamodb_store import DynamoDBStore
-from packages.slack.messages.posting import SlackPostingHandler
-from packages.slack.interactive_elements.flag_review.modal_orchestrator import (
-    ModalOrchestrator,
-)
 from packages.slack.interactive_elements.flag_review.api_client import (
     FlagReviewApiClient,
-)
-from packages.slack.interactive_elements.flag_review.notification_sender import (
-    NotificationSender,
 )
 from packages.slack.interactive_elements.flag_review.block_builder import (
     BlockBuilder,
 )
+from packages.slack.interactive_elements.flag_review.modal_orchestrator import (
+    ModalOrchestrator,
+)
+from packages.slack.interactive_elements.flag_review.notification_sender import (
+    NotificationSender,
+)
 from packages.slack.interactive_elements.flag_review.review_poster import (
     ReviewPoster,
 )
+from packages.slack.messages.posting import SlackPostingHandler
 
 logger = setup_logger(__name__)
 
@@ -45,11 +45,15 @@ class CommandFlagProcessor:
 
         # Initialize delegate modules
         # Create a dependency container with getter methods as expected by modules
-        dependency_container = type('Container', (), {
-            'get_posting_handler': lambda self: posting_handler,
-            'get_db_store': lambda self: db_store,
-            'get_secrets_manager': lambda self: secrets_manager
-        })()
+        dependency_container = type(
+            "Container",
+            (),
+            {
+                "get_posting_handler": lambda self: posting_handler,
+                "get_db_store": lambda self: db_store,
+                "get_secrets_manager": lambda self: secrets_manager,
+            },
+        )()
 
         self.modal_orchestrator = ModalOrchestrator(posting_handler, secrets_manager)
         self.api_client = FlagReviewApiClient(dependency_container)
@@ -130,9 +134,7 @@ class CommandFlagProcessor:
             # Extract form data
             values = payload.get("view", {}).get("state", {}).get("values", {})
             feedback_text = (
-                values.get("feedback_block", {})
-                .get("feedback_input", {})
-                .get("value", "")
+                values.get("feedback_block", {}).get("feedback_input", {}).get("value", "")
             )
 
             # Extract metadata
@@ -174,7 +176,7 @@ class CommandFlagProcessor:
             # Send success notification
             await self.notification_sender.send_dm_confirmation(
                 user_id=user_id,
-                confirmation_message=f"Thank you! Your feedback for the /ketchup {command_type} command has been received and will be reviewed by our team."
+                confirmation_message=f"Thank you! Your feedback for the /ketchup {command_type} command has been received and will be reviewed by our team.",
             )
 
             return True
@@ -266,9 +268,7 @@ class CommandFlagProcessor:
 
             # Extract reply text
             values = payload.get("view", {}).get("state", {}).get("values", {})
-            reply_text = (
-                values.get("reply_block", {}).get("reply_input", {}).get("value", "")
-            )
+            reply_text = values.get("reply_block", {}).get("reply_input", {}).get("value", "")
 
             # Extract metadata
             private_metadata = payload.get("view", {}).get("private_metadata", "")
@@ -311,8 +311,13 @@ class CommandFlagProcessor:
     # Helper methods delegate to specialized modules
 
     async def post_command_to_review_channel(
-        self, channel_id: str, command_execution_id: str,
-        command_type: str, user_id: str, user_name: str, feedback_text: str
+        self,
+        channel_id: str,
+        command_execution_id: str,
+        command_type: str,
+        user_id: str,
+        user_name: str,
+        feedback_text: str,
     ) -> None:
         """Post command feedback to review channel."""
         # Use block_builder for correct command flag buttons (acknowledge_command_feedback)
@@ -323,19 +328,23 @@ class CommandFlagProcessor:
             user_id=user_id,
             feedback_text=feedback_text,
             command_output=None,  # Command output not needed in review message
-            validation_issues=[]
+            validation_issues=[],
         )
 
         # Post to review channel with proper command flag buttons
         await self.posting_handler.post_message(
             channel_id="C095LQ0H4KB",  # REVIEW_CHANNEL_ID
             message=f"Command flagged for review: /ketchup {command_type}",
-            blocks=blocks
+            blocks=blocks,
         )
 
     async def update_command_feedback_status(
-        self, channel_id: str, command_execution_id: str,
-        original_user_id: str, status: str, acknowledged_by: str
+        self,
+        channel_id: str,
+        command_execution_id: str,
+        original_user_id: str,
+        status: str,
+        acknowledged_by: str,
     ) -> None:
         """Update command feedback status in database."""
         await self.db_store.client.update_item(
@@ -358,6 +367,7 @@ class CommandFlagProcessor:
         from packages.slack.interactive_elements.flag_review.message_updater import (
             MessageUpdater,
         )
+
         updater = MessageUpdater(self.posting_handler)
         await updater.update_review_message(payload, admin_id)
 
@@ -368,6 +378,7 @@ class CommandFlagProcessor:
         from packages.slack.interactive_elements.flag_review.message_updater import (
             MessageUpdater,
         )
+
         updater = MessageUpdater(self.posting_handler)
         await updater.update_review_message_with_reply(payload, admin_id)
 

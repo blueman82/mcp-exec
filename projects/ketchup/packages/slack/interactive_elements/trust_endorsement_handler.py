@@ -52,9 +52,7 @@ class TrustEndorsementHandler:
         try:
             # Check if trust feature is enabled
             if not FeatureFlags.is_trust_endorsement_enabled():
-                logger.warning(
-                    "Trust endorsement button clicked but feature is disabled"
-                )
+                logger.warning("Trust endorsement button clicked but feature is disabled")
                 return False
 
             # Extract required data from payload
@@ -103,9 +101,7 @@ class TrustEndorsementHandler:
 
             if user_already_trusted:
                 # User already trusted - do nothing, no update needed
-                logger.info(
-                    f"User {user_id} already trusted this update, skipping message update"
-                )
+                logger.info(f"User {user_id} already trusted this update, skipping message update")
                 return True
 
             # Get updated trust display for new trust
@@ -144,9 +140,7 @@ class TrustEndorsementHandler:
         try:
             # Check if trust feature is enabled
             if not FeatureFlags.is_trust_endorsement_enabled():
-                logger.warning(
-                    "Trust endorsement button clicked but feature is disabled"
-                )
+                logger.warning("Trust endorsement button clicked but feature is disabled")
                 return False
 
             # Extract required data from payload
@@ -168,7 +162,9 @@ class TrustEndorsementHandler:
             # Validate inputs
             if not all([user_id, command_execution_id, channel_id]):
                 logger.error("Missing required data in command trust action payload")
-                logger.error(f"Missing: user_id={bool(user_id)}, command_execution_id={bool(command_execution_id)}, channel_id={bool(channel_id)}")
+                logger.error(
+                    f"Missing: user_id={bool(user_id)}, command_execution_id={bool(command_execution_id)}, channel_id={bool(channel_id)}"
+                )
                 return False
 
             # Check rate limiting
@@ -210,14 +206,10 @@ class TrustEndorsementHandler:
                 logger.info(
                     f"Direct lookup failed for channel {channel_id}, scanning for command execution {command_execution_id}"
                 )
-                actual_channel_id = await self._find_command_execution_channel(
-                    command_execution_id
-                )
+                actual_channel_id = await self._find_command_execution_channel(command_execution_id)
 
             if not actual_channel_id:
-                logger.error(
-                    f"Could not find channel for command execution {command_execution_id}"
-                )
+                logger.error(f"Could not find channel for command execution {command_execution_id}")
                 return False
 
             # Add command trust endorsement using the actual channel
@@ -278,13 +270,9 @@ class TrustEndorsementHandler:
                     filter_expression="SK = :sk",
                     expression_attribute_values={":sk": sk_value},
                 )
-                logger.info(
-                    f"Using wrapper scan method, response type: {type(response)}"
-                )
+                logger.info(f"Using wrapper scan method, response type: {type(response)}")
             except Exception as wrapper_error:
-                logger.warning(
-                    f"Wrapper scan failed, trying direct client: {wrapper_error}"
-                )
+                logger.warning(f"Wrapper scan failed, trying direct client: {wrapper_error}")
                 # Fallback to direct boto3 client
                 underlying_client = await self.db_store.client._get_client()
                 response = await underlying_client.scan(
@@ -325,9 +313,7 @@ class TrustEndorsementHandler:
                     logger.info(f"Extracted channel_id from PK: {extracted_channel}")
                     return extracted_channel
 
-            logger.warning(
-                f"No command execution record found for {command_execution_id}"
-            )
+            logger.warning(f"No command execution record found for {command_execution_id}")
             return None
 
         except Exception as e:
@@ -399,9 +385,7 @@ class TrustEndorsementHandler:
             return {"display": "", "user_already_trusted": False}
 
         # Sort by trust time (most recent first)
-        trusted_by_sorted = sorted(
-            trusted_by, key=lambda x: x.get("trusted_at", 0), reverse=True
-        )
+        trusted_by_sorted = sorted(trusted_by, key=lambda x: x.get("trusted_at", 0), reverse=True)
 
         # Format for display
         if len(trusted_by_sorted) <= 3:
@@ -533,12 +517,8 @@ class TrustEndorsementHandler:
 
             timeout = aiohttp.ClientTimeout(total=120)
             async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.post(
-                    url, headers=headers, json=api_payload
-                ) as response:
-                    logger.info(
-                        f"Trust acknowledgment modal response status: {response.status}"
-                    )
+                async with session.post(url, headers=headers, json=api_payload) as response:
+                    logger.info(f"Trust acknowledgment modal response status: {response.status}")
                     response_data = await response.json()
 
                     if not response_data.get("ok"):

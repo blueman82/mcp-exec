@@ -52,9 +52,7 @@ class UserStore:
 
             item = response.get("Item")
             if item:
-                logger.info(
-                    "Found user information in DynamoDB for user ID: %s", user_id
-                )
+                logger.info("Found user information in DynamoDB for user ID: %s", user_id)
 
                 # Create a normalized user dict
                 user_dict = {
@@ -67,9 +65,7 @@ class UserStore:
                 # Add features if present
                 if "features" in item:
                     features_map = item["features"].get("M", {})
-                    user_dict["features"] = self._parse_features_from_dynamodb(
-                        features_map
-                    )
+                    user_dict["features"] = self._parse_features_from_dynamodb(features_map)
 
                 # Add preferences if present
                 if "preferences" in item:
@@ -139,9 +135,7 @@ class UserStore:
 
             # Add preferences if they exist
             if "preferences" in user_data:
-                preferences_map = self._convert_preferences_to_dynamodb(
-                    user_data["preferences"]
-                )
+                preferences_map = self._convert_preferences_to_dynamodb(user_data["preferences"])
                 item["preferences"] = {"M": preferences_map}
 
             # Use injected async client and await the call
@@ -187,9 +181,7 @@ class UserStore:
 
         return await self.store_user(user_data)
 
-    async def set_user_feature(
-        self, user_id: str, feature_name: str, value: bool
-    ) -> bool:
+    async def set_user_feature(self, user_id: str, feature_name: str, value: bool) -> bool:
         """
         Set a feature flag for a user.
 
@@ -286,9 +278,7 @@ class UserStore:
                     # Add features if present
                     if "features" in item:
                         features_map = item["features"].get("M", {})
-                        user_dict["features"] = self._parse_features_from_dynamodb(
-                            features_map
-                        )
+                        user_dict["features"] = self._parse_features_from_dynamodb(features_map)
 
                     users.append(user_dict)
 
@@ -332,9 +322,7 @@ class UserStore:
 
                 # Use the underlying client to make the batch_get_item call
                 request_items = {self.table_name: {"Keys": keys}}
-                response = await underlying_client.batch_get_item(
-                    RequestItems=request_items
-                )
+                response = await underlying_client.batch_get_item(RequestItems=request_items)
 
                 items = response.get("Responses", {}).get(self.table_name, [])
                 for item in items:
@@ -344,9 +332,7 @@ class UserStore:
                     user_cache[user_id] = real_name
 
                 # Handle unprocessed keys if the async client provides them
-                unprocessed_keys = response.get("UnprocessedKeys", {}).get(
-                    self.table_name
-                )
+                unprocessed_keys = response.get("UnprocessedKeys", {}).get(self.table_name)
                 if unprocessed_keys:
                     logger.warning("Unprocessed keys found: %s", unprocessed_keys)
                     # Implement retry logic for unprocessed keys if needed
@@ -356,18 +342,14 @@ class UserStore:
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
             error_message = e.response["Error"]["Message"]
-            logger.error(
-                "DynamoDB error getting users: %s - %s", error_code, error_message
-            )
+            logger.error("DynamoDB error getting users: %s - %s", error_code, error_message)
             return {}
         except Exception as e:
             # Catch specific exceptions if DynamoDBAsyncClient defines them
             logger.error("Unexpected error getting users: %s", str(e))
             return {}
 
-    async def batch_store_users(
-        self, user_data: List[Dict[str, str]]
-    ) -> Tuple[int, int]:
+    async def batch_store_users(self, user_data: List[Dict[str, str]]) -> Tuple[int, int]:
         """
         Store multiple users in DynamoDB using async batch operations.
 
@@ -401,9 +383,7 @@ class UserStore:
             put_requests=put_requests,
         )
 
-    async def store_user_preferences(
-        self, user_id: str, preferences: Dict[str, Any]
-    ) -> None:
+    async def store_user_preferences(self, user_id: str, preferences: Dict[str, Any]) -> None:
         """
         Stores or updates user preferences in DynamoDB.
 
@@ -415,11 +395,7 @@ class UserStore:
 
         # Retrieve existing user data to preserve real_name
         existing_user_data = await self.get_user(user_id)
-        real_name = (
-            existing_user_data.get("real_name")
-            if existing_user_data
-            else "Unknown User"
-        )
+        real_name = existing_user_data.get("real_name") if existing_user_data else "Unknown User"
 
         item = {
             "PK": {"S": f"USER#{user_id}"},
@@ -431,9 +407,7 @@ class UserStore:
 
         # Preserve features if they exist
         if existing_user_data and "features" in existing_user_data:
-            features_map = self._convert_features_to_dynamodb(
-                existing_user_data["features"]
-            )
+            features_map = self._convert_features_to_dynamodb(existing_user_data["features"])
             item["features"] = {"M": features_map}
 
         # Preserve authorized flag if it exists
@@ -446,9 +420,7 @@ class UserStore:
         except Exception as e:
             logger.error("Unexpected error storing user preferences: %s", str(e))
 
-    def _convert_preferences_to_dynamodb(
-        self, preferences: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _convert_preferences_to_dynamodb(self, preferences: Dict[str, Any]) -> Dict[str, Any]:
         """
         Convert a preferences dictionary to DynamoDB format.
 
@@ -462,9 +434,7 @@ class UserStore:
 
         # Convert product_focus (list of strings)
         if "product_focus" in preferences:
-            product_focus_list = [
-                {"S": product} for product in preferences["product_focus"]
-            ]
+            product_focus_list = [{"S": product} for product in preferences["product_focus"]]
             preferences_map["product_focus"] = {"L": product_focus_list}
 
         # Convert detail_level (string)
@@ -552,15 +522,11 @@ class UserStore:
 
         # Convert detail_level (string)
         if "detail_level" in preferences_map:
-            preferences["detail_level"] = preferences_map["detail_level"].get(
-                "S", "balanced"
-            )
+            preferences["detail_level"] = preferences_map["detail_level"].get("S", "balanced")
 
         # Convert time_window (string)
         if "time_window" in preferences_map:
-            preferences["time_window"] = preferences_map["time_window"].get(
-                "S", "past_24_hours"
-            )
+            preferences["time_window"] = preferences_map["time_window"].get("S", "past_24_hours")
 
         # Convert include_in_summary (list of strings)
         if "include_in_summary" in preferences_map:
@@ -597,9 +563,7 @@ class UserStore:
             logger.error(f"Error checking user authorization: {e}")
             return False
 
-    async def get_channel_feature(
-        self, channel_id: str, feature_name: str
-    ) -> Optional[bool]:
+    async def get_channel_feature(self, channel_id: str, feature_name: str) -> Optional[bool]:
         """
         Get a feature flag value for a channel.
 
@@ -626,9 +590,7 @@ class UserStore:
             logger.error(f"Error getting channel feature {feature_name}: {e}")
             return None
 
-    async def set_channel_feature(
-        self, channel_id: str, feature_name: str, value: bool
-    ) -> bool:
+    async def set_channel_feature(self, channel_id: str, feature_name: str, value: bool) -> bool:
         """
         Set a feature flag value for a channel.
 
@@ -656,9 +618,7 @@ class UserStore:
                 )
                 return True
             except Exception as e:
-                if "ConditionalCheckFailedException" in str(
-                    e
-                ) or "ValidationException" in str(e):
+                if "ConditionalCheckFailedException" in str(e) or "ValidationException" in str(e):
                     # Features doesn't exist, create it
                     await self.client.update_item(
                         key={
@@ -678,9 +638,7 @@ class UserStore:
             logger.error(f"Error setting channel feature {feature_name}: {e}")
             return False
 
-    async def get_channels_with_feature(
-        self, feature_name: str, value: bool
-    ) -> List[str]:
+    async def get_channels_with_feature(self, feature_name: str, value: bool) -> List[str]:
         """
         Get all channels that have a specific feature enabled.
 
@@ -742,9 +700,7 @@ class UserStore:
                         if channel_id:
                             channel_ids.append(channel_id)
 
-            logger.info(
-                f"Found {len(channel_ids)} channels with feature {feature_name}={value}"
-            )
+            logger.info(f"Found {len(channel_ids)} channels with feature {feature_name}={value}")
             return channel_ids
 
         except Exception as e:

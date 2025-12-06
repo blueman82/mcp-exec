@@ -36,9 +36,7 @@ class TestNewChannelVerification:
         )
 
         mock_channel_msg_ops = Mock()
-        mock_channel_msg_ops.get_api_base_url = AsyncMock(
-            return_value="https://slack.com/api"
-        )
+        mock_channel_msg_ops.get_api_base_url = AsyncMock(return_value="https://slack.com/api")
         mock_channel_msg_ops.headers = {"Authorization": "Bearer test"}
         mock_channel_msg_ops._bot_user_id = "U12345"
         mock_channel_msg_ops.check_recent_thread_activity = AsyncMock(
@@ -120,9 +118,7 @@ class TestNewChannelVerification:
         )
 
         mock_channel_msg_ops = Mock()
-        mock_channel_msg_ops.get_api_base_url = AsyncMock(
-            return_value="https://slack.com/api"
-        )
+        mock_channel_msg_ops.get_api_base_url = AsyncMock(return_value="https://slack.com/api")
         mock_channel_msg_ops.headers = {"Authorization": "Bearer test"}
         mock_channel_msg_ops._bot_user_id = "U12345"
         mock_channel_msg_ops.check_recent_thread_activity = AsyncMock(
@@ -172,7 +168,9 @@ class TestNewChannelVerification:
         assert api_params_captured["limit"] == 10
         # Critical: oldest SHOULD be included for existing channels (with 5-second buffer applied)
         assert "oldest" in api_params_captured
-        assert api_params_captured["oldest"] == "1752229995.123456"  # 5 seconds subtracted for safety buffer
+        assert (
+            api_params_captured["oldest"] == "1752229995.123456"
+        )  # 5 seconds subtracted for safety buffer
 
     @pytest.mark.asyncio
     async def test_first_run_channel_forces_status_post(self):
@@ -188,9 +186,7 @@ class TestNewChannelVerification:
 
         # Mock dependencies
         mock_channel_ops = Mock()
-        mock_channel_ops.query_ops.get_channel_details = AsyncMock(
-            return_value=channel_data
-        )
+        mock_channel_ops.query_ops.get_channel_details = AsyncMock(return_value=channel_data)
         mock_channel_ops.update_channel_fields = AsyncMock()
 
         mock_channel_membership_ops = Mock()

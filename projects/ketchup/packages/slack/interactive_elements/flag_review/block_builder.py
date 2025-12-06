@@ -160,16 +160,12 @@ class BlockBuilder:
 
         # Add action buttons
         blocks.append(
-            self._create_command_action_buttons(
-                channel_id, command_execution_id, user_id
-            )
+            self._create_command_action_buttons(channel_id, command_execution_id, user_id)
         )
 
         return blocks
 
-    def _create_command_output_blocks(
-        self, command_output: str
-    ) -> List[Dict[str, Any]]:
+    def _create_command_output_blocks(self, command_output: str) -> List[Dict[str, Any]]:
         """Create blocks for command output display.
 
         Args:
@@ -199,9 +195,7 @@ class BlockBuilder:
             },
         ]
 
-    def _create_validation_warning_block(
-        self, validation_issues: List[str]
-    ) -> Dict[str, Any]:
+    def _create_validation_warning_block(self, validation_issues: List[str]) -> Dict[str, Any]:
         """Create validation warning context block.
 
         Args:
@@ -370,9 +364,7 @@ class BlockBuilder:
             blocks.append(self._create_validation_warning_block(validation_issues))
 
         # Add action buttons
-        blocks.append(
-            self._create_summary_action_buttons(channel_id, message_ts, user_id)
-        )
+        blocks.append(self._create_summary_action_buttons(channel_id, message_ts, user_id))
 
         return blocks
 

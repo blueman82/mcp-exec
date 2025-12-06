@@ -48,9 +48,7 @@ def _load_service_interface_index() -> Dict[str, Dict[str, List[Dict[str, str]]]
     index: Dict[str, Dict[str, List[Dict[str, str]]]] = {}
     for cls in entries:
         class_name = cls.get("class_name")
-        module_path = cls.get(
-            "module_path"
-        )  # e.g., "slack.command_processing.archive_command"
+        module_path = cls.get("module_path")  # e.g., "slack.command_processing.archive_command"
         ctor_params = cls.get("constructor_params", [])
         if not class_name or not module_path:
             continue
@@ -77,11 +75,7 @@ def _get_required_param_type_names_from_analysis(
         # Treat params without defaults as required
         if name and default is None:
             # Normalize quoted annotations like "'SecretsManager'"
-            if (
-                isinstance(type_ann, str)
-                and type_ann.startswith("'")
-                and type_ann.endswith("'")
-            ):
+            if isinstance(type_ann, str) and type_ann.startswith("'") and type_ann.endswith("'"):
                 type_ann = type_ann.strip("'")
             result[name] = type_ann
     return result
@@ -157,11 +151,7 @@ class TestDependencyCoverage(unittest.TestCase):
                 if hinted is not None:
                     # Convert to a name for comparison (handle typing.Optional etc.)
                     type_name = getattr(hinted, "__name__", None)
-                    if (
-                        type_name is None
-                        and hasattr(hinted, "__args__")
-                        and hinted.__args__
-                    ):
+                    if type_name is None and hasattr(hinted, "__args__") and hinted.__args__:
                         # Optional[T] or Union[T, None]
                         first = hinted.__args__[0]
                         type_name = getattr(first, "__name__", None)
@@ -171,14 +161,9 @@ class TestDependencyCoverage(unittest.TestCase):
 
             # Fill gaps from analysis where hints missing
             if any(v is None for v in required_param_types.values()):
-                from_analysis = _get_required_param_type_names_from_analysis(
-                    service_type
-                )
+                from_analysis = _get_required_param_type_names_from_analysis(service_type)
                 for name, typ in from_analysis.items():
-                    if (
-                        name in required_param_types
-                        and required_param_types[name] is None
-                    ):
+                    if name in required_param_types and required_param_types[name] is None:
                         required_param_types[name] = typ
 
             # Build set of dependency type names declared in registry

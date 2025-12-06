@@ -60,9 +60,7 @@ async def test_handle_shortcut_feedback_report_success(
     }
     result = await handler.handle_shortcut(payload)
     assert result is True
-    feedback_report_handler_mock.open_feedback_report_modal.assert_awaited_once_with(
-        "T123"
-    )
+    feedback_report_handler_mock.open_feedback_report_modal.assert_awaited_once_with("T123")
     posting_handler_mock.post_message.assert_not_awaited()
 
 
@@ -99,9 +97,7 @@ async def test_handle_shortcut_feedback_report_modal_failure(
     - open_feedback_report_modal returns False
     - Expects False returned, error message posted to user/channel
     """
-    feedback_report_handler_mock.open_feedback_report_modal = AsyncMock(
-        return_value=False
-    )
+    feedback_report_handler_mock.open_feedback_report_modal = AsyncMock(return_value=False)
     payload = {
         "callback_id": "feedback_report",
         "trigger_id": "T123",
@@ -133,9 +129,7 @@ async def test_handle_shortcut_feedback_report_missing_user_or_channel(
     posting_handler_mock.post_message.assert_not_awaited()
 
 
-async def test_handle_shortcut_unhandled_shortcut(
-    handler, posting_handler_mock
-) -> None:
+async def test_handle_shortcut_unhandled_shortcut(handler, posting_handler_mock) -> None:
     """Test unhandled shortcut callback_id.
 
     Covers:

@@ -34,9 +34,7 @@ async def create_session_with_retries(
     max_retries: int = 5,
     initial_delay: float = 1.0,
     log_level: int = logging.INFO,
-) -> Tuple[
-    Optional[Union[aiohttp.ClientSession, httpx.AsyncClient]], Optional[Exception]
-]:
+) -> Tuple[Optional[Union[aiohttp.ClientSession, httpx.AsyncClient]], Optional[Exception]]:
     """Create an HTTP client session with retries and exponential backoff.
 
     Supports both aiohttp and httpx based on KETCHUP_USE_HTTPX feature flag.
@@ -144,9 +142,7 @@ async def create_session_with_retries(
 
             # Basic exponential backoff
             wait_time = initial_delay * (2 ** (retry_count - 1))
-            current_logger.info(
-                "Retrying session creation after %.2f seconds", wait_time
-            )
+            current_logger.info("Retrying session creation after %.2f seconds", wait_time)
             await asyncio.sleep(wait_time)
 
     # If loop finishes without returning a session, log critical error and raise

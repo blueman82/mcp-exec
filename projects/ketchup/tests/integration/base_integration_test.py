@@ -78,9 +78,7 @@ class BaseIntegrationTest(ABC):
             RuntimeError: If container not initialized
         """
         if not self.container:
-            raise RuntimeError(
-                "Container not initialized. Call initialize_container() first."
-            )
+            raise RuntimeError("Container not initialized. Call initialize_container() first.")
         return self.container.get(service_type)
 
     def get_services(self, service_types: List[Type]) -> Dict[Type, Any]:
@@ -97,9 +95,7 @@ class BaseIntegrationTest(ABC):
             RuntimeError: If container not initialized
         """
         if not self.container:
-            raise RuntimeError(
-                "Container not initialized. Call initialize_container() first."
-            )
+            raise RuntimeError("Container not initialized. Call initialize_container() first.")
 
         services = {}
         for service_type in service_types:

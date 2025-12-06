@@ -40,6 +40,7 @@ SERVICES=("ketchup-app" "ketchup-metadata-updater" "mcp-jira" "ketchup-status-up
 VERSION=""
 SKIP_BUILD=false
 SKIP_PUSH=false
+SKIP_VALIDATION=false
 NO_GIT_COMMIT=false
 PROD1_ONLY=false
 PROD2_ONLY=false
@@ -49,6 +50,10 @@ VERIFY_ONLY=false
 CHECK_VERSION=false
 SKIP_COMPOSE_SYNC=false
 NO_CACHE=false
+
+# Script directory for validate.sh
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VALIDATE_SCRIPT="${SCRIPT_DIR}/validate.sh"
 
 # Remote paths
 PROD_DIR="/opt/ketchup"
@@ -148,6 +153,7 @@ show_help() {
     echo -e "  -v, --version VERSION     Specify version to deploy (optional - auto-increments if not specified)"
     echo -e "  -s, --skip-build          Skip building Docker images"
     echo -e "  -p, --skip-push           Skip pushing to ECR"
+    echo -e "  --skip-validation         Skip pre-deployment validation (lint + tests)"
     echo -e "  -1, --prod1-only          Deploy only to prod1 server"
     echo -e "  -2, --prod2-only          Deploy only to prod2 server"
     echo -e "  -r, --rollback VERSION    Rollback to specified version"
@@ -156,6 +162,7 @@ show_help() {
     echo -e "  --verify                  Only verify deployment status"
     echo -e "  --check-version           Check current versions in ECR and exit"
     echo -e "  --skip-compose-sync       Skip docker-compose.yml sync (useful when called by wrapper scripts)"
+    echo -e "  --no-cache                Build Docker images without cache"
     echo
     echo -e "${BOLD}Examples:${NC}"
     echo -e "  ./deploy-ketchup.sh                      # Auto-increment version and deploy"
@@ -603,6 +610,10 @@ while [[ $# -gt 0 ]]; do
             SKIP_PUSH=true
             shift
             ;;
+        --skip-validation)
+            SKIP_VALIDATION=true
+            shift
+            ;;
         --no-git-commit)
             NO_GIT_COMMIT=true
             shift
@@ -764,6 +775,28 @@ fi
 
 # Update local docker-compose.yml first
 update_local_docker_compose
+
+# ========== VALIDATION GATE ==========
+# Run pre-deployment validation (lint only, tests via CI/CD)
+if [ "$SKIP_VALIDATION" = true ]; then
+    log_warning "Skipping pre-deployment validation (--skip-validation)"
+else
+    log_section "Pre-deployment Validation"
+    
+    if [ -f "$VALIDATE_SCRIPT" ] && [ -x "$VALIDATE_SCRIPT" ]; then
+        log_info "Running lint checks (ruff, black, isort)..."
+        if ! "$VALIDATE_SCRIPT"; then
+            log_error "Validation failed. Deployment aborted."
+            log_info "Fix the issues above, or use --skip-validation to bypass."
+            log_info "Run './infrastructure/validate.sh --fix' to auto-fix style issues."
+            exit 1
+        fi
+        log_success "Lint checks passed"
+    else
+        log_warning "validate.sh not found or not executable, skipping validation"
+        log_info "Expected location: $VALIDATE_SCRIPT"
+    fi
+fi
 
 # Build images
 build_images

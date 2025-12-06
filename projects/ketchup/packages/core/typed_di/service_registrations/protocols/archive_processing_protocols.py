@@ -17,9 +17,7 @@ class ArchiveValidationServiceProtocol(Protocol):
         """Validate if a channel is eligible for archiving."""
         ...
 
-    async def validate_archive_permissions(
-        self, user_id: str, channel_id: str
-    ) -> bool:
+    async def validate_archive_permissions(self, user_id: str, channel_id: str) -> bool:
         """Validate user permissions for archive operations."""
         ...
 
@@ -46,21 +44,15 @@ class ArchiveReportingServiceProtocol(Protocol):
         """Generate archive reports based on specified criteria."""
         ...
 
-    async def export_archive_data(
-        self, format_type: str, date_range: Dict[str, Any]
-    ) -> str:
+    async def export_archive_data(self, format_type: str, date_range: Dict[str, Any]) -> str:
         """Export archive data in specified format (CSV, JSON, etc)."""
         ...
 
-    async def schedule_archive_report(
-        self, report_config: Dict[str, Any]
-    ) -> str:
+    async def schedule_archive_report(self, report_config: Dict[str, Any]) -> str:
         """Schedule recurring archive reports."""
         ...
 
-    async def get_archive_statistics(
-        self, time_period: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def get_archive_statistics(self, time_period: Dict[str, Any]) -> Dict[str, Any]:
         """Get archive statistics for specified time period."""
         ...
 
@@ -75,15 +67,11 @@ class ArchiveReportingServiceProtocol(Protocol):
 class ArchiveAnalyticsServiceProtocol(Protocol):
     """Protocol for archive analytics service operations."""
 
-    async def analyze_archive_trends(
-        self, time_period: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def analyze_archive_trends(self, time_period: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze archiving trends over specified time period."""
         ...
 
-    async def generate_archive_metrics(
-        self, criteria: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def generate_archive_metrics(self, criteria: Dict[str, Any]) -> Dict[str, Any]:
         """Generate archive metrics based on criteria."""
         ...
 
@@ -97,9 +85,7 @@ class ArchiveAnalyticsServiceProtocol(Protocol):
         """Analyze the impact of archiving specific channels."""
         ...
 
-    async def get_analytics_dashboard_data(
-        self, dashboard_type: str
-    ) -> Dict[str, Any]:
+    async def get_analytics_dashboard_data(self, dashboard_type: str) -> Dict[str, Any]:
         """Get data for archive analytics dashboards."""
         ...
 
@@ -112,9 +98,7 @@ class ArchiveCleanupServiceProtocol(Protocol):
         """Clean up data associated with archived channels."""
         ...
 
-    async def purge_old_archive_data(
-        self, retention_policy: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def purge_old_archive_data(self, retention_policy: Dict[str, Any]) -> Dict[str, Any]:
         """Purge old archive data based on retention policies."""
         ...
 
@@ -132,9 +116,7 @@ class ArchiveCleanupServiceProtocol(Protocol):
         """Get status of cleanup operations."""
         ...
 
-    async def schedule_cleanup_job(
-        self, cleanup_config: Dict[str, Any]
-    ) -> str:
+    async def schedule_cleanup_job(self, cleanup_config: Dict[str, Any]) -> str:
         """Schedule cleanup jobs for archive maintenance."""
         ...
 

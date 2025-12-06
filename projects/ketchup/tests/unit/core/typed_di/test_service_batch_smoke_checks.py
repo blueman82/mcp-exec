@@ -84,9 +84,7 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
 
         # Create sync client mocks
         mock_sync_secrets_client = MagicMock()
-        mock_sync_secrets_client.get_secret_value.return_value = {
-            "SecretString": secrets_json
-        }
+        mock_sync_secrets_client.get_secret_value.return_value = {"SecretString": secrets_json}
 
         mock_sync_sqs_client = MagicMock()
         mock_sync_sqs_client.send_message.return_value = {"MessageId": "test-msg-id"}
@@ -127,9 +125,7 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
         }
         missing_services = [s for s in batch_1_services if s not in present]
 
-        self.assertEqual(
-            [], missing_services, f"Batch 1 missing services: {missing_services}"
-        )
+        self.assertEqual([], missing_services, f"Batch 1 missing services: {missing_services}")
 
     def test_batch_2_high_traffic_services_registered(self):
         """Test Batch 2 high-traffic services are registered."""
@@ -150,9 +146,7 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
         }
         missing_services = [s for s in batch_2_services if s not in present]
 
-        self.assertEqual(
-            [], missing_services, f"Batch 2 missing services: {missing_services}"
-        )
+        self.assertEqual([], missing_services, f"Batch 2 missing services: {missing_services}")
 
     def test_batch_3_ai_operational_services_registered(self):
         """Test Batch 3 AI/operational services are registered."""
@@ -173,9 +167,7 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
         }
         missing_services = [s for s in batch_3_services if s not in present]
 
-        self.assertEqual(
-            [], missing_services, f"Batch 3 missing services: {missing_services}"
-        )
+        self.assertEqual([], missing_services, f"Batch 3 missing services: {missing_services}")
 
     def test_critical_dependencies_registered(self):
         """Test critical dependencies are registered."""
@@ -197,9 +189,7 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
         }
         missing_critical = [s for s in critical_services if s not in present]
 
-        self.assertEqual(
-            [], missing_critical, f"Critical dependencies missing: {missing_critical}"
-        )
+        self.assertEqual([], missing_critical, f"Critical dependencies missing: {missing_critical}")
 
     def test_minimum_service_threshold_met(self):
         """Test minimum number of services are registered for CI threshold."""
@@ -224,9 +214,7 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
         protocol_variant = critical_test_service
         has_concrete = critical_test_service in names
         has_protocol = protocol_variant in names
-        self.assertTrue(
-            has_concrete, f"Missing concrete registration: {critical_test_service}"
-        )
+        self.assertTrue(has_concrete, f"Missing concrete registration: {critical_test_service}")
         # Protocol presence depends on generated protocols; assert if present in this environment
         if has_protocol is False:
             logger.warning(
@@ -340,13 +328,9 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
             if hasattr(reg, "service_type") and hasattr(reg.service_type, "__name__")
         }
 
-        missing_services = [
-            svc for svc in batch_4_services if svc not in registered_names
-        ]
+        missing_services = [svc for svc in batch_4_services if svc not in registered_names]
 
-        self.assertEqual(
-            [], missing_services, f"Batch 4 missing services: {missing_services}"
-        )
+        self.assertEqual([], missing_services, f"Batch 4 missing services: {missing_services}")
 
     def test_core_infrastructure_services_registered(self):
         """Test core infrastructure services are properly registered."""

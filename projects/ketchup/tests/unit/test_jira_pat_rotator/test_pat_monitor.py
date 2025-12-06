@@ -10,7 +10,7 @@ Verifies:
 """
 
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -70,7 +70,7 @@ class TestRotationNeeded:
         expiry_date = datetime.utcnow() + timedelta(days=10)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             assert result is True
@@ -83,7 +83,7 @@ class TestRotationNeeded:
         expiry_date = datetime.utcnow() + timedelta(days=90)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             assert result is False
@@ -96,7 +96,7 @@ class TestRotationNeeded:
         expiry_date = datetime.utcnow() + timedelta(days=75)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             # At 75 days remaining, rotation should NOT be needed (> 15 day buffer)
@@ -110,7 +110,7 @@ class TestRotationNeeded:
         expiry_date = datetime.utcnow() + timedelta(days=15)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             # At exactly 15 days, rotation should be needed (days_remaining <= 15)
@@ -124,7 +124,7 @@ class TestRotationNeeded:
         expiry_date = datetime.utcnow() + timedelta(days=20)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             # At 20 days, rotation should NOT be needed (> 15 day buffer)
@@ -138,7 +138,7 @@ class TestRotationNeeded:
         expiry_date = datetime.utcnow() - timedelta(days=5)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             assert result is True
@@ -151,7 +151,7 @@ class TestMissingPatExpiry:
         """Test that missing JIRA_PAT_EXPIRY is handled gracefully."""
         monitor = PatMonitor()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=None):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=None):
             result = monitor.should_rotate()
 
             # Should return True when expiry date is missing (force rotation)
@@ -161,7 +161,7 @@ class TestMissingPatExpiry:
         """Test that get_days_remaining returns None when expiry is missing."""
         monitor = PatMonitor()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=None):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=None):
             days = monitor.get_days_remaining()
 
             assert days is None
@@ -216,7 +216,9 @@ class TestSecretsManagerIntegration:
         expiry_date = datetime.utcnow() + timedelta(days=60)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso) as mock_get:
+        with patch.object(
+            monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso
+        ) as mock_get:
             days = monitor.get_days_remaining()
 
             mock_get.assert_called_once()
@@ -234,7 +236,7 @@ class TestPublicApi:
         expiry_date = datetime.utcnow() + timedelta(days=50)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             days = monitor.get_days_remaining()
 
             assert days is not None
@@ -247,7 +249,7 @@ class TestPublicApi:
         expiry_date = datetime.utcnow() + timedelta(days=90)
         expiry_iso = expiry_date.isoformat()
 
-        with patch.object(monitor, '_get_pat_expiry_from_secrets', return_value=expiry_iso):
+        with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
             result = monitor.should_rotate()
 
             assert isinstance(result, bool)

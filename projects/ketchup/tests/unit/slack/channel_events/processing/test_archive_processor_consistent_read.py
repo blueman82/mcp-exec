@@ -22,9 +22,7 @@ class TestArchiveProcessorConsistentRead:
         dynamodb_store.get_channel_details_consistent = AsyncMock(
             return_value={"channel_id": "C123", "archived": False, "archived_at": 0}
         )
-        dynamodb_store.get_channel_details = (
-            AsyncMock()
-        )  # Regular method should NOT be called
+        dynamodb_store.get_channel_details = AsyncMock()  # Regular method should NOT be called
         dynamodb_store.update_channel_archived_status = AsyncMock()
         dynamodb_store.update_channel_fields = AsyncMock()
 

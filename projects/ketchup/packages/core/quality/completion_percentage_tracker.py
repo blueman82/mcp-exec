@@ -21,8 +21,14 @@ from .code_quality_validator import CodeQualityViolation
 class ServiceRegistrationEntry:
     """Represents a single service registration entry."""
 
-    def __init__(self, service_name: str, file_path: str, line_number: int,
-                 registration_type: str, status: str = "pending"):
+    def __init__(
+        self,
+        service_name: str,
+        file_path: str,
+        line_number: int,
+        registration_type: str,
+        status: str = "pending",
+    ):
         """Initialize a service registration entry."""
         self.service_name = service_name
         self.file_path = file_path
@@ -39,7 +45,7 @@ class ServiceRegistrationEntry:
             "line_number": self.line_number,
             "registration_type": self.registration_type,
             "status": self.status,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
         }
 
 
@@ -84,35 +90,35 @@ class CompletionPercentageTracker:
             Milestone("Half Complete", 50.0),
             Milestone("Three Quarters", 75.0),
             Milestone("Near Complete", 90.0),
-            Milestone("Full Complete", 100.0)
+            Milestone("Full Complete", 100.0),
         ]
 
     def _load_progress(self):
         """Load progress from file if it exists."""
         if os.path.exists(self.progress_file_path):
             try:
-                with open(self.progress_file_path, 'r') as f:
+                with open(self.progress_file_path, "r") as f:
                     data = json.load(f)
 
                 # Load services
-                for service_data in data.get('services', []):
+                for service_data in data.get("services", []):
                     service = ServiceRegistrationEntry(
-                        service_data['service_name'],
-                        service_data['file_path'],
-                        service_data['line_number'],
-                        service_data['registration_type'],
-                        service_data['status']
+                        service_data["service_name"],
+                        service_data["file_path"],
+                        service_data["line_number"],
+                        service_data["registration_type"],
+                        service_data["status"],
                     )
-                    service.timestamp = datetime.fromisoformat(service_data['timestamp'])
+                    service.timestamp = datetime.fromisoformat(service_data["timestamp"])
                     self.services[service.service_name] = service
 
                 # Load milestones
-                for i, milestone_data in enumerate(data.get('milestones', [])):
+                for i, milestone_data in enumerate(data.get("milestones", [])):
                     if i < len(self.milestones):
-                        self.milestones[i].achieved = milestone_data.get('achieved', False)
-                        if milestone_data.get('achieved_date'):
+                        self.milestones[i].achieved = milestone_data.get("achieved", False)
+                        if milestone_data.get("achieved_date"):
                             self.milestones[i].achieved_date = datetime.fromisoformat(
-                                milestone_data['achieved_date']
+                                milestone_data["achieved_date"]
                             )
 
             except Exception:
@@ -130,14 +136,16 @@ class CompletionPercentageTracker:
                         "name": milestone.name,
                         "target_percentage": milestone.target_percentage,
                         "achieved": milestone.achieved,
-                        "achieved_date": milestone.achieved_date.isoformat() if milestone.achieved_date else None
+                        "achieved_date": (
+                            milestone.achieved_date.isoformat() if milestone.achieved_date else None
+                        ),
                     }
                     for milestone in self.milestones
-                ]
+                ],
             }
 
             os.makedirs(os.path.dirname(self.progress_file_path), exist_ok=True)
-            with open(self.progress_file_path, 'w') as f:
+            with open(self.progress_file_path, "w") as f:
                 json.dump(data, f, indent=2)
         except Exception:
             pass  # Fail silently for save issues
@@ -149,10 +157,10 @@ class CompletionPercentageTracker:
 
         # Search patterns for different registration types
         patterns = {
-            "typed_di_register": r'@register\s*\(\s*([^)]+)\s*\)',
-            "container_register": r'container\.register\s*\(\s*([^)]+)\s*\)',
-            "di_container": r'DI\.register\s*\(\s*([^)]+)\s*\)',
-            "service_decorator": r'@service\s*\(\s*([^)]+)\s*\)'
+            "typed_di_register": r"@register\s*\(\s*([^)]+)\s*\)",
+            "container_register": r"container\.register\s*\(\s*([^)]+)\s*\)",
+            "di_container": r"DI\.register\s*\(\s*([^)]+)\s*\)",
+            "service_decorator": r"@service\s*\(\s*([^)]+)\s*\)",
         }
 
         # Scan TypedDI related files
@@ -191,20 +199,28 @@ class CompletionPercentageTracker:
         self._save_progress()
         return violations
 
-    def _scan_directory(self, directory_path: str, patterns: Dict[str, str],
-                       found_services: Dict[str, Tuple[str, int, str]]):
+    def _scan_directory(
+        self,
+        directory_path: str,
+        patterns: Dict[str, str],
+        found_services: Dict[str, Tuple[str, int, str]],
+    ):
         """Scan a directory for service registrations."""
         for root, dirs, files in os.walk(directory_path):
             for file in files:
-                if file.endswith('.py'):
+                if file.endswith(".py"):
                     file_path = os.path.join(root, file)
                     self._scan_file(file_path, patterns, found_services)
 
-    def _scan_file(self, file_path: str, patterns: Dict[str, str],
-                  found_services: Dict[str, Tuple[str, int, str]]):
+    def _scan_file(
+        self,
+        file_path: str,
+        patterns: Dict[str, str],
+        found_services: Dict[str, Tuple[str, int, str]],
+    ):
         """Scan a single file for service registrations."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             for line_no, line in enumerate(lines, 1):
@@ -223,10 +239,10 @@ class CompletionPercentageTracker:
         """Extract service name from registration content."""
         # Simple extraction - look for class names or string literals
         # This can be enhanced based on actual registration patterns
-        clean_content = registration_content.strip().strip('"\'')
+        clean_content = registration_content.strip().strip("\"'")
 
         # Look for class references
-        class_match = re.search(r'\b([A-Z][a-zA-Z0-9_]*)\b', clean_content)
+        class_match = re.search(r"\b([A-Z][a-zA-Z0-9_]*)\b", clean_content)
         if class_match:
             return class_match.group(1)
 
@@ -237,14 +253,16 @@ class CompletionPercentageTracker:
 
         return None
 
-    def update_service_status(self, service_name: str, status: str) -> Optional[CodeQualityViolation]:
+    def update_service_status(
+        self, service_name: str, status: str
+    ) -> Optional[CodeQualityViolation]:
         """Update the status of a specific service."""
         if service_name not in self.services:
             return CodeQualityViolation(
                 violation_type="tracking_error",
                 file_path="tracker",
                 line_number=0,
-                message=f"Service '{service_name}' not found in tracking"
+                message=f"Service '{service_name}' not found in tracking",
             )
 
         valid_statuses = ["pending", "migrated", "validated", "completed"]
@@ -253,7 +271,7 @@ class CompletionPercentageTracker:
                 violation_type="tracking_error",
                 file_path="tracker",
                 line_number=0,
-                message=f"Invalid status '{status}'. Valid: {', '.join(valid_statuses)}"
+                message=f"Invalid status '{status}'. Valid: {', '.join(valid_statuses)}",
             )
 
         self.services[service_name].status = status
@@ -270,7 +288,7 @@ class CompletionPercentageTracker:
                 "migrated": 0.0,
                 "validated": 0.0,
                 "completed": 0.0,
-                "target_percentage": 0.0
+                "target_percentage": 0.0,
             }
 
         status_counts = {}
@@ -291,7 +309,7 @@ class CompletionPercentageTracker:
             "completed": (completed / total_services) * 100,
             "target_percentage": (total_services / self.target_service_count) * 100,
             "total_found": total_services,
-            "target_total": self.target_service_count
+            "target_total": self.target_service_count,
         }
 
     def check_milestones(self) -> List[str]:
@@ -322,7 +340,9 @@ class CompletionPercentageTracker:
         overall = percentages["overall"]
         target = percentages["target_percentage"]
         report.append(f"🎯 OVERALL PROGRESS: {overall:.1f}%")
-        report.append(f"📈 Target Discovery: {target:.1f}% ({percentages['total_found']}/{percentages['target_total']} services)")
+        report.append(
+            f"📈 Target Discovery: {target:.1f}% ({percentages['total_found']}/{percentages['target_total']} services)"
+        )
         report.append("")
 
         # Status breakdown
@@ -336,8 +356,14 @@ class CompletionPercentageTracker:
         report.append("🏁 MILESTONES:")
         for milestone in self.milestones:
             status = "✅" if milestone.achieved else "⏳"
-            achieved_text = f" (achieved {milestone.achieved_date.strftime('%Y-%m-%d')})" if milestone.achieved else ""
-            report.append(f"  {status} {milestone.name}: {milestone.target_percentage}%{achieved_text}")
+            achieved_text = (
+                f" (achieved {milestone.achieved_date.strftime('%Y-%m-%d')})"
+                if milestone.achieved
+                else ""
+            )
+            report.append(
+                f"  {status} {milestone.name}: {milestone.target_percentage}%{achieved_text}"
+            )
 
         if achieved_milestones:
             report.append("")
@@ -347,8 +373,11 @@ class CompletionPercentageTracker:
 
         # Progress velocity
         if len(self.services) > 0:
-            recent_services = [s for s in self.services.values()
-                             if s.timestamp > datetime.now() - timedelta(days=7)]
+            recent_services = [
+                s
+                for s in self.services.values()
+                if s.timestamp > datetime.now() - timedelta(days=7)
+            ]
             if recent_services:
                 report.append("")
                 report.append(f"⚡ WEEKLY VELOCITY: {len(recent_services)} services updated")

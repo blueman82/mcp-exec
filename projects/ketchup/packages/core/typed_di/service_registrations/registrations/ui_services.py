@@ -15,33 +15,34 @@ All registrations use protocol-first pattern with concrete class aliasing.
 from typing import TYPE_CHECKING
 
 from packages.core.logging import setup_logger
-from packages.core.typed_di.types import DependencySpec
-from packages.core.typed_di.service_registrations.protocols.ui_protocols import (
-    FeedbackReportHandlerProtocol,
-)
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
     SlackPostingHandlerProtocol,
 )
+from packages.core.typed_di.service_registrations.protocols.ui_protocols import (
+    FeedbackReportHandlerProtocol,
+)
+from packages.core.typed_di.types import DependencySpec
 
 # Essential imports for UI services
 try:
-    from packages.slack.interactive_elements.flag_review.block_builder import BlockBuilder
-    from packages.slack.interactive_elements.shortcuts import ShortcutHandler
+    from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
+    from packages.db.operations.feedback_operations import FeedbackOperations
+    from packages.db.operations.trust_operations import TrustOperations
+    from packages.secrets.manager import SecretsManager
     from packages.slack.blockkits.handlers.archive import ArchiveMessageHandler
     from packages.slack.blockkits.handlers.lookup import LookupMessageHandler
+    from packages.slack.blockkits.handlers.parameter import ParameterMessageHandler
     from packages.slack.blockkits.handlers.query import QueryMessageHandler
     from packages.slack.blockkits.handlers.report import ReportMessageHandler
     from packages.slack.blockkits.handlers.status import StatusMessageHandler
     from packages.slack.blockkits.handlers.summary import SummaryMessageHandler
-    from packages.slack.blockkits.handlers.parameter import ParameterMessageHandler
-    from packages.secrets.manager import SecretsManager
+    from packages.slack.channel_operations.slack_message_formatter import SlackMessageFormatter
+    from packages.slack.interactive_elements.flag_review.block_builder import BlockBuilder
+
     # Additional UI services
     from packages.slack.interactive_elements.flag_review.modals import FlagReviewModalManager
-    from packages.slack.channel_operations.slack_message_formatter import SlackMessageFormatter
-    from packages.db.operations.feedback_operations import FeedbackOperations
-    from packages.db.operations.trust_operations import TrustOperations
+    from packages.slack.interactive_elements.shortcuts import ShortcutHandler
     from packages.slack.user_operations.user_ops import SlackUserOps
-    from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
 except ImportError:
     # Allow module to load even with missing imports for testing
     pass
@@ -50,21 +51,20 @@ except ImportError:
 if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
-from ..protocols import (
-    ShortcutHandlerProtocol,
+from ..protocols import (  # Additional UI service protocols
     ArchiveMessageHandlerProtocol,
+    BlockBuilderProtocol,
+    FeedbackOperationsProtocol,
+    FlagReviewModalManagerProtocol,
     LookupMessageHandlerProtocol,
+    ParameterMessageHandlerProtocol,
     QueryMessageHandlerProtocol,
     ReportMessageHandlerProtocol,
+    ShortcutHandlerProtocol,
+    SlackMessageFormatterProtocol,
     StatusMessageHandlerProtocol,
     SummaryMessageHandlerProtocol,
-    ParameterMessageHandlerProtocol,
-    # Additional UI service protocols
-    FlagReviewModalManagerProtocol,
-    SlackMessageFormatterProtocol,
-    FeedbackOperationsProtocol,
     TrustOperationsProtocol,
-    BlockBuilderProtocol,
 )
 
 logger = setup_logger(__name__)
@@ -100,17 +100,16 @@ def _register_block_kit_services(manager: "ServiceRegistrationManager") -> None:
 def _register_interactive_services(manager: "ServiceRegistrationManager") -> None:
     """Register interactive UI services for user interactions."""
 
-
     # ShortcutHandler
     async def create_shortcut_handler(resolver) -> ShortcutHandler:
         """Factory function for ShortcutHandler using TypedResolver."""
         logger.info("Creating ShortcutHandler instance via TypedDI")
         from packages.slack.interactive_elements.feedback_report import FeedbackReportHandler
+
         feedback_report_handler = await resolver.aget(FeedbackReportHandler)
         posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
         return ShortcutHandler(
-            feedback_report_handler=feedback_report_handler,
-            posting_handler=posting_handler
+            feedback_report_handler=feedback_report_handler, posting_handler=posting_handler
         )
 
     manager.register_protocol_with_concrete_alias(
@@ -119,12 +118,10 @@ def _register_interactive_services(manager: "ServiceRegistrationManager") -> Non
         factory=create_shortcut_handler,
         dependencies=[
             DependencySpec(FeedbackReportHandlerProtocol),
-            DependencySpec(SlackPostingHandlerProtocol)
+            DependencySpec(SlackPostingHandlerProtocol),
         ],
         lifetime="singleton",
     )
-
-
 
 
 def _register_home_tab_services(manager: "ServiceRegistrationManager") -> None:
@@ -133,6 +130,7 @@ def _register_home_tab_services(manager: "ServiceRegistrationManager") -> None:
 
 def _register_message_handler_services(manager: "ServiceRegistrationManager") -> None:
     """Register specialized message handler services for different message types."""
+
     # ArchiveMessageHandler
     async def create_archive_message_handler(resolver) -> ArchiveMessageHandler:
         """Factory function for ArchiveMessageHandler using TypedResolver."""
@@ -247,6 +245,7 @@ def _register_message_handler_services(manager: "ServiceRegistrationManager") ->
 
 def _register_additional_ui_services(manager: "ServiceRegistrationManager") -> None:
     """Register additional UI services including modal manager, formatter, and operations."""
+
     # FlagReviewModalManager
     async def create_flag_review_modal_manager(resolver) -> FlagReviewModalManager:
         """Factory function for FlagReviewModalManager using TypedResolver."""
@@ -322,5 +321,3 @@ def _register_additional_ui_services(manager: "ServiceRegistrationManager") -> N
         dependencies=[],
         lifetime="singleton",
     )
-
-

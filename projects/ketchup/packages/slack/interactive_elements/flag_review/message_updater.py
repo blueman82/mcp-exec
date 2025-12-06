@@ -24,9 +24,7 @@ class MessageUpdater:
         """
         self.posting_handler = posting_handler
 
-    async def update_original_message(
-        self, channel_id: str, message_ts: str, user_id: str
-    ) -> None:
+    async def update_original_message(self, channel_id: str, message_ts: str, user_id: str) -> None:
         """Update the original message to show it's been flagged.
 
         Args:
@@ -47,9 +45,7 @@ class MessageUpdater:
             )
 
             if not result.get("messages"):
-                logger.error(
-                    f"Could not find message {message_ts} in channel {channel_id}"
-                )
+                logger.error(f"Could not find message {message_ts} in channel {channel_id}")
                 return
 
             message = result["messages"][0]
@@ -100,9 +96,7 @@ class MessageUpdater:
             blocks = message.get("blocks", [])
 
             # Update display
-            flag_display = (
-                f"✅ Reviewed: Feedback from <@{user_id}> acknowledged by <@{admin_id}>"
-            )
+            flag_display = f"✅ Reviewed: Feedback from <@{user_id}> acknowledged by <@{admin_id}>"
             updated_blocks = self.update_flag_display_in_blocks(blocks, flag_display)
 
             # Update message
@@ -133,9 +127,9 @@ class MessageUpdater:
 
         for block in blocks:
             # Check if this is an existing flag display block
-            if block.get("type") == "section" and block.get("text", {}).get(
-                "text", ""
-            ).startswith(("⚠️ Flagged", "✅ Reviewed")):
+            if block.get("type") == "section" and block.get("text", {}).get("text", "").startswith(
+                ("⚠️ Flagged", "✅ Reviewed")
+            ):
                 # Replace with new display
                 if flag_display and not flag_updated:
                     updated_blocks.append(
@@ -164,9 +158,7 @@ class MessageUpdater:
 
         return updated_blocks
 
-    async def update_review_message(
-        self, payload: Dict[str, Any], admin_id: str
-    ) -> None:
+    async def update_review_message(self, payload: Dict[str, Any], admin_id: str) -> None:
         """Update the review channel message after acknowledgment.
 
         Args:
@@ -205,10 +197,8 @@ class MessageUpdater:
                     filtered_elements = [
                         element
                         for element in block.get("elements", [])
-                        if element.get("action_id") not in [
-                            "acknowledge_feedback",
-                            "acknowledge_command_feedback"
-                        ]
+                        if element.get("action_id")
+                        not in ["acknowledge_feedback", "acknowledge_command_feedback"]
                     ]
 
                     # Add Mark as Completed button at the beginning if we have the value
@@ -276,9 +266,7 @@ class MessageUpdater:
         except Exception as e:
             logger.error(f"Error updating review message with reply: {e}")
 
-    async def update_review_message_completed(
-        self, payload: Dict[str, Any], admin_id: str
-    ) -> None:
+    async def update_review_message_completed(self, payload: Dict[str, Any], admin_id: str) -> None:
         """Update the review channel message when marked as completed.
 
         Args:
@@ -357,9 +345,7 @@ class MessageUpdater:
             if messages and messages[0].get("ts") == message_ts:
                 return True
             else:
-                logger.info(
-                    f"Message {message_ts} no longer exists in channel {channel_id}"
-                )
+                logger.info(f"Message {message_ts} no longer exists in channel {channel_id}")
                 return False
 
         except Exception as e:
@@ -420,10 +406,8 @@ class MessageUpdater:
                     filtered_elements = [
                         element
                         for element in block.get("elements", [])
-                        if element.get("action_id") not in [
-                            "acknowledge_feedback",
-                            "acknowledge_command_feedback"
-                        ]
+                        if element.get("action_id")
+                        not in ["acknowledge_feedback", "acknowledge_command_feedback"]
                     ]
 
                     # Add Mark as Completed button at the beginning if we have the value
@@ -452,8 +436,8 @@ class MessageUpdater:
                 channel_id=payload.get("channel", {}).get("id"),
                 user_id=admin_id,
                 message=f"ℹ️ Note: The original message in <#{channel_id}> has been "
-                         "replaced by a newer status update, but your acknowledgment "
-                         "has been recorded.",
+                "replaced by a newer status update, but your acknowledgment "
+                "has been recorded.",
             )
 
         except Exception as e:

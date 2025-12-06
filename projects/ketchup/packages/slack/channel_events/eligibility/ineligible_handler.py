@@ -69,9 +69,7 @@ async def handle_ineligible_bot_join(
                 str(db_check_error),
             )
 
-    logger.warning(
-        "Proceeding with standard ineligible handling for channel %s.", channel_id
-    )
+    logger.warning("Proceeding with standard ineligible handling for channel %s.", channel_id)
     await channel_eligibility_service.handle_ineligible_channel(
         channel_id=channel_id, inviter_id=inviter_id, reason=reason
     )

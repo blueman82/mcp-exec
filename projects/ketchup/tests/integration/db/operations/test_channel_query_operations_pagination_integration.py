@@ -2,7 +2,7 @@
 Integration tests for ChannelQueryOperations pagination with real DynamoDB.
 
 Tests the get_all_active_channels method against actual DynamoDB instance.
-Requires AWS_PROFILE=campaign_prod_v7 to be set.
+Requires: AWS configured via .env.test (see .env.test.example)
 """
 
 import asyncio
@@ -30,11 +30,11 @@ class TestChannelQueryOperationsPaginationIntegration:
 
     @pytest_asyncio.fixture
     async def dynamodb_client(self):
-        """Create a real DynamoDB client."""
-        # Ensure AWS profile is set
-        if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-            pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
+        """Create a real DynamoDB client.
 
+        AWS profile is loaded from .env.test by root conftest.py.
+        Tests are auto-skipped if AWS is not configured.
+        """
         client = DynamoDBAsyncClient()
         yield client
         # No cleanup needed for client
@@ -96,9 +96,7 @@ class TestChannelQueryOperationsPaginationIntegration:
         if "C09C20PLH7C" in channel_ids:
             logger.info("✓ Channel C09C20PLH7C found in results (bug is fixed!)")
         else:
-            logger.info(
-                "Channel C09C20PLH7C not found (might not exist or be archived)"
-            )
+            logger.info("Channel C09C20PLH7C not found (might not exist or be archived)")
 
     async def test_pagination_with_test_data(self, dynamodb_client):
         """
@@ -135,9 +133,7 @@ class TestChannelQueryOperationsPaginationIntegration:
             result = await test_ops.get_all_active_channels()
 
             # Verify all test channels were retrieved
-            assert (
-                len(result) >= 30
-            ), f"Expected at least 30 channels, got {len(result)}"
+            assert len(result) >= 30, f"Expected at least 30 channels, got {len(result)}"
 
             # Verify test channels are included
             test_channel_ids = [
@@ -262,10 +258,10 @@ async def test_specific_channel_c09c20plh7c_exists():
     """
     Specific test to verify channel C09C20PLH7C is retrieved with pagination.
     This is the channel that was missing before the fix.
-    """
-    if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-        pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
 
+    AWS profile is loaded from .env.test by root conftest.py.
+    Test is auto-skipped if AWS is not configured.
+    """
     client = DynamoDBAsyncClient()
 
     ops = ChannelQueryOperations(client=client, table_name=PROD_TABLE_NAME)
@@ -292,15 +288,11 @@ async def test_specific_channel_c09c20plh7c_exists():
     if "C09C20PLH7C" in channel_ids:
         logger.info("✅ SUCCESS: Channel C09C20PLH7C is now included in results!")
         # Find the channel data safely
-        channel_data = next(
-            (ch for ch in channels if ch.get("channel_id") == "C09C20PLH7C"), None
-        )
+        channel_data = next((ch for ch in channels if ch.get("channel_id") == "C09C20PLH7C"), None)
         if channel_data:
             logger.info(f"Channel data: {channel_data}")
         assert True  # Test passes
     else:
-        logger.warning(
-            "Channel C09C20PLH7C not found - it might be archived or not exist"
-        )
+        logger.warning("Channel C09C20PLH7C not found - it might be archived or not exist")
         # Still pass the test as the channel might genuinely not be active
         assert True

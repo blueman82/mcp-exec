@@ -79,18 +79,14 @@ class ChannelMembershipOps(SlackAsyncClient):
             url = f"{await self.get_api_base_url()}/users.conversations"
             headers = self.headers  # Access as property
 
-            response = await self._make_api_request(
-                url, "GET", headers=headers, params=params
-            )
+            response = await self._make_api_request(url, "GET", headers=headers, params=params)
             # Response is now a SafeResponse dict, parse the body
             response_data = orjson.loads(response["body"])
 
             if response_data.get("ok"):
                 self._batch_sizer.increase_size()  # Success, increase batch size
                 channel_list = response_data.get("channels", [])
-                next_cursor = response_data.get("response_metadata", {}).get(
-                    "next_cursor"
-                )
+                next_cursor = response_data.get("response_metadata", {}).get("next_cursor")
                 logger.info("Fetched %d channels from page.", len(channel_list))
                 return channel_list, next_cursor
             else:
@@ -131,9 +127,7 @@ class ChannelMembershipOps(SlackAsyncClient):
                         }
                     )
 
-                logger.info(
-                    "Processed page, total channels so far: %s", len(all_channels)
-                )
+                logger.info("Processed page, total channels so far: %s", len(all_channels))
 
                 # Check if we are done paginating
                 if not next_cursor:

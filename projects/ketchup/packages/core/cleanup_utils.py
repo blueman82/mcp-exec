@@ -36,9 +36,7 @@ async def cleanup_resources(components: Optional[List[Any]] = None) -> None:
                     logger.info("Cleaning up component: %s", type(component).__name__)
                     await component.cleanup()
             except Exception as e:
-                logger.error(
-                    "Error cleaning component %s: %s", type(component).__name__, str(e)
-                )
+                logger.error("Error cleaning component %s: %s", type(component).__name__, str(e))
 
     # 2. Find and cleanup AsyncClient instances
     try:
@@ -57,14 +55,12 @@ async def cleanup_resources(components: Optional[List[Any]] = None) -> None:
 
     # 3a. Tier 3a: Find and close any remaining httpx AsyncClient instances
     try:
-        httpx_clients = [
-            obj for obj in gc.get_objects() if isinstance(obj, httpx.AsyncClient)
-        ]
+        httpx_clients = [obj for obj in gc.get_objects() if isinstance(obj, httpx.AsyncClient)]
         httpx_client_count = len(httpx_clients)
         if httpx_client_count > 0:
             logger.info(
                 "Tier 3a: Found %d httpx AsyncClient instances for fallback cleanup",
-                httpx_client_count
+                httpx_client_count,
             )
             for client in httpx_clients:
                 try:
@@ -78,15 +74,10 @@ async def cleanup_resources(components: Optional[List[Any]] = None) -> None:
 
     # 3b. Tier 3b: Find and close any remaining aiohttp sessions (legacy/fallback)
     try:
-        sessions = [
-            obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)
-        ]
+        sessions = [obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)]
         session_count = len(sessions)
         if session_count > 0:
-            logger.info(
-                "Tier 3b: Found %d aiohttp sessions for fallback cleanup",
-                session_count
-            )
+            logger.info("Tier 3b: Found %d aiohttp sessions for fallback cleanup", session_count)
             for session in sessions:
                 try:
                     if not session.closed:
@@ -100,14 +91,11 @@ async def cleanup_resources(components: Optional[List[Any]] = None) -> None:
     # 4. Tier 4: Find and close any remaining connectors (only needed if using aiohttp)
     if not FeatureFlags.is_httpx_enabled():
         try:
-            connectors = [
-                obj for obj in gc.get_objects() if isinstance(obj, aiohttp.TCPConnector)
-            ]
+            connectors = [obj for obj in gc.get_objects() if isinstance(obj, aiohttp.TCPConnector)]
             connector_count = len(connectors)
             if connector_count > 0:
                 logger.info(
-                    "Tier 4: Found %d TCP connectors for cleanup (aiohttp mode)",
-                    connector_count
+                    "Tier 4: Found %d TCP connectors for cleanup (aiohttp mode)", connector_count
                 )
                 for connector in connectors:
                     try:
@@ -119,8 +107,6 @@ async def cleanup_resources(components: Optional[List[Any]] = None) -> None:
         except Exception as e:
             logger.error("Tier 4: Error in connector cleanup: %s", str(e))
     else:
-        logger.debug(
-            "Tier 4: Skipping connector cleanup (httpx mode - no connectors needed)"
-        )
+        logger.debug("Tier 4: Skipping connector cleanup (httpx mode - no connectors needed)")
 
     logger.info("Resource cleanup completed")

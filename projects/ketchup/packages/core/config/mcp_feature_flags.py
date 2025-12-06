@@ -21,8 +21,12 @@ class MCPFeatureFlags:
         """Return True when the async IMS/MCP clients should be used."""
 
         use_async = os.environ.get(cls._ASYNC_ENV_VAR, "false").lower() == "true"
-        logger.info("MCPFeatureFlags.use_async_clients() = %s (env: %s=%s)",
-                    use_async, cls._ASYNC_ENV_VAR, os.environ.get(cls._ASYNC_ENV_VAR, "not set"))
+        logger.info(
+            "MCPFeatureFlags.use_async_clients() = %s (env: %s=%s)",
+            use_async,
+            cls._ASYNC_ENV_VAR,
+            os.environ.get(cls._ASYNC_ENV_VAR, "not set"),
+        )
         return use_async
 
     @classmethod

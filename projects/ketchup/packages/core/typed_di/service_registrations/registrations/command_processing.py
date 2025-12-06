@@ -17,6 +17,7 @@ from packages.core.typed_di.types import DependencySpec
 
 # Essential imports for command processing services
 try:
+    from packages.core.exports.html_generator import MetricsHTMLGenerator
     from packages.slack.command_processing.access_command import AccessCommand
     from packages.slack.command_processing.command_router import CommandRouter
     from packages.slack.command_processing.feature_command import FeatureCommand
@@ -26,9 +27,8 @@ try:
     from packages.slack.command_processing.query_command import SlackQueryHandler
     from packages.slack.command_processing.short_long_command import SlackSummaryHandler
     from packages.slack.command_processing.status_report_command import SlackReports
-    from packages.slack.services.metrics_data_collector import MetricsDataCollector
-    from packages.core.exports.html_generator import MetricsHTMLGenerator
     from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
+    from packages.slack.services.metrics_data_collector import MetricsDataCollector
 except ImportError:
     # Allow module to load even with missing imports for testing
     pass
@@ -36,6 +36,10 @@ except ImportError:
 # Protocol imports
 if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
+
+# Import MetricsDataCollectorProtocol directly from service_protocols
+# (not yet exported in __init__.py)
+from packages.core.typed_di.service_protocols import MetricsDataCollectorProtocol
 
 from ..protocols import (
     AccessCommandProtocol,
@@ -73,10 +77,6 @@ from ..protocols import (
     VerifyCommandProtocol,
 )
 
-# Import MetricsDataCollectorProtocol directly from service_protocols
-# (not yet exported in __init__.py)
-from packages.core.typed_di.service_protocols import MetricsDataCollectorProtocol
-
 logger = setup_logger(__name__)
 
 
@@ -109,14 +109,14 @@ def _register_core_command_services(manager: "ServiceRegistrationManager") -> No
 
 def _register_access_command(manager: "ServiceRegistrationManager") -> None:
     """Register AccessCommand service."""
+
     async def create_access_command(resolver) -> AccessCommand:
         """Factory function for AccessCommand using TypedResolver."""
         logger.info("Creating AccessCommand instance via TypedDI")
         slack_posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
         user_verifier = await resolver.aget(UserVerifierProtocol)
         return AccessCommand(
-            slack_posting_handler=slack_posting_handler,
-            user_verifier=user_verifier
+            slack_posting_handler=slack_posting_handler, user_verifier=user_verifier
         )
 
     manager.register_protocol_with_concrete_alias(
@@ -125,7 +125,7 @@ def _register_access_command(manager: "ServiceRegistrationManager") -> None:
         factory=create_access_command,
         dependencies=[
             DependencySpec(SlackPostingHandlerProtocol),
-            DependencySpec(UserVerifierProtocol)
+            DependencySpec(UserVerifierProtocol),
         ],
         lifetime="singleton",
     )
@@ -133,6 +133,7 @@ def _register_access_command(manager: "ServiceRegistrationManager") -> None:
 
 def _register_command_router(manager: "ServiceRegistrationManager") -> None:
     """Register CommandRouter service with dependency injection."""
+
     async def create_command_router(resolver) -> CommandRouter:
         """Factory function for CommandRouter using TypedResolver."""
         logger.info("Creating CommandRouter instance via TypedDI")
@@ -235,6 +236,7 @@ async def _build_command_handlers_dict(resolver) -> dict:
 
 def _register_slack_command_services(manager: "ServiceRegistrationManager") -> None:
     """Register Slack-specific command services."""
+
     # SlackListCommand
     async def create_slack_list_command(resolver) -> SlackListCommand:
         """Factory function for SlackListCommand using TypedResolver."""
@@ -253,7 +255,7 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
             slack_posting_handler=slack_posting_handler,
             dynamodb_store=dynamodb_store,
             block_kit_builder=block_kit_builder,
-            user_store=user_store
+            user_store=user_store,
         )
 
     manager.register_protocol_with_concrete_alias(
@@ -266,7 +268,7 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
             DependencySpec(SlackPostingHandlerProtocol),
             DependencySpec(DynamoDBStoreProtocol),
             DependencySpec(BlockKitBuilderProtocol),
-            DependencySpec(UserStoreProtocol)
+            DependencySpec(UserStoreProtocol),
         ],
         lifetime="singleton",
     )
@@ -329,7 +331,7 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
             DependencySpec(UserStoreProtocol),
             DependencySpec(SlackConfigProtocol),
             DependencySpec(SecretsManagerProtocol),
-            DependencySpec(SlackUserOpsProtocol)
+            DependencySpec(SlackUserOpsProtocol),
         ],
         lifetime="singleton",
     )
@@ -446,7 +448,7 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
             DependencySpec(BlockKitBuilderProtocol),
             DependencySpec(SlackChannelMessageOpsProtocol),
             DependencySpec(SlackPostingHandlerProtocol),
-            DependencySpec(UserStoreProtocol)
+            DependencySpec(UserStoreProtocol),
         ],
         lifetime="singleton",
     )
@@ -454,6 +456,7 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
 
 def _register_feature_command_services(manager: "ServiceRegistrationManager") -> None:
     """Register feature command and base command services."""
+
     # FeatureService registration
     async def create_feature_service(resolver) -> "FeatureService":
         """Factory function for FeatureService using TypedResolver."""
@@ -462,10 +465,7 @@ def _register_feature_command_services(manager: "ServiceRegistrationManager") ->
 
         user_store = await resolver.aget(UserStoreProtocol)
         channel_operations = await resolver.aget(ChannelOperationsProtocol)
-        return FeatureService(
-            user_store=user_store,
-            channel_operations=channel_operations
-        )
+        return FeatureService(user_store=user_store, channel_operations=channel_operations)
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=FeatureServiceProtocol,
@@ -591,6 +591,7 @@ def _register_feature_command_services(manager: "ServiceRegistrationManager") ->
 
 def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
     """Register metrics dashboard services."""
+
     # MetricsDataCollector
     async def create_metrics_data_collector(resolver) -> MetricsDataCollector:
         """Factory function for MetricsDataCollector using TypedResolver."""
@@ -601,7 +602,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
         return MetricsDataCollector(
             channel_ops=channel_ops,
             join_notification_ops=join_notification_ops,
-            channel_membership_ops=channel_membership_ops
+            channel_membership_ops=channel_membership_ops,
         )
 
     manager.register_protocol_with_concrete_alias(
@@ -611,7 +612,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
         dependencies=[
             DependencySpec(ChannelOperationsProtocol),
             DependencySpec(JoinNotificationOpsProtocol),
-            DependencySpec(ChannelMembershipOpsProtocol)
+            DependencySpec(ChannelMembershipOpsProtocol),
         ],
         lifetime="singleton",
     )
@@ -639,7 +640,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
         return MetricsExportHandler(
             metrics_data_collector=metrics_data_collector,
             slack_posting_handler=slack_posting_handler,
-            html_generator=html_generator
+            html_generator=html_generator,
         )
 
     manager.registry.register(
@@ -648,7 +649,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
         dependencies=[
             DependencySpec(MetricsDataCollectorProtocol),
             DependencySpec(SlackPostingHandlerProtocol),
-            DependencySpec(MetricsHTMLGenerator)
+            DependencySpec(MetricsHTMLGenerator),
         ],
         lifetime="singleton",
     )
@@ -665,7 +666,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
             slack_posting_handler=slack_posting_handler,
             metrics_export_handler=metrics_export_handler,
             secrets_manager=secrets_manager,
-            slack_user_ops=slack_user_ops
+            slack_user_ops=slack_user_ops,
         )
 
     manager.registry.register(
@@ -675,7 +676,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
             DependencySpec(SlackPostingHandlerProtocol),
             DependencySpec(MetricsExportHandler),
             DependencySpec(SecretsManagerProtocol),
-            DependencySpec(SlackUserOpsProtocol)
+            DependencySpec(SlackUserOpsProtocol),
         ],
         lifetime="singleton",
     )

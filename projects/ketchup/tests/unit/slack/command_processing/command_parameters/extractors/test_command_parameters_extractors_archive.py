@@ -52,26 +52,20 @@ class TestExtractArchiveParams:
     def test_non_numeric_days(self) -> None:
         """Test raises ValidationError if days is not a number."""
         with pytest.raises(ValidationError) as exc:
-            extract_archive_params(
-                "/ketchup archive foo", CommandContext.DIRECT_MESSAGE
-            )
+            extract_archive_params("/ketchup archive foo", CommandContext.DIRECT_MESSAGE)
         assert "not a number" in exc.value.message
 
     @pytest.mark.parametrize("days", [0, 181])
     def test_days_out_of_range(self, days: int) -> None:
         """Test raises ValidationError if days is out of range."""
         with pytest.raises(ValidationError) as exc:
-            extract_archive_params(
-                f"/ketchup archive {days}", CommandContext.DIRECT_MESSAGE
-            )
+            extract_archive_params(f"/ketchup archive {days}", CommandContext.DIRECT_MESSAGE)
         assert "must be between 1 and 180" in exc.value.user_message
 
     @pytest.mark.parametrize("days", [1, 180])
     def test_valid_days(self, days: int) -> None:
         """Test returns ArchiveCommandParams for valid days."""
-        params = extract_archive_params(
-            f"/ketchup archive {days}", CommandContext.DIRECT_MESSAGE
-        )
+        params = extract_archive_params(f"/ketchup archive {days}", CommandContext.DIRECT_MESSAGE)
         assert isinstance(params, ArchiveCommandParams)
         assert params.command_type == CommandType.ARCHIVE
         assert params.archive_days == days

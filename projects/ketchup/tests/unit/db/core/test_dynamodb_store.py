@@ -45,15 +45,14 @@ def mock_client() -> MagicMock:
 @pytest.fixture
 def store(mock_client: MagicMock) -> DynamoDBStore:
     """Fixture for DynamoDBStore with all operation classes mocked."""
-    with patch(
-        "packages.db.dynamodb_store.ChannelOperations", autospec=True
-    ) as mock_channel_ops, patch(
-        "packages.db.dynamodb_store.ArchiveOperations", autospec=True
-    ) as mock_archive_ops, patch(
-        "packages.db.dynamodb_store.FeedbackOperations", autospec=True
-    ) as mock_feedback_ops, patch(
-        "packages.db.dynamodb_store.RestoreStateOperations", autospec=True
-    ) as mock_restore_ops:
+    with (
+        patch("packages.db.dynamodb_store.ChannelOperations", autospec=True) as mock_channel_ops,
+        patch("packages.db.dynamodb_store.ArchiveOperations", autospec=True) as mock_archive_ops,
+        patch("packages.db.dynamodb_store.FeedbackOperations", autospec=True) as mock_feedback_ops,
+        patch(
+            "packages.db.dynamodb_store.RestoreStateOperations", autospec=True
+        ) as mock_restore_ops,
+    ):
         store = DynamoDBStore(mock_client, "test-table")
         store.channel_ops = mock_channel_ops.return_value
         store.archive_ops = mock_archive_ops.return_value
@@ -77,16 +76,12 @@ async def test_get_all_channel_details(store: DynamoDBStore) -> None:
 @pytest.mark.asyncio
 async def test_get_channel_details(store: DynamoDBStore) -> None:
     """Test get_channel_details delegates and returns result or None."""
-    with patch.object(
-        store.channel_ops, "get_channel_details", new_callable=AsyncMock
-    ) as mock_get:
+    with patch.object(store.channel_ops, "get_channel_details", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = {"id": "C1"}
         result = await store.get_channel_details("C1")
         assert result == {"id": "C1"}
         mock_get.assert_awaited_once_with("C1")
-    with patch.object(
-        store.channel_ops, "get_channel_details", new_callable=AsyncMock
-    ) as mock_get:
+    with patch.object(store.channel_ops, "get_channel_details", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = None
         result = await store.get_channel_details("C2")
         assert result is None
@@ -96,9 +91,7 @@ async def test_get_channel_details(store: DynamoDBStore) -> None:
 async def test_store_metadata(store: DynamoDBStore) -> None:
     """Test store_metadata delegates to ChannelOperations."""
     mock_metadata = MagicMock()
-    with patch.object(
-        store.channel_ops, "store_metadata", new_callable=AsyncMock
-    ) as mock_store:
+    with patch.object(store.channel_ops, "store_metadata", new_callable=AsyncMock) as mock_store:
         await store.store_metadata(mock_metadata)
         mock_store.assert_awaited_once_with(mock_metadata)
 
@@ -116,16 +109,12 @@ async def test_update_channel_archived_status(store: DynamoDBStore) -> None:
 @pytest.mark.asyncio
 async def test_store_feedback(store: DynamoDBStore) -> None:
     """Test store_feedback delegates to FeedbackOperations and returns bool."""
-    with patch.object(
-        store.feedback_ops, "store_feedback", new_callable=AsyncMock
-    ) as mock_store:
+    with patch.object(store.feedback_ops, "store_feedback", new_callable=AsyncMock) as mock_store:
         mock_store.return_value = True
         result = await store.store_feedback({"foo": "bar"})
         assert result is True
         mock_store.assert_awaited_once()
-    with patch.object(
-        store.feedback_ops, "store_feedback", new_callable=AsyncMock
-    ) as mock_store:
+    with patch.object(store.feedback_ops, "store_feedback", new_callable=AsyncMock) as mock_store:
         mock_store.return_value = False
         result = await store.store_feedback({"foo": "baz"})
         assert result is False
@@ -164,13 +153,11 @@ async def test_ensure_channels_exist(store: DynamoDBStore) -> None:
 @pytest.mark.asyncio
 async def test_cleanup(store: DynamoDBStore) -> None:
     """Test cleanup calls cleanup on all operation classes."""
-    with patch.object(
-        store.channel_ops, "cleanup", new_callable=AsyncMock
-    ) as mock_ch, patch.object(
-        store.archive_ops, "cleanup", new_callable=AsyncMock
-    ) as mock_ar, patch.object(
-        store.feedback_ops, "cleanup", new_callable=AsyncMock
-    ) as mock_fb:
+    with (
+        patch.object(store.channel_ops, "cleanup", new_callable=AsyncMock) as mock_ch,
+        patch.object(store.archive_ops, "cleanup", new_callable=AsyncMock) as mock_ar,
+        patch.object(store.feedback_ops, "cleanup", new_callable=AsyncMock) as mock_fb,
+    ):
         await store.cleanup()
         mock_ch.assert_awaited_once()
         mock_ar.assert_awaited_once()

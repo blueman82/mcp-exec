@@ -23,9 +23,7 @@ class TestJIRAMCPIntegration:
     def test_setup_ipaas_env_script(self):
         """Test that the setup-ipaas-env.sh script works."""
         # Script is in tests/setup directory
-        script_path = os.path.join(
-            os.path.dirname(__file__), "../setup/setup-ipaas-env.sh"
-        )
+        script_path = os.path.join(os.path.dirname(__file__), "../setup/setup-ipaas-env.sh")
         if not os.path.exists(script_path):
             pytest.skip("setup-ipaas-env.sh script not found")
 
@@ -103,9 +101,7 @@ class TestJIRAMCPIntegration:
         ]
 
         for service in required_services:
-            assert (
-                service in services
-            ), f"Required service {service} not found in docker-compose"
+            assert service in services, f"Required service {service} not found in docker-compose"
 
     @pytest.mark.asyncio
     async def test_secrets_manager_integration(self):

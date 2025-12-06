@@ -13,10 +13,10 @@ class TestNormalizePromptForAgent:
     def test_removes_multiple_newlines(self):
         """Test that multiple consecutive newlines are replaced with single space."""
         input_text = """Line 1
-        
-        
+
+
         Line 2
-        
+
         Line 3"""
         expected = "Line 1 Line 2 Line 3"
         assert normalize_prompt_for_agent(input_text) == expected
@@ -28,20 +28,22 @@ class TestNormalizePromptForAgent:
 2. Second item
 - Bullet point
 - Another bullet"""
-        expected = "Search for tickets: 1. First item 2. Second item - Bullet point - Another bullet"
+        expected = (
+            "Search for tickets: 1. First item 2. Second item - Bullet point - Another bullet"
+        )
         assert normalize_prompt_for_agent(input_text) == expected
 
     def test_handles_complex_report_prompt(self):
         """Test handling of complex multi-line report prompts."""
         input_text = """You are to generate a report titled "Weekly Report".
-        
+
         Format:
-        
+
         Section 1:
         - Item A
         - Item B
-        
-        
+
+
         Section 2:
         - Item C"""
         expected = 'You are to generate a report titled "Weekly Report". Format: Section 1: - Item A - Item B Section 2: - Item C'

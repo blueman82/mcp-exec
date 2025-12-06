@@ -105,9 +105,7 @@ class SlackEventHandler:
         self.user_store = user_store
         logger.info("SlackEventHandler initialized with injected dependencies.")
 
-    async def handle_channel_created(
-        self, event: dict, response_url: Optional[str] = None
-    ):
+    async def handle_channel_created(self, event: dict, response_url: Optional[str] = None):
         """
         Handle channel_created event by dispatching to the standalone handler.
 
@@ -129,9 +127,7 @@ class SlackEventHandler:
             posting_handler=self.posting_handler,
         )
 
-    async def handle_member_joined_channel(
-        self, event: dict, response_url: Optional[str] = None
-    ):
+    async def handle_member_joined_channel(self, event: dict, response_url: Optional[str] = None):
         """
         Handle member_joined_channel event by dispatching to the standalone handler.
 
@@ -183,12 +179,12 @@ class SlackEventHandler:
 
         try:
             # Delegate core processing to the imported function
-            await process_channel_archive(
-                channel_id=channel_id, dynamodb_store=self.dynamodb_store
-            )
+            await process_channel_archive(channel_id=channel_id, dynamodb_store=self.dynamodb_store)
 
         except Exception as e:
-            error_message = f"Error handling channel archive event for channel {channel_id}: {str(e)}"
+            error_message = (
+                f"Error handling channel archive event for channel {channel_id}: {str(e)}"
+            )
             logger.error(error_message, exc_info=True)
 
     async def handle_channel_unarchive(self, event: dict):
@@ -215,9 +211,7 @@ class SlackEventHandler:
                 logger.error("DynamoDB store is not initialized")
                 return
 
-            channel_data = await self.dynamodb_store.get_channel_details_consistent(
-                channel_id
-            )
+            channel_data = await self.dynamodb_store.get_channel_details_consistent(channel_id)
 
             if not channel_data:
                 logger.warning(
@@ -241,9 +235,7 @@ class SlackEventHandler:
                         channel_id,
                     )
                 except Exception as update_error:
-                    logger.error(
-                        "Error updating channel archived status: %s", str(update_error)
-                    )
+                    logger.error("Error updating channel archived status: %s", str(update_error))
                     # Continue anyway to attempt bot invite
             else:
                 logger.info(
@@ -270,7 +262,9 @@ class SlackEventHandler:
                 # Consider notifying admin
 
         except Exception as e:
-            error_message = f"Error handling channel unarchive event for channel {channel_id}: {str(e)}"
+            error_message = (
+                f"Error handling channel unarchive event for channel {channel_id}: {str(e)}"
+            )
             logger.error(error_message, exc_info=True)
 
     async def handle_app_mention(self, event: dict):
@@ -295,28 +289,22 @@ class SlackEventHandler:
             return
 
         # CHECK FOR MAINTENANCE PROMPT FIRST
-        maintenance_prompt = await self.dynamodb_store.get_maintenance_prompt(
-            channel_id
-        )
+        maintenance_prompt = await self.dynamodb_store.get_maintenance_prompt(channel_id)
 
         if maintenance_prompt:
             # Active prompt exists - this is a reply to maintenance prompt
             jira_ticket = JiraPromptHandler.extract_jira_ticket(text)
 
             if jira_ticket:
-                logger.info(
-                    f"Maintenance reply detected: {jira_ticket} in {channel_id}"
-                )
+                logger.info(f"Maintenance reply detected: {jira_ticket} in {channel_id}")
                 # Send acknowledgment to the user (ephemeral - only visible to them)
                 await self.posting_handler.post_message(
                     user_id=user_id,
                     channel_id=channel_id,
-                    message=f"<@{user_id}> Thank you! Processing {jira_ticket}..."
+                    message=f"<@{user_id}> Thank you! Processing {jira_ticket}...",
                 )
                 # Store the reply in DynamoDB (don't delete - let waiting container find it)
-                await self.dynamodb_store.store_maintenance_reply(
-                    channel_id, jira_ticket
-                )
+                await self.dynamodb_store.store_maintenance_reply(channel_id, jira_ticket)
                 return  # Done - waiting container will pick up the reply
         else:
             # No active prompt, but check if user is providing a late JIRA ticket
@@ -333,9 +321,7 @@ class SlackEventHandler:
                 # IMPROVEMENT: Store the late response so we don't lose it
                 # The user provided the info they were asked for - we should use it!
                 try:
-                    await self.dynamodb_store.store_maintenance_reply(
-                        channel_id, jira_ticket
-                    )
+                    await self.dynamodb_store.store_maintenance_reply(channel_id, jira_ticket)
                     logger.info(f"Stored late reply {jira_ticket} for {channel_id}")
                 except Exception as e:
                     logger.warning(f"Failed to store late reply: {e}")
@@ -346,7 +332,7 @@ class SlackEventHandler:
                         f"<@{user_id}> I see you provided {jira_ticket}, but I didn't catch "
                         "it within the expected timeframe. The maintenance check workflow has completed. "
                         "If you need to re-run this, please ask me to join the channel again."
-                    )
+                    ),
                 )
                 return
 
@@ -365,9 +351,7 @@ class SlackEventHandler:
             return
 
         # Log the event
-        logger.info(
-            f"App mentioned by user {user_id} in channel {channel_id}: {event.get('text')}"
-        )
+        logger.info(f"App mentioned by user {user_id} in channel {channel_id}: {event.get('text')}")
 
     async def handle_message(self, event: dict):
         """
@@ -388,9 +372,7 @@ class SlackEventHandler:
 
         # Also filter out messages with bot_id (messages from any bot/app)
         if event.get("bot_id"):
-            logger.info(
-                f"Ignoring message from bot/app with bot_id: {event.get('bot_id')}"
-            )
+            logger.info(f"Ignoring message from bot/app with bot_id: {event.get('bot_id')}")
             return
 
         # Check if the message contains a mention of the bot
@@ -444,9 +426,7 @@ class SlackEventHandler:
             return
 
         # Log the event
-        logger.info(
-            f"Direct message from user {event.get('user')}: {event.get('text')}"
-        )
+        logger.info(f"Direct message from user {event.get('user')}: {event.get('text')}")
 
         # Direct users to slash commands
         await self.posting_handler.post_message(

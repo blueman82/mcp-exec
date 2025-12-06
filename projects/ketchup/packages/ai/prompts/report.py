@@ -28,9 +28,7 @@ def get_report_prompt(
     # Extract normalized preferences (these should already be normalized by home.py)
     role = "incident response analyst"
     detail_level = user_prefs.get("detail_level", "balanced")
-    time_window = user_prefs.get(
-        "time_window", "past_24_hours"
-    )  # Changed from "past 24 hours"
+    time_window = user_prefs.get("time_window", "past_24_hours")  # Changed from "past 24 hours"
 
     # Build instruction based on detail level
     if detail_level == "high-level":
@@ -74,9 +72,7 @@ def get_report_prompt(
             f"\n• Focus on events from the {time_window.replace('_', ' ')} if relevant"
         )
     elif "complete" in time_window:
-        time_window_note = (
-            "\n• Include all relevant information from the entire channel history"
-        )
+        time_window_note = "\n• Include all relevant information from the entire channel history"
     else:
         time_window_note = "\n• Focus on the most recent and relevant information"
 
@@ -248,7 +244,7 @@ If any requirement is not met, regenerate your output. Do not include the Self-V
 
     # Add JSON schema instruction when feature flag enabled
     if FeatureFlags.is_structured_json_output_enabled():
-        prompt += '\n\nIMPORTANT: Return your response as JSON with this exact structure:\n'
+        prompt += "\n\nIMPORTANT: Return your response as JSON with this exact structure:\n"
         prompt += '{"response_text": "your complete formatted response here using markdown"}\n'
 
     return prompt

@@ -43,9 +43,7 @@ def test_convert_timestamp_to_utc(
     formatter: SlackMessageFormatter, timestamp: str | None, expected: str
 ) -> None:
     """Test convert_timestamp_to_utc handles valid and invalid timestamps."""
-    with patch(
-        "packages.slack.channel_operations.slack_message_formatter.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.slack_message_formatter.logger") as mock_logger:
         result = formatter.convert_timestamp_to_utc(timestamp)
         assert result == expected
         if expected == "Invalid Timestamp":

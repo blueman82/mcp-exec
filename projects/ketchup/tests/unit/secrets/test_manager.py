@@ -54,9 +54,7 @@ class TestSecretsManager:
         """Test successful secret retrieval from AWS Secrets Manager."""
         # Arrange
         mock_client = AsyncMock()
-        mock_client.get_secret_value.return_value = {
-            "SecretString": json.dumps(mock_secrets)
-        }
+        mock_client.get_secret_value.return_value = {"SecretString": json.dumps(mock_secrets)}
 
         mock_session = MagicMock()
         mock_session.client.return_value.__aenter__.return_value = mock_client
@@ -84,9 +82,7 @@ class TestSecretsManager:
             with pytest.raises(KeyError) as exc_info:
                 await secrets_manager.get_secret_async("test-secret")
 
-            assert "SecretString not found in secret value response" in str(
-                exc_info.value
-            )
+            assert "SecretString not found in secret value response" in str(exc_info.value)
 
     @pytest.mark.asyncio
     async def test_get_secret_async_aws_error(self, secrets_manager):
@@ -158,9 +154,7 @@ class TestSecretsManager:
         with patch.object(
             secrets_manager,
             "get_secret_async",
-            side_effect=ClientError(
-                {"Error": {"Code": "AccessDenied"}}, "GetSecretValue"
-            ),
+            side_effect=ClientError({"Error": {"Code": "AccessDenied"}}, "GetSecretValue"),
         ):
             # Act & Assert
             with pytest.raises(ClientError):
@@ -175,9 +169,7 @@ class TestSecretsManager:
             # Missing other required keys
         }
 
-        with patch.object(
-            secrets_manager, "get_secret_async", return_value=incomplete_secrets
-        ):
+        with patch.object(secrets_manager, "get_secret_async", return_value=incomplete_secrets):
             # Act & Assert
             with pytest.raises(KeyError):
                 await secrets_manager.get_app_secrets()
@@ -188,9 +180,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"SLACK_SIGNING_SECRET": "test-signing-secret"}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_slack_signing_secret()
 
@@ -203,9 +193,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"AUTHORISED_USERS": ["user1", "user2"]}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_authorised_users()
 
@@ -218,9 +206,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"SLACK_API_TOKEN": "test-api-token"}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_slack_api_token_async()
 
@@ -233,9 +219,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"SLACK_USER_API_TOKEN": "test-user-token"}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_slack_user_api_token()
 
@@ -248,9 +232,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"EXIGENCE_USER_ID": "test-exigence-id"}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_exigence_user_id_async()
 
@@ -263,9 +245,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"AZURE_OPENAI_LB_API_KEY": "test-azure-key"}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_azure_openai_lb_api_key()
 
@@ -278,9 +258,7 @@ class TestSecretsManager:
         # Arrange
         mock_app_secrets = {"BOT_SLACK_USER_ID": "test-bot-user-id"}
 
-        with patch.object(
-            secrets_manager, "get_app_secrets", return_value=mock_app_secrets
-        ):
+        with patch.object(secrets_manager, "get_app_secrets", return_value=mock_app_secrets):
             # Act
             result = await secrets_manager.get_bot_slack_user_id_async()
 
@@ -292,9 +270,7 @@ class TestSecretsManager:
         """Test that appropriate logging occurs during operations."""
         # Arrange
         mock_client = AsyncMock()
-        mock_client.get_secret_value.return_value = {
-            "SecretString": json.dumps(mock_secrets)
-        }
+        mock_client.get_secret_value.return_value = {"SecretString": json.dumps(mock_secrets)}
 
         mock_session = MagicMock()
         mock_session.client.return_value.__aenter__.return_value = mock_client
@@ -305,9 +281,7 @@ class TestSecretsManager:
                 await secrets_manager.get_secret_async("test-secret")
 
                 # Assert
-                mock_logger.info.assert_called_with(
-                    "Starting get_secret_async function."
-                )
+                mock_logger.info.assert_called_with("Starting get_secret_async function.")
 
     @pytest.mark.asyncio
     async def test_error_logging(self, secrets_manager):

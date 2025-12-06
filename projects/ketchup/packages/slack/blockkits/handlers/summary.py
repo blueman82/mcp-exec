@@ -111,9 +111,7 @@ class SummaryMessageHandler:
             # Prepare the summary content dictionary for _process_summary
             # Handle both old and new dictionary structures
             summary_content_dict = {
-                "content": summary.get(
-                    "summary", summary.get("content", "No content provided")
-                )
+                "content": summary.get("summary", summary.get("content", "No content provided"))
             }
 
             await self._process_summary(

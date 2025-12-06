@@ -74,9 +74,7 @@ class TestMetricsStorage:
             # First call fails, second succeeds (fallback)
             mock_mkdir.side_effect = [OSError("Permission denied"), None]
 
-            MetricsStorage(
-                namespace="Test", storage_dir="/invalid/path/that/cannot/be/created"
-            )
+            MetricsStorage(namespace="Test", storage_dir="/invalid/path/that/cannot/be/created")
 
             # Should have attempted fallback
             assert mock_mkdir.call_count == 2
@@ -221,9 +219,7 @@ class TestMetricsStorage:
 
     def test_namespace_sanitization_in_filename(self, temp_dir):
         """Test that namespace with special characters is sanitized for filename."""
-        local_metrics = MetricsStorage(
-            namespace="Test/Complex Namespace", storage_dir=temp_dir
-        )
+        local_metrics = MetricsStorage(namespace="Test/Complex Namespace", storage_dir=temp_dir)
 
         filename = local_metrics._get_current_metrics_file()
         assert "Test_Complex_Namespace" in filename.name

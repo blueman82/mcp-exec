@@ -67,9 +67,7 @@ class TestHandleArchivedChannel:
 
     async def test_missing_restore_ops(self) -> None:
         self.handler.channel_restore_ops = None
-        result = await self.handler.do_command(
-            user_id="U1", channel_id="C1", response_url="url"
-        )
+        result = await self.handler.do_command(user_id="U1", channel_id="C1", response_url="url")
         assert result["statusCode"] == 500
         self.handler.slack_posting_handler.post_message.assert_awaited_once()
 
@@ -78,9 +76,7 @@ class TestHandleArchivedChannel:
             False,
             True,
         )
-        result = await self.handler.do_command(
-            user_id="U1", channel_id="C1", response_url="url"
-        )
+        result = await self.handler.do_command(user_id="U1", channel_id="C1", response_url="url")
         assert result["statusCode"] == 400
         self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
 
@@ -96,20 +92,14 @@ class TestHandleArchivedChannel:
 
         handler = DummyHandler()
         handler.channel_restore_ops.restore_archived_channel.return_value = (True, True)
-        result = await handler.do_command(
-            user_id="U1", channel_id="C1", response_url="url"
-        )
+        result = await handler.do_command(user_id="U1", channel_id="C1", response_url="url")
         assert result["statusCode"] == 500
         handler.slack_posting_handler.post_message.assert_awaited_once()
 
     async def test_exception_in_decorator(self) -> None:
         # Patch restore_archived_channel to raise
-        self.handler.channel_restore_ops.restore_archived_channel.side_effect = (
-            Exception("fail")
-        )
-        result = await self.handler.do_command(
-            user_id="U1", channel_id="C1", response_url="url"
-        )
+        self.handler.channel_restore_ops.restore_archived_channel.side_effect = Exception("fail")
+        result = await self.handler.do_command(user_id="U1", channel_id="C1", response_url="url")
         assert result["statusCode"] == 500
         self.handler.slack_posting_handler.post_message.assert_awaited_once()
 
@@ -226,9 +216,7 @@ class TestHandleArchivedChannelResolution:
             assert self.handler.received_kwargs["channel_id"] == resolved_id
             # Verify the text was updated
             assert self.handler.received_kwargs["text"] == expected_text
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(
-                channel_name
-            )
+            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(channel_name)
 
     async def test_resolver_not_available(self) -> None:
         """Test behavior when ChannelNameResolver is not available."""
@@ -261,9 +249,7 @@ class TestHandleArchivedChannelResolution:
             "packages.slack.command_processing.command_decorators.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
-            mock_resolver.resolve_channel_parameter.side_effect = Exception(
-                "Resolution failed"
-            )
+            mock_resolver.resolve_channel_parameter.side_effect = Exception("Resolution failed")
             mock_registry = AsyncMock()
             mock_registry.aget.return_value = mock_resolver
             mock_get_typed_registry.return_value = mock_registry
@@ -310,9 +296,7 @@ class TestHandleArchivedChannelResolution:
 
             # Verify restore_archived_channel was called with resolved ID, not the mention
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
-            call_args = (
-                self.handler.channel_restore_ops.restore_archived_channel.call_args
-            )
+            call_args = self.handler.channel_restore_ops.restore_archived_channel.call_args
             assert call_args.kwargs["channel_id"] == resolved_id
 
     async def test_target_channel_id_from_dm_context(self) -> None:
@@ -344,9 +328,7 @@ class TestHandleArchivedChannelResolution:
             assert result["statusCode"] == 200
             # Verify resolution occurred and restore was called with resolved ID
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
-            call_args = (
-                self.handler.channel_restore_ops.restore_archived_channel.call_args
-            )
+            call_args = self.handler.channel_restore_ops.restore_archived_channel.call_args
             assert call_args.kwargs["channel_id"] == resolved_id
 
     async def test_rearchive_uses_resolved_channel_id(self) -> None:
@@ -385,9 +367,7 @@ class TestHandleArchivedChannelResolution:
 
             # Verify that restore was called with resolved ID
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
-            restore_call_args = (
-                self.handler.channel_restore_ops.restore_archived_channel.call_args
-            )
+            restore_call_args = self.handler.channel_restore_ops.restore_archived_channel.call_args
             assert restore_call_args.kwargs["channel_id"] == resolved_id
 
             # CRITICAL TEST: Verify that rearchive was called with resolved ID, not the mention
@@ -437,9 +417,7 @@ class TestHandleArchivedChannelResolution:
 
             # Verify that restore was called with resolved ID (this worked before)
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
-            restore_call_args = (
-                self.handler.channel_restore_ops.restore_archived_channel.call_args
-            )
+            restore_call_args = self.handler.channel_restore_ops.restore_archived_channel.call_args
             assert restore_call_args.kwargs["channel_id"] == resolved_id
 
             # THE BUG FIX: Verify that rearchive was called with resolved ID, not the mention

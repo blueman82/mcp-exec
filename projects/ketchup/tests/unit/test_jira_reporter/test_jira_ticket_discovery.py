@@ -61,9 +61,7 @@ class TestJiraTicketDiscovery:
         """Test successful JIRA search in CSOPM project."""
         # Arrange
         exigence_url = "https://adobe.app.exigence.io/secure/index.html#/events/78155/situationroom"
-        mock_response = {
-            "issues": [{"key": "CSOPM-12345", "fields": {"summary": "Test issue"}}]
-        }
+        mock_response = {"issues": [{"key": "CSOPM-12345", "fields": {"summary": "Test issue"}}]}
         mock_mcp_client.search_issues.return_value = mock_response
 
         # Act
@@ -99,9 +97,7 @@ class TestJiraTicketDiscovery:
         ]
 
         # Act
-        result = await discovery_service.search_jira_by_exigence_url(
-            exigence_url, customer_name
-        )
+        result = await discovery_service.search_jira_by_exigence_url(exigence_url, customer_name)
 
         # Assert
         assert result == "CSOPM-22222"  # Prefers CSOPM even in extended search
@@ -112,9 +108,7 @@ class TestJiraTicketDiscovery:
         assert customer_name in second_call[0][0]
 
     @pytest.mark.asyncio
-    async def test_search_jira_by_exigence_url_no_results(
-        self, discovery_service, mock_mcp_client
-    ):
+    async def test_search_jira_by_exigence_url_no_results(self, discovery_service, mock_mcp_client):
         """Test JIRA search when no tickets are found."""
         # Arrange
         exigence_url = "https://adobe.app.exigence.io/secure/index.html#/events/99999/situationroom"
@@ -131,9 +125,7 @@ class TestJiraTicketDiscovery:
         assert mock_mcp_client.search_issues.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_search_jira_handles_json_errors(
-        self, discovery_service, mock_mcp_client
-    ):
+    async def test_search_jira_handles_json_errors(self, discovery_service, mock_mcp_client):
         """Test handling of malformed JSON responses."""
         # Arrange
         exigence_url = "https://adobe.app.exigence.io/secure/index.html#/events/78155/situationroom"
@@ -146,9 +138,7 @@ class TestJiraTicketDiscovery:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_search_jira_handles_exceptions(
-        self, discovery_service, mock_mcp_client
-    ):
+    async def test_search_jira_handles_exceptions(self, discovery_service, mock_mcp_client):
         """Test handling of exceptions during JIRA search."""
         # Arrange
         exigence_url = "https://adobe.app.exigence.io/secure/index.html#/events/78155/situationroom"
@@ -183,9 +173,7 @@ class TestJiraTicketDiscovery:
         assert mock_mcp_client.search_issues.call_count == 0
 
     @pytest.mark.asyncio
-    async def test_discover_jira_ticket_no_exigence_id(
-        self, discovery_service, mock_mcp_client
-    ):
+    async def test_discover_jira_ticket_no_exigence_id(self, discovery_service, mock_mcp_client):
         """Test discovery when channel name has no Exigence ID."""
         # Arrange
         channel_metadata = {"channel_name": "general_discussion", "jira_ticket": ""}
@@ -201,9 +189,7 @@ class TestJiraTicketDiscovery:
         assert mock_mcp_client.search_issues.call_count == 0
 
     @pytest.mark.asyncio
-    async def test_discover_jira_ticket_full_flow(
-        self, discovery_service, mock_mcp_client
-    ):
+    async def test_discover_jira_ticket_full_flow(self, discovery_service, mock_mcp_client):
         """Test full discovery flow from channel name to JIRA ticket."""
         # Arrange
         channel_metadata = {

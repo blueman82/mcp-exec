@@ -6,11 +6,10 @@ These tests verify the end-to-end flow with actual AWS services:
 2. Preference being stored in real DynamoDB via UserStore
 3. UserJoinNotificationService respecting the preference when sending notifications
 
-Requires: AWS_PROFILE=campaign_prod_v7
+Requires: AWS configured via .env.test (see .env.test.example)
 """
 
 import asyncio
-import os
 import time
 from unittest.mock import AsyncMock
 
@@ -44,10 +43,11 @@ class TestUserPreferencesRealAWS:
 
     @pytest_asyncio.fixture
     async def aws_client(self):
-        """Create real DynamoDB client."""
-        if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-            pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
+        """Create real DynamoDB client.
 
+        AWS profile is loaded from .env.test by root conftest.py.
+        Tests are auto-skipped if AWS is not configured.
+        """
         client = DynamoDBAsyncClient()
         yield client
 
@@ -67,9 +67,7 @@ class TestUserPreferencesRealAWS:
         except Exception as e:
             logger.warning(f"Failed to cleanup test user {user_id}: {e}")
 
-    async def test_store_and_retrieve_join_notification_preference(
-        self, user_store, aws_client
-    ):
+    async def test_store_and_retrieve_join_notification_preference(self, user_store, aws_client):
         """Test storing and retrieving join notification preference in real DynamoDB."""
         user_id = self.generate_test_user_id("STORE_RETRIEVE")
         logger.info(f"Testing store/retrieve with user ID: {user_id}")
@@ -100,9 +98,7 @@ class TestUserPreferencesRealAWS:
             assert user_data["preferences"]["product_focus"] == ["ajo", "aep"]
             assert user_data["preferences"]["detail_level"] == "technical_details"
 
-            logger.info(
-                "✅ Successfully stored and retrieved join notification preference"
-            )
+            logger.info("✅ Successfully stored and retrieved join notification preference")
 
         finally:
             await self.cleanup_test_user(aws_client, user_id)
@@ -124,14 +120,10 @@ class TestUserPreferencesRealAWS:
                                 }
                             },
                             "product_focus_selection": {
-                                "product_focus_select": {
-                                    "selected_option": {"value": "stock"}
-                                }
+                                "product_focus_select": {"selected_option": {"value": "stock"}}
                             },
                             "detail_level_selection": {
-                                "detail_level_select": {
-                                    "selected_option": {"value": "balanced"}
-                                }
+                                "detail_level_select": {"selected_option": {"value": "balanced"}}
                             },
                             "time_window_selection": {
                                 "time_window_select": {
@@ -164,9 +156,7 @@ class TestUserPreferencesRealAWS:
         finally:
             await self.cleanup_test_user(aws_client, user_id)
 
-    async def test_notification_service_respects_preference(
-        self, user_store, aws_client
-    ):
+    async def test_notification_service_respects_preference(self, user_store, aws_client):
         """Test that notification service respects user preference from real DynamoDB."""
         user_id = self.generate_test_user_id("SERVICE_RESPECT")
         channel_id = "C_TEST_CHANNEL"
@@ -296,10 +286,11 @@ class TestUserPreferencesRealAWS:
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_preference_flow_end_to_end():
-    """Test complete end-to-end flow with real AWS DynamoDB."""
-    if os.environ.get("AWS_PROFILE") != "campaign_prod_v7":
-        pytest.skip("AWS_PROFILE must be set to campaign_prod_v7")
+    """Test complete end-to-end flow with real AWS DynamoDB.
 
+    AWS profile is loaded from .env.test by root conftest.py.
+    Test is auto-skipped if AWS is not configured.
+    """
     client = DynamoDBAsyncClient()
     user_store = UserStore(client=client, table_name="ketchup_channel_information")
     user_id = f"U_TEST_E2E_{int(time.time())}"
@@ -318,19 +309,13 @@ async def test_preference_flow_end_to_end():
                             }
                         },
                         "product_focus_selection": {
-                            "product_focus_select": {
-                                "selected_option": {"value": "all_products"}
-                            }
+                            "product_focus_select": {"selected_option": {"value": "all_products"}}
                         },
                         "detail_level_selection": {
-                            "detail_level_select": {
-                                "selected_option": {"value": "balanced"}
-                            }
+                            "detail_level_select": {"selected_option": {"value": "balanced"}}
                         },
                         "time_window_selection": {
-                            "time_window_select": {
-                                "selected_option": {"value": "past_24_hours"}
-                            }
+                            "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                         },
                     }
                 }

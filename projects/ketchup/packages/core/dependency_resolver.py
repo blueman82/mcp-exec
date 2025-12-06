@@ -42,9 +42,7 @@ class ServiceDependencyResolver:
             resolver.register_service_deps("user_store", ["dynamodb_async_client"])
             resolver.register_service_deps("slack_posting", ["secrets_manager"])
         """
-        logger.debug(
-            "Registering service dependencies: %s -> %s", service, dependencies
-        )
+        logger.debug("Registering service dependencies: %s -> %s", service, dependencies)
         self._dependencies[service] = dependencies
         self._services.add(service)
         for dep in dependencies:
@@ -63,9 +61,7 @@ class ServiceDependencyResolver:
         Raises:
             ValueError: If circular dependencies are detected
         """
-        logger.info(
-            "Calculating initialization order for %d services", len(self._services)
-        )
+        logger.info("Calculating initialization order for %d services", len(self._services))
 
         # Kahn's algorithm for topological sorting
         in_degree = defaultdict(int)
@@ -82,9 +78,7 @@ class ServiceDependencyResolver:
                 in_degree[service] += 1
 
         # Find services with no dependencies (can initialize first)
-        queue = deque(
-            [service for service in self._services if in_degree[service] == 0]
-        )
+        queue = deque([service for service in self._services if in_degree[service] == 0])
         result = []
 
         # Process services in topological order

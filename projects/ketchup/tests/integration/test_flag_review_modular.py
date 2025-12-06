@@ -8,11 +8,11 @@ This test would have caught the exact bugs we found in production:
 
 Tests the COMPLETE workflow with real AWS services where possible.
 """
+import asyncio
 import os
 import sys
-import asyncio
 from datetime import datetime, timezone
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -39,7 +39,7 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
             # Get required services from DI container
             flag_review_handler = self.get_service("flag_review_handler")
             dynamodb_store = self.get_service("dynamodb_store")
-            
+
             if not all([flag_review_handler, dynamodb_store]):
                 self.logger.error("Failed to get required services")
                 return False
@@ -86,13 +86,13 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
         """Verify the modular architecture is properly set up."""
         # Check all required modules exist
         required_modules = [
-            'status_flag_processor',
-            'command_flag_processor', 
-            'admin_action_processor',
-            'modal_orchestrator',
-            'validators'
+            "status_flag_processor",
+            "command_flag_processor",
+            "admin_action_processor",
+            "modal_orchestrator",
+            "validators",
         ]
-        
+
         for module in required_modules:
             if not hasattr(handler, module):
                 self.logger.error(f"Missing module: {module}")
@@ -100,20 +100,20 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
 
         # Verify modal orchestrator has correct method names (would catch bug #1)
         modal = handler.modal_orchestrator
-        
+
         # These MUST be private methods
-        if not hasattr(modal, '_validate_trigger_id'):
+        if not hasattr(modal, "_validate_trigger_id"):
             self.logger.error("Missing _validate_trigger_id method")
             return False
-        if not hasattr(modal, '_display_modal_via_api'):
+        if not hasattr(modal, "_display_modal_via_api"):
             self.logger.error("Missing _display_modal_via_api method")
             return False
-            
+
         # These should NOT exist (the bug was calling these)
-        if hasattr(modal, 'validate_trigger_id'):
+        if hasattr(modal, "validate_trigger_id"):
             self.logger.error("Public validate_trigger_id should not exist")
             return False
-        if hasattr(modal, 'display_modal_via_api'):
+        if hasattr(modal, "display_modal_via_api"):
             self.logger.error("Public display_modal_via_api should not exist")
             return False
 
@@ -127,19 +127,18 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
             "trigger_id": "trigger_" + "x" * 40,  # Valid length
             "user": {"id": "U_TEST_USER", "username": "test_user"},
             "channel": {"id": "C_TEST_CHANNEL"},
-            "actions": [{
-                "action_id": "flag_status_review",
-                "value": "C_TEST|1234567890.123456|status_123"
-            }],
-            "response_url": "https://hooks.slack.com/test"
+            "actions": [
+                {"action_id": "flag_status_review", "value": "C_TEST|1234567890.123456|status_123"}
+            ],
+            "response_url": "https://hooks.slack.com/test",
         }
 
         # Mock ONLY the final Slack API call, let everything else run
-        with patch('aiohttp.ClientSession') as mock_session:
+        with patch("aiohttp.ClientSession") as mock_session:
             mock_response = AsyncMock()
             mock_response.status = 200
             mock_response.json = AsyncMock(return_value={"ok": True})
-            
+
             mock_post = AsyncMock(return_value=mock_response)
             mock_session.return_value.__aenter__.return_value.post = mock_post
             mock_session.return_value.__aexit__ = AsyncMock()
@@ -147,11 +146,11 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
             # This will exercise the full chain:
             # handler → status_flag_processor → modal_orchestrator → _display_modal_via_api
             result = await handler.process_flag_action(payload)
-            
+
             if not result:
                 self.logger.error("Modal display workflow failed")
                 return False
-                
+
             # Verify the API was called (modal was displayed)
             if not mock_post.called:
                 self.logger.error("Slack API was not called")
@@ -169,55 +168,53 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
                 "private_metadata": "C_TEST|cmd_123|status|D_ORIGINAL",
                 "state": {
                     "values": {
-                        "feedback_block": {
-                            "feedback_input": {"value": "This output is incorrect"}
-                        }
+                        "feedback_block": {"feedback_input": {"value": "This output is incorrect"}}
                     }
-                }
+                },
             },
-            "user": {"id": "U_TEST_USER", "username": "test_user"}
+            "user": {"id": "U_TEST_USER", "username": "test_user"},
         }
 
         # Mock database operations but let the parameter passing work
         original_put_item = handler.db_store.client.put_item
         captured_item = None
-        
+
         async def capture_put_item(**kwargs):
             nonlocal captured_item
-            captured_item = kwargs.get('item', {})
+            captured_item = kwargs.get("item", {})
             return {"ResponseMetadata": {}}
-        
+
         handler.db_store.client.put_item = AsyncMock(side_effect=capture_put_item)
 
         try:
             # This will exercise: handler → command_flag_processor → api_client.store_command_flag
             result = await handler.process_command_flag_action(payload)
-            
+
             if not result:
                 self.logger.error("Form submission workflow failed")
                 return False
-            
+
             # Verify correct parameters were stored (would catch bug #2)
             if captured_item:
                 # Check for 'original_text' not 'feedback_text'
-                if 'original_text' not in captured_item:
+                if "original_text" not in captured_item:
                     self.logger.error("Missing 'original_text' in stored item")
                     return False
-                if captured_item['original_text'].get('S') != "This output is incorrect":
+                if captured_item["original_text"].get("S") != "This output is incorrect":
                     self.logger.error("Wrong text stored")
                     return False
-                    
+
                 # Check for 'original_channel'
-                if 'original_channel' not in captured_item:
+                if "original_channel" not in captured_item:
                     self.logger.error("Missing 'original_channel' in stored item")
                     return False
-                if captured_item['original_channel'].get('S') != "D_ORIGINAL":
+                if captured_item["original_channel"].get("S") != "D_ORIGINAL":
                     self.logger.error("Wrong channel stored")
                     return False
             else:
                 self.logger.error("No item was captured")
                 return False
-                
+
         finally:
             # Restore original
             handler.db_store.client.put_item = original_put_item
@@ -227,42 +224,46 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
     async def _test_dm_context_handling(self, handler) -> bool:
         """Test that DM context is properly preserved."""
         dm_channel = "D_USER_DM"
-        
+
         # Test from DM command
         dm_payload = {
             "type": "block_actions",
             "trigger_id": "trigger_" + "x" * 40,
             "user": {"id": "U_DM_USER", "username": "dm_user"},
             "channel": {"id": dm_channel},  # DM channel
-            "actions": [{
-                "action_id": "flag_status_review",
-                "value": f"{dm_channel}|1234567890.123456|cmd_dm_123|status"
-            }]
+            "actions": [
+                {
+                    "action_id": "flag_status_review",
+                    "value": f"{dm_channel}|1234567890.123456|cmd_dm_123|status",
+                }
+            ],
         }
 
         # Mock the modal display to capture the metadata
         captured_metadata = None
-        
+
         async def capture_modal_display(trigger_id, modal_view, modal_type):
             nonlocal captured_metadata
-            captured_metadata = modal_view.get('private_metadata', '')
+            captured_metadata = modal_view.get("private_metadata", "")
             return True
-        
+
         original_method = handler.modal_orchestrator._display_modal_via_api
-        handler.modal_orchestrator._display_modal_via_api = AsyncMock(side_effect=capture_modal_display)
+        handler.modal_orchestrator._display_modal_via_api = AsyncMock(
+            side_effect=capture_modal_display
+        )
 
         try:
             result = await handler.process_flag_action(dm_payload)
-            
+
             if not result:
                 self.logger.error("DM context handling failed")
                 return False
-                
+
             # Verify DM context was preserved in metadata
             if not captured_metadata or dm_channel not in captured_metadata:
                 self.logger.error(f"DM context not preserved: {captured_metadata}")
                 return False
-                
+
         finally:
             handler.modal_orchestrator._display_modal_via_api = original_method
 
@@ -273,11 +274,11 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
         test_channel = "C_E2E_TEST"
         f"{int(datetime.now(timezone.utc).timestamp())}.123456"
         test_cmd_id = f"{int(datetime.now(timezone.utc).timestamp())}_e2e"
-        
+
         try:
             # Store command flag using the actual API client method
             api_client = handler.command_flag_processor.api_client
-            
+
             # This tests the exact parameter names we fixed
             success = await api_client.store_command_flag(
                 channel_id=test_channel,
@@ -286,9 +287,9 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
                 user_name="e2e_user",
                 original_text="E2E test feedback",  # NOT feedback_text
                 command_type="status",
-                original_channel="D_E2E_DM"  # Required parameter
+                original_channel="D_E2E_DM",  # Required parameter
             )
-            
+
             if not success:
                 self.logger.error("Failed to store command flag")
                 return False
@@ -298,19 +299,19 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
                 table_name=dynamodb_store.table_name,
                 key={
                     "PK": {"S": f"FEEDBACK#{test_channel}#{test_cmd_id}"},
-                    "SK": {"S": "FLAG#U_E2E_USER"}
-                }
+                    "SK": {"S": "FLAG#U_E2E_USER"},
+                },
             )
-            
-            if 'Item' not in result:
+
+            if "Item" not in result:
                 self.logger.error("Item not found in DynamoDB")
                 return False
-                
-            item = result['Item']
-            if item.get('original_text', {}).get('S') != "E2E test feedback":
+
+            item = result["Item"]
+            if item.get("original_text", {}).get("S") != "E2E test feedback":
                 self.logger.error("Wrong text in DynamoDB")
                 return False
-            if item.get('original_channel', {}).get('S') != "D_E2E_DM":
+            if item.get("original_channel", {}).get("S") != "D_E2E_DM":
                 self.logger.error("Wrong channel in DynamoDB")
                 return False
 
@@ -319,8 +320,8 @@ class TestFlagReviewModularIntegration(BaseIntegrationTest):
                 table_name=dynamodb_store.table_name,
                 key={
                     "PK": {"S": f"FEEDBACK#{test_channel}#{test_cmd_id}"},
-                    "SK": {"S": "FLAG#U_E2E_USER"}
-                }
+                    "SK": {"S": "FLAG#U_E2E_USER"},
+                },
             )
 
         except Exception as e:

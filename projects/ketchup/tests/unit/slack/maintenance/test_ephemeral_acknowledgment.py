@@ -4,8 +4,9 @@ test_ephemeral_acknowledgment.py
 TDD tests for Option 5: Ephemeral acknowledgment implementation.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from packages.slack.maintenance.jira_prompt_handler import JiraPromptHandler
 from packages.slack.messages.posting import SlackPostingHandler
@@ -22,7 +23,9 @@ def mock_components():
 
     maintenance_checker = MagicMock()
     maintenance_checker.check_maintenance = AsyncMock(return_value=None)
-    maintenance_checker.denormalize_instance_url = MagicMock(return_value="https://test.campaign.adobe.com")
+    maintenance_checker.denormalize_instance_url = MagicMock(
+        return_value="https://test.campaign.adobe.com"
+    )
 
     db_store = MagicMock()
     db_store.channel_ops = MagicMock()
@@ -30,11 +33,11 @@ def mock_components():
     db_store.channel_ops.update_channel_metadata = AsyncMock()
 
     mcp_client = MagicMock()
-    mcp_client.search_issues = AsyncMock(return_value={
-        "issues": [{
-            "fields": {"customfield_22302": "https://test.campaign.adobe.com"}
-        }]
-    })
+    mcp_client.search_issues = AsyncMock(
+        return_value={
+            "issues": [{"fields": {"customfield_22302": "https://test.campaign.adobe.com"}}]
+        }
+    )
 
     channel_msg_ops = MagicMock()
     secrets_manager = MagicMock()
@@ -45,7 +48,7 @@ def mock_components():
         "db_store": db_store,
         "mcp_client": mcp_client,
         "channel_msg_ops": channel_msg_ops,
-        "secrets_manager": secrets_manager
+        "secrets_manager": secrets_manager,
     }
 
 
@@ -56,6 +59,7 @@ def handler(mock_components):
 
 
 # ============= Test 1: Verify Problem (Baseline) =============
+
 
 @pytest.mark.asyncio
 async def test_solution_intermediate_message_tracking_retained(handler, mock_components):
@@ -88,12 +92,12 @@ async def test_solution_intermediate_message_tracking_retained(handler, mock_com
     # SOLUTION: Should successfully delete
     assert result is True, "SOLUTION: Should delete successfully"
     mock_components["posting_handler"].delete_message.assert_called_once_with(
-        channel_id=channel_id,
-        message_ts="111.222"
+        channel_id=channel_id, message_ts="111.222"
     )
 
 
 # ============= Test 2: Verify Solution =============
+
 
 @pytest.mark.asyncio
 async def test_solution_message_tracking_retained(handler, mock_components):
@@ -130,8 +134,7 @@ async def test_solution_message_tracking_retained(handler, mock_components):
     # SOLUTION: Should successfully delete
     assert result is True, "SOLUTION: Should delete successfully"
     mock_components["posting_handler"].delete_message.assert_called_once_with(
-        channel_id=channel_id,
-        message_ts=message_ts
+        channel_id=channel_id, message_ts=message_ts
     )
 
 
@@ -179,7 +182,7 @@ async def test_solution_maintenance_found_deletes_intermediate(handler, mock_com
     maintenance_info = {
         "customer_name": "Test Customer",
         "instance_name": "test_instance",
-        "starts_at": "2025-10-06T04:30:00Z"
+        "starts_at": "2025-10-06T04:30:00Z",
     }
     jira_ticket = "CPGNREQ-12345"
 

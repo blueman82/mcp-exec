@@ -51,9 +51,7 @@ class ContinuousMonitor:
 
                 # Check if rollback is needed
                 if result["status"] == "critical" and self._should_trigger_rollback():
-                    logger.error(
-                        "Critical issues detected - triggering automatic rollback"
-                    )
+                    logger.error("Critical issues detected - triggering automatic rollback")
                     await self._trigger_automatic_rollback(version)
                     break
 
@@ -157,9 +155,7 @@ class ContinuousMonitor:
             "healthy": overall_healthy,
             "endpoints": results,
             "total_endpoints": len(health_endpoints),
-            "healthy_endpoints": sum(
-                1 for r in results.values() if r.get("healthy", False)
-            ),
+            "healthy_endpoints": sum(1 for r in results.values() if r.get("healthy", False)),
         }
 
     async def _check_service_availability(self) -> Dict:
@@ -188,9 +184,7 @@ class ContinuousMonitor:
 
                 if result.returncode == 0:
                     running_services = (
-                        result.stdout.strip().split("\n")
-                        if result.stdout.strip()
-                        else []
+                        result.stdout.strip().split("\n") if result.stdout.strip() else []
                     )
                     healthy_services = [s for s in running_services if "Up" in s]
 
@@ -207,9 +201,7 @@ class ContinuousMonitor:
                 results[server] = {"accessible": False, "error": str(e)}
 
         # Calculate overall availability
-        accessible_servers = sum(
-            1 for r in results.values() if r.get("accessible", False)
-        )
+        accessible_servers = sum(1 for r in results.values() if r.get("accessible", False))
 
         return {
             "overall_healthy": accessible_servers == len(servers),
@@ -311,8 +303,7 @@ class ContinuousMonitor:
                 "healthy": True,
                 "response_time": response_time,
                 "item_count": response.get("Count", 0),
-                "throttled": response_time
-                > 5.0,  # Consider >5s as potential throttling
+                "throttled": response_time > 5.0,  # Consider >5s as potential throttling
             }
 
         except Exception as e:
@@ -339,13 +330,9 @@ class ContinuousMonitor:
         # Error rate alerts
         error_metrics = iteration_result["metrics"].get("error_rates", {})
         if error_metrics.get("critical", False):
-            alerts.append(
-                f"Critical error rate: {error_metrics.get('current_rate', 0)*100:.2f}%"
-            )
+            alerts.append(f"Critical error rate: {error_metrics.get('current_rate', 0)*100:.2f}%")
         elif error_metrics.get("warning", False):
-            alerts.append(
-                f"Warning error rate: {error_metrics.get('current_rate', 0)*100:.2f}%"
-            )
+            alerts.append(f"Warning error rate: {error_metrics.get('current_rate', 0)*100:.2f}%")
 
         # Resource alerts
         resource_metrics = iteration_result["metrics"].get("resources", {})
@@ -415,9 +402,7 @@ class ContinuousMonitor:
         # Count statuses
         for result in results:
             status = result["status"]
-            summary["status_counts"][status] = (
-                summary["status_counts"].get(status, 0) + 1
-            )
+            summary["status_counts"][status] = summary["status_counts"].get(status, 0) + 1
 
         # Count alerts
         all_alerts = []
@@ -425,9 +410,7 @@ class ContinuousMonitor:
             all_alerts.extend(result.get("alerts", []))
 
         for alert in all_alerts:
-            summary["alerts_summary"][alert] = (
-                summary["alerts_summary"].get(alert, 0) + 1
-            )
+            summary["alerts_summary"][alert] = summary["alerts_summary"].get(alert, 0) + 1
 
         # Generate recommendations
         if summary["status_counts"].get("critical", 0) > 0:
@@ -436,9 +419,7 @@ class ContinuousMonitor:
             )
 
         if summary["status_counts"].get("warning", 0) > len(results) * 0.5:
-            summary["recommendations"].append(
-                "High warning rate - investigate performance issues"
-            )
+            summary["recommendations"].append("High warning rate - investigate performance issues")
 
         if len(all_alerts) > len(results) * 0.3:
             summary["recommendations"].append("High alert rate - review system health")
@@ -492,12 +473,8 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Continuous Deployment Monitoring")
     parser.add_argument("--version", required=True, help="Version to monitor")
-    parser.add_argument(
-        "--duration", type=int, default=60, help="Monitoring duration in minutes"
-    )
-    parser.add_argument(
-        "--interval", type=int, default=60, help="Monitoring interval in seconds"
-    )
+    parser.add_argument("--duration", type=int, default=60, help="Monitoring duration in minutes")
+    parser.add_argument("--interval", type=int, default=60, help="Monitoring interval in seconds")
 
     args = parser.parse_args()
 

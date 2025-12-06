@@ -49,9 +49,7 @@ class AdminResponseHandler:
             FlagReviewDMHandler,
         )
 
-        return await FlagReviewDMHandler(
-            self.posting_handler
-        ).send_dm_to_requester(
+        return await FlagReviewDMHandler(self.posting_handler).send_dm_to_requester(
             user_id=flagged_user_id,
             dm_type="acknowledgment",
             admin_name=admin_name,
@@ -97,9 +95,7 @@ class AdminResponseHandler:
             FlagReviewDMHandler,
         )
 
-        return await FlagReviewDMHandler(
-            self.posting_handler
-        ).send_dm_to_requester(
+        return await FlagReviewDMHandler(self.posting_handler).send_dm_to_requester(
             user_id=flagged_user_id,
             dm_type="acknowledgment",
             admin_name=admin_name,
@@ -210,9 +206,7 @@ class AdminResponseHandler:
             FlagReviewDatabaseOperations,
         )
 
-        await FlagReviewDatabaseOperations(
-            self.db_store
-        ).update_command_feedback_status(
+        await FlagReviewDatabaseOperations(self.db_store).update_command_feedback_status(
             channel_id,
             command_execution_id,
             original_user_id,
@@ -250,9 +244,9 @@ class AdminResponseHandler:
             items = result.get("Items", [])
             user_id = items[0].get("user_id", {}).get("S", "") if items else ""
 
-        await MessageUpdater(
-            self.posting_handler
-        ).update_acknowledged_message(channel_id, message_ts, admin_id, user_id)
+        await MessageUpdater(self.posting_handler).update_acknowledged_message(
+            channel_id, message_ts, admin_id, user_id
+        )
 
     async def update_review_message(
         self,
@@ -264,9 +258,7 @@ class AdminResponseHandler:
             MessageUpdater,
         )
 
-        await MessageUpdater(self.posting_handler).update_review_message(
-            payload, admin_id
-        )
+        await MessageUpdater(self.posting_handler).update_review_message(payload, admin_id)
 
     async def update_review_message_orphaned(
         self,
@@ -279,9 +271,9 @@ class AdminResponseHandler:
             MessageUpdater,
         )
 
-        await MessageUpdater(
-            self.posting_handler
-        ).update_review_message_orphaned(payload, admin_id, channel_id)
+        await MessageUpdater(self.posting_handler).update_review_message_orphaned(
+            payload, admin_id, channel_id
+        )
 
     async def update_review_message_with_reply(
         self,
@@ -293,9 +285,9 @@ class AdminResponseHandler:
             MessageUpdater,
         )
 
-        await MessageUpdater(
-            self.posting_handler
-        ).update_review_message_with_reply(payload, admin_id)
+        await MessageUpdater(self.posting_handler).update_review_message_with_reply(
+            payload, admin_id
+        )
 
     async def update_command_review_message_with_reply(
         self,
@@ -308,9 +300,9 @@ class AdminResponseHandler:
         )
 
         # Use the same method as regular reply - it should handle both
-        await MessageUpdater(
-            self.posting_handler
-        ).update_review_message_with_reply(payload, admin_id)
+        await MessageUpdater(self.posting_handler).update_review_message_with_reply(
+            payload, admin_id
+        )
 
     async def update_completed_status(
         self,
@@ -342,6 +334,6 @@ class AdminResponseHandler:
             MessageUpdater,
         )
 
-        await MessageUpdater(
-            self.posting_handler
-        ).update_review_message_completed(payload, admin_id)
+        await MessageUpdater(self.posting_handler).update_review_message_completed(
+            payload, admin_id
+        )

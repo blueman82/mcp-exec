@@ -213,9 +213,7 @@ class TestAccessRequestModel:
     def test_ttl_calculation_in_post_init(self):
         """Test that TTL is calculated automatically in __post_init__."""
         # Mock time to ensure predictable TTL calculation
-        with patch(
-            "packages.db.models.access_request.time.time", return_value=1640995200.0
-        ):
+        with patch("packages.db.models.access_request.time.time", return_value=1640995200.0):
             request = AccessRequest(
                 user_id="U123456789",
                 user_name="test_user",

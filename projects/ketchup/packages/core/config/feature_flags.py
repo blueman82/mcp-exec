@@ -101,9 +101,7 @@ class FeatureFlags:
         Returns:
             True if access request automation is enabled, False otherwise
         """
-        value = os.environ.get(
-            "KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE", "false"
-        ).lower()
+        value = os.environ.get("KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE", "false").lower()
         return value == "true"
 
     @staticmethod
@@ -114,9 +112,7 @@ class FeatureFlags:
         Returns:
             True if access request automation is enabled globally, False otherwise
         """
-        value = os.environ.get(
-            "KETCHUP_ACCESS_REQUEST_AUTOMATION_GLOBAL", "false"
-        ).lower()
+        value = os.environ.get("KETCHUP_ACCESS_REQUEST_AUTOMATION_GLOBAL", "false").lower()
         return value == "true"
 
     @staticmethod
@@ -127,9 +123,7 @@ class FeatureFlags:
         Returns:
             True if user join notifications is enabled, False otherwise
         """
-        value = os.environ.get(
-            "KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE", "false"
-        ).lower()
+        value = os.environ.get("KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE", "false").lower()
         return value == "true"
 
     @staticmethod
@@ -140,9 +134,7 @@ class FeatureFlags:
         Returns:
             True if user join notifications is enabled globally, False otherwise
         """
-        value = os.environ.get(
-            "KETCHUP_USER_JOIN_NOTIFICATIONS_GLOBAL", "false"
-        ).lower()
+        value = os.environ.get("KETCHUP_USER_JOIN_NOTIFICATIONS_GLOBAL", "false").lower()
         return value == "true"
 
     @staticmethod
@@ -245,9 +237,7 @@ class FeatureFlags:
         try:
             return int(value)
         except ValueError:
-            logger.warning(
-                f"Invalid KETCHUP_HTTPX_POOL_LIMITS value: {value}, using default 50"
-            )
+            logger.warning(f"Invalid KETCHUP_HTTPX_POOL_LIMITS value: {value}, using default 50")
             return 50
 
     @staticmethod

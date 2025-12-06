@@ -9,14 +9,13 @@ import time
 from typing import Optional
 
 from packages.core.logging import setup_logger
+
 from .typed_di import TypedServiceRegistry
 
 logger = setup_logger(__name__)
 
 # Global instance
 _typed_registry: Optional[TypedServiceRegistry] = None
-
-
 
 
 async def _run_startup_smoke_checks(registry: TypedServiceRegistry) -> bool:
@@ -72,9 +71,7 @@ async def _run_startup_smoke_checks(registry: TypedServiceRegistry) -> bool:
                 return False
             logger.debug("✓ SlackPostingHandler smoke check passed")
         except Exception as e:
-            logger.error(
-                f"Smoke check failed: SlackPostingHandler resolution error: {e}"
-            )
+            logger.error(f"Smoke check failed: SlackPostingHandler resolution error: {e}")
             return False
 
         # Test 4: Resolve DynamoDBConfig
@@ -96,9 +93,7 @@ async def _run_startup_smoke_checks(registry: TypedServiceRegistry) -> bool:
                 return False
             logger.debug("✓ DynamoDBAsyncClient smoke check passed")
         except Exception as e:
-            logger.error(
-                f"Smoke check failed: DynamoDBAsyncClient resolution error: {e}"
-            )
+            logger.error(f"Smoke check failed: DynamoDBAsyncClient resolution error: {e}")
             return False
 
         # Test 6: Resolve DynamoDBStore
@@ -117,9 +112,7 @@ async def _run_startup_smoke_checks(registry: TypedServiceRegistry) -> bool:
         # causing circular dependencies. They should be run post-initialization
         # as a separate validation step if needed.
 
-        logger.info(
-            "All TypedDI startup smoke checks passed successfully (6 essential services)"
-        )
+        logger.info("All TypedDI startup smoke checks passed successfully (6 essential services)")
         return True
 
     except ImportError as e:
@@ -130,15 +123,13 @@ async def _run_startup_smoke_checks(registry: TypedServiceRegistry) -> bool:
         return False
 
 
-
-
 def get_typed_registry() -> TypedServiceRegistry:
     """
     Get the global TypedServiceRegistry instance.
-    
+
     Returns:
         TypedServiceRegistry: The global registry instance
-        
+
     Raises:
         RuntimeError: If registry not initialized
     """
@@ -165,6 +156,7 @@ async def get_unified_container() -> TypedServiceRegistry:
 
         # Register all services
         from .typed_di.service_registrations import register_all_services
+
         register_all_services(_typed_registry)
 
         # Initialize all services

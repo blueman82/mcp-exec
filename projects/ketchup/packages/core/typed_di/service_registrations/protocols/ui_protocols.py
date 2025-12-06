@@ -7,7 +7,6 @@ message formatters, and feedback operations.
 
 from typing import Optional, Protocol, runtime_checkable
 
-
 __all__ = [
     "BlockKitBuilderProtocol",
     "SlackMessageFormatterProtocol",

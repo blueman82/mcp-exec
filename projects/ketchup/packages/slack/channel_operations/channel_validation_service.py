@@ -44,16 +44,11 @@ class ChannelValidationService:
 
         try:
             # Get channel information
-            channel_info = await self.channel_info_ops.get_channel_info_from_api(
-                channel_id
-            )
+            channel_info = await self.channel_info_ops.get_channel_info_from_api(channel_id)
 
             if not channel_info:
                 logger.warning("Could not retrieve channel info for %s", channel_id)
-                return {
-                    "valid": False,
-                    "error": "Channel not found"
-                }
+                return {"valid": False, "error": "Channel not found"}
 
             validation_result = {
                 "channel_id": channel_id,
@@ -62,21 +57,17 @@ class ChannelValidationService:
                     "has_name": bool(channel_info.get("name")),
                     "has_purpose": bool(channel_info.get("purpose", {}).get("value")),
                     "has_topic": bool(channel_info.get("topic", {}).get("value")),
-                    "member_count_valid": channel_info.get("num_members", 0) >= 0
+                    "member_count_valid": channel_info.get("num_members", 0) >= 0,
                 },
                 "warnings": [],
-                "errors": []
+                "errors": [],
             }
 
             return validation_result
 
         except Exception as e:
             logger.error("Error validating structure for channel %s: %s", channel_id, str(e))
-            return {
-                "channel_id": channel_id,
-                "valid": False,
-                "error": str(e)
-            }
+            return {"channel_id": channel_id, "valid": False, "error": str(e)}
 
     async def check_channel_integrity(self, channel_id: str) -> bool:
         """
@@ -117,21 +108,17 @@ class ChannelValidationService:
                 "permission_checks": {
                     "bot_has_access": True,
                     "proper_visibility": True,
-                    "admin_permissions": True
+                    "admin_permissions": True,
                 },
                 "issues": [],
-                "recommendations": []
+                "recommendations": [],
             }
 
             return permissions_validation
 
         except Exception as e:
             logger.error("Error validating permissions for channel %s: %s", channel_id, str(e))
-            return {
-                "channel_id": channel_id,
-                "valid": False,
-                "error": str(e)
-            }
+            return {"channel_id": channel_id, "valid": False, "error": str(e)}
 
     async def perform_health_check(self, channel_id: str) -> dict:
         """
@@ -156,11 +143,11 @@ class ChannelValidationService:
                 "checks": {
                     "structure": structure_result.get("valid", False),
                     "permissions": permissions_result.get("valid", False),
-                    "integrity": integrity_check
+                    "integrity": integrity_check,
                 },
                 "issues": [],
                 "score": 100.0,
-                "recommendations": []
+                "recommendations": [],
             }
 
             # Calculate health score
@@ -177,8 +164,4 @@ class ChannelValidationService:
 
         except Exception as e:
             logger.error("Error performing health check for channel %s: %s", channel_id, str(e))
-            return {
-                "channel_id": channel_id,
-                "overall_health": "error",
-                "error": str(e)
-            }
+            return {"channel_id": channel_id, "overall_health": "error", "error": str(e)}

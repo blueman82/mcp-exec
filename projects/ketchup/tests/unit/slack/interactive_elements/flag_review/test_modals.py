@@ -90,9 +90,7 @@ class TestFlagReviewModalManager:
             "additional_blocks": [{"type": "divider"}],
         }
 
-        updated = await modal_manager.handle_review_modal_update(
-            modal_view, review_data
-        )
+        updated = await modal_manager.handle_review_modal_update(modal_view, review_data)
 
         assert updated["title"]["text"] == "Review - acknowledged"
         assert len(updated["blocks"]) == 1

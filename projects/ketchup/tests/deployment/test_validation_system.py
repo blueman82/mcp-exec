@@ -7,6 +7,7 @@ import logging
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 # Add project root to path
@@ -23,9 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
-@patch('tests.deployment.deployment_readiness.boto3.Session')
-@patch('tests.deployment.deployment_readiness.subprocess.run')
-@patch('tests.deployment.deployment_readiness.aiohttp.ClientSession')
+@patch("tests.deployment.deployment_readiness.boto3.Session")
+@patch("tests.deployment.deployment_readiness.subprocess.run")
+@patch("tests.deployment.deployment_readiness.aiohttp.ClientSession")
 async def test_deployment_readiness_validator(mock_session, mock_subprocess, mock_boto_session):
     """Test the deployment readiness validator"""
     logger.info("Testing DeploymentReadinessValidator...")
@@ -34,49 +35,43 @@ async def test_deployment_readiness_validator(mock_session, mock_subprocess, moc
         # Mock AWS services comprehensively
         mock_sts_client = MagicMock()
         mock_sts_client.get_caller_identity.return_value = {
-            'Account': '123456789012',
-            'UserId': 'test-user',
-            'Arn': 'arn:aws:iam::123456789012:user/test'
+            "Account": "123456789012",
+            "UserId": "test-user",
+            "Arn": "arn:aws:iam::123456789012:user/test",
         }
 
         mock_dynamodb_client = MagicMock()
         mock_dynamodb_client.describe_table.return_value = {
-            'Table': {
-                'TableStatus': 'ACTIVE',
-                'ItemCount': 100
-            }
+            "Table": {"TableStatus": "ACTIVE", "ItemCount": 100}
         }
 
         mock_secrets_client = MagicMock()
         mock_secrets_client.describe_secret.return_value = {
-            'ARN': 'arn:aws:secretsmanager:eu-west-1:123456789012:secret:test',
-            'LastChangedDate': '2024-01-01T00:00:00Z'
+            "ARN": "arn:aws:secretsmanager:eu-west-1:123456789012:secret:test",
+            "LastChangedDate": "2024-01-01T00:00:00Z",
         }
 
         mock_ecr_client = MagicMock()
         mock_ecr_client.describe_repositories.return_value = {
-            'repositories': [
-                {'repositoryName': 'ketchup-app'},
-                {'repositoryName': 'mcp-jira'}
-            ]
+            "repositories": [{"repositoryName": "ketchup-app"}, {"repositoryName": "mcp-jira"}]
         }
 
         mock_sqs_client = MagicMock()
         mock_sqs_client.list_queues.return_value = {
-            'QueueUrls': ['https://sqs.eu-west-1.amazonaws.com/123456789012/ketchup-events-queue']
+            "QueueUrls": ["https://sqs.eu-west-1.amazonaws.com/123456789012/ketchup-events-queue"]
         }
 
         # Mock client creation based on service type
         def mock_client(service_name):
-            if service_name == 'sts':
+            if service_name == "sts":
                 return mock_sts_client
-            elif service_name == 'dynamodb':
+            elif service_name == "dynamodb":
                 return mock_dynamodb_client
-            elif service_name == 'secretsmanager':
+            elif service_name == "secretsmanager":
                 return mock_secrets_client
-            elif service_name == 'ecr':
+            elif service_name == "ecr":
                 return mock_ecr_client
-            elif service_name == 'sqs':
+            elif service_name == "sqs":
                 return mock_sqs_client
             return MagicMock()
 
@@ -91,7 +86,9 @@ async def test_deployment_readiness_validator(mock_session, mock_subprocess, moc
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.text = AsyncMock(return_value="OK")
-        mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = mock_response
+        mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = (
+            mock_response
+        )
 
         validator = DeploymentReadinessValidator()
 
@@ -126,8 +123,8 @@ async def test_deployment_readiness_validator(mock_session, mock_subprocess, moc
 
 
 @pytest.mark.asyncio
-@patch('tests.deployment.production_simulation.docker')
-@patch('subprocess.run')
+@patch("tests.deployment.production_simulation.docker")
+@patch("subprocess.run")
 async def test_production_simulation(mock_subprocess, mock_docker):
     """Test production simulation components (limited test)"""
     logger.info("Testing ProductionSimulator setup...")
@@ -145,9 +142,7 @@ async def test_production_simulation(mock_subprocess, mock_docker):
         # Test basic initialization
         logger.info(f"Simulation ID: {simulator.simulation_id}")
         logger.info(f"Services to simulate: {list(simulator.services.keys())}")
-        logger.info(
-            f"Production environment variables: {len(simulator.production_env)} vars"
-        )
+        logger.info(f"Production environment variables: {len(simulator.production_env)} vars")
 
         logger.info("ProductionSimulator test completed successfully!")
         return True
@@ -158,8 +153,8 @@ async def test_production_simulation(mock_subprocess, mock_docker):
 
 
 @pytest.mark.asyncio
-@patch('tests.deployment.rollback_automation.boto3.Session')
-@patch('tests.deployment.rollback_automation.subprocess.run')
+@patch("tests.deployment.rollback_automation.boto3.Session")
+@patch("tests.deployment.rollback_automation.subprocess.run")
 async def test_rollback_system(mock_subprocess, mock_boto_session):
     """Test rollback system components"""
     logger.info("Testing AutomatedRollbackSystem...")
@@ -168,7 +163,7 @@ async def test_rollback_system(mock_subprocess, mock_boto_session):
         # Mock AWS ECR for version checking
         mock_ecr_client = MagicMock()
         mock_ecr_client.describe_images.return_value = {
-            'imageDetails': [{'imageDigest': 'sha256:abc123'}]
+            "imageDetails": [{"imageDigest": "sha256:abc123"}]
         }
         mock_boto_session.return_value.client.return_value = mock_ecr_client
 
@@ -183,9 +178,7 @@ async def test_rollback_system(mock_subprocess, mock_boto_session):
         # Test initialization
         await rollback_system.initialize_version_tracking()
 
-        logger.info(
-            f"Production servers: {list(rollback_system.production_servers.keys())}"
-        )
+        logger.info(f"Production servers: {list(rollback_system.production_servers.keys())}")
         logger.info(f"Current versions: {rollback_system.current_versions}")
 
         # Test validation components
@@ -202,9 +195,9 @@ async def test_rollback_system(mock_subprocess, mock_boto_session):
 
 
 @pytest.mark.asyncio
-@patch('tests.deployment.continuous_monitoring.aiohttp.ClientSession')
-@patch('tests.deployment.deployment_readiness.boto3.Session', new_callable=MagicMock)
-@patch('tests.deployment.deployment_readiness.subprocess.run')
+@patch("tests.deployment.continuous_monitoring.aiohttp.ClientSession")
+@patch("tests.deployment.deployment_readiness.boto3.Session", new_callable=MagicMock)
+@patch("tests.deployment.deployment_readiness.subprocess.run")
 async def test_continuous_monitoring(mock_subprocess, mock_boto_session, mock_session):
     """Test continuous monitoring components"""
     logger.info("Testing ContinuousMonitor...")
@@ -213,9 +206,9 @@ async def test_continuous_monitoring(mock_subprocess, mock_boto_session, mock_se
         # Mock AWS services for validator
         mock_client = MagicMock()
         mock_client.get_caller_identity.return_value = {
-            'Account': '123456789012',
-            'UserId': 'test-user',
-            'Arn': 'arn:aws:iam::123456789012:user/test'
+            "Account": "123456789012",
+            "UserId": "test-user",
+            "Arn": "arn:aws:iam::123456789012:user/test",
         }
         mock_boto_session.return_value.client.return_value = mock_client
 
@@ -292,9 +285,7 @@ async def run_system_integration_test():
             passed_tests += 1
 
     success_rate = (passed_tests / total_tests) * 100
-    logger.info(
-        f"\nOverall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})"
-    )
+    logger.info(f"\nOverall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests})")
 
     if success_rate >= 75:
         logger.info("✅ DEPLOYMENT VALIDATION SYSTEM IS READY")

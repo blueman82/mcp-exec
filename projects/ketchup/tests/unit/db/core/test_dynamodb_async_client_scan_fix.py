@@ -24,9 +24,7 @@ class TestDynamoDBAsyncClientScanFix:
         mock_boto_client = AsyncMock()
         mock_boto_client.scan = AsyncMock(
             return_value={
-                "Items": [
-                    {"PK": {"S": "CHANNEL#D123"}, "SK": {"S": "COMMAND#123#abc"}}
-                ],
+                "Items": [{"PK": {"S": "CHANNEL#D123"}, "SK": {"S": "COMMAND#123#abc"}}],
                 "Count": 1,
             }
         )
@@ -35,9 +33,7 @@ class TestDynamoDBAsyncClientScanFix:
             # Call scan with plain string values
             result = await client.scan(
                 filter_expression="SK = :sk",
-                expression_attribute_values={
-                    ":sk": "COMMAND#123#abc"  # Plain string value
-                },
+                expression_attribute_values={":sk": "COMMAND#123#abc"},  # Plain string value
             )
 
         # Verify the boto3 client was called with properly formatted values
@@ -45,9 +41,7 @@ class TestDynamoDBAsyncClientScanFix:
         call_args = mock_boto_client.scan.call_args[1]
 
         # Check that plain string was converted to DynamoDB format
-        assert call_args["ExpressionAttributeValues"] == {
-            ":sk": {"S": "COMMAND#123#abc"}
-        }
+        assert call_args["ExpressionAttributeValues"] == {":sk": {"S": "COMMAND#123#abc"}}
         assert result["Count"] == 1
 
     @pytest.mark.asyncio
@@ -129,16 +123,12 @@ class TestDynamoDBAsyncClientScanFix:
             # Call query with plain values
             await client.query(
                 key_condition_expression="PK = :pk",
-                expression_attribute_values={
-                    ":pk": "CHANNEL#D0840EX80R5"  # Plain string
-                },
+                expression_attribute_values={":pk": "CHANNEL#D0840EX80R5"},  # Plain string
             )
 
         # Verify the value was converted
         call_args = mock_boto_client.query.call_args[1]
-        assert call_args["ExpressionAttributeValues"] == {
-            ":pk": {"S": "CHANNEL#D0840EX80R5"}
-        }
+        assert call_args["ExpressionAttributeValues"] == {":pk": {"S": "CHANNEL#D0840EX80R5"}}
 
     def test_convert_to_dynamodb_format(self):
         """Test the value conversion helper method."""

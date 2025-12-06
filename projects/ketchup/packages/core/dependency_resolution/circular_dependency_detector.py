@@ -14,6 +14,7 @@ from typing import Dict, List, Set, Tuple
 @dataclass
 class DependencyEdge:
     """Represents a dependency relationship between two services."""
+
     source: str
     target: str
     dependency_type: str  # 'import', 'injection', 'inheritance', 'factory'
@@ -23,6 +24,7 @@ class DependencyEdge:
 @dataclass
 class CircularDependencyIssue:
     """Detected circular dependency issue."""
+
     cycle_path: List[str]
     severity: str  # 'HIGH', 'MEDIUM', 'LOW'
     issue_type: str
@@ -39,8 +41,7 @@ class CircularDependencyDetector:
         self.dependency_edges: List[DependencyEdge] = []
         self.detected_cycles: List[List[str]] = []
 
-    def add_dependency(self, source: str, target: str,
-                      dep_type: str, location: str) -> None:
+    def add_dependency(self, source: str, target: str, dep_type: str, location: str) -> None:
         """Add a dependency edge to the graph."""
         self.dependency_graph[source].add(target)
         edge = DependencyEdge(source, target, dep_type, location)
@@ -88,56 +89,53 @@ class CircularDependencyDetector:
 
         for i in range(len(cycle) - 1):
             source, target = cycle[i], cycle[i + 1]
-            edges = [e for e in self.dependency_edges
-                    if e.source == source and e.target == target]
+            edges = [e for e in self.dependency_edges if e.source == source and e.target == target]
 
             for edge in edges:
-                if edge.dependency_type == 'inheritance':
+                if edge.dependency_type == "inheritance":
                     inheritance_count += 1
-                elif edge.dependency_type == 'factory':
+                elif edge.dependency_type == "factory":
                     factory_count += 1
-                elif edge.dependency_type == 'injection':
+                elif edge.dependency_type == "injection":
                     injection_count += 1
 
         # Determine severity based on dependency types and cycle length
         if inheritance_count > 0:
-            severity = 'HIGH'  # Inheritance cycles are most problematic
-            issue_type = 'inheritance_cycle'
+            severity = "HIGH"  # Inheritance cycles are most problematic
+            issue_type = "inheritance_cycle"
         elif factory_count >= 2:
-            severity = 'HIGH'  # Multiple factory dependencies in cycle
-            issue_type = 'factory_cycle'
+            severity = "HIGH"  # Multiple factory dependencies in cycle
+            issue_type = "factory_cycle"
         elif len(cycle) > 5:
-            severity = 'MEDIUM'  # Long cycles are complex to resolve
-            issue_type = 'complex_cycle'
+            severity = "MEDIUM"  # Long cycles are complex to resolve
+            issue_type = "complex_cycle"
         else:
-            severity = 'MEDIUM'
-            issue_type = 'injection_cycle'
+            severity = "MEDIUM"
+            issue_type = "injection_cycle"
 
         return severity, issue_type
 
-    def generate_resolution_strategy(self, cycle: List[str],
-                                   issue_type: str) -> str:
+    def generate_resolution_strategy(self, cycle: List[str], issue_type: str) -> str:
         """Generate resolution strategy for a specific cycle."""
         strategies = {
-            'inheritance_cycle': (
+            "inheritance_cycle": (
                 "Break inheritance chain using composition pattern. "
                 "Create interfaces and use dependency injection instead."
             ),
-            'factory_cycle': (
+            "factory_cycle": (
                 "Implement lazy initialization with dependency ordering. "
                 "Move factory creation to appropriate package boundaries."
             ),
-            'complex_cycle': (
+            "complex_cycle": (
                 "Refactor package boundaries and use facade pattern. "
                 "Implement proper layered architecture."
             ),
-            'injection_cycle': (
+            "injection_cycle": (
                 "Use interfaces/protocols to break coupling. "
                 "Implement dependency inversion principle."
-            )
+            ),
         }
-        return strategies.get(issue_type,
-                           "Analyze dependency structure and refactor.")
+        return strategies.get(issue_type, "Analyze dependency structure and refactor.")
 
     def analyze_issues(self) -> List[CircularDependencyIssue]:
         """Analyze all detected cycles and generate issue reports."""
@@ -146,8 +144,7 @@ class CircularDependencyDetector:
 
         for cycle in cycles:
             severity, issue_type = self.analyze_cycle_severity(cycle)
-            resolution_strategy = self.generate_resolution_strategy(
-                cycle, issue_type)
+            resolution_strategy = self.generate_resolution_strategy(cycle, issue_type)
 
             description = (
                 f"Circular dependency detected: {' -> '.join(cycle)}. "
@@ -159,7 +156,7 @@ class CircularDependencyDetector:
                 severity=severity,
                 issue_type=issue_type,
                 description=description,
-                resolution_strategy=resolution_strategy
+                resolution_strategy=resolution_strategy,
             )
             issues.append(issue)
 
@@ -211,8 +208,7 @@ class RuntimeDependencyValidator:
                 in_degree[service] += 1
 
         # Topological sort using Kahn's algorithm
-        queue = deque([service for service in self.pending_dependencies
-                      if in_degree[service] == 0])
+        queue = deque([service for service in self.pending_dependencies if in_degree[service] == 0])
         result = []
 
         while queue:

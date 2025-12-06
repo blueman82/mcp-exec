@@ -9,8 +9,10 @@ path two: [user_join_notifications, total_disabled]"
 The test should FAIL initially, then drive us to implement the correct fix.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from packages.db.operations.join_notification_ops import JoinNotificationOps
 
 
@@ -19,7 +21,10 @@ class TestDynamoDBValidationException:
 
     def _create_fixed_update_method(self, join_ops_instance):
         """Helper method to create the fixed implementation for testing."""
-        async def fixed_update_channel_aggregate(self, channel_id: str, status: str, timestamp: int, data: dict):
+
+        async def fixed_update_channel_aggregate(
+            self, channel_id: str, status: str, timestamp: int, data: dict
+        ):
             """Fixed version that separates initialization from updates."""
             key = {"PK": {"S": f"CHANNEL#{channel_id}"}, "SK": {"S": "CSO_DETAILS"}}
 
@@ -50,7 +55,7 @@ class TestDynamoDBValidationException:
                 "#t_success": "total_success",
                 "#t_failed": "total_failed",
                 "#t_disabled": "total_disabled",
-                "#lts": "last_sent_timestamp"
+                "#lts": "last_sent_timestamp",
             }
 
             expression_values = {
@@ -58,7 +63,7 @@ class TestDynamoDBValidationException:
                 ":timestamp": {"N": str(timestamp)},
                 ":inc_success": {"N": "1" if status == "success" else "0"},
                 ":inc_failed": {"N": "1" if status == "failed" else "0"},
-                ":inc_disabled": {"N": "1" if status == "disabled" else "0"}
+                ":inc_disabled": {"N": "1" if status == "disabled" else "0"},
             }
 
             await self.client.update_item(
@@ -66,11 +71,12 @@ class TestDynamoDBValidationException:
                 key=key,
                 update_expression=update_expr,
                 expression_attribute_names=expression_names,
-                expression_attribute_values=expression_values
+                expression_attribute_values=expression_values,
             )
 
         # Apply the fixed method to the instance
         import types
+
         join_ops_instance._update_channel_aggregate = types.MethodType(
             fixed_update_channel_aggregate, join_ops_instance
         )
@@ -87,21 +93,23 @@ class TestDynamoDBValidationException:
 
         def validate_update_expression(*args, **kwargs):
             """Simulate DynamoDB validation that catches path overlap."""
-            update_expr = kwargs.get('update_expression', '')
+            update_expr = kwargs.get("update_expression", "")
 
             # Check for the exact pattern that causes production error
             # Real DynamoDB throws ValidationException when setting parent map AND any nested property
-            if 'if_not_exists(#ujn, :empty_map)' in update_expr and any(
-                nested in update_expr for nested in ['#ujn.#ts', '#ujn.#t_success', '#ujn.#t_failed', '#ujn.#t_disabled']
+            if "if_not_exists(#ujn, :empty_map)" in update_expr and any(
+                nested in update_expr
+                for nested in ["#ujn.#ts", "#ujn.#t_success", "#ujn.#t_failed", "#ujn.#t_disabled"]
             ):
                 from botocore.exceptions import ClientError
+
                 error_response = {
-                    'Error': {
-                        'Code': 'ValidationException',
-                        'Message': 'Invalid UpdateExpression: Two document paths overlap with each other; must remove or rewrite one of these paths; path one: [user_join_notifications], path two: [user_join_notifications, total_disabled]'
+                    "Error": {
+                        "Code": "ValidationException",
+                        "Message": "Invalid UpdateExpression: Two document paths overlap with each other; must remove or rewrite one of these paths; path one: [user_join_notifications], path two: [user_join_notifications, total_disabled]",
                     }
                 }
-                raise ClientError(error_response, 'UpdateItem')
+                raise ClientError(error_response, "UpdateItem")
 
             return {}  # Return success for valid expressions
 
@@ -133,7 +141,7 @@ class TestDynamoDBValidationException:
             "channel_id": "C1234567890",
             "delivery_status": "disabled",
             "timestamp": 1703123456,
-            "notification_attempted": False
+            "notification_attempted": False,
         }
 
         # This should now succeed without ValidationException
@@ -142,7 +150,7 @@ class TestDynamoDBValidationException:
                 channel_id="C1234567890",
                 status="disabled",
                 timestamp=1703123456,
-                data=tracking_data
+                data=tracking_data,
             )
             success = True
         except Exception as e:
@@ -172,7 +180,7 @@ class TestDynamoDBValidationException:
                 "channel_id": "C1234567890",
                 "delivery_status": status,
                 "timestamp": 1703123456,
-                "notification_attempted": status != "disabled"
+                "notification_attempted": status != "disabled",
             }
 
             # This should now succeed for all status types (no ValidationException)
@@ -181,7 +189,7 @@ class TestDynamoDBValidationException:
                     channel_id="C1234567890",
                     status=status,
                     timestamp=1703123456,
-                    data=tracking_data
+                    data=tracking_data,
                 )
                 success = True
             except Exception as e:

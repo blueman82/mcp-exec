@@ -108,11 +108,7 @@ class AccessRequestHandler:
             if not success:
                 # Show error message
                 await self.metrics.increment_metric(
-                    (
-                        "rate_limited"
-                        if "too many requests" in message.lower()
-                        else "duplicate"
-                    ),
+                    ("rate_limited" if "too many requests" in message.lower() else "duplicate"),
                     user_id=user_id,
                 )
 
@@ -143,9 +139,7 @@ class AccessRequestHandler:
                 await self.access_request_ops.client.update_item(
                     key={
                         "PK": {"S": f"USER#{user_id}"},
-                        "SK": {
-                            "S": f"ACCESS_REQUEST#{created_request.request_timestamp}"
-                        },
+                        "SK": {"S": f"ACCESS_REQUEST#{created_request.request_timestamp}"},
                     },
                     update_expression="SET channel_ts = :ts",
                     expression_attribute_values={":ts": {"S": msg_response["ts"]}},
@@ -153,9 +147,7 @@ class AccessRequestHandler:
                 )
 
             # Emit metric
-            await self.metrics.increment_metric(
-                "created", user_id=user_id, user_name=user_name
-            )
+            await self.metrics.increment_metric("created", user_id=user_id, user_name=user_name)
 
             return {
                 "response_type": "ephemeral",
@@ -204,14 +196,12 @@ class AccessRequestHandler:
                     }
 
                 # Update request with approval
-                success, message = (
-                    await self.access_request_ops.update_request_decision(
-                        user_id=user_id,
-                        request_timestamp=request_timestamp,
-                        decision=ACCESS_REQUEST_STATUS["APPROVED"],
-                        decided_by_id=approver_id,
-                        decided_by_name=approver_name,
-                    )
+                success, message = await self.access_request_ops.update_request_decision(
+                    user_id=user_id,
+                    request_timestamp=request_timestamp,
+                    decision=ACCESS_REQUEST_STATUS["APPROVED"],
+                    decided_by_id=approver_id,
+                    decided_by_name=approver_name,
                 )
 
                 if not success:
@@ -282,9 +272,7 @@ class AccessRequestHandler:
         except Exception as e:
             logger.error(f"Error opening rejection modal: {e}")
 
-    async def handle_rejection_submission(
-        self, payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def handle_rejection_submission(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle the rejection modal submission."""
         try:
             rejector = payload["user"]
@@ -437,11 +425,7 @@ class AccessRequestHandler:
                 response_data = json.loads(response["body"])
 
                 if response_data.get("ok"):
-                    user_email = (
-                        response_data.get("user", {})
-                        .get("profile", {})
-                        .get("email", "")
-                    )
+                    user_email = response_data.get("user", {}).get("profile", {}).get("email", "")
                     if user_email and "@adobe.com" in user_email:
                         # Extract LDAP username (part before @adobe.com)
                         ldap_username = user_email.split("@adobe.com")[0]
@@ -449,9 +433,7 @@ class AccessRequestHandler:
                             f"Extracted LDAP username '{ldap_username}' from email '{user_email}'"
                         )
                     else:
-                        logger.warning(
-                            f"Could not extract LDAP from email: {user_email}"
-                        )
+                        logger.warning(f"Could not extract LDAP from email: {user_email}")
                 else:
                     logger.error(
                         f"Failed to fetch user profile for {user_id}: {response_data.get('error')}"
@@ -474,9 +456,7 @@ class AccessRequestHandler:
                     )
             else:
                 # Fallback to adding just Slack ID if LDAP extraction failed
-                logger.warning(
-                    f"LDAP extraction failed for {user_id}, adding Slack ID only"
-                )
+                logger.warning(f"LDAP extraction failed for {user_id}, adding Slack ID only")
                 added = await self.secrets_manager.add_authorized_user(user_id)
                 if added:
                     logger.info(

@@ -26,7 +26,7 @@ class RollbackSafetyValidator:
         self.critical_files = [
             "packages/core/typed_di/service_registrations.py",
             "packages/core/di_container.py",
-            "infrastructure/docker-compose.yml"
+            "infrastructure/docker-compose.yml",
         ]
         self.database_backup_required = ["ketchup_channel_information"]
         self.violations: List[CodeQualityViolation] = []
@@ -36,21 +36,23 @@ class RollbackSafetyValidator:
         try:
             result = subprocess.run(
                 ["git", "rev-parse", "--is-inside-work-tree"],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
             if result.returncode != 0:
                 return CodeQualityViolation(
                     violation_type="git_backup",
                     file_path="git",
                     line_number=0,
-                    message="Not in a git repository - cannot create backup"
+                    message="Not in a git repository - cannot create backup",
                 )
         except Exception as e:
             return CodeQualityViolation(
                 violation_type="git_backup",
                 file_path="git",
                 line_number=0,
-                message=f"Git repository check failed: {str(e)}"
+                message=f"Git repository check failed: {str(e)}",
             )
         return None
 
@@ -59,7 +61,9 @@ class RollbackSafetyValidator:
         try:
             result = subprocess.run(
                 ["git", "status", "--porcelain"],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
             if result.stdout.strip():
                 return CodeQualityViolation(
@@ -67,14 +71,14 @@ class RollbackSafetyValidator:
                     file_path="git",
                     line_number=0,
                     message="Uncommitted changes detected - backup may be incomplete",
-                    severity="warning"
+                    severity="warning",
                 )
         except Exception as e:
             return CodeQualityViolation(
                 violation_type="git_backup",
                 file_path="git",
                 line_number=0,
-                message=f"Uncommitted changes check failed: {str(e)}"
+                message=f"Uncommitted changes check failed: {str(e)}",
             )
         return None
 
@@ -86,27 +90,31 @@ class RollbackSafetyValidator:
 
             result = subprocess.run(
                 ["git", "checkout", "-b", backup_branch],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
             if result.returncode != 0:
                 return CodeQualityViolation(
                     violation_type="git_backup",
                     file_path="git",
                     line_number=0,
-                    message=f"Failed to create backup branch: {result.stderr}"
+                    message=f"Failed to create backup branch: {result.stderr}",
                 )
             else:
                 # Return to original branch
                 subprocess.run(
                     ["git", "checkout", "-"],
-                    capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                    capture_output=True,
+                    text=True,
+                    cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
                 )
         except Exception as e:
             return CodeQualityViolation(
                 violation_type="git_backup",
                 file_path="git",
                 line_number=0,
-                message=f"Backup branch test failed: {str(e)}"
+                message=f"Backup branch test failed: {str(e)}",
             )
         return None
 
@@ -137,52 +145,62 @@ class RollbackSafetyValidator:
         violations = []
 
         for file_path in self.critical_files:
-            full_path = os.path.join("/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", file_path)
+            full_path = os.path.join(
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", file_path
+            )
 
             if not os.path.exists(full_path):
-                violations.append(CodeQualityViolation(
-                    violation_type="file_preservation",
-                    file_path=file_path,
-                    line_number=0,
-                    message="Critical file does not exist"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="file_preservation",
+                        file_path=file_path,
+                        line_number=0,
+                        message="Critical file does not exist",
+                    )
+                )
                 continue
 
             try:
                 # Check if file is readable
-                with open(full_path, 'r') as f:
+                with open(full_path, "r") as f:
                     content = f.read()
 
                 # Check file size (large files may indicate issues)
                 file_size = os.path.getsize(full_path)
                 if file_size > 10 * 1024 * 1024:  # 10MB
-                    violations.append(CodeQualityViolation(
-                        violation_type="file_preservation",
-                        file_path=file_path,
-                        line_number=0,
-                        message=f"Large file ({file_size} bytes) may cause rollback delays",
-                        severity="warning"
-                    ))
-
-                # Check for sensitive content that shouldn't be in backups
-                sensitive_patterns = ['password', 'secret', 'key', 'token']
-                for pattern in sensitive_patterns:
-                    if pattern.lower() in content.lower():
-                        violations.append(CodeQualityViolation(
+                    violations.append(
+                        CodeQualityViolation(
                             violation_type="file_preservation",
                             file_path=file_path,
                             line_number=0,
-                            message=f"File contains potential sensitive data: {pattern}",
-                            severity="warning"
-                        ))
+                            message=f"Large file ({file_size} bytes) may cause rollback delays",
+                            severity="warning",
+                        )
+                    )
+
+                # Check for sensitive content that shouldn't be in backups
+                sensitive_patterns = ["password", "secret", "key", "token"]
+                for pattern in sensitive_patterns:
+                    if pattern.lower() in content.lower():
+                        violations.append(
+                            CodeQualityViolation(
+                                violation_type="file_preservation",
+                                file_path=file_path,
+                                line_number=0,
+                                message=f"File contains potential sensitive data: {pattern}",
+                                severity="warning",
+                            )
+                        )
 
             except Exception as e:
-                violations.append(CodeQualityViolation(
-                    violation_type="file_preservation",
-                    file_path=file_path,
-                    line_number=0,
-                    message=f"Failed to validate file preservation: {str(e)}"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="file_preservation",
+                        file_path=file_path,
+                        line_number=0,
+                        message=f"Failed to validate file preservation: {str(e)}",
+                    )
+                )
 
         return violations
 
@@ -191,52 +209,54 @@ class RollbackSafetyValidator:
         violations = []
 
         # Check for database migration files
-        migration_paths = [
-            "migrations/",
-            "db/migrations/",
-            "packages/db/migrations/"
-        ]
+        migration_paths = ["migrations/", "db/migrations/", "packages/db/migrations/"]
 
         migration_files_found = []
         for migration_path in migration_paths:
-            full_path = os.path.join("/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", migration_path)
+            full_path = os.path.join(
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", migration_path
+            )
             if os.path.exists(full_path):
                 for root, dirs, files in os.walk(full_path):
-                    migration_files_found.extend([f for f in files if f.endswith(('.sql', '.py'))])
+                    migration_files_found.extend([f for f in files if f.endswith((".sql", ".py"))])
 
         if migration_files_found:
-            violations.append(CodeQualityViolation(
-                violation_type="rollback_impact",
-                file_path="migrations",
-                line_number=0,
-                message=f"Found {len(migration_files_found)} migration files - rollback may require database rollback",
-                severity="warning"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="rollback_impact",
+                    file_path="migrations",
+                    line_number=0,
+                    message=f"Found {len(migration_files_found)} migration files - rollback may require database rollback",
+                    severity="warning",
+                )
+            )
 
         # Check for configuration changes
-        config_files = [
-            "infrastructure/docker-compose.yml",
-            ".env",
-            "packages/core/config/"
-        ]
+        config_files = ["infrastructure/docker-compose.yml", ".env", "packages/core/config/"]
 
         for config_file in config_files:
-            full_path = os.path.join("/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", config_file)
+            full_path = os.path.join(
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", config_file
+            )
             if os.path.exists(full_path):
                 try:
                     # Check git diff for this file
                     result = subprocess.run(
                         ["git", "diff", "HEAD~1", config_file],
-                        capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                        capture_output=True,
+                        text=True,
+                        cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
                     )
                     if result.stdout.strip():
-                        violations.append(CodeQualityViolation(
-                            violation_type="rollback_impact",
-                            file_path=config_file,
-                            line_number=0,
-                            message="Configuration changes detected - rollback may require manual config restoration",
-                            severity="warning"
-                        ))
+                        violations.append(
+                            CodeQualityViolation(
+                                violation_type="rollback_impact",
+                                file_path=config_file,
+                                line_number=0,
+                                message="Configuration changes detected - rollback may require manual config restoration",
+                                severity="warning",
+                            )
+                        )
                 except Exception:
                     pass  # Git diff may fail for various reasons
 
@@ -253,60 +273,78 @@ class RollbackSafetyValidator:
 
             result = subprocess.run(
                 ["git", "checkout", "-b", test_branch],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
 
             if result.returncode != 0:
-                violations.append(CodeQualityViolation(
-                    violation_type="rollback_simulation",
-                    file_path="git",
-                    line_number=0,
-                    message=f"Failed to create rollback test branch: {result.stderr}"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="rollback_simulation",
+                        file_path="git",
+                        line_number=0,
+                        message=f"Failed to create rollback test branch: {result.stderr}",
+                    )
+                )
                 return violations
 
             # Test rollback to previous commit
             result = subprocess.run(
                 ["git", "reset", "--hard", "HEAD~1"],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
 
             if result.returncode != 0:
-                violations.append(CodeQualityViolation(
-                    violation_type="rollback_simulation",
-                    file_path="git",
-                    line_number=0,
-                    message=f"Rollback simulation failed: {result.stderr}"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="rollback_simulation",
+                        file_path="git",
+                        line_number=0,
+                        message=f"Rollback simulation failed: {result.stderr}",
+                    )
+                )
 
             # Test file integrity after rollback
             for file_path in self.critical_files:
-                full_path = os.path.join("/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", file_path)
+                full_path = os.path.join(
+                    "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup", file_path
+                )
                 if not os.path.exists(full_path):
-                    violations.append(CodeQualityViolation(
-                        violation_type="rollback_simulation",
-                        file_path=file_path,
-                        line_number=0,
-                        message="Critical file missing after rollback simulation"
-                    ))
+                    violations.append(
+                        CodeQualityViolation(
+                            violation_type="rollback_simulation",
+                            file_path=file_path,
+                            line_number=0,
+                            message="Critical file missing after rollback simulation",
+                        )
+                    )
 
             # Clean up test branch
             subprocess.run(
                 ["git", "checkout", "-"],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
             subprocess.run(
                 ["git", "branch", "-D", test_branch],
-                capture_output=True, text=True, cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup"
+                capture_output=True,
+                text=True,
+                cwd="/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup",
             )
 
         except Exception as e:
-            violations.append(CodeQualityViolation(
-                violation_type="rollback_simulation",
-                file_path="simulation",
-                line_number=0,
-                message=f"Rollback simulation error: {str(e)}"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="rollback_simulation",
+                    file_path="simulation",
+                    line_number=0,
+                    message=f"Rollback simulation error: {str(e)}",
+                )
+            )
 
         return violations
 
@@ -317,36 +355,41 @@ class RollbackSafetyValidator:
         # Validate git backup capability
         git_violations = self.validate_git_backup_branch()
         if git_violations:
-            all_violations['git_backup'] = git_violations
+            all_violations["git_backup"] = git_violations
 
         # Validate critical file preservation
         file_violations = self.validate_critical_file_preservation()
         if file_violations:
-            all_violations['file_preservation'] = file_violations
+            all_violations["file_preservation"] = file_violations
 
         # Assess rollback impact
         impact_violations = self.validate_rollback_impact_assessment()
         if impact_violations:
-            all_violations['rollback_impact'] = impact_violations
+            all_violations["rollback_impact"] = impact_violations
 
         # Simulate rollback procedure
         simulation_violations = self.simulate_rollback_procedure()
         if simulation_violations:
-            all_violations['rollback_simulation'] = simulation_violations
+            all_violations["rollback_simulation"] = simulation_violations
 
         return all_violations
 
-    def generate_rollback_safety_report(self, violations: Dict[str, List[CodeQualityViolation]]) -> str:
+    def generate_rollback_safety_report(
+        self, violations: Dict[str, List[CodeQualityViolation]]
+    ) -> str:
         """Generate comprehensive rollback safety report."""
         if not violations:
-            return "✅ ALL ROLLBACK SAFETY CHECKS PASSED\n🔄 Rollback procedures are safe to execute!"
+            return (
+                "✅ ALL ROLLBACK SAFETY CHECKS PASSED\n🔄 Rollback procedures are safe to execute!"
+            )
 
         report = ["🔄 ROLLBACK SAFETY VALIDATION REPORT"]
         report.append("=" * 45)
 
         total_violations = sum(len(v) for v in violations.values())
-        error_count = sum(1 for v_list in violations.values()
-                         for v in v_list if v.severity == "error")
+        error_count = sum(
+            1 for v_list in violations.values() for v in v_list if v.severity == "error"
+        )
         warning_count = total_violations - error_count
 
         report.append(f"🚨 Total Issues: {total_violations}")

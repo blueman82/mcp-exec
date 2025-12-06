@@ -27,9 +27,7 @@ class TestChannelQueryOperationsPagination:
         """Create ChannelQueryOperations instance with mocked client."""
         return ChannelQueryOperations(client=mock_client, table_name="test-table")
 
-    async def test_get_all_active_channels_single_page(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_single_page(self, mock_client, channel_query_ops):
         """Test get_all_active_channels with single page of results (no pagination needed)."""
         # Setup - single page response with no LastEvaluatedKey
         mock_client.scan.return_value = {
@@ -67,14 +65,10 @@ class TestChannelQueryOperationsPagination:
         assert call_args["table_name"] == "test-table"
         assert "SK = :sk" in call_args["filter_expression"]
         assert call_args["expression_attribute_values"][":sk"]["S"] == "CSO_DETAILS"
-        assert (
-            call_args["expression_attribute_values"][":not_archived"]["BOOL"] is False
-        )
+        assert call_args["expression_attribute_values"][":not_archived"]["BOOL"] is False
         assert "exclusive_start_key" not in call_args
 
-    async def test_get_all_active_channels_multiple_pages(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_multiple_pages(self, mock_client, channel_query_ops):
         """Test get_all_active_channels with multiple pages requiring pagination."""
         # Setup - simulate pagination with 3 pages
         mock_client.scan.side_effect = [
@@ -106,9 +100,7 @@ class TestChannelQueryOperationsPagination:
                         "channel_name": {"S": "channel-3"},
                     },
                     {
-                        "PK": {
-                            "S": "CHANNEL#C09C20PLH7C"
-                        },  # The missing channel from production
+                        "PK": {"S": "CHANNEL#C09C20PLH7C"},  # The missing channel from production
                         "SK": {"S": "CSO_DETAILS"},
                         "channel_id": {"S": "C09C20PLH7C"},
                         "channel_name": {"S": "problem-channel"},
@@ -157,9 +149,7 @@ class TestChannelQueryOperationsPagination:
         third_call = mock_client.scan.call_args_list[2][1]
         assert third_call["exclusive_start_key"]["PK"]["S"] == "CHANNEL#C09C20PLH7C"
 
-    async def test_get_all_active_channels_empty_results(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_empty_results(self, mock_client, channel_query_ops):
         """Test get_all_active_channels with no channels found."""
         # Setup - empty response
         mock_client.scan.return_value = {"Items": []}
@@ -171,9 +161,7 @@ class TestChannelQueryOperationsPagination:
         assert result == []
         assert mock_client.scan.call_count == 1
 
-    async def test_get_all_active_channels_filters_archived(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_filters_archived(self, mock_client, channel_query_ops):
         """Test that get_all_active_channels properly filters archived channels."""
         # Setup
         mock_client.scan.return_value = {
@@ -194,13 +182,9 @@ class TestChannelQueryOperationsPagination:
         call_args = mock_client.scan.call_args[1]
         assert "archived" in call_args["filter_expression"]
         assert ":not_archived" in call_args["expression_attribute_values"]
-        assert (
-            call_args["expression_attribute_values"][":not_archived"]["BOOL"] is False
-        )
+        assert call_args["expression_attribute_values"][":not_archived"]["BOOL"] is False
 
-    async def test_get_all_active_channels_error_handling(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_error_handling(self, mock_client, channel_query_ops):
         """Test error handling in get_all_active_channels."""
         # Setup - simulate DynamoDB error
         mock_client.scan.side_effect = Exception("DynamoDB unavailable")
@@ -265,9 +249,7 @@ class TestChannelQueryOperationsPagination:
         # Verify pagination occurred
         assert mock_client.scan.call_count == 2
 
-    async def test_get_all_active_channels_normalization(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_normalization(self, mock_client, channel_query_ops):
         """Test that items are properly normalized after retrieval."""
         # Setup - response with various field types
         mock_client.scan.return_value = {
@@ -303,9 +285,7 @@ class TestChannelQueryOperationsPagination:
         assert isinstance(normalized.get("created_at"), (int, float))
         assert normalized.get("created_at") == 1234567890
 
-    async def test_get_all_active_channels_large_dataset(
-        self, mock_client, channel_query_ops
-    ):
+    async def test_get_all_active_channels_large_dataset(self, mock_client, channel_query_ops):
         """Test pagination with a large dataset spanning many pages."""
         # Setup - simulate 5 pages with 20 channels each (100 total)
         pages = []
@@ -324,9 +304,7 @@ class TestChannelQueryOperationsPagination:
 
             response = {"Items": items}
             if page_num < 4:  # Add LastEvaluatedKey for all but the last page
-                response["LastEvaluatedKey"] = {
-                    "PK": {"S": f"CHANNEL#C{end_idx-1:04d}"}
-                }
+                response["LastEvaluatedKey"] = {"PK": {"S": f"CHANNEL#C{end_idx-1:04d}"}}
 
             pages.append(response)
 

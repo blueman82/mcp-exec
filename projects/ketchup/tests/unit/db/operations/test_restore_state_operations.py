@@ -24,9 +24,10 @@ async def test_set_restore_state_success(monkeypatch: pytest.MonkeyPatch) -> Non
     """Test set_restore_state returns True on success."""
     mock_client = AsyncMock()
     mock_client.put_item = AsyncMock()
-    with patch(
-        "packages.db.operations.restore_state_operations.RESTORE_STATE_TTL_SECONDS", 100
-    ), patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
+    with (
+        patch("packages.db.operations.restore_state_operations.RESTORE_STATE_TTL_SECONDS", 100),
+        patch("packages.db.operations.restore_state_operations.logger") as mock_logger,
+    ):
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.set_restore_state("C1")
         assert result is True
@@ -38,12 +39,11 @@ async def test_set_restore_state_success(monkeypatch: pytest.MonkeyPatch) -> Non
 async def test_set_restore_state_client_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test set_restore_state returns False on ClientError."""
     mock_client = AsyncMock()
-    mock_client.put_item = AsyncMock(
-        side_effect=ClientError({"Error": {"Message": "fail"}}, "op")
-    )
-    with patch(
-        "packages.db.operations.restore_state_operations.RESTORE_STATE_TTL_SECONDS", 100
-    ), patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
+    mock_client.put_item = AsyncMock(side_effect=ClientError({"Error": {"Message": "fail"}}, "op"))
+    with (
+        patch("packages.db.operations.restore_state_operations.RESTORE_STATE_TTL_SECONDS", 100),
+        patch("packages.db.operations.restore_state_operations.logger") as mock_logger,
+    ):
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.set_restore_state("C2")
         assert result is False
@@ -55,9 +55,10 @@ async def test_set_restore_state_exception(monkeypatch: pytest.MonkeyPatch) -> N
     """Test set_restore_state returns False on generic Exception."""
     mock_client = AsyncMock()
     mock_client.put_item = AsyncMock(side_effect=Exception("fail"))
-    with patch(
-        "packages.db.operations.restore_state_operations.RESTORE_STATE_TTL_SECONDS", 100
-    ), patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
+    with (
+        patch("packages.db.operations.restore_state_operations.RESTORE_STATE_TTL_SECONDS", 100),
+        patch("packages.db.operations.restore_state_operations.logger") as mock_logger,
+    ):
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.set_restore_state("C3")
         assert result is False
@@ -94,9 +95,7 @@ async def test_check_restore_state_client_error(
 ) -> None:
     """Test check_restore_state returns False on ClientError."""
     mock_client = AsyncMock()
-    mock_client.get_item = AsyncMock(
-        side_effect=ClientError({"Error": {"Message": "fail"}}, "op")
-    )
+    mock_client.get_item = AsyncMock(side_effect=ClientError({"Error": {"Message": "fail"}}, "op"))
     with patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.check_restore_state("C6")
@@ -122,9 +121,7 @@ async def test_check_if_temporary_unarchive_present(
 ) -> None:
     """Test check_if_temporary_unarchive returns True if attribute present."""
     mock_client = AsyncMock()
-    mock_client.get_item = AsyncMock(
-        return_value={"Item": {"temp_unarchive_expiry": {"N": "123"}}}
-    )
+    mock_client.get_item = AsyncMock(return_value={"Item": {"temp_unarchive_expiry": {"N": "123"}}})
     with patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.check_if_temporary_unarchive("C8")
@@ -152,9 +149,7 @@ async def test_check_if_temporary_unarchive_client_error(
 ) -> None:
     """Test check_if_temporary_unarchive returns False on ClientError."""
     mock_client = AsyncMock()
-    mock_client.get_item = AsyncMock(
-        side_effect=ClientError({"Error": {"Message": "fail"}}, "op")
-    )
+    mock_client.get_item = AsyncMock(side_effect=ClientError({"Error": {"Message": "fail"}}, "op"))
     with patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.check_if_temporary_unarchive("C10")
@@ -184,9 +179,7 @@ async def test_clear_restore_state_success(monkeypatch: pytest.MonkeyPatch) -> N
     with patch("packages.db.operations.restore_state_operations.logger") as mock_logger:
         ops = RestoreStateOperations(mock_client, "tbl")
         result = await ops.clear_restore_state("C12")
-        assert (
-            result is True or result is None
-        )  # Accept True or None for test runner compatibility
+        assert result is True or result is None  # Accept True or None for test runner compatibility
         mock_client.delete_item.assert_awaited()
         assert mock_logger.info.called
 

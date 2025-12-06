@@ -39,12 +39,8 @@ class BenchmarkResult:
             self.avg_resolution_time_ms = statistics.mean(times_ms)
             self.median_resolution_time_ms = statistics.median(times_ms)
             if len(times_ms) > 1:
-                self.p95_resolution_time_ms = statistics.quantiles(
-                    times_ms, n=100
-                )[94]
-                self.p99_resolution_time_ms = statistics.quantiles(
-                    times_ms, n=100
-                )[98]
+                self.p95_resolution_time_ms = statistics.quantiles(times_ms, n=100)[94]
+                self.p99_resolution_time_ms = statistics.quantiles(times_ms, n=100)[98]
             else:
                 self.p95_resolution_time_ms = times_ms[0]
                 self.p99_resolution_time_ms = times_ms[0]
@@ -63,10 +59,7 @@ class TypedDIBenchmark:
         self.results: List[BenchmarkResult] = []
 
     def benchmark_service_resolution(
-        self,
-        container: Any,
-        service_names: List[str],
-        iterations: int = 100
+        self, container: Any, service_names: List[str], iterations: int = 100
     ) -> BenchmarkResult:
         """Benchmark service resolution for given services.
 
@@ -120,7 +113,7 @@ class TypedDIBenchmark:
         tracemalloc.stop()
 
         # Calculate memory stats
-        stats = snapshot_after.compare_to(snapshot_before, 'lineno')
+        stats = snapshot_after.compare_to(snapshot_before, "lineno")
         memory_delta_bytes = sum(stat.size_diff for stat in stats)
         result.memory_delta_mb = memory_delta_bytes / (1024 * 1024)
 
@@ -131,9 +124,7 @@ class TypedDIBenchmark:
         return result
 
     def project_scalability(
-        self,
-        current_result: BenchmarkResult,
-        target_service_count: int
+        self, current_result: BenchmarkResult, target_service_count: int
     ) -> Dict[str, Any]:
         """Project performance for target service count.
 
@@ -149,41 +140,27 @@ class TypedDIBenchmark:
         # Linear projection (conservative estimate)
         linear_projection = {
             "service_count": target_service_count,
-            "avg_resolution_time_ms": (
-                current_result.avg_resolution_time_ms
-            ),
+            "avg_resolution_time_ms": (current_result.avg_resolution_time_ms),
             "total_resolution_time_ms": (
                 current_result.avg_resolution_time_ms * target_service_count
             ),
-            "memory_footprint_mb": (
-                current_result.memory_delta_mb * scale_factor
-            ),
-            "startup_time_ms": (
-                current_result.total_time_ms * scale_factor
-            )
+            "memory_footprint_mb": (current_result.memory_delta_mb * scale_factor),
+            "startup_time_ms": (current_result.total_time_ms * scale_factor),
         }
 
         # O(log n) projection (optimistic for hash-based lookups)
         import math
-        log_scale = math.log(target_service_count) / math.log(
-            current_result.service_count
-        )
+
+        log_scale = math.log(target_service_count) / math.log(current_result.service_count)
 
         log_projection = {
             "service_count": target_service_count,
-            "avg_resolution_time_ms": (
-                current_result.avg_resolution_time_ms * log_scale
-            ),
+            "avg_resolution_time_ms": (current_result.avg_resolution_time_ms * log_scale),
             "total_resolution_time_ms": (
-                current_result.avg_resolution_time_ms * log_scale *
-                target_service_count
+                current_result.avg_resolution_time_ms * log_scale * target_service_count
             ),
-            "memory_footprint_mb": (
-                current_result.memory_delta_mb * scale_factor
-            ),
-            "startup_time_ms": (
-                current_result.total_time_ms * log_scale
-            )
+            "memory_footprint_mb": (current_result.memory_delta_mb * scale_factor),
+            "startup_time_ms": (current_result.total_time_ms * log_scale),
         }
 
         return {
@@ -193,8 +170,8 @@ class TypedDIBenchmark:
             "current_baseline": {
                 "service_count": current_result.service_count,
                 "avg_resolution_time_ms": current_result.avg_resolution_time_ms,
-                "memory_footprint_mb": current_result.memory_delta_mb
-            }
+                "memory_footprint_mb": current_result.memory_delta_mb,
+            },
         }
 
     def generate_report(self) -> Dict[str, Any]:
@@ -216,11 +193,11 @@ class TypedDIBenchmark:
                 "p95_resolution_ms": round(latest.p95_resolution_time_ms, 4),
                 "p99_resolution_ms": round(latest.p99_resolution_time_ms, 4),
                 "memory_impact_mb": round(latest.memory_delta_mb, 2),
-                "total_benchmark_ms": round(latest.total_time_ms, 2)
+                "total_benchmark_ms": round(latest.total_time_ms, 2),
             },
             "performance_grade": self._calculate_grade(latest),
             "bottlenecks": self._identify_bottlenecks(latest),
-            "recommendations": self._generate_recommendations(latest)
+            "recommendations": self._generate_recommendations(latest),
         }
 
         return report
@@ -245,10 +222,7 @@ class TypedDIBenchmark:
         else:
             return "F"
 
-    def _identify_bottlenecks(
-        self,
-        result: BenchmarkResult
-    ) -> List[str]:
+    def _identify_bottlenecks(self, result: BenchmarkResult) -> List[str]:
         """Identify performance bottlenecks.
 
         Args:
@@ -270,10 +244,7 @@ class TypedDIBenchmark:
 
         return bottlenecks
 
-    def _generate_recommendations(
-        self,
-        result: BenchmarkResult
-    ) -> List[str]:
+    def _generate_recommendations(self, result: BenchmarkResult) -> List[str]:
         """Generate optimization recommendations.
 
         Args:
@@ -285,18 +256,12 @@ class TypedDIBenchmark:
         recommendations = []
 
         if result.avg_resolution_time_ms > 0.5:
-            recommendations.append(
-                "Implement service caching for frequently resolved services"
-            )
+            recommendations.append("Implement service caching for frequently resolved services")
 
         if result.memory_delta_mb > 50:
-            recommendations.append(
-                "Consider lazy initialization for heavy services"
-            )
+            recommendations.append("Consider lazy initialization for heavy services")
 
         if result.p99_resolution_time_ms > result.p95_resolution_time_ms * 2:
-            recommendations.append(
-                "Investigate outlier services causing resolution delays"
-            )
+            recommendations.append("Investigate outlier services causing resolution delays")
 
         return recommendations

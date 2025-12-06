@@ -64,10 +64,7 @@ async def invite_and_verify_bot_after_unarchive(
             channel_name=channel_name or "unknown",
         )
 
-        if (
-            invite_result.get("ok")
-            or invite_result.get("error") == "already_in_channel"
-        ):
+        if invite_result.get("ok") or invite_result.get("error") == "already_in_channel":
             logger.info(
                 "Invite successful or bot already in channel %s. Verifying...",
                 channel_id,
@@ -77,9 +74,7 @@ async def invite_and_verify_bot_after_unarchive(
             delay = 5
             for i in range(max_checks):
                 await asyncio.sleep(delay)
-                channel_info = await channel_info_ops.get_channel_info_from_api(
-                    channel_id
-                )
+                channel_info = await channel_info_ops.get_channel_info_from_api(channel_id)
                 if channel_info and channel_info.get("is_member"):
                     logger.info(
                         "Bot membership verified for %s after %d checks.",

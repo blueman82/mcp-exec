@@ -335,15 +335,9 @@ class TestAccessRequestE2E(BaseIntegrationTest):
                 )
 
                 # Verify request status in DB
-                history = await ops.get_user_request_history(
-                    self.unauthorized_user["id"]
-                )
+                history = await ops.get_user_request_history(self.unauthorized_user["id"])
                 approved = next(
-                    (
-                        r
-                        for r in history
-                        if r.status == ACCESS_REQUEST_STATUS["APPROVED"]
-                    ),
+                    (r for r in history if r.status == ACCESS_REQUEST_STATUS["APPROVED"]),
                     None,
                 )
 
@@ -460,9 +454,7 @@ class TestAccessRequestE2E(BaseIntegrationTest):
                         "state": {
                             "values": {
                                 "reason_block": {
-                                    "reason_input": {
-                                        "value": "Does not meet requirements"
-                                    }
+                                    "reason_input": {"value": "Does not meet requirements"}
                                 }
                             }
                         },
@@ -497,11 +489,7 @@ class TestAccessRequestE2E(BaseIntegrationTest):
                 # Verify request status
                 history = await ops.get_user_request_history(reject_user["id"])
                 rejected = next(
-                    (
-                        r
-                        for r in history
-                        if r.status == ACCESS_REQUEST_STATUS["REJECTED"]
-                    ),
+                    (r for r in history if r.status == ACCESS_REQUEST_STATUS["REJECTED"]),
                     None,
                 )
 
@@ -510,9 +498,7 @@ class TestAccessRequestE2E(BaseIntegrationTest):
                     return False
 
                 if rejected.rejection_reason != "Does not meet requirements":
-                    self.logger.error(
-                        f"Wrong rejection reason: {rejected.rejection_reason}"
-                    )
+                    self.logger.error(f"Wrong rejection reason: {rejected.rejection_reason}")
                     return False
 
                 self.logger.info("✓ Complete rejection flow successful")

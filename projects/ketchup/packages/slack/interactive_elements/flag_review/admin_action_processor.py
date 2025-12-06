@@ -6,12 +6,13 @@ Handles administrative actions including acknowledgments, replies, and workflow 
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-
 from packages.core.logging import setup_logger
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.secrets.manager import SecretsManager
+from packages.slack.interactive_elements.flag_review.admin_response_handler import (
+    AdminResponseHandler,
+)
 from packages.slack.messages.posting import SlackPostingHandler
-from packages.slack.interactive_elements.flag_review.admin_response_handler import AdminResponseHandler
 
 logger = setup_logger(__name__)
 
@@ -29,9 +30,7 @@ class AdminActionProcessor:
         self.posting_handler = posting_handler
         self.db_store = db_store
         self.secrets_manager = secrets_manager
-        self.response_handler = AdminResponseHandler(
-            posting_handler, db_store, secrets_manager
-        )
+        self.response_handler = AdminResponseHandler(posting_handler, db_store, secrets_manager)
 
     async def handle_acknowledgment(self, payload: Dict[str, Any]) -> bool:
         """Handle admin acknowledgment of feedback.
@@ -59,7 +58,9 @@ class AdminActionProcessor:
             flagged_user_id = parts[2] if len(parts) >= 3 else None
 
             # Check if original message still exists
-            message_exists = await self.response_handler.check_message_exists(channel_id, message_ts)
+            message_exists = await self.response_handler.check_message_exists(
+                channel_id, message_ts
+            )
 
             # Update database
             await self.response_handler.update_feedback_status(
@@ -164,17 +165,13 @@ class AdminActionProcessor:
 
             # Extract form data
             values = payload.get("view", {}).get("state", {}).get("values", {})
-            reply_text = (
-                values.get("reply_block", {}).get("reply_input", {}).get("value", "")
-            )
+            reply_text = values.get("reply_block", {}).get("reply_input", {}).get("value", "")
 
             # Extract metadata from private_metadata
             private_metadata = payload.get("view", {}).get("private_metadata", "")
             parts = private_metadata.split("|")
             if len(parts) < 3:
-                logger.error(
-                    f"Invalid reply private_metadata format: {private_metadata}"
-                )
+                logger.error(f"Invalid reply private_metadata format: {private_metadata}")
                 return False
 
             channel_id = parts[0]
@@ -224,17 +221,13 @@ class AdminActionProcessor:
 
             # Extract form data
             values = payload.get("view", {}).get("state", {}).get("values", {})
-            reply_text = (
-                values.get("reply_block", {}).get("reply_input", {}).get("value", "")
-            )
+            reply_text = values.get("reply_block", {}).get("reply_input", {}).get("value", "")
 
             # Extract metadata from private_metadata
             private_metadata = payload.get("view", {}).get("private_metadata", "")
             parts = private_metadata.split("|")
             if len(parts) < 3:
-                logger.error(
-                    f"Invalid command reply private_metadata format: {private_metadata}"
-                )
+                logger.error(f"Invalid command reply private_metadata format: {private_metadata}")
                 return False
 
             channel_id = parts[0]
@@ -252,7 +245,9 @@ class AdminActionProcessor:
 
             if success:
                 # Update the review message to show reply was sent
-                await self.response_handler.update_command_review_message_with_reply(payload, admin_id)
+                await self.response_handler.update_command_review_message_with_reply(
+                    payload, admin_id
+                )
 
                 # Update database
                 await self.response_handler.update_command_feedback_status(
@@ -399,9 +394,7 @@ class AdminActionProcessor:
             )
 
             # Update review message with completion styling
-            await self.response_handler.update_review_message_completed(
-                payload, admin_id
-            )
+            await self.response_handler.update_review_message_completed(payload, admin_id)
 
             # Send ephemeral feedback to admin
             await self.posting_handler.post_message(
@@ -415,5 +408,3 @@ class AdminActionProcessor:
         except Exception as e:
             logger.error(f"Error handling mark completed: {e}")
             return False
-
-

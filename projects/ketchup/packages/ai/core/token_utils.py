@@ -20,9 +20,7 @@ _TOKENIZER_ENCODING = tiktoken.get_encoding("o200k_base")
 logger.info("Tiktoken tokenizer initialized successfully.")
 
 
-def get_tokenizer() -> (
-    tuple[Callable[[str], List[int]], Callable[[List[int]], str], bool]
-):
+def get_tokenizer() -> tuple[Callable[[str], List[int]], Callable[[List[int]], str], bool]:
     """
     Returns the pre-initialized tokenizer functions.
 
@@ -54,9 +52,7 @@ def count_tokens(text: str) -> int:
         tokens = tokenizer_func(text)
         return len(tokens) if isinstance(tokens, list) else 0
     except Exception as e:
-        logger.error(
-            "Error counting tokens for text snippet: %s... Error: %s", text[:100], e
-        )
+        logger.error("Error counting tokens for text snippet: %s... Error: %s", text[:100], e)
         return 0
 
 

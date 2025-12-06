@@ -11,9 +11,7 @@ os.environ["AWS_PROFILE"] = "campaign_prod_v7"
 os.environ["AWS_DEFAULT_REGION"] = "eu-west-1"
 
 # Add parent directories to path
-sys.path.insert(
-    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import aioboto3
 
@@ -36,9 +34,7 @@ async def check_auto_status_channels():
         dynamodb_client = DynamoDBAsyncClient(table)
 
         # Create stores
-        db_store = DynamoDBStore(
-            dynamodb_client=dynamodb_client, table_name=config.DYNAMODB_TABLE
-        )
+        db_store = DynamoDBStore(dynamodb_client=dynamodb_client, table_name=config.DYNAMODB_TABLE)
 
         user_store = UserStore(db_store)
 
@@ -93,9 +89,7 @@ async def check_auto_status_channels():
 
         for channel_id in channels_to_check:
             try:
-                features = await user_store.get_channel_features(
-                    workspace_id, channel_id
-                )
+                features = await user_store.get_channel_features(workspace_id, channel_id)
 
                 if features and features.get("auto_status", {}).get("enabled"):
                     auto_status = features["auto_status"]
@@ -104,9 +98,7 @@ async def check_auto_status_channels():
 
                     # Calculate next expected update
                     if last_run:
-                        next_update_dt = datetime.fromtimestamp(last_run) + timedelta(
-                            minutes=55
-                        )
+                        next_update_dt = datetime.fromtimestamp(last_run) + timedelta(minutes=55)
                         time_until_next = next_update_dt - current_time
                         is_overdue = time_until_next.total_seconds() < 0
                     else:
@@ -139,17 +131,13 @@ async def check_auto_status_channels():
                     )
                     print(f"  Matches reset: {'✓' if matches_reset else '✗'}")
                     if next_update_dt:
-                        print(
-                            f"  Next update:  {next_update_dt.strftime('%Y-%m-%d %H:%M:%S')}"
-                        )
+                        print(f"  Next update:  {next_update_dt.strftime('%Y-%m-%d %H:%M:%S')}")
                         if is_overdue:
                             print(
                                 f"  Status:       OVERDUE by {str(-time_until_next).split('.')[0]}"
                             )
                         else:
-                            print(
-                                f"  Status:       Due in {str(time_until_next).split('.')[0]}"
-                            )
+                            print(f"  Status:       Due in {str(time_until_next).split('.')[0]}")
                     print("-" * 50)
                 else:
                     print(f"Channel: {channel_id} - NOT ENABLED or NO FEATURES FOUND")
@@ -166,12 +154,8 @@ async def check_auto_status_channels():
         all_channel_ids = [item["channel_id"] for item in all_channels]
 
         # Count additional channels
-        additional_channels = [
-            cid for cid in all_channel_ids if cid not in channels_to_check
-        ]
-        missing_channels = [
-            cid for cid in channels_to_check if cid not in all_channel_ids
-        ]
+        additional_channels = [cid for cid in all_channel_ids if cid not in channels_to_check]
+        missing_channels = [cid for cid in channels_to_check if cid not in all_channel_ids]
 
         print(f"Total enabled channels: {len(all_channels)}")
         print(f"Channels in provided list: {len(channels_to_check)}")
@@ -187,9 +171,7 @@ async def check_auto_status_channels():
             print("\nChecking additional channels:")
             for channel_id in additional_channels[:5]:  # Just check first 5
                 try:
-                    features = await user_store.get_channel_features(
-                        workspace_id, channel_id
-                    )
+                    features = await user_store.get_channel_features(workspace_id, channel_id)
                     if features and features.get("auto_status", {}):
                         auto_status = features["auto_status"]
                         last_run = auto_status.get("last_run", 0)
@@ -250,9 +232,7 @@ async def check_auto_status_channels():
         elif current_time >= next_window_start:
             print("INFO: Currently in update window")
         else:
-            print(
-                f"INFO: Next update in {str(next_window_start - current_time).split('.')[0]}"
-            )
+            print(f"INFO: Next update in {str(next_window_start - current_time).split('.')[0]}")
 
 
 if __name__ == "__main__":

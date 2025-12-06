@@ -30,19 +30,12 @@ async def test_fetch_and_store_success():
             return mock_db
         return None
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.resolve_typed",
-        side_effect=resolve_side_effect
-    ), patch(
-        "os.getenv", return_value="true"
-    ), patch(
-        "ketchup_maintenance_fetcher.main.datetime"
-    ) as mock_datetime, patch(
-        "ketchup_maintenance_fetcher.main.get_unified_container",
-        new_callable=AsyncMock
-    ), patch(
-        "ketchup_maintenance_fetcher.main.cleanup_unified_container",
-        new_callable=AsyncMock
+    with (
+        patch("ketchup_maintenance_fetcher.main.resolve_typed", side_effect=resolve_side_effect),
+        patch("os.getenv", return_value="true"),
+        patch("ketchup_maintenance_fetcher.main.datetime") as mock_datetime,
+        patch("ketchup_maintenance_fetcher.main.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
         mock_datetime.now.return_value.strftime.return_value = "2025-10-06"
@@ -71,19 +64,12 @@ async def test_fetch_and_store_soap_failure():
             return mock_soap
         return AsyncMock()
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.resolve_typed",
-        side_effect=resolve_side_effect
-    ), patch(
-        "os.getenv", return_value="true"
-    ), patch(
-        "ketchup_maintenance_fetcher.main.datetime"
-    ) as mock_datetime, patch(
-        "ketchup_maintenance_fetcher.main.get_unified_container",
-        new_callable=AsyncMock
-    ), patch(
-        "ketchup_maintenance_fetcher.main.cleanup_unified_container",
-        new_callable=AsyncMock
+    with (
+        patch("ketchup_maintenance_fetcher.main.resolve_typed", side_effect=resolve_side_effect),
+        patch("os.getenv", return_value="true"),
+        patch("ketchup_maintenance_fetcher.main.datetime") as mock_datetime,
+        patch("ketchup_maintenance_fetcher.main.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
         mock_datetime.now.return_value.strftime.return_value = "2025-10-06"
@@ -117,19 +103,12 @@ async def test_fetch_and_store_db_failure():
             return mock_db
         return None
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.resolve_typed",
-        side_effect=resolve_side_effect
-    ), patch(
-        "os.getenv", return_value="true"
-    ), patch(
-        "ketchup_maintenance_fetcher.main.datetime"
-    ) as mock_datetime, patch(
-        "ketchup_maintenance_fetcher.main.get_unified_container",
-        new_callable=AsyncMock
-    ), patch(
-        "ketchup_maintenance_fetcher.main.cleanup_unified_container",
-        new_callable=AsyncMock
+    with (
+        patch("ketchup_maintenance_fetcher.main.resolve_typed", side_effect=resolve_side_effect),
+        patch("os.getenv", return_value="true"),
+        patch("ketchup_maintenance_fetcher.main.datetime") as mock_datetime,
+        patch("ketchup_maintenance_fetcher.main.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
         mock_datetime.now.return_value.strftime.return_value = "2025-10-06"
@@ -147,9 +126,9 @@ async def test_feature_flag_disabled():
     """Test behavior when feature flag is disabled."""
     from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
 
-    with patch("os.getenv", return_value="false"), patch(
-        "ketchup_maintenance_fetcher.main.cleanup_unified_container",
-        new_callable=AsyncMock
+    with (
+        patch("os.getenv", return_value="false"),
+        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
     ):
         # Execute
         result = await fetch_and_store_maintenance_data()
@@ -163,14 +142,13 @@ async def test_fetch_and_store_exception_handling():
     """Test exception handling in fetch_and_store."""
     from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.get_unified_container",
-        side_effect=Exception("DI container failed")
-    ), patch(
-        "os.getenv", return_value="true"
-    ), patch(
-        "ketchup_maintenance_fetcher.main.cleanup_unified_container",
-        new_callable=AsyncMock
+    with (
+        patch(
+            "ketchup_maintenance_fetcher.main.get_unified_container",
+            side_effect=Exception("DI container failed"),
+        ),
+        patch("os.getenv", return_value="true"),
+        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
     ):
         # Execute
         result = await fetch_and_store_maintenance_data()
@@ -185,11 +163,12 @@ async def test_cleanup_exception_handling():
     """Test that cleanup exceptions are handled gracefully."""
     from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.cleanup_unified_container",
-        side_effect=Exception("Cleanup failed")
-    ), patch(
-        "os.getenv", return_value="false"
+    with (
+        patch(
+            "ketchup_maintenance_fetcher.main.cleanup_unified_container",
+            side_effect=Exception("Cleanup failed"),
+        ),
+        patch("os.getenv", return_value="false"),
     ):
         # Execute
         result = await fetch_and_store_maintenance_data()
@@ -202,10 +181,13 @@ def test_main_entry_point_success():
     """Test main() returns exit code 0 on success."""
     from ketchup_maintenance_fetcher.main import main
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.asyncio.run",
-        return_value={"status": "success", "records": 5}
-    ), patch("sys.exit") as mock_exit:
+    with (
+        patch(
+            "ketchup_maintenance_fetcher.main.asyncio.run",
+            return_value={"status": "success", "records": 5},
+        ),
+        patch("sys.exit") as mock_exit,
+    ):
         # Execute
         main()
 
@@ -217,10 +199,13 @@ def test_main_entry_point_failure():
     """Test main() returns exit code 1 on failure."""
     from ketchup_maintenance_fetcher.main import main
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.asyncio.run",
-        return_value={"status": "error", "message": "Test error"}
-    ), patch("sys.exit") as mock_exit:
+    with (
+        patch(
+            "ketchup_maintenance_fetcher.main.asyncio.run",
+            return_value={"status": "error", "message": "Test error"},
+        ),
+        patch("sys.exit") as mock_exit,
+    ):
         # Execute
         main()
 
@@ -232,10 +217,10 @@ def test_main_entry_point_exception():
     """Test main() returns exit code 1 on exception."""
     from ketchup_maintenance_fetcher.main import main
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.asyncio.run",
-        side_effect=Exception("Fatal error")
-    ), patch("sys.exit") as mock_exit:
+    with (
+        patch("ketchup_maintenance_fetcher.main.asyncio.run", side_effect=Exception("Fatal error")),
+        patch("sys.exit") as mock_exit,
+    ):
         # Execute
         main()
 
@@ -247,10 +232,10 @@ def test_main_entry_point_disabled():
     """Test main() returns exit code 1 when disabled."""
     from ketchup_maintenance_fetcher.main import main
 
-    with patch(
-        "ketchup_maintenance_fetcher.main.asyncio.run",
-        return_value={"status": "disabled"}
-    ), patch("sys.exit") as mock_exit:
+    with (
+        patch("ketchup_maintenance_fetcher.main.asyncio.run", return_value={"status": "disabled"}),
+        patch("sys.exit") as mock_exit,
+    ):
         # Execute
         main()
 

@@ -66,9 +66,7 @@ class FeedbackReactionsHandler:
                 "command_type": {"S": command_type},
                 "command_output": {"S": command_output},
                 "channel_id": {"S": channel_id},
-                "timestamp": {
-                    "N": str(timestamp)
-                },  # Convert to string for DynamoDB Number type
+                "timestamp": {"N": str(timestamp)},  # Convert to string for DynamoDB Number type
                 "created_at": {"S": datetime.now(timezone.utc).isoformat()},
                 "trusted_by": {"L": []},  # Initialize empty trust list
                 "trust_count": {"N": "0"},
@@ -108,9 +106,7 @@ class FeedbackReactionsHandler:
                 if "Item" in response:
                     item = response["Item"]
                     return {
-                        "command_execution_id": item.get(
-                            "command_execution_id", {}
-                        ).get("S", ""),
+                        "command_execution_id": item.get("command_execution_id", {}).get("S", ""),
                         "command_type": item.get("command_type", {}).get("S", ""),
                         "command_output": item.get("command_output", {}).get("S", ""),
                         "channel_id": item.get("channel_id", {}).get("S", ""),
@@ -118,9 +114,7 @@ class FeedbackReactionsHandler:
             else:
                 # Without channel_id, we need to scan (less efficient)
                 # This is a fallback for backward compatibility
-                logger.warning(
-                    f"No channel_id provided for command lookup: {command_execution_id}"
-                )
+                logger.warning(f"No channel_id provided for command lookup: {command_execution_id}")
                 return {
                     "command_execution_id": command_execution_id,
                     "command_type": "unknown",
@@ -242,9 +236,7 @@ class FeedbackReactionsHandler:
             )
             return feedback_blocks
         except Exception as e:
-            error_message = (
-                f"Error creating feedback blocks for channel {channel_id}: {e}"
-            )
+            error_message = f"Error creating feedback blocks for channel {channel_id}: {e}"
             logger.error(error_message)
             return []
 
@@ -282,9 +274,7 @@ class FeedbackReactionsHandler:
             )
             success = isinstance(response, dict) and response.get("ok", False)
             if success:
-                logger.info(
-                    "Feedback acknowledgment sent successfully via response_url."
-                )
+                logger.info("Feedback acknowledgment sent successfully via response_url.")
             else:
                 logger.error(
                     "Failed to send feedback acknowledgment via response_url: %s",
@@ -329,9 +319,7 @@ class FeedbackReactionsHandler:
                     summary_type,
                 )
             else:
-                logger.warning(
-                    "Failed to publish feedback metric for type '%s'", summary_type
-                )
+                logger.warning("Failed to publish feedback metric for type '%s'", summary_type)
             return success
         except Exception as e:
             logger.error("Error publishing feedback metric: %s", str(e))
@@ -363,9 +351,7 @@ class FeedbackReactionsHandler:
 
             # Check response_url specifically before using it
             if not response_url:
-                logger.error(
-                    "Missing response_url in feedback payload. Cannot acknowledge."
-                )
+                logger.error("Missing response_url in feedback payload. Cannot acknowledge.")
                 # We might still be able to store feedback/metrics if other data is present,
                 # but acknowledgement isn't possible.
                 # Consider returning False or continuing without acknowledgement.
@@ -396,9 +382,7 @@ class FeedbackReactionsHandler:
             rating_value = self.map_reaction_to_rating(action_id)
             if rating_value == 0:
                 logger.warning("Could not map action_id '%s' to a rating.", action_id)
-                await self.acknowledge_reaction(
-                    response_url, "error"
-                )  # Safe to call now
+                await self.acknowledge_reaction(response_url, "error")  # Safe to call now
                 return False
 
             # Note: This method is no longer used since trust/flag actions are routed
@@ -416,9 +400,7 @@ class FeedbackReactionsHandler:
             return True
 
         except Exception as e:
-            logger.error(
-                "Unexpected error processing feedback reaction: %s", e, exc_info=True
-            )
+            logger.error("Unexpected error processing feedback reaction: %s", e, exc_info=True)
             # Attempt to send generic error acknowledgment if possible
             response_url_in_except = payload.get("response_url")
             if response_url_in_except:

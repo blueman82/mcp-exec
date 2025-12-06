@@ -51,13 +51,9 @@ class UserVerifier:
         try:
             # Step 1: ALWAYS check Secrets Manager first (source of truth)
             # Fetch fresh list from secrets manager instead of using cached value
-            authorised_slack_user_ids = (
-                await self.secrets_manager.get_authorised_slack_user_ids()
-            )
+            authorised_slack_user_ids = await self.secrets_manager.get_authorised_slack_user_ids()
             if user_id not in authorised_slack_user_ids:
-                logger.info(
-                    f"User {user_id} is not in authorized seed list from secrets"
-                )
+                logger.info(f"User {user_id} is not in authorized seed list from secrets")
 
                 # Update DB to reflect removal from secrets
                 existing_user = await self.user_store.get_user(user_id)
@@ -93,9 +89,7 @@ class UserVerifier:
                         {"user_id": user_id, "real_name": real_name, "authorized": True}
                     )
                 else:
-                    logger.warning(
-                        f"Could not fetch user info from Slack for {user_id}"
-                    )
+                    logger.warning(f"Could not fetch user info from Slack for {user_id}")
                     # Still authorize but with minimal info
                     await self.user_store.store_user(
                         {"user_id": user_id, "real_name": user_id, "authorized": True}

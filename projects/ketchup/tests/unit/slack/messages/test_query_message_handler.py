@@ -18,13 +18,9 @@ def handler():
     """Fixture for a configured QueryMessageHandler with all dependencies mocked."""
     h = QueryMessageHandler()
     h._posting_handler = AsyncMock()
-    h._fallback_getter = AsyncMock(
-        return_value={"channel_id": "C1", "channel_name": "chan1"}
-    )
+    h._fallback_getter = AsyncMock(return_value={"channel_id": "C1", "channel_name": "chan1"})
     h._build_feedback_blocks = AsyncMock(
-        return_value=[
-            {"type": "section", "text": {"type": "mrkdwn", "text": "feedback"}}
-        ]
+        return_value=[{"type": "section", "text": {"type": "mrkdwn", "text": "feedback"}}]
     )
     return h
 

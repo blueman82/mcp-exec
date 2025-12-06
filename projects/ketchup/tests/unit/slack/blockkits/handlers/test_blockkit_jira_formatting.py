@@ -31,10 +31,7 @@ class TestBlockkitJiraFormatting:
         section_text = blocks[0]["text"]["text"]
 
         # Verify JIRA ticket is formatted as a link
-        assert (
-            "<https://jira.corp.adobe.com/browse/CPGNTT-125206|CPGNTT-125206>"
-            in section_text
-        )
+        assert "<https://jira.corp.adobe.com/browse/CPGNTT-125206|CPGNTT-125206>" in section_text
         assert "CPGNTT-125206" in section_text
 
     def test_format_lowercase_jira_id_in_channel_list(self):
@@ -50,10 +47,7 @@ class TestBlockkitJiraFormatting:
         section_text = blocks[0]["text"]["text"]
 
         # Should still be formatted as a link (case-insensitive match)
-        assert (
-            "<https://jira.corp.adobe.com/browse/cpgntt-125206|cpgntt-125206>"
-            in section_text
-        )
+        assert "<https://jira.corp.adobe.com/browse/cpgntt-125206|cpgntt-125206>" in section_text
 
     def test_format_not_available_jira_in_channel_list(self):
         """Test that 'NOT YET AVAILABLE' is not formatted as a link."""
@@ -101,9 +95,7 @@ class TestBlockkitJiraFormatting:
         )
 
         # Verify JIRA ticket is formatted as a link
-        assert (
-            "<https://jira.corp.adobe.com/browse/CPGNTT-125206|CPGNTT-125206>" in header
-        )
+        assert "<https://jira.corp.adobe.com/browse/CPGNTT-125206|CPGNTT-125206>" in header
 
     def test_format_with_archived_channel(self):
         """Test formatting with archived_at timestamp."""
@@ -119,10 +111,7 @@ class TestBlockkitJiraFormatting:
         section_text = blocks[0]["text"]["text"]
 
         # Should include both formatted JIRA and archive time
-        assert (
-            "<https://jira.corp.adobe.com/browse/CPGNTT-125206|CPGNTT-125206>"
-            in section_text
-        )
+        assert "<https://jira.corp.adobe.com/browse/CPGNTT-125206|CPGNTT-125206>" in section_text
         assert "*Archived:*" in section_text
 
     def test_format_empty_jira_ticket(self):

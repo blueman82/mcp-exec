@@ -57,9 +57,7 @@ class MetricsDataCollector:
         Returns:
             List of channel IDs (matches /ketchup list behavior)
         """
-        slack_channels = (
-            await self._channel_membership_ops.lookup_membership_of_channels()
-        )
+        slack_channels = await self._channel_membership_ops.lookup_membership_of_channels()
         channel_ids = [ch.get("id") for ch in slack_channels if ch.get("id")]
         logger.info(f"Found {len(channel_ids)} channels where Ketchup is a member")
         return channel_ids
@@ -104,13 +102,9 @@ class MetricsDataCollector:
             aggregated["war_room_sent"] += month_metrics.get("war_room_sent", 0)
             aggregated["war_room_success"] += month_metrics.get("war_room_success", 0)
             aggregated["war_room_failed"] += month_metrics.get("war_room_failed", 0)
-            aggregated["war_room_unique_users"] += month_metrics.get(
-                "war_room_unique_users", 0
-            )
+            aggregated["war_room_unique_users"] += month_metrics.get("war_room_unique_users", 0)
 
-        logger.info(
-            f"Aggregated monthly data for {len(month_keys)} months: {aggregated}"
-        )
+        logger.info(f"Aggregated monthly data for {len(month_keys)} months: {aggregated}")
         return aggregated
 
     async def collect_cso_metrics(
@@ -160,15 +154,11 @@ class MetricsDataCollector:
             # Filter out system channels
             excluded_channels = get_excluded_channels()
             channels_list = [
-                ch
-                for ch in channels_list
-                if ch.get("channel_id") not in excluded_channels
+                ch for ch in channels_list if ch.get("channel_id") not in excluded_channels
             ]
 
             if excluded_channels:
-                logger.info(
-                    f"Excluded {len(excluded_channels)} system channels from metrics"
-                )
+                logger.info(f"Excluded {len(excluded_channels)} system channels from metrics")
 
             cso_channels = self._filter_cso_channels(channels_list)
 
@@ -176,8 +166,8 @@ class MetricsDataCollector:
             cso_metrics = self._split_active_vs_archived(cso_channels)
 
             product_stats = self._calculate_product_coverage(channels_list)
-            auto_notification_delivery = (
-                await self._calculate_auto_notification_delivery(cso_channels)
+            auto_notification_delivery = await self._calculate_auto_notification_delivery(
+                cso_channels
             )
 
             overall_coverage = self._calculate_overall_coverage(product_stats)
@@ -296,9 +286,7 @@ class MetricsDataCollector:
 
             # Calculate channels with reports (unique channels that got posted)
             channels_with_reports = (
-                metrics["posted_primary"]
-                + metrics["posted_csopm"]
-                - metrics["posted_both"]
+                metrics["posted_primary"] + metrics["posted_csopm"] - metrics["posted_both"]
             )
 
             return {
@@ -306,9 +294,7 @@ class MetricsDataCollector:
                 "channels_with_reports": channels_with_reports,
                 "total_channels": metrics["total_channels"],
                 "posting_details": {
-                    "primary_only": (
-                        metrics["posted_primary"] - metrics["posted_both"]
-                    ),
+                    "primary_only": (metrics["posted_primary"] - metrics["posted_both"]),
                     "csopm_only": (metrics["posted_csopm"] - metrics["posted_both"]),
                     "both_tickets": metrics["posted_both"],
                     "no_valid_ticket": metrics["failed_no_ticket"],
@@ -356,15 +342,11 @@ class MetricsDataCollector:
 
         try:
             # Collect each section with time parameters
-            cso_metrics = await self.collect_cso_metrics(
-                start_ts, end_ts, period_type, month_keys
-            )
+            cso_metrics = await self.collect_cso_metrics(start_ts, end_ts, period_type, month_keys)
             technical_metrics = await self.collect_technical_metrics(
                 start_ts, end_ts, period_type, month_keys
             )
-            jira_metrics = await self.collect_jira_posting_metrics(
-                start_ts, end_ts, period_type
-            )
+            jira_metrics = await self.collect_jira_posting_metrics(start_ts, end_ts, period_type)
 
             # Add JIRA posting metrics to CSO section
             cso_metrics["jira_posting"] = jira_metrics
@@ -389,9 +371,7 @@ class MetricsDataCollector:
         # Only count campaign/ajo product channels as CSO channels
         return [ch for ch in channels if ch.get("product") in ["campaign", "ajo"]]
 
-    def _split_active_vs_archived(
-        self, cso_channels: List[Dict[str, Any]]
-    ) -> CSOMetrics:
+    def _split_active_vs_archived(self, cso_channels: List[Dict[str, Any]]) -> CSOMetrics:
         """
         Split CSO channels into currently active vs archived.
 
@@ -406,18 +386,12 @@ class MetricsDataCollector:
         archived_channels = [ch for ch in cso_channels if ch.get("archived", False)]
 
         # Count Campaign vs AJO for active channels
-        active_campaign = len(
-            [ch for ch in active_channels if ch.get("product") == "campaign"]
-        )
+        active_campaign = len([ch for ch in active_channels if ch.get("product") == "campaign"])
         active_ajo = len([ch for ch in active_channels if ch.get("product") == "ajo"])
 
         # Count Campaign vs AJO for archived channels
-        archived_campaign = len(
-            [ch for ch in archived_channels if ch.get("product") == "campaign"]
-        )
-        archived_ajo = len(
-            [ch for ch in archived_channels if ch.get("product") == "ajo"]
-        )
+        archived_campaign = len([ch for ch in archived_channels if ch.get("product") == "campaign"])
+        archived_ajo = len([ch for ch in archived_channels if ch.get("product") == "ajo"])
 
         # Create dataclass instances
         currently_active = CSOChannelCounts(
@@ -452,9 +426,7 @@ class MetricsDataCollector:
 
         return product_stats
 
-    def _calculate_overall_coverage(
-        self, product_stats: Dict[str, Dict[str, int]]
-    ) -> int:
+    def _calculate_overall_coverage(self, product_stats: Dict[str, Dict[str, int]]) -> int:
         """Calculate overall CSO coverage percentage."""
         total_channels = sum(stats["total"] for stats in product_stats.values())
         cso_channels = sum(stats["channels"] for stats in product_stats.values())
@@ -488,9 +460,7 @@ class MetricsDataCollector:
                 total_attempted += sent
 
         delivery_rate = (
-            round((total_delivered / total_attempted) * 100)
-            if total_attempted > 0
-            else 0
+            round((total_delivered / total_attempted) * 100) if total_attempted > 0 else 0
         )
 
         return delivery_rate
@@ -521,17 +491,11 @@ class MetricsDataCollector:
         """
         # Filter channels that posted in time period
         channels_with_updates = [
-            ch
-            for ch in channels
-            if start_ts <= ch.get("auto_status_last_run", 0) <= end_ts
+            ch for ch in channels if start_ts <= ch.get("auto_status_last_run", 0) <= end_ts
         ]
 
         success_count = len(
-            [
-                ch
-                for ch in channels_with_updates
-                if ch.get("auto_status_attempt_count", 0) == 0
-            ]
+            [ch for ch in channels_with_updates if ch.get("auto_status_attempt_count", 0) == 0]
         )
 
         total = len(channels_with_updates)
@@ -575,9 +539,7 @@ class MetricsDataCollector:
         # Branch based on period type
         if period_type == "7_days":
             # Use detail record queries (current implementation)
-            return await self._calculate_war_room_metrics_7_day(
-                channels, start_ts, end_ts
-            )
+            return await self._calculate_war_room_metrics_7_day(channels, start_ts, end_ts)
         elif period_type in ["monthly", "quarterly"] and monthly_aggregates:
             # Use monthly aggregates
             return self._calculate_war_room_metrics_from_aggregates(monthly_aggregates)
@@ -643,9 +605,7 @@ class MetricsDataCollector:
                     total_unique_per_channel += stats.get("total_success", 0)
 
         delivery_rate = (
-            round((total_delivered / total_attempted) * 100)
-            if total_attempted > 0
-            else 0
+            round((total_delivered / total_attempted) * 100) if total_attempted > 0 else 0
         )
 
         return {
@@ -666,9 +626,7 @@ class MetricsDataCollector:
         total_success = monthly_aggregates.get("war_room_success", 0)
         unique_users = monthly_aggregates.get("war_room_unique_users", 0)
 
-        delivery_rate = (
-            round((total_success / total_sent) * 100) if total_sent > 0 else 0
-        )
+        delivery_rate = round((total_success / total_sent) * 100) if total_sent > 0 else 0
 
         return {
             "people_joined": total_success,

@@ -44,9 +44,7 @@ class AccessRequestOperations(BaseOperations):
         """
         try:
             # Check rate limit
-            rate_limit_ok, rate_limit_msg = await self._check_and_update_rate_limit(
-                request.user_id
-            )
+            rate_limit_ok, rate_limit_msg = await self._check_and_update_rate_limit(request.user_id)
             if not rate_limit_ok:
                 return False, rate_limit_msg, None
 
@@ -235,9 +233,7 @@ class AccessRequestOperations(BaseOperations):
                 table_name=self.table_name,
                 filter_expression="#status = :pending",
                 expression_attribute_names={"#status": "status"},
-                expression_attribute_values={
-                    ":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}
-                },
+                expression_attribute_values={":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}},
                 limit=500,  # Reasonable limit for admin operations
             )
 
@@ -286,16 +282,12 @@ class AccessRequestOperations(BaseOperations):
             logger.error(f"Error getting all pending requests: {e}")
             return []
 
-    async def _get_pending_request_cached(
-        self, user_id: str
-    ) -> Optional[AccessRequest]:
+    async def _get_pending_request_cached(self, user_id: str) -> Optional[AccessRequest]:
         """Get pending request for user using cached results (15-minute TTL)."""
         await self._ensure_cache_fresh()
         return self._pending_cache.get(user_id)
 
-    async def check_batch_requests(
-        self, user_ids: List[str]
-    ) -> Dict[str, Optional[AccessRequest]]:
+    async def check_batch_requests(self, user_ids: List[str]) -> Dict[str, Optional[AccessRequest]]:
         """Check multiple users for pending requests in a single operation."""
         await self._ensure_cache_fresh()
         return {user_id: self._pending_cache.get(user_id) for user_id in user_ids}
@@ -317,9 +309,7 @@ class AccessRequestOperations(BaseOperations):
                 self._pending_cache = {req.user_id: req for req in all_pending}
                 self._cache_timestamp = current_time
 
-                logger.info(
-                    f"Cache refreshed with {len(self._pending_cache)} pending requests"
-                )
+                logger.info(f"Cache refreshed with {len(self._pending_cache)} pending requests")
 
     async def _scan_all_pending_requests(self) -> List[AccessRequest]:
         """Scan for all pending requests (internal method for caching)."""
@@ -328,9 +318,7 @@ class AccessRequestOperations(BaseOperations):
                 table_name=self.table_name,
                 filter_expression="#status = :pending",
                 expression_attribute_names={"#status": "status"},
-                expression_attribute_values={
-                    ":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}
-                },
+                expression_attribute_values={":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}},
             )
 
             requests = []
@@ -389,9 +377,7 @@ class AccessRequestOperations(BaseOperations):
         self._pending_cache = None
         self._cache_timestamp = 0
 
-    async def _get_request(
-        self, user_id: str, request_timestamp: float
-    ) -> Optional[AccessRequest]:
+    async def _get_request(self, user_id: str, request_timestamp: float) -> Optional[AccessRequest]:
         """Get a specific access request by user_id and timestamp."""
         try:
             response = await self.client.get_item(

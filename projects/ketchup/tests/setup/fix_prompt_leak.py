@@ -69,9 +69,9 @@ async def fix_message():
         # Check if it contains the leaked prompt content
         if "#################################################" in text:
             # Get content before the first delimiter
-            good_content = text.split(
-                "#################################################"
-            )[0].strip()
+            good_content = text.split("#################################################")[
+                0
+            ].strip()
 
             logger.info(f"Cleaning message - keeping {len(good_content)} characters")
 
@@ -84,23 +84,15 @@ async def fix_message():
             }
 
             async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    update_url, headers=headers, json=update_data
-                ) as response:
+                async with session.post(update_url, headers=headers, json=update_data) as response:
                     update_result = await response.json()
 
                     if update_result.get("ok"):
-                        logger.info(
-                            "Successfully updated message to remove leaked prompt content"
-                        )
+                        logger.info("Successfully updated message to remove leaked prompt content")
                     else:
-                        logger.error(
-                            f"Failed to update message: {update_result.get('error')}"
-                        )
+                        logger.error(f"Failed to update message: {update_result.get('error')}")
         else:
-            logger.info(
-                "Message doesn't contain leaked prompt content - no action needed"
-            )
+            logger.info("Message doesn't contain leaked prompt content - no action needed")
             logger.info(f"Current message text: {text[:200]}...")
 
     except Exception as e:

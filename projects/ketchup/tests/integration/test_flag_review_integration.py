@@ -51,15 +51,11 @@ class TestFlagReviewIntegration(BaseIntegrationTest):
                 result = validators.check_rate_limit(f"U_TEST_{i}")
                 if i < 10:
                     if not result:
-                        self.logger.error(
-                            f"Rate limit failed at attempt {i+1}, expected to pass"
-                        )
+                        self.logger.error(f"Rate limit failed at attempt {i+1}, expected to pass")
                         return False
                 else:
                     if result:
-                        self.logger.error(
-                            f"Rate limit passed at attempt {i+1}, expected to fail"
-                        )
+                        self.logger.error(f"Rate limit passed at attempt {i+1}, expected to fail")
                         return False
             self.logger.info("✓ Rate limiting working correctly")
 
@@ -94,9 +90,7 @@ class TestFlagReviewIntegration(BaseIntegrationTest):
             )
 
             if result2["success"] or result2.get("error") != "already_flagged":
-                self.logger.error(
-                    "Second flag attempt should have failed with 'already_flagged'"
-                )
+                self.logger.error("Second flag attempt should have failed with 'already_flagged'")
                 return False
             self.logger.info("✓ Duplicate flag correctly rejected")
 
@@ -111,9 +105,7 @@ class TestFlagReviewIntegration(BaseIntegrationTest):
                 return False
 
             if flag_status["flagged_by"] != test_user_id:
-                self.logger.error(
-                    f"Wrong user in flag status: {flag_status['flagged_by']}"
-                )
+                self.logger.error(f"Wrong user in flag status: {flag_status['flagged_by']}")
                 return False
             self.logger.info("✓ Flag status retrieved correctly")
 
@@ -140,9 +132,7 @@ class TestFlagReviewIntegration(BaseIntegrationTest):
             self.logger.info("Test 5: Testing feedback validation...")
 
             # Test with mentions and long text
-            test_text = (
-                "This summary is wrong <@U123456> should check <#C123456> " + "x" * 2000
-            )
+            test_text = "This summary is wrong <@U123456> should check <#C123456> " + "x" * 2000
             validation_result = await flag_review_handler._validate_feedback(
                 text=test_text, user_id=test_user_id, channel_id=test_channel_id
             )
@@ -195,10 +185,8 @@ class TestFlagReviewIntegration(BaseIntegrationTest):
             self.logger.info("Test 7: Testing archive cleanup...")
 
             # Run cleanup
-            cleanup_success = (
-                await dynamodb_store.feedback_ops.cleanup_channel_feedback_data(
-                    test_channel_id
-                )
+            cleanup_success = await dynamodb_store.feedback_ops.cleanup_channel_feedback_data(
+                test_channel_id
             )
 
             if not cleanup_success:

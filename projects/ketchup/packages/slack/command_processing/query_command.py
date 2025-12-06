@@ -12,13 +12,13 @@ import orjson
 
 from packages.ai.core.openai_handler import OpenAIHandler
 from packages.core.config.feature_flags import FeatureFlags
-from packages.core.typed_di_integration import get_typed_registry
+from packages.core.exceptions import MessagePreparationError
+from packages.core.logging import setup_logger
+from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     ChannelNameResolverProtocol,
 )
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.exceptions import MessagePreparationError
-from packages.core.logging import setup_logger
+from packages.core.typed_di_integration import get_typed_registry
 from packages.core.utils import normalize_prompt_for_agent
 from packages.db.user_store import UserStore
 from packages.secrets.manager import SecretsManager
@@ -188,11 +188,10 @@ class SlackQueryHandler(BaseCommandHandler):
                 pass
 
             if not channel_name_resolver:
-                logger.warning(
-                    "ChannelNameResolver not available, using fallback parsing"
-                )
+                logger.warning("ChannelNameResolver not available, using fallback parsing")
                 # Fallback: try to extract channel ID from Slack mention format
                 from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
+
                 mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
                 if mention_match:
                     channel_id = mention_match.group(1)
@@ -205,8 +204,8 @@ class SlackQueryHandler(BaseCommandHandler):
                 # If not a mention format, return as-is (might be already a valid ID)
                 return channel_param
 
-            resolved_id, format_type = (
-                await channel_name_resolver.resolve_channel_parameter(channel_param)
+            resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
+                channel_param
             )
             if resolved_id:
                 logger.info(
@@ -220,9 +219,7 @@ class SlackQueryHandler(BaseCommandHandler):
                 logger.error("Failed to resolve channel parameter: %s", format_type)
                 return None
         except Exception as e:
-            logger.error(
-                "Error resolving channel parameter '%s': %s", channel_param, str(e)
-            )
+            logger.error("Error resolving channel parameter '%s': %s", channel_param, str(e))
             return channel_param  # Return as-is on error
 
     @handle_archived_channel
@@ -304,9 +301,7 @@ class SlackQueryHandler(BaseCommandHandler):
                 query=query_text,
                 target_channel=channel_id,
             )
-            return self.create_success_response(
-                {"message": "Query processed successfully."}
-            )
+            return self.create_success_response({"message": "Query processed successfully."})
         except Exception as e:
             logger.error("Error processing query: %s", str(e))
             return self.create_error_response(f"Error processing query: {str(e)}")
@@ -366,9 +361,7 @@ class SlackQueryHandler(BaseCommandHandler):
             "time_window": "past_24_hours",
         }
         raw_preferences = (
-            user_data.get("preferences", default_raw_prefs)
-            if user_data
-            else default_raw_prefs
+            user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs
         )
         normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
         logger.info(
@@ -399,15 +392,9 @@ class SlackQueryHandler(BaseCommandHandler):
             raise Exception(
                 f"Unable to process query for channel {channel_id}: bot may not be a member of the channel"
             ) from e
-        if (
-            not response_data
-            or "choices" not in response_data
-            or not response_data["choices"]
-        ):
+        if not response_data or "choices" not in response_data or not response_data["choices"]:
             logger.error("Invalid or empty response from OpenAI endpoint.")
-            generated_text = (
-                "Sorry, I received an invalid response from the AI. Please try again."
-            )
+            generated_text = "Sorry, I received an invalid response from the AI. Please try again."
         else:
             raw_content = response_data["choices"][0]["message"]["content"]
 
@@ -419,7 +406,9 @@ class SlackQueryHandler(BaseCommandHandler):
                     generated_text = data.get("response_text", raw_content)
                     logger.info("Extracted text from JSON response (%d chars)", len(generated_text))
                 except orjson.JSONDecodeError as e:
-                    logger.error("Failed to parse JSON response, falling back to raw content: %s", e)
+                    logger.error(
+                        "Failed to parse JSON response, falling back to raw content: %s", e
+                    )
                     generated_text = raw_content  # Fallback to raw if JSON invalid
             else:
                 # Prose mode - return as-is

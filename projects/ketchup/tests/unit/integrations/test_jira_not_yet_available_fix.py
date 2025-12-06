@@ -18,9 +18,7 @@ async def test_jira_data_extractor_skips_not_yet_available():
     mock_cache = AsyncMock()
 
     # Set up the extractor
-    extractor = JIRADataExtractor(
-        mcp_client=mock_mcp_client, dynamodb_store=mock_dynamodb_store
-    )
+    extractor = JIRADataExtractor(mcp_client=mock_mcp_client, dynamodb_store=mock_dynamodb_store)
     extractor.cache = mock_cache
 
     # Mock channel metadata with 'NOT YET AVAILABLE' ticket
@@ -55,9 +53,7 @@ async def test_get_ticket_data_validates_ticket_id():
     mock_cache = AsyncMock()
 
     # Set up the extractor
-    extractor = JIRADataExtractor(
-        mcp_client=mock_mcp_client, dynamodb_store=mock_dynamodb_store
-    )
+    extractor = JIRADataExtractor(mcp_client=mock_mcp_client, dynamodb_store=mock_dynamodb_store)
     extractor.cache = mock_cache
 
     # Test with 'NOT YET AVAILABLE'
@@ -93,9 +89,7 @@ async def test_valid_jira_ticket_still_works():
     mock_cache = AsyncMock()
 
     # Set up the extractor
-    extractor = JIRADataExtractor(
-        mcp_client=mock_mcp_client, dynamodb_store=mock_dynamodb_store
-    )
+    extractor = JIRADataExtractor(mcp_client=mock_mcp_client, dynamodb_store=mock_dynamodb_store)
     extractor.cache = mock_cache
 
     # Mock channel metadata with valid ticket

@@ -13,8 +13,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 from packages.core.logging import setup_logger
-from packages.core.typed_di_integration import _run_startup_smoke_checks
 from packages.core.typed_di import TypedServiceRegistry
+from packages.core.typed_di_integration import _run_startup_smoke_checks
 
 logger = setup_logger(__name__)
 
@@ -46,9 +46,7 @@ class TestSmokeChecksEnhanced(unittest.IsolatedAsyncioTestCase):
         # Mock the actual service imports in smoke check
         with self._patch_service_imports(mock_services):
             result = await _run_startup_smoke_checks(registry)
-            self.assertTrue(
-                result, "Smoke checks should pass with proper service registration"
-            )
+            self.assertTrue(result, "Smoke checks should pass with proper service registration")
             logger.info("✓ Full smoke checks passed successfully")
 
         logger.info("✓ Full smoke test with TypedDI completed successfully")
@@ -80,22 +78,21 @@ class TestSmokeChecksEnhanced(unittest.IsolatedAsyncioTestCase):
 
     def _patch_service_imports(self, mock_services: dict):
         """Context manager for patching service imports."""
-        return patch(
-            "packages.secrets.manager.SecretsManager", mock_services["SecretsManager"]
-        ), patch(
-            "packages.slack.config.slack_config.SlackConfig", mock_services["SlackConfig"]
-        ), patch(
-            "packages.slack.messages.posting.SlackPostingHandler",
-            mock_services["SlackPostingHandler"],
-        ), patch(
-            "packages.db.user_store.UserStore", mock_services["UserStore"]
-        ), patch(
-            "packages.db.dynamodb.store.DynamoDBStore", mock_services["DynamoDBStore"]
+        return (
+            patch("packages.secrets.manager.SecretsManager", mock_services["SecretsManager"]),
+            patch("packages.slack.config.slack_config.SlackConfig", mock_services["SlackConfig"]),
+            patch(
+                "packages.slack.messages.posting.SlackPostingHandler",
+                mock_services["SlackPostingHandler"],
+            ),
+            patch("packages.db.user_store.UserStore", mock_services["UserStore"]),
+            patch("packages.db.dynamodb.store.DynamoDBStore", mock_services["DynamoDBStore"]),
         )
 
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.INFO)
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
     unittest.main()

@@ -73,9 +73,7 @@ class TestOpenAIHandler:
         )
         self.secrets_manager.get_azure_openai_lb_api_key = AsyncMock(return_value=None)
         handler.setup = AsyncMock()
-        with pytest.raises(
-            ValueError, match="Failed to retrieve Azure OpenAI LB API key"
-        ):
+        with pytest.raises(ValueError, match="Failed to retrieve Azure OpenAI LB API key"):
             await handler.initialize()
 
     @pytest.mark.asyncio
@@ -92,16 +90,12 @@ class TestOpenAIHandler:
         self.secrets_manager.get_azure_openai_lb_api_key = AsyncMock(return_value="key")
         handler.setup = AsyncMock()
         handler._endpoint = None
-        with pytest.raises(
-            ValueError, match="Azure OpenAI endpoint is None after setup"
-        ):
+        with pytest.raises(ValueError, match="Azure OpenAI endpoint is None after setup"):
             await handler.initialize()
 
     @pytest.mark.asyncio
     @patch("packages.ai.core.openai_handler.MessagePreparer", autospec=True)
-    async def test_get_or_prepare_messages_provided(
-        self, mock_msg_preparer: MagicMock
-    ) -> None:
+    async def test_get_or_prepare_messages_provided(self, mock_msg_preparer: MagicMock) -> None:
         """Test _get_or_prepare_messages returns provided messages directly."""
         handler = OpenAIHandler(
             token_tracker=self.token_tracker,
@@ -215,9 +209,7 @@ class TestOpenAIHandler:
 
     @pytest.mark.asyncio
     @patch("packages.ai.core.openai_handler.MessagePreparer", autospec=True)
-    async def test_get_or_prepare_messages_error(
-        self, mock_msg_preparer: MagicMock
-    ) -> None:
+    async def test_get_or_prepare_messages_error(self, mock_msg_preparer: MagicMock) -> None:
         """Test _get_or_prepare_messages handles error messages from preparer."""
         mock_preparer = mock_msg_preparer.return_value
         mock_preparer.prepare_messages = AsyncMock(
@@ -275,9 +267,7 @@ class TestOpenAIHandler:
 
     @pytest.mark.asyncio
     @patch.object(OpenAIHandler, "_get_or_prepare_messages", new_callable=AsyncMock)
-    async def test_call_openai_endpoint_no_prefs(
-        self, mock_get_msgs: AsyncMock
-    ) -> None:
+    async def test_call_openai_endpoint_no_prefs(self, mock_get_msgs: AsyncMock) -> None:
         """Test call_openai_endpoint orchestrates correctly when no prefs are provided."""
         handler = OpenAIHandler(
             token_tracker=self.token_tracker,
@@ -339,9 +329,7 @@ class TestOpenAIHandler:
 
     @pytest.mark.asyncio
     @patch.object(OpenAIHandler, "_get_or_prepare_messages", new_callable=AsyncMock)
-    async def test_call_openai_endpoint_with_prefs(
-        self, mock_get_msgs: AsyncMock
-    ) -> None:
+    async def test_call_openai_endpoint_with_prefs(self, mock_get_msgs: AsyncMock) -> None:
         """Test call_openai_endpoint passes normalized_prefs_for_ai to _get_or_prepare_messages."""
         handler = OpenAIHandler(
             token_tracker=self.token_tracker,

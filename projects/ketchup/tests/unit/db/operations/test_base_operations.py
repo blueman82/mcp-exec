@@ -43,9 +43,7 @@ def ops(mock_client: MagicMock) -> BaseOperations:
     return BaseOperations(mock_client, "test-table")
 
 
-def test_init_sets_client_and_table(
-    ops: BaseOperations, mock_client: MagicMock
-) -> None:
+def test_init_sets_client_and_table(ops: BaseOperations, mock_client: MagicMock) -> None:
     """Test __init__ sets client and table_name attributes."""
     assert ops.client is mock_client
     assert ops.table_name == "test-table"
@@ -83,9 +81,7 @@ def test_normalize_item_deeply_nested(ops: BaseOperations) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cleanup_logs_debug(
-    ops: BaseOperations, caplog: pytest.LogCaptureFixture
-) -> None:
+async def test_cleanup_logs_debug(ops: BaseOperations, caplog: pytest.LogCaptureFixture) -> None:
     """Test cleanup logs debug and is a no-op in base class."""
     caplog.set_level(logging.DEBUG)
     with patch("packages.db.operations.base_operations.logger") as mock_logger:

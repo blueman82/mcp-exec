@@ -40,9 +40,7 @@ class RestoreStateManager:
         Returns:
             True if the state was successfully stored in DynamoDB, False otherwise.
         """
-        logger.info(
-            "Attempting to store restore state for channel %s in DynamoDB", channel_id
-        )
+        logger.info("Attempting to store restore state for channel %s in DynamoDB", channel_id)
         success = await self._restore_ops.set_restore_state(channel_id)
         if success:
             logger.info("Successfully stored restore state for channel %s", channel_id)
@@ -92,9 +90,7 @@ class RestoreStateManager:
         )
         success = await self._restore_ops.clear_restore_state(channel_id)
         if success:
-            logger.info(
-                "Successfully cleaned up restore state for channel %s", channel_id
-            )
+            logger.info("Successfully cleaned up restore state for channel %s", channel_id)
         else:
             logger.error("Failed to clean up restore state for channel %s", channel_id)
         return success

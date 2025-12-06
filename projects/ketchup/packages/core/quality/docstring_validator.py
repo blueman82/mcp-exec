@@ -22,15 +22,29 @@ class DocstringValidator:
     def __init__(self):
         """Initialize the docstring validator."""
         self.google_sections = {
-            'Args:', 'Arguments:', 'Parameters:', 'Param:', 'Params:',
-            'Returns:', 'Return:', 'Yields:', 'Yield:',
-            'Raises:', 'Raise:', 'Except:', 'Exceptions:',
-            'Note:', 'Notes:', 'Example:', 'Examples:'
+            "Args:",
+            "Arguments:",
+            "Parameters:",
+            "Param:",
+            "Params:",
+            "Returns:",
+            "Return:",
+            "Yields:",
+            "Yield:",
+            "Raises:",
+            "Raise:",
+            "Except:",
+            "Exceptions:",
+            "Note:",
+            "Notes:",
+            "Example:",
+            "Examples:",
         }
         self.violations: List[CodeQualityViolation] = []
 
-    def _check_missing_docstring(self, docstring: str, node_name: str,
-                                file_path: str, line_number: int) -> Optional[CodeQualityViolation]:
+    def _check_missing_docstring(
+        self, docstring: str, node_name: str, file_path: str, line_number: int
+    ) -> Optional[CodeQualityViolation]:
         """Check if docstring is missing."""
         if not docstring:
             return CodeQualityViolation(
@@ -38,37 +52,43 @@ class DocstringValidator:
                 file_path=file_path,
                 line_number=line_number,
                 message=f"Missing docstring for {node_name}",
-                severity="error"
+                severity="error",
             )
         return None
 
-    def _check_summary_line(self, lines: List[str], node_name: str,
-                           file_path: str, line_number: int) -> List[CodeQualityViolation]:
+    def _check_summary_line(
+        self, lines: List[str], node_name: str, file_path: str, line_number: int
+    ) -> List[CodeQualityViolation]:
         """Check summary line format."""
         violations = []
 
         if not lines[0].strip():
-            violations.append(CodeQualityViolation(
-                violation_type="docstring_format",
-                file_path=file_path,
-                line_number=line_number,
-                message=f"Docstring for {node_name} must start with summary line",
-                severity="error"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="docstring_format",
+                    file_path=file_path,
+                    line_number=line_number,
+                    message=f"Docstring for {node_name} must start with summary line",
+                    severity="error",
+                )
+            )
 
-        if lines[0].strip() and not lines[0].strip().endswith('.'):
-            violations.append(CodeQualityViolation(
-                violation_type="docstring_format",
-                file_path=file_path,
-                line_number=line_number,
-                message=f"Summary line for {node_name} must end with period",
-                severity="warning"
-            ))
+        if lines[0].strip() and not lines[0].strip().endswith("."):
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="docstring_format",
+                    file_path=file_path,
+                    line_number=line_number,
+                    message=f"Summary line for {node_name} must end with period",
+                    severity="warning",
+                )
+            )
 
         return violations
 
-    def _check_section_formatting(self, lines: List[str], node_name: str,
-                                 file_path: str, line_number: int) -> List[CodeQualityViolation]:
+    def _check_section_formatting(
+        self, lines: List[str], node_name: str, file_path: str, line_number: int
+    ) -> List[CodeQualityViolation]:
         """Check Google section formatting."""
         violations = []
 
@@ -76,24 +96,27 @@ class DocstringValidator:
             stripped = line.strip()
             if any(stripped.startswith(section) for section in self.google_sections):
                 if line != stripped:
-                    violations.append(CodeQualityViolation(
-                        violation_type="docstring_format",
-                        file_path=file_path,
-                        line_number=line_number + i,
-                        message=f"Section headers in {node_name} must not be indented",
-                        severity="warning"
-                    ))
+                    violations.append(
+                        CodeQualityViolation(
+                            violation_type="docstring_format",
+                            file_path=file_path,
+                            line_number=line_number + i,
+                            message=f"Section headers in {node_name} must not be indented",
+                            severity="warning",
+                        )
+                    )
 
         return violations
 
-    def _check_docstring_format(self, docstring: str, node_name: str,
-                               file_path: str, line_number: int) -> List[CodeQualityViolation]:
+    def _check_docstring_format(
+        self, docstring: str, node_name: str, file_path: str, line_number: int
+    ) -> List[CodeQualityViolation]:
         """Check if docstring follows Google format."""
         missing_check = self._check_missing_docstring(docstring, node_name, file_path, line_number)
         if missing_check:
             return [missing_check]
 
-        lines = docstring.strip().split('\n')
+        lines = docstring.strip().split("\n")
         violations = []
         violations.extend(self._check_summary_line(lines, node_name, file_path, line_number))
         violations.extend(self._check_section_formatting(lines, node_name, file_path, line_number))
@@ -104,35 +127,40 @@ class DocstringValidator:
         """Validate function docstrings follow Google format."""
         violations = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 tree = ast.parse(content)
 
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     docstring = ast.get_docstring(node)
-                    violations.extend(self._check_docstring_format(
-                        docstring or "", f"function '{node.name}'",
-                        file_path, node.lineno
-                    ))
+                    violations.extend(
+                        self._check_docstring_format(
+                            docstring or "", f"function '{node.name}'", file_path, node.lineno
+                        )
+                    )
 
                     # Special check for functions with parameters
                     if node.args.args and not docstring:
-                        violations.append(CodeQualityViolation(
-                            violation_type="missing_param_docs",
-                            file_path=file_path,
-                            line_number=node.lineno,
-                            message=f"Function '{node.name}' has parameters but no Args: section",
-                            severity="error"
-                        ))
+                        violations.append(
+                            CodeQualityViolation(
+                                violation_type="missing_param_docs",
+                                file_path=file_path,
+                                line_number=node.lineno,
+                                message=f"Function '{node.name}' has parameters but no Args: section",
+                                severity="error",
+                            )
+                        )
 
         except Exception as e:
-            violations.append(CodeQualityViolation(
-                violation_type="parse_error",
-                file_path=file_path,
-                line_number=0,
-                message=f"Failed to parse file for docstring validation: {str(e)}"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="parse_error",
+                    file_path=file_path,
+                    line_number=0,
+                    message=f"Failed to parse file for docstring validation: {str(e)}",
+                )
+            )
 
         return violations
 
@@ -140,25 +168,28 @@ class DocstringValidator:
         """Validate class docstrings follow Google format."""
         violations = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 tree = ast.parse(content)
 
             for node in ast.walk(tree):
                 if isinstance(node, ast.ClassDef):
                     docstring = ast.get_docstring(node)
-                    violations.extend(self._check_docstring_format(
-                        docstring or "", f"class '{node.name}'",
-                        file_path, node.lineno
-                    ))
+                    violations.extend(
+                        self._check_docstring_format(
+                            docstring or "", f"class '{node.name}'", file_path, node.lineno
+                        )
+                    )
 
         except Exception as e:
-            violations.append(CodeQualityViolation(
-                violation_type="parse_error",
-                file_path=file_path,
-                line_number=0,
-                message=f"Failed to parse file for class docstring validation: {str(e)}"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="parse_error",
+                    file_path=file_path,
+                    line_number=0,
+                    message=f"Failed to parse file for class docstring validation: {str(e)}",
+                )
+            )
 
         return violations
 
@@ -166,39 +197,44 @@ class DocstringValidator:
         """Validate module-level docstring exists and follows format."""
         violations = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 tree = ast.parse(content)
 
             module_docstring = ast.get_docstring(tree)
             if not module_docstring:
-                violations.append(CodeQualityViolation(
-                    violation_type="missing_module_docstring",
-                    file_path=file_path,
-                    line_number=1,
-                    message="Missing module-level docstring",
-                    severity="error"
-                ))
+                violations.append(
+                    CodeQualityViolation(
+                        violation_type="missing_module_docstring",
+                        file_path=file_path,
+                        line_number=1,
+                        message="Missing module-level docstring",
+                        severity="error",
+                    )
+                )
             else:
-                violations.extend(self._check_docstring_format(
-                    module_docstring, "module", file_path, 1
-                ))
+                violations.extend(
+                    self._check_docstring_format(module_docstring, "module", file_path, 1)
+                )
 
         except Exception as e:
-            violations.append(CodeQualityViolation(
-                violation_type="parse_error",
-                file_path=file_path,
-                line_number=0,
-                message=f"Failed to parse module for docstring validation: {str(e)}"
-            ))
+            violations.append(
+                CodeQualityViolation(
+                    violation_type="parse_error",
+                    file_path=file_path,
+                    line_number=0,
+                    message=f"Failed to parse module for docstring validation: {str(e)}",
+                )
+            )
 
         return violations
 
-    def scan_directory_for_docstring_violations(self, directory_path: str,
-                                              file_patterns: List[str] = None) -> Dict[str, List[CodeQualityViolation]]:
+    def scan_directory_for_docstring_violations(
+        self, directory_path: str, file_patterns: List[str] = None
+    ) -> Dict[str, List[CodeQualityViolation]]:
         """Scan directory for docstring violations."""
         if file_patterns is None:
-            file_patterns = ['*.py']
+            file_patterns = ["*.py"]
 
         results = {}
         directory = Path(directory_path)
@@ -225,8 +261,9 @@ class DocstringValidator:
         report.append("=" * 50)
 
         total_violations = sum(len(v) for v in violations.values())
-        error_count = sum(1 for v_list in violations.values()
-                         for v in v_list if v.severity == "error")
+        error_count = sum(
+            1 for v_list in violations.values() for v in v_list if v.severity == "error"
+        )
         warning_count = total_violations - error_count
 
         report.append(f"Total violations: {total_violations}")
@@ -237,13 +274,15 @@ class DocstringValidator:
 
         for file_path, file_violations in violations.items():
             relative_path = file_path.replace(
-                '/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/', ''
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/", ""
             )
             report.append(f"🔍 {relative_path}")
 
             for violation in file_violations:
                 severity_icon = "🚨" if violation.severity == "error" else "⚠️"
-                report.append(f"  {severity_icon} Line {violation.line_number}: {violation.message}")
+                report.append(
+                    f"  {severity_icon} Line {violation.line_number}: {violation.message}"
+                )
             report.append("")
 
         return "\n".join(report)

@@ -30,9 +30,7 @@ class TestFlagReviewValidator:
 
     def test_validate_flag_input_too_short(self, validator):
         """Test validation of too short text."""
-        result = validator.validate_flag_input(
-            text="Short", user_id="U123", channel_id="C123"
-        )
+        result = validator.validate_flag_input(text="Short", user_id="U123", channel_id="C123")
 
         assert result["valid"] is False
         assert len(result["issues"]) > 0
@@ -41,9 +39,7 @@ class TestFlagReviewValidator:
     def test_validate_flag_input_too_long(self, validator):
         """Test validation of too long text."""
         long_text = "a" * 3001  # Over 3000 character limit
-        result = validator.validate_flag_input(
-            text=long_text, user_id="U123", channel_id="C123"
-        )
+        result = validator.validate_flag_input(text=long_text, user_id="U123", channel_id="C123")
 
         assert result["valid"] is False
         assert len(result["issues"]) > 0

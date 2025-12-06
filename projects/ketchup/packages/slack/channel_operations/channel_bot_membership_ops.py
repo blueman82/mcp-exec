@@ -11,9 +11,7 @@ import orjson
 from packages.core.async_client import AsyncClient
 from packages.core.logging import setup_logger
 from packages.core.resilience.backoff import with_exponential_backoff
-from packages.core.utils import (
-    invite_ketchup_to_channel as core_invite_ketchup_to_channel,
-)
+from packages.core.utils import invite_ketchup_to_channel as core_invite_ketchup_to_channel
 from packages.secrets.manager import SecretsManager
 from packages.slack.config.slack_config import SlackConfig
 from packages.slack.messages.posting import SlackPostingHandler
@@ -47,9 +45,7 @@ class SlackChannelBotMembershipOps(AsyncClient):
 
         self.secrets_manager = secrets_manager  # Keep stored instance
         self.posting_handler = posting_handler
-        self._slack_token: Optional[str] = (
-            None  # Define instance var used by _init_slack_token
-        )
+        self._slack_token: Optional[str] = None  # Define instance var used by _init_slack_token
         logger.info("SlackChannelBotMembershipOps initialized.")
 
     async def _init_slack_token(self):

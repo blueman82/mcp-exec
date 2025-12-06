@@ -127,9 +127,7 @@ async def test_restore_archived_channel_channel_info_error(
     ops: SlackChannelRestoreOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test restore_archived_channel returns False if channel info fetch fails."""
-    ops.archive_ops.get_channel_info = AsyncMock(
-        return_value={"ok": False, "error": "fail"}
-    )
+    ops.archive_ops.get_channel_info = AsyncMock(return_value={"ok": False, "error": "fail"})
     ops.posting_handler.post_message = AsyncMock()  # type: ignore[method-assign]
     result = await ops.restore_archived_channel("U1", "C1", "D1")
     assert result == (False, False)

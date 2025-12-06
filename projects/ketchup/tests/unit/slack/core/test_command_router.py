@@ -186,9 +186,7 @@ class TestCommandRouter:
         params = MagicMock()
         params.command_type = CommandType.LIST
         handler = self.mock_handlers["list"]
-        handler.process_list_params.side_effect = Exception(
-            "unhandled errors in a TaskGroup"
-        )
+        handler.process_list_params.side_effect = Exception("unhandled errors in a TaskGroup")
         mock_verify.return_value = params
         result = await self.router.route_command(self.body, "url")
         assert result["statusCode"] == 500

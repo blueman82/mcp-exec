@@ -10,9 +10,7 @@ class TestSlackChannelMessageOpsParallel(unittest.TestCase):
         self.user_ops = MagicMock()
         self.archive_ops = MagicMock()
         self.slack_config = MagicMock()
-        self.ops = SlackChannelMessageOps(
-            self.user_ops, self.archive_ops, self.slack_config
-        )
+        self.ops = SlackChannelMessageOps(self.user_ops, self.archive_ops, self.slack_config)
 
     @patch(
         "packages.slack.channel_operations.channel_msg_ops.SlackChannelMessageOps.fetch_thread_messages"

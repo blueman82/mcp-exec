@@ -21,21 +21,11 @@ class DummyHandler:
 
 
 class TestInstantiateCommandHandlers:
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackListCommand"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackQueryHandler"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackSummaryHandler"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackReports"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackArchiveCommand"
-    )
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackListCommand")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackQueryHandler")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackSummaryHandler")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackReports")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackArchiveCommand")
     def test_instantiates_all_handlers(
         self, mock_archive, mock_reports, mock_summary, mock_query, mock_list
     ):
@@ -66,27 +56,15 @@ class TestInstantiateCommandHandlers:
 
 
 class TestSetupDependencies:
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackPostingHandler"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.DynamoDBStore"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.UserStore"
-    )
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackPostingHandler")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.DynamoDBStore")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.UserStore")
     @patch(
         "packages.slack.channel_events.request_processing.dependency_setup.SlackChannelArchiveOps"
     )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.ChannelInfoOps"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.ChannelMembershipOps"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackUserOps"
-    )
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.ChannelInfoOps")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.ChannelMembershipOps")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackUserOps")
     @patch(
         "packages.slack.channel_events.request_processing.dependency_setup.SlackChannelMessageOps"
     )
@@ -96,18 +74,10 @@ class TestSetupDependencies:
     @patch(
         "packages.slack.channel_events.request_processing.dependency_setup.FeedbackReportHandler"
     )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SecretsManager"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.SlackAuth"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.ShortcutHandler"
-    )
-    @patch(
-        "packages.slack.channel_events.request_processing.dependency_setup.UserVerifier"
-    )
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SecretsManager")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackAuth")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.ShortcutHandler")
+    @patch("packages.slack.channel_events.request_processing.dependency_setup.UserVerifier")
     @pytest.mark.asyncio
     async def test_setup_dependencies_success(
         self,

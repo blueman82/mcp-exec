@@ -109,9 +109,7 @@ async def test_ims_token_update(aws_profile):
             # This is OK - if the token was already valid, it won't be cached
 
         print("\n" + "=" * 50)
-        print(
-            "✅ All tests passed! IMS token update to AWS Secrets Manager is working correctly."
-        )
+        print("✅ All tests passed! IMS token update to AWS Secrets Manager is working correctly.")
         print("\n📊 Summary:")
         print("   • Token refresh: ✅")
         print("   • AWS Secrets update: ✅")

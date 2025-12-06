@@ -42,16 +42,10 @@ async def test_execute_prompt_with_json_mode_enabled(
     """Test execute_prompt extracts text from JSON when flag is enabled."""
     # Mock the call_openai_endpoint to return JSON response
     json_response = {"response_text": "This is the extracted text from JSON"}
-    mock_response = {
-        "choices": [{"message": {"content": json.dumps(json_response)}}]
-    }
+    mock_response = {"choices": [{"message": {"content": json.dumps(json_response)}}]}
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
-        result = await openai_handler.execute_prompt(
-            messages=[{"role": "user", "content": "test"}]
-        )
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
+        result = await openai_handler.execute_prompt(messages=[{"role": "user", "content": "test"}])
 
     assert result == "This is the extracted text from JSON"
 
@@ -64,21 +58,11 @@ async def test_execute_prompt_with_json_mode_disabled(
     """Test execute_prompt returns raw content when flag is disabled."""
     # Mock the call_openai_endpoint to return prose response
     mock_response = {
-        "choices": [
-            {
-                "message": {
-                    "content": "This is raw prose text without JSON structure"
-                }
-            }
-        ]
+        "choices": [{"message": {"content": "This is raw prose text without JSON structure"}}]
     }
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
-        result = await openai_handler.execute_prompt(
-            messages=[{"role": "user", "content": "test"}]
-        )
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
+        result = await openai_handler.execute_prompt(messages=[{"role": "user", "content": "test"}])
 
     assert result == "This is raw prose text without JSON structure"
 
@@ -93,12 +77,8 @@ async def test_execute_prompt_fallback_on_invalid_json(
     invalid_json = "This is not valid JSON {response_text:"
     mock_response = {"choices": [{"message": {"content": invalid_json}}]}
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
-        result = await openai_handler.execute_prompt(
-            messages=[{"role": "user", "content": "test"}]
-        )
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
+        result = await openai_handler.execute_prompt(messages=[{"role": "user", "content": "test"}])
 
     # Should fallback to raw content
     assert result == invalid_json
@@ -111,16 +91,10 @@ async def test_process_with_context_with_json_mode_enabled(
 ) -> None:
     """Test process_with_context extracts text from JSON when flag is enabled."""
     # Mock the call_openai_endpoint to return JSON response
-    json_response = {
-        "response_text": "Contextual response extracted from JSON"
-    }
-    mock_response = {
-        "choices": [{"message": {"content": json.dumps(json_response)}}]
-    }
+    json_response = {"response_text": "Contextual response extracted from JSON"}
+    mock_response = {"choices": [{"message": {"content": json.dumps(json_response)}}]}
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
         result = await openai_handler.process_with_context(
             messages=[{"role": "user", "content": "test"}],
             conversation_history=[],
@@ -136,15 +110,9 @@ async def test_process_with_context_with_json_mode_disabled(
 ) -> None:
     """Test process_with_context returns raw content when flag is disabled."""
     # Mock the call_openai_endpoint to return prose response
-    mock_response = {
-        "choices": [
-            {"message": {"content": "Raw contextual prose response"}}
-        ]
-    }
+    mock_response = {"choices": [{"message": {"content": "Raw contextual prose response"}}]}
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
         result = await openai_handler.process_with_context(
             messages=[{"role": "user", "content": "test"}],
             conversation_history=[],
@@ -163,9 +131,7 @@ async def test_process_with_context_fallback_on_invalid_json(
     invalid_json = "{broken json structure"
     mock_response = {"choices": [{"message": {"content": invalid_json}}]}
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
         result = await openai_handler.process_with_context(
             messages=[{"role": "user", "content": "test"}],
             conversation_history=[],
@@ -183,16 +149,10 @@ async def test_execute_prompt_with_missing_response_text_field(
     """Test execute_prompt handles missing response_text field gracefully."""
     # Mock response with valid JSON but missing response_text field
     json_response = {"other_field": "some value"}
-    mock_response = {
-        "choices": [{"message": {"content": json.dumps(json_response)}}]
-    }
+    mock_response = {"choices": [{"message": {"content": json.dumps(json_response)}}]}
 
-    with patch.object(
-        openai_handler, "call_openai_endpoint", return_value=mock_response
-    ):
-        result = await openai_handler.execute_prompt(
-            messages=[{"role": "user", "content": "test"}]
-        )
+    with patch.object(openai_handler, "call_openai_endpoint", return_value=mock_response):
+        result = await openai_handler.execute_prompt(messages=[{"role": "user", "content": "test"}])
 
     # Should fallback to raw JSON when response_text is missing
     assert result == json.dumps(json_response)

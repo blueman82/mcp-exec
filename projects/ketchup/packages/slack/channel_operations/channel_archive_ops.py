@@ -58,9 +58,7 @@ class SlackChannelArchiveOps(SlackAsyncClient):
     async def _init_user_slack_token(self):
         """Initialize and cache the Slack user API token."""
         if not hasattr(self, "_slack_user_token") or not self._slack_user_token:
-            self._slack_user_token = (
-                await self._secrets_manager.get_slack_user_api_token()
-            )
+            self._slack_user_token = await self._secrets_manager.get_slack_user_api_token()
 
     async def get_user_api_headers(self) -> Dict[str, str]:
         """
@@ -104,14 +102,10 @@ class SlackChannelArchiveOps(SlackAsyncClient):
                 return is_archived
             else:
                 error = response_data.get("error")
-                logger.warning(
-                    "Error checking if channel %s is archived: %s", channel_id, error
-                )
+                logger.warning("Error checking if channel %s is archived: %s", channel_id, error)
                 return False
         except Exception as e:
-            logger.warning(
-                "Exception checking if channel %s is archived: %s", channel_id, e
-            )
+            logger.warning("Exception checking if channel %s is archived: %s", channel_id, e)
             return False
 
     @with_exponential_backoff()
@@ -144,9 +138,7 @@ class SlackChannelArchiveOps(SlackAsyncClient):
 
         # Check if this channel needs re-archiving according to the state manager
         # This check happens *before* potentially skipping due to already being archived
-        needs_rearchive_by_bot = await self._state_manager.is_rearchive_needed(
-            channel_id
-        )
+        needs_rearchive_by_bot = await self._state_manager.is_rearchive_needed(channel_id)
         if needs_rearchive_by_bot:
             logger.info(
                 "RestoreStateManager indicates channel %s was temporarily unarchived by bot.",
@@ -210,9 +202,7 @@ class SlackChannelArchiveOps(SlackAsyncClient):
                 return True
             else:
                 error = response_data.get("error")
-                error_message = (
-                    f"Failed to archive channel {channel_id}. Error: {error}"
-                )
+                error_message = f"Failed to archive channel {channel_id}. Error: {error}"
                 logger.error(error_message)
                 # Only post a message if user_id is provided (user-initiated action)
                 if user_id:
@@ -275,9 +265,7 @@ class SlackChannelArchiveOps(SlackAsyncClient):
                 return True
             else:
                 error = response_data.get("error")
-                error_message = (
-                    f"Failed to unarchive channel {channel_id}. Error: {error}"
-                )
+                error_message = f"Failed to unarchive channel {channel_id}. Error: {error}"
                 logger.error(error_message)
                 return False
         except Exception as e:
@@ -313,9 +301,7 @@ class SlackChannelArchiveOps(SlackAsyncClient):
                 logger.info("Successfully got info for channel %s", channel_id)
             else:
                 error = response_data.get("error", "Unknown error")
-                logger.warning(
-                    "Error getting channel info for %s: %s", channel_id, error
-                )
+                logger.warning("Error getting channel info for %s: %s", channel_id, error)
 
             return response_data
         except Exception as e:

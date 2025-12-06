@@ -20,9 +20,7 @@ T = TypeVar("T")
 class BackoffStrategy:
     """Interface for backoff strategies."""
 
-    async def execute(
-        self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
-    ) -> T:
+    async def execute(self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
         """Execute a function with backoff strategy.
 
         Args:
@@ -79,9 +77,7 @@ class ExponentialBackoffStrategy(BackoffStrategy):
             asyncio.TimeoutError,
         )
 
-    async def execute(
-        self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
-    ) -> T:
+    async def execute(self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
         """Execute function with exponential backoff.
 
         Args:
@@ -109,9 +105,7 @@ class ExponentialBackoffStrategy(BackoffStrategy):
                 # Check if the error is retryable based on type OR message string
                 is_retryable_type = isinstance(e, self.retryable_exception_types)
                 error_str = str(e).lower()
-                is_retryable_string = any(
-                    err in error_str for err in self.retryable_errors
-                )
+                is_retryable_string = any(err in error_str for err in self.retryable_errors)
 
                 is_retryable = is_retryable_type or is_retryable_string
 

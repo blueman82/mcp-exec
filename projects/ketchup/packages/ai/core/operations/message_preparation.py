@@ -46,9 +46,7 @@ class MessagePreparer:
         user_id: str,
         incoming_channel: str,
         passed_channel_id: Optional[str] = None,
-        channel_name: Optional[
-            str
-        ] = None,  # channel_name seems less critical if we fetch details
+        channel_name: Optional[str] = None,  # channel_name seems less critical if we fetch details
         query_text: Optional[str] = None,
         normalized_user_preferences: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[Dict[str, str]], Optional[Dict[str, Any]]]:
@@ -159,9 +157,7 @@ class MessagePreparer:
             ) from e
 
         # Combine messages and add channel reference
-        reference_text = (
-            f"\n\n(Reference: <#{target_channel_id}|{target_channel_name}>)"
-        )
+        reference_text = f"\n\n(Reference: <#{target_channel_id}|{target_channel_name}>)"
         # Avoid extra newlines if the list only contains the placeholder
         if messages_list == ["(No messages found in channel)"]:
             combined_text = (
@@ -211,9 +207,7 @@ class MessagePreparer:
 
             if since_ts:
                 has_thread_activity, _, active_thread_timestamps = (
-                    await self.channel_msg_ops.check_recent_thread_activity(
-                        channel_id, since_ts
-                    )
+                    await self.channel_msg_ops.check_recent_thread_activity(channel_id, since_ts)
                 )
 
             # Fetch messages (with threads if there's thread activity)
@@ -253,13 +247,11 @@ class MessagePreparer:
                         )
                     )
                 else:
-                    channel_check_messages = (
-                        await self.channel_msg_ops.fetch_channel_messages(
-                            channel_id=channel_id,
-                            oldest_ts=since_ts,
-                            limit=200,
-                            additional_thread_timestamps=None,  # No thread expansion
-                        )
+                    channel_check_messages = await self.channel_msg_ops.fetch_channel_messages(
+                        channel_id=channel_id,
+                        oldest_ts=since_ts,
+                        limit=200,
+                        additional_thread_timestamps=None,  # No thread expansion
                     )
 
                 # If we get messages without thread expansion:
@@ -294,9 +286,7 @@ class MessagePreparer:
             latest_ts = self.channel_msg_ops.latest_message_ts or since_ts or "0"
 
             # Join messages into a single string
-            formatted_messages = (
-                "\n".join(messages_list) if messages_list else "No messages found"
-            )
+            formatted_messages = "\n".join(messages_list) if messages_list else "No messages found"
 
             # Return formatted messages and enhanced metadata
             return formatted_messages, {
@@ -304,9 +294,7 @@ class MessagePreparer:
                 "has_thread_activity": has_thread_activity,
                 "has_channel_messages": has_channel_messages,
                 "message_count": len(messages_list),
-                "thread_count": (
-                    len(active_thread_timestamps) if active_thread_timestamps else 0
-                ),
+                "thread_count": (len(active_thread_timestamps) if active_thread_timestamps else 0),
             }
 
         except Exception as e:

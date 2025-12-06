@@ -143,9 +143,7 @@ class FlagReviewDMHandler:
             )
 
             if result and result.get("ok"):
-                logger.info(
-                    f"Successfully sent {notification_type} notification to {reviewer_id}"
-                )
+                logger.info(f"Successfully sent {notification_type} notification to {reviewer_id}")
                 return True
             else:
                 logger.error(f"Failed to send notification: {result}")
@@ -215,9 +213,7 @@ class FlagReviewDMHandler:
             logger.info(f"Processing DM response from {user_id} for flag {flag_id}")
 
             # Send confirmation
-            await self._send_dm_confirmation(
-                user_id, "Your response has been recorded."
-            )
+            await self._send_dm_confirmation(user_id, "Your response has been recorded.")
 
             return True
 
@@ -229,11 +225,7 @@ class FlagReviewDMHandler:
         self, admin_name: str, channel_id: str, is_command: bool = False
     ) -> list:
         """Create blocks for acknowledgment DM."""
-        title = (
-            "✅ Command Feedback Acknowledged"
-            if is_command
-            else "✅ Feedback Acknowledged"
-        )
+        title = "✅ Command Feedback Acknowledged" if is_command else "✅ Feedback Acknowledged"
         text = (
             f"Thank you for your feedback on the command in <#{channel_id}>."
             if is_command
@@ -254,7 +246,7 @@ class FlagReviewDMHandler:
                 "text": {
                     "type": "mrkdwn",
                     "text": f"*Acknowledged by:* {admin_name}\n"
-                             f"*Time:* {datetime.now(timezone.utc).strftime('%H:%M')} UTC",
+                    f"*Time:* {datetime.now(timezone.utc).strftime('%H:%M')} UTC",
                 },
             },
             {
@@ -263,7 +255,7 @@ class FlagReviewDMHandler:
                     {
                         "type": "mrkdwn",
                         "text": "If you need to follow up, please contact the team "
-                                 "org-omeara-all@adobe.com or create a new feedback.",
+                        "org-omeara-all@adobe.com or create a new feedback.",
                     }
                 ],
             },
@@ -279,9 +271,7 @@ class FlagReviewDMHandler:
         message_exists: bool = True,
     ) -> list:
         """Create blocks for reply DM."""
-        header_text = (
-            "🎯 Command Team Response" if is_command else "🎯 Ketchup Team Response"
-        )
+        header_text = "🎯 Command Team Response" if is_command else "🎯 Ketchup Team Response"
         intro_text = (
             f"Thank you for your feedback on the command in <#{channel_id}>."
             if is_command
@@ -329,9 +319,7 @@ class FlagReviewDMHandler:
         # Implementation would retrieve flag details and display them
         logger.info(f"Showing flag details for {flag_id} to user {user_id}")
 
-    async def _handle_quick_reply_from_dm(
-        self, payload: Dict[str, Any], flag_id: str
-    ) -> None:
+    async def _handle_quick_reply_from_dm(self, payload: Dict[str, Any], flag_id: str) -> None:
         """Handle a quick reply action from DM."""
         # Implementation would handle quick reply functionality
         logger.info(f"Handling quick reply for flag {flag_id}")

@@ -117,9 +117,7 @@ class FlagReviewMessageHandler:
             )
 
             if not result.get("messages"):
-                logger.error(
-                    f"Could not find message {message_ts} in channel {channel_id}"
-                )
+                logger.error(f"Could not find message {message_ts} in channel {channel_id}")
                 return False
 
             message = result["messages"][0]
@@ -239,9 +237,7 @@ class FlagReviewMessageHandler:
         # Add message link if available
         if message_ts:
             link = f"https://adobe.enterprise.slack.com/archives/{channel_id}/p{message_ts.replace('.', '')}"
-            blocks[1]["fields"].insert(
-                1, {"type": "mrkdwn", "text": f"*Message:*\n<{link}|View>"}
-            )
+            blocks[1]["fields"].insert(1, {"type": "mrkdwn", "text": f"*Message:*\n<{link}|View>"})
 
         # Add status text if available
         if status_text:
@@ -322,8 +318,7 @@ class FlagReviewMessageHandler:
         context_block_index = -1
         for i, block in enumerate(blocks):
             if block.get("type") == "context" and any(
-                "Flagged" in str(element.get("text", ""))
-                for element in block.get("elements", [])
+                "Flagged" in str(element.get("text", "")) for element in block.get("elements", [])
             ):
                 context_block_index = i
                 break

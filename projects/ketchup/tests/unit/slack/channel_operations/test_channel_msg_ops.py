@@ -57,12 +57,8 @@ async def test_fetch_channel_messages_success(
     ops: SlackChannelMessageOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test fetch_channel_messages returns processed messages on success."""
-    monkeypatch.setattr(
-        ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False)
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     ops._batch_sizer = MagicMock()
     ops._batch_sizer.get_size.return_value = 100
@@ -84,9 +80,7 @@ async def test_fetch_channel_messages_success(
     ops._formatter = MagicMock()
     ops._formatter.process_message_batch = AsyncMock(return_value=(["msg1"], set()))
     # Patch fetch_thread_messages_batch to return nothing
-    monkeypatch.setattr(
-        ops, "_fetch_thread_messages_parallel", AsyncMock(return_value=({}, set()))
-    )
+    monkeypatch.setattr(ops, "_fetch_thread_messages_parallel", AsyncMock(return_value=({}, set())))
     result = await ops.fetch_channel_messages("C1", use_parallel_pagination=False)
     assert result == ["msg1"]
 
@@ -96,12 +90,8 @@ async def test_fetch_channel_messages_with_threads(
     ops: SlackChannelMessageOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test fetch_channel_messages fetches and merges thread messages."""
-    monkeypatch.setattr(
-        ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False)
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     ops._batch_sizer = MagicMock()
     ops._batch_sizer.get_size.return_value = 100
@@ -130,9 +120,7 @@ async def test_fetch_channel_messages_with_threads(
     )
     # Patch formatter
     ops._formatter = MagicMock()
-    ops._formatter.process_message_batch = AsyncMock(
-        return_value=(["msg1", "reply"], {"U1"})
-    )
+    ops._formatter.process_message_batch = AsyncMock(return_value=(["msg1", "reply"], {"U1"}))
     result = await ops.fetch_channel_messages("C1", use_parallel_pagination=False)
     assert "reply" in result
 
@@ -142,12 +130,8 @@ async def test_fetch_channel_messages_api_error(
     ops: SlackChannelMessageOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test fetch_channel_messages handles Slack API error and retries."""
-    monkeypatch.setattr(
-        ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False)
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     ops._batch_sizer = MagicMock()
     ops._batch_sizer.get_size.return_value = 100
@@ -164,9 +148,7 @@ async def test_fetch_channel_messages_api_error(
     # Patch formatter
     ops._formatter = MagicMock()
     ops._formatter.process_message_batch = AsyncMock(return_value=([], set()))
-    with patch(
-        "packages.slack.channel_operations.channel_msg_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_msg_ops.logger") as mock_logger:
         with pytest.raises(Exception):
             await ops.fetch_channel_messages("C1", use_parallel_pagination=False)
         assert mock_logger.error.called
@@ -177,26 +159,18 @@ async def test_fetch_channel_messages_exception(
     ops: SlackChannelMessageOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test fetch_channel_messages handles exception and re-raises."""
-    monkeypatch.setattr(
-        ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False)
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=False))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     ops._batch_sizer = MagicMock()
     ops._batch_sizer.get_size.return_value = 100
     ops._batch_sizer.increase_size = MagicMock()
     ops._batch_sizer.decrease_size = MagicMock()
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
     # Patch formatter
     ops._formatter = MagicMock()
     ops._formatter.process_message_batch = AsyncMock(return_value=([], set()))
-    with patch(
-        "packages.slack.channel_operations.channel_msg_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_msg_ops.logger") as mock_logger:
         with pytest.raises(Exception):
             await ops.fetch_channel_messages("C1", use_parallel_pagination=False)
         assert mock_logger.error.called
@@ -207,12 +181,8 @@ async def test_fetch_channel_messages_unarchive_and_rearchive(
     ops: SlackChannelMessageOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test fetch_channel_messages unarchives and re-archives channel as needed."""
-    monkeypatch.setattr(
-        ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=True)
-    )
-    monkeypatch.setattr(
-        ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com")
-    )
+    monkeypatch.setattr(ops, "_temporarily_unarchive_if_needed", AsyncMock(return_value=True))
+    monkeypatch.setattr(ops, "get_api_base_url", AsyncMock(return_value="https://api.slack.com"))
     monkeypatch.setattr(type(ops), "headers", property(lambda self: {}))
     ops._batch_sizer = MagicMock()
     ops._batch_sizer.get_size.return_value = 100
@@ -234,9 +204,7 @@ async def test_fetch_channel_messages_unarchive_and_rearchive(
     ops._formatter = MagicMock()
     ops._formatter.process_message_batch = AsyncMock(return_value=(["msg1"], set()))
     # Patch fetch_thread_messages_batch to return nothing
-    monkeypatch.setattr(
-        ops, "_fetch_thread_messages_parallel", AsyncMock(return_value=({}, set()))
-    )
+    monkeypatch.setattr(ops, "_fetch_thread_messages_parallel", AsyncMock(return_value=({}, set())))
     # Patch archive_ops.archive_channel
     ops.archive_ops.archive_channel = AsyncMock()  # type: ignore[method-assign]
     result = await ops.fetch_channel_messages("C1", use_parallel_pagination=False)
@@ -277,9 +245,7 @@ async def test_fetch_thread_messages_success(
     """Test fetch_thread_messages returns list of replies."""
     # Mock the execute_with_backoff method
     mock_messages = [{"ts": "2", "text": "reply"}]
-    monkeypatch.setattr(
-        ops, "execute_with_backoff", AsyncMock(return_value=mock_messages)
-    )
+    monkeypatch.setattr(ops, "execute_with_backoff", AsyncMock(return_value=mock_messages))
     result = await ops.fetch_thread_messages("C1", "1.1")
     assert result[0]["ts"] == "2"
 
@@ -294,9 +260,7 @@ async def test_fetch_thread_messages_api_error(
         "status": 200,
     }
     monkeypatch.setattr(ops, "_make_api_request", AsyncMock(return_value=mock_response))
-    with patch(
-        "packages.slack.channel_operations.channel_msg_ops.logger"
-    ) as mock_logger:
+    with patch("packages.slack.channel_operations.channel_msg_ops.logger") as mock_logger:
         with pytest.raises(RuntimeError) as excinfo:
             await ops.fetch_thread_messages("C1", "1.1")
         assert str(excinfo.value) == "ratelimited"
@@ -308,12 +272,8 @@ async def test_fetch_thread_messages_exception(
     ops: SlackChannelMessageOps, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """Test fetch_thread_messages handles exception and logs."""
-    monkeypatch.setattr(
-        ops, "_make_api_request", AsyncMock(side_effect=Exception("fail"))
-    )
-    with patch(
-        "packages.slack.channel_operations.channel_msg_ops.logger"
-    ) as mock_logger:
+    monkeypatch.setattr(ops, "_make_api_request", AsyncMock(side_effect=Exception("fail")))
+    with patch("packages.slack.channel_operations.channel_msg_ops.logger") as mock_logger:
         with pytest.raises(RuntimeError) as excinfo:
             await ops.fetch_thread_messages("C1", "1.1")
         assert str(excinfo.value) == "ratelimited"

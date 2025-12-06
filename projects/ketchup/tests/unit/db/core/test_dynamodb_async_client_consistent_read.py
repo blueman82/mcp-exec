@@ -41,9 +41,7 @@ class TestDynamoDBAsyncClientConsistentRead:
 
         return mock_session, mock_client
 
-    async def test_get_item_without_consistent_read(
-        self, mock_config, mock_aioboto3_session
-    ):
+    async def test_get_item_without_consistent_read(self, mock_config, mock_aioboto3_session):
         """Test that get_item works without consistent_read parameter (default behavior)."""
         mock_session, mock_client = mock_aioboto3_session
 
@@ -58,14 +56,10 @@ class TestDynamoDBAsyncClientConsistentRead:
             result = await client.get_item(key=key)
 
             # Verify the call was made without ConsistentRead
-            mock_client.get_item.assert_called_once_with(
-                TableName="test-table", Key=key
-            )
+            mock_client.get_item.assert_called_once_with(TableName="test-table", Key=key)
             assert result == {"Item": {"id": {"S": "123"}}}
 
-    async def test_get_item_with_consistent_read_false(
-        self, mock_config, mock_aioboto3_session
-    ):
+    async def test_get_item_with_consistent_read_false(self, mock_config, mock_aioboto3_session):
         """Test that get_item with consistent_read=False doesn't add ConsistentRead."""
         mock_session, mock_client = mock_aioboto3_session
 
@@ -80,14 +74,10 @@ class TestDynamoDBAsyncClientConsistentRead:
             result = await client.get_item(key=key, consistent_read=False)
 
             # Verify the call was made without ConsistentRead
-            mock_client.get_item.assert_called_once_with(
-                TableName="test-table", Key=key
-            )
+            mock_client.get_item.assert_called_once_with(TableName="test-table", Key=key)
             assert result == {"Item": {"id": {"S": "456"}}}
 
-    async def test_get_item_with_consistent_read_true(
-        self, mock_config, mock_aioboto3_session
-    ):
+    async def test_get_item_with_consistent_read_true(self, mock_config, mock_aioboto3_session):
         """Test that get_item with consistent_read=True adds ConsistentRead parameter."""
         mock_session, mock_client = mock_aioboto3_session
 
@@ -121,9 +111,7 @@ class TestDynamoDBAsyncClientConsistentRead:
 
             # Call get_item with both parameters
             key = {"PK": {"S": "CUSTOM#123"}, "SK": {"S": "DATA"}}
-            result = await client.get_item(
-                key=key, table_name="custom-table", consistent_read=True
-            )
+            result = await client.get_item(key=key, table_name="custom-table", consistent_read=True)
 
             # Verify both parameters were used
             mock_client.get_item.assert_called_once_with(

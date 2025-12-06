@@ -54,9 +54,7 @@ class TestSlackUserOps:
     async def test_get_user_names_db_and_cache(self) -> None:
         self.ops._user_cache = {"U1": {"name": "Alice"}}
         self.mock_user_store.get_users.return_value = {"U2": "Bob"}
-        with patch.object(
-            self.ops, "_fetch_user_info_internal", new=AsyncMock()
-        ) as mock_fetch:
+        with patch.object(self.ops, "_fetch_user_info_internal", new=AsyncMock()) as mock_fetch:
             mock_fetch.return_value = {"name": "Charlie"}
             self.mock_user_store.batch_store_users.return_value = (1, 0)
             result = await self.ops.get_user_names(["U1", "U2", "U3"])
@@ -70,9 +68,7 @@ class TestSlackUserOps:
     async def test_get_user_names_api_error_and_fallback(self) -> None:
         self.ops._user_cache = {}
         self.mock_user_store.get_users.return_value = {}
-        with patch.object(
-            self.ops, "_fetch_user_info_internal", new=AsyncMock()
-        ) as mock_fetch:
+        with patch.object(self.ops, "_fetch_user_info_internal", new=AsyncMock()) as mock_fetch:
             mock_fetch.side_effect = [Exception("fail"), None]
             self.mock_user_store.batch_store_users.return_value = (0, 2)
             result = await self.ops.get_user_names(["U1", "U2"])
@@ -85,9 +81,7 @@ class TestSlackUserOps:
     async def test_get_user_names_batching(self) -> None:
         self.ops._user_cache = {}
         self.mock_user_store.get_users.return_value = {}
-        with patch.object(
-            self.ops, "_fetch_user_info_internal", new=AsyncMock()
-        ) as mock_fetch:
+        with patch.object(self.ops, "_fetch_user_info_internal", new=AsyncMock()) as mock_fetch:
             mock_fetch.side_effect = lambda uid: {"name": f"Name_{uid}"}
             self.mock_user_store.batch_store_users.return_value = (2, 0)
             # Simulate more users than BATCH_SIZE (assume BATCH_SIZE=1 for test)
@@ -109,9 +103,7 @@ class TestSlackUserOps:
             "headers": {},
             "body": b'{"ok": true, "user": {"name": "Alice"}}',
         }
-        with patch.object(
-            self.ops, "_make_api_request", new=AsyncMock(return_value=mock_response)
-        ):
+        with patch.object(self.ops, "_make_api_request", new=AsyncMock(return_value=mock_response)):
             result = await self.ops._fetch_user_info_internal("U1")
             assert result == {"name": "Alice"}
 
@@ -121,9 +113,7 @@ class TestSlackUserOps:
         self.ops.config.get_headers.return_value = {"Authorization": "token"}
         mock_response = AsyncMock()
         mock_response.json.return_value = {"ok": False, "error": "not_found"}
-        with patch.object(
-            self.ops, "_make_api_request", new=AsyncMock(return_value=mock_response)
-        ):
+        with patch.object(self.ops, "_make_api_request", new=AsyncMock(return_value=mock_response)):
             result = await self.ops._fetch_user_info_internal("U1")
             assert result is None
 

@@ -4,7 +4,8 @@ Compliance Service Implementation
 Provides compliance checking and monitoring functionality.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -43,7 +44,7 @@ class ComplianceService:
                 "status": "compliant",
                 "entity_id": entity_id,
                 "compliance_type": compliance_type,
-                "message": "No issues found"
+                "message": "No issues found",
             }
 
         record = self._compliance_records[key]
@@ -79,9 +80,6 @@ class ComplianceService:
             return {
                 "status": "non_compliant",
                 "violations": violations,
-                "message": f"Found {len(violations)} violations"
+                "message": f"Found {len(violations)} violations",
             }
-        return {
-            "status": "compliant",
-            "message": "No violations found"
-        }
+        return {"status": "compliant", "message": "No violations found"}

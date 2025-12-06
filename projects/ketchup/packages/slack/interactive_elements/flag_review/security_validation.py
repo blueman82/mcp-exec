@@ -22,7 +22,9 @@ class UserVerificationService:
         self.verified_users = set()
         self.blocked_users = set()
 
-    def verify_user_identity(self, user_id: str, workspace_id: str = "T018BPFUD75") -> Tuple[bool, str]:
+    def verify_user_identity(
+        self, user_id: str, workspace_id: str = "T018BPFUD75"
+    ) -> Tuple[bool, str]:
         """Verify user identity and workspace membership."""
         if not user_id or not isinstance(user_id, str):
             return False, "Invalid user ID"
@@ -51,7 +53,7 @@ class UserVerificationService:
             "user_id": user_data.get("id", ""),
             "username": user_data.get("username", "Unknown"),
             "real_name": user_data.get("real_name", ""),
-            "team_id": user_data.get("team_id", "")
+            "team_id": user_data.get("team_id", ""),
         }
 
     def check_user_status(self, user_id: str) -> Dict[str, Any]:
@@ -64,7 +66,7 @@ class UserVerificationService:
             "is_verified": is_verified,
             "is_blocked": is_blocked,
             "can_interact": is_verified and not is_blocked,
-            "verification_level": "high" if is_verified else "basic"
+            "verification_level": "high" if is_verified else "basic",
         }
 
     def mark_user_verified(self, user_id: str) -> bool:
@@ -109,7 +111,7 @@ class PermissionValidationService:
             "can_acknowledge": is_moderator,
             "can_reply": is_moderator,
             "can_moderate": is_admin,
-            "can_delete": is_admin
+            "can_delete": is_admin,
         }
 
     def validate_action_permission(self, user_id: str, action: str) -> Tuple[bool, str]:
@@ -119,11 +121,13 @@ class PermissionValidationService:
             "acknowledge_flag": self.validate_moderator_permissions(user_id),
             "reply_to_flag": self.validate_moderator_permissions(user_id),
             "delete_flag": self.validate_admin_permissions(user_id),
-            "bulk_operations": self.validate_admin_permissions(user_id)
+            "bulk_operations": self.validate_admin_permissions(user_id),
         }
 
         has_permission = permissions.get(action, False)
-        message = "Permission granted" if has_permission else f"Insufficient permissions for {action}"
+        message = (
+            "Permission granted" if has_permission else f"Insufficient permissions for {action}"
+        )
 
         return has_permission, message
 
@@ -164,7 +168,7 @@ class SecurityComplianceService:
         severity = "low"
 
         # Check for script injection
-        script_patterns = [r'<script.*?>', r'javascript:', r'onclick=', r'onerror=']
+        script_patterns = [r"<script.*?>", r"javascript:", r"onclick=", r"onerror="]
         for pattern in script_patterns:
             if re.search(pattern, content, re.IGNORECASE):
                 threats.append("Script injection detected")
@@ -172,13 +176,13 @@ class SecurityComplianceService:
                 break
 
         # Check for excessive URLs
-        url_count = len(re.findall(r'https?://', content))
+        url_count = len(re.findall(r"https?://", content))
         if url_count > 5:
             threats.append("Excessive URL content")
             severity = max(severity, "medium")
 
         # Check for suspicious patterns
-        suspicious_patterns = [r'eval\(', r'exec\(', r'system\(', r'shell_exec']
+        suspicious_patterns = [r"eval\(", r"exec\(", r"system\(", r"shell_exec"]
         for pattern in suspicious_patterns:
             if re.search(pattern, content, re.IGNORECASE):
                 threats.append("Suspicious code pattern")
@@ -189,7 +193,7 @@ class SecurityComplianceService:
             "threats_found": len(threats) > 0,
             "threat_list": threats,
             "severity": severity,
-            "scan_timestamp": datetime.now(timezone.utc).isoformat()
+            "scan_timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def validate_compliance_requirements(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -205,7 +209,7 @@ class SecurityComplianceService:
         # Check data retention compliance
         if "timestamp" in data:
             try:
-                timestamp = datetime.fromisoformat(data["timestamp"].replace('Z', '+00:00'))
+                timestamp = datetime.fromisoformat(data["timestamp"].replace("Z", "+00:00"))
                 age_days = (datetime.now(timezone.utc) - timestamp).days
                 if age_days > 90:  # 90-day retention policy
                     violations.append("Data exceeds retention period")
@@ -215,7 +219,7 @@ class SecurityComplianceService:
         return {
             "is_compliant": len(violations) == 0,
             "violations": violations,
-            "compliance_level": "full" if len(violations) == 0 else "partial"
+            "compliance_level": "full" if len(violations) == 0 else "partial",
         }
 
     def log_security_event(self, event_type: str, user_id: str, details: Dict[str, Any]) -> None:
@@ -224,7 +228,7 @@ class SecurityComplianceService:
             "event_type": event_type,
             "user_id": user_id,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "details": details
+            "details": details,
         }
         self.security_events.append(event)
 
@@ -235,9 +239,10 @@ class SecurityComplianceService:
         """Check for anomalous user behavior patterns."""
         # Count recent events for this user
         recent_events = [
-            e for e in self.security_events
-            if e["user_id"] == user_id and
-            (datetime.now(timezone.utc) - datetime.fromisoformat(e["timestamp"])).seconds < 300
+            e
+            for e in self.security_events
+            if e["user_id"] == user_id
+            and (datetime.now(timezone.utc) - datetime.fromisoformat(e["timestamp"])).seconds < 300
         ]
 
         # Check for rapid fire actions
@@ -269,15 +274,17 @@ class InputSanitationService:
         sanitized = "".join(char for char in text if ord(char) >= 32 or char in "\n\t")
 
         # Normalize whitespace
-        sanitized = re.sub(r'\s+', ' ', sanitized.strip())
+        sanitized = re.sub(r"\s+", " ", sanitized.strip())
 
         # Truncate if too long
         if len(sanitized) > self.max_length:
-            sanitized = sanitized[:self.max_length-3] + "..."
+            sanitized = sanitized[: self.max_length - 3] + "..."
 
         return sanitized
 
-    def validate_input_length(self, text: str, min_length: int = 10, max_length: int = 3000) -> Tuple[bool, str]:
+    def validate_input_length(
+        self, text: str, min_length: int = 10, max_length: int = 3000
+    ) -> Tuple[bool, str]:
         """Validate input length requirements."""
         if len(text) < min_length:
             return False, f"Input too short (minimum {min_length} characters)"
@@ -309,7 +316,7 @@ class InputSanitationService:
         return {
             "is_spam": len(spam_indicators) > 0,
             "indicators": spam_indicators,
-            "spam_score": len(spam_indicators)
+            "spam_score": len(spam_indicators),
         }
 
     def validate_channel_format(self, channel_id: str) -> Tuple[bool, str]:
@@ -340,8 +347,6 @@ class InputSanitationService:
                     cleaned[field] = value
 
         return cleaned
-
-
 
 
 class SecurityValidationOrchestrator:

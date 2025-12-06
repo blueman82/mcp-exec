@@ -29,9 +29,7 @@ def handler():
     dynamodb_store.store_feedback = AsyncMock(return_value=True)
     metrics = MagicMock()
     metrics.put_metric = AsyncMock(return_value=True)
-    return feedback_reactions.FeedbackReactionsHandler(
-        posting_handler, dynamodb_store, metrics
-    )
+    return feedback_reactions.FeedbackReactionsHandler(posting_handler, dynamodb_store, metrics)
 
 
 def test_map_reaction_to_rating_thumbs_up(handler) -> None:
@@ -74,9 +72,7 @@ async def test_build_feedback_blocks_success(handler) -> None:
 async def test_build_feedback_blocks_exception(monkeypatch, handler) -> None:
     """Test build_feedback_blocks returns [] on exception."""
     monkeypatch.setattr(feedback_reactions, "logger", MagicMock())
-    monkeypatch.setattr(
-        handler, "build_feedback_blocks", AsyncMock(side_effect=Exception("fail"))
-    )
+    monkeypatch.setattr(handler, "build_feedback_blocks", AsyncMock(side_effect=Exception("fail")))
     try:
         await handler.build_feedback_blocks("C1", "short")
     except Exception:
@@ -101,9 +97,7 @@ async def test_acknowledge_reaction_failure(handler) -> None:
 @pytest.mark.asyncio
 async def test_acknowledge_reaction_exception(handler) -> None:
     """Test acknowledge_reaction returns False on exception."""
-    handler._posting_handler._post_response_url = AsyncMock(
-        side_effect=Exception("fail")
-    )
+    handler._posting_handler._post_response_url = AsyncMock(side_effect=Exception("fail"))
     result = await handler.acknowledge_reaction("url", "positive")
     assert result is False
 

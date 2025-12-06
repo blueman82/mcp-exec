@@ -54,9 +54,7 @@ class FlagReviewHandler:
         self.validators = FlagReviewValidator()
 
         # Initialize delegate modules for different responsibilities
-        self.status_flag_processor = StatusFlagProcessor(
-            posting_handler, db_store, secrets_manager
-        )
+        self.status_flag_processor = StatusFlagProcessor(posting_handler, db_store, secrets_manager)
         self.command_flag_processor = CommandFlagProcessor(
             posting_handler, db_store, secrets_manager
         )
@@ -70,6 +68,7 @@ class FlagReviewHandler:
         from packages.slack.interactive_elements.flag_review.database import (
             FlagReviewDatabaseOperations,
         )
+
         self.database = FlagReviewDatabaseOperations(db_store)
 
     async def process_flag_action(self, payload: Dict[str, Any]) -> bool:
@@ -97,33 +96,21 @@ class FlagReviewHandler:
                 action_id = action.get("action_id")
 
                 if action_id == "flag_status_review":
-                    return await self.status_flag_processor.handle_flag_button_click(
-                        payload
-                    )
+                    return await self.status_flag_processor.handle_flag_button_click(payload)
                 elif action_id == "acknowledge_feedback":
-                    return await self.admin_action_processor.handle_acknowledgment(
-                        payload
-                    )
+                    return await self.admin_action_processor.handle_acknowledgment(payload)
                 elif action_id == "reply_to_feedback":
-                    return await self.admin_action_processor.handle_reply_button_click(
-                        payload
-                    )
+                    return await self.admin_action_processor.handle_reply_button_click(payload)
                 elif action_id == "mark_review_completed":
-                    return await self.admin_action_processor.handle_mark_completed(
-                        payload
-                    )
+                    return await self.admin_action_processor.handle_mark_completed(payload)
 
             elif payload_type == "view_submission":
                 # Handle modal submission
                 callback_id = payload.get("view", {}).get("callback_id")
                 if callback_id == "flag_review_modal":
-                    return await self.status_flag_processor.handle_flag_submission(
-                        payload
-                    )
+                    return await self.status_flag_processor.handle_flag_submission(payload)
                 elif callback_id == "reply_feedback_modal":
-                    return await self.admin_action_processor.handle_reply_submission(
-                        payload
-                    )
+                    return await self.admin_action_processor.handle_reply_submission(payload)
                 elif callback_id == "reply_command_feedback_modal":
                     return await self.admin_action_processor.handle_command_reply_submission(
                         payload
@@ -148,9 +135,7 @@ class FlagReviewHandler:
         """
         try:
             # Delegate all command flag processing to the specialized processor
-            return await self.command_flag_processor.process_command_flag_action(
-                payload
-            )
+            return await self.command_flag_processor.process_command_flag_action(payload)
 
         except Exception as e:
             logger.error(f"Error processing command flag action: {e}", exc_info=True)
@@ -198,6 +183,7 @@ class FlagReviewHandler:
 # Verified: No production code calls these methods (2025-09-18)
 # Only tests use these methods
 
+
 class FlagReviewHandlerLegacyCompatibility(FlagReviewHandler):
     """Extends FlagReviewHandler with legacy method compatibility.
 
@@ -227,15 +213,11 @@ class FlagReviewHandlerLegacyCompatibility(FlagReviewHandler):
 
     async def _handle_command_flag_button_click(self, payload: Dict[str, Any]) -> bool:
         """Legacy compatibility method for command flag button clicks."""
-        return await self.command_flag_processor.handle_command_flag_button_click(
-            payload
-        )
+        return await self.command_flag_processor.handle_command_flag_button_click(payload)
 
     async def _handle_command_flag_submission(self, payload: Dict[str, Any]) -> bool:
         """Legacy compatibility method for command flag submissions."""
-        return await self.command_flag_processor.handle_command_flag_submission(
-            payload
-        )
+        return await self.command_flag_processor.handle_command_flag_submission(payload)
 
     async def _handle_command_acknowledgment(self, payload: Dict[str, Any]) -> bool:
         """Legacy compatibility method for command acknowledgments."""
@@ -243,15 +225,11 @@ class FlagReviewHandlerLegacyCompatibility(FlagReviewHandler):
 
     async def _handle_command_reply_button_click(self, payload: Dict[str, Any]) -> bool:
         """Legacy compatibility method for command reply button clicks."""
-        return await self.admin_action_processor.handle_command_reply_button_click(
-            payload
-        )
+        return await self.admin_action_processor.handle_command_reply_button_click(payload)
 
     async def _handle_command_reply_submission(self, payload: Dict[str, Any]) -> bool:
         """Legacy compatibility method for command reply submissions."""
-        return await self.admin_action_processor.handle_command_reply_submission(
-            payload
-        )
+        return await self.admin_action_processor.handle_command_reply_submission(payload)
 
     async def _show_feedback_modal(
         self,
@@ -341,7 +319,7 @@ class FlagReviewHandlerLegacyCompatibility(FlagReviewHandler):
                     block["text"]["text"] = flag_text
                     flag_block_found = True
                     break
-        
+
         # If no flag block found, add one after the first section
         if not flag_block_found:
             # Find first section block to add flag display after it
@@ -350,24 +328,26 @@ class FlagReviewHandlerLegacyCompatibility(FlagReviewHandler):
                 if block.get("type") == "section":
                     insert_index = i + 1
                     break
-            
+
             # Insert flag display block
-            flag_block = {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": flag_text
-                }
-            }
+            flag_block = {"type": "section", "text": {"type": "mrkdwn", "text": flag_text}}
             blocks.insert(insert_index, flag_block)
-        
+
         return blocks
 
     async def _add_flag_atomically(self, **kwargs):
         """Legacy method for atomic flag creation."""
         return await self.database.add_flag_atomically(**kwargs)
 
-    async def _add_flag(self, channel_id: str, message_ts: str, user_id: str, user_name: str, feedback_text: str, validation_issues: list):
+    async def _add_flag(
+        self,
+        channel_id: str,
+        message_ts: str,
+        user_id: str,
+        user_name: str,
+        feedback_text: str,
+        validation_issues: list,
+    ):
         """Legacy method to add flag."""
         return await self.database.add_flag_atomically(
             channel_id=channel_id,
@@ -375,7 +355,7 @@ class FlagReviewHandlerLegacyCompatibility(FlagReviewHandler):
             user_id=user_id,
             user_name=user_name,
             feedback_text=feedback_text,
-            validation_issues=validation_issues
+            validation_issues=validation_issues,
         )
 
     async def _get_flag_status(self, channel_id: str, message_ts: str):

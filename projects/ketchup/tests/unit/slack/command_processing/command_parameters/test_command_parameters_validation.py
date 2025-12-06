@@ -46,9 +46,7 @@ class TestGetCommandContext:
             ("random", CommandContext.PUBLIC_CHANNEL),
         ],
     )
-    def test_get_command_context(
-        self, channel_name: str, expected: CommandContext
-    ) -> None:
+    def test_get_command_context(self, channel_name: str, expected: CommandContext) -> None:
         """Test get_command_context for all possible channel name inputs."""
         result = get_command_context(channel_name)
         assert result == expected

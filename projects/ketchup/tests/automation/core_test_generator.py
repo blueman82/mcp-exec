@@ -12,22 +12,23 @@ Key Features:
 """
 
 import ast
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from tests.setup.automated_test_generator import (
-    TestTemplateGenerator,
-    ParameterizedTestGenerator,
     AutomatedSmokeCheckGenerator,
+    ParameterizedTestGenerator,
+    TestCoverageValidator,
     TestDiscoveryEngine,
-    TestCoverageValidator
+    TestTemplateGenerator,
 )
 
 
 @dataclass
 class ServiceTestDefinition:
     """Definition for a service test including all metadata."""
+
     service_name: str
     protocol_type: str
     concrete_type: str
@@ -41,6 +42,7 @@ class ServiceTestDefinition:
 @dataclass
 class TestGenerationResult:
     """Result of test generation including metrics and files."""
+
     test_file_path: str
     tests_generated: int
     coverage_percentage: float
@@ -66,11 +68,9 @@ class CoreTestGenerator:
 
         # Service registry path
         self.service_registry_path = (
-            self.project_root / "packages" / "core" / "typed_di" /
-            "service_registrations.py"
+            self.project_root / "packages" / "core" / "typed_di" / "service_registrations.py"
         )
         self.registered_services = self._load_registered_services()
-
 
     def _load_registered_services(self) -> List[ServiceTestDefinition]:
         """Load and parse all registered services from source code."""
@@ -80,16 +80,18 @@ class CoreTestGenerator:
             return services
 
         try:
-            with open(self.service_registry_path, 'r') as f:
+            with open(self.service_registry_path, "r") as f:
                 content = f.read()
 
             # Parse registration calls using AST for accuracy
             tree = ast.parse(content)
 
             for node in ast.walk(tree):
-                if (isinstance(node, ast.Call) and
-                    isinstance(node.func, ast.Attribute) and
-                    node.func.attr == 'register_protocol_with_concrete_alias'):
+                if (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "register_protocol_with_concrete_alias"
+                ):
 
                     service_def = self._extract_service_definition(node, content)
                     if service_def:
@@ -99,7 +101,6 @@ class CoreTestGenerator:
             print(f"Warning: Could not parse service registrations: {e}")
 
         return services
-
 
     def _extract_service_definition(
         self, node: ast.Call, content: str
@@ -127,14 +128,13 @@ class CoreTestGenerator:
                         factory_method=f"create_{concrete_name.lower()}",
                         test_categories=categories,
                         performance_targets=self._get_performance_targets(categories),
-                        mock_requirements=self._get_mock_requirements(dependencies)
+                        mock_requirements=self._get_mock_requirements(dependencies),
                     )
 
         except Exception as e:
             print(f"Warning: Could not extract service definition: {e}")
 
         return None
-
 
     def _extract_name_from_node(self, node: ast.AST) -> Optional[str]:
         """Extract name from AST node."""
@@ -146,34 +146,32 @@ class CoreTestGenerator:
             return node.value
         return None
 
-
     def _categorize_service(self, protocol_name: str) -> List[str]:
         """Categorize service based on protocol name patterns."""
         categories = []
         name_lower = protocol_name.lower()
 
-        if any(x in name_lower for x in ['slack', 'bot', 'channel', 'message']):
-            categories.append('slack_integration')
-        if any(x in name_lower for x in ['db', 'dynamo', 'store', 'query']):
-            categories.append('database_operations')
-        if any(x in name_lower for x in ['ai', 'openai', 'azure', 'token']):
-            categories.append('ai_services')
-        if any(x in name_lower for x in ['jira', 'mcp', 'api', 'http']):
-            categories.append('external_integration')
-        if any(x in name_lower for x in ['access', 'auth', 'security', 'verify']):
-            categories.append('access_management')
-        if any(x in name_lower for x in ['metrics', 'monitor', 'track', 'log']):
-            categories.append('monitoring_metrics')
-        if any(x in name_lower for x in ['flag', 'review', 'feature']):
-            categories.append('feature_management')
-        if any(x in name_lower for x in ['block', 'ui', 'builder', 'format']):
-            categories.append('ui_components')
+        if any(x in name_lower for x in ["slack", "bot", "channel", "message"]):
+            categories.append("slack_integration")
+        if any(x in name_lower for x in ["db", "dynamo", "store", "query"]):
+            categories.append("database_operations")
+        if any(x in name_lower for x in ["ai", "openai", "azure", "token"]):
+            categories.append("ai_services")
+        if any(x in name_lower for x in ["jira", "mcp", "api", "http"]):
+            categories.append("external_integration")
+        if any(x in name_lower for x in ["access", "auth", "security", "verify"]):
+            categories.append("access_management")
+        if any(x in name_lower for x in ["metrics", "monitor", "track", "log"]):
+            categories.append("monitoring_metrics")
+        if any(x in name_lower for x in ["flag", "review", "feature"]):
+            categories.append("feature_management")
+        if any(x in name_lower for x in ["block", "ui", "builder", "format"]):
+            categories.append("ui_components")
 
         if not categories:
-            categories.append('core_infrastructure')
+            categories.append("core_infrastructure")
 
         return categories
-
 
     def _extract_dependencies(self, concrete_name: str) -> List[str]:
         """Extract dependencies for a concrete service."""
@@ -181,78 +179,77 @@ class CoreTestGenerator:
         name_lower = concrete_name.lower()
 
         # Common dependency patterns
-        if 'slack' in name_lower:
-            dependencies.extend(['SlackAsyncClient', 'SlackConfig'])
-        if any(x in name_lower for x in ['db', 'store', 'query']):
-            dependencies.extend(['DynamoDBAsyncClient', 'DynamoDBConfig'])
-        if 'ai' in name_lower or 'openai' in name_lower:
-            dependencies.extend(['AzureAsyncClient', 'AzureConfig'])
-        if 'jira' in name_lower or 'mcp' in name_lower:
-            dependencies.extend(['MCPAsyncClient', 'MCPConfig'])
-        if 'access' in name_lower or 'auth' in name_lower:
-            dependencies.extend(['SecretsManager', 'UserStore'])
+        if "slack" in name_lower:
+            dependencies.extend(["SlackAsyncClient", "SlackConfig"])
+        if any(x in name_lower for x in ["db", "store", "query"]):
+            dependencies.extend(["DynamoDBAsyncClient", "DynamoDBConfig"])
+        if "ai" in name_lower or "openai" in name_lower:
+            dependencies.extend(["AzureAsyncClient", "AzureConfig"])
+        if "jira" in name_lower or "mcp" in name_lower:
+            dependencies.extend(["MCPAsyncClient", "MCPConfig"])
+        if "access" in name_lower or "auth" in name_lower:
+            dependencies.extend(["SecretsManager", "UserStore"])
 
         return list(set(dependencies))  # Remove duplicates
-
 
     def _get_performance_targets(self, categories: List[str]) -> Dict[str, float]:
         """Get performance targets based on service categories."""
         targets = {
-            'resolution_time_ms': 10.0,
-            'initialization_time_ms': 50.0,
-            'memory_usage_mb': 5.0
+            "resolution_time_ms": 10.0,
+            "initialization_time_ms": 50.0,
+            "memory_usage_mb": 5.0,
         }
 
-        if 'database_operations' in categories:
-            targets['resolution_time_ms'] = 25.0
-            targets['memory_usage_mb'] = 10.0
-        elif 'external_integration' in categories:
-            targets['resolution_time_ms'] = 50.0
-            targets['memory_usage_mb'] = 15.0
-        elif 'ai_services' in categories:
-            targets['resolution_time_ms'] = 100.0
-            targets['memory_usage_mb'] = 20.0
+        if "database_operations" in categories:
+            targets["resolution_time_ms"] = 25.0
+            targets["memory_usage_mb"] = 10.0
+        elif "external_integration" in categories:
+            targets["resolution_time_ms"] = 50.0
+            targets["memory_usage_mb"] = 15.0
+        elif "ai_services" in categories:
+            targets["resolution_time_ms"] = 100.0
+            targets["memory_usage_mb"] = 20.0
 
         return targets
-
 
     def _get_mock_requirements(self, dependencies: List[str]) -> List[str]:
         """Get mock requirements for dependencies."""
         mocks = []
 
         for dep in dependencies:
-            if 'Client' in dep:
+            if "Client" in dep:
                 mocks.append(f"mock_{dep.lower()}")
-            elif 'Config' in dep:
+            elif "Config" in dep:
                 mocks.append(f"mock_{dep.lower()}_data")
-            elif 'Store' in dep:
+            elif "Store" in dep:
                 mocks.append(f"mock_{dep.lower()}_operations")
 
         return mocks
 
-
     def get_automation_metrics(self) -> Dict[str, Any]:
         """Get comprehensive automation metrics."""
         return {
-            'total_registered_services': len(self.registered_services),
-            'service_categories': len(set(cat for s in self.registered_services
-                                        for cat in s.test_categories)),
-            'total_dependencies': len(set(dep for s in self.registered_services
-                                        for dep in s.dependencies)),
-            'mock_requirements': len(set(mock for s in self.registered_services
-                                       for mock in s.mock_requirements)),
-            'estimated_test_count': len(self.registered_services) * 4,
-            'estimated_execution_time': self._estimate_execution_time(
+            "total_registered_services": len(self.registered_services),
+            "service_categories": len(
+                set(cat for s in self.registered_services for cat in s.test_categories)
+            ),
+            "total_dependencies": len(
+                set(dep for s in self.registered_services for dep in s.dependencies)
+            ),
+            "mock_requirements": len(
+                set(mock for s in self.registered_services for mock in s.mock_requirements)
+            ),
+            "estimated_test_count": len(self.registered_services) * 4,
+            "estimated_execution_time": self._estimate_execution_time(
                 len(self.registered_services) * 4
             ),
-            'coverage_target': 90.0,
-            'performance_targets': {
-                'resolution_time_ms': 10.0,
-                'suite_execution_time_s': 300.0,  # 5 minutes
-                'memory_usage_mb': 50.0
-            }
+            "coverage_target": 90.0,
+            "performance_targets": {
+                "resolution_time_ms": 10.0,
+                "suite_execution_time_s": 300.0,  # 5 minutes
+                "memory_usage_mb": 50.0,
+            },
         }
-
 
     def _estimate_execution_time(self, test_count: int) -> float:
         """Estimate total test execution time in seconds."""
@@ -267,13 +264,12 @@ class CoreTestGenerator:
         performance_tests = test_count * 0.1  # 10% performance tests
 
         total_time = (
-            unit_tests * unit_test_time +
-            integration_tests * integration_test_time +
-            performance_tests * performance_test_time
+            unit_tests * unit_test_time
+            + integration_tests * integration_test_time
+            + performance_tests * performance_test_time
         )
 
         return total_time
-
 
     def generate_tdd_test_suite(self, service_name: str) -> str:
         """Generate TDD-compliant test suite for a new service."""

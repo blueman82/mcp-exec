@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import pytest
 
-from packages.core.constants import KETCHUP_WIKI_URL
 from packages.slack.blockkits.handlers.access_request_blocks import AccessRequestBlocks
 
 
@@ -31,10 +30,7 @@ class TestAccessRequestBlocks:
 
         # Check message
         assert blocks[1]["type"] == "section"
-        assert (
-            "don't currently have access to Ketchup commands"
-            in blocks[1]["text"]["text"]
-        )
+        assert "don't currently have access to Ketchup commands" in blocks[1]["text"]["text"]
 
         # Find the actions block
         actions_block = None
@@ -63,9 +59,7 @@ class TestAccessRequestBlocks:
         # Should have fallback email message
         email_section = None
         for block in blocks:
-            if block.get("type") == "section" and "email" in block.get("text", {}).get(
-                "text", ""
-            ):
+            if block.get("type") == "section" and "email" in block.get("text", {}).get("text", ""):
                 email_section = block
                 break
 
@@ -84,18 +78,16 @@ class TestAccessRequestBlocks:
         # Find rate limit section
         rate_limit_section = None
         for block in blocks:
-            if block.get("type") == "section" and "Rate Limit" in block.get(
-                "text", {}
-            ).get("text", ""):
+            if block.get("type") == "section" and "Rate Limit" in block.get("text", {}).get(
+                "text", ""
+            ):
                 rate_limit_section = block
                 break
 
         assert rate_limit_section is not None
         assert rate_limit_msg in rate_limit_section["text"]["text"]
 
-    @patch(
-        "packages.slack.blockkits.handlers.access_request_blocks.convert_timestamp_to_utc"
-    )
+    @patch("packages.slack.blockkits.handlers.access_request_blocks.convert_timestamp_to_utc")
     def test_build_access_request_notification(self, mock_convert_time, blocks_builder):
         """Test building access request notification for approvers."""
         mock_convert_time.return_value = "2024-01-15 10:30:00 UTC"
@@ -154,12 +146,8 @@ class TestAccessRequestBlocks:
         assert reject_btn["style"] == "danger"
         assert reject_btn["value"] == "U123456|1234567890.0"
 
-    @patch(
-        "packages.slack.blockkits.handlers.access_request_blocks.convert_timestamp_to_utc"
-    )
-    def test_build_request_processed_blocks_approved(
-        self, mock_convert_time, blocks_builder
-    ):
+    @patch("packages.slack.blockkits.handlers.access_request_blocks.convert_timestamp_to_utc")
+    def test_build_request_processed_blocks_approved(self, mock_convert_time, blocks_builder):
         """Test building processed request blocks for approval."""
         mock_convert_time.return_value = "2024-01-15 11:00:00 UTC"
 
@@ -187,12 +175,8 @@ class TestAccessRequestBlocks:
         # Check that mock was called
         mock_convert_time.assert_called_once_with(1234568890.0)
 
-    @patch(
-        "packages.slack.blockkits.handlers.access_request_blocks.convert_timestamp_to_utc"
-    )
-    def test_build_request_processed_blocks_rejected(
-        self, mock_convert_time, blocks_builder
-    ):
+    @patch("packages.slack.blockkits.handlers.access_request_blocks.convert_timestamp_to_utc")
+    def test_build_request_processed_blocks_rejected(self, mock_convert_time, blocks_builder):
         """Test building processed request blocks for rejection."""
         mock_convert_time.return_value = "2024-01-15 11:00:00 UTC"
 
@@ -226,9 +210,7 @@ class TestAccessRequestBlocks:
 
         # Check that key sections exist
         section_texts = [
-            block.get("text", {}).get("text", "")
-            for block in blocks
-            if block["type"] == "section"
+            block.get("text", {}).get("text", "") for block in blocks if block["type"] == "section"
         ]
 
         # Should have info about Ketchup
@@ -236,8 +218,7 @@ class TestAccessRequestBlocks:
 
         # Should have caveats
         assert any(
-            "Caveats:" in text
-            and "should not be shared directly with customers" in text
+            "Caveats:" in text and "should not be shared directly with customers" in text
             for text in section_texts
         )
 

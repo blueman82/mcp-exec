@@ -15,7 +15,6 @@ Services tested:
 import asyncio
 import os
 import unittest
-from unittest.mock import Mock, patch
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di_integration import get_unified_container
@@ -82,6 +81,7 @@ class TestLazyServicesResolution(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.INFO)
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
     unittest.main()

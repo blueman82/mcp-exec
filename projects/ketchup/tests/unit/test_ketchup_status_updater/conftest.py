@@ -22,22 +22,21 @@ def mock_status_updater_deps():
     """
     return {
         # Core dependencies
-        'openai': AsyncMock(),
-        'slack': AsyncMock(),
-        'dynamodb': AsyncMock(),
-
+        "openai": AsyncMock(),
+        "slack": AsyncMock(),
+        "dynamodb": AsyncMock(),
         # Specific service mocks
-        'db_store': MagicMock(),
-        'mcp_client': AsyncMock(),
-        'secrets_manager': AsyncMock(),
-        'slack_config': MagicMock(openai_model="gpt-4"),
-        'openai_handler': AsyncMock(),
-        'channel_info_ops': AsyncMock(),
-        'channel_msg_ops': AsyncMock(),
-        'posting_handler': AsyncMock(),
-        'channel_operations': AsyncMock(),
-        'channel_membership_ops': AsyncMock(),
-        'feature_service': AsyncMock(),
+        "db_store": MagicMock(),
+        "mcp_client": AsyncMock(),
+        "secrets_manager": AsyncMock(),
+        "slack_config": MagicMock(openai_model="gpt-4"),
+        "openai_handler": AsyncMock(),
+        "channel_info_ops": AsyncMock(),
+        "channel_msg_ops": AsyncMock(),
+        "posting_handler": AsyncMock(),
+        "channel_operations": AsyncMock(),
+        "channel_membership_ops": AsyncMock(),
+        "feature_service": AsyncMock(),
     }
 
 
@@ -179,7 +178,9 @@ def dynamic_channel_processor(mock_processor_deps, mock_status_updater_environme
     # Configure database store mock - return empty dict to indicate no pause settings
     deps["db_store"].client = AsyncMock()
     deps["db_store"].client.get_item = AsyncMock(return_value={})
-    deps["db_store"].client.put_item = AsyncMock(return_value={"ResponseMetadata": {"HTTPStatusCode": 200}})
+    deps["db_store"].client.put_item = AsyncMock(
+        return_value={"ResponseMetadata": {"HTTPStatusCode": 200}}
+    )
     deps["db_store"].table_name = "test_table"
 
     # Configure feature service mock with default behavior

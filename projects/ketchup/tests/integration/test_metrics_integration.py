@@ -19,6 +19,7 @@ Test Target: D0840EX80R5 (Ketchup's home/DM channel)
 """
 
 import os
+
 import pytest
 
 # Skip if not in integration test mode
@@ -52,13 +53,13 @@ class TestMetricsIntegration:
         container = await get_unified_container()
 
         # Resolve MetricsExportHandler from container
-        from packages.slack.interactive_elements.metrics_export_handler import (
-            MetricsExportHandler
-        )
+        from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
 
         metrics_export_handler = container.get(MetricsExportHandler)
 
-        assert metrics_export_handler is not None, "Failed to resolve MetricsExportHandler from DI container"
+        assert (
+            metrics_export_handler is not None
+        ), "Failed to resolve MetricsExportHandler from DI container"
 
         # Execute full metrics request to Ketchup's home
         success = await metrics_export_handler.handle_metrics_request(
@@ -81,14 +82,13 @@ class TestMetricsIntegration:
         5. Dashboard upload to Slack
         """
         from datetime import datetime, timezone
+
         from packages.core.typed_di_integration import get_unified_container
         from packages.slack.command_processing.command_parameters.extractors.metrics import (
             extract_metrics_params,
         )
         from packages.slack.command_processing.command_parameters.models import CommandContext
-        from packages.slack.interactive_elements.metrics_export_handler import (
-            MetricsExportHandler
-        )
+        from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
 
         # Get previous month (guaranteed to be complete)
         now = datetime.now(timezone.utc)
@@ -98,16 +98,15 @@ class TestMetricsIntegration:
         else:
             prev_month = now.month - 1
             prev_year = now.year
-        
+
         month_name = datetime(prev_year, prev_month, 1).strftime("%B").lower()
         year_str = str(prev_year)
-        
+
         # Extract params
         params = extract_metrics_params(
-            f"/ketchup metrics {month_name} {year_str}",
-            CommandContext.DIRECT_MESSAGE
+            f"/ketchup metrics {month_name} {year_str}", CommandContext.DIRECT_MESSAGE
         )
-        
+
         assert params.time_period_type == "monthly"
         assert params.month == prev_month
         assert params.year == prev_year
@@ -148,24 +147,22 @@ class TestMetricsIntegration:
         5. Dashboard upload to Slack
         """
         from datetime import datetime, timezone
+
         from packages.core.typed_di_integration import get_unified_container
         from packages.slack.command_processing.command_parameters.extractors.metrics import (
             extract_metrics_params,
         )
         from packages.slack.command_processing.command_parameters.models import CommandContext
-        from packages.slack.interactive_elements.metrics_export_handler import (
-            MetricsExportHandler
-        )
+        from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
 
         # Use Q3 of current year (June-Aug) as example
         current_year = datetime.now(timezone.utc).year
-        
+
         # Extract params
         params = extract_metrics_params(
-            f"/ketchup metrics q3 {current_year}",
-            CommandContext.DIRECT_MESSAGE
+            f"/ketchup metrics q3 {current_year}", CommandContext.DIRECT_MESSAGE
         )
-        
+
         assert params.time_period_type == "quarterly"
         assert params.quarter == 3
         assert params.year == current_year
@@ -203,6 +200,7 @@ class TestMetricsIntegration:
         - Technical system metrics (status updates, auto-messages)
         """
         import time
+
         from packages.core.typed_di_integration import get_unified_container
         from packages.slack.services.metrics_data_collector import MetricsDataCollector
 
@@ -237,8 +235,9 @@ class TestMetricsIntegration:
         from metrics data with time period context.
         """
         from datetime import datetime, timezone
-        from packages.core.typed_di_integration import get_unified_container
+
         from packages.core.exports.html_generator import MetricsHTMLGenerator
+        from packages.core.typed_di_integration import get_unified_container
         from packages.slack.services.metrics_data_collector import MetricsDataCollector
 
         container = await get_unified_container()
@@ -248,6 +247,7 @@ class TestMetricsIntegration:
 
         # Calculate 7-day time window
         import time
+
         end_ts = int(time.time())
         start_ts = end_ts - (7 * 24 * 60 * 60)
         start_date = datetime.fromtimestamp(start_ts, tz=timezone.utc)
@@ -281,7 +281,7 @@ class TestMetricsIntegration:
 
 @pytest.mark.skipif(
     os.getenv("RUN_INTEGRATION_TESTS") != "true",
-    reason="Integration tests only run when RUN_INTEGRATION_TESTS=true"
+    reason="Integration tests only run when RUN_INTEGRATION_TESTS=true",
 )
 class TestMetricsIntegrationConditional:
     """
@@ -299,9 +299,7 @@ class TestMetricsIntegrationConditional:
         without running automatically in CI/CD.
         """
         from packages.core.typed_di_integration import get_unified_container
-        from packages.slack.interactive_elements.metrics_export_handler import (
-            MetricsExportHandler
-        )
+        from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
 
         container = await get_unified_container()
         handler = container.get(MetricsExportHandler)

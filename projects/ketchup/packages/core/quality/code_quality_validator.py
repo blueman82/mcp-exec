@@ -17,8 +17,14 @@ from typing import Dict, List
 class CodeQualityViolation:
     """Represents a code quality violation."""
 
-    def __init__(self, violation_type: str, file_path: str, line_number: int,
-                 message: str, severity: str = "error"):
+    def __init__(
+        self,
+        violation_type: str,
+        file_path: str,
+        line_number: int,
+        message: str,
+        severity: str = "error",
+    ):
         """Initialize a code quality violation."""
         self.violation_type = violation_type
         self.file_path = file_path
@@ -40,7 +46,7 @@ class CodeQualityValidator:
         """Validate function sizes are ≤50 lines."""
         violations = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 content = file.read()
                 tree = ast.parse(content)
 
@@ -52,7 +58,7 @@ class CodeQualityValidator:
                             violation_type="function_size",
                             file_path=file_path,
                             line_number=node.lineno,
-                            message=f"Function '{node.name}' has {func_lines} lines (max: {self.max_function_lines})"
+                            message=f"Function '{node.name}' has {func_lines} lines (max: {self.max_function_lines})",
                         )
                         violations.append(violation)
         except Exception as e:
@@ -60,7 +66,7 @@ class CodeQualityValidator:
                 violation_type="parse_error",
                 file_path=file_path,
                 line_number=0,
-                message=f"Failed to parse file: {str(e)}"
+                message=f"Failed to parse file: {str(e)}",
             )
             violations.append(violation)
 
@@ -70,7 +76,7 @@ class CodeQualityValidator:
         """Validate module size is ≤400 lines."""
         violations = []
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
+            with open(file_path, "r", encoding="utf-8") as file:
                 lines = file.readlines()
                 total_lines = len(lines)
 
@@ -79,7 +85,7 @@ class CodeQualityValidator:
                     violation_type="module_size",
                     file_path=file_path,
                     line_number=total_lines,
-                    message=f"Module has {total_lines} lines (max: {self.max_module_lines})"
+                    message=f"Module has {total_lines} lines (max: {self.max_module_lines})",
                 )
                 violations.append(violation)
         except Exception as e:
@@ -87,17 +93,18 @@ class CodeQualityValidator:
                 violation_type="file_error",
                 file_path=file_path,
                 line_number=0,
-                message=f"Failed to read file: {str(e)}"
+                message=f"Failed to read file: {str(e)}",
             )
             violations.append(violation)
 
         return violations
 
-    def scan_directory_for_violations(self, directory_path: str,
-                                    file_patterns: List[str] = None) -> Dict[str, List[CodeQualityViolation]]:
+    def scan_directory_for_violations(
+        self, directory_path: str, file_patterns: List[str] = None
+    ) -> Dict[str, List[CodeQualityViolation]]:
         """Scan directory for file size violations with comprehensive reporting."""
         if file_patterns is None:
-            file_patterns = ['*.py']
+            file_patterns = ["*.py"]
 
         results = {}
         directory = Path(directory_path)
@@ -128,12 +135,16 @@ class CodeQualityValidator:
         report.append("")
 
         for file_path, file_violations in violations.items():
-            relative_path = file_path.replace('/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/', '')
+            relative_path = file_path.replace(
+                "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/", ""
+            )
             report.append(f"🔍 {relative_path}")
 
             for violation in file_violations:
                 severity_icon = "🚨" if violation.severity == "error" else "⚠️"
-                report.append(f"  {severity_icon} Line {violation.line_number}: {violation.message}")
+                report.append(
+                    f"  {severity_icon} Line {violation.line_number}: {violation.message}"
+                )
             report.append("")
 
         return "\n".join(report)

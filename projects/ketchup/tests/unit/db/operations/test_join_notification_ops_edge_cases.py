@@ -55,15 +55,14 @@ class TestJoinNotificationOpsDateTimeHandling:
 
         # Should return current week in YYYY-Www format
         import re
-        assert re.match(r'^\d{4}-W\d{2}$', result)
+
+        assert re.match(r"^\d{4}-W\d{2}$", result)
 
 
 class TestJoinNotificationOpsTTLEdgeCases:
     """Test class for TTL calculation edge cases."""
 
-    def test_build_detail_record_with_zero_timestamp(
-        self, join_ops: JoinNotificationOps
-    ) -> None:
+    def test_build_detail_record_with_zero_timestamp(self, join_ops: JoinNotificationOps) -> None:
         """Test TTL calculation with timestamp of 0 (epoch)."""
         data = {
             "channel_id": "C1234567890",
@@ -141,15 +140,17 @@ class TestJoinNotificationOpsConcurrentFailures:
             "notification_attempted": True,
         }
 
-        with patch.object(join_ops, "_update_channel_aggregate", new_callable=AsyncMock) as mock_agg:
-            with patch.object(join_ops, "_update_weekly_item", new_callable=AsyncMock) as mock_weekly:
-                # Both operations fail
-                mock_agg.side_effect = Exception("Aggregate update failed")
-                mock_weekly.side_effect = Exception("Weekly update failed")
+        with (
+            patch.object(join_ops, "_update_channel_aggregate", new_callable=AsyncMock) as mock_agg,
+            patch.object(join_ops, "_update_weekly_item", new_callable=AsyncMock) as mock_weekly,
+        ):
+            # Both operations fail
+            mock_agg.side_effect = Exception("Aggregate update failed")
+            mock_weekly.side_effect = Exception("Weekly update failed")
 
-                # Should raise exception from gather with return_exceptions=False
-                with pytest.raises(Exception):
-                    await join_ops._update_channel_counters(data)
+            # Should raise exception from gather with return_exceptions=False
+            with pytest.raises(Exception):
+                await join_ops._update_channel_counters(data)
 
     @pytest.mark.asyncio
     async def test_track_notification_with_both_operations_failing(
@@ -164,15 +165,19 @@ class TestJoinNotificationOpsConcurrentFailures:
             "notification_attempted": True,
         }
 
-        with patch.object(join_ops, "_update_channel_counters", new_callable=AsyncMock) as mock_counter:
-            with patch.object(join_ops, "_put_detail_record", new_callable=AsyncMock) as mock_detail:
-                mock_counter.side_effect = Exception("Counter failed")
-                mock_detail.side_effect = Exception("Detail failed")
+        with (
+            patch.object(
+                join_ops, "_update_channel_counters", new_callable=AsyncMock
+            ) as mock_counter,
+            patch.object(join_ops, "_put_detail_record", new_callable=AsyncMock) as mock_detail,
+        ):
+            mock_counter.side_effect = Exception("Counter failed")
+            mock_detail.side_effect = Exception("Detail failed")
 
-                result = await join_ops.track_notification(data)
+            result = await join_ops.track_notification(data)
 
-                # Should return False when operations fail
-                assert result is False
+            # Should return False when operations fail
+            assert result is False
 
 
 class TestJoinNotificationOpsMalformedData:
@@ -200,9 +205,7 @@ class TestJoinNotificationOpsMalformedData:
                 result = await join_ops.track_notification(data)
                 assert result is False
 
-    def test_build_detail_record_with_none_values(
-        self, join_ops: JoinNotificationOps
-    ) -> None:
+    def test_build_detail_record_with_none_values(self, join_ops: JoinNotificationOps) -> None:
         """Test building detail record with None values in optional fields."""
         data = {
             "channel_id": "C1234567890",
@@ -233,14 +236,18 @@ class TestJoinNotificationOpsPruningEdgeCases:
             "Items": [
                 {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#INVALID"}},
                 {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#2024"}},
-                {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#2024-W99"}},  # Invalid week number
+                {
+                    "PK": {"S": "CHANNEL#C1234567890"},
+                    "SK": {"S": "WEEK#2024-W99"},
+                },  # Invalid week number
                 {"PK": {"S": "CHANNEL#C1234567890"}, "SK": {"S": "WEEK#"}},  # Empty week key
             ]
         }
 
         with patch("packages.db.operations.join_notification_ops.datetime") as mock_dt:
             from collections import namedtuple
-            IsoCalendarDate = namedtuple('IsoCalendarDate', ['year', 'week', 'weekday'])
+
+            IsoCalendarDate = namedtuple("IsoCalendarDate", ["year", "week", "weekday"])
             mock_dt.now.return_value.isocalendar.return_value = IsoCalendarDate(2024, 45, 1)
 
             # Should handle malformed keys gracefully without raising
@@ -282,7 +289,8 @@ class TestJoinNotificationOpsPruningEdgeCases:
 
         with patch("packages.db.operations.join_notification_ops.datetime") as mock_dt:
             from collections import namedtuple
-            IsoCalendarDate = namedtuple('IsoCalendarDate', ['year', 'week', 'weekday'])
+
+            IsoCalendarDate = namedtuple("IsoCalendarDate", ["year", "week", "weekday"])
             mock_dt.now.return_value.isocalendar.return_value = IsoCalendarDate(2024, 51, 1)
 
             # Should handle gracefully without raising (logs error instead)
@@ -298,13 +306,13 @@ class TestJoinNotificationOpsProtocolCompliance:
     def test_implements_protocol_methods(self, join_ops: JoinNotificationOps) -> None:
         """Test that JoinNotificationOps implements all protocol methods."""
         # Verify all protocol methods exist and are callable
-        assert hasattr(join_ops, 'track_notification')
+        assert hasattr(join_ops, "track_notification")
         assert callable(join_ops.track_notification)
 
-        assert hasattr(join_ops, 'get_channel_stats')
+        assert hasattr(join_ops, "get_channel_stats")
         assert callable(join_ops.get_channel_stats)
 
-        assert hasattr(join_ops, 'get_weekly_report')
+        assert hasattr(join_ops, "get_weekly_report")
         assert callable(join_ops.get_weekly_report)
 
     @pytest.mark.asyncio
@@ -315,13 +323,15 @@ class TestJoinNotificationOpsProtocolCompliance:
         # track_notification should return bool
         with patch.object(join_ops, "_update_channel_counters", new_callable=AsyncMock):
             with patch.object(join_ops, "_put_detail_record", new_callable=AsyncMock):
-                result = await join_ops.track_notification({
-                    "channel_id": "C1234567890",
-                    "user_id": "U1234567890",
-                    "timestamp": 1703123456,
-                    "delivery_status": "success",
-                    "notification_attempted": True,
-                })
+                result = await join_ops.track_notification(
+                    {
+                        "channel_id": "C1234567890",
+                        "user_id": "U1234567890",
+                        "timestamp": 1703123456,
+                        "delivery_status": "success",
+                        "notification_attempted": True,
+                    }
+                )
                 assert isinstance(result, bool)
 
         # get_channel_stats should return dict

@@ -42,14 +42,10 @@ def test_extract_preferences_from_state_default():
                         "product_focus_select": {"selected_option": {"value": "ajo"}}
                     },
                     "detail_level_selection": {
-                        "detail_level_select": {
-                            "selected_option": {"value": "technical_details"}
-                        }
+                        "detail_level_select": {"selected_option": {"value": "technical_details"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {
-                            "selected_option": {"value": "past_2_hours"}
-                        }
+                        "time_window_select": {"selected_option": {"value": "past_2_hours"}}
                     },
                 }
             }
@@ -69,19 +65,13 @@ def test_extract_preferences_join_notifications_enabled():
             "state": {
                 "values": {
                     "product_focus_selection": {
-                        "product_focus_select": {
-                            "selected_option": {"value": "all_products"}
-                        }
+                        "product_focus_select": {"selected_option": {"value": "all_products"}}
                     },
                     "detail_level_selection": {
-                        "detail_level_select": {
-                            "selected_option": {"value": "balanced"}
-                        }
+                        "detail_level_select": {"selected_option": {"value": "balanced"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {
-                            "selected_option": {"value": "past_24_hours"}
-                        }
+                        "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                     },
                     "join_notifications_enabled_selection": {
                         "join_notifications_enabled_select": {
@@ -103,19 +93,13 @@ def test_extract_preferences_join_notifications_enabled_missing():
             "state": {
                 "values": {
                     "product_focus_selection": {
-                        "product_focus_select": {
-                            "selected_option": {"value": "all_products"}
-                        }
+                        "product_focus_select": {"selected_option": {"value": "all_products"}}
                     },
                     "detail_level_selection": {
-                        "detail_level_select": {
-                            "selected_option": {"value": "balanced"}
-                        }
+                        "detail_level_select": {"selected_option": {"value": "balanced"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {
-                            "selected_option": {"value": "past_24_hours"}
-                        }
+                        "time_window_select": {"selected_option": {"value": "past_24_hours"}}
                     },
                 }
             }
@@ -147,18 +131,9 @@ def test_get_detail_level_display_name():
 
 def test_get_time_window_display_name():
     """Test mapping of time window keys to display names, including unknown key fallback."""
-    assert (
-        get_time_window_display_name("past_2_hours")
-        == "Past 2 hours (falls back to latest)"
-    )
-    assert (
-        get_time_window_display_name("past_24_hours")
-        == "Last day (falls back to latest)"
-    )
-    assert (
-        get_time_window_display_name("since_last_summary")
-        == "Last day (falls back to latest)"
-    )
+    assert get_time_window_display_name("past_2_hours") == "Past 2 hours (falls back to latest)"
+    assert get_time_window_display_name("past_24_hours") == "Last day (falls back to latest)"
+    assert get_time_window_display_name("since_last_summary") == "Last day (falls back to latest)"
     assert get_time_window_display_name("always_ask") == "Always ask me"
     assert get_time_window_display_name("unknown") == "Last day (falls back to latest)"
 
@@ -187,9 +162,7 @@ def test_build_home_tab_blocks():
     # Find the header and check for personalized greeting
     header_block = next((b for b in blocks if b["type"] == "header"), None)
     assert header_block is not None
-    assert (
-        header_block["text"]["type"] == "plain_text"
-    ), "Header blocks must use plain_text type"
+    assert header_block["text"]["type"] == "plain_text", "Header blocks must use plain_text type"
     assert f"Hi {first_name}!" in header_block["text"]["text"]
 
     # Check for intro section without how-to link
@@ -217,8 +190,7 @@ def test_build_home_tab_blocks():
     assert feedback_actions_block is not None
     assert feedback_actions_block["type"] == "actions"
     assert any(
-        e["action_id"] == "home_open_feedback_modal"
-        for e in feedback_actions_block["elements"]
+        e["action_id"] == "home_open_feedback_modal" for e in feedback_actions_block["elements"]
     )
 
     # Basic structure checks

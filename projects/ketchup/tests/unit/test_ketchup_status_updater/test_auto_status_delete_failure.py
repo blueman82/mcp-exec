@@ -6,8 +6,9 @@ message that no longer exists (user deleted it), the system gracefully continues
 and posts a new message instead of failing.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 
 @pytest.mark.asyncio
@@ -31,29 +32,30 @@ async def test_auto_status_continues_when_delete_fails():
     mock_posting_handler._slack_token = "xoxb-test-token"
 
     # Mock delete_message to FAIL (message already deleted by user)
-    mock_posting_handler.delete_message = AsyncMock(return_value={
-        "ok": False,
-        "error": "message_not_found"  # Slack API error when message doesn't exist
-    })
+    mock_posting_handler.delete_message = AsyncMock(
+        return_value={
+            "ok": False,
+            "error": "message_not_found",  # Slack API error when message doesn't exist
+        }
+    )
 
     # Mock _post_channel_message to SUCCEED
-    mock_posting_handler._post_channel_message = AsyncMock(return_value={
-        "ok": True,
-        "ts": "1234567890.123456"
-    })
+    mock_posting_handler._post_channel_message = AsyncMock(
+        return_value={"ok": True, "ts": "1234567890.123456"}
+    )
 
     # Mock update_message (for adding flag button)
-    mock_posting_handler.update_message = AsyncMock(return_value={
-        "ok": True
-    })
+    mock_posting_handler.update_message = AsyncMock(return_value={"ok": True})
 
     # Mock channel operations
     mock_channel_ops = AsyncMock()
-    mock_channel_ops.get_channel_details = AsyncMock(return_value={
-        "channel_id": "C123",
-        "channel_name": "test-channel",
-        "auto_status_last_post_ts": "9999999999.999999"  # Timestamp of deleted message
-    })
+    mock_channel_ops.get_channel_details = AsyncMock(
+        return_value={
+            "channel_id": "C123",
+            "channel_name": "test-channel",
+            "auto_status_last_post_ts": "9999999999.999999",  # Timestamp of deleted message
+        }
+    )
     mock_channel_ops.update_channel_fields = AsyncMock()
 
     # Mock query_ops for get_channel_details
@@ -71,20 +73,19 @@ async def test_auto_status_continues_when_delete_fails():
         channel_info_ops=MagicMock(),
         channel_msg_ops=MagicMock(),
         posting_handler=mock_posting_handler,
-        channel_operations=mock_channel_ops
+        channel_operations=mock_channel_ops,
     )
 
     # Call the method that deletes old message and posts new one
     result = await generator._post_to_slack_public(
         channel_id="C123",
         content="*Overview:* Test status update\n\n*What's been done / What's next:*\n• Item 1",
-        status_update_id="1234567890_abc123"
+        status_update_id="1234567890_abc123",
     )
 
     # VERIFY: Delete was attempted (and failed)
     mock_posting_handler.delete_message.assert_called_once_with(
-        channel_id="C123",
-        message_ts="9999999999.999999"
+        channel_id="C123", message_ts="9999999999.999999"
     )
 
     # VERIFY: Despite delete failure, new message was posted

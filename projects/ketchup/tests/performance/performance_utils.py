@@ -9,6 +9,7 @@ from typing import List, Tuple, Type
 @dataclass
 class PerformanceMetrics:
     """Performance metrics for TypedDI operations."""
+
     startup_time: float
     memory_usage_mb: float
     avg_resolution_ms: float
@@ -18,6 +19,7 @@ class PerformanceMetrics:
 @dataclass
 class LoadTestMetrics:
     """Load testing metrics."""
+
     total_requests: int
     successful_requests: int
     failed_requests: int
@@ -32,13 +34,14 @@ def create_mock_service(name: str, dependencies: List[Type] = None) -> Type:
 
     # Create a unique class using type()
     attrs = {
-        '__init__': lambda self, **kwargs: (
-            setattr(self, 'name', name),
-            setattr(self, 'dependencies', dependencies),
-            setattr(self, 'initialized_at', time.time())
-        )[-1] or None,
-        '__repr__': lambda self: f"MockService({name})",
-        '__module__': '__main__',
+        "__init__": lambda self, **kwargs: (
+            setattr(self, "name", name),
+            setattr(self, "dependencies", dependencies),
+            setattr(self, "initialized_at", time.time()),
+        )[-1]
+        or None,
+        "__repr__": lambda self: f"MockService({name})",
+        "__module__": "__main__",
     }
 
     # Use type() to create a truly unique class

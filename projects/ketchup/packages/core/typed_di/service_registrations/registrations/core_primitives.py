@@ -142,6 +142,7 @@ def _register_secrets_and_config(manager: "ServiceRegistrationManager") -> None:
 
 def _register_dynamodb_trio(manager: "ServiceRegistrationManager") -> None:
     """Register DynamoDBConfig, DynamoDBAsyncClient, DynamoDBStore, and UserStore."""
+
     # DynamoDBConfig (no dependencies) - Critical for DB operations
     async def create_dynamodb_config(resolver) -> DynamoDBConfig:
         """Factory function for DynamoDBConfig using TypedResolver."""
@@ -218,6 +219,7 @@ def _register_dynamodb_trio(manager: "ServiceRegistrationManager") -> None:
 
 def _register_slack_auth_services(manager: "ServiceRegistrationManager") -> None:
     """Register SlackAuth and SlackAsyncClient services."""
+
     # SlackAuth with protocol - High-traffic service
     async def create_slack_auth(resolver) -> SlackAuth:
         """Factory function for SlackAuth using TypedResolver."""
@@ -253,6 +255,7 @@ def _register_slack_auth_services(manager: "ServiceRegistrationManager") -> None
 
 def _register_utility_services(manager: "ServiceRegistrationManager") -> None:
     """Register utility services like RestoreStateManager."""
+
     # RestoreStateManager with protocol
     async def create_restore_state_manager(resolver) -> RestoreStateManager:
         """Factory function for RestoreStateManager using TypedResolver."""

@@ -17,9 +17,7 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -78,9 +76,7 @@ class BridgeMappingGenerator:
 
             missing_fields = required_fields - set(service_data.keys())
             if missing_fields:
-                invalid_services.append(
-                    f"{service_name}: missing fields {missing_fields}"
-                )
+                invalid_services.append(f"{service_name}: missing fields {missing_fields}")
 
         if invalid_services:
             logger.error("Invalid service structures found:")
@@ -121,9 +117,7 @@ class BridgeMappingGenerator:
 
         return python_mappings
 
-    def format_as_python_dict(
-        self, mappings: Dict[str, Tuple[str, Optional[str]]]
-    ) -> str:
+    def format_as_python_dict(self, mappings: Dict[str, Tuple[str, Optional[str]]]) -> str:
         """
         Format mappings as a Python dictionary string.
 
@@ -150,9 +144,7 @@ class BridgeMappingGenerator:
 
         return "\n".join(lines)
 
-    def generate_statistics(
-        self, mappings: Dict[str, Tuple[str, Optional[str]]]
-    ) -> str:
+    def generate_statistics(self, mappings: Dict[str, Tuple[str, Optional[str]]]) -> str:
         """
         Generate statistics about the mappings.
 
@@ -185,9 +177,7 @@ class BridgeMappingGenerator:
                 unknown_services.append(service_name)
 
         stats.append(f"Services with qualifiers: {qualifier_counts['with_qualifier']}")
-        stats.append(
-            f"Services without qualifiers: {qualifier_counts['without_qualifier']}"
-        )
+        stats.append(f"Services without qualifiers: {qualifier_counts['without_qualifier']}")
         stats.append(f"Unknown protocol services: {len(unknown_services)}")
 
         if unknown_services:

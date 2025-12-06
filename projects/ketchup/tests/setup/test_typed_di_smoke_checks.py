@@ -53,11 +53,12 @@ class TestTypedDISmokeChecks(unittest.IsolatedAsyncioTestCase):
         os.environ["KETCHUP_USE_TYPED_DI"] = "true"
 
         # Mock all dependencies to succeed
-        with patch(
-            "packages.core.typed_di_integration.TypedServiceRegistry"
-        ) as mock_registry_class, patch(
-            "packages.core.typed_di_integration._run_startup_smoke_checks"
-        ) as mock_smoke_checks:
+        with (
+            patch("packages.core.typed_di_integration.TypedServiceRegistry") as mock_registry_class,
+            patch(
+                "packages.core.typed_di_integration._run_startup_smoke_checks"
+            ) as mock_smoke_checks,
+        ):
 
             # Mock smoke checks to pass
             mock_smoke_checks.return_value = True
@@ -70,9 +71,7 @@ class TestTypedDISmokeChecks(unittest.IsolatedAsyncioTestCase):
             mock_registry_class.return_value = mock_registry
 
             # Mock all the imported modules and functions
-            with patch(
-                "packages.core.typed_di.service_registrations.register_all_services"
-            ):
+            with patch("packages.core.typed_di.service_registrations.register_all_services"):
 
                 # Get unified container
                 container = await get_unified_container()
@@ -136,12 +135,22 @@ class TestTypedDISmokeCheckIntegration(unittest.IsolatedAsyncioTestCase):
 
         await registry.initialize_all()
 
-        with patch("packages.secrets.manager.SecretsManager", type("SecretsManager", (), {})), \
-             patch("packages.slack.config.slack_config.SlackConfig", type("SlackConfig", (), {})), \
-             patch("packages.slack.messages.posting.SlackPostingHandler", type("SlackPostingHandler", (), {})), \
-             patch("packages.db.config.dynamodb_config.DynamoDBConfig", type("DynamoDBConfig", (), {})), \
-             patch("packages.db.core.dynamodb_async_client.DynamoDBAsyncClient", type("DynamoDBAsyncClient", (), {})), \
-             patch("packages.db.dynamodb_store.DynamoDBStore", type("DynamoDBStore", (), {})):
+        with (
+            patch("packages.secrets.manager.SecretsManager", type("SecretsManager", (), {})),
+            patch("packages.slack.config.slack_config.SlackConfig", type("SlackConfig", (), {})),
+            patch(
+                "packages.slack.messages.posting.SlackPostingHandler",
+                type("SlackPostingHandler", (), {}),
+            ),
+            patch(
+                "packages.db.config.dynamodb_config.DynamoDBConfig", type("DynamoDBConfig", (), {})
+            ),
+            patch(
+                "packages.db.core.dynamodb_async_client.DynamoDBAsyncClient",
+                type("DynamoDBAsyncClient", (), {}),
+            ),
+            patch("packages.db.dynamodb_store.DynamoDBStore", type("DynamoDBStore", (), {})),
+        ):
 
             # Run smoke checks - should pass with our mocked services
             result = await _run_startup_smoke_checks(registry)
@@ -149,9 +158,7 @@ class TestTypedDISmokeCheckIntegration(unittest.IsolatedAsyncioTestCase):
             # The result may be False if mappings are incomplete, which is expected in test environment
             self.assertIsInstance(result, bool)  # Verify it returns a boolean result
 
-            logger.info(
-                "✓ Smoke check implementation test with mocks completed successfully"
-            )
+            logger.info("✓ Smoke check implementation test with mocks completed successfully")
 
     async def test_smoke_check_implementation_failure(self):
         """Test smoke check implementation when services fail to resolve."""
@@ -163,24 +170,26 @@ class TestTypedDISmokeCheckIntegration(unittest.IsolatedAsyncioTestCase):
         await registry.initialize_all()
 
         # Mock the imports but don't register services - should fail
-        with patch(
-            "packages.secrets.manager.SecretsManager",
-            type("SecretsManager", (), {}),
-        ), patch(
-            "packages.slack.config.slack_config.SlackConfig",
-            type("SlackConfig", (), {}),
-        ), patch(
-            "packages.slack.messages.posting.SlackPostingHandler",
-            type("SlackPostingHandler", (), {}),
+        with (
+            patch(
+                "packages.secrets.manager.SecretsManager",
+                type("SecretsManager", (), {}),
+            ),
+            patch(
+                "packages.slack.config.slack_config.SlackConfig",
+                type("SlackConfig", (), {}),
+            ),
+            patch(
+                "packages.slack.messages.posting.SlackPostingHandler",
+                type("SlackPostingHandler", (), {}),
+            ),
         ):
 
             # Run smoke checks - should fail since no services are registered
             result = await _run_startup_smoke_checks(registry)
             self.assertFalse(result)
 
-            logger.info(
-                "✓ Smoke check implementation failure test completed successfully"
-            )
+            logger.info("✓ Smoke check implementation failure test completed successfully")
 
 
 if __name__ == "__main__":

@@ -26,9 +26,7 @@ async def test_status_generator_buttons():
     print(
         f"KETCHUP_TRUST_ENDORSEMENT_FEATURE: {os.environ.get('KETCHUP_TRUST_ENDORSEMENT_FEATURE')}"
     )
-    print(
-        f"KETCHUP_TRUST_ENDORSEMENT_GLOBAL: {os.environ.get('KETCHUP_TRUST_ENDORSEMENT_GLOBAL')}"
-    )
+    print(f"KETCHUP_TRUST_ENDORSEMENT_GLOBAL: {os.environ.get('KETCHUP_TRUST_ENDORSEMENT_GLOBAL')}")
     print(f"Trust enabled: {FeatureFlags.is_trust_endorsement_enabled()}")
     print(f"Trust global: {FeatureFlags.is_trust_endorsement_global()}")
 
@@ -73,9 +71,7 @@ async def test_status_generator_buttons():
             "channel_id": "C123",
             "channel_name": "test-channel",
             "jira_ticket": "TEST-123",
-            "features": {
-                "trust_endorsement_enabled": True
-            },  # Channel has trust enabled
+            "features": {"trust_endorsement_enabled": True},  # Channel has trust enabled
         }
     )
     channel_operations.update_channel_fields = AsyncMock()
