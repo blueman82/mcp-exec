@@ -6,8 +6,6 @@ and handles the target_channel_id field, which was missing and causing
 AttributeError in production.
 """
 
-from unittest.mock import AsyncMock, Mock, patch
-
 import pytest
 
 from packages.slack.command_processing.command_parameters.extractors.query import (
@@ -21,8 +19,6 @@ from packages.slack.command_processing.command_parameters.models import (
 from packages.slack.command_processing.command_parameters.validation import (
     ValidationError,
 )
-from packages.slack.command_processing.command_router import CommandRouter
-from packages.slack.command_processing.query_command import SlackQueryHandler
 
 
 class TestQueryCommandTargetChannelFix:

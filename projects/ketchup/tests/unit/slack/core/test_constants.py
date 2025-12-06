@@ -9,8 +9,6 @@ Covers:
 All tests follow the Ketchup Slack Bot test plan and cursor rules.
 """
 
-import os
-
 import pytest
 
 import packages.core.constants as c

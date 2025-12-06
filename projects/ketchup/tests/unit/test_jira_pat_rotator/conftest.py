@@ -16,7 +16,7 @@ os.environ.setdefault("DYNAMODB_TABLE_NAME", "test-table")
 def mock_aws_services():
     """
     Auto-mock AWS services to prevent real AWS calls during unit tests.
-    
+
     This fixture mocks both sync (boto3) and async (aioboto3) AWS SDK calls.
     """
     # Comprehensive secrets JSON matching production structure
@@ -35,18 +35,18 @@ def mock_aws_services():
         '"JIRA_PAT_EXPIRY": "2025-12-31T00:00:00Z"'
         "}"
     )
-    
+
     # Mock aioboto3.Session for async AWS calls
     with patch("aioboto3.Session") as mock_aioboto3_session:
         # Create mock async session
         mock_session = MagicMock()
         mock_aioboto3_session.return_value = mock_session
-        
+
         # Mock async client context manager
         mock_async_client = AsyncMock()
         mock_async_client.__aenter__.return_value = mock_async_client
         mock_async_client.__aexit__.return_value = None
-        
+
         # Mock async AWS operations
         mock_async_client.get_secret_value.return_value = {"SecretString": secrets_json}
         mock_async_client.update_secret.return_value = {}
@@ -54,23 +54,23 @@ def mock_aws_services():
         mock_async_client.update_item.return_value = {}
         mock_async_client.get_item.return_value = {}
         mock_async_client.send_message.return_value = {"MessageId": "test-msg-id"}
-        
+
         mock_session.client.return_value = mock_async_client
-        
+
         # Mock boto3.client for sync AWS calls
         with patch("boto3.client") as mock_boto3_client:
             # Create sync client mocks
             mock_sync_secrets_client = MagicMock()
             mock_sync_secrets_client.get_secret_value.return_value = {"SecretString": secrets_json}
             mock_sync_secrets_client.update_secret.return_value = {}
-            
+
             mock_sync_sqs_client = MagicMock()
             mock_sync_sqs_client.send_message.return_value = {"MessageId": "test-msg-id"}
-            
+
             mock_sync_dynamodb_client = MagicMock()
             mock_sync_dynamodb_client.put_item.return_value = {}
             mock_sync_dynamodb_client.get_item.return_value = {}
-            
+
             def get_mock_client(service_name, **kwargs):
                 if service_name == "secretsmanager":
                     return mock_sync_secrets_client
@@ -79,13 +79,13 @@ def mock_aws_services():
                 elif service_name == "dynamodb":
                     return mock_sync_dynamodb_client
                 return MagicMock()
-            
+
             mock_boto3_client.side_effect = get_mock_client
-            
+
             # Mock boto3.Session as well
             with patch("boto3.Session") as mock_boto3_session:
                 mock_boto3_session.return_value.client.side_effect = get_mock_client
-                
+
                 yield {
                     "async_client": mock_async_client,
                     "sync_secrets_client": mock_sync_secrets_client,
@@ -99,10 +99,11 @@ async def reset_container():
     """Reset the global TypedServiceRegistry between tests."""
     # Clear the global container before each test
     from packages.core import typed_di_integration
+
     typed_di_integration._typed_registry = None
-    
+
     yield
-    
+
     # Clean up after test
     typed_di_integration._typed_registry = None
 
