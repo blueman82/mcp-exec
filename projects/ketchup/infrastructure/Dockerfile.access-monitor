@@ -37,8 +37,8 @@ COPY packages/ ./packages/
 COPY ketchup_access_request_monitor/ ./ketchup_access_request_monitor/
 
 # Copy health check script
-COPY infrastructure/healthcheck-access-monitor.sh ./infrastructure/
-RUN chmod +x ./infrastructure/healthcheck-access-monitor.sh
+COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
 
 # Create log directory
 RUN mkdir -p /var/log/access_monitor

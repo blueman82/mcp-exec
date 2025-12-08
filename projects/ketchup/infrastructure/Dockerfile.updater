@@ -46,10 +46,10 @@ WORKDIR /app
 # Copy application code
 COPY packages/ ./packages/
 COPY channel_metadata_updater/ ./channel_metadata_updater/
-COPY infrastructure/healthcheck-customer-jira-metadata-scheduler.sh ./scripts/
+COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
 
 # Make healthcheck script executable
-RUN chmod +x scripts/healthcheck-customer-jira-metadata-scheduler.sh
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
 
 # Create log directory
 RUN mkdir -p /var/log

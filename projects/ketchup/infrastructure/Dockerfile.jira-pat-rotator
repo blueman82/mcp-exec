@@ -35,10 +35,10 @@ WORKDIR /app
 # Copy application code (following pattern from status-updater and maintenance-fetcher)
 COPY packages/ ./packages/
 COPY ketchup_jira_pat_rotator/ ./ketchup_jira_pat_rotator/
-COPY infrastructure/healthcheck-jira-pat-rotator.sh ./scripts/
+COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
 
 # Make healthcheck script executable
-RUN chmod +x scripts/healthcheck-jira-pat-rotator.sh
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
 
 # Create log directory
 RUN mkdir -p /var/log
@@ -48,7 +48,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Health check using the script
 HEALTHCHECK --interval=5m --timeout=10s --start-period=2m --retries=3 \
-  CMD ["./scripts/healthcheck-jira-pat-rotator.sh"]
+  CMD ["./infrastructure/healthcheck-scheduler.sh"]
 
 # Run Python scheduler (entry point from main.py)
 CMD ["python", "-m", "ketchup_jira_pat_rotator.main"]

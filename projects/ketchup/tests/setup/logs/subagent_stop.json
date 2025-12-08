@@ -951,5 +951,15 @@
     "permission_mode": "bypassPermissions",
     "hook_event_name": "SubagentStop",
     "stop_hook_active": false
+  },
+  {
+    "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_id": "c5caaaca",
+    "agent_transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/agent-c5caaaca.jsonl"
   }
 ]

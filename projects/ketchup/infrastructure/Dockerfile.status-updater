@@ -35,10 +35,10 @@ WORKDIR /app
 # Copy application code
 COPY packages/ ./packages/
 COPY ketchup_status_updater/ ./ketchup_status_updater/
-COPY infrastructure/healthcheck-public-status-message-scheduler.sh ./scripts/
+COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
 
 # Make healthcheck script executable
-RUN chmod +x scripts/healthcheck-public-status-message-scheduler.sh
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
 
 # Create log directory
 RUN mkdir -p /var/log

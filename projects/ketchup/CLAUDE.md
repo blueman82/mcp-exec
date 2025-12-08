@@ -26,18 +26,19 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 
 ### Docker Containers in Production
 
-**Total Containers**: 14 across 2 servers
+**Total Containers**: 15 across 2 servers
 
-**prod1 (ketchup-prod1.campaign.adobe.com)** - 9 containers:
+**prod1 (ketchup-prod1.campaign.adobe.com)** - 10 containers:
 1. `nginx` - Reverse proxy (port 80)
 2. `ketchup-app-1` - FastAPI app replica 1 (port 8001)
 3. `ketchup-app-2` - FastAPI app replica 2 (port 8001)
 4. `mcp-jira` - JIRA MCP service (port 8081)
-5. `ketchup-metadata-updater` - Channel metadata scanner (singleton)
-6. `ketchup-status-updater` - Hourly status updates (singleton)
+5. `ketchup-metadata-updater` - Channel metadata scanner (singleton, 15 min)
+6. `ketchup-status-updater` - Status updates (singleton, 55 min)
 7. `ketchup-jira-reporter` - JIRA automation (singleton)
-8. `ketchup-maintenance-fetcher` - Maintenance detection (singleton)
-9. `ketchup-access-monitor` - Access request monitoring
+8. `ketchup-maintenance-fetcher` - Maintenance detection (singleton, daily 1:30 UTC)
+9. `ketchup-jira-pat-rotator` - JIRA PAT rotation (singleton, 24 hour)
+10. `ketchup-access-monitor` - Access request monitoring
 
 **prod2 (ketchup-prod2.campaign.adobe.com)** - 5 containers:
 1. `nginx` - Reverse proxy (port 80)
@@ -46,7 +47,7 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 4. `mcp-jira` - JIRA MCP service (port 8081)
 5. `ketchup-access-monitor` - Access request monitoring
 
-**Singleton Services** (prod1 only): `ketchup-status-updater`, `ketchup-metadata-updater`, `ketchup-jira-reporter`, `ketchup-maintenance-fetcher`
+**Singleton Services** (prod1 only): `ketchup-status-updater`, `ketchup-metadata-updater`, `ketchup-jira-reporter`, `ketchup-maintenance-fetcher`, `ketchup-jira-pat-rotator`
 - These are explicitly stopped/removed on prod2 during deployment (see deploy-ketchup.sh:505-506)
 - Prevents duplicate scheduled jobs and conflicting operations
 
@@ -121,6 +122,7 @@ ketchup/
 ├── packages/              # Shared code used by ALL services
 │   ├── ai/               # Azure OpenAI integration
 │   ├── core/             # Core utilities, TypedDI, HTTP clients
+│   │   └── schedulers/   # BaseScheduler pattern for background services
 │   ├── db/               # DynamoDB operations
 │   ├── integrations/     # Third-party integrations
 │   ├── secrets/          # AWS Secrets Manager
@@ -143,6 +145,11 @@ ketchup/
 │
 ├── ketchup_maintenance_fetcher/ # Maintenance event service
 │   └── main.py
+│
+├── ketchup_jira_pat_rotator/    # JIRA PAT rotation service
+│   ├── main.py
+│   ├── scheduler.py
+│   └── rotator.py
 │
 ├── ketchup_access_request_monitor/ # Access monitoring service
 │   └── main.py
@@ -188,6 +195,19 @@ All external service communication uses async clients:
 - Use `aiohttp` for HTTP requests
 - Implement retry logic and connection pooling
 - Always use `await` keyword when calling client methods
+
+#### BaseScheduler Pattern
+- **Location**: `packages/core/schedulers/base_scheduler.py`
+- Unified scheduler abstraction replacing individual scheduler implementations
+- Provides consistent interval-based and time-based scheduling
+- All 5 production schedulers inherit from BaseScheduler:
+  - `ketchup-metadata-updater` (15 min interval)
+  - `ketchup-status-updater` (55 min interval)
+  - `ketchup-maintenance-fetcher` (daily at 1:30 UTC)
+  - `ketchup-jira-pat-rotator` (24 hour interval)
+  - `ketchup-jira-reporter` (continuous monitoring)
+- Consolidated healthcheck via single `healthcheck-scheduler.sh` script
+- See `docs/diagrams/04-background-services.md` for visual reference
 
 ### Event Flow
 ```
@@ -352,6 +372,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
+- **December 2025**: Phase 1 Scheduler Consolidation - BaseScheduler pattern with unified healthchecks
 - **October 2025**: 300-400% performance optimization complete
 - **September 2025**: TypedDI migration complete (100% coverage)
 - **Architecture Migration**: Lambda → EC2 Docker (cost reduction $450-800/mo → ~$150/mo)
