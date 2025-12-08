@@ -1,5 +1,10 @@
 # CLAUDE.md - Ketchup Status Updater Service
 
+> **Note**: As of December 2025, this service runs as a task within `ketchup-unified-scheduler`
+> rather than as a standalone container. The code in this directory is still used, but it's
+> invoked by the unified scheduler's task system. See `ketchup_unified_scheduler/tasks/` for
+> the task wrapper.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with the **ketchup_status_updater** service.
 
 **Related Documentation**: See parent [/ketchup/CLAUDE.md](../CLAUDE.md) for shared patterns, TypedDI system, deployment workflows, and logging architecture.

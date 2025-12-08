@@ -1,5 +1,10 @@
 # Channel Metadata Updater - CLAUDE.md
 
+> **Note**: As of December 2025, this service runs as a task within `ketchup-unified-scheduler`
+> rather than as a standalone container. The code in this directory is still used, but it's
+> invoked by the unified scheduler's task system. See `ketchup_unified_scheduler/tasks/` for
+> the task wrapper.
+
 Service-specific documentation for the channel metadata updater. For shared patterns, see [parent CLAUDE.md](../CLAUDE.md).
 
 ## Service Overview
