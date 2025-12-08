@@ -4,7 +4,7 @@
 
 ```mermaid
 graph TD
-    Timer["Cron Timer<br/>Every hour"]
+    Timer["BaseScheduler<br/>Every 55 min"]
 
     Timer -->|Trigger| Fetch["Fetch all<br/>active channels<br/>from DDB"]
 
@@ -83,7 +83,7 @@ graph TD
 
 ```mermaid
 graph TD
-    Hourly["Cron Timer<br/>Every hour"]
+    Hourly["BaseScheduler<br/>Every 15 min"]
 
     Hourly -->|Fetch| GetChannels["List all<br/>Slack channels"]
 
@@ -126,7 +126,7 @@ graph TD
 
 ```mermaid
 graph TD
-    Timer["Cron Timer<br/>Every 5 minutes"]
+    Timer["BaseScheduler<br/>Daily 1:30 UTC"]
 
     Timer -->|Check| FetchMaintenanceAPI["Fetch from<br/>Adobe Maintenance<br/>Calendar API"]
 
@@ -312,10 +312,11 @@ graph TD
 
 | Service | Trigger | Input | Processing | Output | Success Indicator |
 |---------|---------|-------|-----------|--------|------------------|
-| **Status Updater** | Hourly cron | All channels | Fetch status → Analyze → Format | Slack message | Posted to all channels |
-| **JIRA Reporter** | 15-min cron | Channels with JIRA | Compare state → Create/update ticket | JIRA ticket + Slack notification | Ticket ID saved in DDB |
-| **Metadata Updater** | Hourly cron | Slack channels | Fetch metadata → Parse → Compare | Updated DDB records | Row updated in DDB |
-| **Maintenance Fetcher** | 5-min cron | Adobe API | Fetch events → Filter → Alert | Slack notifications | Posted to #maintenance |
+| **Status Updater** | Every 55 min (BaseScheduler) | All channels | Fetch status → Analyze → Format | Slack message | Posted to all channels |
+| **JIRA Reporter** | Continuous (BaseScheduler) | Channels with JIRA | Compare state → Create/update ticket | JIRA ticket + Slack notification | Ticket ID saved in DDB |
+| **Metadata Updater** | Every 15 min (BaseScheduler) | Slack channels | Fetch metadata → Parse → Compare | Updated DDB records | Row updated in DDB |
+| **Maintenance Fetcher** | Daily 1:30 UTC (BaseScheduler) | Adobe API | Fetch events → Filter → Alert | Slack notifications | Posted to #maintenance |
+| **PAT Rotator** | Every 24 hours (BaseScheduler) | JIRA PATs | Check expiry → Rotate if needed | New PAT in Secrets Manager | Expiry date updated |
 | **Access Monitor** | Continuous SQS | SQS queue | Parse request → Validate → Approve/Route | Slack notification | Status updated in DDB |
 | **Command Handlers** | User command | /command args | Parse → Query → Format | Slack response | Message posted |
 | **Event Handlers** | Slack event | Event payload | Extract → Process → Update | Slack response | DDB updated |

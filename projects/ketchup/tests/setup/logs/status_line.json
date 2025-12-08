@@ -6220,5 +6220,1896 @@
       "exceeds_200k_tokens": false
     },
     "status_line_output": "\ud83e\udd16 \u001b[92m\u001b[1mArachne\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcca \u001b[96m\u001b[1mHaiku 4.5\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc1 \u001b[93msetup\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcac \u001b[95m4 prompts\u001b[0m\u001b[97m | \u001b[0m\ud83c\udfaf \u001b[95m\"  Test Results\n\n  | Test Suite...\"\u001b[0m\u001b[97m | \u001b[0m\ud83e\ude99 \u001b[94m96k used\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcb0 \u001b[92m103k left\u001b[0m\u001b[97m | \u001b[0m\ud83d\udd04 \u001b[94m4 turns\u001b[0m\u001b[97m | \u001b[0m\ud83d\udcc8 \u001b[93m24k/turn\u001b[0m\u001b[97m | \u001b[0m\ud83e\udde0 \u001b[32m52%\u001b[0m left\u001b[97m | \u001b[0m\u001b[2m\ud83c\udd94 0ce20938-a4eb-4fd7-9541-965341c68401\u001b[0m\u001b[97m | \u001b[0m\u001b[2mv2.0.44\u001b[0m"
+  },
+  {
+    "timestamp": "2025-12-08T12:26:58.733783",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 20.655872799999994,
+        "total_duration_ms": 61440067,
+        "total_api_duration_ms": 3138996,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m33%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:27:09.127516",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 20.735594299999995,
+        "total_duration_ms": 61450450,
+        "total_api_duration_ms": 3149382,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m33%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:28:26.722432",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 20.735925299999995,
+        "total_duration_ms": 61528035,
+        "total_api_duration_ms": 3150740,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m33%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:28:27.078718",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 20.735925299999995,
+        "total_duration_ms": 61528401,
+        "total_api_duration_ms": 3150740,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m33%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:28:28.454757",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 21.402097549999993,
+        "total_duration_ms": 61529780,
+        "total_api_duration_ms": 3159256,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m33%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:28:57.510579",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 21.481935549999992,
+        "total_duration_ms": 61558797,
+        "total_api_duration_ms": 3171307,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:28:59.920352",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 21.55817679999999,
+        "total_duration_ms": 61561259,
+        "total_api_duration_ms": 3179382,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:14.267818",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 21.558426799999992,
+        "total_duration_ms": 61635585,
+        "total_api_duration_ms": 3180619,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:15.148097",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 21.558426799999992,
+        "total_duration_ms": 61636465,
+        "total_api_duration_ms": 3180619,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:16.008231",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.233011549999993,
+        "total_duration_ms": 61637329,
+        "total_api_duration_ms": 3190207,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:21.839147",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.234641549999996,
+        "total_duration_ms": 61643160,
+        "total_api_duration_ms": 3192206,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:22.421273",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.309494799999996,
+        "total_duration_ms": 61643745,
+        "total_api_duration_ms": 3197805,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m32%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:27.368426",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.309494799999996,
+        "total_duration_ms": 61648689,
+        "total_api_duration_ms": 3197805,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m31%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:28.890735",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.394385799999995,
+        "total_duration_ms": 61650225,
+        "total_api_duration_ms": 3204400,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m31%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:32.913535",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.394385799999995,
+        "total_duration_ms": 61654247,
+        "total_api_duration_ms": 3204400,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m31%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:34.019135",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.469710549999995,
+        "total_duration_ms": 61655338,
+        "total_api_duration_ms": 3209306,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m31%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:37.354996",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.469710549999995,
+        "total_duration_ms": 61658698,
+        "total_api_duration_ms": 3209306,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m31%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:38.054213",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.544021549999997,
+        "total_duration_ms": 61659376,
+        "total_api_duration_ms": 3213298,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m31%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:43.216665",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.544021549999997,
+        "total_duration_ms": 61664523,
+        "total_api_duration_ms": 3213298,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:44.277717",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.636552299999998,
+        "total_duration_ms": 61665603,
+        "total_api_duration_ms": 3219485,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:48.639496",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.636552299999998,
+        "total_duration_ms": 61669952,
+        "total_api_duration_ms": 3219485,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:30:54.140320",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.719698049999998,
+        "total_duration_ms": 61675474,
+        "total_api_duration_ms": 3229309,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:15.419252",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.72012805,
+        "total_duration_ms": 61816730,
+        "total_api_duration_ms": 3229936,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:16.055887",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.72012805,
+        "total_duration_ms": 61817365,
+        "total_api_duration_ms": 3229936,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:19.603835",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.72012805,
+        "total_duration_ms": 61820927,
+        "total_api_duration_ms": 3229936,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:20.458619",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.80323105,
+        "total_duration_ms": 61821789,
+        "total_api_duration_ms": 3239573,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:24.917014",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.80460405,
+        "total_duration_ms": 61826255,
+        "total_api_duration_ms": 3241934,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:25.481376",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.80460405,
+        "total_duration_ms": 61826819,
+        "total_api_duration_ms": 3241934,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m29%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:26.527569",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.887371299999998,
+        "total_duration_ms": 61827842,
+        "total_api_duration_ms": 3247786,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:31.961612",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.8911083,
+        "total_duration_ms": 61833268,
+        "total_api_duration_ms": 3253119,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:33.540747",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.97002855,
+        "total_duration_ms": 61834855,
+        "total_api_duration_ms": 3258346,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:38.938453",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 22.975664549999998,
+        "total_duration_ms": 61840290,
+        "total_api_duration_ms": 3264213,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:39.873569",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.052642549999998,
+        "total_duration_ms": 61841218,
+        "total_api_duration_ms": 3269257,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:59.223876",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.052642549999998,
+        "total_duration_ms": 61860544,
+        "total_api_duration_ms": 3269257,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:33:59.527800",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.052642549999998,
+        "total_duration_ms": 61860845,
+        "total_api_duration_ms": 3269257,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:05.805210",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.053387549999997,
+        "total_duration_ms": 61867118,
+        "total_api_duration_ms": 3270205,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:06.521074",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.053387549999997,
+        "total_duration_ms": 61867840,
+        "total_api_duration_ms": 3270205,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:07.415221",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.053387549999997,
+        "total_duration_ms": 61868746,
+        "total_api_duration_ms": 3270205,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:08.706724",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.139441549999997,
+        "total_duration_ms": 61870026,
+        "total_api_duration_ms": 3278724,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:17.749355",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.14281755,
+        "total_duration_ms": 61879064,
+        "total_api_duration_ms": 3286141,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m28%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:18.686551",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.22359805,
+        "total_duration_ms": 61880013,
+        "total_api_duration_ms": 3291214,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m27%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:26.378320",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.22797705,
+        "total_duration_ms": 61887694,
+        "total_api_duration_ms": 3294623,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m27%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:27.705572",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.22797705,
+        "total_duration_ms": 61889025,
+        "total_api_duration_ms": 3294623,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m27%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:30.454042",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.31981705,
+        "total_duration_ms": 61891779,
+        "total_api_duration_ms": 3305206,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m27%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:34.405369",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.31981705,
+        "total_duration_ms": 61895725,
+        "total_api_duration_ms": 3305206,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m27%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:34:41.863413",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.410748050000002,
+        "total_duration_ms": 61903207,
+        "total_api_duration_ms": 3316599,
+        "total_lines_added": 983,
+        "total_lines_removed": 43
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:37:45.441592",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.628944999999998,
+        "total_duration_ms": 62086753,
+        "total_api_duration_ms": 3398939,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:37:47.363509",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.719357,
+        "total_duration_ms": 62088695,
+        "total_api_duration_ms": 3406179,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:37:51.188569",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.719357,
+        "total_duration_ms": 62092535,
+        "total_api_duration_ms": 3406179,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:37:54.389173",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.80066775,
+        "total_duration_ms": 62095735,
+        "total_api_duration_ms": 3413237,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:38.607171",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.800901749999998,
+        "total_duration_ms": 62499918,
+        "total_api_duration_ms": 3414046,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:39.023778",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 23.800901749999998,
+        "total_duration_ms": 62500344,
+        "total_api_duration_ms": 3414046,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:40.448879",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.735470499999998,
+        "total_duration_ms": 62501769,
+        "total_api_duration_ms": 3421109,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:45.214424",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.735470499999998,
+        "total_duration_ms": 62506561,
+        "total_api_duration_ms": 3421109,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:45.977867",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.815765999999996,
+        "total_duration_ms": 62507296,
+        "total_api_duration_ms": 3426580,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[33m26%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:53.896703",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.815765999999996,
+        "total_duration_ms": 62515235,
+        "total_api_duration_ms": 3426580,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[31m24%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:44:59.985517",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.919205249999997,
+        "total_duration_ms": 62521316,
+        "total_api_duration_ms": 3440558,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[31m24%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:47:41.313254",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.919205249999997,
+        "total_duration_ms": 62682653,
+        "total_api_duration_ms": 3440558,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[31m24%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:47:41.620044",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.919205249999997,
+        "total_duration_ms": 62682952,
+        "total_api_duration_ms": 3440558,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[31m24%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:47:50.214819",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.927406249999997,
+        "total_duration_ms": 62691528,
+        "total_api_duration_ms": 3443147,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[31m20%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
+  },
+  {
+    "timestamp": "2025-12-08T12:47:50.967542",
+    "version": "v4",
+    "input_data": {
+      "session_id": "df929f08-29e1-47b7-9f41-fd8a2187771b",
+      "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/df929f08-29e1-47b7-9f41-fd8a2187771b.jsonl",
+      "cwd": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+      "model": {
+        "id": "claude-opus-4-5-20251101",
+        "display_name": "Opus 4.5"
+      },
+      "workspace": {
+        "current_dir": "/Users/harrison/Documents/Github/camp-ops-emea-phase1-efficiencies/projects/ketchup/tests/setup",
+        "project_dir": "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup"
+      },
+      "version": "2.0.60",
+      "output_style": {
+        "name": "Explanatory"
+      },
+      "cost": {
+        "total_cost_usd": 24.927406249999997,
+        "total_duration_ms": 62692287,
+        "total_api_duration_ms": 3443147,
+        "total_lines_added": 997,
+        "total_lines_removed": 57
+      },
+      "exceeds_200k_tokens": false
+    },
+    "status_line_output": "\ud83d\udcca \u001b[96m\u001b[1mOpus 4.5\u001b[0m \u001b[97m|\u001b[0m \ud83d\udcc1 \u001b[93msetup\u001b[0m \u001b[97m|\u001b[0m \ud83e\udde0 \u001b[31m20%\u001b[0m left \u001b[97m|\u001b[0m \u001b[2mv2.0.60\u001b[0m \u001b[97m|\u001b[0m \ud83c\udd94 \u001b[94mdf929f08-29e1-47b7-9f41-fd8a2187771b\u001b[0m",
+    "error": "Session file /Users/harrison/.claude/data/sessions/df929f08-29e1-47b7-9f41-fd8a2187771b.json not found"
   }
 ]

@@ -9,3 +9,6 @@ docs/*
 # Copy .env.test.example to .env.test and update with your profile
 .env.test
 uv.lock
+
+# Session logs
+tests/setup/logs/*.json

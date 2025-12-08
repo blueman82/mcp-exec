@@ -11,8 +11,8 @@ COPY packages/ /app/packages/
 COPY jira_reporter/ /app/jira_reporter/
 
 # Copy health check script
-COPY infrastructure/healthcheck-jira-reporter.sh /app/infrastructure/
-RUN chmod +x /app/infrastructure/healthcheck-jira-reporter.sh
+COPY infrastructure/healthcheck-scheduler.sh /app/infrastructure/
+RUN chmod +x /app/infrastructure/healthcheck-scheduler.sh
 
 # Set environment variables
 ENV PYTHONPATH="/app"

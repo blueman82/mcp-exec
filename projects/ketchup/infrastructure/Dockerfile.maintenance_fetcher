@@ -35,10 +35,10 @@ WORKDIR /app
 # Copy application code (following pattern from status-updater)
 COPY packages/ ./packages/
 COPY ketchup_maintenance_fetcher/ ./ketchup_maintenance_fetcher/
-COPY infrastructure/healthcheck-maintenance-fetcher.sh ./scripts/
+COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
 
 # Make healthcheck script executable
-RUN chmod +x scripts/healthcheck-maintenance-fetcher.sh
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
 
 # Create log directory
 RUN mkdir -p /var/log
@@ -48,7 +48,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Health check using the script
 HEALTHCHECK --interval=5m --timeout=10s --start-period=30s --retries=3 \
-  CMD ["./scripts/healthcheck-maintenance-fetcher.sh"]
+  CMD ["./infrastructure/healthcheck-scheduler.sh"]
 
 # Run Python scheduler
 CMD ["python", "/app/ketchup_maintenance_fetcher/scheduler.py"]

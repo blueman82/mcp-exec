@@ -123,10 +123,12 @@ class TestSchedulerIntegration:
 
         scheduler = PatRotationScheduler()
 
-        # Verify rotation interval
-        assert hasattr(scheduler, "ROTATION_INTERVAL_SECONDS")
-        # 24 hours in seconds
-        assert scheduler.ROTATION_INTERVAL_SECONDS == 24 * 60 * 60
+        # Verify rotation interval - BaseScheduler uses interval_minutes
+        assert hasattr(scheduler, "interval_minutes")
+        # 24 hours in minutes = 1440
+        assert scheduler.interval_minutes == 1440
+        # get_sleep_seconds should return 24 hours in seconds
+        assert scheduler.get_sleep_seconds() == 24 * 60 * 60
 
     @pytest.mark.asyncio
     async def test_rotator_can_be_instantiated_with_dependencies(self):
@@ -185,25 +187,24 @@ class TestMainAsyncFunctionality:
 
         scheduler = PatRotationScheduler()
 
-        # Mock the rotation check to avoid actual network calls
-        with patch.object(scheduler, "run_rotation_check", new_callable=AsyncMock):
-            # Set a flag to stop after first iteration
-            original_running = scheduler.running
+        # Mock the run_task method to avoid actual network calls
+        with patch.object(scheduler, "run_task", new_callable=AsyncMock):
+            # Mock asyncio.sleep to prevent infinite loop
+            with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                # Schedule shutdown after first run
+                async def run_with_timeout():
+                    task = asyncio.create_task(scheduler.start())
+                    await asyncio.sleep(0.1)
+                    scheduler.running = False
+                    try:
+                        await asyncio.wait_for(task, timeout=2.0)
+                    except asyncio.TimeoutError:
+                        pass
 
-            # Schedule shutdown after first run
-            async def run_with_timeout():
-                task = asyncio.create_task(scheduler.start())
-                await asyncio.sleep(0.5)
-                scheduler.running = False
                 try:
-                    await asyncio.wait_for(task, timeout=2.0)
-                except asyncio.TimeoutError:
-                    pass
-
-            try:
-                await run_with_timeout()
-            except Exception as e:
-                pytest.fail(f"Scheduler failed to run: {e}")
+                    await run_with_timeout()
+                except Exception as e:
+                    pytest.fail(f"Scheduler failed to run: {e}")
 
 
 class TestMainModuleExports:

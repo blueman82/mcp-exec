@@ -1,19 +1,22 @@
 # Background Services Architecture
 
-This component diagram shows the 5 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. Four services run ONLY on prod1 as singletons to prevent duplicate operations, while the access monitor runs on both servers.
+This component diagram shows the 6 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. Five services run ONLY on prod1 as singletons to prevent duplicate operations, while the access monitor runs on both servers.
+
+> **Note**: All scheduler services use the consolidated `BaseScheduler` pattern (`packages/core/schedulers/base_scheduler.py`) with a unified `healthcheck-scheduler.sh` script.
 
 ```mermaid
 graph TB
-    subgraph Scheduling["⏰ Scheduling Layer"]
-        Cron1["APScheduler<br/>(prod1 only)"]
-        Cron2["APScheduler<br/>(prod2 only)"]
+    subgraph Scheduling["⏰ Scheduling Layer (BaseScheduler)"]
+        Cron1["BaseScheduler<br/>(prod1 only)"]
+        Cron2["BaseScheduler<br/>(prod2 only)"]
     end
-    
+
     subgraph prod1Singletons["🔴 SINGLETON SERVICES (prod1 ONLY)"]
-        StatusUpdater["📊 ketchup-status-updater<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every hour<br/>━━━━━━━━━━━━━━━"]
-        MetadataUpdater["🔍 ketchup-metadata-updater<br/>━━━━━━━━━━━━━━━<br/>Schedule: Periodic scan<br/>━━━━━━━━━━━━━━━"]
+        StatusUpdater["📊 ketchup-status-updater<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every 55 min<br/>━━━━━━━━━━━━━━━"]
+        MetadataUpdater["🔍 ketchup-metadata-updater<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every 15 min<br/>━━━━━━━━━━━━━━━"]
         JiraReporter["🎫 ketchup-jira-reporter<br/>━━━━━━━━━━━━━━━<br/>Schedule: Continuous monitoring<br/>━━━━━━━━━━━━━━━"]
-        MaintenanceFetcher["⚠️ ketchup-maintenance-fetcher<br/>━━━━━━━━━━━━━━━<br/>Schedule: Periodic polling<br/>━━━━━━━━━━━━━━━"]
+        MaintenanceFetcher["⚠️ ketchup-maintenance-fetcher<br/>━━━━━━━━━━━━━━━<br/>Schedule: Daily 1:30 UTC<br/>━━━━━━━━━━━━━━━"]
+        PatRotator["🔑 ketchup-jira-pat-rotator<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every 24 hours<br/>━━━━━━━━━━━━━━━"]
     end
     
     subgraph BothServers["🟢 DISTRIBUTED SERVICE (prod1 + prod2)"]
@@ -25,6 +28,7 @@ graph TB
     Cron1 -.->|"Trigger"| MetadataUpdater
     Cron1 -.->|"Trigger"| JiraReporter
     Cron1 -.->|"Trigger"| MaintenanceFetcher
+    Cron1 -.->|"Trigger"| PatRotator
     Cron1 -.->|"Trigger"| AccessMonitor1
     Cron2 -.->|"Trigger"| AccessMonitor2
     
@@ -120,6 +124,7 @@ graph TB
     MetadataUpdater -.->|"Get tokens"| Secrets
     JiraReporter -.->|"Get tokens"| Secrets
     MaintenanceFetcher -.->|"Get tokens"| Secrets
+    PatRotator -.->|"Get tokens"| Secrets
     AccessMonitor1 -.->|"Get tokens"| Secrets
     AccessMonitor2 -.->|"Get tokens"| Secrets
     
@@ -130,7 +135,7 @@ graph TB
     classDef scheduler fill:#9B59B6,stroke:#6C3483,stroke-width:2px,color:#fff
     classDef flow fill:#ECF0F1,stroke:#95A5A6,stroke-width:1px
     
-    class StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher singleton
+    class StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator singleton
     class AccessMonitor1,AccessMonitor2 distributed
     class SlackAPI,AzureAI,MCPJira,RavenAPI external
     class DDB,Secrets,SQS dataStore
