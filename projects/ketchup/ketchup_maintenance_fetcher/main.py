@@ -9,28 +9,35 @@ import asyncio
 import os
 import sys
 from datetime import datetime
+from typing import Optional
 
 # Add packages to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.protocols import (
     DynamoDBStoreProtocol,
     RavenMaintenanceClientProtocol,
 )
-from packages.core.typed_di.typed_resolver import resolve_typed
 from packages.core.typed_di_integration import cleanup_unified_container, get_unified_container
 
 logger = setup_logger(__name__)
 
 
-async def fetch_and_store_maintenance_data():
+async def fetch_and_store_maintenance_data(
+    container: Optional[TypedServiceRegistry] = None,
+):
     """
     Fetch maintenance data and store in DynamoDB cache.
+
+    Args:
+        container: Optional TypedServiceRegistry instance. If None, creates one internally.
 
     Returns:
         Dict with status, records count, and date if successful
     """
+    container_created_internally = container is None
     try:
         logger.info(f"Starting maintenance data fetch at {datetime.now()}")
 
@@ -39,12 +46,13 @@ async def fetch_and_store_maintenance_data():
             logger.info("Maintenance fetcher disabled by feature flag")
             return {"status": "disabled"}
 
-        # Initialize TypedServiceRegistry
-        logger.info("Initializing TypedServiceRegistry...")
-        container = await get_unified_container()
+        # Initialize TypedServiceRegistry if not provided
+        if container is None:
+            logger.info("Initializing TypedServiceRegistry...")
+            container = await get_unified_container()
 
         # Get SOAP client via TypedDI
-        soap_client = await resolve_typed(RavenMaintenanceClientProtocol)
+        soap_client = await container.aget(RavenMaintenanceClientProtocol)
 
         # Fetch today's maintenance data
         date_today = datetime.now().strftime("%Y-%m-%d")
@@ -57,7 +65,7 @@ async def fetch_and_store_maintenance_data():
         logger.info(f"Fetched {len(maintenance_data)} records for {date_today}")
 
         # Store in DynamoDB via TypedDI
-        db_store = await resolve_typed(DynamoDBStoreProtocol)
+        db_store = await container.aget(DynamoDBStoreProtocol)
         success = await db_store.store_maintenance_cache(date=date_today, data=maintenance_data)
 
         if success:
@@ -75,11 +83,13 @@ async def fetch_and_store_maintenance_data():
         logger.error(f"Maintenance fetch failed: {e}", exc_info=True)
         return {"status": "error", "message": str(e)}
     finally:
-        logger.info("Cleaning up DI container...")
-        try:
-            await cleanup_unified_container()
-        except Exception as e:
-            logger.warning(f"Error during cleanup: {e}")
+        # Only cleanup if we created the container internally
+        if container_created_internally:
+            logger.info("Cleaning up DI container...")
+            try:
+                await cleanup_unified_container()
+            except Exception as e:
+                logger.warning(f"Error during cleanup: {e}")
 
 
 def main():

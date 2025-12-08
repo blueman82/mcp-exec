@@ -7,12 +7,13 @@ This module contains the metadata processing handler for the channel metadata up
 import asyncio
 import gc
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import aiohttp
 
 from channel_metadata_updater.metadata_updater import ChannelMetadataUpdater
 from packages.core.logging import setup_logger
+from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
     DynamoDBStoreProtocol,
     SecretsManagerProtocol,
@@ -94,12 +95,17 @@ async def create_channel_metadata_updater(container) -> ChannelMetadataUpdater:
     return ChannelMetadataUpdater(**dependencies)
 
 
-async def process_channels(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+async def process_channels(
+    event: Dict[str, Any],
+    context: Any,
+    container: Optional[TypedServiceRegistry] = None,
+) -> Dict[str, Any]:
     """Process channels with missing metadata asynchronously.
 
     Args:
         event: The Lambda event data
         context: The Lambda context object
+        container: Optional pre-initialized TypedDI container. If None, creates one.
 
     Returns:
         Dict with status information
@@ -107,9 +113,12 @@ async def process_channels(event: Dict[str, Any], context: Any) -> Dict[str, Any
     logger.info("Starting metadata update process for event: %s", event)
 
     try:
-        logger.info("Initializing TypedDI container...")
-        container = await get_unified_container()
-        logger.info("TypedDI container initialized successfully.")
+        if container is None:
+            logger.info("Initializing TypedDI container...")
+            container = await get_unified_container()
+            logger.info("TypedDI container initialized successfully.")
+        else:
+            logger.info("Using pre-initialized TypedDI container.")
     except Exception as e:
         logger.error(
             "Fatal error during container initialization: %s",
