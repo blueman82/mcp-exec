@@ -20,7 +20,7 @@ services:
         max-file: "3"
 
   ketchup-app:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.352
     env_file:
       - common.env
       - performance.env
@@ -74,7 +74,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-metadata-updater:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-metadata-updater:v2.360.352
     env_file:
       - common.env
       - performance.env
@@ -104,7 +104,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.352
     ports:
       - "8081:8081"
     env_file:
@@ -133,7 +133,7 @@ services:
         max-file: "3"
 
   ketchup-status-updater:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-status-updater:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-status-updater:v2.360.352
     env_file:
       - common.env
       - performance.env
@@ -165,7 +165,7 @@ services:
         max-file: "3"
 
   ketchup-jira-reporter:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-reporter:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-reporter:v2.360.352
     env_file:
       - common.env
       - performance.env
@@ -201,7 +201,7 @@ services:
         max-file: "3"
 
   ketchup-access-monitor:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.352
     env_file:
       - common.env
       - performance.env
@@ -225,7 +225,7 @@ services:
         max-file: "3"
 
   ketchup-maintenance-fetcher:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-maintenance-fetcher:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-maintenance-fetcher:v2.360.352
     env_file:
       - common.env
     environment:
@@ -246,7 +246,7 @@ services:
         max-file: "3"
 
   ketchup-jira-pat-rotator:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-pat-rotator:v2.360.351
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-pat-rotator:v2.360.352
     env_file:
       - common.env
       - performance.env

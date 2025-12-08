@@ -53,7 +53,7 @@ NO_CACHE=false
 
 # Script directory for validate.sh
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-VALIDATE_SCRIPT="${SCRIPT_DIR}/validate.sh"
+VALIDATE_SCRIPT="${SCRIPT_DIR}/infrastructure/validate.sh"
 
 # Remote paths
 PROD_DIR="/opt/ketchup"
