@@ -9,7 +9,7 @@ import json
 import os
 import sys
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from jira_reporter.archive_handler import JiraReporterArchiveHandler
 from jira_reporter.channel_monitor import ChannelMonitor
@@ -18,6 +18,7 @@ from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
 from jira_reporter.report_generator import ReportGenerator
 from packages.core.logging import setup_logger
 from packages.core.sqs_client import SQSClient
+from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.protocols.command_protocols import (
     FeatureServiceProtocol,
 )
@@ -337,8 +338,15 @@ async def process_sqs_messages(
         return 0
 
 
-async def run_reporting_cycle() -> None:
-    """Run a single reporting cycle."""
+async def run_reporting_cycle(
+    container: Optional[TypedServiceRegistry] = None,
+) -> None:
+    """Run a single reporting cycle.
+
+    Args:
+        container: Optional pre-configured TypedServiceRegistry container.
+                   If None, creates a new container via get_unified_container().
+    """
     try:
         # Write health status at start of cycle
         write_health_status("running")
@@ -356,8 +364,9 @@ async def run_reporting_cycle() -> None:
         logger.info("Starting JIRA reporting cycle")
         stats["last_run"] = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
 
-        # Initialize DI container and store reference
-        container = await get_unified_container()
+        # Initialize DI container if not provided
+        if container is None:
+            container = await get_unified_container()
 
         # Get required services using TypedDI
         dynamodb_store = await container.aget(DynamoDBStoreProtocol)

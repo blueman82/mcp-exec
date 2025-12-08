@@ -5,12 +5,14 @@ Auto-status updater service that runs as a scheduled job.
 import asyncio
 import sys
 from datetime import datetime
+from typing import Optional
 
 from ketchup_status_updater.processor import AutoStatusProcessor
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.distributed_lock import DistributedLock
 from packages.core.logging import setup_logger
 from packages.core.typed_di.exceptions import MissingDependencyError
+from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.protocols.command_protocols import (
     FeatureServiceProtocol,
 )
@@ -39,14 +41,22 @@ from packages.core.typed_di_integration import get_unified_container
 logger = setup_logger(__name__)
 
 
-async def run_auto_status():
-    """Run the auto-status update process with distributed locking."""
+async def run_auto_status(
+    container: Optional[TypedServiceRegistry] = None,
+):
+    """Run the auto-status update process with distributed locking.
+
+    Args:
+        container: Optional pre-initialized TypedDI container. If None,
+                  creates a new container via get_unified_container().
+    """
     try:
         logger.info(f"Starting auto-status update at {datetime.now()}")
 
-        # Initialize DI container first (needed for distributed lock)
-        logger.info("Initializing DI container...")
-        container = await get_unified_container()
+        # Initialize DI container if not provided (supports passthrough pattern)
+        if container is None:
+            logger.info("Initializing DI container...")
+            container = await get_unified_container()
 
         # Get DynamoDB store using TypedDI
         db_store = await container.aget(DynamoDBStoreProtocol)
