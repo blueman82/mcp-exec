@@ -198,9 +198,11 @@ class ChannelProcessor:
                 )
 
     async def cleanup(self) -> None:
-        """Clean up channel operations resources."""
-        try:
-            if hasattr(self.channel_msg_ops, "cleanup"):
-                await self.channel_msg_ops.cleanup()
-        except Exception as e:
-            self.logger.error("Error cleaning up channel operations: %s", str(e))
+        """Clean up channel operations resources.
+
+        NOTE: channel_msg_ops is an injected dependency from TypedDI.
+        Do NOT cleanup injected dependencies as they may be shared
+        across multiple services in the unified scheduler.
+        """
+        # Injected dependencies should be managed by the DI container, not here.
+        pass

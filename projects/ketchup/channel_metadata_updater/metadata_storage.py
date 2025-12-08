@@ -176,9 +176,13 @@ class MetadataStorage:
             return False
 
     async def cleanup(self) -> None:
-        """Clean up storage resources."""
-        try:
-            if hasattr(self.dynamodb_store, "cleanup"):
-                await self.dynamodb_store.cleanup()
-        except Exception as e:
-            self.logger.error("Error cleaning up storage: %s", str(e))
+        """Clean up storage resources.
+
+        NOTE: dynamodb_store is an injected dependency from TypedDI.
+        Do NOT cleanup injected dependencies as they may be shared
+        across multiple services in the unified scheduler.
+        """
+        # Previously called dynamodb_store.cleanup() which closed the shared
+        # DynamoDB session, breaking other tasks running concurrently.
+        # Injected dependencies should be managed by the DI container, not here.
+        pass
