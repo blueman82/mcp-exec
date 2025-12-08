@@ -29,9 +29,7 @@ class ChannelProcessor:
             max_concurrency: Maximum concurrent channel processing.
         """
         if not channel_msg_ops:
-            raise ValueError(
-                "An initialized SlackChannelMessageOps instance is required."
-            )
+            raise ValueError("An initialized SlackChannelMessageOps instance is required.")
         self.channel_msg_ops = channel_msg_ops
         self.dynamodb_store = dynamodb_store
         self.logger = setup_logger(__name__)
@@ -66,13 +64,13 @@ class ChannelProcessor:
                     messages = await self.channel_msg_ops.fetch_channel_messages_collected(
                         channel_id=channel_id,
                         include_bot_messages=True,
-                        include_system_messages=True
+                        include_system_messages=True,
                     )
                 else:
                     messages = await self.channel_msg_ops.fetch_channel_messages(
                         channel_id=channel_id,
                         include_bot_messages=True,
-                        include_system_messages=True
+                        include_system_messages=True,
                     )
 
                 self.logger.info(
@@ -89,9 +87,13 @@ class ChannelProcessor:
                 error_str = str(e).lower()
                 error_data = getattr(e, "response_data", {})
                 # Handle channel_not_found or not_in_channel - delete from DB
-                if "channel_not_found" in error_str or "not_in_channel" in error_str or (
-                    isinstance(error_data, dict)
-                    and error_data.get("error") in ["channel_not_found", "not_in_channel"]
+                if (
+                    "channel_not_found" in error_str
+                    or "not_in_channel" in error_str
+                    or (
+                        isinstance(error_data, dict)
+                        and error_data.get("error") in ["channel_not_found", "not_in_channel"]
+                    )
                 ):
                     self.logger.warning(
                         "Channel %s not found or bot not in channel. Deleting from DB.", channel_id
@@ -156,9 +158,7 @@ class ChannelProcessor:
             self.logger.info("Batch processing complete. Stats: %s", stats)
             return stats
         except Exception as e:
-            self.logger.error(
-                "Error during batch processing: %s", str(e), exc_info=True
-            )
+            self.logger.error("Error during batch processing: %s", str(e), exc_info=True)
             return stats
 
     async def _safe_process_channel(
@@ -174,9 +174,7 @@ class ChannelProcessor:
         """
         # Avoid processing the same channel twice in a batch
         if channel_id in self.processed_channels:
-            self.logger.info(
-                "Channel %s already processed in this batch, skipping", channel_id
-            )
+            self.logger.info("Channel %s already processed in this batch, skipping", channel_id)
             stats["skipped"] = stats.get("skipped", 0) + 1
             return
 

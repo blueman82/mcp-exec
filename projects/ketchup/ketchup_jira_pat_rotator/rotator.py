@@ -13,11 +13,13 @@ Orchestrates:
 Runs as singleton service on prod1 only - no distributed locking needed.
 """
 
-import asyncio
 import json
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+import boto3
+
+from packages.core.constants import AWS_REGION
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -28,8 +30,7 @@ class SecretsManager:
 
     def __init__(self):
         """Initialize secrets manager."""
-        import boto3
-        self.client = boto3.client("secretsmanager")
+        self.client = boto3.client("secretsmanager", region_name=AWS_REGION)
         # CRITICAL: Use correct secret name matching AWS and env-aws.ts
         self.secret_name = "Ketchup_Token_Secrets"
 
@@ -94,10 +95,14 @@ class SecretsManager:
             secret_dict = json.loads(secret_string)
 
             # Log which fields we're preserving
-            preserved_fields = [k for k in secret_dict.keys() if k not in [
-                "ketchup_jira_pat", "ketchup_jira_pat_id", "ketchup_jira_pat_expiry"
-            ]]
-            logger.info(f"Preserving {len(preserved_fields)} existing secret fields: {preserved_fields}")
+            preserved_fields = [
+                k
+                for k in secret_dict.keys()
+                if k not in ["ketchup_jira_pat", "ketchup_jira_pat_id", "ketchup_jira_pat_expiry"]
+            ]
+            logger.info(
+                f"Preserving {len(preserved_fields)} existing secret fields: {preserved_fields}"
+            )
 
             # Step 2: Update ONLY the PAT-related fields, preserve everything else
             secret_dict["ketchup_jira_pat"] = new_pat
@@ -130,6 +135,7 @@ class SlackNotifier:
     def __init__(self):
         """Initialize Slack notifier."""
         import os
+
         self.webhook_url = os.getenv("SLACK_WEBHOOK_URL")
 
     async def notify_success(
@@ -159,9 +165,9 @@ class SlackNotifier:
                         "text": {
                             "type": "mrkdwn",
                             "text": ":white_check_mark: *JIRA PAT Rotation Successful*\n"
-                                    f"New PAT ID: `{new_pat_id}`\n"
-                                    f"Expiry: `{new_expiry}`\n"
-                                    f"Old PAT ID: `{old_pat_id}` (revoked)",
+                            f"New PAT ID: `{new_pat_id}`\n"
+                            f"Expiry: `{new_expiry}`\n"
+                            f"Old PAT ID: `{old_pat_id}` (revoked)",
                         },
                     },
                 ],
@@ -198,8 +204,8 @@ class SlackNotifier:
                         "text": {
                             "type": "mrkdwn",
                             "text": ":x: *JIRA PAT Rotation Failed*\n"
-                                    f"Reason: `{reason}`\n"
-                                    f"Details: {error_details}",
+                            f"Reason: `{reason}`\n"
+                            f"Details: {error_details}",
                         },
                     },
                 ],
@@ -243,9 +249,9 @@ class SlackNotifier:
                         "text": {
                             "type": "mrkdwn",
                             "text": ":warning: *JIRA PAT Rotation - Partial Success*\n"
-                                    f"{status_new} New PAT Created & Activated: `{new_pat_id}`\n"
-                                    f"{status_old} Old PAT Revoked: {'Yes' if old_pat_revoked else 'No'}\n"
-                                    + (f"Revocation Error: {revocation_error}" if revocation_error else ""),
+                            f"{status_new} New PAT Created & Activated: `{new_pat_id}`\n"
+                            f"{status_old} Old PAT Revoked: {'Yes' if old_pat_revoked else 'No'}\n"
+                            + (f"Revocation Error: {revocation_error}" if revocation_error else ""),
                         },
                     },
                 ],
@@ -266,6 +272,7 @@ class SlackNotifier:
         """
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     self.webhook_url,
@@ -294,24 +301,53 @@ class PATRotator:
     6. Send success alert
     """
 
-    def __init__(self):
-        """Initialize PAT rotator with all required dependencies."""
-        # Import here to avoid circular dependencies and enable mocking
+    def __init__(self, container=None):
+        """
+        Initialize PAT rotator with dependencies from TypedDI container.
+
+        Args:
+            container: TypedDI container for resolving dependencies.
+                      If None, falls back to direct instantiation (legacy behavior).
+        """
         from ketchup_jira_pat_rotator.pat_monitor import PatMonitor
-        from packages.integrations.mcp_client import MCPClient
-        from packages.integrations.ims_token_manager import IMSTokenManager
 
         self._monitor = PatMonitor()
-        self._secrets_manager = SecretsManager()
+        self._secrets_manager = SecretsManager()  # Local SecretsManager for PAT storage
         self._slack_notifier = SlackNotifier()
+        self._container = container
+        self._mcp_client = None  # Resolved lazily via DI
 
-        # MCP client requires token manager
+    async def _get_mcp_client(self):
+        """Get MCP client, resolving via DI if available."""
+        if self._mcp_client is not None:
+            return self._mcp_client
+
+        if self._container is not None:
+            try:
+                from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
+                    MCPClientProtocol,
+                )
+
+                self._mcp_client = await self._container.aget(MCPClientProtocol)
+                logger.info("MCP client resolved via TypedDI")
+                return self._mcp_client
+            except Exception as e:
+                logger.error(f"Failed to resolve MCP client via DI: {e}")
+
+        # Fallback to direct instantiation (legacy behavior)
         try:
-            token_manager = IMSTokenManager()
+            from packages.integrations.ims_token_manager import IMSTokenManager
+            from packages.integrations.mcp_client import MCPClient
+            from packages.secrets.manager import SecretsManager as PackageSecretsManager
+
+            package_secrets_manager = PackageSecretsManager()
+            token_manager = IMSTokenManager(package_secrets_manager)
             self._mcp_client = MCPClient(token_manager)
+            logger.info("MCP client initialized via fallback (direct instantiation)")
+            return self._mcp_client
         except Exception as e:
             logger.error(f"Failed to initialize MCP client: {e}")
-            self._mcp_client = None
+            return None
 
     async def rotate(self) -> Dict[str, Any]:
         """
@@ -333,6 +369,14 @@ class PATRotator:
                     "timestamp": datetime.utcnow().isoformat(),
                 }
 
+            # Get MCP client via DI (or fallback)
+            mcp_client = await self._get_mcp_client()
+            if mcp_client is None:
+                return await self._handle_rotation_failure(
+                    "mcp_client_unavailable",
+                    "Could not initialize MCP client for PAT rotation",
+                )
+
             # Get current PAT for revocation later
             current_secrets = await self._secrets_manager.get_current_pat()
             # Use correct field names matching AWS Secrets Manager
@@ -341,7 +385,7 @@ class PATRotator:
             # Step 2: Create new PAT via MCP
             logger.info("Creating new PAT via MCP")
             try:
-                new_pat_response = await self._mcp_client.create_pat()
+                new_pat_response = await mcp_client.create_pat()
                 new_pat = new_pat_response.get("pat")
                 new_pat_id = new_pat_response.get("id")
                 new_expiry = new_pat_response.get("expiryDate")
@@ -361,7 +405,7 @@ class PATRotator:
             # Step 3: Validate new PAT works
             logger.info("Validating new PAT")
             try:
-                validation_result = await self._mcp_client.validate_pat(new_pat)
+                validation_result = await mcp_client.validate_pat(new_pat)
 
                 if not validation_result.get("valid"):
                     raise Exception(
@@ -374,7 +418,7 @@ class PATRotator:
                 logger.error(f"Failed to validate new PAT: {e}")
                 # Clean up: revoke the new invalid PAT
                 try:
-                    await self._mcp_client.revoke_pat(new_pat_id)
+                    await mcp_client.revoke_pat(new_pat_id)
                     logger.info(f"Revoked invalid PAT: {new_pat_id}")
                 except Exception as revoke_error:
                     logger.error(f"Failed to revoke invalid PAT: {revoke_error}")
@@ -402,7 +446,7 @@ class PATRotator:
                 logger.error(f"Failed to update secrets: {e}")
                 # Clean up: revoke the new PAT since we couldn't activate it
                 try:
-                    await self._mcp_client.revoke_pat(new_pat_id)
+                    await mcp_client.revoke_pat(new_pat_id)
                     logger.info(f"Revoked new PAT due to secrets update failure: {new_pat_id}")
                 except Exception as revoke_error:
                     logger.error(f"Failed to revoke new PAT: {revoke_error}")
@@ -418,7 +462,7 @@ class PATRotator:
             revocation_error = None
 
             try:
-                revoke_result = await self._mcp_client.revoke_pat(old_pat_id)
+                revoke_result = await mcp_client.revoke_pat(old_pat_id)
 
                 if revoke_result.get("success"):
                     old_pat_revoked = True

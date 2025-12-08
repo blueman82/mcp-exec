@@ -28,9 +28,7 @@ class MetadataStorage:
             self.dynamodb_store = dynamodb_store
         else:
             client = DynamoDBAsyncClient()
-            self.dynamodb_store = DynamoDBStore(
-                client=client, table_name=DYNAMODB_TABLE_NAME
-            )
+            self.dynamodb_store = DynamoDBStore(client=client, table_name=DYNAMODB_TABLE_NAME)
 
     async def scan_for_incomplete_metadata(self) -> List[str]:
         """
@@ -51,10 +49,7 @@ class MetadataStorage:
                 customer_name = details.get("customer_name", "NOT YET AVAILABLE")
                 jira_ticket = details.get("jira_ticket", "NOT YET AVAILABLE")
 
-                if (
-                    customer_name == "NOT YET AVAILABLE"
-                    or jira_ticket == "NOT YET AVAILABLE"
-                ):
+                if customer_name == "NOT YET AVAILABLE" or jira_ticket == "NOT YET AVAILABLE":
                     if not details.get("archived", False):  # Skip archived channels
                         incomplete_channels.append(channel_id)
 
@@ -67,9 +62,7 @@ class MetadataStorage:
             return incomplete_channels
 
         except Exception as e:
-            self.logger.error(
-                "Error scanning for incomplete metadata: %s", str(e), exc_info=True
-            )
+            self.logger.error("Error scanning for incomplete metadata: %s", str(e), exc_info=True)
             return []
 
     async def needs_metadata_update(self, channel_id: str) -> bool:
@@ -92,10 +85,7 @@ class MetadataStorage:
             customer_name = channel_details.get("customer_name", "NOT YET AVAILABLE")
             jira_ticket = channel_details.get("jira_ticket", "NOT YET AVAILABLE")
 
-            return (
-                customer_name == "NOT YET AVAILABLE"
-                or jira_ticket == "NOT YET AVAILABLE"
-            )
+            return customer_name == "NOT YET AVAILABLE" or jira_ticket == "NOT YET AVAILABLE"
         except Exception as e:
             self.logger.error(
                 "Error checking if channel %s needs update: %s",
@@ -106,9 +96,7 @@ class MetadataStorage:
             # Default to False on error to avoid unnecessary processing
             return False
 
-    async def store_extracted_metadata(
-        self, channel_id: str, metadata: Dict[str, str]
-    ) -> bool:
+    async def store_extracted_metadata(self, channel_id: str, metadata: Dict[str, str]) -> bool:
         """
         Store extracted metadata in DynamoDB.
 
@@ -129,18 +117,14 @@ class MetadataStorage:
 
             # Only update if the new value is not 'NOT YET AVAILABLE', otherwise keep the existing value
             new_customer_name = metadata.get("customer_name", "NOT YET AVAILABLE")
-            current_customer_name = channel_details.get(
-                "customer_name", "NOT YET AVAILABLE"
-            )
+            current_customer_name = channel_details.get("customer_name", "NOT YET AVAILABLE")
             if new_customer_name == "NOT YET AVAILABLE":
                 customer_name_to_store = current_customer_name
             else:
                 customer_name_to_store = new_customer_name
 
             new_jira_ticket = metadata.get("jira_ticket", "NOT YET AVAILABLE")
-            current_jira_ticket = channel_details.get(
-                "jira_ticket", "NOT YET AVAILABLE"
-            )
+            current_jira_ticket = channel_details.get("jira_ticket", "NOT YET AVAILABLE")
             if new_jira_ticket == "NOT YET AVAILABLE":
                 jira_ticket_to_store = current_jira_ticket
             else:

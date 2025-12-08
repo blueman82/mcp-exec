@@ -161,6 +161,19 @@ ignore = [
 "packages/core/typed_di/*" = ["E402"]  # Late imports for DI resolution
 "packages/core/typed_di/service_registrations/*" = ["E402"]  # Factory function imports
 "packages/core/typed_di/service_registrations/registrations/*" = ["E402"]  # Service registration imports
+# Service main.py files use DI smoke checks that assign variables to verify resolution
+# The variables aren't used - the assignment itself tests that TypedDI can resolve the service
+"ketchup_jira_pat_rotator/main.py" = ["F841"]  # DI smoke checks for db_store, secrets_manager, etc
+"ketchup_maintenance_fetcher/main.py" = ["F841"]  # Container resolution validation
+# Import order (I001) ignored in service directories to protect TypedDI circular dependency handling
+# Reordering imports can break factory functions that rely on specific import sequence
+"channel_metadata_updater/*.py" = ["I001"]  # Preserve import order for TypedDI
+"jira_reporter/*.py" = ["I001"]  # Preserve import order for TypedDI
+"ketchup_status_updater/*.py" = ["I001"]  # Preserve import order for TypedDI
+"ketchup_access_request_monitor/*.py" = ["I001"]  # Preserve import order for TypedDI
+"ketchup_jira_pat_rotator/*.py" = ["I001"]  # Preserve import order for TypedDI
+"ketchup_maintenance_fetcher/*.py" = ["I001"]  # Preserve import order for TypedDI
+"ketchup-app/*.py" = ["I001"]  # Preserve import order for TypedDI
 
 [tool.ruff.lint.isort]
 known-first-party = ["packages", "ketchup_app", "jira_reporter", "channel_metadata_updater", "ketchup_status_updater", "ketchup_maintenance_fetcher", "ketchup_access_request_monitor"]

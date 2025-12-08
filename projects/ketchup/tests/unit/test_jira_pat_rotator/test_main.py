@@ -190,7 +190,9 @@ class TestMainAsyncFunctionality:
         # Mock the run_task method to avoid actual network calls
         with patch.object(scheduler, "run_task", new_callable=AsyncMock):
             # Mock asyncio.sleep to prevent infinite loop
-            with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            with patch(
+                "packages.core.schedulers.base_scheduler.asyncio.sleep", new_callable=AsyncMock
+            ) as mock_sleep:
                 # Schedule shutdown after first run
                 async def run_with_timeout():
                     task = asyncio.create_task(scheduler.start())
@@ -227,3 +229,112 @@ class TestMainModuleExports:
             assert hasattr(main_module, "logger")
         except ImportError:
             pytest.skip("main.py not yet implemented")
+
+
+class TestPATRotatorDIIntegration:
+    """Test TypedDI integration in PAT rotator."""
+
+    @pytest.mark.asyncio
+    async def test_rotator_accepts_container(self):
+        """Test that PATRotator can be instantiated with a DI container."""
+        from ketchup_jira_pat_rotator.rotator import PATRotator
+
+        container = await get_unified_container()
+        rotator = PATRotator(container=container)
+
+        assert rotator is not None
+        assert rotator._container is container
+
+    @pytest.mark.asyncio
+    async def test_rotator_resolves_mcp_client_via_di(self):
+        """Test that rotator resolves MCP client via TypedDI when container provided."""
+        from ketchup_jira_pat_rotator.rotator import PATRotator
+
+        container = await get_unified_container()
+        rotator = PATRotator(container=container)
+
+        # Get MCP client via the lazy getter
+        mcp_client = await rotator._get_mcp_client()
+
+        assert mcp_client is not None
+
+    @pytest.mark.asyncio
+    async def test_rotator_falls_back_without_container(self):
+        """Test that rotator can fall back to direct instantiation without container."""
+        from ketchup_jira_pat_rotator.rotator import PATRotator
+
+        # Create rotator without container
+        rotator = PATRotator(container=None)
+
+        assert rotator._container is None
+        # MCP client should be None initially (lazy initialization)
+        assert rotator._mcp_client is None
+
+    @pytest.mark.asyncio
+    async def test_scheduler_passes_container_to_rotator(self):
+        """Test that scheduler passes DI container to rotator."""
+        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+
+        container = await get_unified_container()
+        scheduler = PatRotationScheduler(container=container)
+
+        assert scheduler._container is container
+
+    @pytest.mark.asyncio
+    async def test_scheduler_accepts_none_container(self):
+        """Test that scheduler works without container (backward compatible)."""
+        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+
+        scheduler = PatRotationScheduler()
+
+        assert scheduler._container is None
+
+    @pytest.mark.asyncio
+    async def test_mcp_client_caching(self):
+        """Test that MCP client is cached after first resolution."""
+        from ketchup_jira_pat_rotator.rotator import PATRotator
+
+        container = await get_unified_container()
+        rotator = PATRotator(container=container)
+
+        # First call should resolve and cache
+        mcp_client_1 = await rotator._get_mcp_client()
+
+        # Second call should return cached instance
+        mcp_client_2 = await rotator._get_mcp_client()
+
+        assert mcp_client_1 is mcp_client_2
+
+    @pytest.mark.asyncio
+    async def test_rotate_returns_skipped_when_no_rotation_needed(self):
+        """Test that rotate returns skipped status when rotation not needed."""
+        from ketchup_jira_pat_rotator.rotator import PATRotator
+
+        container = await get_unified_container()
+        rotator = PATRotator(container=container)
+
+        # Mock the monitor to return False (no rotation needed)
+        with patch.object(rotator._monitor, "should_rotate", return_value=False):
+            result = await rotator.rotate()
+
+        assert result["status"] == "skipped"
+        assert result["action"] == "no_rotation_needed"
+
+    @pytest.mark.asyncio
+    async def test_rotate_handles_missing_mcp_client(self):
+        """Test that rotate handles unavailable MCP client gracefully."""
+        from ketchup_jira_pat_rotator.rotator import PATRotator
+
+        # Create rotator without container
+        rotator = PATRotator(container=None)
+
+        # Mock monitor to trigger rotation
+        with patch.object(rotator._monitor, "should_rotate", return_value=True):
+            # Mock _get_mcp_client to return None (simulating init failure)
+            with patch.object(rotator, "_get_mcp_client", new_callable=AsyncMock) as mock_get:
+                mock_get.return_value = None
+
+                result = await rotator.rotate()
+
+        assert result["status"] == "failed"
+        assert result["reason"] == "mcp_client_unavailable"

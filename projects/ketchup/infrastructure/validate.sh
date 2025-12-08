@@ -30,6 +30,20 @@ PACKAGES_DIR="${PROJECT_ROOT}/packages"
 TESTS_DIR="${PROJECT_ROOT}/tests"
 VENV_DIR="${PROJECT_ROOT}/tests/setup/.venv"
 
+# All Python source directories to validate
+# Includes shared packages AND all service-specific directories
+PYTHON_DIRS=(
+    "${PROJECT_ROOT}/packages"
+    "${PROJECT_ROOT}/tests"
+    "${PROJECT_ROOT}/ketchup-app"
+    "${PROJECT_ROOT}/ketchup_status_updater"
+    "${PROJECT_ROOT}/ketchup_jira_pat_rotator"
+    "${PROJECT_ROOT}/ketchup_maintenance_fetcher"
+    "${PROJECT_ROOT}/ketchup_access_request_monitor"
+    "${PROJECT_ROOT}/jira_reporter"
+    "${PROJECT_ROOT}/channel_metadata_updater"
+)
+
 # Load .env.test if it exists (for AWS_PROFILE)
 if [ -f "${PROJECT_ROOT}/.env.test" ]; then
     source "${PROJECT_ROOT}/.env.test"
@@ -164,9 +178,17 @@ done
 check_ruff() {
     log_section "Ruff - Linting"
 
+    # Filter to only existing directories
+    local dirs_to_check=()
+    for dir in "${PYTHON_DIRS[@]}"; do
+        if [ -d "$dir" ]; then
+            dirs_to_check+=("$dir")
+        fi
+    done
+
     if [ "$FIX" = true ]; then
         log_info "Auto-fixing with ruff..."
-        if ruff check "$PACKAGES_DIR" "$TESTS_DIR" --fix --quiet 2>/dev/null; then
+        if ruff check "${dirs_to_check[@]}" --fix --quiet 2>/dev/null; then
             log_success "Ruff issues fixed"
             ((CHECKS_PASSED++))
             return 0
@@ -178,14 +200,14 @@ check_ruff() {
         fi
     else
         log_info "Running linting checks..."
-        if ruff check "$PACKAGES_DIR" "$TESTS_DIR" --quiet 2>/dev/null; then
+        if ruff check "${dirs_to_check[@]}" --quiet 2>/dev/null; then
             log_success "No linting issues found"
             ((CHECKS_PASSED++))
             return 0
         else
             log_error "Linting issues found"
             if [ "$VERBOSE" = true ]; then
-                ruff check "$PACKAGES_DIR" "$TESTS_DIR"
+                ruff check "${dirs_to_check[@]}"
             else
                 log_info "Run with --verbose to see details, or --fix to auto-fix"
             fi
@@ -199,9 +221,17 @@ check_ruff() {
 check_black() {
     log_section "Black - Code Formatting"
 
+    # Filter to only existing directories
+    local dirs_to_check=()
+    for dir in "${PYTHON_DIRS[@]}"; do
+        if [ -d "$dir" ]; then
+            dirs_to_check+=("$dir")
+        fi
+    done
+
     if [ "$FIX" = true ]; then
         log_info "Auto-fixing code formatting..."
-        if black "$PACKAGES_DIR" "$TESTS_DIR" --quiet 2>/dev/null; then
+        if black "${dirs_to_check[@]}" --quiet 2>/dev/null; then
             log_success "Code formatted successfully"
             ((CHECKS_PASSED++))
             return 0
@@ -213,14 +243,14 @@ check_black() {
         fi
     else
         log_info "Checking code formatting..."
-        if black "$PACKAGES_DIR" "$TESTS_DIR" --check --quiet 2>/dev/null; then
+        if black "${dirs_to_check[@]}" --check --quiet 2>/dev/null; then
             log_success "Code formatting is correct"
             ((CHECKS_PASSED++))
             return 0
         else
             log_error "Code formatting issues found"
             if [ "$VERBOSE" = true ]; then
-                black "$PACKAGES_DIR" "$TESTS_DIR" --diff
+                black "${dirs_to_check[@]}" --diff
             else
                 log_info "Run with --verbose to see details, or --fix to auto-fix"
             fi
@@ -234,9 +264,17 @@ check_black() {
 check_isort() {
     log_section "isort - Import Sorting"
 
+    # Filter to only existing directories
+    local dirs_to_check=()
+    for dir in "${PYTHON_DIRS[@]}"; do
+        if [ -d "$dir" ]; then
+            dirs_to_check+=("$dir")
+        fi
+    done
+
     if [ "$FIX" = true ]; then
         log_info "Auto-fixing import sorting..."
-        if isort "$PACKAGES_DIR" "$TESTS_DIR" --quiet 2>/dev/null; then
+        if isort "${dirs_to_check[@]}" --quiet 2>/dev/null; then
             log_success "Imports sorted successfully"
             ((CHECKS_PASSED++))
             return 0
@@ -248,14 +286,14 @@ check_isort() {
         fi
     else
         log_info "Checking import sorting..."
-        if isort "$PACKAGES_DIR" "$TESTS_DIR" --check --quiet 2>/dev/null; then
+        if isort "${dirs_to_check[@]}" --check --quiet 2>/dev/null; then
             log_success "Import sorting is correct"
             ((CHECKS_PASSED++))
             return 0
         else
             log_error "Import sorting issues found"
             if [ "$VERBOSE" = true ]; then
-                isort "$PACKAGES_DIR" "$TESTS_DIR" --diff
+                isort "${dirs_to_check[@]}" --diff
             else
                 log_info "Run with --verbose to see details, or --fix to auto-fix"
             fi

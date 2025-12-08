@@ -16,6 +16,8 @@ from datetime import datetime
 from typing import Optional
 
 import boto3
+
+from packages.core.constants import AWS_REGION
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -30,7 +32,7 @@ class PatMonitor:
 
     def __init__(self):
         """Initialize the PAT monitor."""
-        self.secrets_client = boto3.client("secretsmanager")
+        self.secrets_client = boto3.client("secretsmanager", region_name=AWS_REGION)
         # CRITICAL: Use correct secret name matching AWS and env-aws.ts
         self.secret_name = "Ketchup_Token_Secrets"
 
@@ -45,9 +47,7 @@ class PatMonitor:
             Exception: If there's an error retrieving from Secrets Manager.
         """
         try:
-            response = self.secrets_client.get_secret_value(
-                SecretId=self.secret_name
-            )
+            response = self.secrets_client.get_secret_value(SecretId=self.secret_name)
 
             secret_string = response.get("SecretString")
             if not secret_string:
@@ -56,6 +56,7 @@ class PatMonitor:
 
             # Parse JSON if the secret is in JSON format
             import json
+
             try:
                 secret_dict = json.loads(secret_string)
                 # Use correct field name matching AWS Secrets Manager
@@ -145,9 +146,7 @@ class PatMonitor:
         expiry_iso = self._get_pat_expiry_from_secrets()
 
         if expiry_iso is None:
-            logger.warning(
-                "ketchup_jira_pat_expiry not found - triggering rotation for safety"
-            )
+            logger.warning("ketchup_jira_pat_expiry not found - triggering rotation for safety")
             return True
 
         try:

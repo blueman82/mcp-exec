@@ -17,7 +17,7 @@ import asyncio
 import signal
 import time
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -286,7 +286,9 @@ class TestStartMethod:
                 scheduler.running = False
 
         # Mock asyncio.sleep to prevent infinite loop
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_on_first_sleep):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_on_first_sleep
+        ):
             await scheduler.start()
 
         assert scheduler.task_run_count == 1
@@ -305,7 +307,9 @@ class TestStartMethod:
             scheduler.running = False
 
         # Mock asyncio.sleep to prevent infinite loop
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_immediately):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_immediately
+        ):
             await scheduler.start()
 
         assert scheduler.task_run_count == 0
@@ -334,7 +338,9 @@ class TestStartMethod:
             scheduler.running = False
 
         # Mock asyncio.sleep to prevent infinite loop
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_immediately):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_immediately
+        ):
             await scheduler.start()
 
         assert "starting" in health_statuses
@@ -354,7 +360,9 @@ class TestStartMethod:
             raise asyncio.CancelledError()
 
         # Mock asyncio.sleep to raise CancelledError
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=raise_cancelled):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=raise_cancelled
+        ):
             # CancelledError is caught inside start() and handled gracefully
             await scheduler.start()
 
@@ -375,7 +383,9 @@ class TestStartMethod:
             scheduler.running = False
 
         # Mock asyncio.sleep to prevent infinite loop
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_scheduler):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_scheduler
+        ):
             await scheduler.start()
 
         assert "stopped" in scheduler.health_file.read_text()
@@ -411,7 +421,9 @@ class TestIntegration:
             scheduler.running = False
 
         # Mock asyncio.sleep to prevent infinite loop
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_on_first_sleep):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_on_first_sleep
+        ):
             await scheduler.start()
 
         assert scheduler.task_run_count >= 1
@@ -433,7 +445,9 @@ class TestIntegration:
             scheduler.running = False
 
         # Mock asyncio.sleep to prevent infinite loop
-        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_immediately):
+        with patch(
+            "packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=stop_immediately
+        ):
             await scheduler.start()
 
         # Should not have run since we stopped quickly

@@ -19,7 +19,7 @@ from packages.core.typed_di.service_registrations.protocols import (
     RavenMaintenanceClientProtocol,
 )
 from packages.core.typed_di.typed_resolver import resolve_typed
-from packages.core.typed_di_integration import get_unified_container, cleanup_unified_container
+from packages.core.typed_di_integration import cleanup_unified_container, get_unified_container
 
 logger = setup_logger(__name__)
 
@@ -35,10 +35,7 @@ async def fetch_and_store_maintenance_data():
         logger.info(f"Starting maintenance data fetch at {datetime.now()}")
 
         # Check feature flag
-        if (
-            not os.getenv("KETCHUP_MAINTENANCE_FETCHER_ENABLED", "false").lower()
-            == "true"
-        ):
+        if not os.getenv("KETCHUP_MAINTENANCE_FETCHER_ENABLED", "false").lower() == "true":
             logger.info("Maintenance fetcher disabled by feature flag")
             return {"status": "disabled"}
 
@@ -61,9 +58,7 @@ async def fetch_and_store_maintenance_data():
 
         # Store in DynamoDB via TypedDI
         db_store = await resolve_typed(DynamoDBStoreProtocol)
-        success = await db_store.store_maintenance_cache(
-            date=date_today, data=maintenance_data
-        )
+        success = await db_store.store_maintenance_cache(date=date_today, data=maintenance_data)
 
         if success:
             logger.info("Successfully stored maintenance cache")

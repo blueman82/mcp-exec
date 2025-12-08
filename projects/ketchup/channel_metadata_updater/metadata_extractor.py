@@ -71,18 +71,14 @@ class MetadataExtractor:
         }
 
         if not response:
-            logger.info(
-                "parse_ai_response: Empty response received, returning default."
-            )
+            logger.info("parse_ai_response: Empty response received, returning default.")
             return default_response
 
         lines = response.strip().splitlines()
         logger.info("parse_ai_response: Lines from AI response: %s", lines)
 
         extracted_customer_name = lines[0].strip() if lines else "NOT YET AVAILABLE"
-        logger.info(
-            "parse_ai_response: Extracted customer_name: '%s'", extracted_customer_name
-        )
+        logger.info("parse_ai_response: Extracted customer_name: '%s'", extracted_customer_name)
 
         # Add validation for potential domain-based misidentification
         self._validate_customer_extraction(extracted_customer_name)
@@ -91,9 +87,7 @@ class MetadataExtractor:
 
         if len(lines) > 1:
             ticket_line = lines[1].strip()
-            logger.info(
-                "parse_ai_response: Raw ticket_line from AI: '%s'", ticket_line
-            )
+            logger.info("parse_ai_response: Raw ticket_line from AI: '%s'", ticket_line)
 
             # 1. Check if already Slack-formatted
             if (
@@ -116,14 +110,8 @@ class MetadataExtractor:
                         clickable_ticket,
                     )
             # 2. Check for Markdown format [Text](URL)
-            elif (
-                ticket_line.startswith("[")
-                and "](" in ticket_line
-                and ticket_line.endswith(")")
-            ):
-                match = re.match(
-                    r"\[([^\]]+)\]\(([^)]+)\)", ticket_line
-                )
+            elif ticket_line.startswith("[") and "](" in ticket_line and ticket_line.endswith(")"):
+                match = re.match(r"\[([^\]]+)\]\(([^)]+)\)", ticket_line)
                 if match:
                     text_part = match.group(1)
                     url_part = match.group(2)
@@ -148,9 +136,7 @@ class MetadataExtractor:
                     )
             # 3. Check for plain JIRA URL
             elif "jira.corp.adobe.com/browse/" in ticket_line:
-                ticket_id_from_url = ticket_line.split("jira.corp.adobe.com/browse/")[
-                    -1
-                ].strip()
+                ticket_id_from_url = ticket_line.split("jira.corp.adobe.com/browse/")[-1].strip()
                 # Remove any trailing slashes or parameters
                 ticket_id_from_url = ticket_id_from_url.split("/")[0].split("?")[0].upper()
                 clickable_ticket = ticket_id_from_url
@@ -194,14 +180,13 @@ class MetadataExtractor:
             return
 
         # Check for potential domain-based misidentification
-        if customer_name and customer_name.upper() in ['ADOBE', 'MICROSOFT']:
+        if customer_name and customer_name.upper() in ["ADOBE", "MICROSOFT"]:
             logger.warning(f"Potential domain-based misidentification detected: {customer_name}")
 
         # Simply log the extraction for manual review
         # No automatic flagging since many legitimate customers could match patterns
         logger.info(
-            "Customer extracted: '%s'. Manual review recommended if unexpected.",
-            customer_name
+            "Customer extracted: '%s'. Manual review recommended if unexpected.", customer_name
         )
 
     async def extract_metadata_with_ai(
@@ -209,9 +194,7 @@ class MetadataExtractor:
     ) -> Dict[str, str]:
         """Extract metadata using AI by calling the OpenAI handler."""
         if not messages:
-            logger.warning(
-                "No messages provided for channel %s to extract metadata.", channel_id
-            )
+            logger.warning("No messages provided for channel %s to extract metadata.", channel_id)
             return {"customer_name": "ERROR", "jira_ticket": "ERROR"}
 
         # Ensure messages are formatted correctly for the AI prompt
@@ -228,9 +211,7 @@ class MetadataExtractor:
                 user_id=None,
                 incoming_channel=channel_id,
             )
-            raw_content = (
-                response.get("choices", [{}])[0].get("message", {}).get("content", "")
-            )
+            raw_content = response.get("choices", [{}])[0].get("message", {}).get("content", "")
 
             # Extract from JSON if structured output is enabled
             if FeatureFlags.is_structured_json_output_enabled():

@@ -3,17 +3,17 @@
 Auto-status updater service that runs as a scheduled job.
 """
 import asyncio
-import os
 import sys
 from datetime import datetime
-import time
 
-from packages.core.logging import setup_logger
-from packages.core.typed_di_integration import get_unified_container
+from ketchup_status_updater.processor import AutoStatusProcessor
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.distributed_lock import DistributedLock
+from packages.core.logging import setup_logger
 from packages.core.typed_di.exceptions import MissingDependencyError
-from ketchup_status_updater.processor import AutoStatusProcessor
+from packages.core.typed_di.service_registrations.protocols.command_protocols import (
+    FeatureServiceProtocol,
+)
 
 # TypedDI Protocol imports
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
@@ -25,20 +25,19 @@ from packages.core.typed_di.service_registrations.protocols.core_protocols impor
 from packages.core.typed_di.service_registrations.protocols.handler_protocols import (
     OpenAIHandlerProtocol,
 )
-from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
-    ChannelInfoOpsProtocol,
-    SlackChannelMessageOpsProtocol,
-    ChannelOperationsProtocol,
-    ChannelMembershipOpsProtocol,
-)
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
     MCPClientProtocol,
 )
-from packages.core.typed_di.service_registrations.protocols.command_protocols import (
-    FeatureServiceProtocol,
+from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
+    ChannelInfoOpsProtocol,
+    ChannelMembershipOpsProtocol,
+    ChannelOperationsProtocol,
+    SlackChannelMessageOpsProtocol,
 )
+from packages.core.typed_di_integration import get_unified_container
 
 logger = setup_logger(__name__)
+
 
 async def run_auto_status():
     """Run the auto-status update process with distributed locking."""
@@ -54,7 +53,9 @@ async def run_auto_status():
         distributed_lock = DistributedLock(db_store.client, db_store.table_name)
 
         # Use distributed lock instead of local file lock
-        async with distributed_lock.acquire_lock("AUTO_STATUS_GLOBAL", timeout_seconds=120) as lock_acquired:
+        async with distributed_lock.acquire_lock(
+            "AUTO_STATUS_GLOBAL", timeout_seconds=120
+        ) as lock_acquired:
             if not lock_acquired:
                 logger.warning("Another server is running auto-status, exiting")
                 return
@@ -93,7 +94,7 @@ async def run_auto_status():
                 posting_handler=posting_handler,
                 channel_operations=channel_operations,
                 channel_membership_ops=channel_membership_ops,
-                feature_service=feature_service
+                feature_service=feature_service,
             )
 
             # Process all eligible channels
@@ -105,6 +106,7 @@ async def run_auto_status():
         logger.error(f"Auto-status update failed: {e}", exc_info=True)
         raise
 
+
 def main():
     """Main entry point"""
     try:
@@ -112,6 +114,7 @@ def main():
     except Exception as e:
         logger.error(f"Fatal error in auto-status updater: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

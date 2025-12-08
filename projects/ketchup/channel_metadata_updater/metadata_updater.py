@@ -83,18 +83,14 @@ class ChannelMetadataUpdater:
         if channel_msg_ops is not None:
             self.channel_msg_ops = channel_msg_ops
         else:
-            raise NotImplementedError(
-                "A pre-initialized SlackChannelMessageOps must be provided."
-            )
+            raise NotImplementedError("A pre-initialized SlackChannelMessageOps must be provided.")
 
         if dynamodb_store is not None:
             self.dynamodb_store = dynamodb_store
         else:
             config = DynamoDBConfig()
             client = DynamoDBAsyncClient(config=config)
-            self.dynamodb_store = DynamoDBStore(
-                client=client, table_name=config.get_table_name()
-            )
+            self.dynamodb_store = DynamoDBStore(client=client, table_name=config.get_table_name())
 
         # Initialize ChannelOperations for timestamp tracking
         if channel_operations is not None:
@@ -131,9 +127,7 @@ class ChannelMetadataUpdater:
             self.logger.info("Initializing internally created OpenAIHandler.")
             # Ensure required Ops were injected if we need to create AI Handler internally
             if not self.channel_info_ops:
-                raise ValueError(
-                    "ChannelInfoOps must be provided if AI Handler is not injected."
-                )
+                raise ValueError("ChannelInfoOps must be provided if AI Handler is not injected.")
             if not self.channel_membership_ops:
                 raise ValueError(
                     "ChannelMembershipOps must be provided if AI Handler is not injected."
@@ -177,9 +171,7 @@ class ChannelMetadataUpdater:
             raise RuntimeError("AI Handler state is inconsistent after init.")
 
         # Now initialize MetadataExtractor with the ready AI handler
-        self.metadata_extractor = MetadataExtractor(
-            ai_handler=self._ai_handler_instance
-        )
+        self.metadata_extractor = MetadataExtractor(ai_handler=self._ai_handler_instance)
         self.logger.info("ChannelMetadataUpdater initialized successfully.")
         return self
 
@@ -228,9 +220,7 @@ class ChannelMetadataUpdater:
                 return True
 
             # Fetch channel messages
-            messages = await self.channel_processor.fetch_channel_messages(
-                channel_id
-            )
+            messages = await self.channel_processor.fetch_channel_messages(channel_id)
 
             if not messages:
                 self.logger.warning("No messages found for channel %s", channel_id)
@@ -241,32 +231,23 @@ class ChannelMetadataUpdater:
                 raise RuntimeError(
                     "MetadataExtractor is not initialized. Call initialize() before extracting metadata."
                 )
-            metadata = await self.metadata_extractor.extract_metadata_with_ai(
-                channel_id, messages
-            )
+            metadata = await self.metadata_extractor.extract_metadata_with_ai(channel_id, messages)
 
             # Store extracted metadata
-            return await self.metadata_storage.store_extracted_metadata(
-                channel_id, metadata
-            )
+            return await self.metadata_storage.store_extracted_metadata(channel_id, metadata)
         except Exception as e:
             # Robust check for channel_not_found error
             error_str = str(e).lower()
             error_data = getattr(e, "response_data", {})
             if "channel_not_found" in error_str or (
-                isinstance(error_data, dict)
-                and error_data.get("error") == "channel_not_found"
+                isinstance(error_data, dict) and error_data.get("error") == "channel_not_found"
             ):
-                self.logger.warning(
-                    "Channel %s not found. Deleting from DB.", channel_id
-                )
+                self.logger.warning("Channel %s not found. Deleting from DB.", channel_id)
                 # Use DI'd DynamoDBStore for deletion
                 if self.dynamodb_store:
                     await self.dynamodb_store.delete_channel_if_exists(channel_id)
                 else:
-                    await self.metadata_storage.dynamodb_store.delete_channel_if_exists(
-                        channel_id
-                    )
+                    await self.metadata_storage.dynamodb_store.delete_channel_if_exists(channel_id)
                 return True
             self.logger.error(
                 "Error extracting metadata for channel %s: %s",
@@ -309,9 +290,7 @@ class ChannelMetadataUpdater:
                 try:
                     await self.channel_membership_ops.cleanup()
                 except Exception as e:
-                    self.logger.error(
-                        "Error cleaning up channel_membership_ops: %s", str(e)
-                    )
+                    self.logger.error("Error cleaning up channel_membership_ops: %s", str(e))
 
             # Check if channel_msg_ops exists and has cleanup method (it should inherit from AsyncClient)
             if (
@@ -333,16 +312,10 @@ class ChannelMetadataUpdater:
                 try:
                     await self._ai_handler_instance.cleanup()
                 except Exception as e:
-                    self.logger.error(
-                        "Error cleaning up _ai_handler_instance: %s", str(e)
-                    )
+                    self.logger.error("Error cleaning up _ai_handler_instance: %s", str(e))
 
             # Find and close any remaining aiohttp sessions directly
-            sessions = [
-                obj
-                for obj in gc.get_objects()
-                if isinstance(obj, aiohttp.ClientSession)
-            ]
+            sessions = [obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)]
             for session in sessions:
                 try:
                     if not session.closed:

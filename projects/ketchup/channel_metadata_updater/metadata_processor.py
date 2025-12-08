@@ -12,17 +12,12 @@ from typing import Any, Dict
 import aiohttp
 
 from channel_metadata_updater.metadata_updater import ChannelMetadataUpdater
-from packages.core.typed_di_integration import get_unified_container
+from packages.core.logging import setup_logger
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
+    DynamoDBStoreProtocol,
     SecretsManagerProtocol,
     SlackConfigProtocol,
     SlackPostingHandlerProtocol,
-    DynamoDBStoreProtocol,
-)
-from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
-    ChannelInfoOpsProtocol,
-    ChannelMembershipOpsProtocol,
-    SlackChannelMessageOpsProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.handler_protocols import (
     OpenAIHandlerProtocol,
@@ -33,7 +28,12 @@ from packages.core.typed_di.service_registrations.protocols.infrastructure_proto
 from packages.core.typed_di.service_registrations.protocols.operation_protocols import (
     RestoreStateManagerProtocol,
 )
-from packages.core.logging import setup_logger
+from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
+    ChannelInfoOpsProtocol,
+    ChannelMembershipOpsProtocol,
+    SlackChannelMessageOpsProtocol,
+)
+from packages.core.typed_di_integration import get_unified_container
 
 logger = setup_logger(__name__)
 
@@ -42,9 +42,7 @@ async def cleanup_sessions():
     """
     Close all unclosed aiohttp client sessions before Lambda exits.
     """
-    sessions = [
-        obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)
-    ]
+    sessions = [obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)]
 
     logger.info("Found %d aiohttp sessions to clean up", len(sessions))
 
@@ -135,9 +133,7 @@ async def process_channels(event: Dict[str, Any], context: Any) -> Dict[str, Any
             logger.info("No channels found with missing metadata")
             return {
                 "statusCode": 200,
-                "body": json.dumps(
-                    {"message": "No channels found with missing metadata"}
-                ),
+                "body": json.dumps({"message": "No channels found with missing metadata"}),
             }
 
         logger.info("Found %d channel(s) with missing metadata", len(channels))
@@ -175,9 +171,7 @@ async def process_channels(event: Dict[str, Any], context: Any) -> Dict[str, Any
                 # This cleanup should be for resources owned by ChannelMetadataUpdater itself,
                 # not for the injected dependencies, which are handled by factory cleanups.
                 await updater.cleanup_clients()
-                logger.info(
-                    "ChannelMetadataUpdater's owned resources cleaned up successfully."
-                )
+                logger.info("ChannelMetadataUpdater's owned resources cleaned up successfully.")
         except RuntimeError as cleanup_error:
             logger.error(
                 "Runtime error during ChannelMetadataUpdater's client cleanup: %s",
@@ -236,7 +230,5 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         return {
             "statusCode": 500,
-            "body": json.dumps(
-                {"error": f"Top-level handler error: {str(top_level_e)}"}
-            ),
+            "body": json.dumps({"error": f"Top-level handler error: {str(top_level_e)}"}),
         }

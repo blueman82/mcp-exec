@@ -4,25 +4,26 @@ jira_service.py
 Service for interacting with JIRA via MCP.
 """
 
-import os
 import json
-import httpx
+import os
 from typing import Dict
 
+import httpx
+
 from packages.core.logging import setup_logger
-from packages.secrets.manager import SecretsManager
 from packages.integrations.ims_token_manager import IMSTokenManager
+from packages.secrets.manager import SecretsManager
 
 logger = setup_logger(__name__)
 
 
 class JiraService:
     """Service for posting reports to JIRA."""
-    
+
     def __init__(self, secrets_manager: SecretsManager, ims_token_manager: IMSTokenManager):
         """
         Initialize the JIRA service.
-        
+
         Args:
             secrets_manager: Pre-initialized SecretsManager
             ims_token_manager: Pre-initialized IMSTokenManager for authentication
@@ -30,19 +31,15 @@ class JiraService:
         self.secrets_manager = secrets_manager
         self.ims_token_manager = ims_token_manager
         self.mcp_base_url = os.environ.get("MCP_BASE_URL", "http://mcp-jira:8081")
-        
-    async def post_comment_to_ticket(
-        self,
-        jira_ticket_id: str,
-        comment_text: str
-    ) -> bool:
+
+    async def post_comment_to_ticket(self, jira_ticket_id: str, comment_text: str) -> bool:
         """
         Post a comment to a JIRA ticket.
-        
+
         Args:
             jira_ticket_id: The JIRA ticket ID (e.g., CPGNREQ-12345)
             comment_text: The text of the comment to post
-            
+
         Returns:
             True if comment was posted successfully, False otherwise
         """
@@ -52,16 +49,16 @@ class JiraService:
             if not ticket_id:
                 logger.error("Empty JIRA ticket ID provided")
                 return False
-                
+
             # Remove URL parts if present
             if "/" in ticket_id:
                 ticket_id = ticket_id.split("/")[-1]
-                
+
             # Validate ticket exists
             if not await self._validate_ticket_exists(ticket_id):
                 logger.error(f"JIRA ticket {ticket_id} not found or not accessible")
                 return False
-            
+
             # Format the JSON-RPC request for MCP
             payload = {
                 "jsonrpc": "2.0",
@@ -69,37 +66,30 @@ class JiraService:
                 "method": "tools/call",
                 "params": {
                     "name": "add_jira_comment",
-                    "arguments": {
-                        "issueIdOrKey": ticket_id,
-                        "comment": {
-                            "body": comment_text
-                        }
-                    }
-                }
+                    "arguments": {"issueIdOrKey": ticket_id, "comment": {"body": comment_text}},
+                },
             }
-            
+
             # Post to MCP JIRA
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
-                    f"{self.mcp_base_url}/message",
-                    json=payload,
-                    headers=await self._get_headers()
+                    f"{self.mcp_base_url}/message", json=payload, headers=await self._get_headers()
                 )
-                
+
                 if response.status_code != 200:
                     logger.error(
                         f"Failed to post comment to JIRA ticket {ticket_id}. "
                         f"Status: {response.status_code}, Response: {response.text}"
                     )
                     return False
-                    
+
                 logger.info(f"Successfully posted comment to JIRA ticket {ticket_id}")
                 return True
-                
+
         except Exception as e:
             logger.error(f"Error posting comment to JIRA: {str(e)}")
             return False
-            
+
     async def _validate_ticket_exists(self, ticket_id: str) -> bool:
         """Validate that the ticket exists and is accessible."""
         try:
@@ -110,23 +100,18 @@ class JiraService:
                 "method": "tools/call",
                 "params": {
                     "name": "search_jira_issues",
-                    "arguments": {
-                        "jql": f"key = {ticket_id}",
-                        "maxResults": 1
-                    }
-                }
+                    "arguments": {"jql": f"key = {ticket_id}", "maxResults": 1},
+                },
             }
-            
+
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
-                    f"{self.mcp_base_url}/message",
-                    json=payload,
-                    headers=await self._get_headers()
+                    f"{self.mcp_base_url}/message", json=payload, headers=await self._get_headers()
                 )
-                
+
                 if response.status_code != 200:
                     return False
-                    
+
                 # Check if we got a result
                 try:
                     result = response.json()
@@ -135,19 +120,16 @@ class JiraService:
                         return content.get("total", 0) > 0
                 except (json.JSONDecodeError, KeyError, TypeError):
                     pass
-                    
+
                 return False
-                
+
         except Exception as e:
             logger.error(f"Error validating ticket {ticket_id}: {str(e)}")
             return False
-            
+
     async def _get_headers(self) -> Dict[str, str]:
         """Get authentication headers for MCP JIRA."""
         # Get a valid IMS token for authentication
         token = await self.ims_token_manager.get_valid_token()
-        
-        return {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}"
-        }
+
+        return {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}

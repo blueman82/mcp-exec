@@ -13,17 +13,26 @@ logger = setup_logger(__name__)
 
 class MaintenanceFetcherScheduler(BaseScheduler):
     """Scheduler for running maintenance fetch daily at 1:30 AM UTC."""
+
     TARGET_HOUR, TARGET_MINUTE = 1, 30
 
     def __init__(self):
-        run_on_start = os.getenv("KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START", "false").lower() == "true"
-        super().__init__(health_file_prefix="maintenance_fetcher", base_path="/app/health",
-                         run_on_start=run_on_start, scheduler_name="Maintenance Fetcher Scheduler")
+        run_on_start = (
+            os.getenv("KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START", "false").lower() == "true"
+        )
+        super().__init__(
+            health_file_prefix="maintenance_fetcher",
+            base_path="/app/health",
+            run_on_start=run_on_start,
+            scheduler_name="Maintenance Fetcher Scheduler",
+        )
 
     def get_sleep_seconds(self) -> int:
         """Calculate seconds until next 1:30 AM UTC."""
         now = datetime.now(timezone.utc)
-        target = now.replace(hour=self.TARGET_HOUR, minute=self.TARGET_MINUTE, second=0, microsecond=0)
+        target = now.replace(
+            hour=self.TARGET_HOUR, minute=self.TARGET_MINUTE, second=0, microsecond=0
+        )
         if now >= target:
             target += timedelta(days=1)
         return int((target - now).total_seconds())

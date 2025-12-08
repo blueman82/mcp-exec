@@ -41,16 +41,31 @@ Ketchup is built on AWS infrastructure using Docker containers and provides:
 
 ### Development Setup
 
+**First time setup** (run once from project root):
 ```bash
-# Set up Python environment
-cd tests/setup
-make setup
+./setup
+```
 
-# Run unit tests
-make test-unit
+This installs dependencies and configures git hooks for automated quality checks.
 
-# Code quality checks
-make pylint
+**Daily workflow is automated via git hooks:**
+- **Pre-commit**: Quick lint check (ruff) ~5s
+- **Pre-push**: Full lint check (ruff, black, isort) ~10s
+
+You rarely need manual commands. Just code, commit, and push.
+
+### Manual Commands (if needed)
+
+From project root:
+```bash
+./check              # Run lint checks
+./check --fix        # Auto-fix lint issues
+```
+
+From `tests/setup/` directory:
+```bash
+make test-fast       # Critical tests (~10s) - during development
+make test-parallel   # All unit tests (~15s) - before PR
 ```
 
 ### Local Development
@@ -105,17 +120,12 @@ For comprehensive architecture documentation, see the [Documentation](#documenta
 
 ### Setup
 
+**First time setup** (run once from project root):
 ```bash
-# Set up Python environment
-cd tests/setup
-make setup
-
-# Run unit tests
-make test-unit
-
-# Code quality checks
-make pylint
+./setup
 ```
+
+This installs dependencies and configures git hooks for automated quality checks.
 
 ### Code Standards
 
@@ -129,33 +139,31 @@ make pylint
 From the `tests/setup` directory:
 
 ```bash
-make test-unit              # Unit tests (preferred for development)
-make test-integration       # Integration tests (requires AWS profile)
-make test-jira-reporter     # JIRA reporter specific tests
-make pylint                 # Code quality: ruff, black, isort, pylint
+make test-fast       # Critical tests (~10s) - during development
+make test-parallel   # All unit tests (~15s) - before PR
+make test-typed-di   # TypedDI validation
+make test-integration # AWS tests (requires AWS_PROFILE)
 ```
-
-**Critical**: Always run `make pylint` and `make test-unit` after code changes.
 
 **Testing Strategy**: Unit → Integration → E2E → Manual
 
 ## Deployment
 
-From the `infrastructure` directory:
+From the project root:
 
 ```bash
-./deploy-ketchup.sh              # Deploy to both production servers
-./deploy-ketchup.sh --prod1-only # Deploy to prod1 only
-./deploy-ketchup.sh --prod2-only # Deploy to prod2 only
-./deploy-ketchup.sh --verify     # Verify deployment status
-./deploy-ketchup.sh --rollback vX.XXX.XXX  # Rollback to specific version
+./deploy                         # Deploy to both servers
+./deploy --prod1-only            # Deploy to prod1 only
+./deploy --prod2-only            # Deploy to prod2 only
+./deploy --verify                # Verify deployment status
+./deploy --rollback vX.XXX.XXX   # Rollback to specific version
 ```
 
 The deployment script:
-1. Auto-increments version from latest in ECR
-2. Builds Docker images locally
-3. Pushes to ECR
-4. Updates docker-compose.yml on servers
+1. Runs validation checks automatically (ruff, black, isort)
+2. Auto-increments version from latest in ECR
+3. Builds Docker images locally
+4. Pushes to ECR
 5. Deploys with zero-downtime sequential rollout
 
 ### Production Environment
@@ -165,7 +173,7 @@ The deployment script:
 - **Database**: ketchup_channel_information (DynamoDB)
 - **Secrets**: Ketchup_Token_Secrets (AWS Secrets Manager)
 - **Queue**: ketchup-events-queue (SQS)
-- **Current Version**: v2.360.347
+- **Current Version**: v2.360.355
 
 ## Configuration
 

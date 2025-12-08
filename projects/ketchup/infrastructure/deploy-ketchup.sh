@@ -58,6 +58,40 @@ VALIDATE_SCRIPT="${SCRIPT_DIR}/infrastructure/validate.sh"
 # Remote paths
 PROD_DIR="/opt/ketchup"
 
+# ========== ENV FILE SYNC (PER-SERVER) ==========
+# Sync env files (common.env, performance.env) to production servers.
+# These files are referenced by docker-compose.yml via env_file: directive.
+sync_env_files_if_changed() {
+    local server=$1
+    log_section "Env Files Sync ($server)"
+
+    local env_files=("common.env" "performance.env")
+
+    for env_file in "${env_files[@]}"; do
+        local local_file="infrastructure/${env_file}"
+
+        if [ ! -f "$local_file" ]; then
+            log_warning "${env_file} not found locally, skipping"
+            continue
+        fi
+
+        # Check if remote file exists and differs
+        if ! ssh "$server" "test -f ${PROD_DIR}/${env_file}" 2>/dev/null; then
+            log_info "${env_file} does not exist on $server. Uploading..."
+            scp "$local_file" "$server":/tmp/${env_file}
+            ssh "$server" "sudo mv /tmp/${env_file} ${PROD_DIR}/${env_file} && sudo chown root:root ${PROD_DIR}/${env_file} && sudo chmod 644 ${PROD_DIR}/${env_file}"
+            log_success "${env_file} uploaded to $server"
+        elif ! diff -q "$local_file" <(ssh "$server" "sudo cat ${PROD_DIR}/${env_file}") >/dev/null 2>&1; then
+            log_info "${env_file} differs on $server. Uploading updated file..."
+            scp "$local_file" "$server":/tmp/${env_file}
+            ssh "$server" "sudo mv /tmp/${env_file} ${PROD_DIR}/${env_file} && sudo chown root:root ${PROD_DIR}/${env_file} && sudo chmod 644 ${PROD_DIR}/${env_file}"
+            log_success "${env_file} synchronized to $server"
+        else
+            log_info "${env_file} is already up to date on $server"
+        fi
+    done
+}
+
 # ========== COMPOSE SYNC (PER-SERVER) ==========
 # Copy local docker-compose.yml to a target server if it differs from the remote.
 # This ensures environment flag changes (e.g., KETCHUP_USE_TYPED_DI, KETCHUP_TYPED_DI_FALLBACK)
@@ -815,16 +849,18 @@ push_images
 
 # Deploy to production servers
 if [ "$PROD2_ONLY" = false ]; then  # Deploy to prod1 unless --prod2-only
-    # Ensure docker-compose.yml is in sync on prod1 (so flags are respected)
+    # Ensure env files and docker-compose.yml are in sync on prod1 (so flags are respected)
     if [ "$SKIP_COMPOSE_SYNC" = false ]; then
+        sync_env_files_if_changed "$PROD1_SERVER"
         sync_docker_compose_if_changed "$PROD1_SERVER"
     fi
     deploy_to_server "$PROD1_SERVER" "$VERSION"
 fi
 
 if [ "$PROD1_ONLY" = false ]; then  # Deploy to prod2 unless --prod1-only
-    # Ensure docker-compose.yml is in sync on prod2 (so flags are respected)
+    # Ensure env files and docker-compose.yml are in sync on prod2 (so flags are respected)
     if [ "$SKIP_COMPOSE_SYNC" = false ]; then
+        sync_env_files_if_changed "$PROD2_SERVER"
         sync_docker_compose_if_changed "$PROD2_SERVER"
     fi
     deploy_to_server "$PROD2_SERVER" "$VERSION"

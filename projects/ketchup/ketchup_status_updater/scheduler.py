@@ -34,10 +34,12 @@ class StatusUpdaterScheduler(BaseScheduler):
         """Execute the status update task."""
         await run_auto_status()
 
+
 async def async_main():
     """Async main entry point."""
     scheduler = StatusUpdaterScheduler()
     await scheduler.start()
+
 
 def main():
     """Main entry point."""
@@ -48,6 +50,7 @@ def main():
     except Exception as e:
         logger.error(f"Fatal error in scheduler: {e}", exc_info=True)
         raise
+
 
 if __name__ == "__main__":
     main()

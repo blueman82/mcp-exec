@@ -4,14 +4,15 @@ report_generator.py
 Service for generating reports from channel data.
 """
 
-from typing import Dict, Any, Optional, List
 import time
+from typing import Any, Dict, List, Optional
 
-from packages.core.constants import USE_PIPELINE_PROCESSING
-from packages.core.config.feature_flags import FeatureFlags
-from packages.core.logging import setup_logger
 from packages.ai.core.openai_handler import OpenAIHandler
+from packages.core.config.feature_flags import FeatureFlags
+from packages.core.constants import USE_PIPELINE_PROCESSING
+from packages.core.logging import setup_logger
 from packages.slack.channel_operations.channel_msg_ops import SlackChannelMessageOps
+
 from .archive_handler import JiraReporterArchiveHandler
 
 logger = setup_logger(__name__)
@@ -39,9 +40,7 @@ class ReportGenerator:
         self.archive_handler = archive_handler
 
     async def generate_report(
-        self,
-        channel_id: str,
-        channel_metadata: Dict[str, Any]
+        self, channel_id: str, channel_metadata: Dict[str, Any]
     ) -> Optional[str]:
         """
         Generate a report for the specified channel.
@@ -62,23 +61,27 @@ class ReportGenerator:
                 # Check if channel is archived and unarchive with bot membership
                 is_archived = await self.archive_handler.is_channel_archived(channel_id)
                 if is_archived:
-                    logger.info(f"Channel {channel_id} is archived, using archive handler to unarchive with bot membership")
-                    was_unarchived = await self.archive_handler.temporarily_unarchive_channel(channel_id)
+                    logger.info(
+                        f"Channel {channel_id} is archived, using archive handler to unarchive with bot membership"
+                    )
+                    was_unarchived = await self.archive_handler.temporarily_unarchive_channel(
+                        channel_id
+                    )
                     if not was_unarchived:
-                        logger.error(f"Failed to unarchive channel {channel_id} for report generation")
+                        logger.error(
+                            f"Failed to unarchive channel {channel_id} for report generation"
+                        )
                         return None
 
             # Get channel messages - channel should now be unarchived with bot membership
             logger.info(f"Fetching messages for channel {channel_id} ({channel_name})")
             if USE_PIPELINE_PROCESSING:
                 messages = await self.channel_msg_ops.fetch_channel_messages_collected(
-                    channel_id=channel_id,
-                    limit=500  # Reasonable limit to avoid token issues
+                    channel_id=channel_id, limit=500  # Reasonable limit to avoid token issues
                 )
             else:
                 messages = await self.channel_msg_ops.fetch_channel_messages(
-                    channel_id=channel_id,
-                    limit=500  # Reasonable limit to avoid token issues
+                    channel_id=channel_id, limit=500  # Reasonable limit to avoid token issues
                 )
 
             if not messages:
@@ -90,16 +93,13 @@ class ReportGenerator:
 
             # Create the prompt for report generation
             prompt = self._create_report_prompt(
-                formatted_messages=formatted_messages,
-                channel_metadata=channel_metadata
+                formatted_messages=formatted_messages, channel_metadata=channel_metadata
             )
 
             # Generate the report using OpenAI
             messages = [{"role": "user", "content": prompt}]
             report_text = await self.openai_handler.execute_prompt(
-                messages=messages,
-                max_tokens=2000,
-                temperature=0.3
+                messages=messages, max_tokens=2000, temperature=0.3
             )
 
             if not report_text:
@@ -127,9 +127,7 @@ class ReportGenerator:
         return "\n".join(messages)
 
     def _create_report_prompt(
-        self,
-        formatted_messages: str,
-        channel_metadata: Dict[str, Any]
+        self, formatted_messages: str, channel_metadata: Dict[str, Any]
     ) -> str:
         """Create an AI prompt for report generation."""
         customer = channel_metadata.get("customer_name", "")
@@ -137,7 +135,9 @@ class ReportGenerator:
         channel_name = channel_metadata.get("channel_name", "Unknown")
 
         # Only include customer line if we have a valid customer name
-        customer_line = f"Customer: {customer}\n" if customer and customer != "NOT YET AVAILABLE" else ""
+        customer_line = (
+            f"Customer: {customer}\n" if customer and customer != "NOT YET AVAILABLE" else ""
+        )
 
         prompt = f"""
 You are an AI assistant specialized in summarizing incident response channels.
@@ -204,11 +204,7 @@ The response_text field should contain the full report using JIRA wiki formattin
 
         return prompt
 
-    def _format_for_jira(
-        self,
-        report_text: str,
-        channel_metadata: Dict[str, Any]
-    ) -> str:
+    def _format_for_jira(self, report_text: str, channel_metadata: Dict[str, Any]) -> str:
         """Format the report for JIRA markdown."""
         customer = channel_metadata.get("customer_name", "")
         channel_name = channel_metadata.get("channel_name", "Unknown")
@@ -216,7 +212,9 @@ The response_text field should contain the full report using JIRA wiki formattin
         jira_ticket = channel_metadata.get("jira_ticket", "")
 
         # Only include customer line if we have a valid customer name
-        customer_line = f"*Customer*: {customer}\n" if customer and customer != "NOT YET AVAILABLE" else ""
+        customer_line = (
+            f"*Customer*: {customer}\n" if customer and customer != "NOT YET AVAILABLE" else ""
+        )
 
         # Include JIRA ticket if available
         jira_line = f"*JIRA Ticket*: {jira_ticket}\n" if jira_ticket else ""

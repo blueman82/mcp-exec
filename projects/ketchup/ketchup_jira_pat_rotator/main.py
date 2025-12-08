@@ -10,13 +10,10 @@ Follows pattern of other Ketchup services (ketchup_status_updater, jira_reporter
 
 import asyncio
 import sys
-import time
 from datetime import datetime
 
+from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
 from packages.core.logging import setup_logger
-from packages.core.typed_di_integration import get_unified_container, cleanup_unified_container
-from packages.core.config.feature_flags import FeatureFlags
-from packages.core.distributed_lock import DistributedLock
 from packages.core.typed_di.exceptions import MissingDependencyError
 
 # TypedDI Protocol imports
@@ -30,9 +27,7 @@ from packages.core.typed_di.service_registrations.protocols.infrastructure_proto
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
     MCPClientProtocol,
 )
-
-from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
-from ketchup_jira_pat_rotator.rotator import PATRotator
+from packages.core.typed_di_integration import cleanup_unified_container, get_unified_container
 
 logger = setup_logger(__name__)
 
@@ -86,9 +81,9 @@ async def async_main():
 
         logger.info("All required services initialized successfully")
 
-        # Initialize scheduler
+        # Initialize scheduler with DI container
         logger.info("Initializing PAT rotation scheduler...")
-        scheduler = PatRotationScheduler()
+        scheduler = PatRotationScheduler(container=container)
 
         # Start the scheduler
         logger.info("Starting scheduler loop...")
