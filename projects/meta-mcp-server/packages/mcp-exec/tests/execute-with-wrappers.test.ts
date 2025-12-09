@@ -227,7 +227,7 @@ describe('generateToolWrapper', () => {
       inputSchema: { type: 'object', properties: {}, required: [] },
     };
     const wrapper = generateToolWrapper(tool, 'filesystem');
-    expect(wrapper).toContain('export async function read_file');
+    expect(wrapper).toContain('async function read_file');
   });
 
   it('should generate wrapper with typed interface for input', () => {
@@ -245,8 +245,8 @@ describe('generateToolWrapper', () => {
     };
     const wrapper = generateToolWrapper(tool, 'github');
 
-    // Should generate interface
-    expect(wrapper).toContain('export interface CreateIssueInput');
+    // Should generate interface (without export keyword)
+    expect(wrapper).toContain('interface CreateIssueInput');
     expect(wrapper).toContain('title: string');
     expect(wrapper).toContain('body?: string'); // optional since not in required
   });
@@ -286,7 +286,7 @@ describe('generateToolWrapper', () => {
     const wrapper = generateToolWrapper(tool, 'api');
 
     // Should sanitize to valid identifier
-    expect(wrapper).toContain('export async function get_user_info');
+    expect(wrapper).toContain('async function get_user_info');
   });
 
   it('should handle array type properties', () => {
@@ -318,23 +318,26 @@ describe('generateServerModule', () => {
 
     expect(module).toContain('Auto-generated TypeScript wrappers');
     expect(module).toContain('test-server MCP server tools');
-    expect(module).toContain('Do not edit manually');
   });
 
-  it('should generate wrappers for all tools', () => {
+  it('should generate namespace object with methods for all tools', () => {
     const tools = createSampleTools();
     const module = generateServerModule(tools, 'filesystem');
 
-    expect(module).toContain('export async function read_file');
-    expect(module).toContain('export async function write_file');
+    // Should create namespace object
+    expect(module).toContain('const filesystem = {');
+    // Should use camelCase method names
+    expect(module).toContain('readFile:');
+    expect(module).toContain('writeFile:');
   });
 
   it('should include interfaces for tools with properties', () => {
     const tools = createSampleTools();
     const module = generateServerModule(tools, 'filesystem');
 
-    expect(module).toContain('export interface ReadFileInput');
-    expect(module).toContain('export interface WriteFileInput');
+    // Interfaces without export keyword
+    expect(module).toContain('interface ReadFileInput');
+    expect(module).toContain('interface WriteFileInput');
   });
 
   it('should handle empty tools array', () => {
@@ -342,8 +345,8 @@ describe('generateServerModule', () => {
 
     expect(module).toContain('Auto-generated TypeScript wrappers');
     expect(module).toContain('empty-server');
-    // Should not contain any function exports
-    expect(module).not.toContain('export async function');
+    // Should not contain any function definitions (empty tools array)
+    expect(module).not.toContain('async (');
   });
 });
 
@@ -606,7 +609,7 @@ describe('Edge cases', () => {
 
     // Should not throw
     const wrapper = generateToolWrapper(tool, 'simple-server');
-    expect(wrapper).toContain('export async function simple_tool');
+    expect(wrapper).toContain('async function simple_tool');
     // Should have empty args
     expect(wrapper).toContain('args: {}');
   });
@@ -623,9 +626,9 @@ describe('Edge cases', () => {
     };
 
     const wrapper = generateToolWrapper(tool, 'empty-server');
-    expect(wrapper).toContain('export async function empty_props_tool');
+    expect(wrapper).toContain('async function empty_props_tool');
     // Should not generate interface for empty properties
-    expect(wrapper).not.toContain('export interface');
+    expect(wrapper).not.toContain('interface ');
   });
 
   it('should handle tools with numeric-prefixed names', () => {
@@ -637,7 +640,7 @@ describe('Edge cases', () => {
 
     const wrapper = generateToolWrapper(tool, 'numeric-server');
     // Should prefix with underscore to make valid identifier
-    expect(wrapper).toContain('export async function _123_tool');
+    expect(wrapper).toContain('async function _123_tool');
   });
 
   it('should handle nested object properties', () => {

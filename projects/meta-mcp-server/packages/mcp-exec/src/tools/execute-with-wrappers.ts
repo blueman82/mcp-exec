@@ -182,7 +182,7 @@ export function createExecuteWithWrappersHandler(
           const tools = await connection.getTools();
 
           // Generate TypeScript module for this server
-          const moduleCode = generateServerModule(tools, serverName);
+          const moduleCode = generateServerModule(tools, serverName, bridgePort);
           wrapperModules.push(moduleCode);
 
           // Release connection back to pool
