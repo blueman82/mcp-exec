@@ -569,9 +569,9 @@ describe('Code composition', () => {
 
     const module = generateServerModule(tools, 'my-server');
 
-    // Verify server name is embedded in the wrapper
-    expect(module).toContain("server: 'my-server'");
-    expect(module).toContain("tool: 'test_tool'");
+    // Verify server name is embedded in the wrapper (JSON.stringify uses double quotes)
+    expect(module).toContain('server: "my-server"');
+    expect(module).toContain('tool: "test_tool"');
   });
 
   it('should preserve parameter descriptions in generated code', () => {
