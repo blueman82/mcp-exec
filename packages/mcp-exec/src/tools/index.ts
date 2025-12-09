@@ -27,3 +27,12 @@ export {
   isGetToolSchemaInput,
   type GetToolSchemaInput,
 } from './get-tool-schema.js';
+
+// Export execute_code_with_wrappers tool
+export {
+  executeCodeWithWrappersTool,
+  createExecuteWithWrappersHandler,
+  isExecuteWithWrappersInput,
+  type ExecuteWithWrappersInput,
+  type ExecuteWithWrappersHandlerConfig,
+} from './execute-with-wrappers.js';
