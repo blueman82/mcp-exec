@@ -26,6 +26,8 @@ export interface ServerConfig {
   // HTTP transport (URL-based)
   url?: string;
   headers?: Record<string, string>;
+  // Tool call timeout in milliseconds (default: 60000 from MCP SDK)
+  timeout?: number;
 }
 
 /**
