@@ -24,6 +24,12 @@ import {
   executeCodeWithWrappersTool,
   createExecuteWithWrappersHandler,
   isExecuteWithWrappersInput,
+  executeBatchTool,
+  createExecuteBatchHandler,
+  isExecuteBatchInput,
+  executeWithContextTool,
+  createExecuteWithContextHandler,
+  isExecuteWithContextInput,
 } from './tools/index.js';
 
 const VERSION = '0.1.0';
@@ -70,12 +76,20 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   // Create the execute_code_with_wrappers handler with the pool
   const executeWithWrappersHandler = createExecuteWithWrappersHandler(pool);
 
+  // Create the execute_batch handler with the pool
+  const executeBatchHandler = createExecuteBatchHandler(pool);
+
+  // Create the execute_with_context handler with the pool
+  const executeWithContextHandler = createExecuteWithContextHandler(pool);
+
   // Register all tools
   const tools: Tool[] = [
     executeCodeTool as Tool,
     listAvailableMcpServersTool as Tool,
     getMcpToolSchemaTool as Tool,
     executeCodeWithWrappersTool as Tool,
+    executeBatchTool as Tool,
+    executeWithContextTool as Tool,
   ];
 
   const listToolsHandler = async () => ({ tools });
@@ -136,6 +150,34 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
           };
         }
         const result = await executeWithWrappersHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'execute_batch': {
+        if (!isExecuteBatchInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for execute_batch. Required: snippets (array of {id, code, depends_on?})' }],
+            isError: true,
+          };
+        }
+        const result = await executeBatchHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'execute_with_context': {
+        if (!isExecuteWithContextInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for execute_with_context. Required: code (string), optional: context (object)' }],
+            isError: true,
+          };
+        }
+        const result = await executeWithContextHandler(args);
         return {
           content: result.content,
           isError: result.isError,
