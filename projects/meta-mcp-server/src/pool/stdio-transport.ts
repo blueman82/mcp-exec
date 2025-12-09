@@ -1,9 +1,11 @@
+import path from 'node:path';
 import type { ServerConfig } from '../types/index.js';
 
 export interface SpawnConfig {
   command: string;
   args: string[];
   env?: Record<string, string>;
+  cwd?: string;
 }
 
 /** Allowed commands that can be spawned by MCP servers */
@@ -54,8 +56,30 @@ function filterEnvVars(serverEnv?: Record<string, string>): Record<string, strin
   return filtered;
 }
 
+/**
+ * Infer working directory from script paths in arguments.
+ * Looks for absolute paths ending in common script extensions (.js, .ts, .py, .mjs, .cjs)
+ * and returns the parent directory.
+ *
+ * @param args - Command arguments to search for script paths
+ * @returns The inferred directory path, or undefined if no suitable path found
+ */
+export function inferCwd(args: string[]): string | undefined {
+  // Pattern matches absolute paths ending in script extensions
+  const scriptExtensions = /\.(js|ts|py|mjs|cjs)$/;
+
+  for (const arg of args) {
+    // Must be an absolute path (starts with /)
+    if (arg.startsWith('/') && scriptExtensions.test(arg)) {
+      return path.dirname(arg);
+    }
+  }
+
+  return undefined;
+}
+
 export function buildSpawnConfig(config: ServerConfig): SpawnConfig {
-  const { command, args = [], env } = config;
+  const { command, args = [], env, cwd } = config;
 
   if (!command) {
     throw new Error('Config requires command');
@@ -72,6 +96,10 @@ export function buildSpawnConfig(config: ServerConfig): SpawnConfig {
   // Use filtered environment variables
   const filteredEnv = filterEnvVars(env);
 
+  // Use explicit cwd if provided, otherwise infer from script paths
+  // Docker doesn't need cwd (container handles its own filesystem)
+  const resolvedCwd = command === 'docker' ? undefined : (cwd ?? inferCwd(args));
+
   // Infer spawn type from command
   if (command === 'docker') {
     return {
@@ -86,6 +114,7 @@ export function buildSpawnConfig(config: ServerConfig): SpawnConfig {
       command,
       args: args,
       env: filteredEnv,
+      cwd: resolvedCwd,
     };
   }
 
@@ -94,5 +123,6 @@ export function buildSpawnConfig(config: ServerConfig): SpawnConfig {
     command,
     args: args,
     env: filteredEnv,
+    cwd: resolvedCwd,
   };
 }
