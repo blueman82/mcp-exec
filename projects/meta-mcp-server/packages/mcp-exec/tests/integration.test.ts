@@ -86,12 +86,14 @@ describe('mcp-exec Integration Tests', () => {
       const { listToolsHandler, shutdown } = createMcpExecServer(mockPool);
       const result = await listToolsHandler();
 
-      expect(result.tools).toHaveLength(4);
+      expect(result.tools).toHaveLength(6);
       const toolNames = result.tools.map((t) => t.name);
       expect(toolNames).toContain('execute_code');
       expect(toolNames).toContain('list_available_mcp_servers');
       expect(toolNames).toContain('get_mcp_tool_schema');
       expect(toolNames).toContain('execute_code_with_wrappers');
+      expect(toolNames).toContain('execute_batch');
+      expect(toolNames).toContain('execute_with_context');
       expect(result.tools[0].inputSchema).toBeDefined();
 
       await shutdown();
