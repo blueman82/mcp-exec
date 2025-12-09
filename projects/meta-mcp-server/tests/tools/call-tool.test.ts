@@ -128,10 +128,14 @@ describe('call_tool tool', () => {
       toolCache
     );
 
-    expect(mockConnection.client.callTool).toHaveBeenCalledWith({
-      name: 'read_file',
-      arguments: args,
-    });
+    expect(mockConnection.client.callTool).toHaveBeenCalledWith(
+      {
+        name: 'read_file',
+        arguments: args,
+      },
+      undefined, // resultSchema
+      undefined  // requestOptions (no timeout in mock config)
+    );
   });
 
   it('returns server response', async () => {
@@ -232,5 +236,48 @@ describe('call_tool tool', () => {
     expect(callToolTool.inputSchema.properties).toHaveProperty('arguments');
     expect(callToolTool.inputSchema.required).toContain('server_name');
     expect(callToolTool.inputSchema.required).toContain('tool_name');
+  });
+
+  it('passes timeout from server config to callTool', async () => {
+    // Create config with timeout
+    const configWithTimeout = {
+      mcpServers: {
+        'slow-server': {
+          type: 'stdio',
+          command: 'node',
+          args: ['slow-server.js'],
+          timeout: 600000, // 10 minutes
+        },
+      }
+    };
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(configWithTimeout));
+    clearCache();
+
+    const slowServerTools: ToolDefinition[] = [
+      {
+        name: 'slow_operation',
+        description: 'A slow operation',
+        inputSchema: { type: 'object', properties: {} },
+        serverId: 'slow-server'
+      }
+    ];
+
+    const mockConnection = createMockConnection('slow-server', slowServerTools);
+    mockPool.getConnection.mockResolvedValue(mockConnection);
+    toolCache.set('slow-server', slowServerTools);
+
+    await callToolHandler(
+      { server_name: 'slow-server', tool_name: 'slow_operation', arguments: {} },
+      mockPool as any,
+      toolCache
+    );
+
+    // Verify timeout was passed in requestOptions
+    expect(mockConnection.client.callTool).toHaveBeenCalledWith(
+      { name: 'slow_operation', arguments: {} },
+      undefined,
+      { timeout: 600000 }
+    );
   });
 });

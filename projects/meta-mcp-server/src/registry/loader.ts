@@ -32,6 +32,7 @@ const ServerConfigSchema = z.object({
   disabled: z.boolean().optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  timeout: z.number().optional(), // Tool call timeout in milliseconds (default: 60000)
 });
 
 const BackendsConfigSchema = z.object({

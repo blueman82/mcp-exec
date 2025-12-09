@@ -59,7 +59,11 @@ export const callToolTool: Tool = {
 interface ConnectionWithClient {
   serverId: string;
   client: {
-    callTool: (params: { name: string; arguments?: Record<string, unknown> }) => Promise<CallToolResult>;
+    callTool: (
+      params: { name: string; arguments?: Record<string, unknown> },
+      resultSchema?: unknown,
+      options?: { timeout?: number }
+    ) => Promise<CallToolResult>;
   };
 }
 
@@ -113,12 +117,17 @@ export async function callToolHandler(
     );
   }
 
-  // Call the tool
+  // Call the tool with optional timeout from server config
   try {
-    const result = await connection.client.callTool({
-      name: tool_name,
-      arguments: args,
-    });
+    const requestOptions = config.timeout ? { timeout: config.timeout } : undefined;
+    const result = await connection.client.callTool(
+      {
+        name: tool_name,
+        arguments: args,
+      },
+      undefined, // resultSchema - use default
+      requestOptions
+    );
     return result;
   } finally {
     pool.releaseConnection(server_name);
