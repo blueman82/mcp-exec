@@ -98,11 +98,11 @@ function primitiveToTs(type: string): string {
  */
 function generateInterface(name: string, schema: { properties?: Record<string, unknown>; required?: string[] }): string {
   if (!schema.properties || Object.keys(schema.properties).length === 0) {
-    return `export interface ${name} {}`;
+    return `interface ${name} {}`;
   }
 
   const lines: string[] = [];
-  lines.push(`export interface ${name} {`);
+  lines.push(`interface ${name} {`);
 
   for (const [propName, propValue] of Object.entries(schema.properties)) {
     const prop = propValue as JsonSchemaProperty;
@@ -135,6 +135,21 @@ function sanitizeIdentifier(name: string): string {
 }
 
 /**
+ * Convert tool name to camelCase for method name
+ */
+function toCamelCase(name: string): string {
+  const words = name.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+  if (words.length === 0) return name;
+  return words
+    .map((word, index) =>
+      index === 0
+        ? word.toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join('');
+}
+
+/**
  * Convert tool name to PascalCase for interface name
  */
 function toPascalCase(name: string): string {
@@ -146,10 +161,79 @@ function toPascalCase(name: string): string {
 }
 
 /**
- * Generate TypeScript wrapper code for a single MCP tool
+ * Generate interface definition for a tool (if it has input properties)
+ * @param tool - Tool definition from MCP server
+ * @returns Interface definition string or empty string
+ */
+function generateToolInterface(tool: ToolDefinition): string {
+  const interfaceName = `${toPascalCase(tool.name)}Input`;
+
+  if (tool.inputSchema?.properties && Object.keys(tool.inputSchema.properties).length > 0) {
+    return generateInterface(interfaceName, tool.inputSchema);
+  }
+  return '';
+}
+
+/**
+ * Generate a method definition for the namespace object
+ * @param tool - Tool definition from MCP server
+ * @param serverName - Name of the MCP server
+ * @param bridgePort - Port for the MCP bridge
+ * @returns Method definition string for inclusion in namespace object
+ */
+function generateMethodDefinition(tool: ToolDefinition, serverName: string, bridgePort: number): string {
+  const methodName = toCamelCase(tool.name);
+  const interfaceName = `${toPascalCase(tool.name)}Input`;
+  const hasInput = tool.inputSchema?.properties && Object.keys(tool.inputSchema.properties).length > 0;
+  const inputParam = hasInput ? `input: ${interfaceName}` : '';
+  const inputArg = hasInput ? 'input' : '{}';
+
+  const lines: string[] = [];
+
+  // Add JSDoc comment
+  if (tool.description) {
+    lines.push('  /**');
+    lines.push(`   * ${tool.description}`);
+    if (tool.inputSchema?.properties) {
+      for (const [propName, propValue] of Object.entries(tool.inputSchema.properties)) {
+        const prop = propValue as JsonSchemaProperty;
+        if (prop.description) {
+          lines.push(`   * @param input.${propName} - ${prop.description}`);
+        }
+      }
+    }
+    lines.push('   */');
+  }
+
+  lines.push(`  ${methodName}: async (${inputParam}): Promise<unknown> => {`);
+  lines.push(`    const response = await fetch('http://localhost:${bridgePort}/call', {`);
+  lines.push(`      method: 'POST',`);
+  lines.push(`      headers: { 'Content-Type': 'application/json' },`);
+  lines.push(`      body: JSON.stringify({`);
+  lines.push(`        server: '${serverName}',`);
+  lines.push(`        tool: '${tool.name}',`);
+  lines.push(`        args: ${inputArg},`);
+  lines.push(`      }),`);
+  lines.push(`    });`);
+  lines.push(`    if (!response.ok) {`);
+  lines.push('      throw new Error(`Tool call failed: ${response.statusText}`);');
+  lines.push(`    }`);
+  lines.push(`    const data = await response.json() as { success: boolean; content?: unknown; error?: string };`);
+  lines.push(`    if (!data.success) {`);
+  lines.push(`      throw new Error(data.error || 'Tool call failed');`);
+  lines.push(`    }`);
+  lines.push(`    return data.content;`);
+  lines.push(`  },`);
+
+  return lines.join('\n');
+}
+
+/**
+ * Generate TypeScript wrapper code for a single MCP tool (legacy - kept for compatibility)
  * @param tool - Tool definition from MCP server
  * @param serverName - Name of the MCP server
  * @returns TypeScript code string
+ * @deprecated Use generateServerModule instead for namespace-based wrappers
  */
 export function generateToolWrapper(tool: ToolDefinition, serverName: string): string {
   const funcName = sanitizeIdentifier(tool.name);
@@ -180,12 +264,12 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string): s
     lines.push(' */');
   }
 
-  // Generate function signature
+  // Generate function signature (no export - for inline execution)
   const hasInput = tool.inputSchema?.properties && Object.keys(tool.inputSchema.properties).length > 0;
   const inputParam = hasInput ? `input: ${interfaceName}` : '';
   const inputArg = hasInput ? 'input' : '{}';
 
-  lines.push(`export async function ${funcName}(${inputParam}): Promise<unknown> {`);
+  lines.push(`async function ${funcName}(${inputParam}): Promise<unknown> {`);
   lines.push(`  const response = await fetch('${BRIDGE_ENDPOINT}', {`);
   lines.push(`    method: 'POST',`);
   lines.push(`    headers: { 'Content-Type': 'application/json' },`);
@@ -207,26 +291,43 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string): s
 }
 
 /**
- * Generate a complete TypeScript module exporting all tools for a server
+ * Generate a complete TypeScript module with a namespace object for all tools
  * @param tools - Array of tool definitions
  * @param serverName - Name of the MCP server
- * @returns TypeScript code string (index.ts content)
+ * @param bridgePort - Port for the MCP bridge (default: 3000)
+ * @returns TypeScript code string with namespace object
  */
-export function generateServerModule(tools: ToolDefinition[], serverName: string): string {
+export function generateServerModule(tools: ToolDefinition[], serverName: string, bridgePort: number = 3000): string {
   const lines: string[] = [];
+  const namespaceName = sanitizeIdentifier(serverName);
 
   // File header comment
   lines.push('/**');
   lines.push(` * Auto-generated TypeScript wrappers for ${serverName} MCP server tools.`);
-  lines.push(' * Do not edit manually - regenerate using wrapper-generator.');
+  lines.push(` * Access tools via: ${namespaceName}.methodName()`);
   lines.push(' */');
   lines.push('');
 
-  // Generate each tool wrapper
+  // Generate all interfaces first
   for (const tool of tools) {
-    lines.push(generateToolWrapper(tool, serverName));
-    lines.push('');
+    const interfaceCode = generateToolInterface(tool);
+    if (interfaceCode) {
+      lines.push(interfaceCode);
+      lines.push('');
+    }
   }
+
+  // Generate the namespace object with all methods
+  lines.push(`const ${namespaceName} = {`);
+
+  for (let i = 0; i < tools.length; i++) {
+    const tool = tools[i];
+    lines.push(generateMethodDefinition(tool, serverName, bridgePort));
+    // No trailing comma after last method (already handled by generateMethodDefinition)
+  }
+
+  lines.push('};');
+  lines.push('');
 
   return lines.join('\n');
 }

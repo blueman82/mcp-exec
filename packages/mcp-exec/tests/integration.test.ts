@@ -86,11 +86,12 @@ describe('mcp-exec Integration Tests', () => {
       const { listToolsHandler, shutdown } = createMcpExecServer(mockPool);
       const result = await listToolsHandler();
 
-      expect(result.tools).toHaveLength(3);
+      expect(result.tools).toHaveLength(4);
       const toolNames = result.tools.map((t) => t.name);
       expect(toolNames).toContain('execute_code');
       expect(toolNames).toContain('list_available_mcp_servers');
       expect(toolNames).toContain('get_mcp_tool_schema');
+      expect(toolNames).toContain('execute_code_with_wrappers');
       expect(result.tools[0].inputSchema).toBeDefined();
 
       await shutdown();
@@ -278,10 +279,11 @@ describe('Error handling', () => {
         }),
       });
 
-      expect(response.status).toBe(502);
+      // Server not found returns 404 (not found) instead of 502 (bad gateway)
+      expect(response.status).toBe(404);
       const body = await response.json() as { success: boolean; error: string };
       expect(body.success).toBe(false);
-      expect(body.error).toContain('Failed to connect');
+      expect(body.error).toContain('not found');
 
       await bridge.stop();
     });
