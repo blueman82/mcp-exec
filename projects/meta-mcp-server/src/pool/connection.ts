@@ -74,6 +74,7 @@ export async function createConnection(config: ServerConfig): Promise<MCPConnect
         command: spawnConfig.command,
         args: spawnConfig.args,
         env: spawnConfig.env,
+        cwd: spawnConfig.cwd,
       });
     } catch (err) {
       throw new SpawnError(

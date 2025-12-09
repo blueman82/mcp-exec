@@ -23,6 +23,9 @@ export interface ServerConfig {
     tag?: string;
   };
   env?: Record<string, string>;
+  // Working directory for the spawned process
+  // If not specified, will be auto-inferred from script paths in args
+  cwd?: string;
   // HTTP transport (URL-based)
   url?: string;
   headers?: Record<string, string>;
