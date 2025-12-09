@@ -11,3 +11,19 @@ export {
   type TextContent,
   type ExecuteCodeHandlerConfig,
 } from './execute-code.js';
+
+// Export list_available_mcp_servers tool
+export {
+  listAvailableMcpServersTool,
+  createListServersHandler,
+  isListServersInput,
+  type ListServersInput,
+} from './list-servers.js';
+
+// Export get_mcp_tool_schema tool
+export {
+  getMcpToolSchemaTool,
+  createGetToolSchemaHandler,
+  isGetToolSchemaInput,
+  type GetToolSchemaInput,
+} from './get-tool-schema.js';

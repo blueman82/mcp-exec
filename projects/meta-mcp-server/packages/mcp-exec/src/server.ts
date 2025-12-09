@@ -15,6 +15,12 @@ import {
   createExecuteCodeHandler,
   isExecuteCodeInput,
   type ExecuteCodeHandlerConfig,
+  listAvailableMcpServersTool,
+  createListServersHandler,
+  isListServersInput,
+  getMcpToolSchemaTool,
+  createGetToolSchemaHandler,
+  isGetToolSchemaInput,
 } from './tools/index.js';
 
 const VERSION = '0.1.0';
@@ -52,8 +58,18 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   // Create the execute_code handler with the pool
   const executeCodeHandler = createExecuteCodeHandler(pool, config.handlerConfig);
 
-  // Single tool: execute_code
-  const tools: Tool[] = [executeCodeTool as Tool];
+  // Create the list_available_mcp_servers handler
+  const listServersHandler = createListServersHandler();
+
+  // Create the get_mcp_tool_schema handler with the pool
+  const getToolSchemaHandler = createGetToolSchemaHandler(pool);
+
+  // Register all tools
+  const tools: Tool[] = [
+    executeCodeTool as Tool,
+    listAvailableMcpServersTool as Tool,
+    getMcpToolSchemaTool as Tool,
+  ];
 
   const listToolsHandler = async () => ({ tools });
 
@@ -71,6 +87,34 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
           };
         }
         const result = await executeCodeHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'list_available_mcp_servers': {
+        if (!isListServersInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for list_available_mcp_servers' }],
+            isError: true,
+          };
+        }
+        const result = await listServersHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'get_mcp_tool_schema': {
+        if (!isGetToolSchemaInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for get_mcp_tool_schema. Required: server_name (string), tool_name (string)' }],
+            isError: true,
+          };
+        }
+        const result = await getToolSchemaHandler(args);
         return {
           content: result.content,
           isError: result.isError,
