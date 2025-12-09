@@ -231,3 +231,111 @@ describe('buildSpawnConfig', async () => {
     expect(() => buildSpawnConfig(config)).toThrow('Config requires command');
   });
 });
+
+describe('inferCwd', async () => {
+  const { inferCwd } = await import('../src/pool/stdio-transport.js');
+
+  it('infers cwd from .js script path', () => {
+    const args = ['/Users/bob/wiki-server/index.js', '--port', '3000'];
+    expect(inferCwd(args)).toBe('/Users/bob/wiki-server');
+  });
+
+  it('infers cwd from .ts script path', () => {
+    const args = ['/home/user/mcp/server.ts'];
+    expect(inferCwd(args)).toBe('/home/user/mcp');
+  });
+
+  it('infers cwd from .py script path', () => {
+    const args = ['/opt/mcp-servers/jira/main.py', '--config', 'prod'];
+    expect(inferCwd(args)).toBe('/opt/mcp-servers/jira');
+  });
+
+  it('infers cwd from .mjs script path', () => {
+    const args = ['/path/to/server/entry.mjs'];
+    expect(inferCwd(args)).toBe('/path/to/server');
+  });
+
+  it('infers cwd from .cjs script path', () => {
+    const args = ['/lib/server/index.cjs', '--verbose'];
+    expect(inferCwd(args)).toBe('/lib/server');
+  });
+
+  it('returns undefined for relative paths', () => {
+    const args = ['./server.js', '--flag'];
+    expect(inferCwd(args)).toBeUndefined();
+  });
+
+  it('returns undefined for package names (no extension)', () => {
+    const args = ['mcp-server-package', '--config', '/path/to/config'];
+    expect(inferCwd(args)).toBeUndefined();
+  });
+
+  it('returns undefined for empty args', () => {
+    expect(inferCwd([])).toBeUndefined();
+  });
+
+  it('finds script path even when not first argument', () => {
+    const args = ['--debug', '/Users/dev/server/app.js', '--port', '8080'];
+    expect(inferCwd(args)).toBe('/Users/dev/server');
+  });
+});
+
+describe('buildSpawnConfig cwd handling', async () => {
+  const { buildSpawnConfig } = await import('../src/pool/stdio-transport.js');
+
+  it('uses explicit cwd when provided', () => {
+    const config: ServerConfig = {
+      name: 'explicit-cwd-server',
+      command: 'node',
+      args: ['/path/to/script.js'],
+      cwd: '/custom/working/dir',
+    };
+
+    const spawn = buildSpawnConfig(config);
+    expect(spawn.cwd).toBe('/custom/working/dir');
+  });
+
+  it('infers cwd from script path when not provided', () => {
+    const config: ServerConfig = {
+      name: 'infer-cwd-server',
+      command: 'node',
+      args: ['/Users/bob/wiki-server/index.js'],
+    };
+
+    const spawn = buildSpawnConfig(config);
+    expect(spawn.cwd).toBe('/Users/bob/wiki-server');
+  });
+
+  it('does not set cwd for docker (container handles filesystem)', () => {
+    const config: ServerConfig = {
+      name: 'docker-server',
+      command: 'docker',
+      args: ['run', '-i', '--rm', 'myimage:v1', '/app/server.js'],
+    };
+
+    const spawn = buildSpawnConfig(config);
+    expect(spawn.cwd).toBeUndefined();
+  });
+
+  it('infers cwd for uvx with script path', () => {
+    const config: ServerConfig = {
+      name: 'uvx-server',
+      command: 'uvx',
+      args: ['--from', 'package', '/home/user/server.py'],
+    };
+
+    const spawn = buildSpawnConfig(config);
+    expect(spawn.cwd).toBe('/home/user');
+  });
+
+  it('returns undefined cwd when no script path found', () => {
+    const config: ServerConfig = {
+      name: 'package-server',
+      command: 'npx',
+      args: ['mcp-server-package', '--flag'],
+    };
+
+    const spawn = buildSpawnConfig(config);
+    expect(spawn.cwd).toBeUndefined();
+  });
+});
