@@ -21,6 +21,9 @@ import {
   getMcpToolSchemaTool,
   createGetToolSchemaHandler,
   isGetToolSchemaInput,
+  executeCodeWithWrappersTool,
+  createExecuteWithWrappersHandler,
+  isExecuteWithWrappersInput,
 } from './tools/index.js';
 
 const VERSION = '0.1.0';
@@ -64,11 +67,15 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   // Create the get_mcp_tool_schema handler with the pool
   const getToolSchemaHandler = createGetToolSchemaHandler(pool);
 
+  // Create the execute_code_with_wrappers handler with the pool
+  const executeWithWrappersHandler = createExecuteWithWrappersHandler(pool);
+
   // Register all tools
   const tools: Tool[] = [
     executeCodeTool as Tool,
     listAvailableMcpServersTool as Tool,
     getMcpToolSchemaTool as Tool,
+    executeCodeWithWrappersTool as Tool,
   ];
 
   const listToolsHandler = async () => ({ tools });
@@ -115,6 +122,20 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
           };
         }
         const result = await getToolSchemaHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'execute_code_with_wrappers': {
+        if (!isExecuteWithWrappersInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for execute_code_with_wrappers. Required: code (string), wrappers (string[])' }],
+            isError: true,
+          };
+        }
+        const result = await executeWithWrappersHandler(args);
         return {
           content: result.content,
           isError: result.isError,
