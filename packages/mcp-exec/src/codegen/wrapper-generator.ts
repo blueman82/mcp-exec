@@ -190,9 +190,9 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string): s
   lines.push(`    method: 'POST',`);
   lines.push(`    headers: { 'Content-Type': 'application/json' },`);
   lines.push(`    body: JSON.stringify({`);
-  lines.push(`      server_name: '${serverName}',`);
-  lines.push(`      tool_name: '${tool.name}',`);
-  lines.push(`      arguments: ${inputArg},`);
+  lines.push(`      server: '${serverName}',`);
+  lines.push(`      tool: '${tool.name}',`);
+  lines.push(`      args: ${inputArg},`);
   lines.push(`    }),`);
   lines.push(`  });`);
   lines.push('');

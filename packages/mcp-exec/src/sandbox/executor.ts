@@ -49,6 +49,38 @@ export class SandboxExecutor {
   }
 
   /**
+   * Generate the MCP helper preamble that provides the global `mcp` object
+   * for calling MCP tools via the HTTP bridge
+   */
+  private getMcpPreamble(): string {
+    const bridgePort = this.executorConfig.mcpBridgePort ?? 3000;
+    return `
+// MCP helper for calling tools via HTTP bridge
+declare global {
+  var mcp: {
+    callTool: (server: string, tool: string, args?: Record<string, unknown>) => Promise<unknown[]>;
+  };
+}
+
+globalThis.mcp = {
+  callTool: async (server: string, tool: string, args: Record<string, unknown> = {}) => {
+    const response = await fetch('http://localhost:${bridgePort}/call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ server, tool, args }),
+    });
+    const data = await response.json() as { success: boolean; content?: unknown[]; error?: string };
+    if (!data.success) {
+      throw new Error(data.error || 'MCP tool call failed');
+    }
+    return data.content || [];
+  },
+};
+
+`;
+  }
+
+  /**
    * Execute TypeScript/JavaScript code in the sandbox
    *
    * @param code - The code to execute
@@ -68,12 +100,15 @@ export class SandboxExecutor {
     const tsFilePath = join(this.tempDir, `${fileId}.ts`);
     const jsFilePath = join(this.tempDir, `${fileId}.js`);
 
+    // Prepend MCP helper preamble to user code
+    const fullCode = this.getMcpPreamble() + code;
+
     try {
       // Write TypeScript code to temp file
-      await writeFile(tsFilePath, code, 'utf-8');
+      await writeFile(tsFilePath, fullCode, 'utf-8');
 
       // Transpile TypeScript to JavaScript using esbuild
-      const transpiled = transformSync(code, {
+      const transpiled = transformSync(fullCode, {
         loader: 'ts',
         format: 'esm',
         target: 'node20',
