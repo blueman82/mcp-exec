@@ -1,0 +1,32 @@
+{
+  "name": "@meta-mcp/exec",
+  "version": "0.1.0",
+  "description": "MCP execution utilities for sandboxed code execution with OS-level isolation",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:integration": "vitest run tests/integration.test.ts"
+  },
+  "bin": {
+    "mcp-exec": "dist/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "^0.0.19",
+    "@meta-mcp/core": "*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "esbuild": "^0.24.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/server-filesystem": "^2025.11.25",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3"
+  }
+}

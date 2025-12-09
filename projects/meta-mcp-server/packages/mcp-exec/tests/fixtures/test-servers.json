@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/@meta-mcp/core/servers.schema.json",
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+      "description": "Filesystem MCP server for integration testing"
+    }
+  }
+}

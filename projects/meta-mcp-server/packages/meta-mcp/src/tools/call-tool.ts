@@ -6,9 +6,10 @@ import {
   ConfigNotFoundError,
   ConfigParseError,
   ConfigValidationError,
-} from '../registry/index.js';
-import { ServerPool, ConnectionError } from '../pool/index.js';
-import { ToolCache } from './tool-cache.js';
+  ServerPool,
+  ConnectionError,
+  ToolCache,
+} from '@meta-mcp/core';
 
 export class ServerNotFoundError extends Error {
   constructor(serverName: string) {
@@ -117,13 +118,9 @@ export async function callToolHandler(
     );
   }
 
-  // Call the tool with server-configured timeout or global default
+  // Call the tool with optional timeout from server config
   try {
-    const defaultTimeout = process.env.MCP_DEFAULT_TIMEOUT
-      ? parseInt(process.env.MCP_DEFAULT_TIMEOUT, 10)
-      : undefined;
-    const timeout = config.timeout ?? defaultTimeout;
-    const requestOptions = timeout ? { timeout } : undefined;
+    const requestOptions = config.timeout ? { timeout: config.timeout } : undefined;
     const result = await connection.client.callTool(
       {
         name: tool_name,
