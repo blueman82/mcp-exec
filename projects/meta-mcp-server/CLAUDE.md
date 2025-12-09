@@ -64,6 +64,7 @@ npm run dev
 - **Entry Flow**: `src/index.ts` → creates `ServerPool` + `ToolCache` → `createServer()` → stdio transport
 - **Token Optimization**: See [Token Economics](docs/diagrams/token-economics.md) for 87-91% savings breakdown
 - **Configuration**: `SERVERS_CONFIG` env var points to servers.json (standard MCP format)
+- **Timeouts**: `MCP_DEFAULT_TIMEOUT` env var sets global timeout (ms). Per-server `timeout` in servers.json takes precedence.
 
 ### Visual Diagrams
 See [Architecture Guide](docs/ARCHITECTURE.md) and [Diagram Index](docs/diagrams/README.md) for complete visual documentation:

@@ -19,7 +19,7 @@ flowchart LR
   end
 
   subgraph Pool["Connection Pool"]
-    P["Max 6 | LRU | 5min timeout"]
+    P["Max 20 | LRU | 5min timeout"]
   end
 
   subgraph Backends["Backend Servers"]
@@ -137,7 +137,7 @@ stateDiagram-v2
 
 | Setting | Value |
 |---------|-------|
-| Max connections | 6 |
+| Max connections | 20 |
 | Idle timeout | 5 min |
 | Cleanup interval | 1 min |
 | Eviction | LRU |

@@ -42,7 +42,7 @@ flowchart TD
 
 | Setting | Value |
 |---------|-------|
-| maxConnections | 6 |
+| maxConnections | 20 |
 | idleTimeout | 5 min |
 | cleanup | 1 min |
 
