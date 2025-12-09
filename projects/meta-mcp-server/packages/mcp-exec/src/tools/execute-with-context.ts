@@ -91,20 +91,20 @@ function serializeContext(context: Record<string, unknown>): string {
 }
 
 /**
- * Generate context injection code that creates a global `context` variable
+ * Generate context injection code that creates a global `context` variable.
+ * Uses Base64 encoding to prevent injection attacks via malicious context values.
  * @param context - The context object to inject
  * @returns Code string that declares the context variable
  */
 function generateContextInjection(context: Record<string, unknown>): string {
   const serializedContext = serializeContext(context);
-  // Escape single quotes in JSON string for safe injection
-  const escapedJson = serializedContext.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const base64Context = Buffer.from(serializedContext, 'utf-8').toString('base64');
 
-  return `// Context injection
+  return `// Context injection (Base64 encoded for security)
 declare global {
   var context: Record<string, unknown>;
 }
-globalThis.context = JSON.parse('${escapedJson}');
+globalThis.context = JSON.parse(Buffer.from('${base64Context}', 'base64').toString('utf-8'));
 
 `;
 }

@@ -205,13 +205,17 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
     lines.push('   */');
   }
 
+  // Escape server/tool names to prevent code injection via malicious names
+  const safeServerName = JSON.stringify(serverName);
+  const safeToolName = JSON.stringify(tool.name);
+
   lines.push(`  ${methodName}: async (${inputParam}): Promise<unknown> => {`);
   lines.push(`    const response = await fetch('http://localhost:${bridgePort}/call', {`);
   lines.push(`      method: 'POST',`);
   lines.push(`      headers: { 'Content-Type': 'application/json' },`);
   lines.push(`      body: JSON.stringify({`);
-  lines.push(`        server: '${serverName}',`);
-  lines.push(`        tool: '${tool.name}',`);
+  lines.push(`        server: ${safeServerName},`);
+  lines.push(`        tool: ${safeToolName},`);
   lines.push(`        args: ${inputArg},`);
   lines.push(`      }),`);
   lines.push(`    });`);

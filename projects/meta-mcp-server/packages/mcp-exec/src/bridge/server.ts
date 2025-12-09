@@ -56,6 +56,7 @@ interface MCPConnectionWithClient extends MCPConnection {
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_HOST = '127.0.0.1';
+const MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024; // 10MB limit
 
 /**
  * Calculate simple string similarity using common prefix/suffix length
@@ -286,9 +287,9 @@ export class MCPBridge {
    * Handle incoming HTTP requests
    */
   private handleRequest(req: IncomingMessage, res: ServerResponse): void {
-    // Set CORS headers for local access
+    // Set CORS headers - restricted to localhost since bridge only serves sandbox code
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', `http://${this.host}:${this.port}`);
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -314,8 +315,15 @@ export class MCPBridge {
    */
   private handleCallRequest(req: IncomingMessage, res: ServerResponse): void {
     let body = '';
+    let bodySize = 0;
 
     req.on('data', (chunk: Buffer) => {
+      bodySize += chunk.length;
+      if (bodySize > MAX_REQUEST_BODY_SIZE) {
+        req.destroy();
+        this.sendError(res, 413, `Request body too large. Maximum size is ${MAX_REQUEST_BODY_SIZE / 1024 / 1024}MB`);
+        return;
+      }
       body += chunk.toString();
     });
 
@@ -337,6 +345,11 @@ export class MCPBridge {
         }
         if (!request.tool || typeof request.tool !== 'string') {
           this.sendError(res, 400, 'Missing or invalid "tool" field');
+          return;
+        }
+        // Validate args is an object if provided
+        if (request.args !== undefined && (typeof request.args !== 'object' || request.args === null || Array.isArray(request.args))) {
+          this.sendError(res, 400, '"args" must be an object');
           return;
         }
 
