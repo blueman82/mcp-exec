@@ -278,7 +278,8 @@ describe('MCPBridge', () => {
     it('should set CORS headers', async () => {
       const response = await fetch(`http://127.0.0.1:${testPort}/health`);
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+      // CORS origin is restricted to localhost (security fix)
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(`http://127.0.0.1:${testPort}`);
       expect(response.headers.get('Content-Type')).toBe('application/json');
     });
 
