@@ -1,0 +1,1376 @@
+# ═══════════════════════════════════════════════════════════════
+# DATA FLOW REGISTRY
+# ═══════════════════════════════════════════════════════════════
+# PRODUCERS:
+#   Task 1 → npm workspace root, packages/ structure
+#   Task 2 → @meta-mcp/core types (ServerConfig, MCPConnection, ToolDefinition)
+#   Task 3 → @meta-mcp/core registry (loadServerManifest, getServerConfig)
+#   Task 4 → @meta-mcp/core pool (ServerPool, createConnection)
+#   Task 5 → @meta-mcp/core tool-cache (ToolCache)
+#   Task 6 → @meta-mcp/core package.json and exports
+#   Task 7 → @meta-mcp/server refactored to use core imports
+#   Task 10 → @meta-mcp/exec package skeleton
+#   Task 11 → SandboxExecutor class using @anthropic-ai/sandbox-runtime
+#   Task 12 → MCPBridge HTTP server
+#   Task 13 → execute_code tool handler
+#   Task 15 → WrapperGenerator for TypeScript tool wrappers
+#
+# CONSUMERS:
+#   Task 3 → [2] (uses types)
+#   Task 4 → [2] (uses types)
+#   Task 5 → [2] (uses types)
+#   Task 6 → [2, 3, 4, 5] (bundles all core modules)
+#   Task 7 → [6] (imports from @meta-mcp/core)
+#   Task 8 → [7] (updates server entry)
+#   Task 9 → [7, 8] (updates tests)
+#   Task 11 → [10] (adds to mcp-exec)
+#   Task 12 → [6, 10] (uses core pool + mcp-exec structure)
+#   Task 13 → [11, 12] (uses executor + bridge)
+#   Task 14 → [13] (creates MCP server with tool)
+#   Task 15 → [6, 10] (uses core types + mcp-exec)
+#   Task 16 → [15] (uses wrapper generator)
+#   Task 17 → [14, 16] (tests full flow)
+#   Task 18 → [17] (documents after implementation)
+#
+# VALIDATION: All consumers depend_on producers ✓
+# ═══════════════════════════════════════════════════════════════
+# SUCCESS CRITERIA VALIDATION
+# ═══════════════════════════════════════════════════════════════
+# All criteria derived from key_points ✓
+# Same terminology in key_points and criteria ✓
+# Component tasks have CAPABILITY-only criteria ✓
+# Integration tasks have dual criteria ✓
+# ═══════════════════════════════════════════════════════════════
+
+conductor:
+  default_agent: typescript-pro
+  worktree_groups:
+    - group_id: "core-extraction"
+      description: "Extract shared infrastructure to @meta-mcp/core"
+      tasks: [1, 2, 3, 4, 5, 6]
+      rationale: "Foundation packages must be created before consumers can import"
+
+    - group_id: "meta-mcp-refactor"
+      description: "Refactor existing meta-mcp to use core imports"
+      tasks: [7, 8, 9]
+      rationale: "Depends on core package being complete"
+
+    - group_id: "mcp-exec-foundation"
+      description: "Create new mcp-exec package with sandbox execution"
+      tasks: [10, 11, 12, 13, 14]
+      rationale: "New package development, depends on core"
+
+    - group_id: "wrapper-generation"
+      description: "TypeScript wrapper generation for MCP tools"
+      tasks: [15, 16]
+      rationale: "Enhancement to mcp-exec for better DX"
+
+    - group_id: "integration-testing"
+      description: "End-to-end testing and documentation"
+      tasks: [17, 18]
+      rationale: "Final validation after all components complete"
+
+plan:
+  metadata:
+    feature_name: "Meta-MCP Monorepo Evolution with mcp-exec"
+    created: "2025-12-09"
+    target: "Transform meta-mcp-server into monorepo with @meta-mcp/core, @meta-mcp/server, and @meta-mcp/exec packages"
+
+  context:
+    framework: "TypeScript with @modelcontextprotocol/sdk"
+    architecture: "Monorepo with npm workspaces"
+    test_framework: "vitest"
+    sandbox: "@anthropic-ai/sandbox-runtime for OS-level code isolation"
+    existing_patterns:
+      - "MCP Server pattern in src/server.ts"
+      - "Connection pool with LRU eviction in src/pool/"
+      - "Registry with Zod validation in src/registry/"
+      - "Tool cache pattern in src/tools/tool-cache.ts"
+    new_dependencies:
+      - "@anthropic-ai/sandbox-runtime - Anthropic's official sandbox (sandbox-exec on macOS, bubblewrap on Linux)"
+      - "esbuild - Fast TypeScript to JavaScript transpilation"
+
+  tasks:
+    # ═══════════════════════════════════════════════════════════════
+    # PHASE 1: MONOREPO SETUP & CORE EXTRACTION
+    # ═══════════════════════════════════════════════════════════════
+
+    - task_number: "1"
+      name: "Initialize monorepo structure with npm workspaces"
+      agent: typescript-pro
+      files:
+        - "package.json"
+        - "packages/core/package.json"
+        - "packages/core/tsconfig.json"
+        - "packages/meta-mcp/package.json"
+        - "packages/meta-mcp/tsconfig.json"
+        - "packages/mcp-exec/package.json"
+        - "packages/mcp-exec/tsconfig.json"
+        - "tsconfig.base.json"
+      depends_on: []
+      estimated_time: "30m"
+
+      success_criteria:
+        - "Root package.json has workspaces array pointing to packages/*"
+        - "packages/core/package.json has name @meta-mcp/core with version 0.1.0"
+        - "packages/meta-mcp/package.json has name @meta-mcp/server with version 0.1.0"
+        - "packages/mcp-exec/package.json has name @meta-mcp/exec with version 0.1.0"
+        - "tsconfig.base.json contains shared compiler options"
+        - "Each package tsconfig.json extends tsconfig.base.json"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "npm install"
+        - "ls packages/core packages/meta-mcp packages/mcp-exec"
+
+      description: |
+        ## TASK DESCRIPTION
+        Initialize the monorepo structure using npm workspaces. Create the directory
+        structure and package.json files for all three packages.
+
+        ## REQUIREMENTS
+        - Root package.json with workspaces configuration
+        - Base tsconfig.json with shared compiler options
+        - Package-specific tsconfig.json files extending base
+        - Proper @meta-mcp/* naming scope
+
+      implementation:
+        approach: |
+          Create monorepo structure with npm workspaces. The root package.json
+          will manage workspaces, and each package will have its own package.json
+          and tsconfig.json extending the base configuration.
+        key_points:
+          - point: "npm workspaces configuration"
+            details: "Root package.json with workspaces: ['packages/*']"
+            reference: "package.json"
+          - point: "tsconfig.base.json with shared options"
+            details: "ES2020 target, bundler moduleResolution, strict mode"
+            reference: "tsconfig.base.json"
+          - point: "@meta-mcp/* package naming"
+            details: "Consistent naming: @meta-mcp/core, @meta-mcp/server, @meta-mcp/exec"
+            reference: "packages/*/package.json"
+
+      verification:
+        automated_tests:
+          command: "npm install && npm run build --workspaces --if-present"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "initialize monorepo structure with npm workspaces"
+        files:
+          - "package.json"
+          - "tsconfig.base.json"
+          - "packages/**"
+
+    - task_number: "2"
+      name: "Extract types to @meta-mcp/core"
+      agent: typescript-pro
+      files:
+        - "packages/core/src/types/index.ts"
+        - "packages/core/src/types/server-config.ts"
+        - "packages/core/src/types/connection.ts"
+        - "packages/core/src/types/tool-definition.ts"
+      depends_on: [1]
+      estimated_time: "20m"
+
+      success_criteria:
+        - "ServerConfig interface exists in packages/core/src/types/server-config.ts"
+        - "MCPConnection interface exists in packages/core/src/types/connection.ts"
+        - "ConnectionState enum exported from packages/core/src/types/connection.ts"
+        - "ToolDefinition interface exists in packages/core/src/types/tool-definition.ts"
+        - "isUrlTransport function exported from server-config.ts"
+        - "packages/core/src/types/index.ts re-exports all types"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/core && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/  # Verify package exists from task 1
+        ```
+
+        ## TASK DESCRIPTION
+        Extract type definitions from src/types/ to packages/core/src/types/.
+        These are the foundational types used by all packages.
+
+      implementation:
+        approach: |
+          Copy type files from src/types/ to packages/core/src/types/ with minimal
+          modifications. Update import paths to be relative within core package.
+        key_points:
+          - point: "ServerConfig interface with stdio and HTTP transport support"
+            details: "Defines command, args, env for stdio; url, headers for HTTP"
+            reference: "packages/core/src/types/server-config.ts"
+          - point: "MCPConnection interface with lifecycle methods"
+            details: "connect(), disconnect(), isConnected(), getTools()"
+            reference: "packages/core/src/types/connection.ts"
+          - point: "ConnectionState enum for state management"
+            details: "Disconnected, Connecting, Connected, Error states"
+            reference: "packages/core/src/types/connection.ts"
+          - point: "ToolDefinition with serverId augmentation"
+            details: "Extends MCP Tool with serverId for multi-server tracking"
+            reference: "packages/core/src/types/tool-definition.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/core && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/core && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "extract types to @meta-mcp/core"
+        files:
+          - "packages/core/src/types/**"
+
+    - task_number: "3"
+      name: "Extract registry to @meta-mcp/core"
+      agent: typescript-pro
+      files:
+        - "packages/core/src/registry/index.ts"
+        - "packages/core/src/registry/loader.ts"
+        - "packages/core/src/registry/manifest.ts"
+      depends_on: [2]
+      estimated_time: "25m"
+
+      success_criteria:
+        - "loadServerManifest function exists in packages/core/src/registry/loader.ts"
+        - "getServerConfig function exists in packages/core/src/registry/loader.ts"
+        - "listServers function exists in packages/core/src/registry/loader.ts"
+        - "ConfigNotFoundError, ConfigParseError, ConfigValidationError error classes exported"
+        - "ServerManifest and ServerManifestEntry types exported from manifest.ts"
+        - "Zod schema BackendsConfigSchema validates servers.json format"
+        - "imports from '../types/index.js' resolve correctly"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/core && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/src/types/  # Verify types exist from task 2
+        ```
+
+        ## TASK DESCRIPTION
+        Extract registry/loader functionality to packages/core/src/registry/.
+        This handles loading and validating servers.json configuration.
+
+      implementation:
+        approach: |
+          Copy registry files from src/registry/ to packages/core/src/registry/.
+          Update imports to use relative paths within core package.
+        key_points:
+          - point: "loadServerManifest with Zod validation"
+            details: "Loads servers.json, validates with BackendsConfigSchema, caches result"
+            reference: "packages/core/src/registry/loader.ts"
+          - point: "getServerConfig for single server lookup"
+            details: "Returns ServerConfig for given serverId from cached manifest"
+            reference: "packages/core/src/registry/loader.ts"
+          - point: "Error classes for config handling"
+            details: "ConfigNotFoundError, ConfigParseError, ConfigValidationError"
+            reference: "packages/core/src/registry/loader.ts"
+          - point: "generateManifest for server listing"
+            details: "Transforms server configs to manifest entries with name/description/tags"
+            reference: "packages/core/src/registry/manifest.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/core && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/core && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "extract registry to @meta-mcp/core"
+        files:
+          - "packages/core/src/registry/**"
+
+    - task_number: "4"
+      name: "Extract pool to @meta-mcp/core"
+      agent: typescript-pro
+      files:
+        - "packages/core/src/pool/index.ts"
+        - "packages/core/src/pool/server-pool.ts"
+        - "packages/core/src/pool/connection.ts"
+        - "packages/core/src/pool/stdio-transport.ts"
+      depends_on: [2]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "ServerPool class exists with getConnection, releaseConnection, shutdown methods"
+        - "createConnection function creates MCPConnection from ServerConfig"
+        - "ConnectionError and PoolExhaustedError error classes exported"
+        - "SpawnError, TimeoutError, UnexpectedExitError exported from connection.ts"
+        - "buildSpawnConfig function handles docker, node, uvx spawn types"
+        - "LRU eviction works with maxConnections config (default 20)"
+        - "Idle cleanup timer runs every 60 seconds with 5 minute timeout"
+        - "imports from '../types/index.js' resolve correctly"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/core && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/src/types/  # Verify types exist from task 2
+        ```
+
+        ## TASK DESCRIPTION
+        Extract connection pool functionality to packages/core/src/pool/.
+        This handles MCP server connection lifecycle and LRU eviction.
+
+      implementation:
+        approach: |
+          Copy pool files from src/pool/ to packages/core/src/pool/.
+          Update imports to use relative paths within core package.
+        key_points:
+          - point: "ServerPool with LRU eviction"
+            details: "Map-based pool with maxConnections limit and idle timeout cleanup"
+            reference: "packages/core/src/pool/server-pool.ts"
+          - point: "createConnection factory function"
+            details: "Creates MCPConnection from ServerConfig, supports stdio and HTTP transport"
+            reference: "packages/core/src/pool/connection.ts"
+          - point: "buildSpawnConfig for spawn configuration"
+            details: "Handles docker, node, uvx spawn types with appropriate commands"
+            reference: "packages/core/src/pool/stdio-transport.ts"
+          - point: "Error classes for connection handling"
+            details: "ConnectionError, PoolExhaustedError, SpawnError, TimeoutError"
+            reference: "packages/core/src/pool/"
+
+      verification:
+        automated_tests:
+          command: "cd packages/core && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/core && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "extract pool to @meta-mcp/core"
+        files:
+          - "packages/core/src/pool/**"
+
+    - task_number: "5"
+      name: "Extract tool-cache to @meta-mcp/core"
+      agent: typescript-pro
+      files:
+        - "packages/core/src/tools/index.ts"
+        - "packages/core/src/tools/tool-cache.ts"
+      depends_on: [2]
+      estimated_time: "15m"
+
+      success_criteria:
+        - "ToolCache class exists with get, has, set, delete, clear, size methods"
+        - "ToolCache uses Map<string, ToolDefinition[]> internally"
+        - "packages/core/src/tools/index.ts exports ToolCache"
+        - "imports from '../types/index.js' resolve correctly"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/core && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/src/types/  # Verify types exist from task 2
+        ```
+
+        ## TASK DESCRIPTION
+        Extract ToolCache to packages/core/src/tools/.
+        This caches tool definitions per server to avoid re-fetching.
+
+      implementation:
+        approach: |
+          Copy tool-cache.ts from src/tools/ to packages/core/src/tools/.
+          Update imports to use relative paths within core package.
+        key_points:
+          - point: "ToolCache class with Map-based storage"
+            details: "Caches ToolDefinition[] keyed by serverId"
+            reference: "packages/core/src/tools/tool-cache.ts"
+          - point: "Standard cache interface methods"
+            details: "get, has, set, delete, clear, size"
+            reference: "packages/core/src/tools/tool-cache.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/core && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/core && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "extract tool-cache to @meta-mcp/core"
+        files:
+          - "packages/core/src/tools/**"
+
+    - task_number: "6"
+      name: "Create @meta-mcp/core package exports"
+      agent: typescript-pro
+      files:
+        - "packages/core/src/index.ts"
+        - "packages/core/package.json"
+      depends_on: [2, 3, 4, 5]
+      estimated_time: "20m"
+
+      success_criteria:
+        - "packages/core/src/index.ts exports all types from ./types/index.js"
+        - "packages/core/src/index.ts exports ServerPool, createConnection from ./pool/index.js"
+        - "packages/core/src/index.ts exports loadServerManifest, getServerConfig, listServers from ./registry/index.js"
+        - "packages/core/src/index.ts exports ToolCache from ./tools/index.js"
+        - "packages/core/package.json has main: dist/index.js"
+        - "packages/core/package.json has types: dist/index.d.ts"
+        - "packages/core/package.json has exports field for ESM"
+        - "npm run build in packages/core produces dist/ with .js and .d.ts files"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/core && npm run build"
+        - "ls packages/core/dist/index.js packages/core/dist/index.d.ts"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/src/types/ packages/core/src/pool/ packages/core/src/registry/ packages/core/src/tools/
+        ```
+
+        ## TASK DESCRIPTION
+        Create the main entry point for @meta-mcp/core that exports all
+        public APIs. Update package.json with proper exports configuration.
+
+      implementation:
+        approach: |
+          Create index.ts that re-exports all public APIs from submodules.
+          Configure package.json with proper main, types, and exports fields.
+        key_points:
+          - point: "Barrel exports in index.ts"
+            details: "Re-export all public types, classes, and functions"
+            reference: "packages/core/src/index.ts"
+          - point: "package.json exports configuration"
+            details: "main, types, and exports fields for ESM support"
+            reference: "packages/core/package.json"
+          - point: "Build script produces dist/"
+            details: "tsc compiles to dist/ with declaration files"
+            reference: "packages/core/package.json"
+
+      verification:
+        automated_tests:
+          command: "cd packages/core && npm run build && ls dist/"
+          expected_output: "index.js and index.d.ts exist"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/core && npm run build && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "create @meta-mcp/core package exports"
+        files:
+          - "packages/core/src/index.ts"
+          - "packages/core/package.json"
+
+    # ═══════════════════════════════════════════════════════════════
+    # PHASE 2: META-MCP SERVER REFACTOR
+    # ═══════════════════════════════════════════════════════════════
+
+    - task_number: "7"
+      name: "Refactor meta-mcp to use @meta-mcp/core imports"
+      agent: typescript-pro
+      files:
+        - "packages/meta-mcp/src/tools/list-servers.ts"
+        - "packages/meta-mcp/src/tools/get-server-tools.ts"
+        - "packages/meta-mcp/src/tools/call-tool.ts"
+        - "packages/meta-mcp/src/tools/index.ts"
+      depends_on: [6]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "packages/meta-mcp/src/tools/ imports ServerPool, ToolCache from @meta-mcp/core"
+        - "packages/meta-mcp/src/tools/ imports types (ServerConfig, MCPConnection) from @meta-mcp/core"
+        - "listServersHandler calls listServers from @meta-mcp/core"
+        - "getServerToolsHandler uses ToolCache from @meta-mcp/core"
+        - "callToolHandler uses ServerPool from @meta-mcp/core"
+        - "No imports from relative paths like '../pool/' or '../registry/'"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/meta-mcp && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        cd packages/core && npm run build  # Verify core builds
+        ls packages/core/dist/index.js     # Verify output exists
+        ```
+
+        ## TASK DESCRIPTION
+        Copy tool handlers from src/tools/ to packages/meta-mcp/src/tools/.
+        Update all imports to use @meta-mcp/core instead of relative paths.
+
+      implementation:
+        approach: |
+          Copy tool files to packages/meta-mcp/src/tools/.
+          Replace all relative imports (../pool/, ../registry/, ../types/)
+          with imports from @meta-mcp/core package.
+        key_points:
+          - point: "Import ServerPool, ToolCache from @meta-mcp/core"
+            details: "Replace '../pool/index.js' with '@meta-mcp/core'"
+            reference: "packages/meta-mcp/src/tools/"
+          - point: "Import types from @meta-mcp/core"
+            details: "ServerConfig, MCPConnection, ToolDefinition from @meta-mcp/core"
+            reference: "packages/meta-mcp/src/tools/"
+          - point: "Import registry functions from @meta-mcp/core"
+            details: "loadServerManifest, getServerConfig, listServers from @meta-mcp/core"
+            reference: "packages/meta-mcp/src/tools/list-servers.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/meta-mcp && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/meta-mcp && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "refactor"
+        message: "refactor meta-mcp tools to use @meta-mcp/core imports"
+        files:
+          - "packages/meta-mcp/src/tools/**"
+
+    - task_number: "8"
+      name: "Update meta-mcp entry point and server"
+      agent: typescript-pro
+      files:
+        - "packages/meta-mcp/src/index.ts"
+        - "packages/meta-mcp/src/server.ts"
+      depends_on: [7]
+      estimated_time: "25m"
+
+      success_criteria:
+        - "packages/meta-mcp/src/index.ts imports ServerPool, createConnection, ToolCache from @meta-mcp/core"
+        - "packages/meta-mcp/src/server.ts imports from @meta-mcp/core and local ./tools/"
+        - "createServer function still accepts pool and toolCache parameters"
+        - "Graceful shutdown handling preserved"
+        - "StdioServerTransport connection preserved"
+        - "No imports from old relative paths"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/meta-mcp && npx tsc --noEmit"
+        - "cd packages/meta-mcp && npm run build"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/meta-mcp/src/tools/  # Verify tools exist from task 7
+        ```
+
+        ## TASK DESCRIPTION
+        Update the main entry point and server files to use @meta-mcp/core imports.
+
+      implementation:
+        approach: |
+          Copy index.ts and server.ts to packages/meta-mcp/src/.
+          Update imports to use @meta-mcp/core for shared infrastructure
+          and local ./tools/ for tool handlers.
+        key_points:
+          - point: "index.ts imports infrastructure from @meta-mcp/core"
+            details: "ServerPool, createConnection, ToolCache, getServerConfig"
+            reference: "packages/meta-mcp/src/index.ts"
+          - point: "server.ts imports from @meta-mcp/core and ./tools/"
+            details: "Types from core, handlers from local tools"
+            reference: "packages/meta-mcp/src/server.ts"
+          - point: "Preserve createServer function signature"
+            details: "Still accepts pool: ServerPool, toolCache: ToolCache"
+            reference: "packages/meta-mcp/src/server.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/meta-mcp && npm run build"
+          expected_output: "Build succeeds"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/meta-mcp && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "refactor"
+        message: "update meta-mcp entry point and server to use @meta-mcp/core"
+        files:
+          - "packages/meta-mcp/src/index.ts"
+          - "packages/meta-mcp/src/server.ts"
+
+    - task_number: "9"
+      name: "Update meta-mcp tests"
+      agent: typescript-pro
+      files:
+        - "packages/meta-mcp/tests/server.test.ts"
+        - "packages/meta-mcp/tests/tools/list-servers.test.ts"
+        - "packages/meta-mcp/tests/tools/get-server-tools.test.ts"
+        - "packages/meta-mcp/tests/tools/call-tool.test.ts"
+      depends_on: [7, 8]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "Tests import from @meta-mcp/core for mocking infrastructure"
+        - "Tests import from ../src/ for local modules"
+        - "All existing test cases pass"
+        - "Server tests verify 3 meta-tools are exposed"
+        - "Tool tests verify handlers work with core infrastructure"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/meta-mcp && npm test"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/meta-mcp/src/server.ts  # Verify server exists from task 8
+        ```
+
+        ## TASK DESCRIPTION
+        Copy and update tests to work with the refactored package structure.
+        Update imports and ensure all existing tests pass.
+
+      implementation:
+        approach: |
+          Copy tests from tests/ to packages/meta-mcp/tests/.
+          Update imports to use @meta-mcp/core for infrastructure
+          and relative paths for local modules.
+        key_points:
+          - point: "Import mocks from @meta-mcp/core"
+            details: "Mock ServerPool, ToolCache, createConnection"
+            reference: "packages/meta-mcp/tests/"
+          - point: "Preserve existing test coverage"
+            details: "All 3 meta-tools tested: list_servers, get_server_tools, call_tool"
+            reference: "packages/meta-mcp/tests/tools/"
+          - point: "Server integration tests"
+            details: "Verify MCP server exposes correct tools"
+            reference: "packages/meta-mcp/tests/server.test.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/meta-mcp && npm test"
+          expected_output: "All tests pass"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/meta-mcp && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "test"
+        message: "update meta-mcp tests for refactored package structure"
+        files:
+          - "packages/meta-mcp/tests/**"
+
+    # ═══════════════════════════════════════════════════════════════
+    # PHASE 3: MCP-EXEC FOUNDATION
+    # ═══════════════════════════════════════════════════════════════
+
+    - task_number: "10"
+      name: "Create mcp-exec package skeleton"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/package.json"
+        - "packages/mcp-exec/tsconfig.json"
+        - "packages/mcp-exec/src/index.ts"
+        - "packages/mcp-exec/src/types/index.ts"
+        - "packages/mcp-exec/src/types/execution.ts"
+      depends_on: [1]
+      estimated_time: "20m"
+
+      success_criteria:
+        - "packages/mcp-exec/package.json has name @meta-mcp/exec"
+        - "packages/mcp-exec/package.json has dependency on @meta-mcp/core workspace:*"
+        - "packages/mcp-exec/package.json has dependency on @anthropic-ai/sandbox-runtime"
+        - "packages/mcp-exec/package.json has dependency on esbuild for TypeScript transpilation"
+        - "ExecutionResult interface defined with output, error, durationMs fields"
+        - "ExecuteCodeInput interface defined with code, timeout_ms fields"
+        - "packages/mcp-exec/src/index.ts exports main function placeholder"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npx tsc --noEmit"
+        - "npm ls @anthropic-ai/sandbox-runtime"
+
+      description: |
+        ## TASK DESCRIPTION
+        Create the basic package structure for @meta-mcp/exec.
+        Define core types and create placeholder entry point.
+        Include sandbox-runtime for OS-level code isolation.
+
+      implementation:
+        approach: |
+          Create package.json with @meta-mcp/core dependency and @anthropic-ai/sandbox-runtime
+          for OS-level sandboxing. Include esbuild for TypeScript transpilation.
+          Define TypeScript types for code execution results.
+        key_points:
+          - point: "package.json with @meta-mcp/core dependency"
+            details: "Workspace dependency: @meta-mcp/core: workspace:*"
+            reference: "packages/mcp-exec/package.json"
+          - point: "package.json with @anthropic-ai/sandbox-runtime"
+            details: "Anthropic's official sandbox for OS-level code isolation"
+            reference: "packages/mcp-exec/package.json"
+          - point: "package.json with esbuild for transpilation"
+            details: "Fast TypeScript to JavaScript transpilation before sandboxed execution"
+            reference: "packages/mcp-exec/package.json"
+          - point: "ExecutionResult interface"
+            details: "output: string[], error?: string, durationMs: number"
+            reference: "packages/mcp-exec/src/types/execution.ts"
+          - point: "ExecuteCodeInput interface"
+            details: "code: string, timeout_ms?: number (default 30000)"
+            reference: "packages/mcp-exec/src/types/execution.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "create mcp-exec package skeleton"
+        files:
+          - "packages/mcp-exec/**"
+
+    - task_number: "11"
+      name: "Implement sandbox executor using @anthropic-ai/sandbox-runtime"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/src/sandbox/executor.ts"
+        - "packages/mcp-exec/src/sandbox/config.ts"
+        - "packages/mcp-exec/src/sandbox/index.ts"
+      depends_on: [10]
+      estimated_time: "45m"
+
+      success_criteria:
+        - "SandboxExecutor class exists with execute(code, timeoutMs) method"
+        - "SandboxExecutor uses SandboxManager from @anthropic-ai/sandbox-runtime"
+        - "SandboxRuntimeConfig restricts network to localhost:3000 only via allowedDomains"
+        - "SandboxRuntimeConfig restricts filesystem writes to temp directory via allowWrite"
+        - "execute() wraps Node.js command with SandboxManager.wrapWithSandbox()"
+        - "Stdout captured and returned as output string array"
+        - "Stderr captured and included in error field if present"
+        - "Timeout enforcement via AbortController kills subprocess"
+        - "Temp file created for code, cleaned up after execution"
+        - "ExecutionResult returned with output, error, durationMs fields"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npx tsc --noEmit"
+        - "npm ls @anthropic-ai/sandbox-runtime"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        npm ls @anthropic-ai/sandbox-runtime  # Verify sandbox-runtime installed
+        ls packages/mcp-exec/src/types/       # Verify types exist from task 10
+        ```
+
+        ## TASK DESCRIPTION
+        Implement sandbox executor using Anthropic's official sandbox-runtime.
+        This provides OS-level isolation (sandbox-exec on macOS, bubblewrap on Linux)
+        for running agent-generated code safely.
+
+      implementation:
+        approach: |
+          Use @anthropic-ai/sandbox-runtime to wrap code execution with OS-level
+          sandboxing. Configure network to only allow localhost:3000 (MCP bridge).
+          Configure filesystem to only allow writes to temp directory.
+        key_points:
+          - point: "SandboxExecutor class with execute method"
+            details: "async execute(code: string, timeoutMs: number): Promise<ExecutionResult>"
+            reference: "packages/mcp-exec/src/sandbox/executor.ts"
+          - point: "SandboxManager initialization with config"
+            details: "SandboxManager.initialize(config) with network and filesystem restrictions"
+            reference: "packages/mcp-exec/src/sandbox/executor.ts"
+          - point: "SandboxRuntimeConfig for security boundaries"
+            details: "network: { allowedDomains: ['localhost:3000'] }, filesystem: { allowWrite: ['/tmp'] }"
+            reference: "packages/mcp-exec/src/sandbox/config.ts"
+          - point: "wrapWithSandbox for command execution"
+            details: "SandboxManager.wrapWithSandbox('node tempfile.js') returns wrapped command"
+            reference: "packages/mcp-exec/src/sandbox/executor.ts"
+          - point: "Temp file management"
+            details: "Write code to temp .ts file, transpile, execute, cleanup after"
+            reference: "packages/mcp-exec/src/sandbox/executor.ts"
+          - point: "Timeout enforcement via AbortController"
+            details: "AbortController with setTimeout, kill subprocess on timeout"
+            reference: "packages/mcp-exec/src/sandbox/executor.ts"
+          - point: "Output capture to ExecutionResult"
+            details: "Collect stdout lines into output array, stderr into error, measure durationMs"
+            reference: "packages/mcp-exec/src/sandbox/executor.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "implement sandbox executor using @anthropic-ai/sandbox-runtime"
+        files:
+          - "packages/mcp-exec/src/sandbox/**"
+
+    - task_number: "12"
+      name: "Implement MCP bridge HTTP server"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/src/bridge/server.ts"
+        - "packages/mcp-exec/src/bridge/index.ts"
+      depends_on: [6, 10]
+      estimated_time: "40m"
+
+      success_criteria:
+        - "MCPBridge class exists with start() and stop() methods"
+        - "HTTP server listens on localhost:3000"
+        - "POST /call endpoint accepts { server, tool, args } body"
+        - "Bridge uses ServerPool from @meta-mcp/core for connections"
+        - "Tool results returned as JSON response"
+        - "Error responses include error message and stack"
+        - "Server can be started and stopped cleanly"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/dist/index.js  # Verify core is built
+        ls packages/mcp-exec/src/types/  # Verify types exist
+        ```
+
+        ## TASK DESCRIPTION
+        Implement HTTP bridge server that allows sandbox code to call
+        MCP tools via HTTP requests to localhost:3000.
+
+      implementation:
+        approach: |
+          Create MCPBridge class with HTTP server using Node http module.
+          POST /call endpoint receives { server, tool, args }, uses ServerPool
+          to get connection, calls tool, returns result.
+        key_points:
+          - point: "MCPBridge class with start/stop lifecycle"
+            details: "start() begins listening on port 3000, stop() closes server"
+            reference: "packages/mcp-exec/src/bridge/server.ts"
+          - point: "POST /call endpoint for tool invocation"
+            details: "Accepts { server: string, tool: string, args: object }"
+            reference: "packages/mcp-exec/src/bridge/server.ts"
+          - point: "ServerPool integration from @meta-mcp/core"
+            details: "getConnection(server), client.callTool(), releaseConnection()"
+            reference: "packages/mcp-exec/src/bridge/server.ts"
+          - point: "JSON response with tool results"
+            details: "Return CallToolResult content as JSON"
+            reference: "packages/mcp-exec/src/bridge/server.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "implement MCP bridge HTTP server"
+        files:
+          - "packages/mcp-exec/src/bridge/**"
+
+    - task_number: "13"
+      name: "Implement execute_code tool handler"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/src/tools/execute-code.ts"
+        - "packages/mcp-exec/src/tools/index.ts"
+      depends_on: [11, 12]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "executeCodeTool constant defines MCP tool schema"
+        - "Tool name is 'execute_code'"
+        - "Tool description mentions TypeScript, sandbox, console.log output"
+        - "inputSchema has code (required string) and timeout_ms (optional number)"
+        - "executeCodeHandler function orchestrates executor and bridge"
+        - "Handler starts bridge, executes code, stops bridge"
+        - "Returns CallToolResult with output text or error"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/mcp-exec/src/sandbox/executor.ts  # From task 11
+        ls packages/mcp-exec/src/bridge/server.ts     # From task 12
+        ```
+
+        ## TASK DESCRIPTION
+        Create the execute_code MCP tool that ties together the
+        Deno executor and MCP bridge.
+
+      implementation:
+        approach: |
+          Define execute_code tool schema and handler.
+          Handler starts bridge server, runs code in executor,
+          stops bridge, returns results.
+        key_points:
+          - point: "executeCodeTool MCP tool definition"
+            details: "name: execute_code, inputSchema with code and timeout_ms"
+            reference: "packages/mcp-exec/src/tools/execute-code.ts"
+          - point: "executeCodeHandler orchestration"
+            details: "Start bridge → execute code → stop bridge → return result"
+            reference: "packages/mcp-exec/src/tools/execute-code.ts"
+          - point: "CallToolResult format"
+            details: "content: [{ type: 'text', text: output.join('\\n') }]"
+            reference: "packages/mcp-exec/src/tools/execute-code.ts"
+          - point: "Error handling"
+            details: "Include error message and partial output if execution fails"
+            reference: "packages/mcp-exec/src/tools/execute-code.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "implement execute_code tool handler"
+        files:
+          - "packages/mcp-exec/src/tools/**"
+
+    - task_number: "14"
+      name: "Create mcp-exec MCP server"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/src/server.ts"
+        - "packages/mcp-exec/src/index.ts"
+      depends_on: [13]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "createMcpExecServer function returns MCP Server instance"
+        - "Server exposes single tool: execute_code"
+        - "ListToolsRequestSchema handler returns executeCodeTool"
+        - "CallToolRequestSchema handler routes to executeCodeHandler"
+        - "index.ts main() creates server and connects via StdioServerTransport"
+        - "Graceful shutdown handling on SIGINT/SIGTERM"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npm run build"
+        - "ls packages/mcp-exec/dist/index.js"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/mcp-exec/src/tools/execute-code.ts  # From task 13
+        ```
+
+        ## TASK DESCRIPTION
+        Create the MCP server that exposes the execute_code tool.
+        Set up stdio transport and graceful shutdown.
+
+      implementation:
+        approach: |
+          Create MCP Server following pattern from @meta-mcp/server.
+          Register single tool (execute_code) and request handlers.
+          Main function connects via StdioServerTransport.
+        key_points:
+          - point: "createMcpExecServer function"
+            details: "Creates Server with name 'mcp-exec', version '0.1.0'"
+            reference: "packages/mcp-exec/src/server.ts"
+          - point: "Single tool registration"
+            details: "ListToolsRequestSchema returns [executeCodeTool]"
+            reference: "packages/mcp-exec/src/server.ts"
+          - point: "Request handler routing"
+            details: "CallToolRequestSchema routes 'execute_code' to handler"
+            reference: "packages/mcp-exec/src/server.ts"
+          - point: "Stdio transport connection"
+            details: "StdioServerTransport from @modelcontextprotocol/sdk"
+            reference: "packages/mcp-exec/src/index.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npm run build && ls dist/"
+          expected_output: "index.js exists"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "create mcp-exec MCP server"
+        files:
+          - "packages/mcp-exec/src/server.ts"
+          - "packages/mcp-exec/src/index.ts"
+
+    # ═══════════════════════════════════════════════════════════════
+    # PHASE 4: WRAPPER GENERATION
+    # ═══════════════════════════════════════════════════════════════
+
+    - task_number: "15"
+      name: "Implement TypeScript wrapper generator"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/src/codegen/wrapper-generator.ts"
+        - "packages/mcp-exec/src/codegen/index.ts"
+      depends_on: [6, 10]
+      estimated_time: "45m"
+
+      success_criteria:
+        - "generateToolWrapper function creates TypeScript wrapper for single tool"
+        - "Wrapper includes JSDoc comment with tool description"
+        - "Wrapper function signature has typed input parameter"
+        - "Wrapper calls fetch('http://localhost:3000/call', {...})"
+        - "generateServerModule function creates index.ts for all tools in server"
+        - "JSON Schema to TypeScript conversion handles basic types (string, number, boolean, object, array)"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/core/dist/index.js  # Verify core has ToolDefinition type
+        ```
+
+        ## TASK DESCRIPTION
+        Create wrapper generator that produces TypeScript files for MCP tools.
+        These wrappers enable sandbox code to import and call tools with type safety.
+
+      implementation:
+        approach: |
+          Create functions to generate TypeScript wrapper code from ToolDefinition.
+          Convert JSON Schema inputSchema to TypeScript interface.
+          Generate async function that calls bridge endpoint.
+        key_points:
+          - point: "generateToolWrapper for single tool"
+            details: "Takes ToolDefinition, returns TypeScript code string"
+            reference: "packages/mcp-exec/src/codegen/wrapper-generator.ts"
+          - point: "JSON Schema to TypeScript conversion"
+            details: "Handle string, number, boolean, object, array types"
+            reference: "packages/mcp-exec/src/codegen/wrapper-generator.ts"
+          - point: "Wrapper function template"
+            details: "JSDoc + async function + fetch to localhost:3000/call"
+            reference: "packages/mcp-exec/src/codegen/wrapper-generator.ts"
+          - point: "generateServerModule for all tools"
+            details: "Creates index.ts that exports all tools for a server"
+            reference: "packages/mcp-exec/src/codegen/wrapper-generator.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "implement TypeScript wrapper generator"
+        files:
+          - "packages/mcp-exec/src/codegen/**"
+
+    - task_number: "16"
+      name: "Implement virtual module resolver"
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/src/codegen/module-resolver.ts"
+      depends_on: [15]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "VirtualModuleResolver class with registerModule and resolve methods"
+        - "generateFromManifest async method creates wrappers for all servers"
+        - "Modules stored in Map<string, string> with path as key"
+        - "Path normalization for ./servers/<name>/<tool>.ts format"
+        - "Can resolve imports like './servers/jira/search_issues.ts'"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cd packages/mcp-exec && npx tsc --noEmit"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/mcp-exec/src/codegen/wrapper-generator.ts  # From task 15
+        ```
+
+        ## TASK DESCRIPTION
+        Create virtual module resolver that generates and caches
+        TypeScript wrappers for MCP tools, enabling import from
+        ./servers/<name>/<tool>.ts paths.
+
+      implementation:
+        approach: |
+          Create VirtualModuleResolver class that maintains Map of
+          virtual modules. generateFromManifest creates wrappers
+          for all configured servers and tools.
+        key_points:
+          - point: "VirtualModuleResolver class"
+            details: "Map<string, string> for path -> code storage"
+            reference: "packages/mcp-exec/src/codegen/module-resolver.ts"
+          - point: "registerModule and resolve methods"
+            details: "Register adds module, resolve returns code or undefined"
+            reference: "packages/mcp-exec/src/codegen/module-resolver.ts"
+          - point: "generateFromManifest integration"
+            details: "Uses loadServerManifest, gets tools, generates wrappers"
+            reference: "packages/mcp-exec/src/codegen/module-resolver.ts"
+          - point: "Path format ./servers/<name>/<tool>.ts"
+            details: "Consistent path structure for imports"
+            reference: "packages/mcp-exec/src/codegen/module-resolver.ts"
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npx tsc --noEmit"
+          expected_output: "No errors"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "implement virtual module resolver"
+        files:
+          - "packages/mcp-exec/src/codegen/module-resolver.ts"
+
+    # ═══════════════════════════════════════════════════════════════
+    # PHASE 5: INTEGRATION & TESTING
+    # ═══════════════════════════════════════════════════════════════
+
+    - task_number: "17"
+      name: "Integration tests for mcp-exec with real MCP calls"
+      type: integration
+      agent: typescript-pro
+      files:
+        - "packages/mcp-exec/tests/executor.test.ts"
+        - "packages/mcp-exec/tests/bridge.test.ts"
+        - "packages/mcp-exec/tests/integration.test.ts"
+        - "packages/mcp-exec/tests/fixtures/test-servers.json"
+      depends_on: [14, 16]
+      estimated_time: "60m"
+
+      success_criteria:
+        - "SandboxExecutor tests verify code execution with console.log capture"
+        - "SandboxExecutor tests verify timeout enforcement via AbortController"
+        - "SandboxExecutor tests verify sandbox-runtime isolation (network restricted to localhost:3000)"
+        - "MCPBridge tests verify HTTP endpoint POST /call responds correctly"
+        - "MCPBridge tests verify ServerPool integration for real MCP connections"
+        - "All tests pass with vitest"
+
+      integration_criteria:
+        - "Full flow test: execute_code tool runs TypeScript in sandbox, calls real MCP tool via bridge, returns console output"
+        - "Sandbox isolation verified: code cannot access filesystem outside /tmp via sandbox-runtime"
+        - "Sandbox network isolation verified: code can only reach localhost:3000 (bridge)"
+        - "Bridge correctly routes tool calls through ServerPool to actual MCP servers"
+        - "End-to-end test with @modelcontextprotocol/server-filesystem as test MCP server"
+
+      test_commands:
+        - "cd packages/mcp-exec && npm test"
+        - "cd packages/mcp-exec && npm run test:integration"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        ls packages/mcp-exec/dist/index.js  # Verify package builds
+        which srt  # Verify sandbox-runtime CLI installed
+        ```
+
+        ## TASK DESCRIPTION
+        Create comprehensive tests for mcp-exec covering unit tests
+        for SandboxExecutor and MCPBridge, plus integration tests with
+        a real MCP server (@modelcontextprotocol/server-filesystem).
+
+      implementation:
+        approach: |
+          Create unit tests for SandboxExecutor (sandbox-runtime) and MCPBridge.
+          Create integration test that verifies full execute_code flow with
+          a real MCP server (filesystem server) to test actual MCP integration.
+        key_points:
+          - point: "SandboxExecutor unit tests"
+            details: "Test code execution with sandbox-runtime, output capture, timeout, isolation"
+            reference: "packages/mcp-exec/tests/executor.test.ts"
+          - point: "MCPBridge unit tests"
+            details: "Test HTTP endpoint POST /call, request/response format, ServerPool usage"
+            reference: "packages/mcp-exec/tests/bridge.test.ts"
+          - point: "Full flow integration test with real MCP"
+            details: "execute_code → sandbox → bridge → filesystem MCP server → read file → output"
+            reference: "packages/mcp-exec/tests/integration.test.ts"
+          - point: "Test fixture servers.json"
+            details: "Configure @modelcontextprotocol/server-filesystem as test backend"
+            reference: "packages/mcp-exec/tests/fixtures/test-servers.json"
+        integration:
+          imports: ["@meta-mcp/core", "@modelcontextprotocol/server-filesystem"]
+          config_values: ["SERVERS_CONFIG pointing to test-servers.json"]
+
+      verification:
+        automated_tests:
+          command: "cd packages/mcp-exec && npm test"
+          expected_output: "All tests pass"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd packages/mcp-exec && npx tsc --noEmit && npm test"
+            exit_on_failure: true
+
+      commit:
+        type: "test"
+        message: "add integration tests for mcp-exec"
+        files:
+          - "packages/mcp-exec/tests/**"
+
+    - task_number: "18"
+      name: "Documentation and README updates"
+      agent: technical-documentation-specialist
+      files:
+        - "README.md"
+        - "packages/core/README.md"
+        - "packages/meta-mcp/README.md"
+        - "packages/mcp-exec/README.md"
+      depends_on: [17]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "Root README.md describes monorepo structure and all packages"
+        - "packages/core/README.md documents exported APIs"
+        - "packages/meta-mcp/README.md documents 3 meta-tools"
+        - "packages/mcp-exec/README.md documents execute_code tool and sandbox"
+        - "Installation instructions for each package"
+        - "Usage examples for mcp-exec with sample code"
+        - "No TODO comments in production code paths."
+        - "No placeholder empty structs."
+
+      test_commands:
+        - "cat README.md | head -50"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        ```bash
+        npm run build --workspaces  # Verify all packages build
+        ```
+
+        ## TASK DESCRIPTION
+        Update documentation to reflect the new monorepo structure.
+        Add README files for each package with API documentation
+        and usage examples.
+
+      implementation:
+        approach: |
+          Update root README with monorepo overview.
+          Create README for each package with specific documentation.
+          Include usage examples especially for mcp-exec.
+        key_points:
+          - point: "Root README monorepo overview"
+            details: "Structure, package descriptions, quick start"
+            reference: "README.md"
+          - point: "packages/core/README.md API docs"
+            details: "Exported classes, types, and functions"
+            reference: "packages/core/README.md"
+          - point: "packages/mcp-exec/README.md usage examples"
+            details: "execute_code examples, wrapper import patterns"
+            reference: "packages/mcp-exec/README.md"
+
+      verification:
+        automated_tests:
+          command: "cat README.md | grep -c 'packages/'"
+          expected_output: "Multiple matches"
+
+      code_quality:
+        markdown:
+          lint:
+            command: "echo 'markdown lint placeholder'"
+            exit_on_failure: false
+
+      commit:
+        type: "docs"
+        message: "update documentation for monorepo structure"
+        files:
+          - "README.md"
+          - "packages/*/README.md"
