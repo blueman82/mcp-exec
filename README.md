@@ -4,6 +4,23 @@
 
 A Model Context Protocol (MCP) server that wraps multiple backend MCP servers for token-efficient tool discovery via lazy loading.
 
+## Monorepo Structure
+
+This project is organized as a monorepo with the following packages:
+
+```
+packages/
+├── core/           # @meta-mcp/core - Shared utilities, types, pool, and registry
+├── meta-mcp/       # @meta-mcp/server - Main MCP server with 3 meta-tools
+└── mcp-exec/       # @meta-mcp/exec - Sandboxed code execution with MCP bridge
+```
+
+| Package | Description | npm |
+|---------|-------------|-----|
+| [`@meta-mcp/core`](./packages/core/README.md) | Core utilities: types, connection pool, registry, tool cache | `@meta-mcp/core` |
+| [`@meta-mcp/server`](./packages/meta-mcp/README.md) | MCP server exposing 3 meta-tools for token optimization | `@meta-mcp/server` |
+| [`@meta-mcp/exec`](./packages/mcp-exec/README.md) | Sandboxed code execution with MCP tool access via HTTP bridge | `@meta-mcp/exec` |
+
 ## Problem
 
 When Claude/Droid connects to many MCP servers, it loads all tool schemas upfront - potentially 100+ tools consuming significant context tokens before any work begins.
@@ -28,6 +45,7 @@ Backend servers are spawned lazily on first access and managed via a connection 
 - **Multi-Transport**: Supports Node, Docker, and uvx/npx spawn types
 - **Tool Caching**: Tool definitions cached per-server for session duration
 - **VS Code Extension**: Visual UI for managing servers and configuring AI tools
+- **Sandboxed Execution**: Execute code in isolated environments with MCP tool access
 
 ## Quick Start
 
@@ -122,11 +140,14 @@ All MCP servers are configured in `~/.meta-mcp/servers.json`:
       "env": {
         "JIRA_URL": "https://jira.example.com",
         "JIRA_TOKEN": "your-token"
-      }
+      },
+      "timeout": 120000
     }
   }
 }
 ```
+
+> **Note**: The optional `timeout` field sets per-server timeout in milliseconds. This overrides `MCP_DEFAULT_TIMEOUT`.
 
 ### Internal MCP Servers
 
@@ -241,18 +262,62 @@ See [Token Optimization Guide](docs/diagrams/10-token-optimization.md) for detai
 
 ## Development
 
+### Monorepo Commands
+
 ```bash
-# Run tests
+# Install all dependencies
+npm install
+
+# Build all packages
+npm run build --workspaces
+
+# Build specific package
+npm run build -w @meta-mcp/core
+
+# Run all tests
+npm test --workspaces
+
+# Run tests for specific package
+npm test -w @meta-mcp/exec
+
+# Type check all packages
+npx tsc --noEmit --workspaces
+
+# Clean all build artifacts
+npm run clean --workspaces
+```
+
+### Package-Specific Development
+
+```bash
+# Core package
+cd packages/core
+npm run build
+npm run dev  # watch mode
+
+# Meta-MCP server
+cd packages/meta-mcp
+npm run build
 npm test
+
+# MCP-Exec package
+cd packages/mcp-exec
+npm run build
+npm test
+npm run test:integration  # Full integration tests
+```
+
+### Testing
+
+```bash
+# Run all tests
+npm test --workspaces
 
 # Run with vitest (full suite)
 npx vitest run
 
-# Type check
-npx tsc --noEmit
-
-# Build
-npm run build
+# Run real MCP integration tests
+RUN_REAL_MCP_TESTS=true npm test -w @meta-mcp/exec
 ```
 
 ## Architecture
@@ -264,22 +329,37 @@ For detailed architecture documentation with diagrams, see:
   - [Core Mechanics](docs/diagrams/core-mechanics.md) - Pool, connections, caching, tool system
   - [Token Economics](docs/diagrams/token-economics.md) - 87-91% savings, ROI analysis
 
-**Source Code Structure:**
+### Monorepo Package Structure
+
 ```
-src/
-├── index.ts           # Entry point with stdio transport
-├── server.ts          # MCP server setup and request handlers
-├── types/             # TypeScript interfaces
-├── registry/          # Server manifest loading (servers.json)
-├── pool/              # Connection pool with LRU eviction
-│   ├── server-pool.ts # Pool manager
-│   ├── connection.ts  # MCP client connections
-│   └── stdio-transport.ts # Spawn config builder
-└── tools/             # MCP tool implementations
-    ├── list-servers.ts
-    ├── get-server-tools.ts
-    ├── call-tool.ts
-    └── tool-cache.ts
+packages/
+├── core/                    # @meta-mcp/core - Shared utilities
+│   └── src/
+│       ├── types/           # TypeScript interfaces
+│       ├── registry/        # Server manifest loading (servers.json)
+│       ├── pool/            # Connection pool with LRU eviction
+│       │   ├── server-pool.ts
+│       │   ├── connection.ts
+│       │   └── stdio-transport.ts
+│       └── tools/           # Tool caching utilities
+│
+├── meta-mcp/                # @meta-mcp/server - Main MCP server
+│   └── src/
+│       ├── index.ts         # Entry point with stdio transport
+│       ├── server.ts        # MCP server setup
+│       └── tools/           # Meta-tool implementations
+│           ├── list-servers.ts
+│           ├── get-server-tools.ts
+│           └── call-tool.ts
+│
+└── mcp-exec/                # @meta-mcp/exec - Code execution
+    └── src/
+        ├── index.ts         # Entry point and public API
+        ├── server.ts        # MCP server for execute_code
+        ├── sandbox/         # Sandbox executor
+        ├── bridge/          # HTTP bridge for MCP access
+        ├── codegen/         # Wrapper generator
+        └── tools/           # execute_code tool
 ```
 
 ## Configuration Options
@@ -289,6 +369,7 @@ src/
 | `SERVERS_CONFIG` | `~/.meta-mcp/servers.json` | Path to backends configuration |
 | `MAX_CONNECTIONS` | `20` | Maximum concurrent server connections |
 | `IDLE_TIMEOUT_MS` | `300000` | Idle connection cleanup timeout (5 min) |
+| `MCP_DEFAULT_TIMEOUT` | none | Global timeout for MCP tool calls (ms). Per-server `timeout` takes precedence. |
 
 ## Test Results
 

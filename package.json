@@ -1,23 +1,17 @@
 {
-  "name": "@justanothermldude/meta-mcp-server",
-  "version": "0.1.5",
-  "description": "Meta MCP server that wraps multiple backend MCP servers, exposing only 3 meta-tools to reduce context token consumption",
+  "name": "@meta-mcp/monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Meta MCP monorepo - Meta MCP server that wraps multiple backend MCP servers",
   "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "meta-mcp-server": "dist/index.js"
-  },
-  "files": [
-    "dist"
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "node --test --import tsx tests/setup.test.ts"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.24.3",
-    "zod": "^3.22.4"
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.53.3",
