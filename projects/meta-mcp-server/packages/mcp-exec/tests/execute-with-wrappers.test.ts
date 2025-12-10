@@ -326,9 +326,9 @@ describe('generateServerModule', () => {
 
     // Should create namespace object
     expect(module).toContain('const filesystem = {');
-    // Should use camelCase method names
-    expect(module).toContain('readFile:');
-    expect(module).toContain('writeFile:');
+    // Should use original tool names (snake_case) so discovery matches usage
+    expect(module).toContain('read_file:');
+    expect(module).toContain('write_file:');
   });
 
   it('should include interfaces for tools with properties', () => {
