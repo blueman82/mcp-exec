@@ -135,21 +135,6 @@ function sanitizeIdentifier(name: string): string {
 }
 
 /**
- * Convert tool name to camelCase for method name
- */
-function toCamelCase(name: string): string {
-  const words = name.split(/[^a-zA-Z0-9]+/).filter(Boolean);
-  if (words.length === 0) return name;
-  return words
-    .map((word, index) =>
-      index === 0
-        ? word.toLowerCase()
-        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    )
-    .join('');
-}
-
-/**
  * Convert tool name to PascalCase for interface name
  */
 function toPascalCase(name: string): string {
@@ -182,7 +167,9 @@ function generateToolInterface(tool: ToolDefinition): string {
  * @returns Method definition string for inclusion in namespace object
  */
 function generateMethodDefinition(tool: ToolDefinition, serverName: string, bridgePort: number): string {
-  const methodName = toCamelCase(tool.name);
+  // Use original tool name (sanitized) so discovery matches usage
+  // e.g., get_jira_issuetype stays as get_jira_issuetype, not getJiraIssuetype
+  const methodName = sanitizeIdentifier(tool.name);
   const interfaceName = `${toPascalCase(tool.name)}Input`;
   const hasInput = tool.inputSchema?.properties && Object.keys(tool.inputSchema.properties).length > 0;
   const inputParam = hasInput ? `input: ${interfaceName}` : '';
