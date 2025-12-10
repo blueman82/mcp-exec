@@ -10,12 +10,12 @@ import {
   type ListServersInput,
 } from '../src/tools/list-servers.js';
 
-// Mock @meta-mcp/core
-vi.mock('@meta-mcp/core', () => ({
+// Mock @justanothermldude/meta-mcp-core
+vi.mock('@justanothermldude/meta-mcp-core', () => ({
   listServers: vi.fn(),
 }));
 
-import { listServers } from '@meta-mcp/core';
+import { listServers } from '@justanothermldude/meta-mcp-core';
 
 const mockListServers = vi.mocked(listServers);
 

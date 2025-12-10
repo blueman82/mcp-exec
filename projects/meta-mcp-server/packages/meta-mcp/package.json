@@ -1,6 +1,6 @@
 {
-  "name": "@meta-mcp/server",
-  "version": "0.1.0",
+  "name": "@justanothermldude/meta-mcp-server",
+  "version": "0.1.6",
   "description": "Meta MCP server that wraps multiple backend MCP servers, exposing only 3 meta-tools to reduce context token consumption",
   "type": "module",
   "main": "dist/index.js",
@@ -18,7 +18,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@meta-mcp/core": "*",
+    "@justanothermldude/meta-mcp-core": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.24.3",
     "zod": "^3.22.4"
   },

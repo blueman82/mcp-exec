@@ -3,7 +3,7 @@
  * Generates type-safe wrapper functions that call bridge endpoint.
  */
 
-import type { ToolDefinition } from '@meta-mcp/core';
+import type { ToolDefinition } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Bridge endpoint URL for tool calls

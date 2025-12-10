@@ -7,7 +7,7 @@ import {
   ConfigParseError,
   ConfigValidationError,
   type ServerManifestEntry,
-} from '@meta-mcp/core';
+} from '@justanothermldude/meta-mcp-core';
 
 const ListServersInputSchema = z.object({
   filter: z.string().optional(),

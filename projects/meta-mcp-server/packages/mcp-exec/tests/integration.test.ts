@@ -14,8 +14,8 @@ import { createMcpExecServer } from '../src/server.js';
 import { MCPBridge } from '../src/bridge/server.js';
 import { SandboxExecutor } from '../src/sandbox/executor.js';
 import { createExecuteCodeHandler, isExecuteCodeInput } from '../src/tools/execute-code.js';
-import type { ServerPool, MCPConnection } from '@meta-mcp/core';
-import { ConnectionState, ServerPool as RealServerPool, createConnection, getServerConfig } from '@meta-mcp/core';
+import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
+import { ConnectionState, ServerPool as RealServerPool, createConnection, getServerConfig } from '@justanothermldude/meta-mcp-core';
 
 // Test directory for filesystem operations
 const TEST_DIR = join(tmpdir(), 'mcp-exec-integration-test');
@@ -349,7 +349,7 @@ describe.skipIf(!RUN_REAL_MCP_TESTS)('Real MCP Server Integration', () => {
     process.env.SERVERS_CONFIG = testConfigPath;
 
     // Load the server manifest (required before getServerConfig works)
-    const { loadServerManifest } = await import('@meta-mcp/core');
+    const { loadServerManifest } = await import('@justanothermldude/meta-mcp-core');
     loadServerManifest();
 
     // Create real connection factory using test servers.json

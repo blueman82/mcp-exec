@@ -9,7 +9,7 @@ import {
   isGetToolSchemaInput,
   type GetToolSchemaInput,
 } from '../src/tools/get-tool-schema.js';
-import type { ServerPool, MCPConnection, ToolDefinition } from '@meta-mcp/core';
+import type { ServerPool, MCPConnection, ToolDefinition } from '@justanothermldude/meta-mcp-core';
 
 // Helper to create mock connection
 function createMockConnection(tools: ToolDefinition[] = []): MCPConnection {

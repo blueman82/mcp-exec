@@ -1,5 +1,5 @@
 {
-  "name": "@meta-mcp/exec",
+  "name": "@justanothermldude/mcp-exec",
   "version": "0.1.0",
   "description": "MCP execution utilities for sandboxed code execution with OS-level isolation",
   "type": "module",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sandbox-runtime": "^0.0.19",
-    "@meta-mcp/core": "*",
+    "@justanothermldude/meta-mcp-core": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "esbuild": "^0.24.0"
   },

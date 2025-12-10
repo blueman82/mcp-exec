@@ -6,7 +6,7 @@ import {
   createConnection,
   ToolCache,
   getServerConfig,
-} from '@meta-mcp/core';
+} from '@justanothermldude/meta-mcp-core';
 
 export const APP_NAME = 'meta-mcp-server';
 export const VERSION = '0.1.2';
