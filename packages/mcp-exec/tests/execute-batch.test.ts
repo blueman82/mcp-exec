@@ -10,8 +10,8 @@ import {
   type Snippet,
   type ExecuteBatchInput,
 } from '../src/tools/execute-batch.js';
-import type { ServerPool } from '@meta-mcp/core';
-import { ConnectionState } from '@meta-mcp/core';
+import type { ServerPool } from '@justanothermldude/meta-mcp-core';
+import { ConnectionState } from '@justanothermldude/meta-mcp-core';
 
 // Mock modules with factory functions (must be hoisted)
 vi.mock('@anthropic-ai/sandbox-runtime', () => ({

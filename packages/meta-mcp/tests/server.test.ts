@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createServer } from '../src/server.js';
-import type { ServerPool, ToolCache } from '@meta-mcp/core';
+import type { ServerPool, ToolCache } from '@justanothermldude/meta-mcp-core';
 import {
   listServersTool,
   getServerToolsTool,

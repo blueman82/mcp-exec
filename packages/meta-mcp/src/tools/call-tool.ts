@@ -9,7 +9,7 @@ import {
   ServerPool,
   ConnectionError,
   ToolCache,
-} from '@meta-mcp/core';
+} from '@justanothermldude/meta-mcp-core';
 
 export class ServerNotFoundError extends Error {
   constructor(serverName: string) {

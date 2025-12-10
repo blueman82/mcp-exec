@@ -2,7 +2,7 @@
  * list_available_mcp_servers MCP tool handler
  * Lists all available MCP servers with optional filtering
  */
-import { listServers, type ServerManifestEntry } from '@meta-mcp/core';
+import { listServers, type ServerManifestEntry } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Input type for list_available_mcp_servers tool
