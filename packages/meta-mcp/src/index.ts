@@ -7,6 +7,8 @@ import {
   ToolCache,
   getServerConfig,
 } from '@justanothermldude/meta-mcp-core';
+import { parseTransportConfig, TransportMode } from './transport.js';
+import { createHttpServer, HttpServerResult } from './http-server.js';
 
 export const APP_NAME = 'meta-mcp-server';
 export const VERSION = '0.1.2';
@@ -24,18 +26,30 @@ A meta MCP server that wraps multiple backend MCP servers,
 exposing only 3 meta-tools to reduce context token consumption.
 
 Usage:
-  meta-mcp-server              Start the server (stdio transport)
+  meta-mcp-server              Start the server (stdio transport by default)
   meta-mcp-server --version    Show version
   meta-mcp-server --help       Show this help
 
 Environment:
-  SERVERS_CONFIG    Path to servers.json config file
-                    Default: ~/.meta-mcp/servers.json
+  SERVERS_CONFIG        Path to servers.json config file
+                        Default: ~/.meta-mcp/servers.json
+
+  META_MCP_TRANSPORT    Transport mode: 'stdio' or 'http'
+                        Default: stdio
+
+  META_MCP_HTTP_PORT    HTTP port (only used when transport is 'http')
+                        Default: 3000
+
+  META_MCP_HTTP_HOST    HTTP host (only used when transport is 'http')
+                        Default: 127.0.0.1
 `);
   process.exit(0);
 }
 
 async function main() {
+  // Parse transport configuration from environment
+  const transportConfig = parseTransportConfig();
+
   // Load config on startup
   const configPath = process.env.SERVERS_CONFIG;
   if (configPath) {
@@ -58,10 +72,19 @@ async function main() {
   // Create server
   const { server, shutdown } = createServer(pool, toolCache);
 
+  // Track HTTP server result for cleanup (only used in HTTP mode)
+  let httpServerResult: HttpServerResult | null = null;
+
   // Graceful shutdown handlers
   const handleShutdown = async () => {
     process.stderr.write('Shutting down...\n');
     await shutdown();
+
+    // Clean up based on transport mode
+    if (httpServerResult) {
+      await httpServerResult.stop();
+    }
+
     await server.close();
     process.exit(0);
   };
@@ -69,11 +92,18 @@ async function main() {
   process.on('SIGINT', handleShutdown);
   process.on('SIGTERM', handleShutdown);
 
-  // Connect via stdio
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-
-  process.stderr.write('Meta MCP Server running on stdio\n');
+  // Branch on transport mode
+  if (transportConfig.mode === TransportMode.HTTP) {
+    // HTTP transport mode
+    httpServerResult = createHttpServer(server, transportConfig);
+    await httpServerResult.start();
+    // Note: start() already logs the listening address
+  } else {
+    // stdio transport mode (default)
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    process.stderr.write('Meta MCP Server running on stdio\n');
+  }
 }
 
 main().catch((error) => {
