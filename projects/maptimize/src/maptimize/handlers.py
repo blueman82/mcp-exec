@@ -5,14 +5,12 @@ slash commands. Manages event parsing, configuration loading, response
 formatting, and error handling with comprehensive logging.
 """
 
-import asyncio
 from typing import Any, Callable, Dict
 
 import structlog
 
 from maptimize.config import load_processes
 from maptimize.formatter import create_block_kit_message
-from maptimize.miro import screenshot_miro_board
 
 __all__ = [
     "handle_app_mention",
@@ -67,134 +65,40 @@ def handle_app_mention(body: Dict[str, Any], say: Callable) -> None:
 
 
 def handle_slash_command(body: Dict[str, Any], respond: Callable, client: Any) -> None:
-    """Handle /maptimize slash command with Miro diagram integration.
+    """Handle /maptimize slash command.
 
     Called when user executes the /maptimize slash command. Extracts user
-    info, loads process configuration, captures Miro board screenshots,
-    uploads images to Slack, and sends rich Block Kit response with
-    embedded diagrams.
+    info, loads process configuration, and sends response with process
+    information and wiki links.
 
     Args:
         body: Command payload from Slack
         respond: Callable for sending ephemeral responses to slash commands
-        client: Slack Web API client for file uploads and message posting
+        client: Slack Web API client (unused, kept for handler signature compatibility)
 
     Example:
         User types "/maptimize" in any channel. Bot responds with process
-        information including embedded Miro diagrams in an ephemeral message
-        visible only to that user.
+        information in an ephemeral message visible only to that user.
     """
     try:
-        # Extract user ID and channel from command
+        # Extract user ID from command
         user_id = body.get("user_id", "unknown")
-        channel_id = body.get("channel_id", body.get("channel"))
-        channel_name = body.get("channel_name", "unknown")
 
-        logger.info(
-            "slash_command_received",
-            user_id=user_id,
-            channel_id=channel_id,
-            channel_name=channel_name,
-            command="/maptimize",
-        )
+        logger.info("slash_command_received", user_id=user_id, command="/maptimize")
 
         # Load process configuration
         processes = load_processes()
 
-        # Initialize image URLs dict for storing Slack permalinks
-        image_urls: Dict[str, str] = {}
-
-        # Capture Miro screenshots for processes that have board IDs
-        for process_name, process_info in processes.items():
-            if isinstance(process_info, dict):
-                board_id = process_info.get("miro_board_id")
-
-                if board_id:
-                    # Attempt to capture screenshot
-                    logger.info(
-                        "miro_screenshot_attempt",
-                        process_name=process_name,
-                        board_id=board_id,
-                    )
-
-                    image_bytes = asyncio.run(screenshot_miro_board(board_id))
-
-                    if image_bytes is not None:
-                        try:
-                            filename = f"{process_name.lower().replace(' ', '_')}_diagram.png"
-                            response = None
-
-                            # Try uploading to channel first (works for DMs and member channels)
-                            try:
-                                logger.info(
-                                    "miro_image_upload_attempt",
-                                    process_name=process_name,
-                                    channel_id=channel_id,
-                                )
-                                response = client.files_upload_v2(
-                                    channel=channel_id,
-                                    content=image_bytes,
-                                    filename=filename,
-                                    title=f"{process_name} Diagram",
-                                )
-                            except Exception as channel_err:
-                                # If channel upload fails, upload without channel
-                                logger.warning(
-                                    "miro_image_channel_upload_failed",
-                                    process_name=process_name,
-                                    error=str(channel_err),
-                                    fallback="uploading without channel",
-                                )
-                                response = client.files_upload_v2(
-                                    content=image_bytes,
-                                    filename=filename,
-                                    title=f"{process_name} Diagram",
-                                )
-
-                            # Store the URL for the Block Kit response
-                            if response and response.get("ok") and response.get("file"):
-                                file_info = response["file"]
-                                image_urls[process_name] = file_info.get(
-                                    "url_private", file_info.get("permalink", "")
-                                )
-                                logger.info(
-                                    "miro_image_uploaded",
-                                    process_name=process_name,
-                                    file_id=file_info.get("id"),
-                                    url=image_urls[process_name],
-                                )
-                            else:
-                                logger.warning(
-                                    "miro_image_upload_failed",
-                                    process_name=process_name,
-                                    response=response,
-                                )
-
-                        except Exception as upload_error:
-                            logger.error(
-                                "miro_image_upload_exception",
-                                process_name=process_name,
-                                error=str(upload_error),
-                                exc_info=True,
-                            )
-                    else:
-                        # Screenshot failed (timeout or error already logged)
-                        logger.warning(
-                            "miro_screenshot_unavailable",
-                            process_name=process_name,
-                            message="Continuing without diagram",
-                        )
-
         # Create plain text response (same as @mention)
         message_text = create_block_kit_message(processes)
 
-        # Send ephemeral response to user using respond() function
+        # Send ephemeral response to user
         respond(
             text=message_text,
             response_type="ephemeral",
         )
 
-        logger.info("slash_command_handled_success", user_id=user_id, image_count=len(image_urls))
+        logger.info("slash_command_handled_success", user_id=user_id)
 
     except Exception as e:
         logger.error("slash_command_handling_failed", error=str(e), exc_info=True)
