@@ -5,7 +5,7 @@ import {
   CallToolResult,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { ServerPool, ToolCache } from '@meta-mcp/core';
+import { ServerPool, ToolCache } from '@justanothermldude/meta-mcp-core';
 import {
   listServersTool,
   listServersHandler,

@@ -6,7 +6,7 @@ import {
   clearCache,
   ConnectionState,
   type ToolDefinition,
-} from '@meta-mcp/core';
+} from '@justanothermldude/meta-mcp-core';
 
 vi.mock('fs');
 

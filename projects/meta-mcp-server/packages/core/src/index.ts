@@ -1,4 +1,4 @@
-// @meta-mcp/core - Core utilities and shared types
+// @justanothermldude/meta-mcp-core - Core utilities and shared types
 
 // Types
 export type {

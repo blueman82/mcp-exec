@@ -1,6 +1,6 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
-import type { ServerPool, MCPConnection } from '@meta-mcp/core';
-import { getServerConfig, listServers } from '@meta-mcp/core';
+import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
+import { getServerConfig, listServers } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Request body for the /call endpoint

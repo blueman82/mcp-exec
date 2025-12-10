@@ -2,7 +2,7 @@
  * get_mcp_tool_schema MCP tool handler
  * Fetches the schema for a specific MCP tool from a server
  */
-import { ServerPool, type ToolDefinition } from '@meta-mcp/core';
+import { ServerPool, type ToolDefinition } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Input type for get_mcp_tool_schema tool

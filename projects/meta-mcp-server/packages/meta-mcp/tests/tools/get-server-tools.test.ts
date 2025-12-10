@@ -7,7 +7,7 @@ import {
   ConnectionState,
   type MCPConnection,
   type ToolDefinition,
-} from '@meta-mcp/core';
+} from '@justanothermldude/meta-mcp-core';
 
 vi.mock('fs');
 

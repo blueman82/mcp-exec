@@ -2,7 +2,7 @@
  * execute_code MCP tool handler
  * Orchestrates sandbox execution with MCP bridge for tool access
  */
-import type { ServerPool } from '@meta-mcp/core';
+import type { ServerPool } from '@justanothermldude/meta-mcp-core';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecuteCodeInput, type ExecutionResult } from '../types/execution.js';
