@@ -20,3 +20,4 @@ docs/diagrams/logs/*
 # Project-specific
 CONSOLIDATION_ROADMAP.md
 *.code-workspace
+tests/streamable-http-test-server.py
