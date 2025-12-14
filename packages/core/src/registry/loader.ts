@@ -1,4 +1,6 @@
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { z } from 'zod';
 import type { ServerConfig } from '../types/index.js';
 import { generateManifest, ServerManifest, ServerManifestEntry, ServerConfigWithMeta } from './manifest.js';
@@ -42,7 +44,11 @@ const BackendsConfigSchema = z.object({
 let cachedManifest: ServerManifest | null = null;
 
 function getConfigPath(): string {
-  return process.env.SERVERS_CONFIG || '~/.config/mcp/servers.json';
+  if (process.env.SERVERS_CONFIG) {
+    // Expand ~ in env var if present
+    return process.env.SERVERS_CONFIG.replace(/^~/, os.homedir());
+  }
+  return path.join(os.homedir(), '.meta-mcp', 'servers.json');
 }
 
 export function loadServerManifest(): ServerManifest {
