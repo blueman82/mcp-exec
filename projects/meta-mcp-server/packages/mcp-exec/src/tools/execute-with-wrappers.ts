@@ -7,7 +7,22 @@ import { generateServerModule } from '../codegen/wrapper-generator.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
-import type { CallToolResult } from './execute-code.js';
+
+/**
+ * CallToolResult content item
+ */
+export interface TextContent {
+  type: 'text';
+  text: string;
+}
+
+/**
+ * Standard MCP CallToolResult format
+ */
+export interface CallToolResult {
+  content: TextContent[];
+  isError?: boolean;
+}
 
 /**
  * Input for execute_code_with_wrappers tool

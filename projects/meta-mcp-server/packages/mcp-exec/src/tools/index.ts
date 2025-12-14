@@ -2,16 +2,6 @@
  * MCP tools module exports for mcp-exec
  */
 
-// Export execute_code tool
-export {
-  executeCodeTool,
-  createExecuteCodeHandler,
-  isExecuteCodeInput,
-  type CallToolResult,
-  type TextContent,
-  type ExecuteCodeHandlerConfig,
-} from './execute-code.js';
-
 // Export list_available_mcp_servers tool
 export {
   listAvailableMcpServersTool,
@@ -35,24 +25,6 @@ export {
   isExecuteWithWrappersInput,
   type ExecuteWithWrappersInput,
   type ExecuteWithWrappersHandlerConfig,
+  type CallToolResult,
+  type TextContent,
 } from './execute-with-wrappers.js';
-
-// Export execute_batch tool
-export {
-  executeBatchTool,
-  createExecuteBatchHandler,
-  isExecuteBatchInput,
-  type ExecuteBatchInput,
-  type ExecuteBatchHandlerConfig,
-  type Snippet,
-  type SnippetResult,
-} from './execute-batch.js';
-
-// Export execute_with_context tool
-export {
-  executeWithContextTool,
-  createExecuteWithContextHandler,
-  isExecuteWithContextInput,
-  type ExecuteWithContextInput,
-  type ExecuteWithContextHandlerConfig,
-} from './execute-with-context.js';

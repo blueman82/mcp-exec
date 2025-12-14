@@ -218,14 +218,14 @@ const { server, listToolsHandler, callToolHandler, shutdown } = createMcpExecSer
 
 // List available tools
 const tools = await listToolsHandler();
-// => { tools: [{ name: 'execute_code', inputSchema: {...} }] }
+// => { tools: [{ name: 'execute_code_with_wrappers', ... }, ...] }
 
-// Call execute_code tool
+// Call execute_code_with_wrappers tool
 const result = await callToolHandler({
-  name: 'execute_code',
+  name: 'execute_code_with_wrappers',
   arguments: {
     code: 'console.log("Hello!")',
-    timeout_ms: 5000,
+    wrappers: [],  // optional: MCP server names to generate typed wrappers for
   },
 });
 
