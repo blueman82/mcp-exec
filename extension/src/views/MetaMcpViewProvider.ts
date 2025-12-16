@@ -164,23 +164,24 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
-     * Handle load setup message - detects installed AI tools
+     * Handle load setup message - detects installed AI tools and MCP packages
      */
     private async handleLoadSetup(): Promise<void> {
         try {
             this.postMessage({ type: 'setupLoading' });
-            
+
             // Try to auto-detect server path from workspace
             const detectedPath = await this.detectServerPathFromWorkspace();
             if (detectedPath) {
                 this.toolConfigurator = new AIToolConfigurator(detectedPath);
             }
-            
+
             const tools = this.toolConfigurator.detectInstalledTools();
             const snippets = this.toolConfigurator.generateAllSnippets();
             const genericSnippet = this.toolConfigurator.generateGenericSnippet();
-            
-            this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet });
+            const mcpPackages = this.toolConfigurator.detectMcpPackages();
+
+            this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet, mcpPackages });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             console.error('[Meta-MCP] Failed to load setup:', errorMsg);
