@@ -27,11 +27,10 @@ def _get_orchestration_functions():
 
 
 # Re-export orchestration functions for backward compatibility
-def run_reporting_cycle(*args, **kwargs):
+async def run_reporting_cycle(*args, **kwargs):
     """Run a single reporting cycle. Wrapper for backward compatibility."""
     _run_reporting_cycle, _ = _get_orchestration_functions()
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(_run_reporting_cycle(*args, **kwargs))
+    return await _run_reporting_cycle(*args, **kwargs)
 
 
 async def process_channel(*args, **kwargs):
