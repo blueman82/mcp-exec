@@ -47,7 +47,7 @@ function addProcessLabel(ownerUsername, callback) {
  * @param {function} callback - Optional callback after label is added
  */
 function storeTicketKeyLabel(ownerUsername, ticketKey, callback) {
-  const labelName = LABEL_PREFIX_TICKET + ownerUsername + '_' + ticketKey;
+  var labelName = LABEL_PREFIX_TICKET + ownerUsername + '_' + ticketKey;
   AJS.Labels.addLabel(labelName, function() {
     console.log('[Maptimize] Stored ticket key label:', labelName);
     if (callback) callback();
