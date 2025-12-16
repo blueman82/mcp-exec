@@ -98,19 +98,21 @@ async def test_fetch_and_store_db_failure():
     mock_db = AsyncMock()
     mock_db.store_maintenance_cache.return_value = False
 
-    async def resolve_side_effect(protocol):
+    # Mock container with aget method
+    mock_container = AsyncMock()
+    async def aget_side_effect(protocol):
         protocol_name = str(protocol)
         if "Raven" in protocol_name:
             return mock_soap
         if "DynamoDB" in protocol_name:
             return mock_db
-        return None
+        return AsyncMock()
+    mock_container.aget = aget_side_effect
 
     with (
-        patch("ketchup_unified_scheduler.services.maintenance.fetcher.resolve_typed", side_effect=resolve_side_effect),
         patch("os.getenv", return_value="true"),
         patch("ketchup_unified_scheduler.services.maintenance.fetcher.datetime") as mock_datetime,
-        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", return_value=mock_container),
         patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
