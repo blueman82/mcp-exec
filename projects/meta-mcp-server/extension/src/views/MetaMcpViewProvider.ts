@@ -287,7 +287,14 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         const terminal = vscode.window.createTerminal('meta-mcp-server install');
         terminal.show();
         terminal.sendText('npm install -g @justanothermldude/meta-mcp-server');
-        vscode.window.showInformationMessage('Installing @justanothermldude/meta-mcp-server... Check terminal for progress.');
+
+        const selection = await vscode.window.showInformationMessage(
+            'Installing meta-mcp-server... Click "Refresh" when installation completes.',
+            'Refresh'
+        );
+        if (selection === 'Refresh') {
+            await this.handleLoadSetup();
+        }
     }
 
     /**
@@ -297,7 +304,14 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         const terminal = vscode.window.createTerminal('mcp-exec install');
         terminal.show();
         terminal.sendText('npm install -g @justanothermldude/mcp-exec');
-        vscode.window.showInformationMessage('Installing @justanothermldude/mcp-exec... Check terminal for progress.');
+
+        const selection = await vscode.window.showInformationMessage(
+            'Installing mcp-exec... Click "Refresh" when installation completes.',
+            'Refresh'
+        );
+        if (selection === 'Refresh') {
+            await this.handleLoadSetup();
+        }
     }
 
     /**
