@@ -59,6 +59,45 @@ plan:
       - "Username format for assignee (extracted from email prefix)"
       - "Status check must use statusCategory.key === 'done' (not individual status names)"
 
+    # ═══════════════════════════════════════════════════════════════
+    # MCP INTEGRATION (for automated deployment)
+    # Reference: https://www.anthropic.com/engineering/code-execution-with-mcp
+    # ═══════════════════════════════════════════════════════════════
+    mcp_servers:
+      adobe-wiki:
+        description: "Confluence wiki CRUD operations"
+        tools:
+          get_wiki_content:
+            description: "Get Content of Confluence Wiki Page by URL"
+            parameters:
+              url: "string (required) - Wiki Page URL"
+              preserve_macros: "boolean (default: true) - Preserve HTML macros in output"
+              extract_assets: "boolean (default: false) - Extract images/attachments"
+          update_wiki_content:
+            description: "Update Content of Confluence Wiki Page"
+            parameters:
+              url: "string (required) - Wiki Page URL or Page ID"
+              content: "string (required) - Complete content in Confluence storage format"
+              content_type: "string (required) - 'storage' for XHTML or 'markdown'"
+              title: "string (optional) - New title for the page"
+              minor_edit: "boolean (default: false) - Whether this is a minor edit"
+        # mcp-exec wrapper naming convention: adobe_wiki (underscores, not camelCase)
+        wrapper_name: "adobe_wiki"
+        code_pattern: |
+          // Read wiki page
+          const pageContent = await adobe_wiki.get_wiki_content({
+            url: "https://wiki.corp.adobe.com/display/neolane/Maptimize+Service+Review+Process",
+            preserve_macros: true
+          });
+
+          // Update wiki page
+          const result = await adobe_wiki.update_wiki_content({
+            url: "https://wiki.corp.adobe.com/display/neolane/Maptimize+Service+Review+Process",
+            content: newHtmlContent,
+            content_type: "storage",
+            minor_edit: false
+          });
+
   requirements:
     in_scope:
       - "Per-row countdown timers (one per process owner)"
