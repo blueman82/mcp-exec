@@ -35,6 +35,7 @@ const ServerConfigSchema = z.object({
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
   timeout: z.number().optional(), // Tool call timeout in milliseconds (default: 60000)
+  backendAuth: z.record(z.string()).optional(), // Maps backend server names to auth header values
 });
 
 const BackendsConfigSchema = z.object({
@@ -42,6 +43,31 @@ const BackendsConfigSchema = z.object({
 });
 
 let cachedManifest: ServerManifest | null = null;
+
+/**
+ * Resolves environment variables in a string using ${VAR_NAME} syntax.
+ * Returns the original string if no env vars found or if var is not set.
+ */
+function resolveEnvVars(value: string): string {
+  return value.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+    const envValue = process.env[varName];
+    return envValue !== undefined ? envValue : match;
+  });
+}
+
+/**
+ * Resolves environment variables in backendAuth record values.
+ */
+function resolveBackendAuth(backendAuth: Record<string, string> | undefined): Record<string, string> | undefined {
+  if (!backendAuth) {
+    return undefined;
+  }
+  const resolved: Record<string, string> = {};
+  for (const [key, value] of Object.entries(backendAuth)) {
+    resolved[key] = resolveEnvVars(value);
+  }
+  return resolved;
+}
 
 function getConfigPath(): string {
   if (process.env.SERVERS_CONFIG) {
@@ -77,8 +103,17 @@ export function loadServerManifest(): ServerManifest {
     throw new ConfigValidationError(result.error.message);
   }
 
+  // Process servers and resolve backendAuth environment variables
+  const processedServers: Record<string, ServerConfigWithMeta> = {};
+  for (const [name, config] of Object.entries(result.data.mcpServers)) {
+    processedServers[name] = {
+      ...config,
+      backendAuth: resolveBackendAuth(config.backendAuth),
+    } as ServerConfigWithMeta;
+  }
+
   cachedManifest = {
-    servers: result.data.mcpServers as Record<string, ServerConfigWithMeta>,
+    servers: processedServers,
   };
 
   return cachedManifest;
