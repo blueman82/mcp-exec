@@ -59,17 +59,19 @@ async def test_fetch_and_store_soap_failure():
     mock_soap = AsyncMock()
     mock_soap.fetch_maintenance_data.return_value = None
 
-    async def resolve_side_effect(protocol):
+    # Mock container with aget method
+    mock_container = AsyncMock()
+    async def aget_side_effect(protocol):
         protocol_name = str(protocol)
         if "Raven" in protocol_name:
             return mock_soap
         return AsyncMock()
+    mock_container.aget = aget_side_effect
 
     with (
-        patch("ketchup_unified_scheduler.services.maintenance.fetcher.resolve_typed", side_effect=resolve_side_effect),
         patch("os.getenv", return_value="true"),
         patch("ketchup_unified_scheduler.services.maintenance.fetcher.datetime") as mock_datetime,
-        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", return_value=mock_container),
         patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
