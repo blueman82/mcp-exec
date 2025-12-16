@@ -32,7 +32,7 @@ function hasProcessLabel(ownerUsername) {
  * @param {function} callback - Optional callback after label is added
  */
 function addProcessLabel(ownerUsername, callback) {
-  const labelName = LABEL_PREFIX_EXPIRED + ownerUsername;
+  var labelName = LABEL_PREFIX_EXPIRED + ownerUsername;
   AJS.Labels.addLabel(labelName, function() {
     console.log('[Maptimize] Added expired label:', labelName);
     if (callback) callback();
