@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as vscode from 'vscode';
+import { execSync } from 'child_process';
 import {
     AI_TOOL_REGISTRY,
     AIToolDefinition,
@@ -40,6 +41,13 @@ export interface ConfigSnippet {
     toolName: string;
     snippet: string;
     fullConfig: Record<string, unknown>;
+}
+
+export interface McpPackageStatus {
+    metaMcpInstalled: boolean;
+    metaMcpVersion: string | null;
+    mcpExecInstalled: boolean;
+    mcpExecVersion: string | null;
 }
 
 interface McpServerEntry {
@@ -280,6 +288,51 @@ export class AIToolConfigurator {
             snippet: JSON.stringify(fullConfig, null, 2),
             fullConfig,
         };
+    }
+
+    /**
+     * Detect if meta-mcp-server and mcp-exec are installed globally
+     * Uses `npm list -g` to check for global packages
+     */
+    detectMcpPackages(): McpPackageStatus {
+        const status: McpPackageStatus = {
+            metaMcpInstalled: false,
+            metaMcpVersion: null,
+            mcpExecInstalled: false,
+            mcpExecVersion: null,
+        };
+
+        try {
+            // Check meta-mcp-server
+            const metaMcpResult = execSync(
+                'npm list -g @justanothermldude/meta-mcp-server --depth=0 --json 2>/dev/null',
+                { encoding: 'utf-8', timeout: 5000 }
+            );
+            const metaMcpJson = JSON.parse(metaMcpResult);
+            if (metaMcpJson.dependencies?.['@justanothermldude/meta-mcp-server']) {
+                status.metaMcpInstalled = true;
+                status.metaMcpVersion = metaMcpJson.dependencies['@justanothermldude/meta-mcp-server'].version || null;
+            }
+        } catch {
+            // Not installed or error - leave as false
+        }
+
+        try {
+            // Check mcp-exec
+            const mcpExecResult = execSync(
+                'npm list -g @justanothermldude/mcp-exec --depth=0 --json 2>/dev/null',
+                { encoding: 'utf-8', timeout: 5000 }
+            );
+            const mcpExecJson = JSON.parse(mcpExecResult);
+            if (mcpExecJson.dependencies?.['@justanothermldude/mcp-exec']) {
+                status.mcpExecInstalled = true;
+                status.mcpExecVersion = mcpExecJson.dependencies['@justanothermldude/mcp-exec'].version || null;
+            }
+        } catch {
+            // Not installed or error - leave as false
+        }
+
+        return status;
     }
 
     /**
