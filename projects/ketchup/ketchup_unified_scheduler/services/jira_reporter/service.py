@@ -14,13 +14,30 @@ from packages.core.logging import setup_logger
 from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.secrets.manager import SecretsManager
 
-# Re-export orchestration functions for backward compatibility
-from ketchup_unified_scheduler.services.jira_reporter.orchestration import (
-    process_channel,
-    run_reporting_cycle,
-)
-
 logger = setup_logger(__name__)
+
+
+def _get_orchestration_functions():
+    """Lazy import to avoid circular dependency."""
+    from ketchup_unified_scheduler.services.jira_reporter.orchestration import (
+        process_channel as _process_channel,
+        run_reporting_cycle as _run_reporting_cycle,
+    )
+    return _run_reporting_cycle, _process_channel
+
+
+# Re-export orchestration functions for backward compatibility
+def run_reporting_cycle(*args, **kwargs):
+    """Run a single reporting cycle. Wrapper for backward compatibility."""
+    _run_reporting_cycle, _ = _get_orchestration_functions()
+    import asyncio
+    return asyncio.get_event_loop().run_until_complete(_run_reporting_cycle(*args, **kwargs))
+
+
+async def process_channel(*args, **kwargs):
+    """Process a single channel. Wrapper for backward compatibility."""
+    _, _process_channel = _get_orchestration_functions()
+    return await _process_channel(*args, **kwargs)
 
 
 class JiraService:
