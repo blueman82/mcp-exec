@@ -60,8 +60,8 @@ function storeTicketKeyLabel(ownerUsername, ticketKey, callback) {
  * @returns {string|null} - The ticket key (e.g., 'CPGNCX-63500') or null if not found
  */
 function getTicketKeyFromLabel(ownerUsername) {
-  const labelPrefix = LABEL_PREFIX_TICKET + ownerUsername + '_';
-  const labels = AJS.Labels.getLabels() || [];
+  var labelPrefix = LABEL_PREFIX_TICKET + ownerUsername + '_';
+  var labels = AJS.Labels.getLabels() || [];
 
   for (var i = 0; i < labels.length; i++) {
     var label = labels[i];
