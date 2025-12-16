@@ -35,7 +35,6 @@ conductor:
       description: "Per-row process owner review timer with JIRA integration and reset"
       tasks: [1, 2, 3, 4, 5, 6, 7]
       rationale: "All tasks modify the same wiki page HTML block"
-
 plan:
   metadata:
     feature_name: "Maptimize Process Owner Review Timer with Reset"
@@ -43,7 +42,6 @@ plan:
     target: "Implement per-row 3-month countdown timers that auto-create assigned JIRA tickets with reset capability"
     jira_ticket: "CPGNCX-63303"
     wiki_page: "https://wiki.corp.adobe.com/display/neolane/Maptimize+Service+Review+Process"
-
   context:
     framework: "Confluence Wiki with AUI (Atlassian User Interface)"
     architecture: "Embedded JavaScript in Confluence HTML macro"
@@ -60,7 +58,6 @@ plan:
       - "Must use AJS.Labels for duplicate prevention (persistent across all users)"
       - "Username format for assignee (extracted from email prefix)"
       - "Status check must use statusCategory.key === 'done' (not individual status names)"
-
     # ═══════════════════════════════════════════════════════════════
     # MCP INTEGRATION (for automated deployment)
     # Reference: https://www.anthropic.com/engineering/code-execution-with-mcp
@@ -99,7 +96,6 @@ plan:
             content_type: "storage",
             minor_edit: false
           });
-
   requirements:
     in_scope:
       - "Per-row countdown timers (one per process owner)"
@@ -115,7 +111,6 @@ plan:
     out_of_scope:
       - "Email notifications (JIRA handles this)"
       - "Automatic reset without user action"
-
   jira_status_categories:
     done:
       key: "done"
@@ -129,7 +124,6 @@ plan:
       key: "new"
       statuses: ["Not Started", "Open", "To Do", "Blocked", "Reopened", "IceBox"]
       allows_reset: false
-
   process_owners:
     - name: "Todd Sheive"
       username: "sheive"
@@ -143,7 +137,6 @@ plan:
     - name: "Varun Kaushik"
       username: "vkaushik"
       responsibility: "Deliverability Operations"
-
   tasks:
     # ═══════════════════════════════════════════════════════════════
     # TASK 1: HTML TABLE STRUCTURE
@@ -155,7 +148,6 @@ plan:
         - "wiki-html-table.html"
       depends_on: []
       estimated_time: "30m"
-
       success_criteria:
         - "Table includes data-process-id attribute on each <tr> with unique identifier per process owner."
         - "Table includes data-owner-username attribute on each <tr> with JIRA username (e.g., 'sheive')."
@@ -164,10 +156,8 @@ plan:
         - "'Last Reviewed' column uses Confluence <time> element with datetime attribute."
         - "No TODO comments in production code paths."
         - "No placeholder empty elements without proper class/id."
-
       test_commands:
         - "echo 'Manual: Verify HTML renders correctly in Confluence preview'"
-
       description: |
         ## TASK DESCRIPTION
         Transform the existing Process Owners table to include data attributes needed for per-row timer functionality.
@@ -185,7 +175,6 @@ plan:
 
         The 'Last Reviewed' cell must use Confluence's date macro which renders as:
         <time class="date-past" datetime="2025-01-15">Jan 15, 2025</time>
-
       implementation:
         approach: |
           Modify the existing Process Owners table HTML to embed data attributes on each row.
@@ -207,24 +196,34 @@ plan:
           - point: "Confluence date macro for Last Reviewed"
             details: "Uses <time> element with datetime attribute for reliable date parsing"
             reference: "wiki-html-table.html"
-
       verification:
         automated_tests:
           command: "echo 'Verify in Confluence preview mode'"
           expected_output: "Table renders with 5 columns, dates display correctly"
-
       code_quality:
         html:
           validation:
             command: "echo 'Validate HTML structure manually'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "add data attributes to Process Owners table for timer functionality"
         files:
           - "wiki-html-table.html"
-
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: frontend-developer
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":39789,"duration_api_ms":47908,"num_turns":7,"result":"{\"status\":\"success\",\"summary\":\"Created wiki-html-table.html with Process Owners table structure including data attributes for timer functionality\",\"output\":\"Created wiki-html-table.html with the following features:\\n\\n1. **Table Structure**: 5 columns (Name, Responsibility, Email, Last Reviewed, Expires In)\\n\\n2. **Data Attributes per row**:\\n   - data-process-id: Unique identifier (e.g., \\\"po-sheive\\\") for label tracking and DOM targeting\\n   - data-owner-username: JIRA username for ticket assignment (e.g., \\\"sheive\\\")\\n   - data-responsibility: Swimlane name for JIRA ticket description context\\n\\n3. **Confluence Integration**:\\n   - Uses confluenceTable and confluenceTh/confluenceTd classes for native styling\\n   - Uses <time> element with datetime attribute for reliable date parsing\\n   - Ready for Confluence HTML macro insertion\\n\\n4. **Timer Support**:\\n   - Each row has a <span class=\\\"process-expiry\\\"> placeholder in the Expires In column\\n   - JavaScript can populate these spans with calculated expiry countdown\\n\\n5. **Sample Data**: 5 process owners with varying last reviewed dates for testing\",\"errors\":[],\"files_modified\":[\"wiki-html-table.html\"]}","session_id":"85a51fe8-4a2d-44d7-88be-939ff74e1ee1","total_cost_usd":0.49050475,"usage":{"input_tokens":41,"cache_creation_input_tokens":46703,"cache_read_input_tokens":222052,"output_tokens":2064,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":46703}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":810,"outputTokens":249,"cacheReadInputTokens":0,"cacheCreationInputTokens":4238,"webSearchRequests":0,"costUSD":0.007352499999999999,"contextWindow":200000},"claude-opus-4-5-20251101":{"inputTokens":44,"outputTokens":2109,"cacheReadInputTokens":222052,"cacheCreationInputTokens":51069,"webSearchRequests":0,"costUSD":0.48315225,"contextWindow":200000}},"permission_denials":[],"structured_output":{"status":"success","summary":"Created wiki-html-table.html with Process Owners table structure including data attributes for timer functionality","output":"Created wiki-html-table.html with the following features:\n\n1. **Table Structure**: 5 columns (Name, Responsibility, Email, Last Reviewed, Expires In)\n\n2. **Data Attributes per row**:\n   - data-process-id: Unique identifier (e.g., \"po-sheive\") for label tracking and DOM targeting\n   - data-owner-username: JIRA username for ticket assignment (e.g., \"sheive\")\n   - data-responsibility: Swimlane name for JIRA ticket description context\n\n3. **Confluence Integration**:\n   - Uses confluenceTable and confluenceTh/confluenceTd classes for native styling\n   - Uses <time> element with datetime attribute for reliable date parsing\n   - Ready for Confluence HTML macro insertion\n\n4. **Timer Support**:\n   - Each row has a <span class=\"process-expiry\"> placeholder in the Expires In column\n   - JavaScript can populate these spans with calculated expiry countdown\n\n5. **Sample Data**: 5 process owners with varying last reviewed dates for testing","errors":[],"files_modified":["wiki-html-table.html"]},"uuid":"23f75aac-b861-4ee0-859c-cb58786fbc08"}
+          qc_feedback: |-
+            [code-reviewer] wiki-html-table.html successfully created at the expected path with all required features implemented: data-process-id, data-owner-username, and data-responsibility attributes on each table row; Expires In column with process-expiry span placeholders; Last Reviewed column using Confluence time element with datetime attribute; 5 columns as required; no TODO comments present.
+            [frontend-developer] The wiki-html-table.html file was successfully created at the exact expected path with all required functionality. The table structure includes 5 columns (Name, Responsibility, Email, Last Reviewed, Expires In), each row has the required data attributes (data-process-id, data-owner-username, data-responsibility), the Expires In column contains properly classed span placeholders, and the Last Reviewed column uses the Confluence time element with datetime attribute. No TODO comments or improper placeholder elements were found.
+            [accessibility-tester] The wiki-html-table.html file has been successfully created with all required data attributes and structure. The table includes 5 columns (Name, Responsibility, Email, Last Reviewed, Expires In), each row has the required data-process-id, data-owner-username, and data-responsibility attributes. The Expires In column contains properly classed span elements (process-expiry), and the Last Reviewed column uses Confluence's time element with datetime attribute. No TODO comments or improper placeholder elements were found.
+            [seo-structure-architect] All success criteria verified and passed. The wiki-html-table.html file was created at the exact expected path with proper implementation: (1) Each table row has data-process-id with unique identifiers (po-sheive, po-jsmith, etc.), (2) data-owner-username attributes contain JIRA usernames (sheive, jsmith, etc.), (3) data-responsibility attributes contain swimlane names (Order Management, Inventory Control, etc.), (4) Each row has an 'Expires In' column with span class='process-expiry' placeholder, (5) Last Reviewed column uses Confluence time element with datetime attribute, (6) No TODO comments found in the code, (7) The process-expiry span elements have proper class attributes for JavaScript targeting.
+          timestamp: "2025-12-16T12:21:06Z"
+      completed_date: "2025-12-16"
     # ═══════════════════════════════════════════════════════════════
     # TASK 2: TIMER CALCULATION LOGIC
     # ═══════════════════════════════════════════════════════════════
@@ -235,7 +234,6 @@ plan:
         - "wiki-timer-script.js"
       depends_on: [1]
       estimated_time: "45m"
-
       success_criteria:
         - "initializeProcessTimers() iterates through all rows with data-process-id attribute."
         - "calculateCountdown() computes days/hours remaining from Last Reviewed date + 90 days."
@@ -245,11 +243,9 @@ plan:
         - "Timer runs on $(document).ready() for immediate execution on page load."
         - "No TODO comments in production code paths."
         - "No placeholder empty objects or unused variables."
-
       test_commands:
         - "echo 'Manual: Set Last Reviewed to 89 days ago, verify countdown shows ~1 day'"
         - "echo 'Manual: Set Last Reviewed to 91 days ago, verify EXPIRED displays'"
-
       description: |
         ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
         Verify Task 1 HTML structure exists with:
@@ -265,7 +261,6 @@ plan:
         4. Updates the Expires In column with remaining time or EXPIRED status
 
         Key constant: 90 days = 90 * 24 * 60 * 60 * 1000 = 7,776,000,000 ms
-
       implementation:
         approach: |
           Create initializeProcessTimers() function that uses jQuery .each() to iterate rows.
@@ -291,24 +286,45 @@ plan:
           - point: "$(document).ready() initialization"
             details: "Ensures DOM is ready before timer initialization runs"
             reference: "wiki-timer-script.js"
-
       verification:
         automated_tests:
           command: "echo 'Test with various Last Reviewed dates in Confluence'"
           expected_output: "Countdowns display correctly for all date ranges"
-
       code_quality:
         javascript:
           validation:
             command: "echo 'Verify ES5 compatibility, no arrow functions or const/let'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "implement per-row 90-day countdown timer calculation"
         files:
           - "wiki-timer-script.js"
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: javascript-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":46481,"duration_api_ms":51861,"num_turns":7,"result":"{\"status\":\"success\",\"summary\":\"Implemented per-row 90-day countdown timer calculation in wiki-timer-script.js\",\"output\":\"Created wiki-timer-script.js with:\\n\\n1. CYCLE_MS constant: 7776000000 ms (90 days)\\n\\n2. calculateCountdown(lastReviewTimestamp): Pure function that:\\n   - Takes lastReviewDate timestamp\\n   - Returns {days, hours, expired} object\\n   - Uses Math.floor for day/hour calculation\\n\\n3. formatCountdown(countdown): Formats result as 'X days Y hours' or 'EXPIRED'\\n\\n4. initializeProcessTimers(): \\n   - Uses jQuery .each() to iterate $('tr[data-process-id]')\\n   - Extracts datetime from <time> element's datetime attribute\\n   - Calculates distance = (lastReviewDate + 90 days) - now\\n   - Updates .process-expiry span with countdown or 'EXPIRED'\\n   - Adds 'expired' CSS class for expired state styling\\n\\n5. $(document).ready() initialization ensures DOM is ready\\n\\nVerified HTML structure has:\\n- Rows with data-process-id attribute\\n- <time> elements with datetime attribute in Last Reviewed column\\n- <span class=\\\"process-expiry\\\"> elements in Expires In column\",\"errors\":[],\"files_modified\":[\"projects/maptimize/wiki-timer-script.js\"]}","session_id":"fe5e7e84-80cc-4a9b-831d-e3f51cecf679","total_cost_usd":0.48050905,"usage":{"input_tokens":9,"cache_creation_input_tokens":46905,"cache_read_input_tokens":268614,"output_tokens":1946,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":46905}},"modelUsage":{"claude-opus-4-5-20251101":{"inputTokens":12,"outputTokens":1976,"cacheReadInputTokens":272990,"cacheCreationInputTokens":46905,"webSearchRequests":0,"costUSD":0.47911125,"contextWindow":200000},"claude-haiku-4-5-20251001":{"inputTokens":3,"outputTokens":194,"cacheReadInputTokens":4248,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.0013977999999999998,"contextWindow":200000}},"permission_denials":[],"structured_output":{"status":"success","summary":"Implemented per-row 90-day countdown timer calculation in wiki-timer-script.js","output":"Created wiki-timer-script.js with:\n\n1. CYCLE_MS constant: 7776000000 ms (90 days)\n\n2. calculateCountdown(lastReviewTimestamp): Pure function that:\n   - Takes lastReviewDate timestamp\n   - Returns {days, hours, expired} object\n   - Uses Math.floor for day/hour calculation\n\n3. formatCountdown(countdown): Formats result as 'X days Y hours' or 'EXPIRED'\n\n4. initializeProcessTimers(): \n   - Uses jQuery .each() to iterate $('tr[data-process-id]')\n   - Extracts datetime from <time> element's datetime attribute\n   - Calculates distance = (lastReviewDate + 90 days) - now\n   - Updates .process-expiry span with countdown or 'EXPIRED'\n   - Adds 'expired' CSS class for expired state styling\n\n5. $(document).ready() initialization ensures DOM is ready\n\nVerified HTML structure has:\n- Rows with data-process-id attribute\n- <time> elements with datetime attribute in Last Reviewed column\n- <span class=\"process-expiry\"> elements in Expires In column","errors":[],"files_modified":["projects/maptimize/wiki-timer-script.js"]},"uuid":"db37c29c-2f72-4ab4-aca1-bb18a95753b2"}
+          qc_feedback: |-
+            [code-reviewer] All success criteria verified. The wiki-timer-script.js implementation correctly implements per-row 90-day countdown timer calculation with: initializeProcessTimers() iterating rows via jQuery .each() on $('tr[data-process-id]'); calculateCountdown() pure function returning {days, hours, expired}; CYCLE_MS constant = 7776000000; 'X days Y hours' format display; 'expired' CSS class addition for expired state; $(document).ready() initialization. No TODO comments or placeholder code found. HTML dependency structure verified with data-process-id attributes, time elements with datetime, and process-expiry spans.
+            [javascript-pro] All success criteria verified. The wiki-timer-script.js correctly implements the 90-day countdown timer with: initializeProcessTimers() iterating rows with data-process-id using jQuery .each(); calculateCountdown() pure function computing days/hours remaining; CYCLE_MS constant at 7776000000ms; 'X days Y hours' format for countdowns; 'EXPIRED' text with 'expired' CSS class for expired rows; and $(document).ready() initialization. No TODO comments or placeholder code found. HTML structure verified with required data-process-id attributes, <time> datetime elements, and .process-expiry spans.
+            [frontend-developer] All success criteria verified and passed. The wiki-timer-script.js implementation correctly implements per-row 90-day countdown timer calculation with:
 
+            1. **initializeProcessTimers()** function using jQuery `.each()` to iterate through all `tr[data-process-id]` rows
+            2. **calculateCountdown()** pure function that computes days/hours remaining from Last Reviewed date + 90 days, returning `{days, hours, expired}` object
+            3. **CYCLE_MS** constant correctly set to `90 * 24 * 60 * 60 * 1000` (evaluates to 7776000000 ms)
+            4. **Display format** correctly shows 'X days Y hours' format via `formatCountdown()` function
+            5. **Expired handling** properly adds 'expired' CSS class and displays 'EXPIRED' text
+            6. **$(document).ready()** initialization ensures DOM is ready before timer runs
+            7. **No TODO comments** found in the code
+            8. **No placeholder/unused variables** - all declared variables are used appropriately
+
+            The HTML dependency (wiki-html-table.html) confirms correct structure with data-process-id attributes on rows, &lt;time&gt; elements with datetime attributes, and &lt;span class="process-expiry"&gt; elements.
+            [qa-expert] All success criteria verified. The wiki-timer-script.js implementation is complete and correct: initializeProcessTimers() iterates through rows with data-process-id using jQuery .each(), calculateCountdown() computes days/hours remaining as a pure function, CYCLE_MS is correctly defined as 7776000000 (90 * 24 * 60 * 60 * 1000), countdown displays in 'X days Y hours' format, expired state shows 'EXPIRED' text with 'expired' CSS class, and initialization runs on $(document).ready(). No TODO comments or placeholder code found. The HTML dependency structure is verified with proper data-process-id attributes, time elements with datetime attributes, and process-expiry spans.
+          timestamp: "2025-12-16T12:22:52Z"
+      completed_date: "2025-12-16"
     # ═══════════════════════════════════════════════════════════════
     # TASK 3: JIRA TICKET CREATION WITH ASSIGNMENT + TICKET KEY STORAGE
     # ═══════════════════════════════════════════════════════════════
@@ -319,7 +335,6 @@ plan:
         - "wiki-jira-integration.js"
       depends_on: [1, 2]
       estimated_time: "1h 15m"
-
       success_criteria:
         - "createJiraTicket() accepts processId, ownerUsername, responsibility parameters and returns ticket key via callback."
         - "JIRA payload includes assignee field with {name: ownerUsername} structure."
@@ -335,12 +350,10 @@ plan:
         - "Description includes owner name, responsibility, and wiki page link."
         - "No TODO comments in production code paths."
         - "No placeholder empty objects or unused variables."
-
       test_commands:
         - "echo 'Manual: Trigger expired state, verify JIRA ticket created with correct assignee'"
         - "echo 'Manual: Verify maptimize_ticket_* label contains correct ticket key'"
         - "echo 'Manual: Reload page, verify no duplicate ticket created'"
-
       description: |
         ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
         Verify Task 1 and Task 2 components:
@@ -362,7 +375,6 @@ plan:
         API Endpoint: https://wiki.corp.adobe.com/rest/jira-integration/1.0/issues?applicationId=5affdfe8-ed2e-3a17-8442-0790430373f0
 
         Response contains: {"issues": [{"key": "CPGNCX-63500", ...}]}
-
       implementation:
         approach: |
           Extend Aneet's submitform() pattern with:
@@ -405,24 +417,34 @@ plan:
           - point: "Summary and description format"
             details: "Summary: 'Review Process: [Responsibility] - [Title]', Description includes all context"
             reference: "wiki-jira-integration.js"
-
       verification:
         automated_tests:
           command: "echo 'Verify ticket creation, key extraction, and label storage in Confluence'"
           expected_output: "Ticket created, key stored in label, retrievable for display"
-
       code_quality:
         javascript:
           validation:
             command: "echo 'Verify ES5 compatibility and error handling'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "implement JIRA ticket creation with assignee and ticket key label storage"
         files:
           - "wiki-jira-integration.js"
-
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: javascript-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":79601,"duration_api_ms":84234,"num_turns":5,"result":"{\"status\":\"success\",\"summary\":\"Implemented JIRA ticket creation with assignee, duplicate prevention via Confluence labels, and ticket key storage\",\"output\":\"Created wiki-jira-integration.js with the following key functions:\\n\\n1. hasProcessLabel(ownerUsername) - Checks for 'maptimize_expired_[username]' label to prevent duplicates\\n2. addProcessLabel(ownerUsername, callback) - Adds expired marker label via AJS.Labels.addLabel()\\n3. storeTicketKeyLabel(ownerUsername, ticketKey, callback) - Stores 'maptimize_ticket_[username]_[CPGNCX-XXXXX]' label\\n4. getTicketKeyFromLabel(ownerUsername) - Parses labels to extract ticket key for display/status check\\n5. removeProcessLabels(ownerUsername, callback) - Removes both expired and ticket labels (for reset)\\n6. createJiraTicket(processId, ownerUsername, responsibility, onSuccess, onError) - Creates JIRA ticket with:\\n   - Assignee field: {assignee: {name: ownerUsername}}\\n   - Project: CPGNCX, Issue type: Request\\n   - Summary: 'Review Process: [Responsibility] - [Page Title]'\\n   - Description: Full context with owner, responsibility, process ID, page URL\\n   - XHR onload parses response.issues[0].key for ticket key\\n   - XHR onerror logs errors without adding labels on failure\\n7. processExpiredRows() - Iterates expired rows, creates tickets, updates display with ticket links\\n\\nIntegration points verified:\\n- Uses data-process-id, data-owner-username, data-responsibility from Task 1 HTML\\n- Checks .expired class on .process-expiry spans from Task 2 timer logic\\n- Exports all functions via window.MaptimizeJira for external use\",\"errors\":[],\"files_modified\":[\"wiki-jira-integration.js\"],\"metadata\":{\"commit_type\":\"feat\",\"commit_message\":\"implement JIRA ticket creation with assignee and ticket key label storage\"}}","session_id":"594e4bae-eccb-4eea-90aa-8b493cc82e7d","total_cost_usd":0.27628055,"usage":{"input_tokens":6,"cache_creation_input_tokens":11265,"cache_read_input_tokens":180275,"output_tokens":4456,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":11265}},"modelUsage":{"claude-opus-4-5-20251101":{"inputTokens":9,"outputTokens":4482,"cacheReadInputTokens":184661,"cacheCreationInputTokens":11265,"webSearchRequests":0,"costUSD":0.27483175000000004,"contextWindow":200000},"claude-haiku-4-5-20251001":{"inputTokens":3,"outputTokens":204,"cacheReadInputTokens":4258,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.0014488,"contextWindow":200000}},"permission_denials":[],"structured_output":{"status":"success","summary":"Implemented JIRA ticket creation with assignee, duplicate prevention via Confluence labels, and ticket key storage","output":"Created wiki-jira-integration.js with the following key functions:\n\n1. hasProcessLabel(ownerUsername) - Checks for 'maptimize_expired_[username]' label to prevent duplicates\n2. addProcessLabel(ownerUsername, callback) - Adds expired marker label via AJS.Labels.addLabel()\n3. storeTicketKeyLabel(ownerUsername, ticketKey, callback) - Stores 'maptimize_ticket_[username]_[CPGNCX-XXXXX]' label\n4. getTicketKeyFromLabel(ownerUsername) - Parses labels to extract ticket key for display/status check\n5. removeProcessLabels(ownerUsername, callback) - Removes both expired and ticket labels (for reset)\n6. createJiraTicket(processId, ownerUsername, responsibility, onSuccess, onError) - Creates JIRA ticket with:\n   - Assignee field: {assignee: {name: ownerUsername}}\n   - Project: CPGNCX, Issue type: Request\n   - Summary: 'Review Process: [Responsibility] - [Page Title]'\n   - Description: Full context with owner, responsibility, process ID, page URL\n   - XHR onload parses response.issues[0].key for ticket key\n   - XHR onerror logs errors without adding labels on failure\n7. processExpiredRows() - Iterates expired rows, creates tickets, updates display with ticket links\n\nIntegration points verified:\n- Uses data-process-id, data-owner-username, data-responsibility from Task 1 HTML\n- Checks .expired class on .process-expiry spans from Task 2 timer logic\n- Exports all functions via window.MaptimizeJira for external use","errors":[],"files_modified":["wiki-jira-integration.js"],"metadata":{"commit_type":"feat","commit_message":"implement JIRA ticket creation with assignee and ticket key label storage"}},"uuid":"023549dc-9bde-44c4-9fc0-7dd4f364faa4"}
+          qc_feedback: |-
+            [code-reviewer] The wiki-jira-integration.js implementation successfully meets all 14 success criteria. The file exists at the expected path and implements complete JIRA ticket creation functionality with: proper function signatures accepting processId, ownerUsername, and responsibility parameters with callbacks (criterion 0); JIRA payload with assignee field {name: ownerUsername} (criterion 1); CPGNCX project key and Request issue type (criterion 2); hasProcessLabel() checking for 'maptimize_expired_[username]' labels (criterion 3); addProcessLabel() adding expired labels via AJS.Labels.addLabel (criterion 4); storeTicketKeyLabel() storing ticket keys in 'maptimize_ticket_[username]_[key]' format (criterion 5); getTicketKeyFromLabel() extracting ticket keys for display (criterion 6); duplicate prevention by checking hasProcessLabel() before creation (criterion 7); XHR onload parsing response.issues[0].key for ticket extraction (criterion 8); XHR onerror handler with console.error logging (criterion 9); summary format 'Review Process: [Responsibility] - [Page Title]' (criterion 10); description including owner name, responsibility, process ID, and wiki page link (criterion 11); no TODO comments found (criterion 12); and no placeholder empty objects or unused variables (criterion 13). Integration with Task 1 HTML data attributes and Task 2 expired class detection is properly implemented.
+            [javascript-pro] All 14 success criteria have been verified and passed. The wiki-jira-integration.js file correctly implements JIRA ticket creation with assignee assignment, duplicate prevention via Confluence labels, and ticket key storage. The implementation properly integrates with Task 1's HTML data attributes (data-process-id, data-owner-username, data-responsibility) and Task 2's timer logic (.expired class on .process-expiry spans).
+            [backend-security-coder] All 14 success criteria have been verified and passed. The wiki-jira-integration.js file exists at the exact required path and implements all required functionality correctly. The implementation includes: createJiraTicket() accepting processId, ownerUsername, responsibility parameters with callback for ticket key; JIRA payload with assignee field {name: ownerUsername}; project key CPGNCX and issuetype Request; hasProcessLabel() checking for 'maptimize_expired_[username]' labels; addProcessLabel() and storeTicketKeyLabel() for label management; getTicketKeyFromLabel() for ticket key retrieval; duplicate prevention via hasProcessLabel() check before ticket creation; XHR onload parsing response.issues[0].key; XHR onerror handler with console logging; correct summary and description formats. No TODO comments or placeholder empty objects were found in production code paths.
+            [api-designer] All 14 success criteria have been verified and passed. The wiki-jira-integration.js file has been created at the exact required path and implements all required functionality for JIRA ticket creation with assignee, duplicate prevention via Confluence labels, and ticket key storage. The implementation properly integrates with Task 1's HTML data attributes (data-process-id, data-owner-username, data-responsibility) and Task 2's timer logic (.expired class on .process-expiry spans).
+          timestamp: "2025-12-16T12:25:20Z"
+      completed_date: "2025-12-16"
     # ═══════════════════════════════════════════════════════════════
     # TASK 4: EXPIRED STATE DISPLAY WITH TICKET LINK
     # ═══════════════════════════════════════════════════════════════
@@ -434,7 +456,6 @@ plan:
         - "wiki-expired-styles.css"
       depends_on: [1, 2, 3]
       estimated_time: "45m"
-
       success_criteria:
         - "renderExpiredState() displays 'EXPIRED - CPGNCX-XXXXX - [RESET]' format in expiry cell."
         - "JIRA ticket key is rendered as clickable <a> link to JIRA ticket URL."
@@ -446,12 +467,10 @@ plan:
         - "CSS styles .jira-link with link appearance (underline, color)."
         - "No TODO comments in production code paths."
         - "No placeholder empty elements."
-
       test_commands:
         - "echo 'Manual: Verify expired row displays ticket link and reset button'"
         - "echo 'Manual: Click JIRA link, verify opens correct ticket'"
         - "echo 'Manual: Verify reset button is visible and clickable'"
-
       description: |
         ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
         Verify Task 3 components:
@@ -468,7 +487,6 @@ plan:
 
         The ticket key comes from the label stored in Task 3.
         The reset button click handler will be implemented in Task 5.
-
       implementation:
         approach: |
           Create renderExpiredState() function that builds the expired display HTML.
@@ -501,25 +519,35 @@ plan:
           - point: "CSS .jira-link class"
             details: "Text-decoration underline, color blue for link appearance"
             reference: "wiki-expired-styles.css"
-
       verification:
         automated_tests:
           command: "echo 'Verify expired display renders correctly with link and button'"
           expected_output: "Expired state shows ticket link and reset button with correct styling"
-
       code_quality:
         css:
           validation:
             command: "echo 'Verify CSS is valid and scoped appropriately'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "implement expired state display with JIRA link and reset button"
         files:
           - "wiki-expired-display.js"
           - "wiki-expired-styles.css"
-
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: frontend-developer
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":55502,"duration_api_ms":63351,"num_turns":8,"result":"{\"status\":\"success\",\"summary\":\"Implemented expired state display with JIRA ticket link and reset button\",\"output\":\"Created wiki-expired-display.js with:\\n- renderExpiredState() function: Builds HTML with expired text (red stop sign emoji), JIRA link, and reset button\\n- JIRA ticket link as <a> element: href='https://jira.corp.adobe.com/browse/[KEY]' with target='_blank' and class='jira-link'\\n- Reset button as <button> element: class='reset-timer-btn' with data-process-id and data-owner-username for row identification\\n- updateExpiredDisplay() function: Updates a single row's expiry span with expired state HTML\\n- updateAllExpiredDisplays() function: Iterates all expired rows and updates their displays\\n- Integration with Task 3: Uses window.MaptimizeJira.getTicketKeyFromLabel() to retrieve stored ticket key\\n- ES5 syntax for Confluence compatibility (var instead of const/let, function() instead of arrow functions)\\n- Exported as window.MaptimizeExpiredDisplay for external use\\n\\nCreated wiki-expired-styles.css with:\\n- .expired class: Red color (#cc0000), bold font-weight for expired text\\n- .jira-link class: Blue color (#0052cc), text-decoration underline, hover and visited states\\n- .reset-timer-btn class: Padding (4px 12px), border, border-radius, background (#f4f5f7), cursor:pointer with hover/active/focus/disabled states\\n- .expired-container class: Flexbox layout for proper alignment of expired elements\\n\\nDisplay format: [stopwatch] EXPIRED  CPGNCX-63500  [ RESET ]\",\"errors\":[],\"files_modified\":[\"wiki-expired-display.js\",\"wiki-expired-styles.css\"],\"metadata\":{\"task_number\":4,\"dependencies_verified\":[\"wiki-html-table.html\",\"wiki-timer-script.js\",\"wiki-jira-integration.js\"],\"integration_points\":{\"jira_integration\":\"getTicketKeyFromLabel() from window.MaptimizeJira\",\"timer_script\":\"expired class detection\",\"html_table\":\"data-process-id and data-owner-username attributes\"},\"commit_type\":\"feat\",\"commit_message\":\"implement expired state display with JIRA link and reset button\"}}","session_id":"44458983-1aca-4747-8a14-74eb703a9f75","total_cost_usd":0.29472405,"usage":{"input_tokens":7,"cache_creation_input_tokens":13797,"cache_read_input_tokens":238228,"output_tokens":3333,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":13797}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":334,"outputTokens":197,"cacheReadInputTokens":4243,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.0017433000000000001,"contextWindow":200000},"claude-opus-4-5-20251101":{"inputTokens":10,"outputTokens":3416,"cacheReadInputTokens":242599,"cacheCreationInputTokens":13797,"webSearchRequests":0,"costUSD":0.29298075,"contextWindow":200000}},"permission_denials":[],"structured_output":{"status":"success","summary":"Implemented expired state display with JIRA ticket link and reset button","output":"Created wiki-expired-display.js with:\n- renderExpiredState() function: Builds HTML with expired text (red stop sign emoji), JIRA link, and reset button\n- JIRA ticket link as <a> element: href='https://jira.corp.adobe.com/browse/[KEY]' with target='_blank' and class='jira-link'\n- Reset button as <button> element: class='reset-timer-btn' with data-process-id and data-owner-username for row identification\n- updateExpiredDisplay() function: Updates a single row's expiry span with expired state HTML\n- updateAllExpiredDisplays() function: Iterates all expired rows and updates their displays\n- Integration with Task 3: Uses window.MaptimizeJira.getTicketKeyFromLabel() to retrieve stored ticket key\n- ES5 syntax for Confluence compatibility (var instead of const/let, function() instead of arrow functions)\n- Exported as window.MaptimizeExpiredDisplay for external use\n\nCreated wiki-expired-styles.css with:\n- .expired class: Red color (#cc0000), bold font-weight for expired text\n- .jira-link class: Blue color (#0052cc), text-decoration underline, hover and visited states\n- .reset-timer-btn class: Padding (4px 12px), border, border-radius, background (#f4f5f7), cursor:pointer with hover/active/focus/disabled states\n- .expired-container class: Flexbox layout for proper alignment of expired elements\n\nDisplay format: [stopwatch] EXPIRED  CPGNCX-63500  [ RESET ]","errors":[],"files_modified":["wiki-expired-display.js","wiki-expired-styles.css"],"metadata":{"task_number":4,"dependencies_verified":["wiki-html-table.html","wiki-timer-script.js","wiki-jira-integration.js"],"integration_points":{"jira_integration":"getTicketKeyFromLabel() from window.MaptimizeJira","timer_script":"expired class detection","html_table":"data-process-id and data-owner-username attributes"},"commit_type":"feat","commit_message":"implement expired state display with JIRA link and reset button"}},"uuid":"1ccccdd2-9d79-45ea-b4ff-5480d97f82e6"}
+          qc_feedback: |-
+            [code-reviewer] All success criteria verified and passed. The implementation correctly creates wiki-expired-display.js and wiki-expired-styles.css at the exact required paths. The renderExpiredState() function properly builds HTML with expired text, JIRA link (using https://jira.corp.adobe.com/browse/[KEY] format with target='_blank' and class='jira-link'), and reset button (with class='reset-timer-btn' and data-process-id attribute). CSS styling correctly implements .expired class with red color (#cc0000) and bold font-weight, .jira-link with blue color and underline, and .reset-timer-btn with padding, border, border-radius, background, and cursor:pointer. No TODO comments or placeholder elements found in production code.
+            [javascript-pro] All success criteria verified and passed. The implementation correctly creates wiki-expired-display.js with renderExpiredState() function that builds HTML with expired text, JIRA link, and reset button. The JIRA link uses the correct URL format 'https://jira.corp.adobe.com/browse/[KEY]' with target='_blank'. The reset button is implemented as a button element with class 'reset-timer-btn' and includes data-process-id attribute for row identification. CSS styles in wiki-expired-styles.css properly define .expired class with red color (#cc0000) and bold font-weight, .jira-link with blue color (#0052cc) and underline, and .reset-timer-btn with padding (4px 12px), border, border-radius, background-color, and cursor:pointer. Integration with Task 3 is correct, using window.MaptimizeJira.getTicketKeyFromLabel() to retrieve stored ticket keys. No TODO comments or placeholder empty elements found in production code.
+            [frontend-developer] All success criteria passed. The implementation correctly creates wiki-expired-display.js with renderExpiredState() function that builds HTML with 'EXPIRED' text, JIRA ticket link, and reset button. The JIRA link uses the correct URL format (https://jira.corp.adobe.com/browse/[KEY]) with target='_blank' and class='jira-link'. The reset button is rendered as a <button> element with class='reset-timer-btn' and data-process-id attribute. CSS styles in wiki-expired-styles.css properly define .expired class with red color (#cc0000) and bold font-weight, .jira-link with blue color and underline, and .reset-timer-btn with proper button styling (padding, border, cursor:pointer). No TODO comments or placeholder empty elements found.
+            [accessibility-tester] All success criteria verified. The implementation creates both required files (wiki-expired-display.js and wiki-expired-styles.css) with complete functionality: renderExpiredState() function generates HTML with EXPIRED text, JIRA link (with correct URL format https://jira.corp.adobe.com/browse/[KEY]), and reset button. CSS styles properly define .expired (red #cc0000, bold), .jira-link (blue with underline), and .reset-timer-btn (padding, border, cursor:pointer) classes. No TODO comments or placeholder elements found.
+          timestamp: "2025-12-16T12:27:24Z"
+      completed_date: "2025-12-16"
     # ═══════════════════════════════════════════════════════════════
     # TASK 5: RESET FUNCTIONALITY WITH JIRA STATUS CHECK
     # ═══════════════════════════════════════════════════════════════
@@ -530,7 +558,6 @@ plan:
         - "wiki-reset-handler.js"
       depends_on: [1, 2, 3, 4]
       estimated_time: "1h 30m"
-
       success_criteria:
         - "handleResetClick() is bound to click event on .reset-timer-btn buttons."
         - "checkJiraStatusCategory() fetches ticket status via Confluence JIRA integration API."
@@ -546,13 +573,11 @@ plan:
         - "Page refreshes or re-initializes timers after successful reset."
         - "No TODO comments in production code paths."
         - "No placeholder empty objects or unused variables."
-
       test_commands:
         - "echo 'Manual: Click reset on ticket with status In Progress, verify error modal'"
         - "echo 'Manual: Click reset on ticket with status Closed, verify success and date update'"
         - "echo 'Manual: Verify labels removed after successful reset'"
         - "echo 'Manual: Verify countdown restarts after reset'"
-
       description: |
         ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
         Verify Tasks 1-4 components:
@@ -577,7 +602,6 @@ plan:
 
         API to update page content:
         PUT https://wiki.corp.adobe.com/rest/api/content/[PAGE_ID]
-
       implementation:
         approach: |
           Bind click handler to reset buttons using jQuery event delegation.
@@ -624,24 +648,33 @@ plan:
           - point: "Page refresh after reset"
             details: "Either location.reload() or re-call initializeProcessTimers() to update display"
             reference: "wiki-reset-handler.js"
-
       verification:
         automated_tests:
           command: "echo 'Test reset flow with various JIRA statuses'"
           expected_output: "Reset blocked for non-done, succeeds for done statuses"
-
       code_quality:
         javascript:
           validation:
             command: "echo 'Verify ES5 compatibility, error handling, and API calls'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "implement reset button with JIRA status category check and page update"
         files:
           - "wiki-reset-handler.js"
-
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          agent: javascript-pro
+          verdict: GREEN
+          agent_output: |
+            {"type":"result","subtype":"success","is_error":false,"duration_ms":98394,"duration_api_ms":103500,"num_turns":8,"result":"{\"status\":\"success\",\"summary\":\"Implemented reset button handler with JIRA status category check and Confluence page update functionality\",\"output\":\"Created wiki-reset-handler.js with the following functionality:\\n\\n1. **handleResetClick()** - Click event handler bound to .reset-timer-btn via jQuery event delegation $(document).on('click', '.reset-timer-btn', ...)\\n\\n2. **checkJiraStatusCategory()** - API call to GET /rest/jira-integration/1.0/issues/[KEY] that retrieves ticket with statusCategory\\n\\n3. **Status category check** - Only allows reset when statusCategory.key === 'done', not specific status names. Blocks reset for 'indeterminate' (In Progress, On Hold) and 'new' (Not Started, Open) categories\\n\\n4. **showModal()** - Displays AUI dialog2 modal for both error and success states:\\n   - Error: '[TICKET_KEY] must be completed. Current status: [STATUS_NAME]'\\n   - Success: 'Last Reviewed: [DATE], Next due: [DATE+90]'\\n\\n5. **updateLastReviewedDate()** - Gets page content via Confluence REST API, parses HTML, finds <time> element for the process owner row, updates datetime attribute to today's ISO date (YYYY-MM-DD), PUTs updated content back with incremented version\\n\\n6. **Label cleanup** - Calls removeProcessLabels() from wiki-jira-integration.js to remove maptimize_expired_[username] and maptimize_ticket_[username]_* labels\\n\\n7. **Page refresh** - Uses location.reload() after 2-second delay to allow modal to be seen\\n\\nIntegration points:\\n- Uses window.MaptimizeJira.getTicketKeyFromLabel() from wiki-jira-integration.js\\n- Uses window.MaptimizeJira.removeProcessLabels() from wiki-jira-integration.js\\n- Reset button rendered by wiki-expired-display.js with data-process-id and data-owner-username attributes\\n- ES5 syntax for Confluence compatibility\",\"errors\":[],\"files_modified\":[\"/Users/harrison/Documents/Github/camp-ops-emea-maptimize-timer/projects/maptimize/wiki-reset-handler.js\"]}","session_id":"15ab3cf7-15da-4e3a-aa4f-e76cf01273f9","total_cost_usd":0.36160254999999997,"usage":{"input_tokens":6,"cache_creation_input_tokens":18825,"cache_read_input_tokens":194513,"output_tokens":5702,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":18825}},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":3,"outputTokens":154,"cacheReadInputTokens":4263,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.0011993000000000001,"contextWindow":200000},"claude-opus-4-5-20251101":{"inputTokens":9,"outputTokens":5730,"cacheReadInputTokens":198904,"cacheCreationInputTokens":18825,"webSearchRequests":0,"costUSD":0.36040324999999995,"contextWindow":200000}},"permission_denials":[],"structured_output":{"status":"success","summary":"Implemented reset button handler with JIRA status category check and Confluence page update functionality","output":"Created wiki-reset-handler.js with the following functionality:\n\n1. **handleResetClick()** - Click event handler bound to .reset-timer-btn via jQuery event delegation $(document).on('click', '.reset-timer-btn', ...)\n\n2. **checkJiraStatusCategory()** - API call to GET /rest/jira-integration/1.0/issues/[KEY] that retrieves ticket with statusCategory\n\n3. **Status category check** - Only allows reset when statusCategory.key === 'done', not specific status names. Blocks reset for 'indeterminate' (In Progress, On Hold) and 'new' (Not Started, Open) categories\n\n4. **showModal()** - Displays AUI dialog2 modal for both error and success states:\n   - Error: '[TICKET_KEY] must be completed. Current status: [STATUS_NAME]'\n   - Success: 'Last Reviewed: [DATE], Next due: [DATE+90]'\n\n5. **updateLastReviewedDate()** - Gets page content via Confluence REST API, parses HTML, finds <time> element for the process owner row, updates datetime attribute to today's ISO date (YYYY-MM-DD), PUTs updated content back with incremented version\n\n6. **Label cleanup** - Calls removeProcessLabels() from wiki-jira-integration.js to remove maptimize_expired_[username] and maptimize_ticket_[username]_* labels\n\n7. **Page refresh** - Uses location.reload() after 2-second delay to allow modal to be seen\n\nIntegration points:\n- Uses window.MaptimizeJira.getTicketKeyFromLabel() from wiki-jira-integration.js\n- Uses window.MaptimizeJira.removeProcessLabels() from wiki-jira-integration.js\n- Reset button rendered by wiki-expired-display.js with data-process-id and data-owner-username attributes\n- ES5 syntax for Confluence compatibility","errors":[],"files_modified":["/Users/harrison/Documents/Github/camp-ops-emea-maptimize-timer/projects/maptimize/wiki-reset-handler.js"]},"uuid":"43cddd96-5e64-4469-a8cc-fe4347a87c2d"}
+          qc_feedback: |-
+            [javascript-pro] All 5 criteria PASS. ES5 compatible (var, function(), string concatenation), proper XHR error handling with status validation and try-catch, jQuery event delegation via $(document).on('click', '.reset-timer-btn', handleResetClick), correct statusCategory.key === 'done' check at line 269 with fallback to 'unknown', all 7 functions exported via window.MaptimizeReset. Overall verdict: GREEN.
+            [frontend-developer] All 5 areas PASS. DOM manipulation correctly updates <time> datetime attribute via jQuery .attr() and .text() (lines 150-153). jQuery selectors properly scoped with event delegation. AUI dialog2 modal implementation complete with ARIA attributes, close handlers, and alert() fallback. Confluence REST API workflow correct: GET with expand=body.storage,version, then PUT with version increment (currentVersion + 1). MaptimizeJira integration uses defensive checks for getTicketKeyFromLabel() and removeProcessLabels() with graceful degradation. Overall verdict: GREEN.
+            [architect-review] All 14 success criteria PASS with line number evidence. handleResetClick() bound via event delegation (line 324). checkJiraStatusCategory() fetches via JIRA integration API (line 48) and extracts statusCategory.key (line 58). Reset blocked when status !== 'done' (line 269). Error modal includes ticket key and status name (lines 272-276). updateLastReviewedDate() calls Confluence REST API with GET then PUT and version increment (lines 127-227). Updates <time> datetime to current date (line 152). removeProcessLabels() called via MaptimizeJira (lines 284-287). Success modal shows Last Reviewed and next due date (lines 289-294). Page refreshes via location.reload() with 2-second delay (lines 297-299). No TODO comments or placeholder code found. Overall verdict: GREEN.
+          timestamp: "2025-12-16T12:29:41Z"
+      completed_date: "2025-12-16"
     # ═══════════════════════════════════════════════════════════════
     # TASK 6: FINAL INTEGRATION - COMPLETE WIKI HTML BLOCK
     # ═══════════════════════════════════════════════════════════════
@@ -653,7 +686,6 @@ plan:
         - "wiki-complete-html-block.html"
       depends_on: [1, 2, 3, 4, 5]
       estimated_time: "1h"
-
       success_criteria:
         - "HTML macro contains complete table structure from Task 1."
         - "Script tag contains timer logic from Task 2."
@@ -666,7 +698,6 @@ plan:
         - "No TODO comments in production code paths."
         - "No placeholder empty elements."
         - "All functions integrate correctly without conflicts."
-
       integration_criteria:
         - "initializeProcessTimers() calls renderExpiredState() for expired rows with ticket key."
         - "createJiraTicket() onSuccess callback triggers storeTicketKeyLabel() then renderExpiredState()."
@@ -676,14 +707,12 @@ plan:
         - "Page load triggers complete flow: timer check → expiry detection → label check → display state."
         - "Multiple process owners can have independent states (countdown, expired, reset pending)."
         - "Full flow works: countdown → expire → ticket created → display link+reset → reset when done."
-
       test_commands:
         - "echo 'Manual: Full integration test in Confluence with all process owners'"
         - "echo 'Manual: Test complete lifecycle: countdown → expire → ticket → reset'"
         - "echo 'Manual: Verify independent states for different process owners'"
         - "echo 'Manual: Test reset blocked when ticket not done'"
         - "echo 'Manual: Test reset succeeds when ticket is done'"
-
       description: |
         ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
         Verify all components from Tasks 1-5 are complete:
@@ -705,7 +734,6 @@ plan:
         5. $(document).ready() initialization
 
         This replaces the existing Process Owners section on the Maptimize wiki page.
-
       implementation:
         approach: |
           Combine all components into a single Confluence HTML macro structure.
@@ -742,36 +770,31 @@ plan:
         integration:
           imports: ["Task 1 HTML", "Task 2 JS", "Task 3 JS", "Task 4 JS/CSS", "Task 5 JS"]
           config_values: ["CYCLE_MS", "JIRA_PROJECT_KEY", "JIRA_APPLICATION_ID", "CONFLUENCE_PAGE_ID"]
-
       verification:
         automated_tests:
           command: "echo 'Full end-to-end test in Confluence preview and publish modes'"
           expected_output: "Complete functionality works including reset flow"
-
       code_quality:
         html:
           validation:
             command: "echo 'Validate complete HTML macro structure'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "integrate complete Maptimize review timer with reset functionality"
         files:
           - "wiki-complete-html-block.html"
-
     # ═══════════════════════════════════════════════════════════════
     # TASK 7: AUTOMATED DEPLOYMENT VIA MCP-EXEC
     # ═══════════════════════════════════════════════════════════════
     - task_number: "7"
       name: "Deploy to Confluence wiki via mcp-exec"
       agent: "typescript-pro"
-      type: deployment
+      type: integration
       files:
         - "deploy-to-wiki.ts"
       depends_on: [6]
       estimated_time: "30m"
-
       success_criteria:
         - "Script reads wiki-complete-html-block.html from Task 6 output."
         - "Script fetches current wiki page content via adobe_wiki.get_wiki_content()."
@@ -781,12 +804,10 @@ plan:
         - "Script logs success/failure with page URL."
         - "Rollback instructions included in script comments."
         - "No TODO comments in production code paths."
-
       test_commands:
         - "echo 'Dry run: Read current page, show diff of what would change'"
         - "echo 'Manual: Verify page updated correctly in Confluence'"
         - "echo 'Manual: Verify timer functionality works after deployment'"
-
       description: |
         ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
         Verify Task 6 output exists:
@@ -825,7 +846,6 @@ plan:
           minor_edit: false
         });
         ```
-
       implementation:
         approach: |
           Write TypeScript that:
@@ -857,7 +877,6 @@ plan:
           - point: "Rollback instructions in comments"
             details: "Include command to restore from backup file or Confluence version history"
             reference: "deploy-to-wiki.ts"
-
       mcp_exec:
         wrappers: ["adobe-wiki"]
         execution_pattern: |
@@ -866,24 +885,20 @@ plan:
           //   code: <this script>,
           //   wrappers: ["adobe-wiki"]
           // })
-
       verification:
         automated_tests:
           command: "echo 'Verify page content updated correctly'"
           expected_output: "Wiki page displays new timer functionality"
-
       code_quality:
         typescript:
           validation:
             command: "echo 'Verify TypeScript compiles and mcp-exec pattern correct'"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "deploy review timer to Confluence wiki via mcp-exec"
         files:
           - "deploy-to-wiki.ts"
-
   deliverables:
     - name: "Complete Confluence HTML Macro"
       description: "Single HTML block containing timer + JIRA integration"
@@ -894,7 +909,6 @@ plan:
     - name: "Implementation Documentation"
       description: "README explaining how to deploy, use, and maintain the timer"
       file: "README.md"
-
   deployment:
     method: "Automated via mcp-exec (Task 7)"
     backup:
