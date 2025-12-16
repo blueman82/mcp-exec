@@ -758,6 +758,130 @@ plan:
         files:
           - "wiki-complete-html-block.html"
 
+    # ═══════════════════════════════════════════════════════════════
+    # TASK 7: AUTOMATED DEPLOYMENT VIA MCP-EXEC
+    # ═══════════════════════════════════════════════════════════════
+    - task_number: "7"
+      name: "Deploy to Confluence wiki via mcp-exec"
+      agent: "typescript-pro"
+      type: deployment
+      files:
+        - "deploy-to-wiki.ts"
+      depends_on: [6]
+      estimated_time: "30m"
+
+      success_criteria:
+        - "Script reads wiki-complete-html-block.html from Task 6 output."
+        - "Script fetches current wiki page content via adobe_wiki.get_wiki_content()."
+        - "Script replaces Process Owners section (h1 + table) with new HTML macro."
+        - "Script preserves all other page content (MIRO embed, Process Steps, etc.)."
+        - "Script calls adobe_wiki.update_wiki_content() with content_type 'storage'."
+        - "Script logs success/failure with page URL."
+        - "Rollback instructions included in script comments."
+        - "No TODO comments in production code paths."
+
+      test_commands:
+        - "echo 'Dry run: Read current page, show diff of what would change'"
+        - "echo 'Manual: Verify page updated correctly in Confluence'"
+        - "echo 'Manual: Verify timer functionality works after deployment'"
+
+      description: |
+        ## PHASE 0: DEPENDENCY VERIFICATION (EXECUTE FIRST)
+        Verify Task 6 output exists:
+        - wiki-complete-html-block.html contains complete HTML macro
+
+        ## TASK DESCRIPTION
+        Deploy the integrated HTML macro to the Confluence wiki page using mcp-exec.
+
+        This task uses the adobe-wiki MCP server via mcp-exec typed wrappers.
+        Reference: https://www.anthropic.com/engineering/code-execution-with-mcp
+
+        The deployment script must:
+        1. Read the generated HTML macro from Task 6
+        2. Fetch current wiki page content (preserve MIRO embed, Process Steps)
+        3. Replace ONLY the Process Owners section with new content
+        4. Update the wiki page via MCP
+
+        IMPORTANT: The wrapper name is adobe_wiki (underscores), NOT adobeWiki (camelCase).
+
+        ## EXISTING PAGE STRUCTURE TO PRESERVE
+        ```
+        - MIRO link + iframe embed (ac:structured-macro ac:name="html")
+        - <h1>Process Steps</h1> + <ol> list
+        - <h1>Process owners</h1> ← REPLACE FROM HERE
+        - <p>TO DO: validate...</p> ← REMOVE THIS
+        - <table class="wrapped">...</table> ← REPLACE WITH NEW HTML MACRO
+        ```
+
+        ## MCP-EXEC USAGE PATTERN
+        ```typescript
+        // Use mcp-exec with adobe-wiki wrapper
+        const result = await adobe_wiki.update_wiki_content({
+          url: "https://wiki.corp.adobe.com/display/neolane/Maptimize+Service+Review+Process",
+          content: fullPageContent,  // Entire page, not just the new section
+          content_type: "storage",
+          minor_edit: false
+        });
+        ```
+
+      implementation:
+        approach: |
+          Write TypeScript that:
+          1. Reads wiki-complete-html-block.html from filesystem
+          2. Calls adobe_wiki.get_wiki_content() to get current page
+          3. Parses HTML to find Process Owners section boundary
+          4. Replaces that section with new HTML macro content
+          5. Calls adobe_wiki.update_wiki_content() with merged content
+          6. Logs result and provides rollback command
+        key_points:
+          - point: "Read Task 6 output file"
+            details: "Use fs.readFileSync() to load wiki-complete-html-block.html"
+            reference: "deploy-to-wiki.ts"
+          - point: "Fetch current page via MCP"
+            details: "adobe_wiki.get_wiki_content({ url: '...', preserve_macros: true })"
+            reference: "deploy-to-wiki.ts"
+          - point: "Parse and replace Process Owners section"
+            details: "Find <h1>Process owners</h1> and replace through end of <table>"
+            reference: "deploy-to-wiki.ts"
+          - point: "Preserve existing content"
+            details: "Keep MIRO embed and Process Steps sections unchanged"
+            reference: "deploy-to-wiki.ts"
+          - point: "Update via MCP with storage format"
+            details: "adobe_wiki.update_wiki_content({ content_type: 'storage' })"
+            reference: "deploy-to-wiki.ts"
+          - point: "Wrapper name is adobe_wiki"
+            details: "MCP-exec uses underscores, not camelCase (adobe_wiki not adobeWiki)"
+            reference: "deploy-to-wiki.ts"
+          - point: "Rollback instructions in comments"
+            details: "Include command to restore from backup file or Confluence version history"
+            reference: "deploy-to-wiki.ts"
+
+      mcp_exec:
+        wrappers: ["adobe-wiki"]
+        execution_pattern: |
+          // This script will be executed via mcp-exec
+          // mcp__mcp-exec__execute_code_with_wrappers({
+          //   code: <this script>,
+          //   wrappers: ["adobe-wiki"]
+          // })
+
+      verification:
+        automated_tests:
+          command: "echo 'Verify page content updated correctly'"
+          expected_output: "Wiki page displays new timer functionality"
+
+      code_quality:
+        typescript:
+          validation:
+            command: "echo 'Verify TypeScript compiles and mcp-exec pattern correct'"
+            exit_on_failure: false
+
+      commit:
+        type: "feat"
+        message: "deploy review timer to Confluence wiki via mcp-exec"
+        files:
+          - "deploy-to-wiki.ts"
+
   deliverables:
     - name: "Complete Confluence HTML Macro"
       description: "Single HTML block to paste into wiki page editor"
