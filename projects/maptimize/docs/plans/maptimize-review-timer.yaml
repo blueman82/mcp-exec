@@ -9,13 +9,15 @@
 #   Task 4 → Integrated HTML macro with all components
 #   Task 5 → handleResetClick(), checkJiraStatusCategory(),
 #            updateLastReviewedDate(), showModal()
+#   Task 6 → wiki-complete-html-block.html (complete HTML macro)
+#   Task 7 → deploy-to-wiki.ts (automated deployment script)
 # CONSUMERS:
 #   Task 2 → [1] (needs HTML structure)
 #   Task 3 → [1, 2] (needs HTML + timer logic)
 #   Task 4 → [1, 2, 3] (integration of timer + JIRA)
 #   Task 5 → [1, 2, 3, 4] (needs all components for reset flow)
 #   Task 6 → [1, 2, 3, 4, 5] (final integration with reset)
-#   Task 7 → [6] (deployment via mcp-exec)
+#   Task 7 → [6] (deployment via mcp-exec, uses adobe-wiki MCP)
 # VALIDATION: All consumers depend_on producers ✓
 # ═══════════════════════════════════════════════════════════════
 # SUCCESS CRITERIA VALIDATION
