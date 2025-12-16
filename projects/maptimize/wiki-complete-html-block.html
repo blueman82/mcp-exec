@@ -1,0 +1,761 @@
+<!--
+  Maptimize Process Owner Review Timer - Complete Confluence HTML Macro
+  JIRA Ticket: CPGNCX-63303
+  
+  INSTRUCTIONS:
+  1. Edit the wiki page: https://wiki.corp.adobe.com/display/neolane/Maptimize+Service+Review+Process
+  2. Insert an HTML macro (Insert > Other macros > HTML)
+  3. Paste the entire content between the CDATA tags below into the HTML macro
+  4. Save the page
+  
+  NOTE: The table below should REPLACE the existing Process Owners table on the wiki page.
+-->
+<ac:structured-macro ac:name="html" ac:schema-version="1" ac:macro-id="maptimize-timer-macro"><ac:plain-text-body><![CDATA[
+<style>
+/* Expired State Styles for Process Owner Timers */
+.expired-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.expired {
+  color: #cc0000;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.jira-link {
+  color: #0052cc;
+  text-decoration: underline;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.jira-link:hover {
+  color: #003d99;
+  text-decoration: underline;
+}
+
+.jira-link:visited {
+  color: #5243aa;
+}
+
+.reset-timer-btn {
+  padding: 4px 12px;
+  border: 1px solid #dfe1e6;
+  border-radius: 3px;
+  background-color: #f4f5f7;
+  color: #172b4d;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.reset-timer-btn:hover {
+  background-color: #ebecf0;
+  border-color: #c1c7d0;
+}
+
+.reset-timer-btn:active {
+  background-color: #dfe1e6;
+}
+
+.reset-timer-btn:focus {
+  outline: 2px solid #4c9aff;
+  outline-offset: 2px;
+}
+
+.reset-timer-btn:disabled {
+  background-color: #f4f5f7;
+  color: #a5adba;
+  cursor: not-allowed;
+  border-color: #dfe1e6;
+}
+</style>
+
+<!-- Process Owners Table with Timer Data Attributes -->
+<table class="wrapped confluenceTable" id="process-owners-table">
+  <colgroup><col /><col /><col /><col /><col /></colgroup>
+  <tbody>
+    <tr>
+      <th class="confluenceTh" scope="col">Name</th>
+      <th class="confluenceTh" scope="col">Responsibility</th>
+      <th class="confluenceTh" scope="col">Email</th>
+      <th class="confluenceTh" scope="col">Last Reviewed</th>
+      <th class="confluenceTh" scope="col">Expires In</th>
+    </tr>
+    <tr data-process-id="po-sheive" data-owner-username="sheive" data-responsibility="Experience Optimisation">
+      <td class="confluenceTd"><p>Todd Sheive</p></td>
+      <td class="confluenceTd">Experience Optimisation</td>
+      <td class="confluenceTd"><a href="mailto:sheive@adobe.com">sheive@adobe.com</a></td>
+      <td class="confluenceTd">
+        <time class="date-past" datetime="2025-01-15">Jan 15, 2025</time>
+      </td>
+      <td class="confluenceTd">
+        <span class="process-expiry"></span>
+      </td>
+    </tr>
+    <tr data-process-id="po-bronschte" data-owner-username="bronschte" data-responsibility="Production Engineers (MSPE)">
+      <td class="confluenceTd">Lior Bronshtein</td>
+      <td class="confluenceTd">Production Engineers (MSPE)</td>
+      <td class="confluenceTd"><a href="mailto:bronschte@adobe.com">bronschte@adobe.com</a></td>
+      <td class="confluenceTd">
+        <time class="date-past" datetime="2025-01-15">Jan 15, 2025</time>
+      </td>
+      <td class="confluenceTd">
+        <span class="process-expiry"></span>
+      </td>
+    </tr>
+    <tr data-process-id="po-adamson" data-owner-username="adamson" data-responsibility="Transition Management">
+      <td class="confluenceTd">Andrew Adamson</td>
+      <td class="confluenceTd">Transition Management</td>
+      <td class="confluenceTd"><a href="mailto:adamson@adobe.com">adamson@adobe.com</a></td>
+      <td class="confluenceTd">
+        <time class="date-past" datetime="2025-01-15">Jan 15, 2025</time>
+      </td>
+      <td class="confluenceTd">
+        <span class="process-expiry"></span>
+      </td>
+    </tr>
+    <tr data-process-id="po-vkaushik" data-owner-username="vkaushik" data-responsibility="Deliverability Operations">
+      <td class="confluenceTd">Varun Kaushik</td>
+      <td class="confluenceTd">Deliverability Operations</td>
+      <td class="confluenceTd"><a href="mailto:vkaushik@adobe.com">vkaushik@adobe.com</a></td>
+      <td class="confluenceTd">
+        <time class="date-past" datetime="2025-01-15">Jan 15, 2025</time>
+      </td>
+      <td class="confluenceTd">
+        <span class="process-expiry"></span>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+/**
+ * Maptimize Process Owner Review Timer
+ * Combined script for Confluence wiki integration
+ * ES5 syntax for Confluence compatibility
+ */
+
+// ============================================================
+// TIMER CALCULATION (wiki-timer-script.js)
+// ============================================================
+
+var CYCLE_MS = 90 * 24 * 60 * 60 * 1000; // 7776000000 ms
+
+function calculateCountdown(lastReviewTimestamp) {
+  var now = Date.now();
+  var expiryTimestamp = lastReviewTimestamp + CYCLE_MS;
+  var distance = expiryTimestamp - now;
+
+  if (distance <= 0) {
+    return { days: 0, hours: 0, expired: true };
+  }
+
+  var days = Math.floor(distance / (24 * 60 * 60 * 1000));
+  var hours = Math.floor((distance % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+
+  return { days: days, hours: hours, expired: false };
+}
+
+function formatCountdown(countdown) {
+  if (countdown.expired) {
+    return 'EXPIRED';
+  }
+  return countdown.days + ' days ' + countdown.hours + ' hours';
+}
+
+function initializeProcessTimers() {
+  $('tr[data-process-id]').each(function() {
+    var $row = $(this);
+    var $timeElement = $row.find('time[datetime]');
+    var $expirySpan = $row.find('.process-expiry');
+
+    if ($timeElement.length === 0 || $expirySpan.length === 0) {
+      return;
+    }
+
+    var datetimeStr = $timeElement.attr('datetime');
+    var lastReviewDate = new Date(datetimeStr);
+    var lastReviewTimestamp = lastReviewDate.getTime();
+
+    if (isNaN(lastReviewTimestamp)) {
+      $expirySpan.text('Invalid date');
+      return;
+    }
+
+    var countdown = calculateCountdown(lastReviewTimestamp);
+    var displayText = formatCountdown(countdown);
+
+    $expirySpan.text(displayText);
+
+    if (countdown.expired) {
+      $expirySpan.addClass('expired');
+    } else {
+      $expirySpan.removeClass('expired');
+    }
+  });
+}
+
+// ============================================================
+// JIRA INTEGRATION (wiki-jira-integration.js)
+// ============================================================
+
+var JIRA_API_ENDPOINT = 'https://wiki.corp.adobe.com/rest/jira-integration/1.0/issues?applicationId=5affdfe8-ed2e-3a17-8442-0790430373f0';
+var JIRA_PROJECT_KEY = 'CPGNCX';
+var JIRA_ISSUE_TYPE = 'Request';
+var LABEL_PREFIX_EXPIRED = 'maptimize_expired_';
+var LABEL_PREFIX_TICKET = 'maptimize_ticket_';
+
+function hasProcessLabel(ownerUsername) {
+  var labelName = LABEL_PREFIX_EXPIRED + ownerUsername;
+  var labels = AJS.Labels.getLabels() || [];
+  return labels.some(function(label) {
+    return label.name === labelName;
+  });
+}
+
+function addProcessLabel(ownerUsername, callback) {
+  var labelName = LABEL_PREFIX_EXPIRED + ownerUsername;
+  AJS.Labels.addLabel(labelName, function() {
+    console.log('[Maptimize] Added expired label:', labelName);
+    if (callback) callback();
+  });
+}
+
+function storeTicketKeyLabel(ownerUsername, ticketKey, callback) {
+  var labelName = LABEL_PREFIX_TICKET + ownerUsername + '_' + ticketKey;
+  AJS.Labels.addLabel(labelName, function() {
+    console.log('[Maptimize] Stored ticket key label:', labelName);
+    if (callback) callback();
+  });
+}
+
+function getTicketKeyFromLabel(ownerUsername) {
+  var labelPrefix = LABEL_PREFIX_TICKET + ownerUsername + '_';
+  var labels = AJS.Labels.getLabels() || [];
+
+  for (var i = 0; i < labels.length; i++) {
+    var label = labels[i];
+    if (label.name && label.name.indexOf(labelPrefix) === 0) {
+      var ticketKey = label.name.substring(labelPrefix.length);
+      return ticketKey;
+    }
+  }
+  return null;
+}
+
+function removeProcessLabels(ownerUsername, callback) {
+  var expiredLabel = LABEL_PREFIX_EXPIRED + ownerUsername;
+  var ticketLabelPrefix = LABEL_PREFIX_TICKET + ownerUsername + '_';
+  var labels = AJS.Labels.getLabels() || [];
+
+  var labelsToRemove = [];
+  labels.forEach(function(label) {
+    if (label.name === expiredLabel ||
+        (label.name && label.name.indexOf(ticketLabelPrefix) === 0)) {
+      labelsToRemove.push(label.name);
+    }
+  });
+
+  var removed = 0;
+  if (labelsToRemove.length === 0) {
+    if (callback) callback();
+    return;
+  }
+
+  labelsToRemove.forEach(function(labelName) {
+    AJS.Labels.removeLabel(labelName, function() {
+      console.log('[Maptimize] Removed label:', labelName);
+      removed++;
+      if (removed === labelsToRemove.length && callback) {
+        callback();
+      }
+    });
+  });
+}
+
+function createJiraTicket(processId, ownerUsername, responsibility, onSuccess, onError) {
+  if (hasProcessLabel(ownerUsername)) {
+    var existingKey = getTicketKeyFromLabel(ownerUsername);
+    console.log('[Maptimize] Ticket already exists for', ownerUsername, existingKey ? '(' + existingKey + ')' : '');
+    if (onError) onError('Ticket already exists for this process owner');
+    return;
+  }
+
+  var pageTitle = AJS.$('#title-text').text() || document.title || 'Process Review';
+  var summary = 'Review Process: ' + responsibility + ' - ' + pageTitle;
+  var description = [
+    'This process review has expired and requires attention.',
+    '',
+    'Process Owner: ' + ownerUsername,
+    'Responsibility: ' + responsibility,
+    'Process ID: ' + processId,
+    'Page: ' + window.location.href,
+    '',
+    'Please review and update the process documentation.',
+    '',
+    '_Created automatically by Maptimize Timer_'
+  ].join('\n');
+
+  var payload = {
+    fields: {
+      project: { key: JIRA_PROJECT_KEY },
+      issuetype: { name: JIRA_ISSUE_TYPE },
+      summary: summary,
+      description: description,
+      assignee: { name: ownerUsername }
+    }
+  };
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', JIRA_API_ENDPOINT, true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.setRequestHeader('Accept', 'application/json');
+
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        var response = JSON.parse(xhr.responseText);
+        var ticketKey = response.issues && response.issues[0] && response.issues[0].key;
+
+        if (ticketKey) {
+          console.log('[Maptimize] Created JIRA ticket:', ticketKey);
+          addProcessLabel(ownerUsername, function() {
+            storeTicketKeyLabel(ownerUsername, ticketKey, function() {
+              if (onSuccess) onSuccess(ticketKey);
+            });
+          });
+        } else {
+          console.error('[Maptimize] No ticket key in response:', response);
+          if (onError) onError('No ticket key returned from JIRA API');
+        }
+      } catch (e) {
+        console.error('[Maptimize] Failed to parse JIRA response:', e);
+        if (onError) onError('Failed to parse JIRA response');
+      }
+    } else {
+      console.error('[Maptimize] JIRA API error:', xhr.status, xhr.statusText);
+      if (onError) onError('JIRA API returned status ' + xhr.status);
+    }
+  };
+
+  xhr.onerror = function() {
+    console.error('[Maptimize] Network error creating JIRA ticket');
+    if (onError) onError('Network error connecting to JIRA API');
+  };
+
+  xhr.send(JSON.stringify(payload));
+}
+
+// ============================================================
+// EXPIRED DISPLAY (wiki-expired-display.js)
+// ============================================================
+
+var JIRA_BROWSE_URL = 'https://jira.corp.adobe.com/browse/';
+
+function renderExpiredState(processId, ownerUsername) {
+  var ticketKey = null;
+  if (typeof window !== 'undefined' && window.MaptimizeJira && window.MaptimizeJira.getTicketKeyFromLabel) {
+    ticketKey = window.MaptimizeJira.getTicketKeyFromLabel(ownerUsername);
+  } else {
+    ticketKey = getTicketKeyFromLabel(ownerUsername);
+  }
+
+  var html = '<span class="expired-container">';
+  html += '<span class="expired">&#9940; EXPIRED</span>';
+
+  if (ticketKey) {
+    var ticketUrl = JIRA_BROWSE_URL + ticketKey;
+    html += '&nbsp;&nbsp;<a href="' + ticketUrl + '" target="_blank" class="jira-link">' + ticketKey + '</a>';
+  }
+
+  html += '&nbsp;&nbsp;<button type="button" class="reset-timer-btn" data-process-id="' + processId + '" data-owner-username="' + ownerUsername + '">RESET</button>';
+  html += '</span>';
+
+  return html;
+}
+
+function updateExpiredDisplay($row) {
+  var $expirySpan = $row.find('.process-expiry');
+  if ($expirySpan.length === 0) {
+    return;
+  }
+
+  var processId = $row.data('process-id');
+  var ownerUsername = $row.data('owner-username');
+
+  if (!processId || !ownerUsername) {
+    console.warn('[Maptimize] Missing required data attributes on row:', $row);
+    return;
+  }
+
+  var expiredHtml = renderExpiredState(processId, ownerUsername);
+  $expirySpan.html(expiredHtml);
+}
+
+function updateAllExpiredDisplays() {
+  $('tr[data-process-id]').each(function() {
+    var $row = $(this);
+    var $expirySpan = $row.find('.process-expiry');
+
+    if ($expirySpan.hasClass('expired') || $expirySpan.text().indexOf('EXPIRED') !== -1) {
+      updateExpiredDisplay($row);
+    }
+  });
+}
+
+// ============================================================
+// RESET HANDLER (wiki-reset-handler.js)
+// ============================================================
+
+var JIRA_INTEGRATION_API = 'https://wiki.corp.adobe.com/rest/jira-integration/1.0/issues/';
+var CONFLUENCE_API_BASE = 'https://wiki.corp.adobe.com/rest/api/content/';
+var CYCLE_DAYS = 90;
+
+function getPageId() {
+  if (typeof AJS !== 'undefined' && AJS.params && AJS.params.pageId) {
+    return AJS.params.pageId;
+  }
+  var match = window.location.pathname.match(/\/pages\/(\d+)\//);
+  if (match) {
+    return match[1];
+  }
+  return null;
+}
+
+function checkJiraStatusCategory(ticketKey, onSuccess, onError) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', JIRA_INTEGRATION_API + ticketKey, true);
+  xhr.setRequestHeader('Accept', 'application/json');
+
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        var response = JSON.parse(xhr.responseText);
+        if (response && response.fields && response.fields.status) {
+          var status = response.fields.status;
+          var statusCategory = status.statusCategory || {};
+          onSuccess({
+            ticketKey: ticketKey,
+            statusName: status.name,
+            statusCategoryKey: statusCategory.key || 'unknown',
+            statusCategoryName: statusCategory.name || 'Unknown'
+          });
+        } else {
+          console.error('[Maptimize] Invalid JIRA response structure:', response);
+          onError('Unable to retrieve ticket status');
+        }
+      } catch (e) {
+        console.error('[Maptimize] Failed to parse JIRA response:', e);
+        onError('Failed to parse JIRA response');
+      }
+    } else {
+      console.error('[Maptimize] JIRA API error:', xhr.status, xhr.statusText);
+      onError('JIRA API returned status ' + xhr.status);
+    }
+  };
+
+  xhr.onerror = function() {
+    console.error('[Maptimize] Network error fetching JIRA ticket');
+    onError('Network error connecting to JIRA API');
+  };
+
+  xhr.send();
+}
+
+function showModal(title, message, type) {
+  if (typeof AJS !== 'undefined' && AJS.dialog2) {
+    var dialogId = 'maptimize-modal-' + Date.now();
+    var headerClass = type === 'success' ? 'aui-dialog2-header' : 'aui-dialog2-header aui-dialog2-warning';
+
+    var dialogHtml = [
+      '<section id="' + dialogId + '" class="aui-dialog2 aui-dialog2-medium aui-layer" role="dialog" aria-modal="true">',
+      '  <header class="' + headerClass + '">',
+      '    <h2 class="aui-dialog2-header-main">' + title + '</h2>',
+      '    <a class="aui-dialog2-header-close"><span class="aui-icon aui-icon-small aui-iconfont-close-dialog">Close</span></a>',
+      '  </header>',
+      '  <div class="aui-dialog2-content">',
+      '    <p>' + message + '</p>',
+      '  </div>',
+      '  <footer class="aui-dialog2-footer">',
+      '    <div class="aui-dialog2-footer-actions">',
+      '      <button class="aui-button aui-button-primary maptimize-modal-close">OK</button>',
+      '    </div>',
+      '  </footer>',
+      '</section>'
+    ].join('\n');
+
+    $('body').append(dialogHtml);
+
+    var $dialog = $('#' + dialogId);
+    var dialog = AJS.dialog2($dialog);
+
+    $dialog.find('.aui-dialog2-header-close, .maptimize-modal-close').on('click', function() {
+      dialog.hide();
+      $dialog.remove();
+    });
+
+    dialog.show();
+  } else {
+    alert(title + '\n\n' + message);
+  }
+}
+
+function updateLastReviewedDate(ownerUsername, onSuccess, onError) {
+  var pageId = getPageId();
+  if (!pageId) {
+    onError('Could not determine page ID');
+    return;
+  }
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', CONFLUENCE_API_BASE + pageId + '?expand=body.storage,version', true);
+  xhr.setRequestHeader('Accept', 'application/json');
+
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        var pageData = JSON.parse(xhr.responseText);
+        var currentContent = pageData.body.storage.value;
+        var currentVersion = pageData.version.number;
+
+        var $tempDiv = $('<div>').html(currentContent);
+        var $targetRow = $tempDiv.find('tr[data-owner-username="' + ownerUsername + '"]');
+
+        if ($targetRow.length === 0) {
+          onError('Could not find row for user ' + ownerUsername);
+          return;
+        }
+
+        var today = new Date();
+        var todayISO = today.toISOString().split('T')[0];
+        var todayFormatted = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        var $timeElement = $targetRow.find('time[datetime]');
+        if ($timeElement.length === 0) {
+          onError('Could not find time element in row');
+          return;
+        }
+
+        $timeElement.attr('datetime', todayISO);
+        $timeElement.text(todayFormatted);
+
+        var updatedContent = $tempDiv.html();
+
+        var updateXhr = new XMLHttpRequest();
+        updateXhr.open('PUT', CONFLUENCE_API_BASE + pageId, true);
+        updateXhr.setRequestHeader('Content-Type', 'application/json');
+        updateXhr.setRequestHeader('Accept', 'application/json');
+
+        var updatePayload = {
+          id: pageId,
+          type: 'page',
+          title: pageData.title,
+          body: {
+            storage: {
+              value: updatedContent,
+              representation: 'storage'
+            }
+          },
+          version: {
+            number: currentVersion + 1
+          }
+        };
+
+        updateXhr.onload = function() {
+          if (updateXhr.status >= 200 && updateXhr.status < 300) {
+            console.log('[Maptimize] Successfully updated page content');
+            onSuccess(todayISO);
+          } else {
+            console.error('[Maptimize] Failed to update page:', updateXhr.status, updateXhr.statusText);
+            onError('Failed to update page: ' + updateXhr.status);
+          }
+        };
+
+        updateXhr.onerror = function() {
+          console.error('[Maptimize] Network error updating page');
+          onError('Network error updating page');
+        };
+
+        updateXhr.send(JSON.stringify(updatePayload));
+
+      } catch (e) {
+        console.error('[Maptimize] Failed to process page content:', e);
+        onError('Failed to process page content');
+      }
+    } else {
+      console.error('[Maptimize] Failed to get page content:', xhr.status);
+      onError('Failed to get page content: ' + xhr.status);
+    }
+  };
+
+  xhr.onerror = function() {
+    console.error('[Maptimize] Network error getting page content');
+    onError('Network error getting page content');
+  };
+
+  xhr.send();
+}
+
+function calculateNextDueDate(todayISO) {
+  var today = new Date(todayISO);
+  var nextDue = new Date(today.getTime() + (CYCLE_DAYS * 24 * 60 * 60 * 1000));
+  return nextDue.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function handleResetClick(event) {
+  var $button = $(event.target);
+  var processId = $button.data('process-id');
+  var ownerUsername = $button.data('owner-username');
+
+  if (!processId || !ownerUsername) {
+    console.error('[Maptimize] Missing data attributes on reset button');
+    showModal('Reset Error', 'Missing required data attributes on button', 'error');
+    return;
+  }
+
+  var ticketKey = getTicketKeyFromLabel(ownerUsername);
+
+  if (!ticketKey) {
+    console.error('[Maptimize] No ticket key found for', ownerUsername);
+    showModal('Reset Error', 'No JIRA ticket found for this process. Cannot reset without a ticket.', 'error');
+    return;
+  }
+
+  $button.prop('disabled', true).text('Checking...');
+
+  checkJiraStatusCategory(ticketKey, function(statusData) {
+    if (statusData.statusCategoryKey !== 'done') {
+      $button.prop('disabled', false).text('RESET');
+      showModal(
+        'Cannot Reset Timer',
+        ticketKey + ' must be completed. Current status: ' + statusData.statusName,
+        'error'
+      );
+      return;
+    }
+
+    $button.text('Updating...');
+
+    updateLastReviewedDate(ownerUsername, function(todayISO) {
+      removeProcessLabels(ownerUsername, function() {
+        var nextDueDate = calculateNextDueDate(todayISO);
+        var todayFormatted = new Date(todayISO).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        showModal(
+          'Timer Reset Successfully',
+          'Last Reviewed: ' + todayFormatted + '\nNext due: ' + nextDueDate,
+          'success'
+        );
+
+        setTimeout(function() {
+          location.reload();
+        }, 2000);
+      });
+    }, function(error) {
+      $button.prop('disabled', false).text('RESET');
+      showModal('Reset Error', 'Failed to update page: ' + error, 'error');
+    });
+
+  }, function(error) {
+    $button.prop('disabled', false).text('RESET');
+    showModal('Reset Error', 'Failed to check JIRA ticket status: ' + error, 'error');
+  });
+}
+
+function initializeResetHandlers() {
+  $(document).on('click', '.reset-timer-btn', handleResetClick);
+  console.log('[Maptimize] Reset handlers initialized');
+}
+
+// ============================================================
+// PROCESS EXPIRED ROWS
+// ============================================================
+
+function processExpiredRows() {
+  $('tr[data-process-id]').each(function() {
+    var $row = $(this);
+    var $expirySpan = $row.find('.process-expiry');
+
+    if (!$expirySpan.hasClass('expired')) {
+      return;
+    }
+
+    var processId = $row.data('process-id');
+    var ownerUsername = $row.data('owner-username');
+    var responsibility = $row.data('responsibility');
+
+    if (!processId || !ownerUsername || !responsibility) {
+      console.warn('[Maptimize] Missing required data attributes on row:', $row);
+      return;
+    }
+
+    var existingTicketKey = getTicketKeyFromLabel(ownerUsername);
+    if (existingTicketKey || hasProcessLabel(ownerUsername)) {
+      updateExpiredDisplay($row);
+      return;
+    }
+
+    createJiraTicket(processId, ownerUsername, responsibility,
+      function(ticketKey) {
+        updateExpiredDisplay($row);
+      },
+      function(error) {
+        console.error('[Maptimize] Failed to create ticket for', ownerUsername, ':', error);
+        updateExpiredDisplay($row);
+      }
+    );
+  });
+}
+
+// ============================================================
+// EXPORTS AND INITIALIZATION
+// ============================================================
+
+if (typeof window !== 'undefined') {
+  window.MaptimizeJira = {
+    createJiraTicket: createJiraTicket,
+    hasProcessLabel: hasProcessLabel,
+    addProcessLabel: addProcessLabel,
+    storeTicketKeyLabel: storeTicketKeyLabel,
+    getTicketKeyFromLabel: getTicketKeyFromLabel,
+    removeProcessLabels: removeProcessLabels,
+    processExpiredRows: processExpiredRows
+  };
+
+  window.MaptimizeExpiredDisplay = {
+    renderExpiredState: renderExpiredState,
+    updateExpiredDisplay: updateExpiredDisplay,
+    updateAllExpiredDisplays: updateAllExpiredDisplays,
+    JIRA_BROWSE_URL: JIRA_BROWSE_URL
+  };
+
+  window.MaptimizeReset = {
+    handleResetClick: handleResetClick,
+    checkJiraStatusCategory: checkJiraStatusCategory,
+    showModal: showModal,
+    updateLastReviewedDate: updateLastReviewedDate,
+    initializeResetHandlers: initializeResetHandlers,
+    getPageId: getPageId,
+    calculateNextDueDate: calculateNextDueDate
+  };
+}
+
+$(document).ready(function() {
+  console.log('[Maptimize] Initializing Process Owner Review Timer');
+  initializeProcessTimers();
+  initializeResetHandlers();
+  
+  // Process expired rows after a short delay to allow labels to load
+  setTimeout(function() {
+    processExpiredRows();
+  }, 500);
+});
+</script>
+]]></ac:plain-text-body></ac:structured-macro>
