@@ -569,3 +569,18 @@ class PatRotationScheduler(BaseScheduler):
         logger.info(
             f"PAT rotation result: {result.get('status')} - {result.get('action', result.get('newPatId', 'N/A'))}"
         )
+
+
+async def async_main():
+    """Async entry point for PAT rotation scheduler."""
+    await PatRotationScheduler().start()
+
+
+def main():
+    """Entry point for PAT rotation scheduler."""
+    import asyncio
+    asyncio.run(async_main())
+
+
+if __name__ == "__main__":
+    main()
