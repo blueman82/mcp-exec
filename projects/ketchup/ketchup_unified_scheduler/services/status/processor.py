@@ -396,3 +396,119 @@ class AutoStatusProcessor:
         except Exception as e:
             logger.error(f"Failed to process channel {channel_id}: {e}")
             return False
+
+
+async def run_auto_status(
+    container: Optional[TypedServiceRegistry] = None,
+):
+    """Run the auto-status update process with distributed locking.
+
+    Args:
+        container: Optional pre-initialized TypedDI container. If None,
+                  creates a new container via get_unified_container().
+    """
+    try:
+        logger.info(f"Starting auto-status update at {datetime.now()}")
+
+        # Initialize DI container if not provided (supports passthrough pattern)
+        if container is None:
+            logger.info("Initializing DI container...")
+            container = await get_unified_container()
+
+        # Get DynamoDB store using TypedDI
+        db_store = await container.aget(DynamoDBStoreProtocol)
+        distributed_lock = DistributedLock(db_store.client, db_store.table_name)
+
+        # Use distributed lock instead of local file lock
+        async with distributed_lock.acquire_lock(
+            "AUTO_STATUS_GLOBAL", timeout_seconds=120
+        ) as lock_acquired:
+            if not lock_acquired:
+                logger.warning("Another server is running auto-status, exiting")
+                return
+
+            logger.info("Distributed lock acquired, proceeding with status update")
+
+            # Get required services using TypedDI
+            mcp_client = await container.aget(MCPClientProtocol)
+            secrets_manager = await container.aget(SecretsManagerProtocol)
+            slack_config = await container.aget(SlackConfigProtocol)
+            openai_handler = await container.aget(OpenAIHandlerProtocol)
+            channel_info_ops = await container.aget(ChannelInfoOpsProtocol)
+            channel_msg_ops = await container.aget(SlackChannelMessageOpsProtocol)
+            posting_handler = await container.aget(SlackPostingHandlerProtocol)
+            channel_operations = await container.aget(ChannelOperationsProtocol)
+            channel_membership_ops = await container.aget(ChannelMembershipOpsProtocol)
+
+            # Handle optional feature_service with error handling
+            feature_service = None
+            if FeatureFlags.is_status_updater_enabled():
+                try:
+                    feature_service = await container.aget(FeatureServiceProtocol)
+                except MissingDependencyError:
+                    logger.info("Feature service not available - using default settings")
+                except Exception as e:
+                    logger.warning(f"Could not get feature_service: {e}")
+
+            processor = AutoStatusProcessor(
+                db_store=db_store,
+                mcp_client=mcp_client,
+                secrets_manager=secrets_manager,
+                slack_config=slack_config,
+                openai_handler=openai_handler,
+                channel_info_ops=channel_info_ops,
+                channel_msg_ops=channel_msg_ops,
+                posting_handler=posting_handler,
+                channel_operations=channel_operations,
+                channel_membership_ops=channel_membership_ops,
+                feature_service=feature_service,
+            )
+
+            # Process all eligible channels
+            results = await processor.process_all_channels()
+
+            logger.info(f"Auto-status update completed: {results}")
+
+    except Exception as e:
+        logger.error(f"Auto-status update failed: {e}", exc_info=True)
+        raise
+
+
+class StatusUpdaterScheduler(BaseScheduler):
+    """Scheduler for running status updates reliably in Docker."""
+
+    def __init__(self):
+        super().__init__(
+            health_file_prefix="scheduler",
+            base_path="/tmp",
+            interval_minutes=55,
+            run_on_start=True,
+            scheduler_name="Status Updater Scheduler",
+        )
+        # Override for backward compatibility (original was /tmp/last_run)
+        self.last_run_file = Path("/tmp/last_run")
+
+    async def run_task(self) -> None:
+        """Execute the status update task."""
+        await run_auto_status()
+
+
+async def async_main():
+    """Async main entry point."""
+    scheduler = StatusUpdaterScheduler()
+    await scheduler.start()
+
+
+def main():
+    """Main entry point."""
+    try:
+        asyncio.run(async_main())
+    except KeyboardInterrupt:
+        logger.info("Scheduler interrupted by user")
+    except Exception as e:
+        logger.error(f"Fatal error in scheduler: {e}", exc_info=True)
+        raise
+
+
+if __name__ == "__main__":
+    main()
