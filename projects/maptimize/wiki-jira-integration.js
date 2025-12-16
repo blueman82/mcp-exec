@@ -19,8 +19,8 @@ var LABEL_PREFIX_TICKET = 'maptimize_ticket_';
  * @returns {boolean} - True if the expired label exists
  */
 function hasProcessLabel(ownerUsername) {
-  const labelName = LABEL_PREFIX_EXPIRED + ownerUsername;
-  const labels = AJS.Labels.getLabels() || [];
+  var labelName = LABEL_PREFIX_EXPIRED + ownerUsername;
+  var labels = AJS.Labels.getLabels() || [];
   return labels.some(function(label) {
     return label.name === labelName;
   });
