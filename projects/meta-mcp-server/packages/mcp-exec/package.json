@@ -22,7 +22,7 @@
     "@anthropic-ai/sandbox-runtime": "^0.0.19",
     "@justanothermldude/meta-mcp-core": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.25.12"
   },
   "devDependencies": {
     "@modelcontextprotocol/server-filesystem": "^2025.11.25",
