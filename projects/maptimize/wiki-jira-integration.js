@@ -81,9 +81,9 @@ function getTicketKeyFromLabel(ownerUsername) {
  * @param {function} callback - Optional callback after labels are removed
  */
 function removeProcessLabels(ownerUsername, callback) {
-  const expiredLabel = LABEL_PREFIX_EXPIRED + ownerUsername;
-  const ticketLabelPrefix = LABEL_PREFIX_TICKET + ownerUsername + '_';
-  const labels = AJS.Labels.getLabels() || [];
+  var expiredLabel = LABEL_PREFIX_EXPIRED + ownerUsername;
+  var ticketLabelPrefix = LABEL_PREFIX_TICKET + ownerUsername + '_';
+  var labels = AJS.Labels.getLabels() || [];
 
   var labelsToRemove = [];
   labels.forEach(function(label) {
