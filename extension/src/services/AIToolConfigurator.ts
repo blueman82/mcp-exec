@@ -247,9 +247,10 @@ export class AIToolConfigurator {
     /**
      * Generate a generic snippet for other platforms (Augment, etc.)
      * Uses npx if no local path is configured (npm users)
+     * Includes mcp-exec as a separate server entry
      */
     generateGenericSnippet(): ConfigSnippet {
-        const serverEntry = this.metaMcpPath
+        const metaMcpEntry = this.metaMcpPath
             ? {
                 command: 'node',
                 args: [this.metaMcpPath],
@@ -261,9 +262,15 @@ export class AIToolConfigurator {
                 env: { SERVERS_CONFIG: this.serversConfigPath },
             };
 
+        const mcpExecEntry = {
+            command: 'npx',
+            args: ['-y', '@justanothermldude/mcp-exec'],
+        };
+
         const fullConfig = {
             mcpServers: {
-                [META_MCP_SERVER_NAME]: serverEntry,
+                [META_MCP_SERVER_NAME]: metaMcpEntry,
+                'mcp-exec': mcpExecEntry,
             },
         };
 

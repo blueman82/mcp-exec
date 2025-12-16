@@ -145,6 +145,10 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 await this.handleInstallMetaMcpServer();
                 break;
 
+            case 'installMcpExec':
+                await this.handleInstallMcpExec();
+                break;
+
             case 'showError':
                 vscode.window.showErrorMessage(message.message as string);
                 break;
@@ -283,6 +287,16 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         terminal.show();
         terminal.sendText('npm install -g @justanothermldude/meta-mcp-server');
         vscode.window.showInformationMessage('Installing @justanothermldude/meta-mcp-server... Check terminal for progress.');
+    }
+
+    /**
+     * Install mcp-exec globally via npm
+     */
+    private async handleInstallMcpExec(): Promise<void> {
+        const terminal = vscode.window.createTerminal('mcp-exec install');
+        terminal.show();
+        terminal.sendText('npm install -g @justanothermldude/mcp-exec');
+        vscode.window.showInformationMessage('Installing @justanothermldude/mcp-exec... Check terminal for progress.');
     }
 
     /**

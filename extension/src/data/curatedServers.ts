@@ -114,16 +114,6 @@ export const CURATED_SERVERS: CuratedServer[] = [
 
     // Code
     {
-        id: 'mcp-exec',
-        name: 'MCP Exec',
-        description: 'Execute TypeScript/JavaScript code in a secure sandbox with access to MCP tools',
-        category: 'code',
-        command: 'npx',
-        args: ['-y', '@justanothermldude/mcp-exec'],
-        tags: ['code', 'execute', 'sandbox', 'typescript', 'javascript', 'runtime'],
-        docsUrl: 'https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server/packages/mcp-exec',
-    },
-    {
         id: 'github',
         name: 'GitHub',
         description: 'Interact with GitHub repositories, issues, and PRs',
