@@ -1007,11 +1007,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                                     <button class="btn btn-secondary btn-copy-snippet" data-tool-id="\${escapeHtml(tool.tool.id)}">
                                         Copy Snippet
                                     </button>
-                                    \${tool.hasExistingServers ? \`
-                                        <button class="btn btn-secondary btn-migrate" data-tool-id="\${escapeHtml(tool.tool.id)}">
-                                            Migrate Servers
-                                        </button>
-                                    \` : ''}
                                 </div>
                             \` : ''}
                         </div>
@@ -1113,16 +1108,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         }
                     });
                 });
-                
-                setupContainer.querySelectorAll('.btn-migrate').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const toolId = btn.dataset.toolId;
-                        btn.disabled = true;
-                        btn.textContent = 'Migrating...';
-                        vscode.postMessage({ type: 'migrateServers', payload: { toolId } });
-                    });
-                });
-                
+
                 document.getElementById('btn-refresh-setup')?.addEventListener('click', () => {
                     setupTools = [];
                     vscode.postMessage({ type: 'loadSetup' });
@@ -1224,17 +1210,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             // Refresh the setup view
                             setupTools = [];
                             vscode.postMessage({ type: 'loadSetup' });
-                        }
-                        break;
-                    case 'migrateServersResponse':
-                        if (message.success) {
-                            // Setup view will be refreshed via updateSetup from backend
-                        } else {
-                            // Re-enable migrate buttons on failure
-                            setupContainer.querySelectorAll('.btn-migrate').forEach(btn => {
-                                btn.disabled = false;
-                                btn.textContent = 'Migrate Servers';
-                            });
                         }
                         break;
                 }
