@@ -27,16 +27,36 @@ def _get_orchestration_functions():
 
 
 # Re-export orchestration functions for backward compatibility
-async def run_reporting_cycle(*args, **kwargs):
+from typing import Optional, Any, Dict
+from packages.core.typed_di.registry import TypedServiceRegistry
+
+
+async def run_reporting_cycle(
+    container: Optional[TypedServiceRegistry] = None,
+) -> None:
     """Run a single reporting cycle. Wrapper for backward compatibility."""
     _run_reporting_cycle, _ = _get_orchestration_functions()
-    return await _run_reporting_cycle(*args, **kwargs)
+    return await _run_reporting_cycle(container=container)
 
 
-async def process_channel(*args, **kwargs):
+async def process_channel(
+    channel_data: Dict[str, Any],
+    report_generator: Any,
+    jira_service: Any,
+    jira_discovery: Any,
+    dynamodb_store: Any,
+    skip_activity_check: bool = False,
+) -> bool:
     """Process a single channel. Wrapper for backward compatibility."""
     _, _process_channel = _get_orchestration_functions()
-    return await _process_channel(*args, **kwargs)
+    return await _process_channel(
+        channel_data=channel_data,
+        report_generator=report_generator,
+        jira_service=jira_service,
+        jira_discovery=jira_discovery,
+        dynamodb_store=dynamodb_store,
+        skip_activity_check=skip_activity_check,
+    )
 
 
 class JiraService:
