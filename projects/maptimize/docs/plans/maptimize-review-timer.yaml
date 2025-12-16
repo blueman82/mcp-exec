@@ -31,7 +31,7 @@ conductor:
   worktree_groups:
     - group_id: "maptimize-timer"
       description: "Per-row process owner review timer with JIRA integration and reset"
-      tasks: [1, 2, 3, 4, 5, 6]
+      tasks: [1, 2, 3, 4, 5, 6, 7]
       rationale: "All tasks modify the same wiki page HTML block"
 
 plan:
