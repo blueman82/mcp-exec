@@ -934,7 +934,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                                 <span class="section-number">1</span>
                                 <h3>Install meta-mcp-server</h3>
                             </div>
-                            <p class="section-desc">Install the meta-mcp server globally via npm (required for all tools).</p>
+                            <p class="section-desc">Proxy server for lazy-loading MCP tools. Reduces token usage by exposing only 3 meta-tools.</p>
                             <div class="install-actions">
                                 <button class="btn btn-primary" id="btn-install-server">
                                     Install via npm
@@ -944,11 +944,28 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             </div>
                             <p class="hint-text">After installing, run <code>meta-mcp-server --version</code> to verify.</p>
                         </div>
-                        
-                        <!-- Step 2: Configure AI Tools -->
-                        <div class="setup-section tools-section">
+
+                        <!-- Step 2: Install mcp-exec (Optional) -->
+                        <div class="setup-section install-section">
                             <div class="section-header">
                                 <span class="section-number">2</span>
+                                <h3>Install mcp-exec <span class="optional-badge">Optional</span></h3>
+                            </div>
+                            <p class="section-desc">Execute TypeScript/JavaScript code in a secure sandbox with access to other MCP tools.</p>
+                            <div class="install-actions">
+                                <button class="btn btn-primary" id="btn-install-mcp-exec">
+                                    Install via npm
+                                </button>
+                                <span class="or-text">or run:</span>
+                                <code class="install-cmd">npm install -g @justanothermldude/mcp-exec</code>
+                            </div>
+                            <p class="hint-text">Enables AI to write and run code that calls other MCP servers.</p>
+                        </div>
+
+                        <!-- Step 3: Configure AI Tools -->
+                        <div class="setup-section tools-section">
+                            <div class="section-header">
+                                <span class="section-number">3</span>
                                 <h3>Configure Your AI Tools</h3>
                             </div>
                             <p class="section-desc">Add meta-mcp to your AI tools. Detected \${installedTools.length} tool(s), \${configuredCount} configured.</p>
@@ -1017,6 +1034,10 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }
+    },
+    "mcp-exec": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/mcp-exec"]
     }
   }
 }\`}</code></pre>
@@ -1033,6 +1054,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         .section-header { display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
                         .section-header h3 { margin: 0; font-size: 14px; }
                         .section-number { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--vscode-button-background); color: var(--vscode-button-foreground); font-size: 12px; font-weight: 600; }
+                        .optional-badge { font-size: 10px; font-weight: 500; color: var(--vscode-descriptionForeground); background: var(--vscode-badge-background); padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
                         .section-desc { color: var(--vscode-descriptionForeground); font-size: 12px; margin: 0 0 var(--spacing-md); }
                         .install-actions { display: flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; }
                         .or-text { color: var(--vscode-descriptionForeground); font-size: 12px; }
@@ -1106,6 +1128,10 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }
+    },
+    "mcp-exec": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/mcp-exec"]
     }
   }
 }\`;
@@ -1125,6 +1151,15 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         btn.disabled = true;
                     }
                     vscode.postMessage({ type: 'installMetaMcpServer' });
+                });
+
+                document.getElementById('btn-install-mcp-exec')?.addEventListener('click', () => {
+                    const btn = document.getElementById('btn-install-mcp-exec');
+                    if (btn) {
+                        btn.textContent = 'Installing...';
+                        btn.disabled = true;
+                    }
+                    vscode.postMessage({ type: 'installMcpExec' });
                 });
             }
 
