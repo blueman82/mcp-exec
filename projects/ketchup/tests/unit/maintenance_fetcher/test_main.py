@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_fetch_and_store_success():
     """Test successful maintenance data fetch and store."""
-    from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+    from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
     # Mock SOAP client
     mock_soap = AsyncMock()
@@ -21,21 +21,22 @@ async def test_fetch_and_store_success():
     mock_db = AsyncMock()
     mock_db.store_maintenance_cache.return_value = True
 
-    # Mock resolve_typed
-    async def resolve_side_effect(protocol):
+    # Mock container with aget method
+    mock_container = AsyncMock()
+    async def aget_side_effect(protocol):
         protocol_name = str(protocol)
         if "Raven" in protocol_name:
             return mock_soap
         if "DynamoDB" in protocol_name:
             return mock_db
-        return None
+        return AsyncMock()
+    mock_container.aget = aget_side_effect
 
     with (
-        patch("ketchup_maintenance_fetcher.main.resolve_typed", side_effect=resolve_side_effect),
         patch("os.getenv", return_value="true"),
-        patch("ketchup_maintenance_fetcher.main.datetime") as mock_datetime,
-        patch("ketchup_maintenance_fetcher.main.get_unified_container", new_callable=AsyncMock),
-        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.datetime") as mock_datetime,
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", return_value=mock_container),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
         mock_datetime.now.return_value.strftime.return_value = "2025-10-06"
@@ -52,7 +53,7 @@ async def test_fetch_and_store_success():
 @pytest.mark.asyncio
 async def test_fetch_and_store_soap_failure():
     """Test when SOAP API returns None."""
-    from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+    from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
     # Mock SOAP client to return None (failure)
     mock_soap = AsyncMock()
@@ -65,11 +66,11 @@ async def test_fetch_and_store_soap_failure():
         return AsyncMock()
 
     with (
-        patch("ketchup_maintenance_fetcher.main.resolve_typed", side_effect=resolve_side_effect),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.resolve_typed", side_effect=resolve_side_effect),
         patch("os.getenv", return_value="true"),
-        patch("ketchup_maintenance_fetcher.main.datetime") as mock_datetime,
-        patch("ketchup_maintenance_fetcher.main.get_unified_container", new_callable=AsyncMock),
-        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.datetime") as mock_datetime,
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
         mock_datetime.now.return_value.strftime.return_value = "2025-10-06"
@@ -85,7 +86,7 @@ async def test_fetch_and_store_soap_failure():
 @pytest.mark.asyncio
 async def test_fetch_and_store_db_failure():
     """Test when DB storage returns False."""
-    from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+    from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
     # Mock SOAP client
     mock_soap = AsyncMock()
@@ -104,11 +105,11 @@ async def test_fetch_and_store_db_failure():
         return None
 
     with (
-        patch("ketchup_maintenance_fetcher.main.resolve_typed", side_effect=resolve_side_effect),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.resolve_typed", side_effect=resolve_side_effect),
         patch("os.getenv", return_value="true"),
-        patch("ketchup_maintenance_fetcher.main.datetime") as mock_datetime,
-        patch("ketchup_maintenance_fetcher.main.get_unified_container", new_callable=AsyncMock),
-        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.datetime") as mock_datetime,
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
 
         mock_datetime.now.return_value.strftime.return_value = "2025-10-06"
@@ -124,11 +125,11 @@ async def test_fetch_and_store_db_failure():
 @pytest.mark.asyncio
 async def test_feature_flag_disabled():
     """Test behavior when feature flag is disabled."""
-    from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+    from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
     with (
         patch("os.getenv", return_value="false"),
-        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
         # Execute
         result = await fetch_and_store_maintenance_data()
@@ -140,15 +141,15 @@ async def test_feature_flag_disabled():
 @pytest.mark.asyncio
 async def test_fetch_and_store_exception_handling():
     """Test exception handling in fetch_and_store."""
-    from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+    from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
     with (
         patch(
-            "ketchup_maintenance_fetcher.main.get_unified_container",
+            "ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container",
             side_effect=Exception("DI container failed"),
         ),
         patch("os.getenv", return_value="true"),
-        patch("ketchup_maintenance_fetcher.main.cleanup_unified_container", new_callable=AsyncMock),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container", new_callable=AsyncMock),
     ):
         # Execute
         result = await fetch_and_store_maintenance_data()
@@ -161,11 +162,11 @@ async def test_fetch_and_store_exception_handling():
 @pytest.mark.asyncio
 async def test_cleanup_exception_handling():
     """Test that cleanup exceptions are handled gracefully."""
-    from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+    from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
     with (
         patch(
-            "ketchup_maintenance_fetcher.main.cleanup_unified_container",
+            "ketchup_unified_scheduler.services.maintenance.fetcher.cleanup_unified_container",
             side_effect=Exception("Cleanup failed"),
         ),
         patch("os.getenv", return_value="false"),
@@ -179,11 +180,11 @@ async def test_cleanup_exception_handling():
 
 def test_main_entry_point_success():
     """Test main() returns exit code 0 on success."""
-    from ketchup_maintenance_fetcher.main import main
+    from ketchup_unified_scheduler.services.maintenance.fetcher import main
 
     with (
         patch(
-            "ketchup_maintenance_fetcher.main.asyncio.run",
+            "ketchup_unified_scheduler.services.maintenance.fetcher.asyncio.run",
             return_value={"status": "success", "records": 5},
         ),
         patch("sys.exit") as mock_exit,
@@ -197,11 +198,11 @@ def test_main_entry_point_success():
 
 def test_main_entry_point_failure():
     """Test main() returns exit code 1 on failure."""
-    from ketchup_maintenance_fetcher.main import main
+    from ketchup_unified_scheduler.services.maintenance.fetcher import main
 
     with (
         patch(
-            "ketchup_maintenance_fetcher.main.asyncio.run",
+            "ketchup_unified_scheduler.services.maintenance.fetcher.asyncio.run",
             return_value={"status": "error", "message": "Test error"},
         ),
         patch("sys.exit") as mock_exit,
@@ -215,10 +216,10 @@ def test_main_entry_point_failure():
 
 def test_main_entry_point_exception():
     """Test main() returns exit code 1 on exception."""
-    from ketchup_maintenance_fetcher.main import main
+    from ketchup_unified_scheduler.services.maintenance.fetcher import main
 
     with (
-        patch("ketchup_maintenance_fetcher.main.asyncio.run", side_effect=Exception("Fatal error")),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.asyncio.run", side_effect=Exception("Fatal error")),
         patch("sys.exit") as mock_exit,
     ):
         # Execute
@@ -230,10 +231,10 @@ def test_main_entry_point_exception():
 
 def test_main_entry_point_disabled():
     """Test main() returns exit code 1 when disabled."""
-    from ketchup_maintenance_fetcher.main import main
+    from ketchup_unified_scheduler.services.maintenance.fetcher import main
 
     with (
-        patch("ketchup_maintenance_fetcher.main.asyncio.run", return_value={"status": "disabled"}),
+        patch("ketchup_unified_scheduler.services.maintenance.fetcher.asyncio.run", return_value={"status": "disabled"}),
         patch("sys.exit") as mock_exit,
     ):
         # Execute
