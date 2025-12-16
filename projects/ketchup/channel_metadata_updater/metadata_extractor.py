@@ -255,9 +255,11 @@ class MetadataExtractor:
             }
 
     async def cleanup(self) -> None:
-        """Clean up AI handler resources."""
-        try:
-            if hasattr(self.ai_handler, "cleanup"):
-                await self.ai_handler.cleanup()
-        except Exception as e:
-            logger.error("Error cleaning up AI handler: %s", str(e))
+        """Clean up AI handler resources.
+
+        NOTE: ai_handler is an injected dependency from TypedDI.
+        Do NOT cleanup injected dependencies as they may be shared
+        across multiple services in the unified scheduler.
+        """
+        # Injected dependencies should be managed by the DI container, not here.
+        pass

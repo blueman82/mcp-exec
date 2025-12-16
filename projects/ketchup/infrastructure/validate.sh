@@ -42,6 +42,7 @@ PYTHON_DIRS=(
     "${PROJECT_ROOT}/ketchup_access_request_monitor"
     "${PROJECT_ROOT}/jira_reporter"
     "${PROJECT_ROOT}/channel_metadata_updater"
+    "${PROJECT_ROOT}/ketchup_unified_scheduler"
 )
 
 # Load .env.test if it exists (for AWS_PROFILE)
