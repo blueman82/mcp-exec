@@ -884,22 +884,38 @@ plan:
 
   deliverables:
     - name: "Complete Confluence HTML Macro"
-      description: "Single HTML block to paste into wiki page editor"
+      description: "Single HTML block containing timer + JIRA integration"
       file: "wiki-complete-html-block.html"
+    - name: "Deployment Script"
+      description: "TypeScript script for automated deployment via mcp-exec"
+      file: "deploy-to-wiki.ts"
     - name: "Implementation Documentation"
       description: "README explaining how to deploy, use, and maintain the timer"
       file: "README.md"
 
   deployment:
+    method: "Automated via mcp-exec (Task 7)"
+    backup:
+      location: "docs/plans/maptimize-wiki-backup-YYYY-MM-DD.html"
+      gitignore: "docs/plans/maptimize-wiki-backup-*.html"
+      note: "Backup created before deployment, never committed to git"
     steps:
-      - "Backup existing Process Owners section from wiki page"
-      - "Edit wiki page: https://wiki.corp.adobe.com/display/neolane/Maptimize+Service+Review+Process"
-      - "Replace Process Owners section with new HTML macro"
-      - "Set Last Reviewed dates for each process owner"
-      - "Save and verify countdown displays"
+      - "Backup fetched automatically via adobe_wiki.get_wiki_content() before update"
+      - "Task 7 script executes via mcp-exec with adobe-wiki wrapper"
+      - "Script preserves MIRO embed and Process Steps sections"
+      - "Script replaces Process Owners section with new HTML macro"
+      - "Set Last Reviewed dates for each process owner (manual edit after deployment)"
+      - "Verify countdown displays correctly"
       - "Test one expired state to verify JIRA creation"
       - "Test reset button with both open and closed tickets"
+    manual_alternative: |
+      If automated deployment fails, manually:
+      1. Copy contents of wiki-complete-html-block.html
+      2. Edit wiki page in Confluence
+      3. Replace Process Owners section with copied HTML
+      4. Save and verify
     rollback:
-      - "Restore backed up Process Owners section"
-      - "Remove any maptimize_expired_* labels from page"
-      - "Remove any maptimize_ticket_* labels from page"
+      - "Use Confluence page version history to restore previous version"
+      - "Or restore from backup file: docs/plans/maptimize-wiki-backup-*.html"
+      - "Remove any maptimize_expired_* labels from page via Confluence UI"
+      - "Remove any maptimize_ticket_* labels from page via Confluence UI"
