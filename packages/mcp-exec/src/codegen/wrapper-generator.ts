@@ -213,7 +213,16 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   lines.push(`    if (!data.success) {`);
   lines.push(`      throw new Error(data.error || 'Tool call failed');`);
   lines.push(`    }`);
-  lines.push(`    return data.content;`);
+  lines.push(`    // Auto-parse JSON from MCP text content blocks for convenience`);
+  lines.push(`    const content = data.content;`);
+  lines.push(`    if (Array.isArray(content) && content.length === 1 && content[0]?.type === 'text') {`);
+  lines.push(`      try {`);
+  lines.push(`        return JSON.parse(content[0].text);`);
+  lines.push(`      } catch {`);
+  lines.push(`        return content[0].text;`);
+  lines.push(`      }`);
+  lines.push(`    }`);
+  lines.push(`    return content;`);
   lines.push(`  },`);
 
   return lines.join('\n');
