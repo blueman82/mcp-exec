@@ -8,7 +8,7 @@ AND processing SQS events for archived channels.
 
 from typing import Optional
 
-from jira_reporter.main import run_reporting_cycle
+from ketchup_unified_scheduler.services.jira_reporter import run_reporting_cycle
 from ketchup_unified_scheduler.task_config import TaskConfig
 from packages.core.logging import setup_logger
 from packages.core.typed_di import TypedServiceRegistry
@@ -26,12 +26,9 @@ async def jira_report_task(container: Optional[TypedServiceRegistry] = None) -> 
     3. Generating AI summaries and posting to JIRA tickets
     4. CSOPM ticket discovery and posting
 
-    The run_reporting_cycle function handles both polling and SQS
-    processing internally, making this task self-contained.
-
     Args:
         container: TypedServiceRegistry for dependency injection.
-                  If None, run_reporting_cycle will create its own container.
+                  If None, creates its own container.
     """
     logger.info("Starting JIRA report task")
 
