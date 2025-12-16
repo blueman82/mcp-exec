@@ -21,9 +21,22 @@ SRC_DIR="${PROJECT_ROOT}/src/maptimize"
 TESTS_DIR="${PROJECT_ROOT}/tests"
 VENV_DIR="${PROJECT_ROOT}/.venv"
 
-# Activate virtual environment if it exists
-if [ -d "$VENV_DIR" ]; then
+# Ensure virtual environment exists and dependencies are installed
+cd "$PROJECT_ROOT"
+if command -v uv &> /dev/null; then
+    if [ ! -d "$VENV_DIR" ]; then
+        echo -e "${BLUE:-}[INFO]${NC:-} Creating virtual environment with uv..." >&2
+        uv venv
+    fi
+    echo -e "${BLUE:-}[INFO]${NC:-} Syncing dependencies..." >&2
+    uv sync --extra dev --quiet
     source "${VENV_DIR}/bin/activate"
+elif [ -d "$VENV_DIR" ]; then
+    source "${VENV_DIR}/bin/activate"
+else
+    echo -e "${RED:-}[ERROR]${NC:-} No virtual environment found and uv not installed." >&2
+    echo "Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
+    exit 1
 fi
 
 # Color definitions
