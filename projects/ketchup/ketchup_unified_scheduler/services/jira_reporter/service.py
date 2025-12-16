@@ -11,6 +11,7 @@ from typing import Dict
 import httpx
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di_integration import get_unified_container
 from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.secrets.manager import SecretsManager
 
