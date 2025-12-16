@@ -50,3 +50,10 @@ export type {
 
 // Tools
 export { ToolCache } from './tools/index.js';
+
+// Auth
+export {
+  getBackendAuthHeader,
+  resolveBackendAuth,
+  EnvVarNotFoundError,
+} from './auth/index.js';
