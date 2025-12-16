@@ -116,37 +116,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # LEGACY: ketchup-metadata-updater - migrated to ketchup-unified-scheduler
-  # ketchup-metadata-updater:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.updater
-  #     platforms:
-  #       - linux/amd64
-  #     x-bake:
-  #       cache-from:
-  #         - type=local,src=/tmp/.buildx-cache
-  #       cache-to:
-  #         - type=local,dest=/tmp/.buildx-cache
-  #   image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-metadata-updater:v2.360.360
-  #   env_file:
-  #     - common.env
-  #     - performance.env
-  #   volumes:
-  #     - ./logs:/var/log
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/metadata_scheduler_health LAST_RUN_FILE=/tmp/metadata_last_run MAX_RUN_AGE=1500 SERVICE_NAME=MetadataUpdater /app/infrastructure/healthcheck-scheduler.sh"]
-  #     interval: 60s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 120s
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "3"
-
   mcp-jira:
     build:
       context: ..
