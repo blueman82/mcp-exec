@@ -541,7 +541,10 @@ class PATRotator:
         }
 
 
-class PatRotationScheduler:
+from packages.core.schedulers import BaseScheduler
+
+
+class PatRotationScheduler(BaseScheduler):
     """Scheduler for daily PAT rotation checks (24-hour interval)."""
 
     def __init__(self, container=None):
@@ -552,19 +555,12 @@ class PatRotationScheduler:
             container: TypedDI container for dependency resolution.
                       If None, rotator will fall back to direct instantiation.
         """
-        from packages.core.schedulers import BaseScheduler
-
-        self._base = BaseScheduler(
+        super().__init__(
             health_file_prefix="pat_rotator",
             interval_minutes=1440,
             base_path="/tmp",
         )
         self._container = container
-
-    @property
-    def interval_minutes(self):
-        """Get interval minutes."""
-        return 1440
 
     async def run_task(self) -> None:
         """Run PAT rotation check."""
@@ -573,7 +569,3 @@ class PatRotationScheduler:
         logger.info(
             f"PAT rotation result: {result.get('status')} - {result.get('action', result.get('newPatId', 'N/A'))}"
         )
-
-    async def start(self) -> None:
-        """Start the scheduler."""
-        await self._base.start()
