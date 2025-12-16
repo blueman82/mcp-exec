@@ -10,16 +10,16 @@ This project is organized as a monorepo with the following packages:
 
 ```
 packages/
-├── core/           # @meta-mcp/core - Shared utilities, types, pool, and registry
-├── meta-mcp/       # @meta-mcp/server - Main MCP server with 3 meta-tools
-└── mcp-exec/       # @meta-mcp/exec - Sandboxed code execution with MCP bridge
+├── core/           # @justanothermldude/meta-mcp-core - Shared utilities, types, pool, and registry
+├── meta-mcp/       # @justanothermldude/meta-mcp-server - Main MCP server with 3 meta-tools
+└── mcp-exec/       # @justanothermldude/mcp-exec - Sandboxed code execution with typed wrappers
 ```
 
-| Package | Description | npm |
-|---------|-------------|-----|
-| [`@meta-mcp/core`](./packages/core/README.md) | Core utilities: types, connection pool, registry, tool cache | `@meta-mcp/core` |
-| [`@meta-mcp/server`](./packages/meta-mcp/README.md) | MCP server exposing 3 meta-tools for token optimization | `@meta-mcp/server` |
-| [`@meta-mcp/exec`](./packages/mcp-exec/README.md) | Sandboxed code execution with MCP tool access via HTTP bridge | `@meta-mcp/exec` |
+| Package | Description | Install |
+|---------|-------------|---------|
+| [`@justanothermldude/meta-mcp-core`](./packages/core/README.md) | Core utilities: types, connection pool, registry, tool cache | `npm i @justanothermldude/meta-mcp-core` |
+| [`@justanothermldude/meta-mcp-server`](./packages/meta-mcp/README.md) | MCP server exposing 3 meta-tools for token optimization | `npm i -g @justanothermldude/meta-mcp-server` |
+| [`@justanothermldude/mcp-exec`](./packages/mcp-exec/README.md) | Sandboxed code execution with MCP tool access via typed wrappers | `npm i -g @justanothermldude/mcp-exec` |
 
 ## Problem
 
@@ -61,6 +61,12 @@ The **Meta-MCP** extension provides a visual interface for configuration:
 - Click **Install via npm** (opens terminal with `npm install -g @justanothermldude/meta-mcp-server`)
 - Or run manually: `npm install -g @justanothermldude/meta-mcp-server`
 
+#### Step 1b: Install mcp-exec (Optional)
+- Click **Install** next to mcp-exec for sandboxed code execution with MCP tool access
+- Or run manually: `npm install -g @justanothermldude/mcp-exec`
+
+mcp-exec enables AI to execute TypeScript/JavaScript code with typed wrappers for your MCP servers.
+
 #### Step 2: Configure Your AI Tools
 The extension auto-detects installed AI tools and shows their status:
 
@@ -75,18 +81,30 @@ For each detected tool, use these buttons:
 
 | Button | Action |
 |--------|--------|
-| **Configure** | Auto-adds meta-mcp to the tool's config (creates backup first, creates `~/.meta-mcp/servers.json` if missing) |
+| **Configure** | Auto-configures the tool: adds meta-mcp and mcp-exec (if installed globally), migrates existing servers to `servers.json`, creates backup first |
 | **Copy Snippet** | Copies JSON config to clipboard for manual setup |
-| **Migrate Servers** | *(Only if tool has existing servers)* Moves servers from tool's config to `servers.json`, keeping only meta-mcp in the original |
+
+The Configure button intelligently:
+- Detects which packages are installed (`npm list -g`)
+- Adds only installed packages to the tool config
+- Migrates any existing MCP servers to `~/.meta-mcp/servers.json`
+- Shows migration count in success message
 
 #### Other Platforms (Windsurf, Augment, etc.)
-For tools not auto-detected, copy the generic snippet shown in the Setup tab:
+For tools not auto-detected, copy and adapt this snippet:
 ```json
 {
   "mcpServers": {
     "meta-mcp": {
       "command": "npx",
       "args": ["-y", "@justanothermldude/meta-mcp-server"],
+      "env": {
+        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
+      }
+    },
+    "mcp-exec": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/mcp-exec"],
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }
@@ -258,7 +276,7 @@ call_tool({server_name: "corp-jira", tool_name: "search_issues", arguments: {jql
 
 ### Two-Tier Lazy Loading
 
-See [Token Optimization Guide](docs/diagrams/10-token-optimization.md) for detailed analysis of 87-91% token savings across different workflow patterns.
+See [Token Economics](docs/diagrams/token-economics.md) for detailed analysis of 87-91% token savings across different workflow patterns.
 
 ## Development
 
@@ -272,13 +290,13 @@ npm install
 npm run build --workspaces
 
 # Build specific package
-npm run build -w @meta-mcp/core
+npm run build -w @justanothermldude/meta-mcp-core
 
 # Run all tests
 npm test --workspaces
 
 # Run tests for specific package
-npm test -w @meta-mcp/exec
+npm test -w @justanothermldude/mcp-exec
 
 # Type check all packages
 npx tsc --noEmit --workspaces
@@ -325,7 +343,6 @@ RUN_REAL_MCP_TESTS=true npm test -w @meta-mcp/exec
 For detailed architecture documentation with diagrams, see:
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - Complete narrative guide with all concepts explained
 - **[Diagram Index](docs/diagrams/README.md)** - Visual diagrams organized by topic
-  - [Architecture](docs/diagrams/architecture.md) - System overview, config, lifecycle
   - [Core Mechanics](docs/diagrams/core-mechanics.md) - Pool, connections, caching, tool system
   - [Token Economics](docs/diagrams/token-economics.md) - 87-91% savings, ROI analysis
 
@@ -333,33 +350,39 @@ For detailed architecture documentation with diagrams, see:
 
 ```
 packages/
-├── core/                    # @meta-mcp/core - Shared utilities
+├── core/                    # @justanothermldude/meta-mcp-core - Shared utilities
 │   └── src/
-│       ├── types/           # TypeScript interfaces
-│       ├── registry/        # Server manifest loading (servers.json)
+│       ├── types/           # TypeScript interfaces (connection, server-config, tool-definition)
+│       ├── registry/        # Server manifest loading (loader.ts, manifest.ts)
 │       ├── pool/            # Connection pool with LRU eviction
 │       │   ├── server-pool.ts
 │       │   ├── connection.ts
 │       │   └── stdio-transport.ts
-│       └── tools/           # Tool caching utilities
+│       └── tools/           # Tool caching utilities (tool-cache.ts)
 │
-├── meta-mcp/                # @meta-mcp/server - Main MCP server
+├── meta-mcp/                # @justanothermldude/meta-mcp-server - Main MCP server
 │   └── src/
 │       ├── index.ts         # Entry point with stdio transport
 │       ├── server.ts        # MCP server setup
+│       ├── transport.ts     # Transport layer abstraction
+│       ├── http-server.ts   # HTTP/Streamable transport support
 │       └── tools/           # Meta-tool implementations
 │           ├── list-servers.ts
 │           ├── get-server-tools.ts
 │           └── call-tool.ts
 │
-└── mcp-exec/                # @meta-mcp/exec - Code execution
+└── mcp-exec/                # @justanothermldude/mcp-exec - Code execution
     └── src/
         ├── index.ts         # Entry point and public API
-        ├── server.ts        # MCP server for execute_code
-        ├── sandbox/         # Sandbox executor
+        ├── server.ts        # MCP server for execute_code tools
+        ├── sandbox/         # Sandbox executor with OS-level isolation
         ├── bridge/          # HTTP bridge for MCP access
-        ├── codegen/         # Wrapper generator
-        └── tools/           # execute_code tool
+        ├── codegen/         # Typed wrapper generator
+        ├── types/           # TypeScript interfaces
+        └── tools/           # Tool implementations
+            ├── list-servers.ts
+            ├── get-tool-schema.ts
+            └── execute-with-wrappers.ts
 ```
 
 ## Configuration Options
@@ -373,5 +396,6 @@ packages/
 
 ## Test Results
 
-- 112 tests passing (69 unit + 43 integration)
-- Tested with Node (corp-jira), Docker (splunk, new-relic, github), and uvx servers
+- **341 tests passing** (unit + integration across all packages)
+- 48 integration tests skipped by default (require `RUN_REAL_MCP_TESTS=true`)
+- Tested with Node, Docker, and uvx/npx spawn types
