@@ -7,8 +7,8 @@ from legacy scheduler services into the unified scheduler.
 
 from ketchup_unified_scheduler.services.maintenance import (
     fetch_and_store_maintenance_data,
-    main as maintenance_main,
 )
+from ketchup_unified_scheduler.services.maintenance import main as maintenance_main
 from ketchup_unified_scheduler.services.status import (
     AutoStatusGenerator,
     AutoStatusProcessor,

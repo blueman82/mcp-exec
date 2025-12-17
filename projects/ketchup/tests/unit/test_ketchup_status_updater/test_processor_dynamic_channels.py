@@ -387,7 +387,9 @@ class TestProcessorDynamicChannels:
     @patch.dict(os.environ, {"KETCHUP_STATUS_UPDATER_ENABLED": "true"})
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_enabled")
     @patch("packages.core.config.feature_flags.FeatureFlags.is_status_updater_global")
-    @patch("ketchup_unified_scheduler.services.status.processor.asyncio.sleep", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.asyncio.sleep", new_callable=AsyncMock
+    )
     @pytest.mark.asyncio
     async def test_dynamic_channel_pagination(
         self, mock_sleep, mock_global, mock_enabled, processor, mock_dependencies

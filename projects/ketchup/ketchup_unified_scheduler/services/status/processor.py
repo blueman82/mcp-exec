@@ -9,7 +9,6 @@ Migrated from ketchup_status_updater/processor.py
 
 import asyncio
 import os
-import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path

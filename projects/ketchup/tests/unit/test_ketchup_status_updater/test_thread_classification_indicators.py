@@ -78,7 +78,9 @@ async def test_activity_indicators_with_thread_classification():
             "packages.core.typed_di_integration.get_typed_registry",
             lambda: mock_registry,
         ),
-        patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer_class,
+        patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer_class,
     ):
         preparer_instance = MagicMock()
         preparer_instance.prepare_messages_for_auto_status = AsyncMock(
@@ -116,7 +118,9 @@ async def test_activity_indicators_with_thread_classification():
             "packages.core.typed_di_integration.get_typed_registry",
             lambda: mock_registry_2,
         ),
-        patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer_class,
+        patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer_class,
     ):
         preparer_instance = MagicMock()
         preparer_instance.prepare_messages_for_auto_status = AsyncMock(

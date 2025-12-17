@@ -132,7 +132,9 @@ class TestThreadActivityDetection:
         }
 
         # Mock message preparer
-        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
+        with patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer:
 
             # Mock no new messages but has thread activity
             preparer_instance = MagicMock()
@@ -179,7 +181,9 @@ class TestThreadActivityDetection:
             "auto_status_last_jira_comment_ts": "0",
         }
 
-        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
+        with patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer:
 
             # Mock new messages and thread activity
             preparer_instance = MagicMock()

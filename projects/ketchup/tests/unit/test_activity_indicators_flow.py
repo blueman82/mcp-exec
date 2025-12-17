@@ -34,7 +34,9 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
+        with patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer:
 
             # Mock MessagePreparer to return no new messages
             preparer_instance = MagicMock()
@@ -110,7 +112,9 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
+        with patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer:
 
             # Mock MessagePreparer to return new messages
             preparer_instance = MagicMock()
@@ -182,7 +186,9 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
+        with patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as mock_preparer:
 
             # Mock MessagePreparer to return new messages
             preparer_instance = MagicMock()

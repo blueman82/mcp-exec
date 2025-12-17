@@ -14,9 +14,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from ketchup_unified_scheduler.services.maintenance.fetcher import MaintenanceFetcherScheduler
 from ketchup_unified_scheduler.services.metadata.updater import MetadataUpdaterScheduler
 from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
-from ketchup_unified_scheduler.services.maintenance.fetcher import MaintenanceFetcherScheduler
 
 # Import all migrated schedulers
 from ketchup_unified_scheduler.services.status.processor import StatusUpdaterScheduler
@@ -64,7 +64,10 @@ class TestSchedulerImports:
 class TestSchedulerInstantiation:
     """Test that all schedulers can be instantiated."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_instantiation(self, mock_run):
         """Test StatusUpdaterScheduler can be instantiated."""
         scheduler = StatusUpdaterScheduler()
@@ -72,7 +75,10 @@ class TestSchedulerInstantiation:
         assert isinstance(scheduler, BaseScheduler)
         assert scheduler.running is True
 
-    @patch("ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+        new_callable=AsyncMock,
+    )
     def test_metadata_updater_instantiation(self, mock_run):
         """Test MetadataUpdaterScheduler can be instantiated."""
         scheduler = MetadataUpdaterScheduler()
@@ -103,7 +109,10 @@ class TestSchedulerInstantiation:
 class TestHealthFilePaths:
     """Test health file paths for backward compatibility."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_health_file_path(self, mock_run):
         """Test StatusUpdaterScheduler uses correct health file path."""
         scheduler = StatusUpdaterScheduler()
@@ -112,7 +121,10 @@ class TestHealthFilePaths:
         # Last run file: /tmp/last_run (backward compatible override)
         assert scheduler.last_run_file == Path("/tmp/last_run")
 
-    @patch("ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+        new_callable=AsyncMock,
+    )
     def test_metadata_updater_health_file_path(self, mock_run):
         """Test MetadataUpdaterScheduler uses correct health file path."""
         scheduler = MetadataUpdaterScheduler()
@@ -146,14 +158,20 @@ class TestHealthFilePaths:
 class TestSchedulerIntervals:
     """Test scheduler intervals are correct."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_interval(self, mock_run):
         """Test StatusUpdaterScheduler uses 55-minute interval."""
         scheduler = StatusUpdaterScheduler()
         assert scheduler.interval_minutes == 55
         assert scheduler.get_sleep_seconds() == 55 * 60  # 3300 seconds
 
-    @patch("ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+        new_callable=AsyncMock,
+    )
     def test_metadata_updater_interval(self, mock_run):
         """Test MetadataUpdaterScheduler uses 15-minute interval."""
         scheduler = MetadataUpdaterScheduler()
@@ -185,13 +203,19 @@ class TestSchedulerIntervals:
 class TestRunOnStartConfiguration:
     """Test run_on_start configuration for each scheduler."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_run_on_start(self, mock_run):
         """Test StatusUpdaterScheduler runs on start."""
         scheduler = StatusUpdaterScheduler()
         assert scheduler.run_on_start is True
 
-    @patch("ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+        new_callable=AsyncMock,
+    )
     def test_metadata_updater_run_on_start(self, mock_run):
         """Test MetadataUpdaterScheduler runs on start."""
         scheduler = MetadataUpdaterScheduler()
@@ -227,13 +251,19 @@ class TestRunOnStartConfiguration:
 class TestSchedulerNames:
     """Test scheduler names are set correctly."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_name(self, mock_run):
         """Test StatusUpdaterScheduler has correct name."""
         scheduler = StatusUpdaterScheduler()
         assert scheduler.scheduler_name == "Status Updater Scheduler"
 
-    @patch("ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+        new_callable=AsyncMock,
+    )
     def test_metadata_updater_name(self, mock_run):
         """Test MetadataUpdaterScheduler has correct name."""
         scheduler = MetadataUpdaterScheduler()
@@ -259,7 +289,10 @@ class TestSchedulerNames:
 class TestSignalHandling:
     """Test signal handling for graceful shutdown."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_signal_handling(self, mock_run):
         """Test StatusUpdaterScheduler responds to signals."""
         scheduler = StatusUpdaterScheduler()
@@ -267,7 +300,10 @@ class TestSignalHandling:
         scheduler._signal_handler(15, None)  # SIGTERM
         assert scheduler.running is False
 
-    @patch("ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+        new_callable=AsyncMock,
+    )
     def test_metadata_updater_signal_handling(self, mock_run):
         """Test MetadataUpdaterScheduler responds to signals."""
         scheduler = MetadataUpdaterScheduler()
@@ -280,7 +316,10 @@ class TestSignalHandling:
 class TestHealthFileUpdates:
     """Test health file update functionality."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_health_update(self, mock_run, tmp_path):
         """Test StatusUpdaterScheduler can update health file."""
         scheduler = StatusUpdaterScheduler()
@@ -308,7 +347,10 @@ class TestHealthFileUpdates:
 class TestLastRunTracking:
     """Test last run file tracking."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     def test_status_updater_last_run_update(self, mock_run, tmp_path):
         """Test StatusUpdaterScheduler can update last run file."""
         scheduler = StatusUpdaterScheduler()
@@ -327,7 +369,10 @@ class TestLastRunTracking:
 class TestAsyncExecution:
     """Test async execution of scheduler tasks."""
 
-    @patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock)
+    @patch(
+        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+        new_callable=AsyncMock,
+    )
     async def test_status_updater_task_execution(self, mock_run, tmp_path):
         """Test StatusUpdaterScheduler can execute task."""
         scheduler = StatusUpdaterScheduler()
@@ -393,9 +438,13 @@ class TestAllSchedulersInheritFromBaseScheduler:
         ]
 
         # Create instances with mocked dependencies
-        with patch("ketchup_unified_scheduler.services.status.processor.run_auto_status", new_callable=AsyncMock):
+        with patch(
+            "ketchup_unified_scheduler.services.status.processor.run_auto_status",
+            new_callable=AsyncMock,
+        ):
             with patch(
-                "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update", new_callable=AsyncMock
+                "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
+                new_callable=AsyncMock,
             ):
                 with patch(
                     "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",

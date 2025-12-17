@@ -91,7 +91,9 @@ async def test_step_2_report_generation():
     print("\n🤖 STEP 2: Testing report generation...")
 
     try:
-        from ketchup_unified_scheduler.services.jira_reporter.report_generator import ReportGenerator
+        from ketchup_unified_scheduler.services.jira_reporter.report_generator import (
+            ReportGenerator,
+        )
 
         # Create mock OpenAI handler
         mock_openai_handler = MagicMock()
