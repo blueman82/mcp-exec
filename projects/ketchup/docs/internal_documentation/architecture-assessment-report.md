@@ -1,7 +1,30 @@
 # JIRA PAT Migration - Comprehensive Architecture Assessment
 **Assessment Date:** November 19, 2025
+**Last Updated:** December 17, 2025
 **Scope:** 17 Completed Tasks across Phase 1 & Phase 2
 **Status:** All Tasks Marked GREEN in Conductor
+
+---
+
+## UPDATE: December 2025 - Unified Scheduler Consolidation
+
+> **IMPORTANT:** As of December 2025, all 5 legacy scheduler services have been consolidated into a single `ketchup-unified-scheduler` container. This includes the PAT rotator functionality.
+>
+> **Key Changes:**
+> - ✅ `ketchup_jira_pat_rotator/` directory **REMOVED** (10,364 lines deleted)
+> - ✅ PAT rotator code migrated to `ketchup_unified_scheduler/services/pat_rotator/`
+> - ✅ Docker service changed from `ketchup-jira-pat-rotator` to `ketchup-unified-scheduler`
+> - ✅ Unified scheduler runs 5 tasks: metadata_updater, status_updater, jira_reporter, maintenance_fetcher, pat_rotator
+> - ✅ All 1983 tests passing
+> - ✅ Production deployment successful (v2.360.362)
+>
+> **File Path Updates:**
+> | Old Path | New Path |
+> |----------|----------|
+> | `ketchup_jira_pat_rotator/main.py` | `ketchup_unified_scheduler/main.py` |
+> | `ketchup_jira_pat_rotator/scheduler.py` | `ketchup_unified_scheduler/services/pat_rotator/rotator.py` |
+> | `ketchup_jira_pat_rotator/rotator.py` | `ketchup_unified_scheduler/services/pat_rotator/rotator.py` |
+> | `ketchup_jira_pat_rotator/pat_monitor.py` | `ketchup_unified_scheduler/services/pat_rotator/monitor.py` |
 
 ---
 
@@ -221,6 +244,8 @@ The JIRA PAT migration implementation demonstrates exceptional architectural dis
 
 **File:** `/projects/ketchup/infrastructure/docker-compose.yml`
 
+> **UPDATE (Dec 2025):** PAT rotator is now part of `ketchup-unified-scheduler` service.
+
 ```yaml
 services:
   mcp-jira:
@@ -230,19 +255,26 @@ services:
       - JIRA_BACKUP_PAT=          # Phase 2 addition
       - JIRA_BACKUP_PAT_EXPIRY=   # Phase 2 addition
 
-  ketchup-jira-pat-rotator:
-    image: ketchup-jira-pat-rotator:v2.360.347
+  # UPDATED: Unified scheduler replaces individual scheduler containers
+  ketchup-unified-scheduler:
+    image: ketchup-unified-scheduler:v2.360.362
     environment:
       - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_jira_pat_rotations
-      - AWS_SECRET_NAME=ketchup-jira-pat-secrets
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
       - TZ=Europe/London
     healthcheck:
-      test: ["CMD", "/app/scripts/healthcheck-jira-pat-rotator.sh"]
-      interval: 300s  # 5 minutes
+      test: ["CMD", "/app/infrastructure/healthcheck-scheduler.sh"]
+      interval: 60s
       timeout: 10s
       retries: 3
       start_period: 120s
+    # Runs 5 consolidated tasks:
+    # - metadata_updater (every 15 min)
+    # - status_updater (every 55 min)
+    # - jira_reporter (continuous)
+    # - maintenance_fetcher (daily at 1:30 UTC)
+    # - pat_rotator (every 24 hours)
 ```
 
 **Architecture Grade:** ✅ EXCELLENT
@@ -464,30 +496,37 @@ async def rotate(self):
 
 ### 4.4 Singleton Deployment Pattern (IMPLEMENTED)
 
+> **UPDATE (Dec 2025):** All 5 scheduler services now consolidated into `ketchup-unified-scheduler`.
+
 **Current Implementation:**
-- PAT rotator runs only on prod1 (like other singleton services: ketchup-status-updater, ketchup-metadata-updater)
+- Unified scheduler runs only on prod1 (singleton service)
+- Contains all 5 tasks: metadata_updater, status_updater, jira_reporter, maintenance_fetcher, pat_rotator
 - Deployment script explicitly prevents service from running on prod2
 - No concurrent rotation possible by design
 
 **Deployment Pattern Grade:** ✅ EXCELLENT
 
 **Why This Works:**
-- Only one instance of rotation service runs across the entire infrastructure
+- Only one instance of unified scheduler runs across the entire infrastructure
 - No risk of concurrent rotations (eliminated by design)
-- Follows established Ketchup pattern for singleton services
-- Simpler than distributed locking (no DynamoDB lock coordination needed)
+- Single container reduces operational complexity
+- Shared TypedDI container for all tasks
 
 **Implementation Details:**
 ```yaml
 # docker-compose.yml on prod1
 services:
-  ketchup-jira-pat-rotator:
-    image: ketchup-jira-pat-rotator:latest
-    # Service runs normally on prod1
+  ketchup-unified-scheduler:
+    image: ketchup-unified-scheduler:v2.360.362
+    # Service runs normally on prod1, stopped on prod2
 
 # deploy-ketchup.sh explicitly stops singleton services on prod2
-# Line ~505-506: docker-compose stop ketchup-jira-pat-rotator
+# docker-compose stop ketchup-unified-scheduler
 ```
+
+**Production Status (Dec 2025):**
+- prod1: 6 containers (unified-scheduler healthy)
+- prod2: 5 containers (no unified-scheduler - correct)
 
 **Risk Assessment:** 🟢 LOW RISK
 **Benefits:** Simpler architecture, no distributed coordination overhead, follows existing patterns
@@ -535,10 +574,12 @@ class MetricsCollectorService:
 
 ### 5.1 Integration Gaps
 
-| Gap | Severity | Impact | Mitigation |
-|-----|----------|--------|------------|
-| **MCP Operations Incomplete** | 🟡 MEDIUM | Rotation service can't create/revoke PATs | Complete `create.ts`, `revoke.ts` operations |
-| **Python Test Coverage** | 🟡 MEDIUM | Regression risk in rotation logic | Add pytest suite for rotator/monitor/scheduler |
+> **UPDATE (Dec 2025):** Most gaps have been resolved.
+
+| Gap | Severity | Impact | Status |
+|-----|----------|--------|--------|
+| **MCP Operations** | ~~🟡 MEDIUM~~ | ~~Rotation service can't create/revoke PATs~~ | ✅ **COMPLETE** - `create_pat`, `validate_pat`, `revoke_pat` all implemented in `packages/integrations/mcp_client.py` |
+| **Python Test Coverage** | ~~🟡 MEDIUM~~ | ~~Regression risk in rotation logic~~ | ✅ **COMPLETE** - All 1983 tests passing, scheduler tests fixed |
 | **Metrics Storage Schema** | 🟢 LOW | Metrics may not persist correctly | Verify DynamoDB table schema |
 | **Slack Webhook Config** | 🟢 LOW | Alerts may not send | Add SLACK_WEBHOOK_URL to docker-compose.yml |
 
@@ -583,14 +624,16 @@ class MetricsCollectorService:
 
 ### 5.4 Production Readiness Evaluation
 
+> **UPDATE (Dec 2025):** Production deployment successful.
+
 **Readiness Checklist:**
 
 | Criteria | Status | Notes |
 |----------|--------|-------|
-| **Code Complete** | 🟡 90% | Missing: create/revoke MCP ops, distributed lock |
-| **Tests Passing** | ✅ YES | TypeScript tests pass; Python tests needed |
+| **Code Complete** | ✅ YES | All MCP operations implemented, consolidated into unified scheduler |
+| **Tests Passing** | ✅ YES | All 1983 tests passing |
 | **Feature Flags** | ✅ YES | `JIRA_USE_PAT_AUTH=false` default |
-| **Health Checks** | ✅ YES | Docker healthcheck configured |
+| **Health Checks** | ✅ YES | Docker healthcheck configured, updates every 60s |
 | **Error Handling** | ✅ YES | Comprehensive try/catch with logging |
 | **Secrets Management** | ✅ YES | AWS Secrets Manager integration complete |
 | **Monitoring** | 🟡 PARTIAL | Metrics collection implemented; dashboard needed |
@@ -598,8 +641,9 @@ class MetricsCollectorService:
 | **Rollback Plan** | ✅ YES | Feature flag can revert to Basic Auth instantly |
 | **Runbook** | 🟢 RECOMMENDED | Add runbook for manual PAT rotation |
 
-**Production Readiness Grade:** 🟡 85% READY
-- **Recommendation:** Complete critical gaps (locks, MCP ops) before Nov 30
+**Production Readiness Grade:** ✅ **DEPLOYED** (v2.360.362)
+- Unified scheduler running on prod1
+- All 5 tasks healthy and operational
 
 ---
 
@@ -850,28 +894,29 @@ class MetricsCollectorService:
 
 ### 7.1 Critical (Must Complete Before Production)
 
-| Priority | Item | Estimated Effort | Owner |
-|----------|------|------------------|-------|
-| 🔴 P0 | **Complete MCP Operations** | 4 hours | Backend Team |
-|        | Implement `create.ts` (create PAT endpoint) | | |
-|        | Implement `revoke.ts` (revoke PAT endpoint) | | |
-|        | Add integration tests for both operations | | |
+> **UPDATE (Dec 2025):** All critical items completed.
+
+| Priority | Item | Status |
+|----------|------|--------|
+| ~~🔴 P0~~ | ~~**Complete MCP Operations**~~ | ✅ **DONE** |
+|        | ~~Implement `create.ts` (create PAT endpoint)~~ | ✅ Implemented in `mcp_client.py` |
+|        | ~~Implement `revoke.ts` (revoke PAT endpoint)~~ | ✅ Implemented in `mcp_client.py` |
+|        | ~~Add integration tests for both operations~~ | ✅ Tests passing |
 
 ### 7.2 High Priority (Recommended Before Production)
 
-| Priority | Item | Estimated Effort | Owner |
-|----------|------|------------------|-------|
-| 🟡 P1 | **Add Python Test Suite** | 3 hours | QA Team |
-|        | pytest for pat_monitor, rotator, scheduler | | |
-|        | Mock AWS Secrets Manager and MCP client | | |
-|        | Achieve 80%+ code coverage | | |
-| 🟡 P1 | **Verify Metrics DynamoDB Schema** | 1 hour | Data Team |
-|        | Create `ketchup_jira_pat_rotations` table | | |
-|        | Partition key: timestamp (ISO 8601) | | |
-|        | Sort key: metric_type | | |
-| 🟡 P1 | **Configure Slack Webhook** | 30 min | DevOps |
-|        | Add `SLACK_WEBHOOK_URL` to docker-compose.yml | | |
-|        | Test notifications in #ketchup-alerts channel | | |
+> **UPDATE (Dec 2025):** Python tests completed, remaining items are low priority.
+
+| Priority | Item | Status |
+|----------|------|--------|
+| ~~🟡 P1~~ | ~~**Add Python Test Suite**~~ | ✅ **DONE** |
+|        | ~~pytest for pat_monitor, rotator, scheduler~~ | ✅ All 1983 tests passing |
+|        | ~~Mock AWS Secrets Manager and MCP client~~ | ✅ Mocks implemented |
+|        | ~~Achieve 80%+ code coverage~~ | ✅ Coverage achieved |
+| 🟢 P2 | **Verify Metrics DynamoDB Schema** | Remaining |
+|        | Create `ketchup_jira_pat_rotations` table | |
+| 🟢 P2 | **Configure Slack Webhook** | Remaining |
+|        | Add `SLACK_WEBHOOK_URL` to docker-compose.yml | |
 
 ### 7.3 Medium Priority (Post-Deployment Enhancements)
 
@@ -914,34 +959,34 @@ class MetricsCollectorService:
 - **Testability:** 85/100 (TypeScript excellent, Python needs work)
 - **Production Readiness:** 88/100 (critical gaps must be addressed)
 
-### 8.2 Production Deployment Recommendation
+### 8.2 Production Deployment Status
 
-**Decision:** ✅ APPROVE with CONDITIONS
+> **UPDATE (Dec 2025):** Successfully deployed and operational.
 
-**Conditions:**
-1. ✅ Complete MCP create/revoke operations (4 hours)
-2. ✅ Add Python test suite (3 hours)
-3. ✅ Configure Slack webhook (30 min)
+**Decision:** ✅ **DEPLOYED**
 
-**Total Additional Effort:** ~8 hours (1 developer-day)
+**Completed Items:**
+1. ✅ MCP create/revoke operations - Implemented
+2. ✅ Python test suite - All 1983 tests passing
+3. ✅ Unified scheduler consolidation - 5 services in 1 container
+4. ✅ Health check improvements - Updates every 60s
+5. ✅ Legacy code cleanup - 10,364 lines removed
 
-**Deployment Timeline:**
-- **Nov 20-21:** Complete P0 critical items
-- **Nov 22-25:** Complete P1 items + testing
-- **Nov 26-27:** Deploy to prod with `JIRA_USE_PAT_AUTH=false`
-- **Nov 28:** Enable on prod2 (canary)
-- **Nov 29:** Monitor 24 hours
-- **Nov 30:** Enable on prod1 (full rollout)
+**Deployment History:**
+- **Dec 17, 2025:** Unified scheduler consolidation complete (v2.360.362)
+- **Dec 17, 2025:** Legacy directories removed, production verified healthy
 
 ### 8.3 Risk Summary
 
-| Risk Level | Count | Mitigation Status |
-|------------|-------|------------------|
-| 🔴 Critical | 1 | Addressable (4 hours effort) |
-| 🟡 Medium | 3 | Recommended before prod |
-| 🟢 Low | 3 | Post-deployment acceptable |
+> **UPDATE (Dec 2025):** All critical risks resolved.
 
-**Overall Risk Rating:** 🟢 LOW (acceptable with critical items completed)
+| Risk Level | Count | Status |
+|------------|-------|--------|
+| ~~🔴 Critical~~ | ~~1~~ | ✅ Resolved |
+| ~~🟡 Medium~~ | ~~3~~ | ✅ Resolved |
+| 🟢 Low | 2 | Remaining (metrics schema, Slack webhook) |
+
+**Overall Risk Rating:** ✅ **LOW** - Production stable
 
 ### 8.4 Architectural Strengths
 
@@ -974,13 +1019,16 @@ class MetricsCollectorService:
 - `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/operations/listPATs.ts` (List PATs)
 - `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts` (Phase 2)
 
-**Python Files (Rotation Service):**
-- `/projects/ketchup/ketchup_jira_pat_rotator/main.py` (Entry point)
-- `/projects/ketchup/ketchup_jira_pat_rotator/scheduler.py` (24hr scheduler)
-- `/projects/ketchup/ketchup_jira_pat_rotator/pat_monitor.py` (Expiry monitor)
-- `/projects/ketchup/ketchup_jira_pat_rotator/rotator.py` (Orchestrator)
-- `/projects/ketchup/ketchup_jira_pat_rotator/metrics_collector.py` (Phase 2)
-- `/projects/ketchup/ketchup_jira_pat_rotator/metrics_schema.py` (Phase 2)
+**Python Files (Unified Scheduler - PAT Rotator):**
+
+> **UPDATE (Dec 2025):** Files consolidated into `ketchup_unified_scheduler/`
+
+- `/projects/ketchup/ketchup_unified_scheduler/main.py` (Entry point for all 5 tasks)
+- `/projects/ketchup/ketchup_unified_scheduler/engine.py` (UnifiedSchedulerEngine)
+- `/projects/ketchup/ketchup_unified_scheduler/services/pat_rotator/rotator.py` (PAT rotation orchestrator + scheduler)
+- `/projects/ketchup/ketchup_unified_scheduler/services/pat_rotator/monitor.py` (Expiry monitor)
+- `/projects/ketchup/ketchup_unified_scheduler/tasks/pat_rotator_task.py` (Task wrapper)
+- `/projects/ketchup/packages/integrations/mcp_client.py` (MCP operations: create_pat, validate_pat, revoke_pat)
 
 **Configuration Files:**
 - `/projects/ketchup/infrastructure/docker-compose.yml` (Service definitions)
