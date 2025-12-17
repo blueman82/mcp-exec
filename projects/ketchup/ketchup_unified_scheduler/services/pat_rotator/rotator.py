@@ -21,6 +21,7 @@ import boto3
 
 from packages.core.constants import AWS_REGION
 from packages.core.logging import setup_logger
+from packages.core.schedulers import BaseScheduler
 
 logger = setup_logger(__name__)
 
@@ -579,6 +580,7 @@ async def async_main():
 def main():
     """Entry point for PAT rotation scheduler."""
     import asyncio
+
     asyncio.run(async_main())
 
 
