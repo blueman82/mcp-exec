@@ -891,12 +891,14 @@ class MetricsCollectorService:
 
 ### 7.1 Critical (Must Complete Before Production)
 
-| Priority | Item | Estimated Effort | Owner |
-|----------|------|------------------|-------|
-| 🔴 P0 | **Complete MCP Operations** | 4 hours | Backend Team |
-|        | Implement `create.ts` (create PAT endpoint) | | |
-|        | Implement `revoke.ts` (revoke PAT endpoint) | | |
-|        | Add integration tests for both operations | | |
+> **UPDATE (Dec 2025):** All critical items completed.
+
+| Priority | Item | Status |
+|----------|------|--------|
+| ~~🔴 P0~~ | ~~**Complete MCP Operations**~~ | ✅ **DONE** |
+|        | ~~Implement `create.ts` (create PAT endpoint)~~ | ✅ Implemented in `mcp_client.py` |
+|        | ~~Implement `revoke.ts` (revoke PAT endpoint)~~ | ✅ Implemented in `mcp_client.py` |
+|        | ~~Add integration tests for both operations~~ | ✅ Tests passing |
 
 ### 7.2 High Priority (Recommended Before Production)
 
