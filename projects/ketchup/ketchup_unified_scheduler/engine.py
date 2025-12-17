@@ -227,9 +227,9 @@ class UnifiedSchedulerEngine:
         if not enabled_tasks:
             self._logger.warning("No enabled tasks found in registry")
             self._update_health_status("idle")
-            # Keep running to allow signal handling
+            # Keep running to allow signal handling (1s interval for responsive shutdown)
             while self.running:
-                await asyncio.sleep(60)
+                await asyncio.sleep(1)
             self._update_health_status("stopped")
             return
 
