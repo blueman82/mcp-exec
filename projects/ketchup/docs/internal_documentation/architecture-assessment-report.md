@@ -1016,13 +1016,16 @@ class MetricsCollectorService:
 - `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/operations/listPATs.ts` (List PATs)
 - `/projects/ketchup/corp_jira_mcp/corp_jira_mcp/services/backup-pat.service.ts` (Phase 2)
 
-**Python Files (Rotation Service):**
-- `/projects/ketchup/ketchup_jira_pat_rotator/main.py` (Entry point)
-- `/projects/ketchup/ketchup_jira_pat_rotator/scheduler.py` (24hr scheduler)
-- `/projects/ketchup/ketchup_jira_pat_rotator/pat_monitor.py` (Expiry monitor)
-- `/projects/ketchup/ketchup_jira_pat_rotator/rotator.py` (Orchestrator)
-- `/projects/ketchup/ketchup_jira_pat_rotator/metrics_collector.py` (Phase 2)
-- `/projects/ketchup/ketchup_jira_pat_rotator/metrics_schema.py` (Phase 2)
+**Python Files (Unified Scheduler - PAT Rotator):**
+
+> **UPDATE (Dec 2025):** Files consolidated into `ketchup_unified_scheduler/`
+
+- `/projects/ketchup/ketchup_unified_scheduler/main.py` (Entry point for all 5 tasks)
+- `/projects/ketchup/ketchup_unified_scheduler/engine.py` (UnifiedSchedulerEngine)
+- `/projects/ketchup/ketchup_unified_scheduler/services/pat_rotator/rotator.py` (PAT rotation orchestrator + scheduler)
+- `/projects/ketchup/ketchup_unified_scheduler/services/pat_rotator/monitor.py` (Expiry monitor)
+- `/projects/ketchup/ketchup_unified_scheduler/tasks/pat_rotator_task.py` (Task wrapper)
+- `/projects/ketchup/packages/integrations/mcp_client.py` (MCP operations: create_pat, validate_pat, revoke_pat)
 
 **Configuration Files:**
 - `/projects/ketchup/infrastructure/docker-compose.yml` (Service definitions)
