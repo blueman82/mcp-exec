@@ -153,13 +153,19 @@ class UnifiedSchedulerEngine:
                 sleep_seconds = self._calculate_sleep_seconds(config)
                 self._logger.debug(f"Task '{config.name}' sleeping for {sleep_seconds} seconds")
 
-                # Sleep in smaller intervals to check running flag
+                # Sleep in smaller intervals to check running flag and update health
                 # Use 1-second intervals for responsive shutdown (important for tests)
                 sleep_interval = 1
                 elapsed = 0
+                health_update_counter = 0
                 while elapsed < sleep_seconds and self.running:
                     await asyncio.sleep(min(sleep_interval, sleep_seconds - elapsed))
                     elapsed += sleep_interval
+                    health_update_counter += 1
+                    # Update health status every 60 seconds to keep healthcheck happy
+                    if health_update_counter >= 60:
+                        self._update_health_status("running")
+                        health_update_counter = 0
 
                 if not self.running:
                     break
