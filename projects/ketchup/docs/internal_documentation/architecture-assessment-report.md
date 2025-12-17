@@ -496,30 +496,37 @@ async def rotate(self):
 
 ### 4.4 Singleton Deployment Pattern (IMPLEMENTED)
 
+> **UPDATE (Dec 2025):** All 5 scheduler services now consolidated into `ketchup-unified-scheduler`.
+
 **Current Implementation:**
-- PAT rotator runs only on prod1 (like other singleton services: ketchup-status-updater, ketchup-metadata-updater)
+- Unified scheduler runs only on prod1 (singleton service)
+- Contains all 5 tasks: metadata_updater, status_updater, jira_reporter, maintenance_fetcher, pat_rotator
 - Deployment script explicitly prevents service from running on prod2
 - No concurrent rotation possible by design
 
 **Deployment Pattern Grade:** ✅ EXCELLENT
 
 **Why This Works:**
-- Only one instance of rotation service runs across the entire infrastructure
+- Only one instance of unified scheduler runs across the entire infrastructure
 - No risk of concurrent rotations (eliminated by design)
-- Follows established Ketchup pattern for singleton services
-- Simpler than distributed locking (no DynamoDB lock coordination needed)
+- Single container reduces operational complexity
+- Shared TypedDI container for all tasks
 
 **Implementation Details:**
 ```yaml
 # docker-compose.yml on prod1
 services:
-  ketchup-jira-pat-rotator:
-    image: ketchup-jira-pat-rotator:latest
-    # Service runs normally on prod1
+  ketchup-unified-scheduler:
+    image: ketchup-unified-scheduler:v2.360.362
+    # Service runs normally on prod1, stopped on prod2
 
 # deploy-ketchup.sh explicitly stops singleton services on prod2
-# Line ~505-506: docker-compose stop ketchup-jira-pat-rotator
+# docker-compose stop ketchup-unified-scheduler
 ```
+
+**Production Status (Dec 2025):**
+- prod1: 6 containers (unified-scheduler healthy)
+- prod2: 5 containers (no unified-scheduler - correct)
 
 **Risk Assessment:** 🟢 LOW RISK
 **Benefits:** Simpler architecture, no distributed coordination overhead, follows existing patterns
