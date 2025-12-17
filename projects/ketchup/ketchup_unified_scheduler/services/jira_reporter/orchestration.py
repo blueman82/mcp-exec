@@ -11,11 +11,13 @@ import os
 import time
 from typing import Any, Dict, Optional
 
-from ketchup_unified_scheduler.services.jira_reporter.archive_handler import JiraReporterArchiveHandler
+from ketchup_unified_scheduler.services.jira_reporter.archive_handler import (
+    JiraReporterArchiveHandler,
+)
 from ketchup_unified_scheduler.services.jira_reporter.channel_monitor import ChannelMonitor
+from ketchup_unified_scheduler.services.jira_reporter.report_generator import ReportGenerator
 from ketchup_unified_scheduler.services.jira_reporter.service import JiraService
 from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import JiraTicketDiscovery
-from ketchup_unified_scheduler.services.jira_reporter.report_generator import ReportGenerator
 from packages.core.logging import setup_logger
 from packages.core.sqs_client import SQSClient
 from packages.core.typed_di.registry import TypedServiceRegistry
@@ -209,7 +211,10 @@ async def process_sqs_messages(
         for message in messages:
             try:
                 body = json.loads(message["Body"])
-                if body.get("event_type") == "channel_archived" and body.get("service") == "jira_reporter":
+                if (
+                    body.get("event_type") == "channel_archived"
+                    and body.get("service") == "jira_reporter"
+                ):
                     channel_id = body.get("channel_id")
                     channel_data = await dynamodb_store.get_channel_details_consistent(channel_id)
                     if not channel_data:
@@ -345,7 +350,9 @@ async def run_reporting_cycle(
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             success_count = sum(1 for r in results if r is True)
-            logger.info(f"Batch processed: {success_count} succeeded, {len(batch) - success_count} failed")
+            logger.info(
+                f"Batch processed: {success_count} succeeded, {len(batch) - success_count} failed"
+            )
             if i + batch_size < len(channels):
                 await asyncio.sleep(2)
 

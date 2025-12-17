@@ -154,7 +154,9 @@ class TestAutoStatusProcessor:
         )
 
         # Mock generator
-        with patch("ketchup_unified_scheduler.services.status.processor.AutoStatusGenerator") as mock_generator_class:
+        with patch(
+            "ketchup_unified_scheduler.services.status.processor.AutoStatusGenerator"
+        ) as mock_generator_class:
             mock_generator = mock_generator_class.return_value
             mock_generator.check_for_activity = AsyncMock(
                 return_value={
@@ -195,7 +197,9 @@ class TestAutoStatusProcessor:
         )
 
         # Mock generator to fail
-        with patch("ketchup_unified_scheduler.services.status.processor.AutoStatusGenerator") as mock_generator_class:
+        with patch(
+            "ketchup_unified_scheduler.services.status.processor.AutoStatusGenerator"
+        ) as mock_generator_class:
             mock_generator = mock_generator_class.return_value
             mock_generator.check_for_activity = AsyncMock(
                 return_value={
@@ -233,7 +237,9 @@ class TestAutoStatusProcessor:
         )
 
         # Mock generator to succeed
-        with patch("ketchup_unified_scheduler.services.status.processor.AutoStatusGenerator") as mock_generator_class:
+        with patch(
+            "ketchup_unified_scheduler.services.status.processor.AutoStatusGenerator"
+        ) as mock_generator_class:
             mock_generator = mock_generator_class.return_value
             mock_generator.check_for_activity = AsyncMock(
                 return_value={

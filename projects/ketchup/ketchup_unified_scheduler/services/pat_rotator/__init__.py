@@ -7,8 +7,8 @@ orchestrating safe PAT rotation including creation, validation, and revocation.
 
 from ketchup_unified_scheduler.services.pat_rotator.monitor import PatMonitor
 from ketchup_unified_scheduler.services.pat_rotator.rotator import (
-    PATRotator,
     PatRotationScheduler,
+    PATRotator,
     SecretsManager,
     SlackNotifier,
 )

@@ -9,8 +9,8 @@ from ketchup_unified_scheduler.services.status.generator import AutoStatusGenera
 from ketchup_unified_scheduler.services.status.processor import (
     AutoStatusProcessor,
     StatusUpdaterScheduler,
-    run_auto_status,
     main,
+    run_auto_status,
 )
 
 __all__ = [
