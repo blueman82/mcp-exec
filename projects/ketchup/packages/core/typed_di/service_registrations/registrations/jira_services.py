@@ -13,8 +13,12 @@ from packages.core.typed_di.types import DependencySpec
 
 # JIRA and core imports
 try:
-    from jira_reporter.jira_service import JiraService as JIRAServiceImpl
-    from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
+    from ketchup_unified_scheduler.services.jira_reporter.service import (
+        JiraService as JIRAServiceImpl,
+    )
+    from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import (
+        JiraTicketDiscovery,
+    )
     from packages.core.config.mcp_feature_flags import MCPFeatureFlags
     from packages.core.local_metrics import MetricsStorage
     from packages.db.dynamodb_store import DynamoDBStore
