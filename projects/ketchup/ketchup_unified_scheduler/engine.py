@@ -154,7 +154,8 @@ class UnifiedSchedulerEngine:
                 self._logger.debug(f"Task '{config.name}' sleeping for {sleep_seconds} seconds")
 
                 # Sleep in smaller intervals to check running flag
-                sleep_interval = 60  # Check every minute
+                # Use 1-second intervals for responsive shutdown (important for tests)
+                sleep_interval = 1
                 elapsed = 0
                 while elapsed < sleep_seconds and self.running:
                     await asyncio.sleep(min(sleep_interval, sleep_seconds - elapsed))
