@@ -1,1 +1,0 @@
-"""Channel metadata updater package."""
