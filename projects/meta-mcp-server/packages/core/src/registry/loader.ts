@@ -27,10 +27,13 @@ export class ConfigValidationError extends Error {
 }
 
 const ServerConfigSchema = z.object({
-  type: z.string().optional(), // "stdio"
-  command: z.string(),
+  type: z.string().optional(), // "stdio" or "streamable-http"
+  command: z.string().optional(), // Required for stdio, not for URL-based
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),
+  // HTTP transport (URL-based)
+  url: z.string().optional(),
+  headers: z.record(z.string()).optional(),
   disabled: z.boolean().optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -56,14 +59,14 @@ function resolveEnvVars(value: string): string {
 }
 
 /**
- * Resolves environment variables in backendAuth record values.
+ * Resolves environment variables in a string record (backendAuth, headers, etc).
  */
-function resolveBackendAuth(backendAuth: Record<string, string> | undefined): Record<string, string> | undefined {
-  if (!backendAuth) {
+function resolveRecordEnvVars(record: Record<string, string> | undefined): Record<string, string> | undefined {
+  if (!record) {
     return undefined;
   }
   const resolved: Record<string, string> = {};
-  for (const [key, value] of Object.entries(backendAuth)) {
+  for (const [key, value] of Object.entries(record)) {
     resolved[key] = resolveEnvVars(value);
   }
   return resolved;
@@ -103,12 +106,13 @@ export function loadServerManifest(): ServerManifest {
     throw new ConfigValidationError(result.error.message);
   }
 
-  // Process servers and resolve backendAuth environment variables
+  // Process servers and resolve environment variables in backendAuth and headers
   const processedServers: Record<string, ServerConfigWithMeta> = {};
   for (const [name, config] of Object.entries(result.data.mcpServers)) {
     processedServers[name] = {
       ...config,
-      backendAuth: resolveBackendAuth(config.backendAuth),
+      backendAuth: resolveRecordEnvVars(config.backendAuth),
+      headers: resolveRecordEnvVars(config.headers),
     } as ServerConfigWithMeta;
   }
 
