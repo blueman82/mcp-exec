@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import { listServersHandler, listServersTool } from '../../src/tools/list-servers.js';
-import { clearCache } from '@meta-mcp/core';
+import { clearCache } from '@justanothermldude/meta-mcp-core';
 
 vi.mock('fs');
 

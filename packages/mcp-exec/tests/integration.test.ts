@@ -1,6 +1,6 @@
 /**
  * Integration tests for mcp-exec with real MCP calls
- * Tests full execute_code flow: sandbox -> bridge -> filesystem MCP server -> output
+ * Tests full code execution flow: sandbox -> bridge -> filesystem MCP server -> output
  *
  * This file contains both:
  * 1. Unit-level integration tests (with mocks) - always run
@@ -13,9 +13,9 @@ import { tmpdir } from 'node:os';
 import { createMcpExecServer } from '../src/server.js';
 import { MCPBridge } from '../src/bridge/server.js';
 import { SandboxExecutor } from '../src/sandbox/executor.js';
-import { createExecuteCodeHandler, isExecuteCodeInput } from '../src/tools/execute-code.js';
-import type { ServerPool, MCPConnection } from '@meta-mcp/core';
-import { ConnectionState, ServerPool as RealServerPool, createConnection, getServerConfig } from '@meta-mcp/core';
+import { createExecuteWithWrappersHandler, isExecuteWithWrappersInput } from '../src/tools/execute-with-wrappers.js';
+import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
+import { ConnectionState, ServerPool as RealServerPool, createConnection, getServerConfig } from '@justanothermldude/meta-mcp-core';
 
 // Test directory for filesystem operations
 const TEST_DIR = join(tmpdir(), 'mcp-exec-integration-test');
@@ -73,7 +73,7 @@ describe('mcp-exec Integration Tests', () => {
       mockPool = createMockPool();
     });
 
-    it('should create server with execute_code tool', () => {
+    it('should create server with tools', () => {
       const { server, listToolsHandler, callToolHandler, shutdown } = createMcpExecServer(mockPool);
 
       expect(server).toBeDefined();
@@ -82,12 +82,15 @@ describe('mcp-exec Integration Tests', () => {
       expect(shutdown).toBeDefined();
     });
 
-    it('should list execute_code tool', async () => {
+    it('should list all 3 tools', async () => {
       const { listToolsHandler, shutdown } = createMcpExecServer(mockPool);
       const result = await listToolsHandler();
 
-      expect(result.tools).toHaveLength(1);
-      expect(result.tools[0].name).toBe('execute_code');
+      expect(result.tools).toHaveLength(3);
+      const toolNames = result.tools.map((t) => t.name);
+      expect(toolNames).toContain('list_available_mcp_servers');
+      expect(toolNames).toContain('get_mcp_tool_schema');
+      expect(toolNames).toContain('execute_code_with_wrappers');
       expect(result.tools[0].inputSchema).toBeDefined();
 
       await shutdown();
@@ -107,11 +110,11 @@ describe('mcp-exec Integration Tests', () => {
       await shutdown();
     });
 
-    it('should validate execute_code arguments', async () => {
+    it('should validate execute_code_with_wrappers arguments', async () => {
       const { callToolHandler, shutdown } = createMcpExecServer(mockPool);
       const result = await callToolHandler({
-        name: 'execute_code',
-        arguments: {}, // Missing required 'code' field
+        name: 'execute_code_with_wrappers',
+        arguments: {}, // Missing required 'code' and 'wrappers' fields
       });
 
       expect(result.isError).toBe(true);
@@ -121,18 +124,19 @@ describe('mcp-exec Integration Tests', () => {
     });
   });
 
-  describe('isExecuteCodeInput type guard', () => {
+  describe('isExecuteWithWrappersInput type guard', () => {
     it('should return true for valid input', () => {
-      expect(isExecuteCodeInput({ code: 'console.log(1)' })).toBe(true);
-      expect(isExecuteCodeInput({ code: 'console.log(1)', timeout_ms: 5000 })).toBe(true);
+      expect(isExecuteWithWrappersInput({ code: 'console.log(1)', wrappers: ['server1'] })).toBe(true);
+      expect(isExecuteWithWrappersInput({ code: 'console.log(1)', wrappers: ['s1', 's2'], timeout_ms: 5000 })).toBe(true);
     });
 
     it('should return false for invalid input', () => {
-      expect(isExecuteCodeInput({})).toBe(false);
-      expect(isExecuteCodeInput({ timeout_ms: 5000 })).toBe(false);
-      expect(isExecuteCodeInput({ code: 123 })).toBe(false);
-      expect(isExecuteCodeInput(null)).toBe(false);
-      expect(isExecuteCodeInput(undefined)).toBe(false);
+      expect(isExecuteWithWrappersInput({})).toBe(false);
+      expect(isExecuteWithWrappersInput({ code: 'test' })).toBe(false); // missing wrappers
+      expect(isExecuteWithWrappersInput({ wrappers: ['s1'] })).toBe(false); // missing code
+      expect(isExecuteWithWrappersInput({ code: 123, wrappers: ['s1'] })).toBe(false);
+      expect(isExecuteWithWrappersInput(null)).toBe(false);
+      expect(isExecuteWithWrappersInput(undefined)).toBe(false);
     });
   });
 
@@ -172,7 +176,7 @@ describe('mcp-exec Integration Tests', () => {
     });
   });
 
-  describe('createExecuteCodeHandler', () => {
+  describe('createExecuteWithWrappersHandler', () => {
     let mockPool: ServerPool;
 
     beforeEach(() => {
@@ -180,22 +184,30 @@ describe('mcp-exec Integration Tests', () => {
     });
 
     it('should create handler function', () => {
-      const handler = createExecuteCodeHandler(mockPool);
+      const handler = createExecuteWithWrappersHandler(mockPool);
       expect(typeof handler).toBe('function');
     });
 
     it('should return error for missing code', async () => {
-      const handler = createExecuteCodeHandler(mockPool);
-      const result = await handler({ code: '' });
+      const handler = createExecuteWithWrappersHandler(mockPool);
+      const result = await handler({ code: '', wrappers: ['test'] });
 
       expect(result.isError).toBe(true);
       expect(result.content[0]).toHaveProperty('text');
       expect((result.content[0] as { text: string }).text).toContain('code parameter is required');
     });
 
+    it('should return error for empty wrappers', async () => {
+      const handler = createExecuteWithWrappersHandler(mockPool);
+      const result = await handler({ code: 'console.log(1)', wrappers: [] });
+
+      expect(result.isError).toBe(true);
+      expect((result.content[0] as { text: string }).text).toContain('wrappers array must contain at least one');
+    });
+
     it('should return error for invalid timeout', async () => {
-      const handler = createExecuteCodeHandler(mockPool);
-      const result = await handler({ code: 'console.log(1)', timeout_ms: -1 });
+      const handler = createExecuteWithWrappersHandler(mockPool);
+      const result = await handler({ code: 'console.log(1)', wrappers: ['test'], timeout_ms: -1 });
 
       expect(result.isError).toBe(true);
       expect((result.content[0] as { text: string }).text).toContain('timeout_ms must be a positive number');
@@ -275,10 +287,11 @@ describe('Error handling', () => {
         }),
       });
 
-      expect(response.status).toBe(502);
+      // Server not found returns 404 (not found) instead of 502 (bad gateway)
+      expect(response.status).toBe(404);
       const body = await response.json() as { success: boolean; error: string };
       expect(body.success).toBe(false);
-      expect(body.error).toContain('Failed to connect');
+      expect(body.error).toContain('not found');
 
       await bridge.stop();
     });
@@ -342,7 +355,7 @@ describe.skipIf(!RUN_REAL_MCP_TESTS)('Real MCP Server Integration', () => {
     process.env.SERVERS_CONFIG = testConfigPath;
 
     // Load the server manifest (required before getServerConfig works)
-    const { loadServerManifest } = await import('@meta-mcp/core');
+    const { loadServerManifest } = await import('@justanothermldude/meta-mcp-core');
     loadServerManifest();
 
     // Create real connection factory using test servers.json
@@ -454,7 +467,7 @@ describe.skipIf(!RUN_REAL_MCP_TESTS)('Real MCP Server Integration', () => {
     });
   });
 
-  describe('Full execute_code flow with real MCP', () => {
+  describe('Full execute_code_with_wrappers flow with real MCP', () => {
     it('should execute code that calls filesystem server via bridge', async () => {
       if (!realPool) throw new Error('Pool not initialized');
 

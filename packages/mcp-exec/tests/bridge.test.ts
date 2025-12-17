@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MCPBridge, type CallRequest, type CallResponse } from '../src/bridge/server.js';
-import type { ServerPool } from '@meta-mcp/core';
+import type { ServerPool } from '@justanothermldude/meta-mcp-core';
 
 // Helper to create mock pool
 function createMockPool(overrides: Partial<ServerPool> = {}): ServerPool {
@@ -278,7 +278,8 @@ describe('MCPBridge', () => {
     it('should set CORS headers', async () => {
       const response = await fetch(`http://127.0.0.1:${testPort}/health`);
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+      // CORS origin is restricted to localhost (security fix)
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(`http://127.0.0.1:${testPort}`);
       expect(response.headers.get('Content-Type')).toBe('application/json');
     });
 

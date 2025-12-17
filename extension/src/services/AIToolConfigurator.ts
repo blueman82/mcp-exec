@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as vscode from 'vscode';
+import { execSync } from 'child_process';
 import {
     AI_TOOL_REGISTRY,
     AIToolDefinition,
@@ -40,6 +41,13 @@ export interface ConfigSnippet {
     toolName: string;
     snippet: string;
     fullConfig: Record<string, unknown>;
+}
+
+export interface McpPackageStatus {
+    metaMcpInstalled: boolean;
+    metaMcpVersion: string | null;
+    mcpExecInstalled: boolean;
+    mcpExecVersion: string | null;
 }
 
 interface McpServerEntry {
@@ -220,7 +228,8 @@ export class AIToolConfigurator {
             return null;
         }
 
-        const serverEntry = this.buildServerEntry(tool);
+        const packages = this.detectMcpPackages();
+        const serverEntry = this.buildServerEntry(tool, packages.metaMcpInstalled);
         const fullConfig = {
             [tool.configKey]: {
                 [META_MCP_SERVER_NAME]: serverEntry,
@@ -247,9 +256,10 @@ export class AIToolConfigurator {
     /**
      * Generate a generic snippet for other platforms (Augment, etc.)
      * Uses npx if no local path is configured (npm users)
+     * Includes mcp-exec as a separate server entry
      */
     generateGenericSnippet(): ConfigSnippet {
-        const serverEntry = this.metaMcpPath
+        const metaMcpEntry = this.metaMcpPath
             ? {
                 command: 'node',
                 args: [this.metaMcpPath],
@@ -261,9 +271,15 @@ export class AIToolConfigurator {
                 env: { SERVERS_CONFIG: this.serversConfigPath },
             };
 
+        const mcpExecEntry = {
+            command: 'npx',
+            args: ['-y', '@justanothermldude/mcp-exec'],
+        };
+
         const fullConfig = {
             mcpServers: {
-                [META_MCP_SERVER_NAME]: serverEntry,
+                [META_MCP_SERVER_NAME]: metaMcpEntry,
+                'mcp-exec': mcpExecEntry,
             },
         };
 
@@ -276,32 +292,90 @@ export class AIToolConfigurator {
     }
 
     /**
-     * Auto-configure a tool with meta-mcp (creates backup first)
-     * Uses npx if no local path configured, creates servers.json if needed
-     * @returns Paths to config files and backup
+     * Detect if meta-mcp-server and mcp-exec are installed globally
+     * Uses `npm list -g` to check for global packages
      */
-    async autoConfigure(toolId: string): Promise<{ 
-        backupPath?: string; 
+    detectMcpPackages(): McpPackageStatus {
+        const status: McpPackageStatus = {
+            metaMcpInstalled: false,
+            metaMcpVersion: null,
+            mcpExecInstalled: false,
+            mcpExecVersion: null,
+        };
+
+        try {
+            // Check meta-mcp-server
+            const metaMcpResult = execSync(
+                'npm list -g @justanothermldude/meta-mcp-server --depth=0 --json 2>/dev/null',
+                { encoding: 'utf-8', timeout: 5000 }
+            );
+            const metaMcpJson = JSON.parse(metaMcpResult);
+            if (metaMcpJson.dependencies?.['@justanothermldude/meta-mcp-server']) {
+                status.metaMcpInstalled = true;
+                status.metaMcpVersion = metaMcpJson.dependencies['@justanothermldude/meta-mcp-server'].version || null;
+            }
+        } catch {
+            // Not installed or error - leave as false
+        }
+
+        try {
+            // Check mcp-exec
+            const mcpExecResult = execSync(
+                'npm list -g @justanothermldude/mcp-exec --depth=0 --json 2>/dev/null',
+                { encoding: 'utf-8', timeout: 5000 }
+            );
+            const mcpExecJson = JSON.parse(mcpExecResult);
+            if (mcpExecJson.dependencies?.['@justanothermldude/mcp-exec']) {
+                status.mcpExecInstalled = true;
+                status.mcpExecVersion = mcpExecJson.dependencies['@justanothermldude/mcp-exec'].version || null;
+            }
+        } catch {
+            // Not installed or error - leave as false
+        }
+
+        return status;
+    }
+
+    /**
+     * Auto-configure a tool with installed MCP packages (meta-mcp and/or mcp-exec)
+     * Also migrates existing servers from tool's config to servers.json
+     * @returns Paths to config files, backup, and migration count
+     */
+    async autoConfigure(toolId: string): Promise<{
+        backupPath?: string;
         configPath?: string;
         serversConfigPath?: string;
         toolName?: string;
-        success: boolean; 
-        error?: string 
+        migratedCount: number;
+        success: boolean;
+        error?: string
     }> {
-        // If local path is set, verify it exists
-        if (this.metaMcpPath && !fs.existsSync(this.metaMcpPath)) {
-            return { 
-                success: false, 
-                error: `Server not found at: ${this.metaMcpPath}. Check meta-mcp.serverPath setting.` 
+        // Detect which packages are installed
+        const packages = this.detectMcpPackages();
+
+        if (!packages.metaMcpInstalled && !packages.mcpExecInstalled) {
+            return {
+                success: false,
+                migratedCount: 0,
+                error: 'No MCP packages installed. Install meta-mcp-server or mcp-exec first.'
             };
         }
 
-        // Ensure servers.json exists
+        // If meta-mcp is installed and local path is set, verify it exists
+        if (packages.metaMcpInstalled && this.metaMcpPath && !fs.existsSync(this.metaMcpPath)) {
+            return {
+                success: false,
+                migratedCount: 0,
+                error: `Server not found at: ${this.metaMcpPath}. Check meta-mcp.serverPath setting.`
+            };
+        }
+
+        // Ensure servers.json exists (needed for meta-mcp and for migration)
         this.ensureServersConfig();
 
         const tool = getToolById(toolId);
         if (!tool) {
-            return { success: false, error: `Unknown tool: ${toolId}` };
+            return { success: false, migratedCount: 0, error: `Unknown tool: ${toolId}` };
         }
 
         const configPath = this.resolveConfigPath(tool.configPath);
@@ -325,41 +399,78 @@ export class AIToolConfigurator {
                 backupPath = `${configPath}.bak`;
                 fs.copyFileSync(configPath, backupPath);
             } catch (e) {
-                return { success: false, error: `Failed to parse existing config: ${e}` };
+                return { success: false, migratedCount: 0, error: `Failed to parse existing config: ${e}` };
             }
         }
 
-        // Check if already configured
-        const servers = (existingConfig[tool.configKey] as Record<string, unknown>) ?? {};
-        if (META_MCP_SERVER_NAME in servers) {
-            return { 
-                success: true, 
-                backupPath, 
-                configPath, 
-                serversConfigPath: this.serversConfigPath,
-                toolName: tool.name
-            }; // Already configured
+        // Get existing servers from tool config
+        const existingServers = (existingConfig[tool.configKey] as Record<string, unknown>) ?? {};
+
+        // Identify servers to migrate (everything except meta-mcp and mcp-exec)
+        const serversToMigrate: [string, unknown][] = [];
+        for (const [name, config] of Object.entries(existingServers)) {
+            if (name !== META_MCP_SERVER_NAME && name !== 'mcp-exec') {
+                serversToMigrate.push([name, config]);
+            }
         }
 
-        // Merge in meta-mcp entry
-        const serverEntry = this.buildServerEntry(tool);
-        existingConfig[tool.configKey] = {
-            ...servers,
-            [META_MCP_SERVER_NAME]: serverEntry,
-        };
+        // Migrate servers to servers.json if there are any
+        let migratedCount = 0;
+        if (serversToMigrate.length > 0) {
+            try {
+                // Load existing servers.json
+                let serversConfig: { mcpServers: Record<string, unknown> } = { mcpServers: {} };
+                if (fs.existsSync(this.serversConfigPath)) {
+                    const content = fs.readFileSync(this.serversConfigPath, 'utf-8');
+                    serversConfig = JSON.parse(content);
+                    if (!serversConfig.mcpServers) {
+                        serversConfig.mcpServers = {};
+                    }
+                }
 
-        // Write updated config
+                // Add migrated servers (don't overwrite existing)
+                for (const [name, config] of serversToMigrate) {
+                    if (!(name in serversConfig.mcpServers)) {
+                        serversConfig.mcpServers[name] = config;
+                        migratedCount++;
+                    }
+                }
+
+                // Save servers.json
+                fs.writeFileSync(this.serversConfigPath, JSON.stringify(serversConfig, null, 2), 'utf-8');
+            } catch (e) {
+                return { success: false, migratedCount: 0, error: `Failed to migrate servers: ${e}` };
+            }
+        }
+
+        // Build new tool config with only meta-mcp and mcp-exec
+        const newServers: Record<string, unknown> = {};
+
+        // Add meta-mcp entry if installed
+        if (packages.metaMcpInstalled) {
+            newServers[META_MCP_SERVER_NAME] = this.buildServerEntry(tool, packages.metaMcpInstalled);
+        }
+
+        // Add mcp-exec entry if installed
+        if (packages.mcpExecInstalled) {
+            newServers['mcp-exec'] = this.buildMcpExecEntry(tool);
+        }
+
+        existingConfig[tool.configKey] = newServers;
+
+        // Write updated tool config
         try {
             fs.writeFileSync(configPath, JSON.stringify(existingConfig, null, 2), 'utf-8');
-            return { 
-                success: true, 
-                backupPath, 
-                configPath, 
+            return {
+                success: true,
+                backupPath,
+                configPath,
                 serversConfigPath: this.serversConfigPath,
-                toolName: tool.name
+                toolName: tool.name,
+                migratedCount
             };
         } catch (e) {
-            return { success: false, error: `Failed to write config: ${e}` };
+            return { success: false, migratedCount: 0, error: `Failed to write config: ${e}` };
         }
     }
 
@@ -423,13 +534,22 @@ export class AIToolConfigurator {
 
     /**
      * Build the meta-mcp server entry for a tool
-     * Uses npx if no local path is configured (npm users)
+     * Prefers npx if package is installed globally, falls back to local path for development
      */
-    private buildServerEntry(tool: AIToolDefinition): McpServerEntry {
+    private buildServerEntry(tool: AIToolDefinition, packageInstalled: boolean): McpServerEntry {
         let entry: McpServerEntry;
-        
-        if (this.metaMcpPath) {
-            // Local development: use node + local path
+
+        if (packageInstalled) {
+            // Package is installed globally - use npx (preferred)
+            entry = {
+                command: 'npx',
+                args: ['-y', '@justanothermldude/meta-mcp-server'],
+                env: {
+                    SERVERS_CONFIG: this.serversConfigPath,
+                },
+            };
+        } else if (this.metaMcpPath) {
+            // Fallback: local development mode
             entry = {
                 command: 'node',
                 args: [this.metaMcpPath],
@@ -438,7 +558,7 @@ export class AIToolConfigurator {
                 },
             };
         } else {
-            // npm users: use npx to run the published package
+            // Default to npx (will prompt install on first run)
             entry = {
                 command: 'npx',
                 args: ['-y', '@justanothermldude/meta-mcp-server'],
@@ -447,6 +567,22 @@ export class AIToolConfigurator {
                 },
             };
         }
+
+        if (tool.requiresType) {
+            entry.type = 'stdio';
+        }
+
+        return entry;
+    }
+
+    /**
+     * Build the mcp-exec server entry for a tool
+     */
+    private buildMcpExecEntry(tool: AIToolDefinition): McpServerEntry {
+        const entry: McpServerEntry = {
+            command: 'npx',
+            args: ['-y', '@justanothermldude/mcp-exec'],
+        };
 
         if (tool.requiresType) {
             entry.type = 'stdio';

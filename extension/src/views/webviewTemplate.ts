@@ -632,6 +632,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             let setupTools = [];
             let setupSnippets = [];
             let genericSnippet = null;
+            let mcpPackages = { metaMcpInstalled: false, metaMcpVersion: null, mcpExecInstalled: false, mcpExecVersion: null };
 
             // DOM Elements
             const navTabs = document.querySelectorAll('.nav-tab');
@@ -933,22 +934,45 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             <div class="section-header">
                                 <span class="section-number">1</span>
                                 <h3>Install meta-mcp-server</h3>
+                                \${mcpPackages.metaMcpInstalled
+                                    ? \`<span class="installed-badge">✓ Installed\${mcpPackages.metaMcpVersion ? \` v\${mcpPackages.metaMcpVersion}\` : ''}</span>\`
+                                    : '<span class="not-installed-badge">Not installed</span>'}
                             </div>
-                            <p class="section-desc">Install the meta-mcp server globally via npm (required for all tools).</p>
+                            <p class="section-desc">Proxy server for lazy-loading MCP tools. Reduces token usage by exposing only 3 meta-tools.</p>
                             <div class="install-actions">
-                                <button class="btn btn-primary" id="btn-install-server">
-                                    Install via npm
+                                <button class="btn \${mcpPackages.metaMcpInstalled ? 'btn-secondary' : 'btn-primary'}" id="btn-install-server">
+                                    \${mcpPackages.metaMcpInstalled ? 'Reinstall' : 'Install via npm'}
                                 </button>
                                 <span class="or-text">or run:</span>
                                 <code class="install-cmd">npm install -g @justanothermldude/meta-mcp-server</code>
                             </div>
                             <p class="hint-text">After installing, run <code>meta-mcp-server --version</code> to verify.</p>
                         </div>
-                        
-                        <!-- Step 2: Configure AI Tools -->
-                        <div class="setup-section tools-section">
+
+                        <!-- Step 2: Install mcp-exec (Optional) -->
+                        <div class="setup-section install-section">
                             <div class="section-header">
                                 <span class="section-number">2</span>
+                                <h3>Install mcp-exec <span class="optional-badge">Optional</span></h3>
+                                \${mcpPackages.mcpExecInstalled
+                                    ? \`<span class="installed-badge">✓ Installed\${mcpPackages.mcpExecVersion ? \` v\${mcpPackages.mcpExecVersion}\` : ''}</span>\`
+                                    : '<span class="not-installed-badge">Not installed</span>'}
+                            </div>
+                            <p class="section-desc">Execute TypeScript/JavaScript code in a secure sandbox with access to other MCP tools.</p>
+                            <div class="install-actions">
+                                <button class="btn \${mcpPackages.mcpExecInstalled ? 'btn-secondary' : 'btn-primary'}" id="btn-install-mcp-exec">
+                                    \${mcpPackages.mcpExecInstalled ? 'Reinstall' : 'Install via npm'}
+                                </button>
+                                <span class="or-text">or run:</span>
+                                <code class="install-cmd">npm install -g @justanothermldude/mcp-exec</code>
+                            </div>
+                            <p class="hint-text">Enables AI to write and run code that calls other MCP servers.</p>
+                        </div>
+
+                        <!-- Step 3: Configure AI Tools -->
+                        <div class="setup-section tools-section">
+                            <div class="section-header">
+                                <span class="section-number">3</span>
                                 <h3>Configure Your AI Tools</h3>
                             </div>
                             <p class="section-desc">Add meta-mcp to your AI tools. Detected \${installedTools.length} tool(s), \${configuredCount} configured.</p>
@@ -983,11 +1007,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                                     <button class="btn btn-secondary btn-copy-snippet" data-tool-id="\${escapeHtml(tool.tool.id)}">
                                         Copy Snippet
                                     </button>
-                                    \${tool.hasExistingServers ? \`
-                                        <button class="btn btn-secondary btn-migrate" data-tool-id="\${escapeHtml(tool.tool.id)}">
-                                            Migrate Servers
-                                        </button>
-                                    \` : ''}
                                 </div>
                             \` : ''}
                         </div>
@@ -1017,6 +1036,10 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }
+    },
+    "mcp-exec": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/mcp-exec"]
     }
   }
 }\`}</code></pre>
@@ -1033,6 +1056,9 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         .section-header { display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
                         .section-header h3 { margin: 0; font-size: 14px; }
                         .section-number { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--vscode-button-background); color: var(--vscode-button-foreground); font-size: 12px; font-weight: 600; }
+                        .optional-badge { font-size: 10px; font-weight: 500; color: var(--vscode-descriptionForeground); background: var(--vscode-badge-background); padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+                        .installed-badge { font-size: 10px; font-weight: 500; color: var(--vscode-testing-iconPassed, #73c991); background: rgba(115, 201, 145, 0.15); padding: 2px 8px; border-radius: 4px; margin-left: auto; }
+                        .not-installed-badge { font-size: 10px; font-weight: 500; color: var(--vscode-descriptionForeground); background: var(--vscode-badge-background); padding: 2px 8px; border-radius: 4px; margin-left: auto; }
                         .section-desc { color: var(--vscode-descriptionForeground); font-size: 12px; margin: 0 0 var(--spacing-md); }
                         .install-actions { display: flex; align-items: center; gap: var(--spacing-sm); flex-wrap: wrap; }
                         .or-text { color: var(--vscode-descriptionForeground); font-size: 12px; }
@@ -1082,16 +1108,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         }
                     });
                 });
-                
-                setupContainer.querySelectorAll('.btn-migrate').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const toolId = btn.dataset.toolId;
-                        btn.disabled = true;
-                        btn.textContent = 'Migrating...';
-                        vscode.postMessage({ type: 'migrateServers', payload: { toolId } });
-                    });
-                });
-                
+
                 document.getElementById('btn-refresh-setup')?.addEventListener('click', () => {
                     setupTools = [];
                     vscode.postMessage({ type: 'loadSetup' });
@@ -1106,6 +1123,10 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }
+    },
+    "mcp-exec": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/mcp-exec"]
     }
   }
 }\`;
@@ -1125,6 +1146,15 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         btn.disabled = true;
                     }
                     vscode.postMessage({ type: 'installMetaMcpServer' });
+                });
+
+                document.getElementById('btn-install-mcp-exec')?.addEventListener('click', () => {
+                    const btn = document.getElementById('btn-install-mcp-exec');
+                    if (btn) {
+                        btn.textContent = 'Installing...';
+                        btn.disabled = true;
+                    }
+                    vscode.postMessage({ type: 'installMcpExec' });
                 });
             }
 
@@ -1171,6 +1201,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         setupTools = message.tools || [];
                         setupSnippets = message.snippets || [];
                         genericSnippet = message.genericSnippet || null;
+                        mcpPackages = message.mcpPackages || { metaMcpInstalled: false, metaMcpVersion: null, mcpExecInstalled: false, mcpExecVersion: null };
                         document.getElementById('setup-loading').classList.add('hidden');
                         renderSetup();
                         break;
@@ -1179,17 +1210,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             // Refresh the setup view
                             setupTools = [];
                             vscode.postMessage({ type: 'loadSetup' });
-                        }
-                        break;
-                    case 'migrateServersResponse':
-                        if (message.success) {
-                            // Setup view will be refreshed via updateSetup from backend
-                        } else {
-                            // Re-enable migrate buttons on failure
-                            setupContainer.querySelectorAll('.btn-migrate').forEach(btn => {
-                                btn.disabled = false;
-                                btn.textContent = 'Migrate Servers';
-                            });
                         }
                         break;
                 }
