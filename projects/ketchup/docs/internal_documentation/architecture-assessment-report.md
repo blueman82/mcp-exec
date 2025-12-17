@@ -244,6 +244,8 @@ The JIRA PAT migration implementation demonstrates exceptional architectural dis
 
 **File:** `/projects/ketchup/infrastructure/docker-compose.yml`
 
+> **UPDATE (Dec 2025):** PAT rotator is now part of `ketchup-unified-scheduler` service.
+
 ```yaml
 services:
   mcp-jira:
@@ -253,19 +255,26 @@ services:
       - JIRA_BACKUP_PAT=          # Phase 2 addition
       - JIRA_BACKUP_PAT_EXPIRY=   # Phase 2 addition
 
-  ketchup-jira-pat-rotator:
-    image: ketchup-jira-pat-rotator:v2.360.347
+  # UPDATED: Unified scheduler replaces individual scheduler containers
+  ketchup-unified-scheduler:
+    image: ketchup-unified-scheduler:v2.360.362
     environment:
       - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_jira_pat_rotations
-      - AWS_SECRET_NAME=ketchup-jira-pat-secrets
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
       - TZ=Europe/London
     healthcheck:
-      test: ["CMD", "/app/scripts/healthcheck-jira-pat-rotator.sh"]
-      interval: 300s  # 5 minutes
+      test: ["CMD", "/app/infrastructure/healthcheck-scheduler.sh"]
+      interval: 60s
       timeout: 10s
       retries: 3
       start_period: 120s
+    # Runs 5 consolidated tasks:
+    # - metadata_updater (every 15 min)
+    # - status_updater (every 55 min)
+    # - jira_reporter (continuous)
+    # - maintenance_fetcher (daily at 1:30 UTC)
+    # - pat_rotator (every 24 hours)
 ```
 
 **Architecture Grade:** ✅ EXCELLENT
