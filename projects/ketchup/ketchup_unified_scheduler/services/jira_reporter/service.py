@@ -36,6 +36,12 @@ async def run_reporting_cycle(
     container: Optional[TypedServiceRegistry] = None,
 ) -> None:
     """Run a single reporting cycle. Wrapper for backward compatibility."""
+    from packages.core.config.feature_flags import FeatureFlags
+
+    # Check feature flag first - if disabled, return early without needing container
+    if not FeatureFlags.is_jira_reporter_enabled():
+        return
+
     _run_reporting_cycle, _ = _get_orchestration_functions()
     # If no container provided, create one here so tests can patch at this location
     if container is None:
