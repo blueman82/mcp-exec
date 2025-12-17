@@ -37,6 +37,9 @@ async def run_reporting_cycle(
 ) -> None:
     """Run a single reporting cycle. Wrapper for backward compatibility."""
     _run_reporting_cycle, _ = _get_orchestration_functions()
+    # If no container provided, create one here so tests can patch at this location
+    if container is None:
+        container = await get_unified_container()
     return await _run_reporting_cycle(container=container)
 
 
