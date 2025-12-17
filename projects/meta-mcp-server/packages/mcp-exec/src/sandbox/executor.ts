@@ -55,6 +55,20 @@ export class SandboxExecutor {
   private getMcpPreamble(): string {
     const bridgePort = this.executorConfig.mcpBridgePort ?? 3000;
     return `
+// ============================================================================
+// MCP-EXEC SANDBOX API
+// ============================================================================
+// Available: mcp.callTool(serverName, toolName, args)
+//
+// Usage:
+//   const result = await mcp.callTool('github', 'list_repos', { org: 'foo' });
+//   const issues = await mcp.callTool('jira', 'search_issues', { jql: 'project=X' });
+//
+// For long-running queries, prefer async patterns:
+//   const job = await mcp.callTool('splunk-async', 'create_search_job', { query: '...' });
+//   const results = await mcp.callTool('splunk-async', 'get_search_results', { job_id: job.sid });
+// ============================================================================
+
 // MCP helper for calling tools via HTTP bridge
 declare global {
   var mcp: {

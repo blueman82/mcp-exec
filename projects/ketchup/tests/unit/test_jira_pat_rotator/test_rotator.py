@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ketchup_jira_pat_rotator.rotator import PATRotator
+from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
 
 class TestCompleteSuccessfulRotationFlow:

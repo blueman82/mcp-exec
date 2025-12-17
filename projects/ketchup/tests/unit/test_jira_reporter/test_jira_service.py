@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from jira_reporter.jira_service import JiraService
+from ketchup_unified_scheduler.services.jira_reporter.service import JiraService
 
 
 def create_mcp_response(data):

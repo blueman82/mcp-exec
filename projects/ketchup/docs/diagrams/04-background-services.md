@@ -1,36 +1,33 @@
 # Background Services Architecture
 
-This component diagram shows the 6 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. Five services run ONLY on prod1 as singletons to prevent duplicate operations, while the access monitor runs on both servers.
+This component diagram shows the 2 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. The unified scheduler runs ONLY on prod1 as a singleton to prevent duplicate operations, while the access monitor runs on both servers.
 
-> **Note**: All scheduler services use the consolidated `BaseScheduler` pattern (`packages/core/schedulers/base_scheduler.py`) with a unified `healthcheck-scheduler.sh` script.
+> **Note**: As of Phase 1 Scheduler Consolidation (December 2025), all 5 scheduler tasks run within a single `ketchup-unified-scheduler` container orchestrated by `UnifiedSchedulerEngine` (`packages/ketchup_unified_scheduler/unified_scheduler_engine.py`).
 
 ```mermaid
 graph TB
-    subgraph Scheduling["⏰ Scheduling Layer (BaseScheduler)"]
-        Cron1["BaseScheduler<br/>(prod1 only)"]
-        Cron2["BaseScheduler<br/>(prod2 only)"]
+    subgraph prod1Singleton["🔴 UNIFIED SCHEDULER (prod1 ONLY)"]
+        UnifiedScheduler["⏰ ketchup-unified-scheduler<br/>━━━━━━━━━━━━━━━━━━━━━━━━━<br/>UnifiedSchedulerEngine<br/>━━━━━━━━━━━━━━━━━━━━━━━━━"]
+
+        subgraph SchedulerTasks["Internal Tasks (Same Container)"]
+            StatusUpdater["📊 status_updater_task<br/>Schedule: Every 55 min"]
+            MetadataUpdater["🔍 metadata_updater_task<br/>Schedule: Every 15 min"]
+            JiraReporter["🎫 jira_reporter_task<br/>Schedule: Continuous monitoring"]
+            MaintenanceFetcher["⚠️ maintenance_fetcher_task<br/>Schedule: Daily 1:30 UTC"]
+            PatRotator["🔑 pat_rotator_task<br/>Schedule: Every 24 hours"]
+        end
+
+        UnifiedScheduler -->|"Orchestrates"| StatusUpdater
+        UnifiedScheduler -->|"Orchestrates"| MetadataUpdater
+        UnifiedScheduler -->|"Orchestrates"| JiraReporter
+        UnifiedScheduler -->|"Orchestrates"| MaintenanceFetcher
+        UnifiedScheduler -->|"Orchestrates"| PatRotator
     end
 
-    subgraph prod1Singletons["🔴 SINGLETON SERVICES (prod1 ONLY)"]
-        StatusUpdater["📊 ketchup-status-updater<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every 55 min<br/>━━━━━━━━━━━━━━━"]
-        MetadataUpdater["🔍 ketchup-metadata-updater<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every 15 min<br/>━━━━━━━━━━━━━━━"]
-        JiraReporter["🎫 ketchup-jira-reporter<br/>━━━━━━━━━━━━━━━<br/>Schedule: Continuous monitoring<br/>━━━━━━━━━━━━━━━"]
-        MaintenanceFetcher["⚠️ ketchup-maintenance-fetcher<br/>━━━━━━━━━━━━━━━<br/>Schedule: Daily 1:30 UTC<br/>━━━━━━━━━━━━━━━"]
-        PatRotator["🔑 ketchup-jira-pat-rotator<br/>━━━━━━━━━━━━━━━<br/>Schedule: Every 24 hours<br/>━━━━━━━━━━━━━━━"]
-    end
-    
     subgraph BothServers["🟢 DISTRIBUTED SERVICE (prod1 + prod2)"]
         AccessMonitor1["🔐 ketchup-access-monitor<br/>(prod1)<br/>━━━━━━━━━━━━━━━<br/>Schedule: SQS polling<br/>━━━━━━━━━━━━━━━"]
         AccessMonitor2["🔐 ketchup-access-monitor<br/>(prod2)<br/>━━━━━━━━━━━━━━━<br/>Schedule: SQS polling<br/>━━━━━━━━━━━━━━━"]
     end
-    
-    Cron1 -.->|"Trigger"| StatusUpdater
-    Cron1 -.->|"Trigger"| MetadataUpdater
-    Cron1 -.->|"Trigger"| JiraReporter
-    Cron1 -.->|"Trigger"| MaintenanceFetcher
-    Cron1 -.->|"Trigger"| PatRotator
-    Cron1 -.->|"Trigger"| AccessMonitor1
-    Cron2 -.->|"Trigger"| AccessMonitor2
     
     subgraph StatusFlow["Status Updater Flow"]
         StatusUpdater --> StatusCheck{"Check Feature<br/>Flag"}
@@ -135,22 +132,71 @@ graph TB
     classDef scheduler fill:#9B59B6,stroke:#6C3483,stroke-width:2px,color:#fff
     classDef flow fill:#ECF0F1,stroke:#95A5A6,stroke-width:1px
     
-    class StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator singleton
+    class UnifiedScheduler,StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator singleton
     class AccessMonitor1,AccessMonitor2 distributed
     class SlackAPI,AzureAI,MCPJira,RavenAPI external
     class DDB,Secrets,SQS dataStore
-    class Cron1,Cron2 scheduler
 ```
 
 ## Service Details
 
-### 1. ketchup-status-updater (SINGLETON)
+### 0. ketchup-unified-scheduler (SINGLETON CONTAINER)
+
+**Purpose:** Orchestrate all 5 scheduler tasks within a single container
+
+**Architecture:**
+- **Engine:** `UnifiedSchedulerEngine` (`packages/ketchup_unified_scheduler/unified_scheduler_engine.py`)
+- **Shared TypedDI Container:** All tasks share the same dependency injection container
+- **Per-Task Health Monitoring:** `PerTaskHealthMonitor` tracks health of each individual task
+- **Independent Scheduling:** Each task runs on its own schedule without blocking others
+
+**Key Benefits:**
+1. **Shared Resources:** Single DynamoDB client, Slack client, Secrets Manager instance via TypedDI
+2. **Reduced Overhead:** 1 container instead of 5 (lower memory, CPU, deployment complexity)
+3. **Unified Health Monitoring:** Single healthcheck endpoint exposes all task statuses
+4. **Simplified Deployment:** One Dockerfile, one docker-compose entry, one deployment unit
+
+**Task Orchestration:**
+- Each task is a separate async function (`StatusUpdaterTask`, `MetadataUpdaterTask`, etc.)
+- Tasks are registered with `UnifiedSchedulerEngine` at startup
+- Engine spawns independent asyncio tasks for each scheduler
+- Tasks run concurrently but independently (failure of one doesn't affect others)
+
+**Health Monitoring:**
+```python
+# Each task reports health independently
+GET /health
+{
+  "status": "healthy",
+  "tasks": {
+    "status_updater": {"status": "healthy", "last_run": "2025-12-08T10:00:00Z"},
+    "metadata_updater": {"status": "healthy", "last_run": "2025-12-08T09:45:00Z"},
+    "jira_reporter": {"status": "healthy", "last_run": "2025-12-08T10:30:00Z"},
+    "maintenance_fetcher": {"status": "healthy", "last_run": "2025-12-08T01:30:00Z"},
+    "pat_rotator": {"status": "healthy", "last_run": "2025-12-07T10:00:00Z"}
+  }
+}
+```
+
+**Deployment:**
+- Dockerfile: `Dockerfile.unified-scheduler`
+- Container name: `ketchup-unified-scheduler`
+- **MUST run on prod1 only** (singleton constraint applies to entire container)
+
+**Migration from Old Architecture:**
+- **Before:** 5 separate containers (status-updater, metadata-updater, jira-reporter, maintenance-fetcher, pat-rotator)
+- **After:** 1 unified container running all 5 tasks internally
+- **Logic unchanged:** Each task's execution logic remains identical to previous standalone services
+
+---
+
+### 1. status_updater_task (Task within Unified Scheduler)
 
 **Purpose:** Automated hourly channel status updates with AI-powered summaries
 
 **Schedule:**
-- Every hour (configurable via environment variable)
-- Default: `:00` of each hour
+- Every 55 minutes (configurable via environment variable)
+- Runs as task within `ketchup-unified-scheduler` container
 
 **Logic:**
 1. Check `KETCHUP_STATUS_UPDATER_FEATURE` flag → If false, skip
@@ -177,19 +223,20 @@ graph TB
 - HTTP/2 keep-alive for connection reuse
 
 **Deployment:**
-- Dockerfile: `Dockerfile.status-updater`
-- Container name: `ketchup-status-updater`
-- **MUST run on prod1 only** (prevented duplicate posts)
+- **Runs as task within:** `ketchup-unified-scheduler`
+- **Task class:** `StatusUpdaterTask` (`packages/ketchup_unified_scheduler/tasks/status_updater_task.py`)
+- **Singleton constraint:** Inherited from parent container (prod1 only)
 
 ---
 
-### 2. ketchup-jira-reporter (SINGLETON)
+### 2. jira_reporter_task (Task within Unified Scheduler)
 
 **Purpose:** Automated JIRA ticket creation for incident detection
 
 **Schedule:**
 - Continuous monitoring (event-driven)
 - Checks channels with `features.jira_reporter_enabled = true`
+- Runs as task within `ketchup-unified-scheduler` container
 
 **Logic:**
 1. Check `KETCHUP_JIRA_REPORTER_FEATURE` flag → If false, skip
@@ -216,18 +263,19 @@ graph TB
 - @mentions of incident management teams
 
 **Deployment:**
-- Dockerfile: `Dockerfile.jira-reporter`
-- Container name: `ketchup-jira-reporter`
-- **MUST run on prod1 only** (prevent duplicate tickets)
+- **Runs as task within:** `ketchup-unified-scheduler`
+- **Task class:** `JiraReporterTask` (`packages/ketchup_unified_scheduler/tasks/jira_reporter_task.py`)
+- **Singleton constraint:** Inherited from parent container (prod1 only)
 
 ---
 
-### 3. ketchup-metadata-updater (SINGLETON)
+### 3. metadata_updater_task (Task within Unified Scheduler)
 
 **Purpose:** Periodic sync of Slack channel metadata to DynamoDB
 
 **Schedule:**
-- Periodic scan (every 6-12 hours, configurable)
+- Every 15 minutes (configurable)
+- Runs as task within `ketchup-unified-scheduler` container
 
 **Logic:**
 1. Fetch list of ALL public channels via Slack API
@@ -255,18 +303,19 @@ graph TB
 - Average scan time: 5-10 minutes for 500+ channels
 
 **Deployment:**
-- Dockerfile: `Dockerfile.metadata-updater`
-- Container name: `ketchup-metadata-updater`
-- **MUST run on prod1 only** (prevent duplicate scans)
+- **Runs as task within:** `ketchup-unified-scheduler`
+- **Task class:** `MetadataUpdaterTask` (`packages/ketchup_unified_scheduler/tasks/metadata_updater_task.py`)
+- **Singleton constraint:** Inherited from parent container (prod1 only)
 
 ---
 
-### 4. ketchup-maintenance-fetcher (SINGLETON)
+### 4. maintenance_fetcher_task (Task within Unified Scheduler)
 
 **Purpose:** Monitor and alert on maintenance events and outages
 
 **Schedule:**
-- Periodic polling (every 15-30 minutes)
+- Daily at 1:30 UTC
+- Runs as task within `ketchup-unified-scheduler` container
 
 **Logic:**
 1. Poll Raven API for maintenance events
@@ -290,13 +339,48 @@ graph TB
 - Maintenance completion (all-clear)
 
 **Deployment:**
-- Dockerfile: `Dockerfile.maintenance-fetcher`
-- Container name: `ketchup-maintenance-fetcher`
-- **MUST run on prod1 only** (prevent duplicate alerts)
+- **Runs as task within:** `ketchup-unified-scheduler`
+- **Task class:** `MaintenanceFetcherTask` (`packages/ketchup_unified_scheduler/tasks/maintenance_fetcher_task.py`)
+- **Singleton constraint:** Inherited from parent container (prod1 only)
 
 ---
 
-### 5. ketchup-access-monitor (DISTRIBUTED)
+### 5. pat_rotator_task (Task within Unified Scheduler)
+
+**Purpose:** Automatically rotate JIRA Personal Access Tokens (PATs) for security compliance
+
+**Schedule:**
+- Every 24 hours
+- Runs as task within `ketchup-unified-scheduler` container
+
+**Logic:**
+1. Check current PAT expiration date
+2. If PAT expires within 7 days:
+   - Generate new PAT via JIRA API
+   - Update AWS Secrets Manager with new token
+   - Test new token for validity
+   - Revoke old PAT after successful rotation
+3. Log rotation events for audit trail
+
+**Dependencies:**
+- `MCPAsyncClient` (JIRA PAT operations)
+- `SecretsManager` (token storage)
+- `DynamoDBClient` (rotation tracking)
+
+**Security Features:**
+- Zero-downtime rotation (new token active before old revoked)
+- Automatic rollback on failure
+- Audit logging of all rotation events
+- Expiration tracking and alerts
+
+**Deployment:**
+- **Runs as task within:** `ketchup-unified-scheduler`
+- **Task class:** `PatRotatorTask` (`packages/ketchup_unified_scheduler/tasks/pat_rotator_task.py`)
+- **Singleton constraint:** Inherited from parent container (prod1 only)
+
+---
+
+### 6. ketchup-access-monitor (DISTRIBUTED)
 
 **Purpose:** Process access requests from SQS queue
 
@@ -334,21 +418,32 @@ graph TB
 
 ## Singleton Pattern Rationale
 
-**Why Singletons?**
+**Why Unified Scheduler is Singleton:**
 - **Prevent duplicate Slack posts**: Users would see duplicate status updates
 - **Prevent duplicate JIRA tickets**: Same incident would create multiple tickets
 - **Prevent duplicate metadata scans**: Wasteful API calls, rate limit issues
 - **Prevent duplicate alerts**: Maintenance alerts would spam channels
+- **Prevent duplicate PAT rotations**: Token conflicts and security issues
 
-**Implementation:**
-- Singleton services defined in `docker-compose.yml` for prod1
-- Deployment script explicitly stops/removes singletons on prod2
-- Monitored via deployment verification script
+**Implementation (Phase 1 Consolidation):**
+- **Before:** 5 separate singleton containers on prod1
+- **After:** 1 unified scheduler container on prod1 running all 5 tasks
+- Defined in `docker-compose.yml` for prod1 only
+- Deployment script explicitly stops/removes unified scheduler on prod2
+- Monitored via unified healthcheck endpoint
+
+**Benefits of Consolidation:**
+1. **Shared Resources:** Single TypedDI container, DynamoDB client, Slack client across all tasks
+2. **Reduced Overhead:** ~80% reduction in container overhead (1 vs 5 containers)
+3. **Unified Health Monitoring:** Single `/health` endpoint with per-task status
+4. **Simplified Deployment:** One Dockerfile, one docker-compose entry, one deployment unit
+5. **Improved Observability:** Centralized logging for all scheduler tasks
 
 **Distributed Service (access-monitor):**
 - SQS guarantees exactly-once processing
-- Safe to run on multiple servers
+- Safe to run on multiple servers (prod1 + prod2)
 - Improves throughput and fault tolerance
+- Remains separate from unified scheduler (different scaling needs)
 
 ---
 

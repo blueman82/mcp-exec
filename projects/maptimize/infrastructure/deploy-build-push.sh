@@ -405,6 +405,8 @@ if [ "$DRY_RUN" = true ]; then
 else
     log_info "Connecting to $MAPTIMIZE_HOST..."
     if ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no "harrison@${MAPTIMIZE_HOST}" "
+        echo 'Authenticating with ECR...'
+        aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REPO}
         echo 'Pulling new image...'
         sudo docker pull ${ECR_REPO}/${ECR_REPOSITORY}:latest
         echo 'Stopping old container...'

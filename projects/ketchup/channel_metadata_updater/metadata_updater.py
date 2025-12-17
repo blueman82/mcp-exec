@@ -5,10 +5,7 @@ This module contains the ChannelMetadataUpdater service that orchestrates
 metadata extraction and updating using component-based architecture.
 """
 
-import gc
 from typing import Any, Dict, List, Optional
-
-import aiohttp
 
 from channel_metadata_updater.channel_processor import ChannelProcessor
 from channel_metadata_updater.metadata_extractor import MetadataExtractor
@@ -194,13 +191,12 @@ class ChannelMetadataUpdater:
         Returns:
             Statistics of processing results
         """
-        try:
-            return await self.channel_processor.process_channels_batch(
-                channel_ids, self.extract_and_store_metadata
-            )
-        finally:
-            # Ensure all clients are cleaned up
-            await self.cleanup_clients()
+        # NOTE: No finally/cleanup block here. In the unified scheduler context,
+        # all dependencies are shared DI singletons that should NOT be cleaned up
+        # by individual tasks. Cleanup is managed by the DI container lifecycle.
+        return await self.channel_processor.process_channels_batch(
+            channel_ids, self.extract_and_store_metadata
+        )
 
     async def extract_and_store_metadata(self, channel_id: str) -> bool:
         """
@@ -258,72 +254,20 @@ class ChannelMetadataUpdater:
             return False
 
     async def cleanup_clients(self) -> None:
-        """Cleanup all client connections."""
-        try:
-            self.logger.info("Cleaning up all client connections")
+        """Clean up client connections.
 
-            # Clean up component services that might have clients
-            if self.metadata_extractor:
-                await self.metadata_extractor.cleanup()
-            if self.channel_processor:
-                await self.channel_processor.cleanup()
-            if self.metadata_storage:
-                await self.metadata_storage.cleanup()
+        NOTE: In the unified scheduler context, ALL dependencies are shared
+        DI singletons that MUST NOT be cleaned up by individual tasks.
+        Cleaning up shared singletons causes "Session is closed" errors
+        for other tasks running concurrently.
 
-            # Check if channel_info_ops exists and has cleanup method
-            if (
-                hasattr(self, "channel_info_ops")
-                and self.channel_info_ops
-                and hasattr(self.channel_info_ops, "cleanup")
-            ):
-                try:
-                    await self.channel_info_ops.cleanup()
-                except Exception as e:
-                    self.logger.error("Error cleaning up channel_info_ops: %s", str(e))
+        This method is intentionally a no-op. Cleanup is managed by the
+        DI container lifecycle, not by individual service consumers.
 
-            # Check if channel_membership_ops exists and has cleanup method
-            if (
-                hasattr(self, "channel_membership_ops")
-                and self.channel_membership_ops
-                and hasattr(self.channel_membership_ops, "cleanup")
-            ):
-                try:
-                    await self.channel_membership_ops.cleanup()
-                except Exception as e:
-                    self.logger.error("Error cleaning up channel_membership_ops: %s", str(e))
-
-            # Check if channel_msg_ops exists and has cleanup method (it should inherit from AsyncClient)
-            if (
-                hasattr(self, "channel_msg_ops")
-                and self.channel_msg_ops
-                and hasattr(self.channel_msg_ops, "cleanup")
-            ):
-                try:
-                    await self.channel_msg_ops.cleanup()
-                except Exception as e:
-                    self.logger.error("Error cleaning up channel_msg_ops: %s", str(e))
-
-            # Check if the internally created/stored AI handler needs cleanup
-            if (
-                hasattr(self, "_ai_handler_instance")
-                and self._ai_handler_instance
-                and hasattr(self._ai_handler_instance, "cleanup")
-            ):
-                try:
-                    await self._ai_handler_instance.cleanup()
-                except Exception as e:
-                    self.logger.error("Error cleaning up _ai_handler_instance: %s", str(e))
-
-            # Find and close any remaining aiohttp sessions directly
-            sessions = [obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)]
-            for session in sessions:
-                try:
-                    if not session.closed:
-                        self.logger.info("Closing additional unclosed aiohttp session")
-                        await session.close()
-                except Exception as e:
-                    self.logger.error("Error closing additional session: %s", str(e))
-
-            self.logger.info("Client connections cleanup completed")
-        except Exception as e:
-            self.logger.error("Error during clients cleanup: %s", str(e))
+        Historical context: This method previously closed aiohttp sessions
+        using gc.get_objects(), which broke the shared DynamoDB session
+        and caused status_updater to fail with "Session is closed" errors.
+        """
+        # Do NOT clean up any injected dependencies - they are shared singletons.
+        # Do NOT use gc.get_objects() to close sessions - that closes shared sessions.
+        pass

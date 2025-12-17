@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 
 
 @pytest.fixture

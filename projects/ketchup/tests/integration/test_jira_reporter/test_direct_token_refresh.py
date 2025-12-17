@@ -8,7 +8,7 @@ from datetime import datetime
 import httpx
 import pytest
 
-from jira_reporter.jira_service import JiraService
+from ketchup_unified_scheduler.services.jira_reporter.service import JiraService
 from packages.integrations.ims_token_manager import IMSTokenManager
 
 # Direct imports to avoid DI container issues

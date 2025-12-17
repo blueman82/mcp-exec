@@ -223,6 +223,50 @@ services:
       - ./logs:/var/log
     restart: unless-stopped
 
+  # Unified Scheduler - consolidates 5 singleton scheduler services into one container
+  # Replaces: ketchup-metadata-updater, ketchup-status-updater, ketchup-jira-reporter,
+  #           ketchup-maintenance-fetcher, ketchup-jira-pat-rotator
+  ketchup-unified-scheduler:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.unified-scheduler
+    image: ketchup-unified-scheduler:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=INFO
+      - PYTHONPATH=/app
+      - MCP_BASE_URL=http://mcp-jira:8081
+      - OPENAI_API_VERSION=2025-01-01-preview
+      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+      # Feature flags for individual tasks
+      - KETCHUP_STATUS_UPDATER_FEATURE=true
+      - KETCHUP_STATUS_UPDATER_GLOBAL=false  # Don't process all channels in local dev
+      - KETCHUP_STATUS_UPDATER_ENABLED=true
+      - KETCHUP_JIRA_REPORTER_FEATURE=true
+      - KETCHUP_JIRA_REPORTER_GLOBAL=true
+      - KETCHUP_METADATA_UPDATER_FEATURE=true
+      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
+      - KETCHUP_JIRA_PAT_ROTATOR_FEATURE=true
+      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
+      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
+      - KETCHUP_USE_ASYNC_MCP=true
+      - TZ=Europe/London
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs:/var/log
+    depends_on:
+      - mcp-jira
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/unified_scheduler_health LAST_RUN_FILE=/tmp/unified_scheduler_last_run MAX_RUN_AGE=4200 MAX_HEALTH_AGE=600 SERVICE_NAME=UnifiedScheduler /app/infrastructure/healthcheck-scheduler.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+
   # ==============================================================================
   # LOCAL TEST SERVICES FOR TDD RECOVERY
   # ==============================================================================

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from channel_metadata_updater.metadata_extractor import MetadataExtractor
+from ketchup_unified_scheduler.services.metadata.extractor import MetadataExtractor
 from packages.ai.core.openai_handler import OpenAIHandler
 
 
@@ -26,7 +26,7 @@ class TestCustomerExtractionContextValidation:
         """Create a MetadataExtractor instance."""
         extractor = MetadataExtractor(mock_ai_handler)
         # Enable log propagation for caplog to work
-        logger = logging.getLogger("channel_metadata_updater.metadata_extractor")
+        logger = logging.getLogger("ketchup_unified_scheduler.services.metadata.extractor")
         logger.propagate = True
         return extractor
 
@@ -68,7 +68,9 @@ class TestCustomerExtractionContextValidation:
 
     def test_validate_customer_extraction_adobe_warning(self, extractor, caplog):
         """Test that Adobe extraction triggers validation warning."""
-        with caplog.at_level(logging.WARNING, logger="channel_metadata_updater.metadata_extractor"):
+        with caplog.at_level(
+            logging.WARNING, logger="ketchup_unified_scheduler.services.metadata.extractor"
+        ):
             extractor._validate_customer_extraction("ADOBE")
 
         assert "Potential domain-based misidentification detected" in caplog.text
@@ -76,7 +78,9 @@ class TestCustomerExtractionContextValidation:
 
     def test_validate_customer_extraction_microsoft_warning(self, extractor, caplog):
         """Test that Microsoft extraction triggers validation warning."""
-        with caplog.at_level(logging.WARNING, logger="channel_metadata_updater.metadata_extractor"):
+        with caplog.at_level(
+            logging.WARNING, logger="ketchup_unified_scheduler.services.metadata.extractor"
+        ):
             extractor._validate_customer_extraction("MICROSOFT")
 
         assert "Potential domain-based misidentification detected" in caplog.text
@@ -100,7 +104,9 @@ class TestCustomerExtractionContextValidation:
         Note: The production code only checks for exact matches of 'ADOBE' or 'MICROSOFT',
         so mixed names like 'ADOBE, ZENIMAX MEDIA INC' won't trigger the warning.
         """
-        with caplog.at_level(logging.INFO, logger="channel_metadata_updater.metadata_extractor"):
+        with caplog.at_level(
+            logging.INFO, logger="ketchup_unified_scheduler.services.metadata.extractor"
+        ):
             extractor._validate_customer_extraction("ADOBE, ZENIMAX MEDIA INC")
 
         # Mixed names don't trigger the warning, only exact matches do

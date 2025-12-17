@@ -1,4 +1,6 @@
 import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { z } from 'zod';
 import type { ServerConfig } from '../types/index.js';
 import { generateManifest, ServerManifest, ServerManifestEntry, ServerConfigWithMeta } from './manifest.js';
@@ -25,14 +27,18 @@ export class ConfigValidationError extends Error {
 }
 
 const ServerConfigSchema = z.object({
-  type: z.string().optional(), // "stdio"
-  command: z.string(),
+  type: z.string().optional(), // "stdio" or "streamable-http"
+  command: z.string().optional(), // Required for stdio, not for URL-based
   args: z.array(z.string()).optional(),
   env: z.record(z.string()).optional(),
+  // HTTP transport (URL-based)
+  url: z.string().optional(),
+  headers: z.record(z.string()).optional(),
   disabled: z.boolean().optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
   timeout: z.number().optional(), // Tool call timeout in milliseconds (default: 60000)
+  backendAuth: z.record(z.string()).optional(), // Maps backend server names to auth header values
 });
 
 const BackendsConfigSchema = z.object({
@@ -41,8 +47,37 @@ const BackendsConfigSchema = z.object({
 
 let cachedManifest: ServerManifest | null = null;
 
+/**
+ * Resolves environment variables in a string using ${VAR_NAME} syntax.
+ * Returns the original string if no env vars found or if var is not set.
+ */
+function resolveEnvVars(value: string): string {
+  return value.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+    const envValue = process.env[varName];
+    return envValue !== undefined ? envValue : match;
+  });
+}
+
+/**
+ * Resolves environment variables in a string record (backendAuth, headers, etc).
+ */
+function resolveRecordEnvVars(record: Record<string, string> | undefined): Record<string, string> | undefined {
+  if (!record) {
+    return undefined;
+  }
+  const resolved: Record<string, string> = {};
+  for (const [key, value] of Object.entries(record)) {
+    resolved[key] = resolveEnvVars(value);
+  }
+  return resolved;
+}
+
 function getConfigPath(): string {
-  return process.env.SERVERS_CONFIG || '~/.config/mcp/servers.json';
+  if (process.env.SERVERS_CONFIG) {
+    // Expand ~ in env var if present
+    return process.env.SERVERS_CONFIG.replace(/^~/, os.homedir());
+  }
+  return path.join(os.homedir(), '.meta-mcp', 'servers.json');
 }
 
 export function loadServerManifest(): ServerManifest {
@@ -71,8 +106,18 @@ export function loadServerManifest(): ServerManifest {
     throw new ConfigValidationError(result.error.message);
   }
 
+  // Process servers and resolve environment variables in backendAuth and headers
+  const processedServers: Record<string, ServerConfigWithMeta> = {};
+  for (const [name, config] of Object.entries(result.data.mcpServers)) {
+    processedServers[name] = {
+      ...config,
+      backendAuth: resolveRecordEnvVars(config.backendAuth),
+      headers: resolveRecordEnvVars(config.headers),
+    } as ServerConfigWithMeta;
+  }
+
   cachedManifest = {
-    servers: result.data.mcpServers as Record<string, ServerConfigWithMeta>,
+    servers: processedServers,
   };
 
   return cachedManifest;

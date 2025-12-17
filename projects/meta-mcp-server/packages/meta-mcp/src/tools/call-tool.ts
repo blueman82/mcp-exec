@@ -9,7 +9,7 @@ import {
   ServerPool,
   ConnectionError,
   ToolCache,
-} from '@meta-mcp/core';
+} from '@justanothermldude/meta-mcp-core';
 
 export class ServerNotFoundError extends Error {
   constructor(serverName: string) {
@@ -29,6 +29,9 @@ const CallToolInputSchema = z.object({
   server_name: z.string(),
   tool_name: z.string(),
   arguments: z.record(z.unknown()).optional().default({}),
+  _meta: z.object({
+    backendAuth: z.string().optional(),
+  }).optional(),
 });
 
 type CallToolInput = z.infer<typeof CallToolInputSchema>;
@@ -57,11 +60,20 @@ export const callToolTool: Tool = {
   },
 };
 
+interface CallToolParams {
+  name: string;
+  arguments?: Record<string, unknown>;
+  _meta?: {
+    backendAuth?: string;
+    [key: string]: unknown;
+  };
+}
+
 interface ConnectionWithClient {
   serverId: string;
   client: {
     callTool: (
-      params: { name: string; arguments?: Record<string, unknown> },
+      params: CallToolParams,
       resultSchema?: unknown,
       options?: { timeout?: number }
     ) => Promise<CallToolResult>;
@@ -73,7 +85,7 @@ export async function callToolHandler(
   pool: ServerPool,
   toolCache: ToolCache
 ): Promise<CallToolResult> {
-  const { server_name, tool_name, arguments: args } = input;
+  const { server_name, tool_name, arguments: args, _meta } = input;
 
   // Load manifest if needed
   try {
@@ -118,14 +130,24 @@ export async function callToolHandler(
     );
   }
 
+  // Build call params with optional backend auth from _meta (passed from server.ts)
+  const callParams: CallToolParams = {
+    name: tool_name,
+    arguments: args,
+  };
+
+  // Attach _meta.backendAuth if provided from server.ts
+  if (_meta?.backendAuth) {
+    callParams._meta = {
+      backendAuth: _meta.backendAuth,
+    };
+  }
+
   // Call the tool with optional timeout from server config
   try {
     const requestOptions = config.timeout ? { timeout: config.timeout } : undefined;
     const result = await connection.client.callTool(
-      {
-        name: tool_name,
-        arguments: args,
-      },
+      callParams,
       undefined, // resultSchema - use default
       requestOptions
     );

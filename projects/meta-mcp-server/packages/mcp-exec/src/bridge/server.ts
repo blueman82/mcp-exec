@@ -1,6 +1,6 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
-import type { ServerPool, MCPConnection } from '@meta-mcp/core';
-import { getServerConfig } from '@meta-mcp/core';
+import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
+import { getServerConfig, listServers } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Request body for the /call endpoint
@@ -56,6 +56,153 @@ interface MCPConnectionWithClient extends MCPConnection {
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_HOST = '127.0.0.1';
+const MAX_REQUEST_BODY_SIZE = 10 * 1024 * 1024; // 10MB limit
+
+/**
+ * Calculate simple string similarity using common prefix/suffix length
+ * Returns a score between 0 and 1
+ */
+function stringSimilarity(a: string, b: string): number {
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+
+  // Exact match
+  if (aLower === bLower) return 1;
+
+  // Check if one contains the other
+  if (aLower.includes(bLower) || bLower.includes(aLower)) {
+    return 0.8;
+  }
+
+  // Calculate common prefix length
+  let prefixLen = 0;
+  const minLen = Math.min(aLower.length, bLower.length);
+  for (let i = 0; i < minLen; i++) {
+    if (aLower[i] === bLower[i]) prefixLen++;
+    else break;
+  }
+
+  // Calculate common suffix length
+  let suffixLen = 0;
+  for (let i = 0; i < minLen; i++) {
+    if (aLower[aLower.length - 1 - i] === bLower[bLower.length - 1 - i]) suffixLen++;
+    else break;
+  }
+
+  // Normalize by max length
+  const maxLen = Math.max(aLower.length, bLower.length);
+  return (prefixLen + suffixLen) / (2 * maxLen);
+}
+
+/**
+ * Find the most similar string from a list
+ */
+function findClosestMatch(target: string, candidates: string[]): string | null {
+  if (candidates.length === 0) return null;
+
+  let bestMatch: string | null = null;
+  let bestScore = 0;
+  const threshold = 0.3; // Minimum similarity to suggest
+
+  for (const candidate of candidates) {
+    const score = stringSimilarity(target, candidate);
+    if (score > bestScore && score >= threshold) {
+      bestScore = score;
+      bestMatch = candidate;
+    }
+  }
+
+  return bestMatch;
+}
+
+/**
+ * Build enhanced error message for server not found
+ */
+function buildServerNotFoundError(requestedServer: string): string {
+  const servers = listServers();
+  const serverNames = servers.map(s => s.name);
+
+  let errorMsg = `Server '${requestedServer}' not found.`;
+
+  if (serverNames.length === 0) {
+    errorMsg += ' No servers are configured. Check that servers.json is properly set up.';
+    return errorMsg;
+  }
+
+  // Show available servers (limit to 5)
+  const displayServers = serverNames.slice(0, 5);
+  const hasMore = serverNames.length > 5;
+  errorMsg += ` Available: ${displayServers.join(', ')}${hasMore ? ` (+${serverNames.length - 5} more)` : ''}.`;
+
+  // Suggest closest match
+  const closest = findClosestMatch(requestedServer, serverNames);
+  if (closest) {
+    errorMsg += ` Did you mean '${closest}'?`;
+  }
+
+  return errorMsg;
+}
+
+/**
+ * Build enhanced error message for tool not found
+ */
+function buildToolNotFoundError(
+  serverName: string,
+  requestedTool: string,
+  availableTools: string[]
+): string {
+  let errorMsg = `Tool '${requestedTool}' not found on server '${serverName}'.`;
+
+  if (availableTools.length === 0) {
+    errorMsg += ' No tools available on this server.';
+    return errorMsg;
+  }
+
+  // Show available tools (limit to 5)
+  const displayTools = availableTools.slice(0, 5);
+  const hasMore = availableTools.length > 5;
+  errorMsg += ` Available tools: ${displayTools.join(', ')}${hasMore ? ` (+${availableTools.length - 5} more)` : ''}.`;
+
+  // Suggest closest match
+  const closest = findClosestMatch(requestedTool, availableTools);
+  if (closest) {
+    errorMsg += ` Did you mean '${closest}'?`;
+  }
+
+  return errorMsg;
+}
+
+/**
+ * Build enhanced error message for connection failures
+ */
+function buildConnectionError(serverName: string, originalError: string): string {
+  let errorMsg = `Failed to connect to server '${serverName}': ${originalError}`;
+
+  // Add troubleshooting hints based on error content
+  const hints: string[] = [];
+
+  if (originalError.includes('ENOENT') || originalError.includes('not found')) {
+    hints.push('Check that the server command/binary exists and is in PATH');
+  }
+  if (originalError.includes('ECONNREFUSED')) {
+    hints.push('Check that the server process is running');
+  }
+  if (originalError.includes('timeout') || originalError.includes('Timeout')) {
+    hints.push('Server may be slow to start - try increasing timeout in servers.json');
+  }
+  if (originalError.includes('spawn')) {
+    hints.push('Verify the server configuration in servers.json');
+  }
+
+  // Always add general hints
+  hints.push('Is the server configured in servers.json?');
+
+  if (hints.length > 0) {
+    errorMsg += ` Troubleshooting: ${hints.join('; ')}.`;
+  }
+
+  return errorMsg;
+}
 
 /**
  * MCP Bridge HTTP server that allows sandboxed code to call
@@ -140,9 +287,9 @@ export class MCPBridge {
    * Handle incoming HTTP requests
    */
   private handleRequest(req: IncomingMessage, res: ServerResponse): void {
-    // Set CORS headers for local access
+    // Set CORS headers - restricted to localhost since bridge only serves sandbox code
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Origin', `http://${this.host}:${this.port}`);
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -168,8 +315,15 @@ export class MCPBridge {
    */
   private handleCallRequest(req: IncomingMessage, res: ServerResponse): void {
     let body = '';
+    let bodySize = 0;
 
     req.on('data', (chunk: Buffer) => {
+      bodySize += chunk.length;
+      if (bodySize > MAX_REQUEST_BODY_SIZE) {
+        req.destroy();
+        this.sendError(res, 413, `Request body too large. Maximum size is ${MAX_REQUEST_BODY_SIZE / 1024 / 1024}MB`);
+        return;
+      }
       body += chunk.toString();
     });
 
@@ -193,6 +347,11 @@ export class MCPBridge {
           this.sendError(res, 400, 'Missing or invalid "tool" field');
           return;
         }
+        // Validate args is an object if provided
+        if (request.args !== undefined && (typeof request.args !== 'object' || request.args === null || Array.isArray(request.args))) {
+          this.sendError(res, 400, '"args" must be an object');
+          return;
+        }
 
         // Get connection from pool
         let connection: MCPConnectionWithClient;
@@ -200,7 +359,12 @@ export class MCPBridge {
           connection = await this.pool.getConnection(request.server) as unknown as MCPConnectionWithClient;
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : String(err);
-          this.sendError(res, 502, `Failed to connect to server "${request.server}": ${errorMsg}`);
+          // Check if this is a "server not found" type error
+          if (errorMsg.includes('not found') || errorMsg.includes('No server configured') || errorMsg.includes('Unknown server')) {
+            this.sendError(res, 404, buildServerNotFoundError(request.server));
+          } else {
+            this.sendError(res, 502, buildConnectionError(request.server, errorMsg));
+          }
           return;
         }
 
@@ -231,7 +395,20 @@ export class MCPBridge {
           res.end(JSON.stringify(response));
         } catch (err) {
           const errorMsg = err instanceof Error ? err.message : String(err);
-          this.sendError(res, 500, `Tool execution failed: ${errorMsg}`);
+          // Check if this is a "tool not found" type error
+          if (errorMsg.includes('not found') || errorMsg.includes('Unknown tool') || errorMsg.includes('no such tool')) {
+            // Try to get available tools for better error message
+            try {
+              const tools = await connection.getTools();
+              const toolNames = tools.map(t => t.name);
+              this.sendError(res, 404, buildToolNotFoundError(request.server, request.tool, toolNames));
+            } catch {
+              // If we can't get tools, fall back to basic error
+              this.sendError(res, 500, `Tool '${request.tool}' not found on server '${request.server}'. Unable to fetch available tools.`);
+            }
+          } else {
+            this.sendError(res, 500, `Tool execution failed: ${errorMsg}`);
+          }
         } finally {
           // Release connection back to pool
           this.pool.releaseConnection(request.server);

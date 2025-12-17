@@ -32,9 +32,10 @@ DOCKERFILE_JIRA_REPORTER="infrastructure/Dockerfile.jira-reporter"
 DOCKERFILE_ACCESS_MONITOR="infrastructure/Dockerfile.access-monitor"
 DOCKERFILE_MAINTENANCE_FETCHER="infrastructure/Dockerfile.maintenance_fetcher"
 DOCKERFILE_JIRA_PAT_ROTATOR="infrastructure/Dockerfile.jira-pat-rotator"
+DOCKERFILE_UNIFIED_SCHEDULER="infrastructure/Dockerfile.unified-scheduler"
 
 # Service names
-SERVICES=("ketchup-app" "ketchup-metadata-updater" "mcp-jira" "ketchup-status-updater" "ketchup-jira-reporter" "ketchup-access-monitor" "ketchup-maintenance-fetcher" "ketchup-jira-pat-rotator")
+SERVICES=("ketchup-app" "ketchup-metadata-updater" "mcp-jira" "ketchup-status-updater" "ketchup-jira-reporter" "ketchup-access-monitor" "ketchup-maintenance-fetcher" "ketchup-jira-pat-rotator" "ketchup-unified-scheduler")
 
 # Default values
 VERSION=""
@@ -410,6 +411,18 @@ build_images() {
     }
     log_success "Built ketchup-jira-pat-rotator:$VERSION"
 
+    # Build ketchup-unified-scheduler
+    log_info "Building ketchup-unified-scheduler:$VERSION..."
+    BUILD_ARGS="-t ketchup-unified-scheduler:$VERSION -f $DOCKERFILE_UNIFIED_SCHEDULER --platform linux/amd64"
+    if [ "$NO_CACHE" = true ]; then
+        BUILD_ARGS="$BUILD_ARGS --no-cache"
+    fi
+    docker build $BUILD_ARGS . || {
+        log_error "Failed to build ketchup-unified-scheduler"
+        exit 1
+    }
+    log_success "Built ketchup-unified-scheduler:$VERSION"
+
 }
 
 tag_images() {
@@ -543,7 +556,7 @@ deploy_to_server() {
         ssh "$server" "cd $PROD_DIR && \
             $update_cmd \
             sudo docker-compose pull && \
-            sudo docker-compose up -d --force-recreate" || {
+            sudo docker-compose up -d --force-recreate --remove-orphans" || {
             log_error "Failed to deploy to $server"
             return 1
         }

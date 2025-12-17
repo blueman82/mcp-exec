@@ -15,11 +15,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from jira_reporter.channel_monitor import ChannelMonitor
-from jira_reporter.jira_service import JiraService
-from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
-from jira_reporter.main import process_channel, run_reporting_cycle
-from jira_reporter.report_generator import ReportGenerator
+from ketchup_unified_scheduler.services.jira_reporter.channel_monitor import ChannelMonitor
+from ketchup_unified_scheduler.services.jira_reporter.report_generator import ReportGenerator
+from ketchup_unified_scheduler.services.jira_reporter.service import (
+    JiraService,
+    process_channel,
+    run_reporting_cycle,
+)
+from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import JiraTicketDiscovery
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../unit/test_jira_reporter"))
 from test_config import TEST_CHANNELS, TEST_JIRA_TICKETS, TEST_MESSAGES
@@ -190,9 +193,15 @@ Test resolution for integration testing.
         """Test a complete reporting cycle with multiple channels."""
         # Arrange
         with (
-            patch("jira_reporter.main.get_container") as mock_get_container,
-            patch("jira_reporter.main.initialize_all_clients") as mock_init_clients,
-            patch("jira_reporter.main.cleanup_all_clients") as mock_cleanup_clients,
+            patch(
+                "ketchup_unified_scheduler.services.jira_reporter.service.get_container"
+            ) as mock_get_container,
+            patch(
+                "ketchup_unified_scheduler.services.jira_reporter.service.initialize_all_clients"
+            ) as mock_init_clients,
+            patch(
+                "ketchup_unified_scheduler.services.jira_reporter.service.cleanup_all_clients"
+            ) as mock_cleanup_clients,
             patch("httpx.AsyncClient") as mock_client_class,
         ):
 
@@ -293,10 +302,15 @@ Test resolution for integration testing.
             return True
 
         with (
-            patch("jira_reporter.main.process_channel", side_effect=mock_process),
-            patch("jira_reporter.main.get_container"),
-            patch("jira_reporter.main.initialize_all_clients"),
-            patch("jira_reporter.main.cleanup_all_clients"),
+            patch(
+                "ketchup_unified_scheduler.services.jira_reporter.service.process_channel",
+                side_effect=mock_process,
+            ),
+            patch("ketchup_unified_scheduler.services.jira_reporter.service.get_container"),
+            patch(
+                "ketchup_unified_scheduler.services.jira_reporter.service.initialize_all_clients"
+            ),
+            patch("ketchup_unified_scheduler.services.jira_reporter.service.cleanup_all_clients"),
             patch.dict(os.environ, {"BATCH_SIZE": "3"}),
         ):  # Process 3 at a time
 
@@ -310,7 +324,7 @@ Test resolution for integration testing.
                 "jira_mcp_tool": MagicMock(),
             }.get(key)
 
-            from jira_reporter.main import get_container
+            from ketchup_unified_scheduler.services.jira_reporter.service import get_container
 
             get_container.return_value = mock_container
 

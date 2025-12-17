@@ -9,7 +9,7 @@ for database storage, which will then be formatted as links at display time.
 
 from unittest.mock import MagicMock
 
-from channel_metadata_updater.metadata_extractor import MetadataExtractor
+from ketchup_unified_scheduler.services.metadata.extractor import MetadataExtractor
 
 
 class TestMetadataExtractorJiraParsing:

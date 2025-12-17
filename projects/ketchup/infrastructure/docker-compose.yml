@@ -20,7 +20,7 @@ services:
         max-file: "3"
 
   ketchup-app:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.357
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.360
     env_file:
       - common.env
       - performance.env
@@ -63,10 +63,13 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  ketchup-metadata-updater:
+  # Unified Scheduler - consolidates 5 singleton scheduler services into one container
+  # Replaces: ketchup-metadata-updater, ketchup-status-updater, ketchup-jira-reporter,
+  #           ketchup-maintenance-fetcher, ketchup-jira-pat-rotator
+  ketchup-unified-scheduler:
     build:
-      context: .
-      dockerfile: Dockerfile.updater
+      context: ..
+      dockerfile: infrastructure/Dockerfile.unified-scheduler
       platforms:
         - linux/amd64
       x-bake:
@@ -74,19 +77,39 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-metadata-updater:v2.360.357
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-unified-scheduler:v2.360.360
     env_file:
       - common.env
       - performance.env
+    environment:
+      - MCP_BASE_URL=http://mcp-jira:8081
+      - OPENAI_API_VERSION=2025-01-01-preview
+      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+      # Feature flags for individual tasks
+      - KETCHUP_STATUS_UPDATER_FEATURE=true
+      - KETCHUP_STATUS_UPDATER_GLOBAL=true
+      - KETCHUP_STATUS_UPDATER_ENABLED=true
+      - KETCHUP_JIRA_REPORTER_FEATURE=true
+      - KETCHUP_JIRA_REPORTER_GLOBAL=true
+      - KETCHUP_METADATA_UPDATER_FEATURE=true
+      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
+      - KETCHUP_JIRA_PAT_ROTATOR_FEATURE=true
+      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
+      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
+      - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
+      - KETCHUP_USE_ASYNC_MCP=true
+      - TZ=Europe/London
     volumes:
       - ./logs:/var/log
+    depends_on:
+      - mcp-jira
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/metadata_scheduler_health LAST_RUN_FILE=/tmp/metadata_last_run MAX_RUN_AGE=1500 SERVICE_NAME=MetadataUpdater /app/infrastructure/healthcheck-scheduler.sh"]
+      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/unified_scheduler_health LAST_RUN_FILE=/tmp/unified_scheduler_last_run MAX_RUN_AGE=4200 MAX_HEALTH_AGE=600 SERVICE_NAME=UnifiedScheduler /app/infrastructure/healthcheck-scheduler.sh"]
       interval: 60s
       timeout: 10s
       retries: 3
-      start_period: 120s
+      start_period: 180s
     logging:
       driver: json-file
       options:
@@ -104,7 +127,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.357
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.360
     ports:
       - "8081:8081"
     env_file:
@@ -132,76 +155,78 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  ketchup-status-updater:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-status-updater:v2.360.357
-    env_file:
-      - common.env
-      - performance.env
-    environment:
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      - KETCHUP_STATUS_UPDATER_FEATURE=true
-      - KETCHUP_STATUS_UPDATER_GLOBAL=true
-      - KETCHUP_STATUS_UPDATER_ENABLED=true
-      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
-      - TZ=Europe/London
-    volumes:
-      - ./logs:/var/log
-    depends_on:
-      - mcp-jira
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/scheduler_health LAST_RUN_FILE=/tmp/last_run MAX_RUN_AGE=4200 SERVICE_NAME=StatusUpdater /app/infrastructure/healthcheck-scheduler.sh"]
-      interval: 30s
-      timeout: 10s
-      retries: 2
-      start_period: 120s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # LEGACY: ketchup-status-updater - migrated to ketchup-unified-scheduler
+  # ketchup-status-updater:
+  #   image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-status-updater:v2.360.360
+  #   env_file:
+  #     - common.env
+  #     - performance.env
+  #   environment:
+  #     - MCP_BASE_URL=http://mcp-jira:8081
+  #     - OPENAI_API_VERSION=2025-01-01-preview
+  #     - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+  #     - KETCHUP_STATUS_UPDATER_FEATURE=true
+  #     - KETCHUP_STATUS_UPDATER_GLOBAL=true
+  #     - KETCHUP_STATUS_UPDATER_ENABLED=true
+  #     - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
+  #     - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
+  #     - TZ=Europe/London
+  #   volumes:
+  #     - ./logs:/var/log
+  #   depends_on:
+  #     - mcp-jira
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/scheduler_health LAST_RUN_FILE=/tmp/last_run MAX_RUN_AGE=4200 SERVICE_NAME=StatusUpdater /app/infrastructure/healthcheck-scheduler.sh"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 2
+  #     start_period: 120s
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
-  ketchup-jira-reporter:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-reporter:v2.360.357
-    env_file:
-      - common.env
-      - performance.env
-    environment:
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - CHECK_INTERVAL_MINUTES=15
-      - LOOKBACK_HOURS=24
-      - BATCH_SIZE=5
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      - KETCHUP_JIRA_REPORTER_FEATURE=true
-      - KETCHUP_JIRA_REPORTER_GLOBAL=true
-      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
-      - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
-      - TZ=Europe/London
-      - KETCHUP_USE_ASYNC_MCP=true
-    volumes:
-      - ./logs/jira_reporter:/var/log/jira_reporter
-    depends_on:
-      - mcp-jira
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/jira_reporter_health LAST_RUN_FILE=/tmp/jira_reporter_last_run MAX_RUN_AGE=1500 MAX_HEALTH_AGE=600 SERVICE_NAME=JiraReporter /app/infrastructure/healthcheck-scheduler.sh"]
-      interval: 300s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # LEGACY: ketchup-jira-reporter - migrated to ketchup-unified-scheduler
+  # ketchup-jira-reporter:
+  #   image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-reporter:v2.360.360
+  #   env_file:
+  #     - common.env
+  #     - performance.env
+  #   environment:
+  #     - MCP_BASE_URL=http://mcp-jira:8081
+  #     - CHECK_INTERVAL_MINUTES=15
+  #     - LOOKBACK_HOURS=24
+  #     - BATCH_SIZE=5
+  #     - OPENAI_API_VERSION=2025-01-01-preview
+  #     - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
+  #     - KETCHUP_JIRA_REPORTER_FEATURE=true
+  #     - KETCHUP_JIRA_REPORTER_GLOBAL=true
+  #     - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
+  #     - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
+  #     - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
+  #     - TZ=Europe/London
+  #     - KETCHUP_USE_ASYNC_MCP=true
+  #   volumes:
+  #     - ./logs/jira_reporter:/var/log/jira_reporter
+  #   depends_on:
+  #     - mcp-jira
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/jira_reporter_health LAST_RUN_FILE=/tmp/jira_reporter_last_run MAX_RUN_AGE=1500 MAX_HEALTH_AGE=600 SERVICE_NAME=JiraReporter /app/infrastructure/healthcheck-scheduler.sh"]
+  #     interval: 300s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 120s
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
   ketchup-access-monitor:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.357
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.360
     env_file:
       - common.env
       - performance.env
@@ -224,48 +249,50 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  ketchup-maintenance-fetcher:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-maintenance-fetcher:v2.360.357
-    env_file:
-      - common.env
-    environment:
-      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
-      - KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START=true
-      - TZ=UTC
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/maintenance_fetcher_health LAST_RUN_FILE=/tmp/last_maintenance_fetch MAX_RUN_AGE=90000 SERVICE_NAME=MaintenanceFetcher /app/infrastructure/healthcheck-scheduler.sh"]
-      interval: 300s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # LEGACY: ketchup-maintenance-fetcher - migrated to ketchup-unified-scheduler
+  # ketchup-maintenance-fetcher:
+  #   image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-maintenance-fetcher:v2.360.360
+  #   env_file:
+  #     - common.env
+  #   environment:
+  #     - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
+  #     - KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START=true
+  #     - TZ=UTC
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/maintenance_fetcher_health LAST_RUN_FILE=/tmp/last_maintenance_fetch MAX_RUN_AGE=90000 SERVICE_NAME=MaintenanceFetcher /app/infrastructure/healthcheck-scheduler.sh"]
+  #     interval: 300s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 120s
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
-  ketchup-jira-pat-rotator:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-pat-rotator:v2.360.357
-    env_file:
-      - common.env
-      - performance.env
-    environment:
-      - TZ=Europe/London
-    volumes:
-      - ./logs/jira_pat_rotator:/var/log/jira_pat_rotator
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/pat_rotator_health LAST_RUN_FILE=/tmp/pat_rotator_last_run MAX_RUN_AGE=90000 SERVICE_NAME=PatRotator /app/infrastructure/healthcheck-scheduler.sh"]
-      interval: 300s
-      timeout: 10s
-      retries: 3
-      start_period: 120s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # LEGACY: ketchup-jira-pat-rotator - migrated to ketchup-unified-scheduler
+  # ketchup-jira-pat-rotator:
+  #   image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-jira-pat-rotator:v2.360.360
+  #   env_file:
+  #     - common.env
+  #     - performance.env
+  #   environment:
+  #     - TZ=Europe/London
+  #   volumes:
+  #     - ./logs/jira_pat_rotator:/var/log/jira_pat_rotator
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/pat_rotator_health LAST_RUN_FILE=/tmp/pat_rotator_last_run MAX_RUN_AGE=90000 SERVICE_NAME=PatRotator /app/infrastructure/healthcheck-scheduler.sh"]
+  #     interval: 300s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 120s
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
 
 # Production network configuration
 networks:

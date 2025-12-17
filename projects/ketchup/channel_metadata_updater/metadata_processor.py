@@ -174,24 +174,10 @@ async def process_channels(
     except Exception as e:
         logger.error("Unexpected error in metadata update process: %s", str(e))
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
-    finally:
-        try:
-            if updater is not None:
-                # This cleanup should be for resources owned by ChannelMetadataUpdater itself,
-                # not for the injected dependencies, which are handled by factory cleanups.
-                await updater.cleanup_clients()
-                logger.info("ChannelMetadataUpdater's owned resources cleaned up successfully.")
-        except RuntimeError as cleanup_error:
-            logger.error(
-                "Runtime error during ChannelMetadataUpdater's client cleanup: %s",
-                str(cleanup_error),
-            )
-        except Exception as cleanup_error:
-            logger.error(
-                "Unexpected error during ChannelMetadataUpdater's client cleanup: %s",
-                str(cleanup_error),
-            )
-        # Note: Centralized factory cleanup is now in the main handler's finally block.
+    # NOTE: No finally/cleanup block here for unified scheduler context.
+    # All dependencies are shared DI singletons that MUST NOT be cleaned up
+    # by individual tasks. Cleanup is managed by the DI container lifecycle.
+    # See cleanup_clients() docstring for historical context.
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:

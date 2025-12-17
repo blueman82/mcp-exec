@@ -134,15 +134,16 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             case 'configureMetaMcp':
                 await this.handleConfigureMetaMcp(message.payload as { toolId: string });
                 break;
-            case 'migrateServers':
-                await this.handleMigrateServers(message.payload as { toolId: string });
-                break;
             case 'autoDetectServerPath':
                 await this.handleAutoDetectServerPath();
                 break;
             
             case 'installMetaMcpServer':
                 await this.handleInstallMetaMcpServer();
+                break;
+
+            case 'installMcpExec':
+                await this.handleInstallMcpExec();
                 break;
 
             case 'showError':
@@ -160,23 +161,24 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
-     * Handle load setup message - detects installed AI tools
+     * Handle load setup message - detects installed AI tools and MCP packages
      */
     private async handleLoadSetup(): Promise<void> {
         try {
             this.postMessage({ type: 'setupLoading' });
-            
+
             // Try to auto-detect server path from workspace
             const detectedPath = await this.detectServerPathFromWorkspace();
             if (detectedPath) {
                 this.toolConfigurator = new AIToolConfigurator(detectedPath);
             }
-            
+
             const tools = this.toolConfigurator.detectInstalledTools();
             const snippets = this.toolConfigurator.generateAllSnippets();
             const genericSnippet = this.toolConfigurator.generateGenericSnippet();
-            
-            this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet });
+            const mcpPackages = this.toolConfigurator.detectMcpPackages();
+
+            this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet, mcpPackages });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             console.error('[Meta-MCP] Failed to load setup:', errorMsg);
@@ -282,7 +284,31 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         const terminal = vscode.window.createTerminal('meta-mcp-server install');
         terminal.show();
         terminal.sendText('npm install -g @justanothermldude/meta-mcp-server');
-        vscode.window.showInformationMessage('Installing @justanothermldude/meta-mcp-server... Check terminal for progress.');
+
+        await vscode.window.showInformationMessage(
+            'Installing meta-mcp-server... Click "Refresh" when installation completes.',
+            'Refresh'
+        );
+        // Always refresh after dialog closes (whether Refresh clicked or dismissed)
+        // This ensures the button state is updated and doesn't stay stuck at "Installing..."
+        await this.handleLoadSetup();
+    }
+
+    /**
+     * Install mcp-exec globally via npm
+     */
+    private async handleInstallMcpExec(): Promise<void> {
+        const terminal = vscode.window.createTerminal('mcp-exec install');
+        terminal.show();
+        terminal.sendText('npm install -g @justanothermldude/mcp-exec');
+
+        await vscode.window.showInformationMessage(
+            'Installing mcp-exec... Click "Refresh" when installation completes.',
+            'Refresh'
+        );
+        // Always refresh after dialog closes (whether Refresh clicked or dismissed)
+        // This ensures the button state is updated and doesn't stay stuck at "Installing..."
+        await this.handleLoadSetup();
     }
 
     /**
@@ -335,6 +361,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
 
     /**
      * Handle configure meta-mcp for a specific tool
+     * Now also migrates existing servers to servers.json
      */
     private async handleConfigureMetaMcp(payload: { toolId: string }): Promise<void> {
         if (!payload?.toolId) {
@@ -344,64 +371,34 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
 
         try {
             const result = await this.toolConfigurator.autoConfigure(payload.toolId);
-            
+
             if (result.success) {
                 const toolName = result.toolName || payload.toolId;
-                vscode.window.showInformationMessage(
-                    `meta-mcp configured for ${toolName}. Restart ${toolName} to apply changes.`
-                );
-                
+
+                // Build success message based on what was done
+                let message = `Configured ${toolName}`;
+                if (result.migratedCount > 0) {
+                    message += ` and migrated ${result.migratedCount} server(s) to servers.json`;
+                }
+                message += `. Restart ${toolName} to apply changes.`;
+
+                vscode.window.showInformationMessage(message);
+
                 // Open both config files for user to review
                 await this.openConfigFiles(result.configPath, result.serversConfigPath);
+
+                // Refresh server list since we may have migrated servers
+                this.sendServerList();
+                await this.handleLoadSetup();
             } else {
                 vscode.window.showErrorMessage(result.error || 'Configuration failed');
             }
-            
+
             this.postMessage({ type: 'configureMetaMcpResponse', success: result.success, error: result.error });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             console.error('[Meta-MCP] Failed to configure:', errorMsg);
             this.postMessage({ type: 'configureMetaMcpResponse', success: false, error: errorMsg });
-        }
-    }
-
-    /**
-     * Handle migrate servers from a tool's config to servers.json
-     */
-    private async handleMigrateServers(payload: { toolId: string }): Promise<void> {
-        if (!payload?.toolId) {
-            this.postMessage({ type: 'migrateServersResponse', success: false, error: 'No tool specified' });
-            return;
-        }
-
-        try {
-            const result = await this.toolConfigurator.migrateServers(payload.toolId);
-            
-            if (result.success) {
-                const toolName = result.toolName || payload.toolId;
-                if (result.migratedCount > 0) {
-                    vscode.window.showInformationMessage(
-                        `Migrated ${result.migratedCount} server(s) to servers.json. Restart ${toolName} to apply changes.`
-                    );
-                } else {
-                    vscode.window.showInformationMessage('No servers to migrate.');
-                }
-                
-                // Open both config files for user to review
-                await this.openConfigFiles(result.configPath, result.serversConfigPath);
-                
-                // Refresh server list and setup
-                this.sendServerList();
-                await this.handleLoadSetup();
-            } else {
-                vscode.window.showErrorMessage(result.error || 'Migration failed');
-            }
-            
-            this.postMessage({ type: 'migrateServersResponse', success: result.success, error: result.error });
-        } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[Meta-MCP] Failed to migrate servers:', errorMsg);
-            this.postMessage({ type: 'migrateServersResponse', success: false, error: errorMsg });
         }
     }
 

@@ -18,11 +18,8 @@ graph TB
             MCP["mcp-jira<br/>Port 8081<br/>Node.js MCP Server"]
         end
 
-        subgraph "Singleton Services (prod1 ONLY)"
-            MetaUpdater["metadata-updater<br/>Channel Scanner<br/>Runs hourly"]
-            StatusUpdater["status-updater<br/>Status Reporter<br/>Runs hourly"]
-            JiraReporter["jira-reporter<br/>JIRA Automation<br/>Runs every 15m"]
-            MaintenanceFetcher["maintenance-fetcher<br/>Maintenance Detector<br/>Runs every 5m"]
+        subgraph "Unified Scheduler (prod1 ONLY)"
+            UnifiedScheduler["unified-scheduler<br/>Runs 5 tasks internally:<br/>• metadata-updater (15min)<br/>• status-updater (55min)<br/>• jira-reporter (continuous)<br/>• maintenance-fetcher (1:30 UTC)<br/>• jira-pat-rotator (24hr)"]
         end
 
         subgraph "Monitoring & Logging"
@@ -54,36 +51,18 @@ graph TB
 
     MCP -->|HTTP| JiraCloud["Jira Cloud"]
 
-    MetaUpdater -->|Pull Tasks| SQS
-    MetaUpdater -->|Import| Packages
-    MetaUpdater -->|Post Responses| SlackAPI["Slack API"]
-
-    StatusUpdater -->|Pull Tasks| SQS
-    StatusUpdater -->|Import| Packages
-    StatusUpdater -->|Post Responses| SlackAPI
-
-    JiraReporter -->|Pull Tasks| SQS
-    JiraReporter -->|Import| Packages
-    JiraReporter -->|Post Responses| SlackAPI
-
-    MaintenanceFetcher -->|Pull Tasks| SQS
-    MaintenanceFetcher -->|Import| Packages
-    MaintenanceFetcher -->|Post Responses| SlackAPI
+    UnifiedScheduler -->|Pull Tasks| SQS
+    UnifiedScheduler -->|Import| Packages
+    UnifiedScheduler -->|Post Responses| SlackAPI["Slack API"]
 
     App1 -->|Query/Update| DDB
     App2 -->|Query/Update| DDB
-    MetaUpdater -->|Query/Update| DDB
-    StatusUpdater -->|Query/Update| DDB
-    JiraReporter -->|Query/Update| DDB
-    MaintenanceFetcher -->|Query/Update| DDB
+    UnifiedScheduler -->|Query/Update| DDB
 
     App1 -->|Get Secrets| Secrets
     App2 -->|Get Secrets| Secrets
     MCP -->|Get Secrets| Secrets
-    MetaUpdater -->|Get Secrets| Secrets
-    StatusUpdater -->|Get Secrets| Secrets
-    JiraReporter -->|Get Secrets| Secrets
-    MaintenanceFetcher -->|Get Secrets| Secrets
+    UnifiedScheduler -->|Get Secrets| Secrets
 
     AccessMonitor -->|Monitor| App1
     AccessMonitor -->|Monitor| App2
@@ -92,10 +71,7 @@ graph TB
     style App1 fill:#36c5f0
     style App2 fill:#36c5f0
     style MCP fill:#ff9900
-    style MetaUpdater fill:#cc99ff
-    style StatusUpdater fill:#cc99ff
-    style JiraReporter fill:#cc99ff
-    style MaintenanceFetcher fill:#cc99ff
+    style UnifiedScheduler fill:#cc99ff
     style AccessMonitor fill:#ffcc99
     style DDB fill:#527fff
     style Secrets fill:#527fff
@@ -129,7 +105,7 @@ graph TB
         end
 
         subgraph "⛔ EXPLICITLY DISABLED"
-            DisabledServices["❌ metadata-updater<br/>❌ status-updater<br/>❌ jira-reporter<br/>❌ maintenance-fetcher<br/><br/>Stopped during deployment<br/>to prevent duplicate jobs"]
+            DisabledServices["❌ unified-scheduler<br/><br/>Stopped during deployment<br/>to prevent duplicate jobs<br/>(5 tasks run on prod1 only)"]
         end
     end
 
@@ -179,7 +155,7 @@ graph LR
     subgraph "prod1 (Full Stack)"
         P1_FastAPI["FastAPI<br/>2 replicas"]
         P1_MCP["MCP Server<br/>JIRA"]
-        P1_Singleton["Singleton Services<br/>4 services"]
+        P1_Unified["Unified Scheduler<br/>5 tasks"]
         P1_Monitor["Monitoring<br/>access-monitor"]
     end
 
@@ -187,14 +163,14 @@ graph LR
         P2_FastAPI["FastAPI<br/>2 replicas"]
         P2_MCP["MCP Server<br/>JIRA"]
         P2_Monitor["Monitoring<br/>access-monitor"]
-        P2_Disabled["Disabled<br/>(stopped)"]
+        P2_Disabled["Unified Scheduler<br/>(disabled)"]
     end
 
     P1_FastAPI -->|Handles requests| Slack
-    P1_Singleton -->|Background jobs| Slack
+    P1_Unified -->|Background jobs| Slack
     P2_FastAPI -->|Handles requests| Slack
 
-    style P1_Singleton fill:#cc99ff
+    style P1_Unified fill:#cc99ff
     style P2_Disabled fill:#ff6666
 
     P1_MCP -.->|2 servers| Jira
@@ -217,7 +193,7 @@ graph TD
     Prod2 -->|Nginx Load Balance| App2a["ketchup-app-1"]
     Prod2 -->|Nginx Load Balance| App2b["ketchup-app-2"]
 
-    App1a -.->|Background<br/>Jobs| Singleton["Singleton Services<br/>(prod1 only)"]
+    App1a -.->|Background<br/>Jobs| Singleton["Unified Scheduler<br/>(prod1 only)"]
     App1b -.->|Background<br/>Jobs| Singleton
 
     subgraph "All Query Same"
@@ -243,9 +219,9 @@ graph TD
 ```mermaid
 graph TB
     subgraph "prod1 Resource Usage"
-        CPU1["7 Containers<br/>Total CPU: ~2 cores shared"]
-        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>metadata-updater: 256MB<br/>status-updater: 256MB<br/>jira-reporter: 256MB<br/>maintenance-fetcher: 256MB<br/>access-monitor: 128MB"]
-        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~500MB"]
+        CPU1["6 Containers<br/>Total CPU: ~2 cores shared"]
+        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>access-monitor: 128MB"]
+        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~350MB"]
     end
 
     subgraph "prod2 Resource Usage"
@@ -262,30 +238,31 @@ graph TB
     style Storage2 fill:#ccffcc
 ```
 
-## Deployment Strategy: Why Singletons Only on prod1?
+## Deployment Strategy: Why Unified Scheduler Only on prod1?
 
 **Problem**:
-- Scheduled jobs (hourly status updates, JIRA reporting) cannot run on multiple servers
+- Scheduled jobs (metadata updates, status reports, JIRA automation) cannot run on multiple servers
 - Would create duplicate messages, duplicate tickets, race conditions
 - Data conflicts in DynamoDB
 
 **Solution**:
-- Run singletons **only** on prod1
-- Explicitly **stop and remove** these containers from prod2
-- deployment script (deploy-ketchup.sh:505-506):
+- Run unified scheduler **only** on prod1
+- Explicitly **stop and remove** this container from prod2
+- deployment script (deploy-ketchup.sh):
   ```bash
-  # Remove singleton services from prod2
-  ssh prod2 "docker-compose rm -f metadata-updater status-updater jira-reporter maintenance-fetcher"
+  # Remove unified scheduler from prod2
+  ssh prod2 "docker-compose rm -f unified-scheduler"
   ```
 
 **Benefits**:
 - ✅ No duplicate scheduled jobs
 - ✅ No race conditions on shared resources
-- ✅ Clear "source of truth" for singleton work
+- ✅ Clear "source of truth" for scheduled work
 - ✅ Reduces load on prod2 to core request handling
-- ✅ Failover ready: if prod1 fails, can manually run singletons on prod2
+- ✅ Failover ready: if prod1 fails, can manually run unified scheduler on prod2
+- ✅ Single healthcheck for all scheduled tasks
 
 ---
 
-**Total Containers**: 14 (7 on prod1, 5 on prod2, plus 2 monitoring)
-**Total Services**: 9 (FastAPI, MCP, 4 singletons, 1 metadata updater, 1 access monitor, 1 jira reporter)
+**Total Containers**: 11 (6 on prod1, 5 on prod2)
+**Total Services**: 6 (FastAPI x2, MCP, unified-scheduler, access-monitor x2)

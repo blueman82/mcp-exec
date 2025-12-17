@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, Mock, patch
 import orjson
 import pytest
 
-from ketchup_status_updater.processor import AutoStatusProcessor
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.processor import AutoStatusProcessor
 
 # Save reference to real orjson.dumps in case it gets mocked
 _real_orjson_dumps = orjson.dumps

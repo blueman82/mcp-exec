@@ -1,6 +1,6 @@
 /**
  * MCP Server for mcp-exec
- * Exposes the execute_code tool via MCP protocol
+ * Exposes code execution tools via MCP protocol
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
@@ -9,12 +9,18 @@ import {
   CallToolResult,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { ServerPool } from '@meta-mcp/core';
+import type { ServerPool } from '@justanothermldude/meta-mcp-core';
 import {
-  executeCodeTool,
-  createExecuteCodeHandler,
-  isExecuteCodeInput,
-  type ExecuteCodeHandlerConfig,
+  listAvailableMcpServersTool,
+  createListServersHandler,
+  isListServersInput,
+  getMcpToolSchemaTool,
+  createGetToolSchemaHandler,
+  isGetToolSchemaInput,
+  executeCodeWithWrappersTool,
+  createExecuteWithWrappersHandler,
+  isExecuteWithWrappersInput,
+  type ExecuteWithWrappersHandlerConfig,
 } from './tools/index.js';
 
 const VERSION = '0.1.0';
@@ -25,8 +31,8 @@ interface CallToolParams {
 }
 
 export interface McpExecServerConfig {
-  /** Configuration for the execute_code handler */
-  handlerConfig?: ExecuteCodeHandlerConfig;
+  /** Configuration for the execute_code_with_wrappers handler */
+  handlerConfig?: ExecuteWithWrappersHandlerConfig;
 }
 
 /**
@@ -49,11 +55,21 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
     }
   );
 
-  // Create the execute_code handler with the pool
-  const executeCodeHandler = createExecuteCodeHandler(pool, config.handlerConfig);
+  // Create the list_available_mcp_servers handler
+  const listServersHandler = createListServersHandler();
 
-  // Single tool: execute_code
-  const tools: Tool[] = [executeCodeTool as Tool];
+  // Create the get_mcp_tool_schema handler with the pool
+  const getToolSchemaHandler = createGetToolSchemaHandler(pool);
+
+  // Create the execute_code_with_wrappers handler with the pool
+  const executeWithWrappersHandler = createExecuteWithWrappersHandler(pool, config.handlerConfig);
+
+  // Register all tools
+  const tools: Tool[] = [
+    listAvailableMcpServersTool as Tool,
+    getMcpToolSchemaTool as Tool,
+    executeCodeWithWrappersTool as Tool,
+  ];
 
   const listToolsHandler = async () => ({ tools });
 
@@ -63,14 +79,42 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
     const { name, arguments: args = {} } = params;
 
     switch (name) {
-      case 'execute_code': {
-        if (!isExecuteCodeInput(args)) {
+      case 'list_available_mcp_servers': {
+        if (!isListServersInput(args)) {
           return {
-            content: [{ type: 'text', text: 'Error: Invalid arguments for execute_code. Required: code (string)' }],
+            content: [{ type: 'text', text: 'Error: Invalid arguments for list_available_mcp_servers' }],
             isError: true,
           };
         }
-        const result = await executeCodeHandler(args);
+        const result = await listServersHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'get_mcp_tool_schema': {
+        if (!isGetToolSchemaInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for get_mcp_tool_schema. Required: server (string), tool (string)' }],
+            isError: true,
+          };
+        }
+        const result = await getToolSchemaHandler(args);
+        return {
+          content: result.content,
+          isError: result.isError,
+        };
+      }
+
+      case 'execute_code_with_wrappers': {
+        if (!isExecuteWithWrappersInput(args)) {
+          return {
+            content: [{ type: 'text', text: 'Error: Invalid arguments for execute_code_with_wrappers. Required: code (string), wrappers (string[])' }],
+            isError: true,
+          };
+        }
+        const result = await executeWithWrappersHandler(args);
         return {
           content: result.content,
           isError: result.isError,

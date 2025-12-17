@@ -24,10 +24,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from channel_metadata_updater.channel_processor import ChannelProcessor
-from channel_metadata_updater.metadata_extractor import MetadataExtractor
-from channel_metadata_updater.metadata_storage import MetadataStorage
-from channel_metadata_updater.metadata_updater import ChannelMetadataUpdater
+from ketchup_unified_scheduler.services.metadata.channel_processor import ChannelProcessor
+from ketchup_unified_scheduler.services.metadata.extractor import MetadataExtractor
+from ketchup_unified_scheduler.services.metadata.storage import MetadataStorage
+from ketchup_unified_scheduler.services.metadata.updater import ChannelMetadataUpdater
 
 
 @pytest.mark.asyncio

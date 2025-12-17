@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 
 
 @pytest.mark.asyncio
@@ -82,12 +82,16 @@ async def test_status_button_creation():
     )
 
     # Mock feature flags
-    with patch("ketchup_status_updater.status_generator.FeatureFlags") as MockFeatureFlags:
+    with patch(
+        "ketchup_unified_scheduler.services.status.generator.FeatureFlags"
+    ) as MockFeatureFlags:
         MockFeatureFlags.is_trust_endorsement_enabled.return_value = True
         MockFeatureFlags.is_trust_endorsement_global.return_value = True
 
         # Mock MessagePreparer
-        with patch("ketchup_status_updater.status_generator.MessagePreparer") as MockPreparer:
+        with patch(
+            "ketchup_unified_scheduler.services.status.generator.MessagePreparer"
+        ) as MockPreparer:
             mock_preparer = MagicMock()
             mock_preparer.prepare_messages_for_auto_status = AsyncMock(
                 return_value=(

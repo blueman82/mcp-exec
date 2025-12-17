@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
 
 @pytest.fixture
@@ -134,9 +134,11 @@ class TestSchedulerTiming:
             if len(sleep_calls) > 2:  # Stop after a few iterations
                 scheduler.running = False
 
-        scheduler.run_rotation_check = AsyncMock()
+        # Mock run_task (not run_rotation_check) - PatRotationScheduler uses run_task
+        scheduler.run_task = AsyncMock()
 
-        with patch("asyncio.sleep", side_effect=mock_sleep):
+        # Patch at module level where asyncio.sleep is called
+        with patch("packages.core.schedulers.base_scheduler.asyncio.sleep", side_effect=mock_sleep):
             await scheduler.start()
 
         # Should have multiple sleep calls of 60 seconds (1 minute)
