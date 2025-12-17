@@ -25,7 +25,7 @@ async def test_auto_status_continues_when_delete_fails():
     - Delete failure logs warning
     - System continues with new post (doesn't fail)
     """
-    from ketchup_status_updater.status_generator import AutoStatusGenerator
+    from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 
     # Create mocks
     mock_posting_handler = AsyncMock()

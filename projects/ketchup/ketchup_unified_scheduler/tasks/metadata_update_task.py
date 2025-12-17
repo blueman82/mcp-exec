@@ -7,7 +7,7 @@ Uses 15-minute interval for metadata extraction using AI.
 
 from typing import Optional
 
-from channel_metadata_updater.metadata_processor import process_channels
+from ketchup_unified_scheduler.services.metadata import process_channels
 from ketchup_unified_scheduler.task_config import TaskConfig
 from packages.core.logging import setup_logger
 from packages.core.typed_di import TypedServiceRegistry

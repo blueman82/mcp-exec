@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from jira_reporter.jira_service import JiraService
+from ketchup_unified_scheduler.services.jira_reporter.service import JiraService
 from packages.core.typed_di_integration import cleanup_container, get_container
 
 
@@ -35,7 +35,7 @@ async def test_jira_service_with_ims_authentication():
         comment_text = "Test comment from JIRA reporter with IMS authentication"
 
         # Mock the httpx client to check headers
-        with patch("jira_reporter.jira_service.httpx.AsyncClient") as mock_client:
+        with patch("ketchup_unified_scheduler.services.jira_reporter.service.httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
             mock_response.status_code = 200
             mock_response.json.return_value = {

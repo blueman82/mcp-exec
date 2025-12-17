@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 
 from base_integration_test import BaseIntegrationTest
 
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 
 TEST_CHANNEL_ID = "C094BNAUTDJ"  # test_acc_cso_2
 

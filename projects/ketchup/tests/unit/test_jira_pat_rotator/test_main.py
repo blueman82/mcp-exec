@@ -107,7 +107,7 @@ class TestSchedulerIntegration:
     @pytest.mark.asyncio
     async def test_scheduler_initialization_with_container(self):
         """Test that scheduler can be initialized with container dependencies."""
-        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
         # Scheduler should initialize without errors
         scheduler = PatRotationScheduler()
@@ -119,7 +119,7 @@ class TestSchedulerIntegration:
     @pytest.mark.asyncio
     async def test_scheduler_has_rotation_interval(self):
         """Test that scheduler has proper rotation interval configured."""
-        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
         scheduler = PatRotationScheduler()
 
@@ -133,7 +133,7 @@ class TestSchedulerIntegration:
     @pytest.mark.asyncio
     async def test_rotator_can_be_instantiated_with_dependencies(self):
         """Test that PATRotator can be instantiated with dependencies."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         # Should instantiate without errors
         rotator = PATRotator()
@@ -146,7 +146,7 @@ class TestSchedulerIntegration:
         """Test that main module has correct entry point structure."""
         # Import will fail if main.py doesn't exist
         try:
-            import ketchup_jira_pat_rotator.main as main_module
+            import ketchup_unified_scheduler.services.pat_rotator.rotator as main_module
 
             # Verify main module has expected attributes
             assert hasattr(main_module, "main")
@@ -161,12 +161,12 @@ class TestMainAsyncFunctionality:
     """Test async functionality in main module."""
 
     @pytest.mark.asyncio
-    @patch("ketchup_jira_pat_rotator.main.PatRotationScheduler")
+    @patch("ketchup_unified_scheduler.services.pat_rotator.rotator.PatRotationScheduler")
     async def test_main_can_start_scheduler(self, mock_scheduler_class):
         """Test that main function can start scheduler."""
         # Skip if main.py not yet implemented
         try:
-            import ketchup_jira_pat_rotator.main as main_module
+            import ketchup_unified_scheduler.services.pat_rotator.rotator as main_module
 
             # Mock the scheduler
             mock_scheduler = AsyncMock()
@@ -183,7 +183,7 @@ class TestMainAsyncFunctionality:
     @pytest.mark.asyncio
     async def test_scheduler_runs_without_errors(self):
         """Test that scheduler can run initial cycle without errors."""
-        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
         scheduler = PatRotationScheduler()
 
@@ -215,7 +215,7 @@ class TestMainModuleExports:
     def test_main_module_exports_main_function(self):
         """Test that main module exports main function."""
         try:
-            from ketchup_jira_pat_rotator.main import main
+            from ketchup_unified_scheduler.services.pat_rotator.rotator import main
 
             assert callable(main)
         except ImportError:
@@ -224,7 +224,7 @@ class TestMainModuleExports:
     def test_main_module_imports_logger(self):
         """Test that main module has logger configured."""
         try:
-            import ketchup_jira_pat_rotator.main as main_module
+            import ketchup_unified_scheduler.services.pat_rotator.rotator as main_module
 
             assert hasattr(main_module, "logger")
         except ImportError:
@@ -237,7 +237,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_rotator_accepts_container(self):
         """Test that PATRotator can be instantiated with a DI container."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         container = await get_unified_container()
         rotator = PATRotator(container=container)
@@ -248,7 +248,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_rotator_resolves_mcp_client_via_di(self):
         """Test that rotator resolves MCP client via TypedDI when container provided."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         container = await get_unified_container()
         rotator = PATRotator(container=container)
@@ -261,7 +261,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_rotator_falls_back_without_container(self):
         """Test that rotator can fall back to direct instantiation without container."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         # Create rotator without container
         rotator = PATRotator(container=None)
@@ -273,7 +273,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_scheduler_passes_container_to_rotator(self):
         """Test that scheduler passes DI container to rotator."""
-        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
         container = await get_unified_container()
         scheduler = PatRotationScheduler(container=container)
@@ -283,7 +283,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_scheduler_accepts_none_container(self):
         """Test that scheduler works without container (backward compatible)."""
-        from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
         scheduler = PatRotationScheduler()
 
@@ -292,7 +292,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_mcp_client_caching(self):
         """Test that MCP client is cached after first resolution."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         container = await get_unified_container()
         rotator = PATRotator(container=container)
@@ -308,7 +308,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_rotate_returns_skipped_when_no_rotation_needed(self):
         """Test that rotate returns skipped status when rotation not needed."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         container = await get_unified_container()
         rotator = PATRotator(container=container)
@@ -323,7 +323,7 @@ class TestPATRotatorDIIntegration:
     @pytest.mark.asyncio
     async def test_rotate_handles_missing_mcp_client(self):
         """Test that rotate handles unavailable MCP client gracefully."""
-        from ketchup_jira_pat_rotator.rotator import PATRotator
+        from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
         # Create rotator without container
         rotator = PATRotator(container=None)

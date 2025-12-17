@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
+from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import JiraTicketDiscovery
 
 
 class TestJiraTicketDiscovery:

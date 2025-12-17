@@ -69,7 +69,7 @@ class TestFunctionSignatures:
 
     def test_maintenance_fetcher_signature(self):
         """Verify fetch_and_store_maintenance_data has container: Optional[TypedServiceRegistry] = None."""
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
         sig = inspect.signature(fetch_and_store_maintenance_data)
 
@@ -82,7 +82,7 @@ class TestFunctionSignatures:
 
     def test_status_updater_signature(self):
         """Verify run_auto_status has container: Optional[TypedServiceRegistry] = None."""
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         sig = inspect.signature(run_auto_status)
 
@@ -95,7 +95,7 @@ class TestFunctionSignatures:
 
     def test_metadata_processor_signature(self):
         """Verify process_channels has container: Optional[TypedServiceRegistry] = None."""
-        from channel_metadata_updater.metadata_processor import process_channels
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
 
         sig = inspect.signature(process_channels)
 
@@ -108,7 +108,7 @@ class TestFunctionSignatures:
 
     def test_jira_reporter_signature(self):
         """Verify run_reporting_cycle has container: Optional[TypedServiceRegistry] = None."""
-        from jira_reporter.main import run_reporting_cycle
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
 
         sig = inspect.signature(run_reporting_cycle)
 
@@ -131,7 +131,7 @@ class TestMaintenanceFetcherPassthrough:
     @pytest.mark.asyncio
     async def test_accepts_container_parameter(self, mock_container):
         """Test that fetch_and_store_maintenance_data accepts container parameter."""
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
         # Verify function can be called with container parameter (even if it returns early due to feature flag)
         with patch.dict("os.environ", {"KETCHUP_MAINTENANCE_FETCHER_ENABLED": "false"}):
@@ -143,14 +143,14 @@ class TestMaintenanceFetcherPassthrough:
         self, mock_container, mock_dynamodb_store, mock_soap_client
     ):
         """Test that provided container is used instead of get_unified_container."""
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
         # Setup mock container to return required services
         mock_container.aget = AsyncMock(side_effect=[mock_soap_client, mock_dynamodb_store])
 
         with patch.dict("os.environ", {"KETCHUP_MAINTENANCE_FETCHER_ENABLED": "true"}):
             with patch(
-                "ketchup_maintenance_fetcher.main.get_unified_container"
+                "ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container"
             ) as mock_get_container:
                 await fetch_and_store_maintenance_data(container=mock_container)
 
@@ -160,7 +160,7 @@ class TestMaintenanceFetcherPassthrough:
     @pytest.mark.asyncio
     async def test_backward_compatible_without_container(self):
         """Test that function works when called without container argument."""
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
         # With feature disabled, function should return early without needing container
         with patch.dict("os.environ", {"KETCHUP_MAINTENANCE_FETCHER_ENABLED": "false"}):
@@ -170,7 +170,7 @@ class TestMaintenanceFetcherPassthrough:
     @pytest.mark.asyncio
     async def test_creates_container_when_none_provided(self):
         """Test that get_unified_container is called when container=None."""
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
 
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(
@@ -179,7 +179,7 @@ class TestMaintenanceFetcherPassthrough:
 
         with patch.dict("os.environ", {"KETCHUP_MAINTENANCE_FETCHER_ENABLED": "true"}):
             with patch(
-                "ketchup_maintenance_fetcher.main.get_unified_container",
+                "ketchup_unified_scheduler.services.maintenance.fetcher.get_unified_container",
                 return_value=mock_container,
             ) as mock_get_container:
                 # Call will fail when trying to aget, but we just need to verify get_unified_container was called
@@ -203,7 +203,7 @@ class TestStatusUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_accepts_container_parameter(self, mock_container):
         """Test that run_auto_status accepts container parameter."""
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         # Setup mock to raise early to avoid full execution
         mock_container.aget = AsyncMock(side_effect=Exception("Test - early exit"))
@@ -214,13 +214,13 @@ class TestStatusUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_uses_provided_container(self, mock_container, mock_dynamodb_store):
         """Test that provided container is used instead of get_unified_container."""
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         # Setup mock container
         mock_container.aget = AsyncMock(return_value=mock_dynamodb_store)
 
-        with patch("ketchup_status_updater.main.get_unified_container") as mock_get_container:
-            with patch("ketchup_status_updater.main.DistributedLock") as mock_lock:
+        with patch("ketchup_unified_scheduler.services.status.processor.get_unified_container") as mock_get_container:
+            with patch("ketchup_unified_scheduler.services.status.processor.DistributedLock") as mock_lock:
                 # Make lock acquisition fail to exit early
                 mock_lock_instance = AsyncMock()
                 mock_lock_instance.acquire_lock = MagicMock(
@@ -239,13 +239,13 @@ class TestStatusUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_backward_compatible_without_container(self):
         """Test that function works when called without container argument."""
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
 
         with patch(
-            "ketchup_status_updater.main.get_unified_container", return_value=mock_container
+            "ketchup_unified_scheduler.services.status.processor.get_unified_container", return_value=mock_container
         ):
             # Function should call get_unified_container when no container provided
             with pytest.raises(Exception, match="Test exit"):
@@ -254,13 +254,13 @@ class TestStatusUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_creates_container_when_none_provided(self):
         """Test that get_unified_container is called when container=None."""
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
 
         with patch(
-            "ketchup_status_updater.main.get_unified_container", return_value=mock_container
+            "ketchup_unified_scheduler.services.status.processor.get_unified_container", return_value=mock_container
         ) as mock_get_container:
             try:
                 await run_auto_status()
@@ -282,7 +282,7 @@ class TestMetadataUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_accepts_container_parameter(self, mock_container):
         """Test that process_channels accepts container parameter."""
-        from channel_metadata_updater.metadata_processor import process_channels
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
 
         # Setup mock container
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
@@ -297,7 +297,7 @@ class TestMetadataUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_uses_provided_container(self, mock_container, mock_secrets_manager):
         """Test that provided container is used instead of get_unified_container."""
-        from channel_metadata_updater.metadata_processor import process_channels
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
 
         # Setup mock container to return required dependencies
         mock_container.aget = AsyncMock(return_value=mock_secrets_manager)
@@ -306,10 +306,10 @@ class TestMetadataUpdaterPassthrough:
         context = {}
 
         with patch(
-            "channel_metadata_updater.metadata_processor.get_unified_container"
+            "ketchup_unified_scheduler.services.metadata.processor.get_unified_container"
         ) as mock_get_container:
             with patch(
-                "channel_metadata_updater.metadata_processor.create_channel_metadata_updater"
+                "ketchup_unified_scheduler.services.metadata.processor.create_channel_metadata_updater"
             ) as mock_create_updater:
                 # Mock updater to avoid full execution
                 mock_updater = AsyncMock()
@@ -326,7 +326,7 @@ class TestMetadataUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_backward_compatible_without_container(self):
         """Test that function works when called without container argument."""
-        from channel_metadata_updater.metadata_processor import process_channels
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
 
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
@@ -335,7 +335,7 @@ class TestMetadataUpdaterPassthrough:
         context = {}
 
         with patch(
-            "channel_metadata_updater.metadata_processor.get_unified_container",
+            "ketchup_unified_scheduler.services.metadata.processor.get_unified_container",
             return_value=mock_container,
         ):
             result = await process_channels(event, context)
@@ -345,7 +345,7 @@ class TestMetadataUpdaterPassthrough:
     @pytest.mark.asyncio
     async def test_creates_container_when_none_provided(self):
         """Test that get_unified_container is called when container=None."""
-        from channel_metadata_updater.metadata_processor import process_channels
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
 
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
@@ -354,7 +354,7 @@ class TestMetadataUpdaterPassthrough:
         context = {}
 
         with patch(
-            "channel_metadata_updater.metadata_processor.get_unified_container",
+            "ketchup_unified_scheduler.services.metadata.processor.get_unified_container",
             return_value=mock_container,
         ) as mock_get_container:
             await process_channels(event, context)
@@ -374,7 +374,7 @@ class TestJiraReporterPassthrough:
     @pytest.mark.asyncio
     async def test_accepts_container_parameter(self, mock_container):
         """Test that run_reporting_cycle accepts container parameter."""
-        from jira_reporter.main import run_reporting_cycle
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
 
         # Setup mock container to raise early to avoid full execution
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
@@ -391,7 +391,7 @@ class TestJiraReporterPassthrough:
     @pytest.mark.asyncio
     async def test_uses_provided_container(self, mock_container, mock_dynamodb_store):
         """Test that provided container is used instead of get_unified_container."""
-        from jira_reporter.main import run_reporting_cycle
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
 
         # Setup mock container
         mock_container.aget = AsyncMock(return_value=mock_dynamodb_store)
@@ -401,7 +401,7 @@ class TestJiraReporterPassthrough:
             "packages.core.config.feature_flags.FeatureFlags.is_jira_reporter_enabled",
             return_value=False,
         ):
-            with patch("jira_reporter.main.get_unified_container") as mock_get_container:
+            with patch("ketchup_unified_scheduler.services.jira_reporter.service.get_unified_container") as mock_get_container:
                 await run_reporting_cycle(container=mock_container)
 
                 # get_unified_container should NOT be called when container is provided
@@ -410,7 +410,7 @@ class TestJiraReporterPassthrough:
     @pytest.mark.asyncio
     async def test_backward_compatible_without_container(self):
         """Test that function works when called without container argument."""
-        from jira_reporter.main import run_reporting_cycle
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
 
         # FeatureFlags is imported locally inside run_reporting_cycle, so patch at source
         with patch(
@@ -423,7 +423,7 @@ class TestJiraReporterPassthrough:
     @pytest.mark.asyncio
     async def test_creates_container_when_none_provided(self):
         """Test that get_unified_container is called when container=None."""
-        from jira_reporter.main import run_reporting_cycle
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
 
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
@@ -434,7 +434,7 @@ class TestJiraReporterPassthrough:
             return_value=True,
         ):
             with patch(
-                "jira_reporter.main.get_unified_container", return_value=mock_container
+                "ketchup_unified_scheduler.services.jira_reporter.service.get_unified_container", return_value=mock_container
             ) as mock_get_container:
                 await run_reporting_cycle()
 
@@ -452,10 +452,10 @@ class TestAllServicesPassthroughPattern:
 
     def test_all_functions_have_consistent_signature(self):
         """Verify all refactored functions have consistent container parameter."""
-        from channel_metadata_updater.metadata_processor import process_channels
-        from jira_reporter.main import run_reporting_cycle
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         functions = [
             fetch_and_store_maintenance_data,
@@ -490,10 +490,10 @@ class TestAllServicesPassthroughPattern:
         This test verifies that all refactored functions have the container parameter
         as specified in the PHASE 0 verification step.
         """
-        from channel_metadata_updater.metadata_processor import process_channels
-        from jira_reporter.main import run_reporting_cycle
-        from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
-        from ketchup_status_updater.main import run_auto_status
+        from ketchup_unified_scheduler.services.metadata.processor import process_channels
+        from ketchup_unified_scheduler.services.jira_reporter.service import run_reporting_cycle
+        from ketchup_unified_scheduler.services.maintenance.fetcher import fetch_and_store_maintenance_data
+        from ketchup_unified_scheduler.services.status.processor import run_auto_status
 
         functions = [
             fetch_and_store_maintenance_data,

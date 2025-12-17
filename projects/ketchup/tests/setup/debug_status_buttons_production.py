@@ -19,7 +19,7 @@ os.environ["KETCHUP_TRUST_ENDORSEMENT_GLOBAL"] = "true"
 async def test_status_generator_buttons():
     """Test that the status generator creates buttons correctly."""
 
-    from ketchup_status_updater.status_generator import AutoStatusGenerator
+    from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
     from packages.core.config.feature_flags import FeatureFlags
 
     print("\n=== PRODUCTION ENVIRONMENT SIMULATION ===")

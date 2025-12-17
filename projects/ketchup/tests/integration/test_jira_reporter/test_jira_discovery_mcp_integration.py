@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
+from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import JiraTicketDiscovery
 from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
 

@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ketchup_jira_pat_rotator.pat_monitor import PatMonitor
+from ketchup_unified_scheduler.services.pat_rotator.monitor import PatMonitor
 
 
 class TestPatExpiryCalculation:
