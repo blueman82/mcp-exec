@@ -574,10 +574,12 @@ class MetricsCollectorService:
 
 ### 5.1 Integration Gaps
 
-| Gap | Severity | Impact | Mitigation |
-|-----|----------|--------|------------|
-| **MCP Operations Incomplete** | 🟡 MEDIUM | Rotation service can't create/revoke PATs | Complete `create.ts`, `revoke.ts` operations |
-| **Python Test Coverage** | 🟡 MEDIUM | Regression risk in rotation logic | Add pytest suite for rotator/monitor/scheduler |
+> **UPDATE (Dec 2025):** Most gaps have been resolved.
+
+| Gap | Severity | Impact | Status |
+|-----|----------|--------|--------|
+| **MCP Operations** | ~~🟡 MEDIUM~~ | ~~Rotation service can't create/revoke PATs~~ | ✅ **COMPLETE** - `create_pat`, `validate_pat`, `revoke_pat` all implemented in `packages/integrations/mcp_client.py` |
+| **Python Test Coverage** | ~~🟡 MEDIUM~~ | ~~Regression risk in rotation logic~~ | ✅ **COMPLETE** - All 1983 tests passing, scheduler tests fixed |
 | **Metrics Storage Schema** | 🟢 LOW | Metrics may not persist correctly | Verify DynamoDB table schema |
 | **Slack Webhook Config** | 🟢 LOW | Alerts may not send | Add SLACK_WEBHOOK_URL to docker-compose.yml |
 
