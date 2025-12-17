@@ -10,7 +10,9 @@ from typing import Any, Dict, Optional
 from packages.core.logging import setup_logger
 
 try:
-    from jira_reporter.jira_ticket_discovery import JiraTicketDiscovery
+    from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import (
+        JiraTicketDiscovery,
+    )
 except ImportError as e:
     logger = setup_logger(__name__)
     logger.warning(f"JIRA core import failed: {e}")
