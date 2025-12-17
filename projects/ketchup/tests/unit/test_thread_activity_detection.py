@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 from packages.slack.channel_operations.channel_msg_ops import SlackChannelMessageOps
 
 
@@ -132,7 +132,7 @@ class TestThreadActivityDetection:
         }
 
         # Mock message preparer
-        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
+        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
 
             # Mock no new messages but has thread activity
             preparer_instance = MagicMock()
@@ -179,7 +179,7 @@ class TestThreadActivityDetection:
             "auto_status_last_jira_comment_ts": "0",
         }
 
-        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
+        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
 
             # Mock new messages and thread activity
             preparer_instance = MagicMock()

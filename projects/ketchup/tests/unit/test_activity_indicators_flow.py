@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
+        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
 
             # Mock MessagePreparer to return no new messages
             preparer_instance = MagicMock()
@@ -110,7 +110,7 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
+        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
 
             # Mock MessagePreparer to return new messages
             preparer_instance = MagicMock()
@@ -182,7 +182,7 @@ class TestActivityIndicatorsFlow:
         generator = AutoStatusGenerator(**mock_dependencies)
 
         # Mock MessagePreparer directly
-        with patch("ketchup_status_updater.status_generator.MessagePreparer") as mock_preparer:
+        with patch("ketchup_unified_scheduler.services.status.generator.MessagePreparer") as mock_preparer:
 
             # Mock MessagePreparer to return new messages
             preparer_instance = MagicMock()

@@ -26,7 +26,7 @@ async def test_jira_posting_with_fresh_token():
         pytest.skip("Set RUN_JIRA_INTEGRATION_TESTS=true to run this test")
 
     # Import after skip check to avoid unnecessary imports
-    from jira_reporter.jira_service import JiraService
+    from ketchup_unified_scheduler.services.jira_reporter.service import JiraService
     from packages.core.typed_di_integration import cleanup_container, get_container
     from packages.integrations.ims_token_manager import IMSTokenManager
     from packages.secrets.manager import SecretsManager

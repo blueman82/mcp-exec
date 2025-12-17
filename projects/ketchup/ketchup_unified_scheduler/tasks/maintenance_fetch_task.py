@@ -8,7 +8,7 @@ and store in DynamoDB.
 
 from typing import Optional
 
-from ketchup_maintenance_fetcher.main import fetch_and_store_maintenance_data
+from ketchup_unified_scheduler.services.maintenance import fetch_and_store_maintenance_data
 from ketchup_unified_scheduler.task_config import TaskConfig
 from packages.core.logging import setup_logger
 from packages.core.typed_di import TypedServiceRegistry

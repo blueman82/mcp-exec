@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from jira_reporter.report_generator import ReportGenerator
+from ketchup_unified_scheduler.services.jira_reporter.report_generator import ReportGenerator
 
 
 class TestReportGenerator:

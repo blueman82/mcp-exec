@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ketchup_status_updater.status_generator import AutoStatusGenerator
+from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 
 
 @pytest.fixture
@@ -58,7 +58,7 @@ async def test_trust_button_only_on_enabled_channels(mock_dependencies):
         },
     ]
 
-    with patch("ketchup_status_updater.status_generator.FeatureFlags") as mock_flags:
+    with patch("ketchup_unified_scheduler.services.status.generator.FeatureFlags") as mock_flags:
         # Trust endorsement feature is enabled but not global
         mock_flags.is_trust_endorsement_enabled.return_value = True
         mock_flags.is_trust_endorsement_global.return_value = False
@@ -109,7 +109,7 @@ async def test_trust_button_with_global_enabled(mock_dependencies):
         return_value={"ok": True, "ts": "123.456"}
     )
 
-    with patch("ketchup_status_updater.status_generator.FeatureFlags") as mock_flags:
+    with patch("ketchup_unified_scheduler.services.status.generator.FeatureFlags") as mock_flags:
         # Trust endorsement is both enabled and global
         mock_flags.is_trust_endorsement_enabled.return_value = True
         mock_flags.is_trust_endorsement_global.return_value = True
@@ -149,7 +149,7 @@ async def test_trust_metadata_storage_respects_channel_enablement(mock_dependenc
     mock_dependencies["db_store"].trust_ops = AsyncMock()
     mock_dependencies["db_store"].trust_ops.store_status_update_metadata = AsyncMock()
 
-    with patch("ketchup_status_updater.status_generator.FeatureFlags") as mock_flags:
+    with patch("ketchup_unified_scheduler.services.status.generator.FeatureFlags") as mock_flags:
         # Trust endorsement feature is enabled but not global
         mock_flags.is_trust_endorsement_enabled.return_value = True
         mock_flags.is_trust_endorsement_global.return_value = False
@@ -178,7 +178,7 @@ async def test_trust_endorsement_button_visibility(mock_dependencies):
         return_value={"ok": True, "ts": "123.456"}
     )
 
-    with patch("ketchup_status_updater.status_generator.FeatureFlags") as mock_flags:
+    with patch("ketchup_unified_scheduler.services.status.generator.FeatureFlags") as mock_flags:
         # Trust endorsement feature is enabled but not global
         mock_flags.is_trust_endorsement_enabled.return_value = True
         mock_flags.is_trust_endorsement_global.return_value = False

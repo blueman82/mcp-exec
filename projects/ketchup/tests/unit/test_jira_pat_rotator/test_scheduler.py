@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from ketchup_jira_pat_rotator.scheduler import PatRotationScheduler
+from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
 
 
 @pytest.fixture

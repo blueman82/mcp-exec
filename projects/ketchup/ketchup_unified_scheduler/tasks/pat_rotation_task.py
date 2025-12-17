@@ -7,7 +7,7 @@ Uses 24-hour (1440 minute) interval for JIRA PAT rotation checks.
 
 from typing import Optional
 
-from ketchup_jira_pat_rotator.rotator import PATRotator
+from ketchup_unified_scheduler.services.pat_rotator import PATRotator
 from ketchup_unified_scheduler.task_config import TaskConfig
 from packages.core.logging import setup_logger
 from packages.core.typed_di import TypedServiceRegistry

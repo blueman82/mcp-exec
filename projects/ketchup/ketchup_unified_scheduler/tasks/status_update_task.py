@@ -7,7 +7,7 @@ Uses 55-minute interval with distributed locking and AI-powered status generatio
 
 from typing import Optional
 
-from ketchup_status_updater.main import run_auto_status
+from ketchup_unified_scheduler.services.status import run_auto_status
 from ketchup_unified_scheduler.task_config import TaskConfig
 from packages.core.logging import setup_logger
 from packages.core.typed_di import TypedServiceRegistry
@@ -20,12 +20,11 @@ async def status_update_task(container: Optional[TypedServiceRegistry] = None) -
     Execute the status update task.
 
     Generates AI-powered status updates for eligible channels.
-    The run_auto_status function handles distributed locking internally
-    to prevent duplicate runs across servers.
+    Uses the run_auto_status function from the unified scheduler services.
 
     Args:
         container: TypedServiceRegistry for dependency injection.
-                  If None, run_auto_status will create its own container.
+                  If None, creates its own container.
     """
     logger.info("Starting status update task")
 

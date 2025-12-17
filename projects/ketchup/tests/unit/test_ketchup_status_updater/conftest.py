@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Import at module level to comply with CLAUDE.md import rules
-from ketchup_status_updater.processor import AutoStatusProcessor
+from ketchup_unified_scheduler.services.status.processor import AutoStatusProcessor
 
 
 @pytest.fixture

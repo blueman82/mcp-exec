@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from jira_reporter.archive_handler import JiraReporterArchiveHandler
+from ketchup_unified_scheduler.services.jira_reporter.archive_handler import JiraReporterArchiveHandler
 
 
 @pytest.mark.asyncio
