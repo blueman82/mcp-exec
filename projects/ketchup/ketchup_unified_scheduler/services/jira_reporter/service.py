@@ -6,11 +6,12 @@ Service for interacting with JIRA via MCP.
 
 import json
 import os
-from typing import Dict
+from typing import Any, Dict, Optional
 
 import httpx
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di_integration import get_unified_container
 from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.secrets.manager import SecretsManager
@@ -22,14 +23,12 @@ def _get_orchestration_functions():
     """Lazy import to avoid circular dependency."""
     from ketchup_unified_scheduler.services.jira_reporter.orchestration import (
         process_channel as _process_channel,
+    )
+    from ketchup_unified_scheduler.services.jira_reporter.orchestration import (
         run_reporting_cycle as _run_reporting_cycle,
     )
+
     return _run_reporting_cycle, _process_channel
-
-
-# Re-export orchestration functions for backward compatibility
-from typing import Optional, Any, Dict
-from packages.core.typed_di.registry import TypedServiceRegistry
 
 
 async def run_reporting_cycle(
