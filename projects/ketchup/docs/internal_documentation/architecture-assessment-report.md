@@ -1,7 +1,30 @@
 # JIRA PAT Migration - Comprehensive Architecture Assessment
 **Assessment Date:** November 19, 2025
+**Last Updated:** December 17, 2025
 **Scope:** 17 Completed Tasks across Phase 1 & Phase 2
 **Status:** All Tasks Marked GREEN in Conductor
+
+---
+
+## UPDATE: December 2025 - Unified Scheduler Consolidation
+
+> **IMPORTANT:** As of December 2025, all 5 legacy scheduler services have been consolidated into a single `ketchup-unified-scheduler` container. This includes the PAT rotator functionality.
+>
+> **Key Changes:**
+> - ✅ `ketchup_jira_pat_rotator/` directory **REMOVED** (10,364 lines deleted)
+> - ✅ PAT rotator code migrated to `ketchup_unified_scheduler/services/pat_rotator/`
+> - ✅ Docker service changed from `ketchup-jira-pat-rotator` to `ketchup-unified-scheduler`
+> - ✅ Unified scheduler runs 5 tasks: metadata_updater, status_updater, jira_reporter, maintenance_fetcher, pat_rotator
+> - ✅ All 1983 tests passing
+> - ✅ Production deployment successful (v2.360.362)
+>
+> **File Path Updates:**
+> | Old Path | New Path |
+> |----------|----------|
+> | `ketchup_jira_pat_rotator/main.py` | `ketchup_unified_scheduler/main.py` |
+> | `ketchup_jira_pat_rotator/scheduler.py` | `ketchup_unified_scheduler/services/pat_rotator/rotator.py` |
+> | `ketchup_jira_pat_rotator/rotator.py` | `ketchup_unified_scheduler/services/pat_rotator/rotator.py` |
+> | `ketchup_jira_pat_rotator/pat_monitor.py` | `ketchup_unified_scheduler/services/pat_rotator/monitor.py` |
 
 ---
 
