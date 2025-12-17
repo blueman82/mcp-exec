@@ -41,15 +41,8 @@ WORKDIR /app
 # Copy shared packages (used by all tasks)
 COPY packages/ ./packages/
 
-# Copy unified scheduler module
+# Copy unified scheduler module (includes all consolidated services)
 COPY ketchup_unified_scheduler/ ./ketchup_unified_scheduler/
-
-# Copy all legacy scheduler source directories (tasks import from these)
-COPY ketchup_status_updater/ ./ketchup_status_updater/
-COPY channel_metadata_updater/ ./channel_metadata_updater/
-COPY ketchup_maintenance_fetcher/ ./ketchup_maintenance_fetcher/
-COPY ketchup_jira_pat_rotator/ ./ketchup_jira_pat_rotator/
-COPY jira_reporter/ ./jira_reporter/
 
 # Copy healthcheck script
 COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/

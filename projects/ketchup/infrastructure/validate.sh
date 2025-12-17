@@ -36,12 +36,7 @@ PYTHON_DIRS=(
     "${PROJECT_ROOT}/packages"
     "${PROJECT_ROOT}/tests"
     "${PROJECT_ROOT}/ketchup-app"
-    "${PROJECT_ROOT}/ketchup_status_updater"
-    "${PROJECT_ROOT}/ketchup_jira_pat_rotator"
-    "${PROJECT_ROOT}/ketchup_maintenance_fetcher"
     "${PROJECT_ROOT}/ketchup_access_request_monitor"
-    "${PROJECT_ROOT}/jira_reporter"
-    "${PROJECT_ROOT}/channel_metadata_updater"
     "${PROJECT_ROOT}/ketchup_unified_scheduler"
 )
 
