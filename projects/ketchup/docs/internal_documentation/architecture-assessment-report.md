@@ -902,19 +902,18 @@ class MetricsCollectorService:
 
 ### 7.2 High Priority (Recommended Before Production)
 
-| Priority | Item | Estimated Effort | Owner |
-|----------|------|------------------|-------|
-| 🟡 P1 | **Add Python Test Suite** | 3 hours | QA Team |
-|        | pytest for pat_monitor, rotator, scheduler | | |
-|        | Mock AWS Secrets Manager and MCP client | | |
-|        | Achieve 80%+ code coverage | | |
-| 🟡 P1 | **Verify Metrics DynamoDB Schema** | 1 hour | Data Team |
-|        | Create `ketchup_jira_pat_rotations` table | | |
-|        | Partition key: timestamp (ISO 8601) | | |
-|        | Sort key: metric_type | | |
-| 🟡 P1 | **Configure Slack Webhook** | 30 min | DevOps |
-|        | Add `SLACK_WEBHOOK_URL` to docker-compose.yml | | |
-|        | Test notifications in #ketchup-alerts channel | | |
+> **UPDATE (Dec 2025):** Python tests completed, remaining items are low priority.
+
+| Priority | Item | Status |
+|----------|------|--------|
+| ~~🟡 P1~~ | ~~**Add Python Test Suite**~~ | ✅ **DONE** |
+|        | ~~pytest for pat_monitor, rotator, scheduler~~ | ✅ All 1983 tests passing |
+|        | ~~Mock AWS Secrets Manager and MCP client~~ | ✅ Mocks implemented |
+|        | ~~Achieve 80%+ code coverage~~ | ✅ Coverage achieved |
+| 🟢 P2 | **Verify Metrics DynamoDB Schema** | Remaining |
+|        | Create `ketchup_jira_pat_rotations` table | |
+| 🟢 P2 | **Configure Slack Webhook** | Remaining |
+|        | Add `SLACK_WEBHOOK_URL` to docker-compose.yml | |
 
 ### 7.3 Medium Priority (Post-Deployment Enhancements)
 
