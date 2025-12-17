@@ -542,9 +542,6 @@ class PATRotator:
         }
 
 
-from packages.core.schedulers import BaseScheduler
-
-
 class PatRotationScheduler(BaseScheduler):
     """Scheduler for daily PAT rotation checks (24-hour interval)."""
 
