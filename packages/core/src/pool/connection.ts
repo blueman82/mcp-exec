@@ -5,6 +5,7 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { ServerConfig, MCPConnection, ToolDefinition } from '../types/index.js';
 import { ConnectionState, isUrlTransport } from '../types/index.js';
 import { buildSpawnConfig } from './stdio-transport.js';
+import { enhanceGatewayConfig, isGatewayServer, type GatewayAuthConfig } from '../auth/gateway-client.js';
 
 export class SpawnError extends Error {
   constructor(
@@ -41,30 +42,50 @@ interface ConnectionInternal extends MCPConnection {
   transport: Transport;
 }
 
-export async function createConnection(config: ServerConfig): Promise<MCPConnection> {
+/**
+ * Options for connection creation
+ */
+export interface CreateConnectionOptions {
+  /** Gateway auth configuration */
+  gatewayAuth?: GatewayAuthConfig;
+}
+
+export async function createConnection(
+  config: ServerConfig,
+  options: CreateConnectionOptions = {}
+): Promise<MCPConnection> {
+  // Enhance config with Gateway auth if this is a Gateway server
+  let enhancedConfig = config;
+  if (isGatewayServer(config)) {
+    enhancedConfig = await enhanceGatewayConfig(
+      config.name,
+      config,
+      options.gatewayAuth
+    );
+  }
   let transport: Transport;
 
-  if (isUrlTransport(config)) {
+  if (isUrlTransport(enhancedConfig)) {
     // URL-based HTTP/SSE transport
     try {
-      transport = new StreamableHTTPClientTransport(new URL(config.url!), {
-        requestInit: config.headers ? { headers: config.headers } : undefined,
+      transport = new StreamableHTTPClientTransport(new URL(enhancedConfig.url!), {
+        requestInit: enhancedConfig.headers ? { headers: enhancedConfig.headers } : undefined,
       });
     } catch (err) {
       throw new Error(
-        `Failed to create HTTP transport for ${config.name}: ${err instanceof Error ? err.message : String(err)}`
+        `Failed to create HTTP transport for ${enhancedConfig.name}: ${err instanceof Error ? err.message : String(err)}`
       );
     }
   } else {
     // Stdio transport (spawn process)
     let spawnConfig;
     try {
-      spawnConfig = buildSpawnConfig(config);
+      spawnConfig = buildSpawnConfig(enhancedConfig);
     } catch (err) {
       throw new SpawnError(
-        `Failed to build spawn config for ${config.name}: ${err instanceof Error ? err.message : String(err)}`,
-        config.command ?? '',
-        config.args ?? [],
+        `Failed to build spawn config for ${enhancedConfig.name}: ${err instanceof Error ? err.message : String(err)}`,
+        enhancedConfig.command ?? '',
+        enhancedConfig.args ?? [],
         err instanceof Error ? err : undefined
       );
     }
@@ -77,7 +98,7 @@ export async function createConnection(config: ServerConfig): Promise<MCPConnect
       });
     } catch (err) {
       throw new SpawnError(
-        `Failed to create transport for ${config.name}: ${err instanceof Error ? err.message : String(err)}`,
+        `Failed to create transport for ${enhancedConfig.name}: ${err instanceof Error ? err.message : String(err)}`,
         spawnConfig.command,
         spawnConfig.args,
         err instanceof Error ? err : undefined
@@ -93,7 +114,7 @@ export async function createConnection(config: ServerConfig): Promise<MCPConnect
   let state = ConnectionState.Disconnected;
 
   const connection: ConnectionInternal = {
-    serverId: config.name,
+    serverId: enhancedConfig.name,
     client,
     transport,
     get state() {
@@ -113,14 +134,14 @@ export async function createConnection(config: ServerConfig): Promise<MCPConnect
         state = ConnectionState.Connected;
       } catch (err) {
         state = ConnectionState.Error;
-        const errorMsg = `Failed to connect to ${config.name}: ${err instanceof Error ? err.message : String(err)}`;
-        if (isUrlTransport(config)) {
+        const errorMsg = `Failed to connect to ${enhancedConfig.name}: ${err instanceof Error ? err.message : String(err)}`;
+        if (isUrlTransport(enhancedConfig)) {
           throw new Error(errorMsg);
         } else {
           throw new SpawnError(
             errorMsg,
-            config.command ?? '',
-            config.args ?? [],
+            enhancedConfig.command ?? '',
+            enhancedConfig.args ?? [],
             err instanceof Error ? err : undefined
           );
         }
@@ -149,7 +170,7 @@ export async function createConnection(config: ServerConfig): Promise<MCPConnect
       const result = await client.listTools();
       return result.tools.map((tool) => ({
         ...tool,
-        serverId: config.name,
+        serverId: enhancedConfig.name,
       }));
     },
   };
