@@ -99,7 +99,11 @@ export function getBackendAuthHeader(
  * @throws Error if path is outside allowed directories or is a symlink
  */
 function validateEnvFilePath(filePath: string): string {
-  const resolved = resolve(filePath);
+  // Expand ~ to home directory
+  const expandedPath = filePath.startsWith('~') 
+    ? filePath.replace(/^~/, homedir()) 
+    : filePath;
+  const resolved = resolve(expandedPath);
   
   if (!existsSync(resolved)) {
     // File doesn't exist - return resolved path, caller will handle
