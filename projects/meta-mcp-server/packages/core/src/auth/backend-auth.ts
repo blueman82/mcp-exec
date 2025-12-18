@@ -1,4 +1,13 @@
+import { readFileSync, existsSync, lstatSync, realpathSync, statSync } from 'node:fs';
+import { resolve, relative } from 'node:path';
+import { homedir } from 'node:os';
 import type { ServerConfig } from '../types/index.js';
+
+/**
+ * Maximum file size for .env files (64KB)
+ * Legitimate .env files with PATs are typically <1KB
+ */
+const MAX_ENV_FILE_SIZE = 64 * 1024;
 
 /**
  * Error thrown when an environment variable required for auth resolution is not defined.
@@ -76,4 +85,110 @@ export function getBackendAuthHeader(
   }
 
   return resolveBackendAuth(authValue);
+}
+
+/**
+ * Validate that a file path is within allowed directories.
+ * 
+ * Security:
+ * - Prevents path traversal attacks (e.g., ../../etc/passwd)
+ * - Rejects symbolic links to prevent symlink-based escapes
+ * - Only allows files within home directory or current working directory
+ * 
+ * @param filePath - Path to validate
+ * @throws Error if path is outside allowed directories or is a symlink
+ */
+function validateEnvFilePath(filePath: string): string {
+  const resolved = resolve(filePath);
+  
+  if (!existsSync(resolved)) {
+    // File doesn't exist - return resolved path, caller will handle
+    return resolved;
+  }
+  
+  // Security: Reject symbolic links - they can point outside allowed directories
+  const stats = lstatSync(resolved);
+  if (stats.isSymbolicLink()) {
+    throw new Error('Symbolic links are not allowed for security files');
+  }
+  
+  // Resolve any relative path components (.., .)
+  const realPath = realpathSync(resolved);
+  
+  // Allowed base directories
+  const home = homedir();
+  const cwd = process.cwd();
+  
+  // Check if path is within home directory
+  const relativeToHome = relative(home, realPath);
+  const isWithinHome = !relativeToHome.startsWith('..') && !relativeToHome.startsWith('/');
+  
+  // Check if path is within current working directory
+  const relativeToCwd = relative(cwd, realPath);
+  const isWithinCwd = !relativeToCwd.startsWith('..') && !relativeToCwd.startsWith('/');
+  
+  if (!isWithinHome && !isWithinCwd) {
+    throw new Error('ENV file must be within home directory or project directory');
+  }
+  
+  return realPath;
+}
+
+/**
+ * Parse a .env file and return key-value pairs.
+ * Supports basic .env format: KEY=value (one per line).
+ * Ignores comments (#) and empty lines.
+ * 
+ * Security:
+ * - Path traversal protection (files must be in home or cwd)
+ * - Symlink rejection
+ * - File size limit (64KB max)
+ * 
+ * @param filePath - Path to the .env file
+ * @returns Record of key-value pairs, or empty object if file doesn't exist
+ * @throws Error if path is outside allowed directories, is a symlink, or file is too large
+ */
+export function parseEnvFile(filePath: string): Record<string, string> {
+  // Security: Validate path is within allowed directories and not a symlink
+  const validatedPath = validateEnvFilePath(filePath);
+  
+  if (!existsSync(validatedPath)) {
+    return {};
+  }
+  
+  // Security: Check file size to prevent DoS via large files
+  const stats = statSync(validatedPath);
+  if (stats.size > MAX_ENV_FILE_SIZE) {
+    throw new Error(`ENV file too large (max ${MAX_ENV_FILE_SIZE} bytes)`);
+  }
+  
+  const content = readFileSync(validatedPath, 'utf-8');
+  const result: Record<string, string> = {};
+  
+  for (const line of content.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) {
+      continue;
+    }
+    
+    const eqIndex = trimmed.indexOf('=');
+    if (eqIndex === -1) {
+      continue;
+    }
+    
+    const key = trimmed.slice(0, eqIndex).trim();
+    let value = trimmed.slice(eqIndex + 1).trim();
+    
+    // Remove surrounding quotes if present
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    
+    if (key) {
+      result[key] = value;
+    }
+  }
+  
+  return result;
 }

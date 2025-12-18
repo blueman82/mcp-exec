@@ -46,6 +46,7 @@ export type {
   ConnectionFactory,
   PoolConfig,
   SpawnConfig,
+  CreateConnectionOptions,
 } from './pool/index.js';
 
 // Tools
@@ -56,4 +57,19 @@ export {
   getBackendAuthHeader,
   resolveBackendAuth,
   EnvVarNotFoundError,
+  // Cursor token extraction
+  extractCursorToken,
+  isTokenExtractionSupported,
+  getPlatformName,
+  // Gateway client
+  resolveGatewayAuth,
+  enhanceGatewayConfig,
+  isGatewayServer,
+} from './auth/index.js';
+
+export type {
+  CursorOAuthToken,
+  TokenExtractionResult,
+  GatewayAuthConfig,
+  GatewayAuthResult,
 } from './auth/index.js';

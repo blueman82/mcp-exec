@@ -56,13 +56,15 @@ async function main() {
     process.stderr.write(`Loading config from: ${configPath}\n`);
   }
 
-  // Create connection factory
+  // Create connection factory with Gateway auth support
   const connectionFactory = async (serverId: string) => {
     const config = getServerConfig(serverId);
     if (!config) {
       throw new Error(`Server config not found: ${serverId}`);
     }
-    return createConnection(config);
+    return createConnection({ ...config, name: serverId }, {
+      gatewayAuth: { useCursorToken: true }
+    });
   };
 
   // Initialize pool and cache

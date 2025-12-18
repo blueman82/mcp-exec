@@ -12,6 +12,7 @@ export {
   SpawnError,
   TimeoutError,
   UnexpectedExitError,
+  type CreateConnectionOptions,
 } from './connection.js';
 
 export { buildSpawnConfig, type SpawnConfig } from './stdio-transport.js';

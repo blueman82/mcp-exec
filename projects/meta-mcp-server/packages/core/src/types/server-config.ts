@@ -40,6 +40,11 @@ export interface ServerConfig {
    * ```
    */
   backendAuth?: Record<string, string>;
+  /**
+   * Path to .env file containing backend auth tokens.
+   * Keys map directly to backend names (e.g., jira=<token> → X-Backend-Auth-Jira).
+   */
+  backendAuthEnvFile?: string;
   // Tool call timeout in milliseconds (default: 60000 from MCP SDK)
   timeout?: number;
 }

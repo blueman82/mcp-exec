@@ -39,6 +39,7 @@ const ServerConfigSchema = z.object({
   tags: z.array(z.string()).optional(),
   timeout: z.number().optional(), // Tool call timeout in milliseconds (default: 60000)
   backendAuth: z.record(z.string()).optional(), // Maps backend server names to auth header values
+  backendAuthEnvFile: z.string().optional(), // Path to .env file with backend PATs
 });
 
 const BackendsConfigSchema = z.object({
