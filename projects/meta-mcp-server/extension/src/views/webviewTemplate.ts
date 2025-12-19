@@ -496,6 +496,111 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
         .hidden {
             display: none !important;
         }
+
+        /* Local Server Setup Dialog */
+        .local-server-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .local-server-dialog-content {
+            background: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+        }
+
+        .local-server-dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+
+        .local-server-dialog-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .local-server-repo-path {
+            background: var(--vscode-textCodeBlock-background);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius);
+            font-family: var(--vscode-editor-font-family);
+            font-size: 12px;
+            margin-bottom: var(--spacing-md);
+            word-break: break-all;
+        }
+
+        .local-server-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .local-server-status.built {
+            background: rgba(40, 167, 69, 0.15);
+            color: var(--vscode-charts-green);
+        }
+
+        .local-server-status.not-built {
+            background: rgba(255, 193, 7, 0.15);
+            color: var(--vscode-editorWarning-foreground);
+        }
+
+        .local-server-env-section {
+            margin-top: var(--spacing-md);
+        }
+
+        .local-server-env-section h4 {
+            margin: 0 0 var(--spacing-sm) 0;
+            font-size: 13px;
+        }
+
+        .local-server-env-item {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .local-server-env-item label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .local-server-env-item .required {
+            color: var(--vscode-errorForeground);
+        }
+
+        .local-server-env-item .optional {
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+        }
+
+        .local-server-dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--vscode-panel-border);
+        }
     </style>
 </head>
 <body>
@@ -633,6 +738,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             let setupSnippets = [];
             let genericSnippet = null;
             let mcpPackages = { metaMcpInstalled: false, metaMcpVersion: null, mcpExecInstalled: false, mcpExecVersion: null };
+            let localServerSetupData = null;
 
             // DOM Elements
             const navTabs = document.querySelectorAll('.nav-tab');
@@ -1158,6 +1264,158 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                 });
             }
 
+            // Local server setup dialog
+            function showLocalServerSetupDialog(data) {
+                localServerSetupData = data;
+                const fullPackagePath = data.repoPath + '/' + data.packagePath;
+                
+                // Build env var inputs
+                let envInputsHtml = '';
+                if (data.envVars && data.envVars.length > 0) {
+                    envInputsHtml = data.envVars.map(env => \`
+                        <div class="local-server-env-item">
+                            <label>
+                                \${escapeHtml(env.key)}
+                                \${env.optional 
+                                    ? '<span class="optional">(optional)</span>' 
+                                    : '<span class="required">*</span>'}
+                            </label>
+                            <input type="text" 
+                                class="form-input local-env-input" 
+                                data-key="\${escapeHtml(env.key)}"
+                                placeholder="\${escapeHtml(env.placeholder || '')}"
+                                value="\${escapeHtml(env.placeholder || '')}">
+                        </div>
+                    \`).join('');
+                } else {
+                    envInputsHtml = '<p class="form-hint">No environment variables required.</p>';
+                }
+                
+                const dialogHtml = \`
+                    <div class="local-server-dialog" id="local-server-dialog">
+                        <div class="local-server-dialog-content">
+                            <div class="local-server-dialog-header">
+                                <span class="local-server-dialog-title">Install \${escapeHtml(data.serverName)}</span>
+                                <button class="btn btn-icon" id="btn-close-local-dialog">&times;</button>
+                            </div>
+                            
+                            <div class="local-server-repo-path">
+                                📁 \${escapeHtml(fullPackagePath)}
+                            </div>
+                            
+                            <div class="local-server-status \${data.isBuilt ? 'built' : 'not-built'}">
+                                \${data.isBuilt 
+                                    ? '✅ Server is built' 
+                                    : '⚠️ Server needs to be built'}
+                            </div>
+                            
+                            \${!data.isBuilt ? \`
+                                <button class="btn btn-primary" id="btn-build-local-server" style="margin-bottom: var(--spacing-md);">
+                                    Build Server (npm install && npm run build)
+                                </button>
+                            \` : ''}
+                            
+                            <div class="local-server-env-section">
+                                <h4>🔑 Environment Variables</h4>
+                                \${envInputsHtml}
+                            </div>
+                            
+                            <div class="local-server-dialog-actions">
+                                <button class="btn btn-secondary" id="btn-cancel-local-setup">Cancel</button>
+                                <button class="btn btn-primary" id="btn-complete-local-setup" \${!data.isBuilt ? 'disabled' : ''}>
+                                    Install
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                \`;
+                
+                // Add dialog to body
+                const dialogContainer = document.createElement('div');
+                dialogContainer.innerHTML = dialogHtml;
+                document.body.appendChild(dialogContainer.firstElementChild);
+                
+                // Attach event listeners
+                document.getElementById('btn-close-local-dialog')?.addEventListener('click', closeLocalServerDialog);
+                document.getElementById('btn-cancel-local-setup')?.addEventListener('click', closeLocalServerDialog);
+                
+                document.getElementById('btn-build-local-server')?.addEventListener('click', () => {
+                    const btn = document.getElementById('btn-build-local-server');
+                    if (btn) {
+                        btn.textContent = 'Building...';
+                        btn.disabled = true;
+                    }
+                    vscode.postMessage({ 
+                        type: 'runLocalServerBuild', 
+                        data: { 
+                            packagePath: fullPackagePath,
+                            serverName: data.serverName 
+                        } 
+                    });
+                });
+                
+                document.getElementById('btn-complete-local-setup')?.addEventListener('click', () => {
+                    // Collect env var values
+                    const env = {};
+                    document.querySelectorAll('.local-env-input').forEach(input => {
+                        const key = input.dataset.key;
+                        const value = input.value.trim();
+                        if (key && value) {
+                            env[key] = value;
+                        }
+                    });
+                    
+                    vscode.postMessage({
+                        type: 'localServerSetupComplete',
+                        data: {
+                            serverName: localServerSetupData.serverName,
+                            repoPath: localServerSetupData.repoPath,
+                            packagePath: localServerSetupData.packagePath,
+                            entryPoint: localServerSetupData.entryPoint,
+                            runtime: localServerSetupData.runtime,
+                            env
+                        }
+                    });
+                    
+                    closeLocalServerDialog();
+                });
+            }
+            
+            function closeLocalServerDialog() {
+                const dialog = document.getElementById('local-server-dialog');
+                if (dialog) {
+                    dialog.remove();
+                }
+                localServerSetupData = null;
+            }
+            
+            function updateLocalServerBuildStatus(success) {
+                if (success && localServerSetupData) {
+                    localServerSetupData.isBuilt = true;
+                    // Update the dialog UI
+                    const statusEl = document.querySelector('.local-server-status');
+                    if (statusEl) {
+                        statusEl.className = 'local-server-status built';
+                        statusEl.innerHTML = '✅ Server is built';
+                    }
+                    const buildBtn = document.getElementById('btn-build-local-server');
+                    if (buildBtn) {
+                        buildBtn.remove();
+                    }
+                    const installBtn = document.getElementById('btn-complete-local-setup');
+                    if (installBtn) {
+                        installBtn.disabled = false;
+                    }
+                } else {
+                    // Reset build button
+                    const buildBtn = document.getElementById('btn-build-local-server');
+                    if (buildBtn) {
+                        buildBtn.textContent = 'Build Server (npm install && npm run build)';
+                        buildBtn.disabled = false;
+                    }
+                }
+            }
+
             // Message handling
             window.addEventListener('message', event => {
                 const message = event.data;
@@ -1211,6 +1469,12 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             setupTools = [];
                             vscode.postMessage({ type: 'loadSetup' });
                         }
+                        break;
+                    case 'showLocalServerSetup':
+                        showLocalServerSetupDialog(message.data);
+                        break;
+                    case 'localServerBuildComplete':
+                        updateLocalServerBuildStatus(message.success);
                         break;
                 }
             });
