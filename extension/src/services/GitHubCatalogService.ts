@@ -23,6 +23,8 @@ export interface McpServerEntry {
     lifecycle?: string;
     published_on?: string;
     server_type?: string;
+    package_path?: string;
+    repo_hint?: string;
     owner?: string;
     env?: Record<string, McpServerEnvVar>;
     base64_icon?: string;
@@ -37,6 +39,8 @@ export interface CatalogServer {
     env: Record<string, McpServerEnvVar>;
     lifecycle?: string;
     serverType?: string;
+    packagePath?: string;
+    repoHint?: string;
     functions?: string[];
 }
 
@@ -108,6 +112,8 @@ function transformServer(entry: McpServerEntry): CatalogServer {
         env: entry.env || {},
         lifecycle: entry.lifecycle,
         serverType: entry.server_type,
+        packagePath: entry.package_path,
+        repoHint: entry.repo_hint,
         functions: entry.functions,
     };
 }

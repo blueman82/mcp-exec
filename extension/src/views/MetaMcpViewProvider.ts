@@ -1,10 +1,26 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { createWebviewTemplate } from './webviewTemplate';
 import { MessageHandler, WebviewMessage } from '../services/MessageHandler';
 import { ServersConfigManager } from '../services/ServersConfigManager';
 import { AIToolConfigurator } from '../services/AIToolConfigurator';
 import { fetchCatalog, clearCatalogCache, CatalogServer } from '../services/GitHubCatalogService';
+import { parseLocalServer } from '../services/LocalServerParser';
+import { findRepository } from '../services/RepoDetector';
 import { ServerConfig } from '../types';
+
+/**
+ * Data for local server setup completion
+ */
+interface LocalServerSetupData {
+    serverName: string;
+    repoPath: string;
+    packagePath: string;
+    entryPoint: string;
+    runtime: 'node' | 'python';
+    env: Record<string, string>;
+}
 
 /**
  * Server data sent to webview
@@ -127,6 +143,14 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 await this.handleInstallFromCatalog(message.item as CatalogServer);
                 break;
 
+            case 'localServerSetupComplete':
+                await this.handleLocalServerSetupComplete(message.data as LocalServerSetupData);
+                break;
+
+            case 'runLocalServerBuild':
+                await this.handleRunLocalServerBuild(message.data as { packagePath: string; serverName: string });
+                break;
+
             case 'loadSetup':
                 await this.handleLoadSetup();
                 break;
@@ -234,6 +258,13 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      */
     private async handleInstallFromCatalog(item: CatalogServer): Promise<void> {
         try {
+            // First, check if this server exists locally in adobe-mcp-servers repo
+            const localServerPath = await this.findLocalServer(item.id);
+            if (localServerPath) {
+                await this.handleInstallLocalServer(item, localServerPath);
+                return;
+            }
+
             // Determine command based on serverType
             let command = 'npx';
             let args: string[] = [];
@@ -265,7 +296,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             };
 
             this.configManager.setServer(item.name, serverConfig);
-            vscode.window.showInformationMessage(`Added "${item.name}" to backends.json`);
+            vscode.window.showInformationMessage(`Added "${item.name}" to servers.json`);
             
             // Refresh server list
             const servers = this.getServerList();
@@ -274,6 +305,169 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             vscode.window.showErrorMessage(`Failed to add server: ${errorMsg}`);
+        }
+    }
+
+    /**
+     * Find a server in the local adobe-mcp-servers repo
+     * Returns the full path to the server package if found, null otherwise
+     */
+    private async findLocalServer(serverId: string): Promise<{ repoPath: string; packagePath: string } | null> {
+        // Try to find adobe-mcp-servers repo
+        const repoPath = await findRepository('adobe-mcp-servers');
+        if (!repoPath) {
+            return null;
+        }
+        
+        // Check common locations for the server
+        const possiblePaths = [
+            `src/${serverId}`,
+            `packages/${serverId}`,
+            serverId,
+        ];
+        
+        for (const packagePath of possiblePaths) {
+            const fullPath = path.join(repoPath, packagePath);
+            if (fs.existsSync(fullPath) && (
+                fs.existsSync(path.join(fullPath, 'package.json')) ||
+                fs.existsSync(path.join(fullPath, 'requirements.txt'))
+            )) {
+                return { repoPath, packagePath };
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Handle installing a local/internal server (not on npm)
+     */
+    private async handleInstallLocalServer(item: CatalogServer, localServer: { repoPath: string; packagePath: string }): Promise<void> {
+        try {
+            const { repoPath, packagePath } = localServer;
+            const fullPackagePath = path.join(repoPath, packagePath);
+            
+            // Parse server metadata from existing files
+            const meta = await parseLocalServer(fullPackagePath);
+            
+            // Send to webview for UI setup dialog
+            this.postMessage({
+                type: 'showLocalServerSetup',
+                data: {
+                    serverName: item.name,
+                    repoPath,
+                    packagePath,
+                    ...meta
+                }
+            });
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            vscode.window.showErrorMessage(`Failed to setup local server: ${errorMsg}`);
+        }
+    }
+
+    /**
+     * Handle running build for a local server
+     */
+    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string }): Promise<void> {
+        // Many servers have build scripts that expect .env to exist
+        // Auto-create from .env.example if missing
+        const envPath = path.join(data.packagePath, '.env');
+        const envExamplePath = path.join(data.packagePath, '.env.example');
+        if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {
+            fs.copyFileSync(envExamplePath, envPath);
+        }
+        
+        const terminal = vscode.window.createTerminal({
+            name: `Build: ${data.serverName}`,
+            cwd: data.packagePath
+        });
+        
+        terminal.show();
+        // Use --ignore-scripts to prevent "prepare" script from running build during install
+        terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
+        
+        const entryPoint = path.join(data.packagePath, 'dist', 'index.js');
+        
+        // Poll for build completion (check every 2 seconds for up to 2 minutes)
+        const maxAttempts = 60;
+        let attempts = 0;
+        
+        const checkBuild = async (): Promise<boolean> => {
+            while (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                attempts++;
+                
+                if (fs.existsSync(entryPoint)) {
+                    // Check if file was modified in the last 30 seconds (freshly built)
+                    const stats = fs.statSync(entryPoint);
+                    const age = Date.now() - stats.mtimeMs;
+                    if (age < 30000) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+        
+        // Start polling in background
+        checkBuild().then(success => {
+            if (success) {
+                this.postMessage({ type: 'localServerBuildComplete', success: true });
+                vscode.window.showInformationMessage(`${data.serverName} built successfully!`);
+            }
+        });
+        
+        // Also show manual option
+        const result = await vscode.window.showInformationMessage(
+            `Building ${data.serverName}... Will auto-detect when done, or click "Check Now" to verify.`,
+            'Check Now',
+            'Cancel'
+        );
+        
+        if (result === 'Check Now') {
+            if (fs.existsSync(entryPoint)) {
+                this.postMessage({ type: 'localServerBuildComplete', success: true });
+                vscode.window.showInformationMessage('Build completed successfully!');
+            } else {
+                vscode.window.showWarningMessage('Build not complete yet - dist/index.js not found. Wait for build to finish.');
+            }
+        } else if (result === 'Cancel') {
+            this.postMessage({ type: 'localServerBuildComplete', success: false });
+        }
+    }
+
+    /**
+     * Handle completion of local server setup (from webview dialog)
+     */
+    private async handleLocalServerSetupComplete(data: LocalServerSetupData): Promise<void> {
+        try {
+            const fullEntryPath = path.join(data.repoPath, data.packagePath, data.entryPoint);
+            
+            // Verify entry point exists
+            if (!fs.existsSync(fullEntryPath)) {
+                vscode.window.showErrorMessage(
+                    `Entry point not found: ${fullEntryPath}. Did you build the server?`
+                );
+                return;
+            }
+            
+            const config: ServerConfig = {
+                command: data.runtime,
+                args: [fullEntryPath],
+                env: Object.keys(data.env).length > 0 ? data.env : undefined,
+            };
+            
+            this.configManager.setServer(data.serverName, config);
+            vscode.window.showInformationMessage(`Added "${data.serverName}" to servers.json`);
+            
+            // Refresh server list
+            const servers = this.getServerList();
+            this.postMessage({ type: 'updateServers', servers });
+            this.postMessage({ type: 'serverSaved' });
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            vscode.window.showErrorMessage(`Failed to save server config: ${errorMsg}`);
         }
     }
 
@@ -534,7 +728,9 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
 
         // Build args array
         const fullArgs: string[] = [];
-        if (commandType !== 'custom' && command) {
+        // Only add command to args if it's different from commandType
+        // This prevents duplicate 'npx' when editing servers (command='npx', commandType='npx')
+        if (commandType !== 'custom' && command && command !== commandType) {
             fullArgs.push(command);
         }
         if (args && args.length > 0) {

@@ -26,3 +26,17 @@ export {
     type CatalogServer,
     type McpServerEnvVar,
 } from './GitHubCatalogService';
+
+export {
+    parseLocalServer,
+    needsBuild,
+    type EnvVar,
+    type LocalServerMeta,
+} from './LocalServerParser';
+
+export {
+    findRepository,
+    promptForRepository,
+    findOrPromptForRepository,
+    validatePackagePath,
+} from './RepoDetector';
