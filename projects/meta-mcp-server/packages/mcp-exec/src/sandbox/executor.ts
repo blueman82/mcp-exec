@@ -78,7 +78,7 @@ declare global {
 
 globalThis.mcp = {
   callTool: async (server: string, tool: string, args: Record<string, unknown> = {}) => {
-    const response = await fetch('http://localhost:${bridgePort}/call', {
+    const response = await fetch('http://127.0.0.1:${bridgePort}/call', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ server, tool, args }),

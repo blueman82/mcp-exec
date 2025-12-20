@@ -274,7 +274,7 @@ describe('generateToolWrapper', () => {
 
     expect(wrapper).toContain("server: 'slack'");
     expect(wrapper).toContain("tool: 'send_message'");
-    expect(wrapper).toContain('http://localhost:3000/call');
+    expect(wrapper).toContain('http://127.0.0.1:3000/call');
   });
 
   it('should handle tool names with special characters', () => {

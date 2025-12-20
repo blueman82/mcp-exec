@@ -8,7 +8,7 @@ import type { ToolDefinition } from '@justanothermldude/meta-mcp-core';
 /**
  * Bridge endpoint URL for tool calls
  */
-const BRIDGE_ENDPOINT = 'http://localhost:3000/call';
+const BRIDGE_ENDPOINT = 'http://127.0.0.1:3000/call';
 
 /**
  * JSON Schema property definition
@@ -197,7 +197,7 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   const safeToolName = JSON.stringify(tool.name);
 
   lines.push(`  ${methodName}: async (${inputParam}): Promise<unknown> => {`);
-  lines.push(`    const response = await fetch('http://localhost:${bridgePort}/call', {`);
+  lines.push(`    const response = await fetch('http://127.0.0.1:${bridgePort}/call', {`);
   lines.push(`      method: 'POST',`);
   lines.push(`      headers: { 'Content-Type': 'application/json' },`);
   lines.push(`      body: JSON.stringify({`);
