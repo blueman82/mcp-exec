@@ -62,9 +62,9 @@ describe('get_mcp_tool_schema tool', () => {
       expect(getMcpToolSchemaTool.inputSchema.properties.tool.type).toBe('string');
     });
 
-    it('should require server and tool parameters', () => {
+    it('should require server parameter, tool is optional', () => {
       expect(getMcpToolSchemaTool.inputSchema.required).toContain('server');
-      expect(getMcpToolSchemaTool.inputSchema.required).toContain('tool');
+      expect(getMcpToolSchemaTool.inputSchema.required).not.toContain('tool');
     });
   });
 
@@ -139,6 +139,74 @@ describe('get_mcp_tool_schema tool', () => {
         expect(result.isError).toBe(false);
         const parsed = JSON.parse(result.content[0].text);
         expect(parsed.inputSchema).toEqual(complexSchema);
+      });
+    });
+
+    describe('discovery mode (tool omitted)', () => {
+      it('should return all tools with name and description when tool is omitted', async () => {
+        const mockTools: ToolDefinition[] = [
+          { name: 'read_file', description: 'Read a file', inputSchema: { type: 'object' } },
+          { name: 'write_file', description: 'Write a file', inputSchema: { type: 'object' } },
+        ];
+        const mockConnection = createMockConnection(mockTools);
+        const mockPool = createMockPool({
+          getConnection: vi.fn().mockResolvedValue(mockConnection),
+        });
+
+        const handler = createGetToolSchemaHandler(mockPool);
+        const result = await handler({ server: 'filesystem' });
+
+        expect(result.isError).toBe(false);
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed).toHaveLength(2);
+        expect(parsed[0]).toEqual({ name: 'read_file', description: 'Read a file' });
+        expect(parsed[1]).toEqual({ name: 'write_file', description: 'Write a file' });
+      });
+
+      it('should not include inputSchema in discovery mode', async () => {
+        const mockTools: ToolDefinition[] = [
+          { name: 'complex_tool', description: 'Complex', inputSchema: { type: 'object', properties: { x: { type: 'string' } } } },
+        ];
+        const mockConnection = createMockConnection(mockTools);
+        const mockPool = createMockPool({
+          getConnection: vi.fn().mockResolvedValue(mockConnection),
+        });
+
+        const handler = createGetToolSchemaHandler(mockPool);
+        const result = await handler({ server: 'test-server' });
+
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed[0].inputSchema).toBeUndefined();
+      });
+
+      it('should return empty array for server with no tools', async () => {
+        const mockConnection = createMockConnection([]);
+        const mockPool = createMockPool({
+          getConnection: vi.fn().mockResolvedValue(mockConnection),
+        });
+
+        const handler = createGetToolSchemaHandler(mockPool);
+        const result = await handler({ server: 'empty-server' });
+
+        expect(result.isError).toBe(false);
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed).toEqual([]);
+      });
+
+      it('should handle tools without description', async () => {
+        const mockTools: ToolDefinition[] = [
+          { name: 'no_desc_tool', inputSchema: { type: 'object' } } as ToolDefinition,
+        ];
+        const mockConnection = createMockConnection(mockTools);
+        const mockPool = createMockPool({
+          getConnection: vi.fn().mockResolvedValue(mockConnection),
+        });
+
+        const handler = createGetToolSchemaHandler(mockPool);
+        const result = await handler({ server: 'test-server' });
+
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed[0]).toEqual({ name: 'no_desc_tool', description: '' });
       });
     });
 
@@ -336,8 +404,8 @@ describe('get_mcp_tool_schema tool', () => {
       expect(isGetToolSchemaInput({ tool: 'mytool' })).toBe(false);
     });
 
-    it('should return false when tool is missing', () => {
-      expect(isGetToolSchemaInput({ server: 'test' })).toBe(false);
+    it('should return true when tool is missing (discovery mode)', () => {
+      expect(isGetToolSchemaInput({ server: 'test' })).toBe(true);
     });
 
     it('should return false when both are missing', () => {
@@ -350,10 +418,14 @@ describe('get_mcp_tool_schema tool', () => {
       expect(isGetToolSchemaInput({ server: {}, tool: 'mytool' })).toBe(false);
     });
 
-    it('should return false when tool is not a string', () => {
+    it('should return false when tool is provided but not a string', () => {
       expect(isGetToolSchemaInput({ server: 'test', tool: 123 })).toBe(false);
       expect(isGetToolSchemaInput({ server: 'test', tool: null })).toBe(false);
       expect(isGetToolSchemaInput({ server: 'test', tool: [] })).toBe(false);
+    });
+
+    it('should return true when tool is undefined (discovery mode)', () => {
+      expect(isGetToolSchemaInput({ server: 'test', tool: undefined })).toBe(true);
     });
 
     it('should return false when both are not strings', () => {

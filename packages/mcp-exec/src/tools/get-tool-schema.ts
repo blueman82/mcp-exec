@@ -9,7 +9,7 @@ import { ServerPool, type ToolDefinition } from '@justanothermldude/meta-mcp-cor
  */
 export interface GetToolSchemaInput {
   server: string;
-  tool: string;
+  tool?: string;
 }
 
 /**
@@ -18,7 +18,7 @@ export interface GetToolSchemaInput {
 export const getMcpToolSchemaTool = {
   name: 'get_mcp_tool_schema',
   description:
-    'Get the full schema for a specific MCP tool. Use this to discover tool parameters before calling them.',
+    'Get the full schema for a specific MCP tool, or list all tools on a server. Omit tool param to discover available tools.',
   inputSchema: {
     type: 'object' as const,
     properties: {
@@ -28,10 +28,10 @@ export const getMcpToolSchemaTool = {
       },
       tool: {
         type: 'string',
-        description: 'The name of the tool to get the schema for',
+        description: 'The name of the tool to get the schema for. Omit to list all tools.',
       },
     },
-    required: ['server', 'tool'],
+    required: ['server'],
   },
 };
 
@@ -59,7 +59,7 @@ export interface CallToolResult {
  */
 export function createGetToolSchemaHandler(pool: ServerPool) {
   /**
-   * Get tool schema handler - fetches schema for a specific tool from a server
+   * Get tool schema handler - fetches schema for a specific tool, or lists all tools
    */
   return async function getToolSchemaHandler(
     args: GetToolSchemaInput
@@ -73,7 +73,19 @@ export function createGetToolSchemaHandler(pool: ServerPool) {
       // Fetch all tools from the server
       const tools: ToolDefinition[] = await connection.getTools();
 
-      // Find the matching tool by name
+      // Discovery mode: return all tools with name + description only
+      if (!tool) {
+        const summary = tools.map((t) => ({
+          name: t.name,
+          description: t.description || '',
+        }));
+        return {
+          content: [{ type: 'text', text: JSON.stringify(summary, null, 2) }],
+          isError: false,
+        };
+      }
+
+      // Specific tool mode: find and return full schema
       const matchedTool = tools.find((t) => t.name === tool);
 
       if (!matchedTool) {
@@ -135,8 +147,11 @@ export function isGetToolSchemaInput(args: unknown): args is GetToolSchemaInput 
     return false;
   }
   const input = args as Record<string, unknown>;
-  // Both server and tool are required and must be strings
-  if (typeof input.server !== 'string' || typeof input.tool !== 'string') {
+  // server is required, tool is optional
+  if (typeof input.server !== 'string') {
+    return false;
+  }
+  if (input.tool !== undefined && typeof input.tool !== 'string') {
     return false;
   }
   return true;

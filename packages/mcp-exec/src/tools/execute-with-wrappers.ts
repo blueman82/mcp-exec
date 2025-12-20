@@ -43,13 +43,14 @@ export const executeCodeWithWrappersTool = {
   name: 'execute_code_with_wrappers',
   description:
     'Execute TypeScript/JavaScript code with auto-generated typed wrappers for specified MCP servers. ' +
-    'Provides a typed API like github.createIssue({ title: "..." }) instead of raw mcp.callTool().',
+    'Provides a typed API like github.createIssue({ title: "..." }) instead of raw mcp.callTool(). ' +
+    'Multi-line code is supported - format naturally for readability.',
   inputSchema: {
     type: 'object' as const,
     properties: {
       code: {
         type: 'string',
-        description: 'The TypeScript/JavaScript code to execute',
+        description: 'The TypeScript/JavaScript code to execute. Multi-line supported - format for readability.',
       },
       wrappers: {
         type: 'array',
@@ -132,18 +133,8 @@ export function createExecuteWithWrappersHandler(
   pool: ServerPool,
   config: ExecuteWithWrappersHandlerConfig = {}
 ) {
-  // Ensure bridge port matches sandbox network config
-  const bridgePort = config.bridgeConfig?.port ?? 3000;
-  const sandboxConfig: SandboxExecutorConfig = {
-    ...config.sandboxConfig,
-    mcpBridgePort: bridgePort,
-  };
-
-  const executor = new SandboxExecutor(sandboxConfig);
-  const bridge = new MCPBridge(pool, {
-    ...config.bridgeConfig,
-    port: bridgePort,
-  });
+  // Preferred port (actual port determined at runtime via dynamic allocation)
+  const preferredPort = config.bridgeConfig?.port ?? 3000;
 
   /**
    * Execute code with wrappers handler - generates wrappers, composes code, and executes
@@ -184,8 +175,18 @@ export function createExecuteWithWrappersHandler(
 
     let result: ExecutionResult | null = null;
 
+    // Create bridge per execution (allows dynamic port allocation)
+    const bridge = new MCPBridge(pool, {
+      ...config.bridgeConfig,
+      port: preferredPort,
+    });
+
     try {
-      // Step 1: Generate typed wrappers for each requested server
+      // Step 1: Start the MCP bridge server (gets dynamic port)
+      await bridge.start();
+      const actualPort = bridge.getPort();
+
+      // Step 2: Generate typed wrappers for each requested server using actual port
       const wrapperModules: string[] = [];
 
       for (const serverName of wrappers) {
@@ -196,14 +197,15 @@ export function createExecuteWithWrappersHandler(
           // Fetch tools from the server
           const tools = await connection.getTools();
 
-          // Generate TypeScript module for this server
-          const moduleCode = generateServerModule(tools, serverName, bridgePort);
+          // Generate TypeScript module for this server with actual port
+          const moduleCode = generateServerModule(tools, serverName, actualPort);
           wrapperModules.push(moduleCode);
 
           // Release connection back to pool
           pool.releaseConnection(serverName);
         } catch (serverError) {
           const errorMessage = serverError instanceof Error ? serverError.message : String(serverError);
+          await bridge.stop();
           return {
             content: [{ type: 'text', text: `Error generating wrapper for server '${serverName}': ${errorMessage}` }],
             isError: true,
@@ -211,21 +213,25 @@ export function createExecuteWithWrappersHandler(
         }
       }
 
-      // Step 2: Compose full code with wrappers + MCP preamble + user code
+      // Step 3: Compose full code with wrappers + MCP preamble + user code
       const generatedWrappers = wrapperModules.join('\n\n');
-      const mcpPreamble = getMcpPreamble(bridgePort);
+      const mcpPreamble = getMcpPreamble(actualPort);
       const fullCode = `${generatedWrappers}\n\n${mcpPreamble}\n${code}`;
 
-      // Step 3: Start the MCP bridge server
-      await bridge.start();
+      // Step 4: Create executor with actual port for sandbox network config
+      const sandboxConfig: SandboxExecutorConfig = {
+        ...config.sandboxConfig,
+        mcpBridgePort: actualPort,
+      };
+      const executor = new SandboxExecutor(sandboxConfig);
 
-      // Step 4: Execute code in sandbox
+      // Step 5: Execute code in sandbox
       result = await executor.execute(fullCode, timeout_ms);
 
-      // Step 5: Stop the bridge server
+      // Step 6: Stop the bridge server
       await bridge.stop();
 
-      // Step 6: Format and return result
+      // Step 7: Format and return result
       return formatResult(result);
     } catch (error) {
       // Ensure bridge is stopped on error

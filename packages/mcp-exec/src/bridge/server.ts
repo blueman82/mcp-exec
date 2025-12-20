@@ -1,6 +1,8 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
+import getPort from 'get-port';
 import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
 import { getServerConfig, listServers } from '@justanothermldude/meta-mcp-core';
+import { cleanupStaleProcess } from './port-cleanup.js';
 
 /**
  * Request body for the /call endpoint
@@ -210,27 +212,51 @@ function buildConnectionError(serverName: string, originalError: string): string
  */
 export class MCPBridge {
   private readonly pool: ServerPool;
-  private readonly port: number;
+  private readonly preferredPort: number;
+  private port: number;
   private readonly host: string;
   private server: Server | null = null;
 
   constructor(pool: ServerPool, config: MCPBridgeConfig = {}) {
     this.pool = pool;
-    this.port = config.port ?? DEFAULT_PORT;
+    this.preferredPort = config.port ?? DEFAULT_PORT;
+    this.port = this.preferredPort;
     this.host = config.host ?? DEFAULT_HOST;
   }
 
   /**
-   * Start the HTTP bridge server
+   * Start the HTTP bridge server with dynamic port allocation
+   * Prefers the configured port but falls back to any available port
    * @returns Promise that resolves when server is listening
    */
   async start(): Promise<void> {
+    // Find an available port, preferring the configured one
+    this.port = await getPort({ port: this.preferredPort });
+
     return new Promise((resolve, reject) => {
       this.server = createServer((req, res) => {
         this.handleRequest(req, res);
       });
 
-      this.server.on('error', (err) => {
+      this.server.on('error', async (err: NodeJS.ErrnoException) => {
+        if (err.code === 'EADDRINUSE') {
+          // Try to clean up stale process and retry once
+          const cleaned = await cleanupStaleProcess(this.port);
+          if (cleaned) {
+            // Wait a bit for port to be released
+            await new Promise((r) => setTimeout(r, 200));
+            // Try to get the port again
+            this.port = await getPort({ port: this.preferredPort });
+            try {
+              this.server?.listen(this.port, this.host, () => {
+                resolve();
+              });
+              return;
+            } catch {
+              // Fall through to reject
+            }
+          }
+        }
         reject(err);
       });
 
