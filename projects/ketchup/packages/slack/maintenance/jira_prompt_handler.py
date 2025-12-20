@@ -465,13 +465,29 @@ class JiraPromptHandler:
             channel_id: Slack channel ID
             jira_ticket: JIRA ticket key (e.g., "CPGNREQ-182819")
         """
+        # DEFENSIVE: Store JIRA ticket FIRST before any operations that might fail.
+        # This ensures we never lose the user-provided ticket info, even if
+        # MCP fails, instance URL is missing, or an exception occurs.
+        try:
+            await self.db_store.channel_ops.update_channel_fields(
+                channel_id=channel_id, updates={"jira_ticket": jira_ticket}
+            )
+            logger.info(f"Stored JIRA ticket {jira_ticket} for channel {channel_id}")
+        except Exception as e:
+            # Log but continue - we still want to try the maintenance check
+            logger.warning(f"Failed to store JIRA ticket defensively: {e}")
+
         try:
             # Fetch JIRA ticket via MCP
             jira_data = await self._fetch_jira_ticket(jira_ticket)
 
             if not jira_data:
                 logger.error(f"Failed to fetch JIRA ticket {jira_ticket}")
-                await self._post_timeout_message(channel_id)
+                await self._post_error_message(
+                    channel_id,
+                    f"⚠️ Received {jira_ticket} but unable to fetch ticket details. "
+                    "The ticket has been recorded for this channel.",
+                )
                 return
 
             # Extract instance URL from customfield_22302
@@ -479,7 +495,11 @@ class JiraPromptHandler:
 
             if not instance_url:
                 logger.error(f"No instance URL in JIRA ticket {jira_ticket}")
-                await self._post_timeout_message(channel_id)
+                await self._post_error_message(
+                    channel_id,
+                    f"⚠️ {jira_ticket} does not contain an instance URL (customfield_22302). "
+                    "Cannot determine maintenance status. The ticket has been recorded.",
+                )
                 return
 
             logger.info(f"Instance URL from JIRA: {instance_url}")
@@ -501,7 +521,11 @@ class JiraPromptHandler:
 
         except Exception as e:
             logger.error(f"Error processing maintenance check: {e}", exc_info=True)
-            await self._post_timeout_message(channel_id)
+            await self._post_error_message(
+                channel_id,
+                f"⚠️ Error checking maintenance for {jira_ticket}: {str(e)[:100]}. "
+                "The ticket has been recorded for this channel.",
+            )
 
     async def _fetch_jira_ticket(self, jira_ticket: str) -> Optional[Dict]:
         """
@@ -571,11 +595,12 @@ This channel may be related to scheduled maintenance rather than an incident."""
                 # Pin the message
                 await self.posting_handler.pin_message(channel_id=channel_id, message_ts=message_ts)
 
-                # Update DynamoDB with customer_name and jira_ticket
-                await self.db_store.channel_ops.update_channel_metadata(
+                # Update DynamoDB with customer_name
+                # NOTE: jira_ticket is already stored defensively at start of _process_maintenance_check
+                # Using update_channel_fields instead of update_channel_metadata (which requires user_id)
+                await self.db_store.channel_ops.update_channel_fields(
                     channel_id=channel_id,
-                    customer_name=customer_name,
-                    jira_ticket=jira_ticket,
+                    updates={"customer_name": customer_name, "jira_ticket": jira_ticket},
                 )
 
                 logger.info(f"Posted and pinned maintenance message for {channel_id}")
@@ -616,7 +641,7 @@ This channel may be related to scheduled maintenance rather than an incident."""
 
     async def _post_timeout_message(self, channel_id: str) -> None:
         """
-        Post message when all retry attempts fail.
+        Post message when all retry attempts fail (no JIRA ticket provided).
 
         Args:
             channel_id: Slack channel ID
@@ -629,3 +654,22 @@ This channel may be related to scheduled maintenance rather than an incident."""
 
         except Exception as e:
             logger.error(f"Error posting timeout message: {e}", exc_info=True)
+
+    async def _post_error_message(self, channel_id: str, message: str) -> None:
+        """
+        Post a specific error message to the channel.
+
+        Unlike _post_timeout_message, this is used when we received a JIRA ticket
+        but encountered an error during processing. The message should be
+        informative about what went wrong.
+
+        Args:
+            channel_id: Slack channel ID
+            message: The error message to post
+        """
+        try:
+            await self.posting_handler.post_message(channel_id=channel_id, message=message)
+            logger.info(f"Posted error message for {channel_id}")
+
+        except Exception as e:
+            logger.error(f"Error posting error message: {e}", exc_info=True)
