@@ -380,8 +380,13 @@ async def test_fetch_jira_ticket_exception(jira_prompt_handler, mock_mcp_client)
 async def test_post_maintenance_found_message(
     jira_prompt_handler, mock_posting_handler, mock_maintenance_checker, mock_db_store
 ):
-    """Test posting maintenance found message."""
+    """Test posting maintenance found message.
+
+    Uses update_channel_fields instead of update_channel_metadata
+    (which requires user_id that we don't have in this context).
+    """
     mock_posting_handler.post_message.return_value = {"ok": True, "ts": "123.456"}
+    mock_db_store.channel_ops.update_channel_fields = AsyncMock()
     maintenance_info = {
         "customer_name": "Test Customer",
         "instance_name": "test_mkt_prod1",
@@ -396,8 +401,9 @@ async def test_post_maintenance_found_message(
     mock_posting_handler.pin_message.assert_called_once_with(
         channel_id="C123", message_ts="123.456"
     )
-    mock_db_store.channel_ops.update_channel_metadata.assert_called_once_with(
-        channel_id="C123", customer_name="Test Customer", jira_ticket="CPGNREQ-12345"
+    mock_db_store.channel_ops.update_channel_fields.assert_called_once_with(
+        channel_id="C123",
+        updates={"customer_name": "Test Customer", "jira_ticket": "CPGNREQ-12345"},
     )
 
 
@@ -507,28 +513,43 @@ async def test_process_maintenance_check_not_found(
 
 @pytest.mark.asyncio
 async def test_process_maintenance_check_no_instance_url(jira_prompt_handler, mock_mcp_client):
-    """Test processing maintenance check with missing instance URL."""
+    """Test processing maintenance check with missing instance URL.
+
+    Now posts a specific error message instead of generic timeout message.
+    """
     mock_mcp_client.search_issues.return_value = {"issues": [{"fields": {}}]}
 
     with patch.object(
-        jira_prompt_handler, "_post_timeout_message", new_callable=AsyncMock
-    ) as mock_timeout:
+        jira_prompt_handler, "_post_error_message", new_callable=AsyncMock
+    ) as mock_error:
         await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
 
-        mock_timeout.assert_called_once_with("C123")
+        mock_error.assert_called_once()
+        # Verify error message mentions the ticket and instance URL issue
+        call_args = mock_error.call_args
+        assert call_args[0][0] == "C123"
+        assert "CPGNREQ-12345" in call_args[0][1]
+        assert "instance" in call_args[0][1].lower()
 
 
 @pytest.mark.asyncio
 async def test_process_maintenance_check_jira_fetch_failure(jira_prompt_handler, mock_mcp_client):
-    """Test processing maintenance check when JIRA fetch fails."""
+    """Test processing maintenance check when JIRA fetch fails.
+
+    Now posts a specific error message instead of generic timeout message.
+    """
     mock_mcp_client.search_issues.return_value = None
 
     with patch.object(
-        jira_prompt_handler, "_post_timeout_message", new_callable=AsyncMock
-    ) as mock_timeout:
+        jira_prompt_handler, "_post_error_message", new_callable=AsyncMock
+    ) as mock_error:
         await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
 
-        mock_timeout.assert_called_once_with("C123")
+        mock_error.assert_called_once()
+        # Verify error message mentions the ticket
+        call_args = mock_error.call_args
+        assert call_args[0][0] == "C123"
+        assert "CPGNREQ-12345" in call_args[0][1]
 
 
 # ========== Workflow Tests ==========
@@ -574,3 +595,170 @@ async def test_workflow_timeout_all_attempts(mock_sleep, jira_prompt_handler, mo
 
             assert mock_wait.call_count == 3
             mock_timeout.assert_called_once_with("C123")
+
+
+# ========== Multi-URL Instance Field Tests ==========
+
+
+@pytest.mark.asyncio
+async def test_process_maintenance_check_multi_url_field(
+    jira_prompt_handler, mock_mcp_client, mock_maintenance_checker, mock_db_store
+):
+    """Test processing maintenance check with comma-separated URLs in customfield_22302.
+
+    This is a common case where JIRA tickets contain multiple instance URLs.
+    The code should handle the first URL correctly.
+    """
+    # JIRA ticket with comma-separated instance URLs (real-world pattern)
+    mock_mcp_client.search_issues.return_value = {
+        "issues": [
+            {
+                "key": "CPGNREQ-12345",
+                "fields": {
+                    "customfield_22302": (
+                        "https://customer-rt-prod10.campaign.adobe.com, "
+                        "https://customer-rt-prod9.campaign.adobe.com"
+                    )
+                },
+            }
+        ]
+    }
+    mock_maintenance_checker.check_maintenance.return_value = None
+
+    with patch.object(
+        jira_prompt_handler, "_post_no_maintenance_message", new_callable=AsyncMock
+    ) as mock_post_no:
+        await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+        # Should successfully process (not timeout) even with multi-URL field
+        mock_post_no.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_process_maintenance_check_stores_ticket_on_no_maintenance(
+    jira_prompt_handler, mock_mcp_client, mock_maintenance_checker, mock_db_store
+):
+    """Test that JIRA ticket is stored in DynamoDB when no maintenance is found.
+
+    Note: The ticket may be stored twice (defensively at start + in success path).
+    This is idempotent and correct behavior - ensures ticket is never lost.
+    """
+    mock_mcp_client.search_issues.return_value = {
+        "issues": [
+            {
+                "key": "CPGNREQ-12345",
+                "fields": {"customfield_22302": "https://test-mkt-prod1.campaign.adobe.com"},
+            }
+        ]
+    }
+    mock_maintenance_checker.check_maintenance.return_value = None
+    mock_db_store.channel_ops.update_channel_fields = AsyncMock()
+
+    with patch.object(jira_prompt_handler, "_delete_prompt_message", new_callable=AsyncMock):
+        await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+        # Verify JIRA ticket was stored (may be called twice - defensive + success path)
+        mock_db_store.channel_ops.update_channel_fields.assert_called_with(
+            channel_id="C123", updates={"jira_ticket": "CPGNREQ-12345"}
+        )
+        assert mock_db_store.channel_ops.update_channel_fields.call_count >= 1
+
+
+# ========== Defensive JIRA Ticket Storage Tests ==========
+
+
+@pytest.mark.asyncio
+async def test_process_maintenance_check_stores_ticket_on_mcp_failure(
+    jira_prompt_handler, mock_mcp_client, mock_db_store, mock_posting_handler
+):
+    """Test that JIRA ticket is stored even when MCP fetch fails.
+
+    IMPROVEMENT: Previously, if MCP failed, the ticket was lost.
+    Now we store it defensively before processing.
+    """
+    mock_mcp_client.search_issues.return_value = None
+    mock_db_store.channel_ops.update_channel_fields = AsyncMock()
+
+    await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+    # JIRA ticket should still be stored even though MCP failed
+    mock_db_store.channel_ops.update_channel_fields.assert_called_once_with(
+        channel_id="C123", updates={"jira_ticket": "CPGNREQ-12345"}
+    )
+
+
+@pytest.mark.asyncio
+async def test_process_maintenance_check_stores_ticket_on_missing_instance_url(
+    jira_prompt_handler, mock_mcp_client, mock_db_store, mock_posting_handler
+):
+    """Test that JIRA ticket is stored even when customfield_22302 is missing.
+
+    IMPROVEMENT: The ticket info should not be lost just because the
+    instance URL field is empty.
+    """
+    mock_mcp_client.search_issues.return_value = {"issues": [{"fields": {}}]}
+    mock_db_store.channel_ops.update_channel_fields = AsyncMock()
+
+    await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+    # JIRA ticket should still be stored
+    mock_db_store.channel_ops.update_channel_fields.assert_called_once_with(
+        channel_id="C123", updates={"jira_ticket": "CPGNREQ-12345"}
+    )
+
+
+@pytest.mark.asyncio
+async def test_process_maintenance_check_stores_ticket_on_exception(
+    jira_prompt_handler, mock_mcp_client, mock_db_store, mock_posting_handler
+):
+    """Test that JIRA ticket is stored even when an exception occurs.
+
+    IMPROVEMENT: Exceptions during maintenance check should not cause
+    the JIRA ticket to be lost.
+    """
+    mock_mcp_client.search_issues.side_effect = Exception("Network error")
+    mock_db_store.channel_ops.update_channel_fields = AsyncMock()
+
+    await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+    # JIRA ticket should still be stored despite exception
+    mock_db_store.channel_ops.update_channel_fields.assert_called_once_with(
+        channel_id="C123", updates={"jira_ticket": "CPGNREQ-12345"}
+    )
+
+
+# ========== Improved Error Message Tests ==========
+
+
+@pytest.mark.asyncio
+async def test_post_error_message_with_mcp_failure_reason(
+    jira_prompt_handler, mock_mcp_client, mock_posting_handler
+):
+    """Test that error message includes specific failure reason for MCP issues."""
+    mock_mcp_client.search_issues.return_value = None
+
+    await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+    # Check that post_message was called with informative error
+    mock_posting_handler.post_message.assert_called()
+    call_args = mock_posting_handler.post_message.call_args
+    message = call_args.kwargs.get("message", "")
+    # Should mention that ticket was received but lookup failed
+    assert "CPGNREQ-12345" in message or "Unable to" in message
+
+
+@pytest.mark.asyncio
+async def test_post_error_message_with_missing_instance_url_reason(
+    jira_prompt_handler, mock_mcp_client, mock_posting_handler
+):
+    """Test that error message mentions missing instance URL."""
+    mock_mcp_client.search_issues.return_value = {"issues": [{"fields": {}}]}
+
+    await jira_prompt_handler._process_maintenance_check("C123", "CPGNREQ-12345")
+
+    # Check that post_message was called
+    mock_posting_handler.post_message.assert_called()
+    call_args = mock_posting_handler.post_message.call_args
+    message = call_args.kwargs.get("message", "")
+    # Should indicate the issue with instance URL
+    assert "instance" in message.lower() or "Unable to" in message
