@@ -25,13 +25,14 @@ function createMockPool(overrides: Partial<ServerPool> = {}): ServerPool {
   } as unknown as ServerPool;
 }
 
-// Helper to make HTTP requests
+// Helper to make HTTP requests using bridge's actual port
 async function makeRequest(
-  port: number,
+  bridge: MCPBridge,
   method: string,
   path: string,
   body?: unknown
 ): Promise<{ status: number; body: CallResponse }> {
+  const port = bridge.getPort();
   const response = await fetch(`http://127.0.0.1:${port}${path}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -94,8 +95,9 @@ describe('MCPBridge', () => {
   describe('GET /health', () => {
     it('should return health status', async () => {
       await bridge.start();
+      const port = bridge.getPort();
 
-      const response = await fetch(`http://127.0.0.1:${testPort}/health`);
+      const response = await fetch(`http://127.0.0.1:${port}/health`);
       const body = await response.json() as { status: string; timestamp: string };
 
       expect(response.status).toBe(200);
@@ -116,7 +118,7 @@ describe('MCPBridge', () => {
         args: { key: 'value' },
       };
 
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(200);
       expect(body.success).toBe(true);
@@ -126,7 +128,8 @@ describe('MCPBridge', () => {
     });
 
     it('should return 400 for invalid JSON', async () => {
-      const response = await fetch(`http://127.0.0.1:${testPort}/call`, {
+      const port = bridge.getPort();
+      const response = await fetch(`http://127.0.0.1:${port}/call`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: 'invalid json{',
@@ -140,7 +143,7 @@ describe('MCPBridge', () => {
 
     it('should return 400 for missing server field', async () => {
       const request = { tool: 'test-tool' };
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(400);
       expect(body.success).toBe(false);
@@ -149,7 +152,7 @@ describe('MCPBridge', () => {
 
     it('should return 400 for missing tool field', async () => {
       const request = { server: 'test-server' };
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(400);
       expect(body.success).toBe(false);
@@ -164,7 +167,7 @@ describe('MCPBridge', () => {
         tool: 'test-tool',
       };
 
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(502);
       expect(body.success).toBe(false);
@@ -183,7 +186,7 @@ describe('MCPBridge', () => {
         tool: 'failing-tool',
       };
 
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(500);
       expect(body.success).toBe(false);
@@ -205,7 +208,7 @@ describe('MCPBridge', () => {
         tool: 'error-tool',
       };
 
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(200);
       expect(body.success).toBe(true);
@@ -218,7 +221,7 @@ describe('MCPBridge', () => {
         tool: 'no-args-tool',
       };
 
-      const { status, body } = await makeRequest(testPort, 'POST', '/call', request);
+      const { status, body } = await makeRequest(bridge, 'POST', '/call', request);
 
       expect(status).toBe(200);
       expect(body.success).toBe(true);
@@ -236,7 +239,7 @@ describe('MCPBridge', () => {
         tool: 'some-tool',
       };
 
-      await makeRequest(testPort, 'POST', '/call', request);
+      await makeRequest(bridge, 'POST', '/call', request);
 
       expect(mockPool.getConnection).toHaveBeenCalledWith('my-mcp-server');
     });
@@ -247,7 +250,7 @@ describe('MCPBridge', () => {
         tool: 'some-tool',
       };
 
-      await makeRequest(testPort, 'POST', '/call', request);
+      await makeRequest(bridge, 'POST', '/call', request);
 
       expect(mockPool.releaseConnection).toHaveBeenCalledWith('release-test-server');
     });
@@ -264,7 +267,7 @@ describe('MCPBridge', () => {
         tool: 'failing-tool',
       };
 
-      await makeRequest(testPort, 'POST', '/call', request);
+      await makeRequest(bridge, 'POST', '/call', request);
 
       expect(mockPool.releaseConnection).toHaveBeenCalledWith('error-server');
     });
@@ -276,15 +279,17 @@ describe('MCPBridge', () => {
     });
 
     it('should set CORS headers', async () => {
-      const response = await fetch(`http://127.0.0.1:${testPort}/health`);
+      const port = bridge.getPort();
+      const response = await fetch(`http://127.0.0.1:${port}/health`);
 
       // CORS origin is restricted to localhost (security fix)
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(`http://127.0.0.1:${testPort}`);
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(`http://127.0.0.1:${port}`);
       expect(response.headers.get('Content-Type')).toBe('application/json');
     });
 
     it('should handle OPTIONS preflight', async () => {
-      const response = await fetch(`http://127.0.0.1:${testPort}/call`, {
+      const port = bridge.getPort();
+      const response = await fetch(`http://127.0.0.1:${port}/call`, {
         method: 'OPTIONS',
       });
 
@@ -299,7 +304,8 @@ describe('MCPBridge', () => {
     });
 
     it('should return 404 for unknown paths', async () => {
-      const response = await fetch(`http://127.0.0.1:${testPort}/unknown`);
+      const port = bridge.getPort();
+      const response = await fetch(`http://127.0.0.1:${port}/unknown`);
 
       expect(response.status).toBe(404);
       const body = await response.json() as CallResponse;
@@ -308,7 +314,8 @@ describe('MCPBridge', () => {
     });
 
     it('should return 404 for GET /call', async () => {
-      const response = await fetch(`http://127.0.0.1:${testPort}/call`);
+      const port = bridge.getPort();
+      const response = await fetch(`http://127.0.0.1:${port}/call`);
 
       expect(response.status).toBe(404);
     });
