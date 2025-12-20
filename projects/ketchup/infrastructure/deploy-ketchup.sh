@@ -23,19 +23,16 @@ PROD1_SERVER="ketchup-prod1.campaign.adobe.com"
 PROD2_SERVER="ketchup-prod2.campaign.adobe.com"
 PROD_DIR="/opt/ketchup"
 
-# Docker files
+# Docker files (post-December 2025 unified scheduler migration)
 DOCKERFILE_APP="infrastructure/Dockerfile.app-multistage"
-DOCKERFILE_UPDATER="infrastructure/Dockerfile.updater"
 DOCKERFILE_MCP="infrastructure/Dockerfile.mcp-jira"
-DOCKERFILE_STATUS_UPDATER="infrastructure/Dockerfile.status-updater"
-DOCKERFILE_JIRA_REPORTER="infrastructure/Dockerfile.jira-reporter"
 DOCKERFILE_ACCESS_MONITOR="infrastructure/Dockerfile.access-monitor"
-DOCKERFILE_MAINTENANCE_FETCHER="infrastructure/Dockerfile.maintenance_fetcher"
-DOCKERFILE_JIRA_PAT_ROTATOR="infrastructure/Dockerfile.jira-pat-rotator"
 DOCKERFILE_UNIFIED_SCHEDULER="infrastructure/Dockerfile.unified-scheduler"
 
-# Service names
-SERVICES=("ketchup-app" "ketchup-metadata-updater" "mcp-jira" "ketchup-status-updater" "ketchup-jira-reporter" "ketchup-access-monitor" "ketchup-maintenance-fetcher" "ketchup-jira-pat-rotator" "ketchup-unified-scheduler")
+# Service names (4 active services after unified scheduler consolidation)
+# Legacy services (metadata-updater, status-updater, jira-reporter, maintenance-fetcher, jira-pat-rotator)
+# are now consolidated into ketchup-unified-scheduler
+SERVICES=("ketchup-app" "mcp-jira" "ketchup-access-monitor" "ketchup-unified-scheduler")
 
 # Default values
 VERSION=""
@@ -107,19 +104,9 @@ sync_docker_compose_if_changed() {
         scp infrastructure/docker-compose.yml "$server":/tmp/docker-compose.yml
         ssh "$server" "sudo mv /tmp/docker-compose.yml ${PROD_DIR}/docker-compose.yml && sudo chown root:root ${PROD_DIR}/docker-compose.yml"
 
-        # Server-specific overrides after upload
-        if [[ "$server" == "$PROD2_SERVER" ]]; then
-            # Enable status updater on prod2 and ensure TypedDI + fallback enabled during canary
-            ssh "$server" "sudo sed -i 's|KETCHUP_STATUS_UPDATER_ENABLED=false|KETCHUP_STATUS_UPDATER_ENABLED=true|' ${PROD_DIR}/docker-compose.yml; \
-                             sudo sed -i 's|KETCHUP_USE_TYPED_DI=false|KETCHUP_USE_TYPED_DI=true|' ${PROD_DIR}/docker-compose.yml; \
-                             sudo sed -i 's|KETCHUP_TYPED_DI_FALLBACK=false|KETCHUP_TYPED_DI_FALLBACK=true|' ${PROD_DIR}/docker-compose.yml; \
-                             sudo sed -i 's|KETCHUP_USE_ASYNC_MCP=true|KETCHUP_USE_ASYNC_MCP=false|' ${PROD_DIR}/docker-compose.yml"
-        else
-            # Ensure legacy DI on prod1
-            ssh "$server" "sudo sed -i 's|KETCHUP_USE_TYPED_DI=false|KETCHUP_USE_TYPED_DI=true|' ${PROD_DIR}/docker-compose.yml; \
-                             sudo sed -i 's|KETCHUP_TYPED_DI_FALLBACK=false|KETCHUP_TYPED_DI_FALLBACK=true|' ${PROD_DIR}/docker-compose.yml; \
-                             sudo sed -i 's|KETCHUP_USE_ASYNC_MCP=true|KETCHUP_USE_ASYNC_MCP=false|' ${PROD_DIR}/docker-compose.yml"
-        fi
+        # Server-specific overrides after upload (ensure TypedDI is enabled on both servers)
+        ssh "$server" "sudo sed -i 's|KETCHUP_USE_TYPED_DI=false|KETCHUP_USE_TYPED_DI=true|' ${PROD_DIR}/docker-compose.yml; \
+                         sudo sed -i 's|KETCHUP_TYPED_DI_FALLBACK=false|KETCHUP_TYPED_DI_FALLBACK=true|' ${PROD_DIR}/docker-compose.yml"
 
         log_success "docker-compose.yml synchronized to $server"
     else
@@ -298,22 +285,22 @@ check_running_versions() {
     local server=$1
     log_info "Checking running versions on $server..."
     
-    ssh "$server" "sudo docker ps --format 'table {{.Names}}\t{{.Image}}' | grep -E '(ketchup-app|mcp-jira|metadata-updater|status-updater|jira-reporter)'"
+    ssh "$server" "sudo docker ps --format 'table {{.Names}}\t{{.Image}}' | grep -E '(ketchup-app|mcp-jira|ketchup-access-monitor|ketchup-unified-scheduler)'"
 }
 
 build_images() {
     log_section "Building Docker Images"
-    
+
     if [ "$SKIP_BUILD" = true ]; then
         log_warning "Skipping build phase as requested"
         return
     fi
-    
+
     if [ -z "$VERSION" ]; then
         log_error "Version is required for building images"
         exit 1
     fi
-    
+
     # Build ketchup-app
     log_info "Building ketchup-app:$VERSION..."
     BUILD_ARGS="-t ketchup-app:$VERSION -f $DOCKERFILE_APP --platform linux/amd64"
@@ -326,19 +313,7 @@ build_images() {
         exit 1
     }
     log_success "Built ketchup-app:$VERSION"
-    
-    # Build ketchup-metadata-updater
-    log_info "Building ketchup-metadata-updater:$VERSION..."
-    BUILD_ARGS="-t ketchup-metadata-updater:$VERSION -f $DOCKERFILE_UPDATER --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
-        BUILD_ARGS="$BUILD_ARGS --no-cache"
-    fi
-    docker build $BUILD_ARGS . || {
-        log_error "Failed to build ketchup-metadata-updater"
-        exit 1
-    }
-    log_success "Built ketchup-metadata-updater:$VERSION"
-    
+
     # Build mcp-jira
     log_info "Building mcp-jira:$VERSION..."
     BUILD_ARGS="-t mcp-jira:$VERSION -f $DOCKERFILE_MCP --platform linux/amd64"
@@ -350,31 +325,7 @@ build_images() {
         exit 1
     }
     log_success "Built mcp-jira:$VERSION"
-    
-    # Build ketchup-status-updater
-    log_info "Building ketchup-status-updater:$VERSION..."
-    BUILD_ARGS="-t ketchup-status-updater:$VERSION -f $DOCKERFILE_STATUS_UPDATER --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
-        BUILD_ARGS="$BUILD_ARGS --no-cache"
-    fi
-    docker build $BUILD_ARGS . || {
-        log_error "Failed to build ketchup-status-updater"
-        exit 1
-    }
-    log_success "Built ketchup-status-updater:$VERSION"
-    
-    # Build ketchup-jira-reporter
-    log_info "Building ketchup-jira-reporter:$VERSION..."
-    BUILD_ARGS="-t ketchup-jira-reporter:$VERSION -f $DOCKERFILE_JIRA_REPORTER --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
-        BUILD_ARGS="$BUILD_ARGS --no-cache"
-    fi
-    docker build $BUILD_ARGS . || {
-        log_error "Failed to build ketchup-jira-reporter"
-        exit 1
-    }
-    log_success "Built ketchup-jira-reporter:$VERSION"
-    
+
     # Build ketchup-access-monitor
     log_info "Building ketchup-access-monitor:$VERSION..."
     BUILD_ARGS="-t ketchup-access-monitor:$VERSION -f $DOCKERFILE_ACCESS_MONITOR --platform linux/amd64"
@@ -387,31 +338,7 @@ build_images() {
     }
     log_success "Built ketchup-access-monitor:$VERSION"
 
-    # Build ketchup-maintenance-fetcher
-    log_info "Building ketchup-maintenance-fetcher:$VERSION..."
-    BUILD_ARGS="-t ketchup-maintenance-fetcher:$VERSION -f $DOCKERFILE_MAINTENANCE_FETCHER --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
-        BUILD_ARGS="$BUILD_ARGS --no-cache"
-    fi
-    docker build $BUILD_ARGS . || {
-        log_error "Failed to build ketchup-maintenance-fetcher"
-        exit 1
-    }
-    log_success "Built ketchup-maintenance-fetcher:$VERSION"
-
-    # Build ketchup-jira-pat-rotator
-    log_info "Building ketchup-jira-pat-rotator:$VERSION..."
-    BUILD_ARGS="-t ketchup-jira-pat-rotator:$VERSION -f $DOCKERFILE_JIRA_PAT_ROTATOR --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
-        BUILD_ARGS="$BUILD_ARGS --no-cache"
-    fi
-    docker build $BUILD_ARGS . || {
-        log_error "Failed to build ketchup-jira-pat-rotator"
-        exit 1
-    }
-    log_success "Built ketchup-jira-pat-rotator:$VERSION"
-
-    # Build ketchup-unified-scheduler
+    # Build ketchup-unified-scheduler (consolidates 5 legacy scheduler services)
     log_info "Building ketchup-unified-scheduler:$VERSION..."
     BUILD_ARGS="-t ketchup-unified-scheduler:$VERSION -f $DOCKERFILE_UNIFIED_SCHEDULER --platform linux/amd64"
     if [ "$NO_CACHE" = true ]; then
@@ -546,13 +473,9 @@ deploy_to_server() {
         update_cmd+="sudo sed -i 's|${service}:v[0-9.]*|${service}:${version}|g' /opt/ketchup/docker-compose.yml; "
     done
 
-    # Deploy status-updater and metadata-updater ONLY to prod1, exclude from prod2
+    # Deploy unified-scheduler ONLY to prod1 (singleton), exclude from prod2
     if [[ "$server" == "$PROD1_SERVER" ]]; then
-        log_info "Deploying to prod1 (including status-updater and metadata-updater as singletons)..."
-        # Ensure TypedDI + fallback on prod1
-        update_cmd+="sudo sed -i 's|KETCHUP_USE_TYPED_DI=false|KETCHUP_USE_TYPED_DI=true|g' /opt/ketchup/docker-compose.yml; "
-        update_cmd+="sudo sed -i 's|KETCHUP_TYPED_DI_FALLBACK=false|KETCHUP_TYPED_DI_FALLBACK=true|g' /opt/ketchup/docker-compose.yml; "
-        update_cmd+="sudo sed -i 's|KETCHUP_STATUS_UPDATER_ENABLED=false|KETCHUP_STATUS_UPDATER_ENABLED=true|g' /opt/ketchup/docker-compose.yml; "
+        log_info "Deploying to prod1 (all services including unified-scheduler singleton)..."
         ssh "$server" "cd $PROD_DIR && \
             $update_cmd \
             sudo docker-compose pull && \
@@ -561,16 +484,12 @@ deploy_to_server() {
             return 1
         }
     else
-        # Deploy all services EXCEPT status-updater, metadata-updater, jira-reporter, and maintenance-fetcher on prod2
-        log_info "Deploying to prod2 (core services only, excluding singleton services)..."
-        # Ensure TypedDI + fallback on prod2
-        update_cmd+="sudo sed -i 's|KETCHUP_USE_TYPED_DI=false|KETCHUP_USE_TYPED_DI=true|g' /opt/ketchup/docker-compose.yml; "
-        update_cmd+="sudo sed -i 's|KETCHUP_TYPED_DI_FALLBACK=false|KETCHUP_TYPED_DI_FALLBACK=true|g' /opt/ketchup/docker-compose.yml; "
-        update_cmd+="sudo sed -i 's|KETCHUP_STATUS_UPDATER_ENABLED=true|KETCHUP_STATUS_UPDATER_ENABLED=false|g' /opt/ketchup/docker-compose.yml; "
+        # Deploy core services only, excluding unified-scheduler singleton on prod2
+        log_info "Deploying to prod2 (core services only, excluding unified-scheduler singleton)..."
 
-        # Explicitly stop and remove singleton services that should only run on prod1
-        cleanup_cmd="sudo docker-compose stop ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher ketchup-jira-pat-rotator 2>/dev/null; "
-        cleanup_cmd+="sudo docker-compose rm -f ketchup-status-updater ketchup-metadata-updater ketchup-jira-reporter ketchup-maintenance-fetcher ketchup-jira-pat-rotator 2>/dev/null; "
+        # Explicitly stop and remove unified-scheduler (singleton that should only run on prod1)
+        cleanup_cmd="sudo docker-compose stop ketchup-unified-scheduler 2>/dev/null; "
+        cleanup_cmd+="sudo docker-compose rm -f ketchup-unified-scheduler 2>/dev/null; "
 
         ssh "$server" "cd $PROD_DIR && \
             $update_cmd \
