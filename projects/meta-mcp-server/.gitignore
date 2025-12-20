@@ -21,3 +21,6 @@ docs/diagrams/logs/*
 CONSOLIDATION_ROADMAP.md
 *.code-workspace
 tests/streamable-http-test-server.py
+
+# Transcripts (local artifacts)
+transcripts/
