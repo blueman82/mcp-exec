@@ -32,9 +32,8 @@ export type { ExecuteCodeInput, ExecutionResult } from './types/execution.js';
 import type { ExecuteCodeInput, ExecutionResult } from './types/execution.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from './sandbox/index.js';
 import { DEFAULT_TIMEOUT_MS } from './types/execution.js';
-
 export const APP_NAME = 'mcp-exec';
-export const VERSION = '0.1.0';
+export const VERSION = '__MCP_EXEC_VERSION__';
 
 // Default executor instance (lazily initialized)
 let defaultExecutor: SandboxExecutor | null = null;
