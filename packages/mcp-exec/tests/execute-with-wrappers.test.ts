@@ -9,7 +9,7 @@ import {
   createExecuteWithWrappersHandler,
   type ExecuteWithWrappersInput,
 } from '../src/tools/execute-with-wrappers.js';
-import { generateToolWrapper, generateServerModule } from '../src/codegen/wrapper-generator.js';
+import { generateToolWrapper, generateServerModule, generateMcpDictionary, normalizeName } from '../src/codegen/index.js';
 import type { ServerPool, ToolDefinition } from '@justanothermldude/meta-mcp-core';
 import { ConnectionState } from '@justanothermldude/meta-mcp-core';
 
@@ -324,8 +324,10 @@ describe('generateServerModule', () => {
     const tools = createSampleTools();
     const module = generateServerModule(tools, 'filesystem');
 
-    // Should create namespace object
-    expect(module).toContain('const filesystem = {');
+    // Should create raw namespace object with _raw suffix
+    expect(module).toContain('const filesystem_raw = {');
+    // Should create fuzzy Proxy wrapper for case-agnostic access
+    expect(module).toContain('const filesystem = new Proxy(filesystem_raw');
     // Should use original tool names (snake_case) so discovery matches usage
     expect(module).toContain('read_file:');
     expect(module).toContain('write_file:');
@@ -666,5 +668,164 @@ describe('Edge cases', () => {
     // Nested object is rendered inline: { nested?: string }
     expect(wrapper).toContain('nested?:');
     expect(wrapper).toContain('string');
+  });
+});
+
+/**
+ * Tests for case-agnostic wrapper resolution
+ */
+describe('normalizeName', () => {
+  it('should convert hyphenated names to lowercase without separators', () => {
+    expect(normalizeName('corp-jira')).toBe('corpjira');
+  });
+
+  it('should convert underscored names to lowercase without separators', () => {
+    expect(normalizeName('corp_jira')).toBe('corpjira');
+  });
+
+  it('should convert camelCase names to lowercase', () => {
+    expect(normalizeName('corpJira')).toBe('corpjira');
+  });
+
+  it('should convert PascalCase names to lowercase', () => {
+    expect(normalizeName('CorpJira')).toBe('corpjira');
+  });
+
+  it('should handle mixed formats consistently', () => {
+    // All variations should normalize to the same string
+    const variations = ['corp-jira', 'corp_jira', 'corpJira', 'CorpJira', 'CORP-JIRA', 'CORP_JIRA'];
+    const normalized = variations.map(normalizeName);
+    expect(new Set(normalized).size).toBe(1);
+    expect(normalized[0]).toBe('corpjira');
+  });
+
+  it('should handle already normalized names', () => {
+    expect(normalizeName('corpjira')).toBe('corpjira');
+  });
+
+  it('should handle empty string', () => {
+    expect(normalizeName('')).toBe('');
+  });
+
+  it('should handle names with multiple separators', () => {
+    expect(normalizeName('my-corp-jira-server')).toBe('mycorpjiraserver');
+    expect(normalizeName('my_corp_jira_server')).toBe('mycorpjiraserver');
+  });
+
+  it('should handle names with numbers', () => {
+    expect(normalizeName('server-1')).toBe('server1');
+    expect(normalizeName('server_2')).toBe('server2');
+  });
+});
+
+describe('generateMcpDictionary', () => {
+  it('should generate mcp_servers_raw object', () => {
+    const dictionary = generateMcpDictionary(['github', 'filesystem']);
+    expect(dictionary).toContain('const mcp_servers_raw');
+  });
+
+  it('should wrap with Proxy for case-agnostic access', () => {
+    const dictionary = generateMcpDictionary(['github']);
+    expect(dictionary).toContain('new Proxy');
+    expect(dictionary).toContain('const mcp = new Proxy(mcp_servers_raw');
+  });
+
+  it('should include comment header with server list', () => {
+    const dictionary = generateMcpDictionary(['github', 'filesystem']);
+    expect(dictionary).toContain('MCP Server Dictionary');
+    expect(dictionary).toContain("mcp['github']");
+    expect(dictionary).toContain("mcp['filesystem']");
+  });
+
+  it('should map original server names to namespace variables', () => {
+    const dictionary = generateMcpDictionary(['corp-jira', 'github']);
+    expect(dictionary).toContain('"corp-jira": corp_jira');
+    expect(dictionary).toContain('"github": github');
+  });
+
+  it('should handle empty server list', () => {
+    const dictionary = generateMcpDictionary([]);
+    expect(dictionary).toContain('const mcp_servers_raw');
+    expect(dictionary).toContain('const mcp = new Proxy');
+  });
+
+  it('should include aliases in comments', () => {
+    const dictionary = generateMcpDictionary(['corp-jira']);
+    expect(dictionary).toContain('Aliases:');
+    expect(dictionary).toContain('corp_jira');
+  });
+});
+
+describe('generateServerModule Proxy wrapping', () => {
+  it('should generate raw namespace with _raw suffix', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'github');
+    expect(module).toContain('const github_raw = {');
+  });
+
+  it('should wrap raw namespace with Proxy', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'github');
+    expect(module).toContain('const github = new Proxy(github_raw');
+  });
+
+  it('should include case-insensitive access comment', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'github');
+    expect(module).toContain('Case-insensitive');
+    expect(module).toContain('methodName, method_name, and method-name all work');
+  });
+
+  it('should generate Proxy with fuzzy matching logic', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'github');
+    // Verify Proxy handler structure
+    expect(module).toContain('get(target, prop)');
+    expect(module).toContain('if (prop in target)');
+    expect(module).toContain('normalizedProp');
+    expect(module).toContain('normalizedKey');
+  });
+
+  it('should handle server names with hyphens', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'corp-jira');
+    expect(module).toContain('const corp_jira_raw = {');
+    expect(module).toContain('const corp_jira = new Proxy(corp_jira_raw');
+  });
+});
+
+describe('Proxy Symbol passthrough', () => {
+  it('should handle non-string property access in Proxy', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'test-server');
+    // Verify Symbol handling code exists
+    expect(module).toContain("typeof prop !== 'string'");
+    expect(module).toContain('return undefined');
+  });
+});
+
+describe('Proxy error message content', () => {
+  it('should include available options in error message', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'test-server');
+    // Verify error message includes available options
+    expect(module).toContain('Object.keys(target)');
+    expect(module).toContain('throw new TypeError');
+    expect(module).toContain('Available:');
+  });
+
+  it('should include context name in error message', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'my-custom-server');
+    // Verify the server name is in the error message
+    expect(module).toContain('my-custom-server');
+  });
+
+  it('should include the invalid property name in error message', () => {
+    const tools = createSampleTools();
+    const module = generateServerModule(tools, 'test-server');
+    // Verify the error message template includes the requested property
+    expect(module).toContain('${prop}');
+    expect(module).toContain('not found on');
   });
 });

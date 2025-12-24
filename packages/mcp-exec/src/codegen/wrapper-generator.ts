@@ -135,6 +135,52 @@ function sanitizeIdentifier(name: string): string {
 }
 
 /**
+ * Normalize a name for fuzzy matching by stripping hyphens, underscores, and lowercasing.
+ * Used to match e.g. "getUser" to "get_user" or "get-user".
+ * @param name - The name to normalize
+ * @returns Normalized name for comparison
+ */
+export function normalizeName(name: string): string {
+  return name.toLowerCase().replace(/[_-]/g, '');
+}
+
+/**
+ * Generate a Proxy wrapper code string that enables fuzzy/case-agnostic property access.
+ * The generated Proxy intercepts property access and:
+ * 1. Fast-path: Returns exact match if property exists
+ * 2. Fuzzy match: Normalizes requested property and searches for matching key
+ * 3. Error: Throws TypeError with available options if no match found
+ *
+ * @param targetVarName - The variable name of the target object to wrap
+ * @param contextName - Context name for error messages (e.g., server name)
+ * @returns String containing Proxy code to be injected into generated wrapper
+ */
+export function generateFuzzyProxy(targetVarName: string, contextName: string): string {
+  const safeContextName = JSON.stringify(contextName);
+  return `new Proxy(${targetVarName}, {
+  get(target, prop) {
+    if (typeof prop !== 'string') return undefined;
+
+    // Fast-path: exact match
+    if (prop in target) return target[prop];
+
+    // Fuzzy match: normalize and search
+    const normalizedProp = prop.toLowerCase().replace(/[_-]/g, '');
+    for (const key of Object.keys(target)) {
+      const normalizedKey = key.toLowerCase().replace(/[_-]/g, '');
+      if (normalizedKey === normalizedProp) {
+        return target[key];
+      }
+    }
+
+    // No match found - throw helpful error
+    const available = Object.keys(target).join(', ');
+    throw new TypeError(\`Property "\${prop}" not found on ${safeContextName}. Available: \${available}\`);
+  }
+})`;
+}
+
+/**
  * Convert tool name to PascalCase for interface name
  */
 function toPascalCase(name: string): string {
@@ -304,6 +350,7 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   // File header comment
   lines.push('/**');
   lines.push(` * Auto-generated TypeScript wrappers for ${serverName} MCP server tools.`);
+  lines.push(` * Case-insensitive: methodName, method_name, and method-name all work.`);
   lines.push(` * Access tools via: ${namespaceName}.methodName()`);
   lines.push(' */');
   lines.push('');
@@ -317,8 +364,8 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
     }
   }
 
-  // Generate the namespace object with all methods
-  lines.push(`const ${namespaceName} = {`);
+  // Generate the raw namespace object with all methods
+  lines.push(`const ${namespaceName}_raw = {`);
 
   for (let i = 0; i < tools.length; i++) {
     const tool = tools[i];
@@ -327,6 +374,46 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   }
 
   lines.push('};');
+  lines.push('');
+
+  // Wrap with fuzzy Proxy for case-agnostic access
+  lines.push(`const ${namespaceName} = ${generateFuzzyProxy(`${namespaceName}_raw`, serverName)};`);
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * Generate the MCP dictionary code that maps server names to their namespace objects.
+ * Creates a case-agnostic `mcp` dictionary with fuzzy matching for server name resolution.
+ *
+ * @param serverNames - Array of original server names
+ * @returns TypeScript code string with mcp dictionary
+ */
+export function generateMcpDictionary(serverNames: string[]): string {
+  const lines: string[] = [];
+
+  // Generate comment header with server list for AI discoverability
+  const sanitizedNames = serverNames.map(sanitizeIdentifier);
+  lines.push('/**');
+  lines.push(' * MCP Server Dictionary - Access all MCP servers via case-agnostic lookup.');
+  lines.push(` * Available: ${serverNames.map((n) => `mcp['${n}']`).join(', ')}`);
+  lines.push(` * Aliases: ${sanitizedNames.join(', ')}`);
+  lines.push(' */');
+  lines.push('');
+
+  // Create raw dictionary mapping original names to sanitized namespace variables
+  lines.push('const mcp_servers_raw: Record<string, unknown> = {');
+  for (const serverName of serverNames) {
+    const sanitized = sanitizeIdentifier(serverName);
+    // Map original name to the namespace variable
+    lines.push(`  ${JSON.stringify(serverName)}: ${sanitized},`);
+  }
+  lines.push('};');
+  lines.push('');
+
+  // Wrap with fuzzy Proxy for case-agnostic server name resolution
+  lines.push(`const mcp = ${generateFuzzyProxy('mcp_servers_raw', 'mcp')};`);
   lines.push('');
 
   return lines.join('\n');
