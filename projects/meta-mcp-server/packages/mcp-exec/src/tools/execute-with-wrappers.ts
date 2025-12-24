@@ -3,7 +3,7 @@
  * Executes code with auto-generated typed wrappers for specified MCP servers
  */
 import type { ServerPool } from '@justanothermldude/meta-mcp-core';
-import { generateServerModule } from '../codegen/wrapper-generator.js';
+import { generateServerModule, generateMcpDictionary } from '../codegen/index.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
@@ -213,10 +213,11 @@ export function createExecuteWithWrappersHandler(
         }
       }
 
-      // Step 3: Compose full code with wrappers + MCP preamble + user code
+      // Step 3: Compose full code with wrappers + MCP dictionary + MCP preamble + user code
       const generatedWrappers = wrapperModules.join('\n\n');
+      const mcpDictionary = generateMcpDictionary(wrappers);
       const mcpPreamble = getMcpPreamble(actualPort);
-      const fullCode = `${generatedWrappers}\n\n${mcpPreamble}\n${code}`;
+      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${mcpPreamble}\n${code}`;
 
       // Step 4: Create executor with actual port for sandbox network config
       const sandboxConfig: SandboxExecutorConfig = {

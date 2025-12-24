@@ -325,6 +325,62 @@ const content = await read_file({ path: '/tmp/test.txt' });
 await write_file({ path: '/tmp/output.txt', content: 'Hello!' });
 ```
 
+## Case-Agnostic Access
+
+Server and tool names support flexible, case-agnostic access via Proxy-based fuzzy resolution. This means you don't need to remember exact naming conventions—camelCase, snake_case, and kebab-case all work interchangeably.
+
+### Server Name Resolution
+
+All of these access patterns resolve to the same server:
+
+```typescript
+// Original server name: "corp-jira"
+mcp['corp-jira']    // Bracket notation with original name
+mcp.corpJira        // camelCase
+mcp.corp_jira       // snake_case
+mcp.corpjira        // Lowercase without separators
+```
+
+### Tool Name Resolution
+
+Similarly, tool names within a server support fuzzy matching:
+
+```typescript
+// Original tool name: "search_jira_issues"
+const server = mcp['corp-jira'];
+
+server.search_jira_issues     // Original snake_case
+server.searchJiraIssues       // camelCase
+server.searchjiraissues       // Lowercase
+server['search-jira-issues']  // kebab-case via bracket notation
+```
+
+### How It Works
+
+The resolution uses a two-step approach:
+
+1. **Fast-path**: If the exact property name exists, it's returned immediately
+2. **Fuzzy match**: The requested name is normalized (lowercased, hyphens/underscores removed) and compared against normalized versions of all available names
+
+### Helpful Error Messages
+
+When a property doesn't match any available option, a `TypeError` is thrown with helpful suggestions:
+
+```typescript
+const server = mcp['corp-jira'];
+server.nonExistentTool;
+// TypeError: Property "nonExistentTool" not found on corp-jira.
+//            Available: search_jira_issues, create_issue, get_issue, ...
+```
+
+```typescript
+mcp.unknownServer;
+// TypeError: Property "unknownServer" not found on mcp.
+//            Available: corp-jira, github, filesystem, ...
+```
+
+This makes it easy to discover available tools and servers when debugging or exploring the API.
+
 ## Security
 
 - **Network Isolation**: Sandbox only allows connections to the local bridge (e.g., `localhost:3000`)
