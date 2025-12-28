@@ -24,3 +24,6 @@ tests/streamable-http-test-server.py
 
 # Transcripts (local artifacts)
 transcripts/
+
+# Logs
+logs/
