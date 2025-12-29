@@ -14,6 +14,8 @@ export interface CallRequest {
   tool: string;
   /** Arguments to pass to the tool */
   args?: Record<string, unknown>;
+  /** Optional timeout in milliseconds (overrides server config) */
+  timeout?: number;
 }
 
 /**
@@ -394,13 +396,13 @@ export class MCPBridge {
           return;
         }
 
-        // Call the tool with server-configured timeout or global default
+        // Call the tool with request timeout > server-configured timeout > global default
         try {
           const serverConfig = getServerConfig(request.server);
           const defaultTimeout = process.env.MCP_DEFAULT_TIMEOUT
             ? parseInt(process.env.MCP_DEFAULT_TIMEOUT, 10)
             : undefined;
-          const timeout = serverConfig?.timeout ?? defaultTimeout;
+          const timeout = request.timeout ?? serverConfig?.timeout ?? defaultTimeout;
 
           const result = await connection.client.callTool(
             {

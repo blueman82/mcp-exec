@@ -72,16 +72,16 @@ export class SandboxExecutor {
 // MCP helper for calling tools via HTTP bridge
 declare global {
   var mcp: {
-    callTool: (server: string, tool: string, args?: Record<string, unknown>) => Promise<unknown[]>;
+    callTool: (server: string, tool: string, args?: Record<string, unknown>, options?: { timeout?: number }) => Promise<unknown[]>;
   };
 }
 
 globalThis.mcp = {
-  callTool: async (server: string, tool: string, args: Record<string, unknown> = {}) => {
+  callTool: async (server: string, tool: string, args: Record<string, unknown> = {}, options?: { timeout?: number }) => {
     const response = await fetch('http://127.0.0.1:${bridgePort}/call', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ server, tool, args }),
+      body: JSON.stringify({ server, tool, args, timeout: options?.timeout }),
     });
     const data = await response.json() as { success: boolean; content?: unknown[]; error?: string };
     if (!data.success) {
