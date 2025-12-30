@@ -169,6 +169,9 @@ export function generateFuzzyProxy(targetVarName: string, contextName: string): 
     for (const key of Object.keys(target)) {
       const normalizedKey = key.toLowerCase().replace(/[_-]/g, '');
       if (normalizedKey === normalizedProp) {
+        if (key !== prop) {
+          console.warn(\`[mcp-exec] Fuzzy match: "\${prop}" resolved to "\${key}" on ${safeContextName}\`);
+        }
         return target[key];
       }
     }

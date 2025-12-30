@@ -381,6 +381,19 @@ mcp.unknownServer;
 
 This makes it easy to discover available tools and servers when debugging or exploring the API.
 
+### Collision Risk
+
+The normalization process can cause ambiguity when multiple tools normalize to the same key. For example:
+
+- `create-issue` normalizes to `createissue`
+- `create_issue` normalizes to `createissue`
+
+If a server has both `create-issue` and `create_issue` tools, accessing via `createIssue` or `createissue` will return the **first match found** with no warning. The Proxy does not detect or report these collisions.
+
+**Recommendations for tool authors:**
+- Use unique names that don't collide when normalized (e.g., avoid having both `create-issue` and `create_issue`)
+- When accessing tools that may have collisions, use the exact original name via bracket notation: `server['create-issue']`
+
 ## Security
 
 - **Network Isolation**: Sandbox only allows connections to the local bridge (e.g., `localhost:3000`)
