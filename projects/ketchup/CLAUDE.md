@@ -392,7 +392,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 - **DI resolution errors**: Check protocol is registered in `service_registration.py`
 - **Feature not working**: Verify feature flag is enabled in docker-compose.yml
 - **Slow responses**: Check HTTP/2 and pipeline processing flags
-- **Import errors**: Verify PYTHONPATH and package structure
+- **Import errors**: Run `uv sync` to install dependencies, verify PYTHONPATH and package structure
 
 ## Version Management
 
