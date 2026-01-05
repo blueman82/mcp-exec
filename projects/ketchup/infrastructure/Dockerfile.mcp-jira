@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# check=skip=FromPlatformFlagConstDisallowed,SecretsUsedInArgOrEnv
 # MCP JIRA Server Dockerfile - Optimized with BuildKit caching
 FROM --platform=linux/amd64 node:22-alpine AS base
 
