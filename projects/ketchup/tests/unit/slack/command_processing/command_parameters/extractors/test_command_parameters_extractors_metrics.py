@@ -23,33 +23,33 @@ class TestExtractMetricsParams:
         assert params.is_partial is False
 
     def test_monthly_full_name(self) -> None:
-        """Test monthly with full month name."""
-        current_year = datetime.now(timezone.utc).year
+        """Test monthly with full month name (uses previous year to ensure period is complete)."""
+        previous_year = datetime.now(timezone.utc).year - 1
         params = extract_metrics_params(
-            f"/ketchup metrics september {current_year}", CommandContext.DIRECT_MESSAGE
+            f"/ketchup metrics september {previous_year}", CommandContext.DIRECT_MESSAGE
         )
         assert params.time_period_type == "monthly"
         assert params.month == 9
-        assert params.year == current_year
+        assert params.year == previous_year
 
     def test_monthly_abbreviated(self) -> None:
-        """Test monthly with abbreviated month."""
-        current_year = datetime.now(timezone.utc).year
+        """Test monthly with abbreviated month (uses previous year to ensure period is complete)."""
+        previous_year = datetime.now(timezone.utc).year - 1
         params = extract_metrics_params(
-            f"/ketchup metrics sept {current_year}", CommandContext.DIRECT_MESSAGE
+            f"/ketchup metrics sept {previous_year}", CommandContext.DIRECT_MESSAGE
         )
         assert params.time_period_type == "monthly"
         assert params.month == 9
 
     def test_quarterly(self) -> None:
-        """Test quarterly mode."""
-        current_year = datetime.now(timezone.utc).year
+        """Test quarterly mode (uses Q4 of previous year to ensure period is complete)."""
+        previous_year = datetime.now(timezone.utc).year - 1
         params = extract_metrics_params(
-            f"/ketchup metrics q1 {current_year}", CommandContext.DIRECT_MESSAGE
+            f"/ketchup metrics q4 {previous_year}", CommandContext.DIRECT_MESSAGE
         )
         assert params.time_period_type == "quarterly"
-        assert params.quarter == 1
-        assert params.year == current_year
+        assert params.quarter == 4
+        assert params.year == previous_year
 
     def test_two_digit_year(self) -> None:
         """Test 2-digit year conversion."""

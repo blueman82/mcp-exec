@@ -110,3 +110,51 @@ async def test_send_message_fallback_error_logs(handler):
         channels_list=channels_list,
     )
     assert handler._posting_handler.post_message.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_send_message_empty_list_response_url(handler):
+    """Test send_message with empty channel list and response_url shows friendly message."""
+    await handler.send_message(
+        response_url="http://slack.com/response",
+        channels_list=[],
+    )
+    handler._posting_handler.post_message.assert_awaited_once()
+    call = handler._posting_handler.post_message.await_args[1]
+    assert call["response_url"] == "http://slack.com/response"
+    assert call["message"] == "No open warrooms"
+    assert isinstance(call["blocks"], list)
+
+
+@pytest.mark.asyncio
+async def test_send_message_empty_list_channel_id(handler):
+    """Test send_message with empty channel list and channel_id shows friendly message."""
+    await handler.send_message(
+        response_url="C123",
+        channels_list=[],
+    )
+    handler._posting_handler.post_message.assert_awaited_once()
+    call = handler._posting_handler.post_message.await_args[1]
+    assert call["channel_id"] == "C123"
+    assert call["message"] == "No open warrooms"
+    assert isinstance(call["blocks"], list)
+
+
+@pytest.mark.asyncio
+async def test_send_message_empty_list_block_content(handler):
+    """Test send_message with empty channel list contains correct empty state message blocks."""
+    await handler.send_message(
+        response_url="http://slack.com/response",
+        channels_list=[],
+    )
+    handler._posting_handler.post_message.assert_awaited_once()
+    call = handler._posting_handler.post_message.await_args[1]
+    blocks = call["blocks"]
+    # Verify the empty state blocks contain the friendly message
+    assert len(blocks) == 1
+    assert blocks[0]["type"] == "section"
+    assert ":tada: *Good news!*" in blocks[0]["text"]["text"]
+    assert "no open warrooms" in blocks[0]["text"]["text"]
+    # Verify it does NOT contain the Channel Lookup Results header
+    block_text = str(blocks)
+    assert "*Channel Lookup Results*" not in block_text
