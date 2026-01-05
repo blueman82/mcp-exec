@@ -11,4 +11,4 @@ docs/*
 uv.lock
 
 # Session logs
-tests/setup/logs/*.json
+tests/setup/logs/
