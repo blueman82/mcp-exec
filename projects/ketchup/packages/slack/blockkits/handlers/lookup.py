@@ -58,6 +58,36 @@ class LookupMessageHandler:
             channels_list: List of channel information
             include_helper_text: Whether to include helper instructions at the end
         """
+        # Handle empty channel list with a friendly message
+        if not channels_list:
+            empty_state_blocks = [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":tada: *Good news!* There are no open warrooms right now.",
+                    },
+                }
+            ]
+            try:
+                if response_url.startswith("http"):
+                    logger.info("Posting empty state message to response URL")
+                    await self._posting_handler.post_message(
+                        response_url=response_url,
+                        message="No open warrooms",
+                        blocks=empty_state_blocks,
+                    )
+                else:
+                    logger.info("Posting empty state message to channel ID")
+                    await self._posting_handler.post_message(
+                        channel_id=response_url,
+                        message="No open warrooms",
+                        blocks=empty_state_blocks,
+                    )
+            except Exception as e:
+                logger.error("Failed to send empty state message: %s", str(e))
+            return
+
         # Build Block Kit blocks for each channel
         message_blocks = [
             {
