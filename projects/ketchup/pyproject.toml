@@ -87,6 +87,14 @@ test = [
 ]
 
 # =============================================================================
+# Hatch Build Configuration
+# =============================================================================
+# Monorepo structure: packages/ contains shared code, service dirs are entrypoints
+
+[tool.hatch.build.targets.wheel]
+packages = ["packages"]
+
+# =============================================================================
 # Tool Configurations - Single Source of Truth
 # =============================================================================
 

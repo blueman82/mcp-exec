@@ -338,6 +338,38 @@ class MCPClient:
             logger.error(f"Error getting comments for {issue_key}: {e}")
             return []
 
+    async def list_projects(self, expand: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        List all JIRA projects accessible to the authenticated user via MCP.
+
+        Args:
+            expand: Comma-separated fields to expand (description, lead, url, projectKeys, issueTypes)
+
+        Returns:
+            List of projects
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        arguments: Dict[str, Any] = {}
+        if expand:
+            arguments["expand"] = expand
+
+        try:
+            result = await self._call_mcp_tool("list_jira_projects", arguments)
+            # Handle the response format from MCP tool
+            # MCP returns: {success: bool, message: str, data: projects[]}
+            if isinstance(result, dict) and result.get("success"):
+                return result.get("data", [])
+            elif isinstance(result, list):
+                return result
+            else:
+                logger.warning(f"Unexpected response format for projects: {result}")
+                return []
+        except Exception as e:
+            logger.error(f"Error listing projects: {e}")
+            return []
+
     async def get_issue(
         self, issue_key: str, fields: Optional[List[str]] = None
     ) -> Optional[Dict[str, Any]]:

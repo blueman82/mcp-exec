@@ -25,6 +25,7 @@ import * as addComment from './operations/addComment.js';
 import * as getFields from './operations/getFields.js';
 import * as listPATs from './operations/listPATs.js';
 import * as validatePAT from './operations/validatePAT.js';
+import * as listProjects from './operations/listProjects.js';
 import { VERSION } from "./common/version.js";
 import { isJiraError } from "./common/errors.js";
 import { setCurrentAuthToken } from "./common/utils.js";
@@ -129,6 +130,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "validate_jira_pat",
         description: "Validate a JIRA Personal Access Token by attempting authentication",
         inputSchema: zodToJsonSchema(validatePAT.ValidatePATSchema),
+      },
+      {
+        name: "list_jira_projects",
+        description: "List all JIRA projects accessible to the authenticated user",
+        inputSchema: zodToJsonSchema(listProjects.ListProjectsSchema),
       },
     ],
   };
@@ -294,6 +300,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         if (result && typeof result === 'object' && 'success' in result && !result.success) {
           throw new Error('Failed to validate PAT token');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "list_jira_projects": {
+        const args = listProjects.ListProjectsSchema.parse(request.params.arguments);
+        const result = await listProjects.listJiraProjects(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to list JIRA projects');
         }
 
         return {
@@ -527,6 +546,15 @@ async function runServer() {
           const validateResult = await validatePAT.validatePAT(args);
           result = {
             content: [{ type: 'text', text: JSON.stringify(validateResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'list_jira_projects': {
+          const args = listProjects.ListProjectsSchema.parse(request.params.arguments);
+          const projectsResult = await listProjects.listJiraProjects(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(projectsResult, null, 2) }]
           };
           break;
         }
