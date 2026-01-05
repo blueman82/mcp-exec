@@ -54,12 +54,26 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 
 ## Developer Setup
 
+### Package Management
+This project uses **uv** for Python dependency management (not pip).
+
 **First time setup** (run once from project root):
 ```bash
-./setup
+./setup      # Sets up test venv + git hooks
+uv sync      # Installs project dependencies to .venv/
 ```
 
-This installs dependencies and configures git hooks for automated quality checks.
+### Virtual Environments
+Two venvs exist for different purposes:
+- `.venv/` (root) - Project runtime dependencies, managed by `uv sync`
+- `tests/setup/.venv/` - Linting/testing tools, managed by pip
+
+**When to use each:**
+```bash
+uv sync                    # Install/update project dependencies
+. .venv/bin/activate       # For running project code, imports
+cd tests/setup && make ... # For running tests (uses its own venv)
+```
 
 ## Developer Workflow
 
