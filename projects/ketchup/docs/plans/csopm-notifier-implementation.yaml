@@ -380,7 +380,7 @@ plan:
         - "pytest tests/unit/csopm_notifier/test_slack_notifier.py -v"
       runtime_metadata:
         dependency_checks:
-          - command: "python -c 'from packages.slack.messages.posting import SlackPostingHandler'"
+          - command: "PYTHONPATH=. uv run python -c 'from packages.slack.messages.posting import SlackPostingHandler'"
             description: "Verify Slack posting import"
         documentation_targets: []
       description: |
