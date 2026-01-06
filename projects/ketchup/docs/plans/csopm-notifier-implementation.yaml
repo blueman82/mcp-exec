@@ -377,7 +377,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/csopm_notifier/test_slack_notifier.py -v"
+        - "uv run pytest tests/unit/csopm_notifier/test_slack_notifier.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "PYTHONPATH=. uv run python -c 'from packages.slack.messages.posting import SlackPostingHandler'"
