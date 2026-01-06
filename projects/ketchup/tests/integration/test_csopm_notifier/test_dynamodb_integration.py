@@ -332,17 +332,28 @@ class TestCSOPMStateTrackerDynamoDB:
         result = await state_tracker.get_notification_record(non_existent_key)
         assert result is None
 
-    async def test_update_nonexistent_record(self, state_tracker):
-        """Test updating non-existent record returns None."""
+    async def test_update_nonexistent_record(self, state_tracker, dynamodb_client):
+        """Test updating non-existent record creates it (upsert behavior)."""
         non_existent_key = "CSOPM-NONEXISTENT-67890"
 
-        result = await state_tracker.update_notification_status(
-            ticket_key=non_existent_key,
-            status="sent",
-        )
-        # Behavior depends on implementation - may return None or raise
-        # Current implementation returns None for missing records
-        assert result is None
+        try:
+            result = await state_tracker.update_notification_status(
+                ticket_key=non_existent_key,
+                status="sent",
+            )
+            # DynamoDB update_item with return_values="ALL_NEW" creates the item
+            # if it doesn't exist (upsert behavior)
+            assert result is not None
+            assert result.notification_status == "sent"
+        finally:
+            # Cleanup the created record
+            await dynamodb_client.delete_item(
+                key={
+                    "PK": {"S": f"CSOPM_NOTIFICATION#{non_existent_key}"},
+                    "SK": {"S": "NOTIFICATION"},
+                },
+                table_name=TEST_TABLE_NAME,
+            )
 
 
 @pytest.mark.integration
