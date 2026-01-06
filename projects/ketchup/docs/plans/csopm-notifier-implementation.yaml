@@ -772,8 +772,8 @@ plan:
         - "All imports resolve"
       test_commands:
         - "cd tests/setup && make test-fast"
-        - "cd tests/setup && make lint"
-        - "pytest tests/integration/test_csopm_notifier/ -v --ignore=tests/integration/test_csopm_notifier/ || echo 'Integration tests require AWS_PROFILE'"
+        - "./check"
+        - "uv run pytest tests/integration/test_csopm_notifier/ -v || echo 'Integration tests require AWS_PROFILE'"
       runtime_metadata:
         dependency_checks:
           - command: "cd tests/setup && make test-fast"
