@@ -314,7 +314,7 @@ plan:
         - "pytest tests/unit/csopm_notifier/test_jira_poller.py -v"
       runtime_metadata:
         dependency_checks:
-          - command: "python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient'"
+          - command: "PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient'"
             description: "Verify MCP client import"
         documentation_targets: []
       description: |
