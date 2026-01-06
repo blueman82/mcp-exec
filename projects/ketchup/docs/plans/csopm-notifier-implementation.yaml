@@ -442,7 +442,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/csopm_notifier/test_reminder_service.py -v"
+        - "uv run pytest tests/unit/csopm_notifier/test_reminder_service.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "grep -n 'transition_jira_status' packages/integrations/async_mcp_client.py || echo 'Check MCP tools'"
