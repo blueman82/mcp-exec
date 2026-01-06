@@ -511,7 +511,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/csopm_notifier/test_container.py -v"
+        - "uv run pytest tests/unit/csopm_notifier/test_container.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "ls packages/core/typed_di/service_registrations/registrations/"
