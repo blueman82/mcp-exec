@@ -344,15 +344,15 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.mcp_client import MCPClient; print(\"Import OK\")'"
-            description: "Verify MCPClient imports correctly"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+            description: "Verify AsyncMCPClient imports correctly"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.mcp_client import MCPClient"
-            cat packages/integrations/mcp_client.py | head -100
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+            cat packages/integrations/async_mcp_client.py | head -100
           </commands>
         </dependency_verification>
         <task_description>
