@@ -76,6 +76,18 @@ from .core_protocols import (
     UserStoreProtocol,
 )
 
+# CSOPM notifier protocols
+from .csopm_protocols import (
+    CSOPMJIRAPollerProtocol,
+    CSOPMMetricsProtocol,
+    CSOPMReminderServiceProtocol,
+    CSOPMSlackNotifierProtocol,
+    CSOPMStateTrackerProtocol,
+    CSOPMTicket,
+    FollowupRecord,
+    NotificationRecord,
+)
+
 # Database protocols
 from .database_protocols import (
     DatabaseBackupServiceProtocol,
@@ -142,18 +154,6 @@ from .maintenance_protocols import (
     JiraPromptHandlerProtocol,
     MaintenanceCheckerProtocol,
     RavenMaintenanceClientProtocol,
-)
-
-# CSOPM notifier protocols
-from .csopm_protocols import (
-    CSOPMJIRAPollerProtocol,
-    CSOPMMetricsProtocol,
-    CSOPMReminderServiceProtocol,
-    CSOPMSlackNotifierProtocol,
-    CSOPMStateTrackerProtocol,
-    CSOPMTicket,
-    FollowupRecord,
-    NotificationRecord,
 )
 
 # MCP protocols (only MCPAsyncClientProtocol remains after consolidation)

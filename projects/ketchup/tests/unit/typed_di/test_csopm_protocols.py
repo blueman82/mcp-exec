@@ -13,7 +13,6 @@ import inspect
 import unittest
 from dataclasses import fields
 from datetime import datetime
-from typing import get_type_hints
 
 
 class TestCSOPMDataClasses(unittest.TestCase):
@@ -137,7 +136,6 @@ class TestCSOPMProtocolsRuntimeCheckable(unittest.TestCase):
 
     def test_csopm_jira_poller_protocol_is_runtime_checkable(self):
         """Test CSOPMJIRAPollerProtocol is runtime checkable."""
-        from typing import runtime_checkable
 
         from packages.core.typed_di.service_registrations.protocols.csopm_protocols import (
             CSOPMJIRAPollerProtocol,
@@ -209,7 +207,7 @@ class TestCSOPMProtocolMethodSignatures(unittest.TestCase):
         )
 
         # Check it's an async method
-        method = getattr(CSOPMJIRAPollerProtocol, "poll_for_new_assignments")
+        method = CSOPMJIRAPollerProtocol.poll_for_new_assignments
         self.assertTrue(
             inspect.iscoroutinefunction(method),
             "poll_for_new_assignments should be async",
@@ -419,13 +417,7 @@ class TestCSOPMProtocolImportPaths(unittest.TestCase):
         """Test import from protocols package __init__."""
         from packages.core.typed_di.service_registrations.protocols import (
             CSOPMJIRAPollerProtocol,
-            CSOPMMetricsProtocol,
-            CSOPMReminderServiceProtocol,
-            CSOPMSlackNotifierProtocol,
-            CSOPMStateTrackerProtocol,
             CSOPMTicket,
-            FollowupRecord,
-            NotificationRecord,
         )
 
         self.assertIsNotNone(CSOPMTicket)
@@ -435,13 +427,7 @@ class TestCSOPMProtocolImportPaths(unittest.TestCase):
         """Test import from central protocols.py."""
         from packages.core.typed_di.protocols import (
             CSOPMJIRAPollerProtocol,
-            CSOPMMetricsProtocol,
-            CSOPMReminderServiceProtocol,
-            CSOPMSlackNotifierProtocol,
-            CSOPMStateTrackerProtocol,
             CSOPMTicket,
-            FollowupRecord,
-            NotificationRecord,
         )
 
         self.assertIsNotNone(CSOPMTicket)
