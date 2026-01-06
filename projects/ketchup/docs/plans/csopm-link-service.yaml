@@ -387,8 +387,7 @@ plan:
 
       implementation:
         approach: |
-          Add new methods to MCPClient following the existing search_issues pattern.
-          Mirror all methods in MCPAsyncClient for async usage.
+          Add new methods to AsyncMCPClient following the existing search_issues pattern.
         key_points:
           - point: "create_issue method"
             details: "Call _call_mcp_tool('create_jira_issue', {...}) with project, issuetype, summary, description, fields"
