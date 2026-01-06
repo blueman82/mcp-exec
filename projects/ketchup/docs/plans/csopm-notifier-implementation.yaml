@@ -706,6 +706,7 @@ plan:
         - "main.py initializes container, starts scheduler, handles graceful shutdown"
         - "CSOPMScheduler runs poll cycle at 08:00 and 16:00 UTC daily"
         - "Poll cycle: fetch new tickets → check reassignments → send notifications → check reminders"
+        - "Check reassignments compares ticket.assignee_username to stored record and calls StateTracker.handle_reassignment() if different"
         - "Scheduler writes health file to /tmp/csopm_notifier_health"
         - "Health format: {timestamp}:{status} matching unified scheduler pattern"
         - "Graceful shutdown on SIGTERM/SIGINT"
