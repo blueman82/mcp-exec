@@ -44,12 +44,11 @@ COPY packages/ ./packages/
 # Copy CSOPM notifier module
 COPY ketchup_csopm_notifier/ ./ketchup_csopm_notifier/
 
-# Copy healthcheck scripts (parameterized base + CSOPM wrapper)
+# Copy parameterized healthcheck script (reused from unified-scheduler)
 COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
-COPY infrastructure/healthcheck-csopm-notifier.sh ./infrastructure/
 
-# Make healthcheck scripts executable
-RUN chmod +x ./infrastructure/healthcheck-scheduler.sh ./infrastructure/healthcheck-csopm-notifier.sh
+# Make healthcheck script executable
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
 
 # Create log directory
 RUN mkdir -p /var/log
