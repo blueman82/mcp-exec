@@ -575,7 +575,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/csopm_notifier/test_scheduler.py -v"
+        - "uv run pytest tests/unit/csopm_notifier/test_scheduler.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "cat ketchup_unified_scheduler/main.py | head -50"
