@@ -74,7 +74,7 @@ data_flow_registry:
         description: "Polling task uses tracker to avoid re-notifying"
       - task: 9
         description: "Integration registers tracker in TypedDI"
-    MCPClientExtensions:
+    AsyncMCPClientExtensions:
       - task: 7
         description: "Modal uses get_issuetype for dynamic forms"
       - task: 8
