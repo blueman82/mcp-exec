@@ -374,3 +374,76 @@ class TestAsyncMCPClient:
             await client.search_issues("project = TEST")
 
         assert "Network error" in str(exc.value)
+
+    @pytest.mark.asyncio
+    async def test_list_projects_success(self, client, mocker):
+        """list_projects should return the decoded project list."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+
+        async def fake_request(url: str, method: str, **kwargs):
+            return {
+                "status": 200,
+                "headers": {},
+                "body": _real_orjson_dumps(
+                    {
+                        "result": {
+                            "content": [
+                                {
+                                    "text": '{"success": true, "data": [{"key": "PROJ1", "name": "Project One"}, {"key": "PROJ2", "name": "Project Two"}]}'
+                                }
+                            ]
+                        }
+                    }
+                ),
+                "content_type": "application/json",
+                "url": url,
+            }
+
+        mocker.patch.object(client, "_make_api_request", AsyncMock(side_effect=fake_request))
+
+        result = await client.list_projects()
+
+        assert result == [
+            {"key": "PROJ1", "name": "Project One"},
+            {"key": "PROJ2", "name": "Project Two"},
+        ]
+
+    @pytest.mark.asyncio
+    async def test_list_projects_empty(self, client, mocker):
+        """list_projects should return empty list when no projects available."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+
+        async def fake_request(url: str, method: str, **kwargs):
+            return {
+                "status": 200,
+                "headers": {},
+                "body": _real_orjson_dumps(
+                    {"result": {"content": [{"text": '{"success": true, "data": []}'}]}}
+                ),
+                "content_type": "application/json",
+                "url": url,
+            }
+
+        mocker.patch.object(client, "_make_api_request", AsyncMock(side_effect=fake_request))
+
+        result = await client.list_projects()
+
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_list_projects_error(self, client, mocker):
+        """list_projects should return empty list on exception."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(side_effect=Exception("Network failure")),
+        )
+
+        result = await client.list_projects()
+
+        assert result == []
