@@ -39,7 +39,7 @@ class TestCSOPMJIRAPollerIntegration:
         )
 
         # Mock the session establishment
-        with patch.object(client, "_establish_session", new_callable=AsyncMock) as mock_establish:
+        with patch.object(client, "_establish_mcp_session", new_callable=AsyncMock) as mock_establish:
             mock_establish.return_value = "test-session-id"
             yield client
 
