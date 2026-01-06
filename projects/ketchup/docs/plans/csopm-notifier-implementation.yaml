@@ -608,9 +608,7 @@ plan:
       files:
         - "ketchup_csopm_notifier/services/reminder_service.py"
         - "tests/unit/csopm_notifier/test_reminder_service.py"
-      depends_on:
-        - 1
-        - 3
+      depends_on: [1, 3]
       success_criteria:
         - "CSOPMReminderService implements CSOPMReminderServiceProtocol"
         - "check_rca_reminders() finds tickets 7+ days old with rca_reminder_sent=false"
