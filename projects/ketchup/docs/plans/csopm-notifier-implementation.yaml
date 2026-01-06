@@ -707,13 +707,7 @@ plan:
         - "ketchup_csopm_notifier/container.py"
         - "packages/core/typed_di/service_registrations/registrations/csopm_services.py"
         - "tests/unit/csopm_notifier/test_container.py"
-      depends_on:
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-        - 6
+      depends_on: [1, 2, 3, 4, 5, 6]
       success_criteria:
         - "CSOPMNotifierContainer class creates TypedServiceRegistry with all CSOPM services"
         - "Services registered: CSOPMJIRAPoller, CSOPMStateTracker, CSOPMSlackNotifier, CSOPMReminderService"
