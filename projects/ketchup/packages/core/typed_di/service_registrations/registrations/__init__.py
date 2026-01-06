@@ -46,6 +46,9 @@ from .ui_services import register_ui_services
 # Workflow management services (5 services) - workflow engine, task management, process automation, state management, transitions
 from .workflow_management import register_workflow_management_services
 
+# CSOPM notifier services (4 services) - state tracking, JIRA polling, Slack notifications, reminders
+from .csopm_services import register_csopm_services
+
 __all__ = [
     "register_core_primitives",
     "register_core_infrastructure",
@@ -79,6 +82,8 @@ __all__ = [
     "register_jira_services",
     # Maintenance detection services (3 services)
     "register_maintenance_services",
+    # CSOPM notifier services (4 services)
+    "register_csopm_services",
 ]
 
 
@@ -160,3 +165,6 @@ def register_all_focused_services(manager) -> None:
 
     # Maintenance detection services (3 services) - Raven client, maintenance checker, JIRA prompt handler
     register_maintenance_services(manager)
+
+    # CSOPM notifier services (4 services) - state tracking, JIRA polling, Slack notifications, reminders
+    register_csopm_services(manager)
