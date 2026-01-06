@@ -391,7 +391,7 @@ plan:
         key_points:
           - point: "create_issue method"
             details: "Call _call_mcp_tool('create_jira_issue', {...}) with project, issuetype, summary, description, fields"
-            reference: "packages/integrations/mcp_client.py:264-311 (search_issues pattern)"
+            reference: "packages/integrations/async_mcp_client.py (search_issues pattern)"
           - point: "link_issues method"
             details: "Call _call_mcp_tool('link_issues', {inwardIssue, outwardIssue, linkType})"
             reference: "MCP tool schema: link_issues"
