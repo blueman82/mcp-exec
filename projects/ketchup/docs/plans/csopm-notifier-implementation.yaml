@@ -888,8 +888,7 @@ plan:
         - "infrastructure/Dockerfile.csopm-notifier"
         - "infrastructure/docker-compose.yml"
         - "infrastructure/healthcheck-csopm-notifier.sh"
-      depends_on:
-        - 8
+      depends_on: [8]
       success_criteria:
         - "Dockerfile.csopm-notifier uses multi-stage build matching Dockerfile.unified-scheduler"
         - "Stage 1 builder installs dependencies with uv to /opt/venv"
