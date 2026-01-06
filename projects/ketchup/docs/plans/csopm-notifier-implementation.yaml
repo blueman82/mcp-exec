@@ -135,8 +135,7 @@ plan:
         dependency_checks:
           - command: "python -c 'from packages.core.typed_di.protocols import *'"
             description: "Verify protocol imports"
-        documentation_targets:
-          - "packages/core/typed_di/protocols.py"
+        documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
