@@ -382,7 +382,7 @@ plan:
            - Calls get_jira_issuetype_metadata MCP tool
            - Returns field metadata for creating issues of that type
 
-        Follow existing patterns in mcp_client.py for error handling and rate limiting.
+        Follow existing patterns in async_mcp_client.py for error handling and rate limiting.
         </task_description>
 
       implementation:
