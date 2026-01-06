@@ -50,9 +50,9 @@ data_flow_registry:
     CSOPMPollingTask:
       - task: 2
         description: "Creates TaskConfig for unified scheduler CSOPM polling"
-    MCPClientExtensions:
+    AsyncMCPClientExtensions:
       - task: 3
-        description: "Adds create_issue, link_issues, get_issuetype wrappers to MCPClient"
+        description: "Adds create_issue, link_issues, get_issuetype wrappers to AsyncMCPClient"
     UserProjectDiscoveryService:
       - task: 4
         description: "Creates service to discover user's accessible JIRA projects"
