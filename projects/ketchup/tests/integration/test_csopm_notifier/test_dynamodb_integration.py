@@ -24,9 +24,9 @@ import pytest
 import pytest_asyncio
 
 from ketchup_csopm_notifier.services.state_tracker import (
-    CSOPMStateTracker,
     PK_NOTIFICATION_PREFIX,
     SK_NOTIFICATION,
+    CSOPMStateTracker,
 )
 from packages.core.logging import setup_logger
 from packages.core.typed_di.protocols import CSOPMTicket
@@ -80,9 +80,7 @@ class TestCSOPMStateTrackerDynamoDB:
             table_name=TEST_TABLE_NAME,
         )
 
-    async def cleanup_test_record(
-        self, dynamodb_client: DynamoDBAsyncClient, ticket_key: str
-    ):
+    async def cleanup_test_record(self, dynamodb_client: DynamoDBAsyncClient, ticket_key: str):
         """Clean up test notification record from DynamoDB."""
         try:
             pk = f"{PK_NOTIFICATION_PREFIX}{ticket_key}"
@@ -97,9 +95,7 @@ class TestCSOPMStateTrackerDynamoDB:
         except Exception as e:
             logger.warning(f"Failed to cleanup test record {ticket_key}: {e}")
 
-    async def test_create_and_retrieve_notification_record(
-        self, state_tracker, dynamodb_client
-    ):
+    async def test_create_and_retrieve_notification_record(self, state_tracker, dynamodb_client):
         """Test creating and retrieving a notification record in real DynamoDB."""
         ticket_key = self.generate_test_ticket_key("CREATE_RETRIEVE")
         ticket = self.create_test_ticket(ticket_key)
@@ -539,9 +535,7 @@ async def test_csopm_state_tracker_end_to_end():
         assert closure.closure_reminder_sent is True
 
         # Step 7: Update status to escalated
-        escalated = await state_tracker.update_notification_status(
-            ticket_key, "escalated"
-        )
+        escalated = await state_tracker.update_notification_status(ticket_key, "escalated")
         assert escalated.notification_status == "escalated"
 
         # Verify final state

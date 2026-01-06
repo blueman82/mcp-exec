@@ -12,9 +12,7 @@ These tests use mocks to verify the wiring without requiring
 actual AWS or Slack infrastructure.
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -23,8 +21,6 @@ from packages.core.typed_di.protocols import (
     CSOPMReminderServiceProtocol,
     CSOPMSlackNotifierProtocol,
     CSOPMStateTrackerProtocol,
-    CSOPMTicket,
-    NotificationRecord,
 )
 
 
@@ -52,9 +48,8 @@ class TestContainerRegistration:
     @pytest.mark.asyncio
     async def test_register_csopm_services_registers_all_services(self):
         """Test that all 4 CSOPM services are registered."""
-        from packages.core.typed_di import TypedServiceRegistry
-
         from ketchup_csopm_notifier.container import _register_csopm_services
+        from packages.core.typed_di import TypedServiceRegistry
 
         # Create a mock registry to track registrations
         registry = MagicMock(spec=TypedServiceRegistry)
@@ -161,7 +156,6 @@ class TestContainerDependencyOrder:
 
     def test_state_tracker_has_no_csopm_dependencies(self):
         """Test that StateTracker only depends on infrastructure services."""
-        from packages.core.typed_di.types import DependencySpec
         from packages.db.config.dynamodb_config import DynamoDBConfig
         from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
 
@@ -186,9 +180,6 @@ class TestContainerDependencyOrder:
     def test_slack_notifier_depends_on_state_tracker(self):
         """Test that SlackNotifier depends on StateTracker."""
         from packages.core.typed_di.protocols import CSOPMStateTrackerProtocol
-        from packages.integrations.async_mcp_client import AsyncMCPClient
-        from packages.slack.messages.posting import SlackPostingHandler
-        from packages.slack.user_operations.user_ops import SlackUserOps
 
         # SlackNotifier should depend on StateTracker protocol
         expected_csopm_deps = [CSOPMStateTrackerProtocol]

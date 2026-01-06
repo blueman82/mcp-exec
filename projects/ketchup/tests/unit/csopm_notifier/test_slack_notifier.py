@@ -22,7 +22,7 @@ Edge Cases Covered:
 
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 from packages.core.typed_di.protocols import (
     CSOPMSlackNotifierProtocol,
@@ -161,9 +161,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
 
         self.assertEqual(result, "U12345678")
         self.user_ops.get_slack_id_by_email.assert_awaited_once_with("testuser@adobe.com")
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.user.resolution.success"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.user.resolution.success")
 
     async def test_resolve_slack_user_id_not_found(self):
         """Test when Slack ID is not found."""
@@ -172,9 +170,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
         result = await self.notifier.resolve_slack_user_id("unknownuser")
 
         self.assertIsNone(result)
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.user.resolution.failed"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.user.resolution.failed")
 
     async def test_resolve_slack_user_id_empty_username(self):
         """Test with empty username."""
@@ -196,9 +192,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
 
         await self.notifier.resolve_slack_user_id("UPPERCASE")
 
-        self.user_ops.get_slack_id_by_email.assert_awaited_once_with(
-            "uppercase@adobe.com"
-        )
+        self.user_ops.get_slack_id_by_email.assert_awaited_once_with("uppercase@adobe.com")
 
     async def test_resolve_slack_user_id_on_error(self):
         """Test error handling during resolution."""
@@ -207,9 +201,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
         result = await self.notifier.resolve_slack_user_id("testuser")
 
         self.assertIsNone(result)
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.user.resolution.failed"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.user.resolution.failed")
 
 
 class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
@@ -251,9 +243,7 @@ class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(len(call_kwargs["blocks"]) > 0)
 
         # Verify metric was incremented
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.notifications.sent"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.notifications.sent")
 
     async def test_send_assignment_dm_failure(self):
         """Test handling of DM send failure."""
@@ -266,9 +256,7 @@ class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
         result = await self.notifier.send_assignment_dm(ticket, "U12345678")
 
         self.assertFalse(result)
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.notifications.failed"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.notifications.failed")
 
     async def test_send_assignment_dm_exception(self):
         """Test handling of exceptions during DM send."""
@@ -278,9 +266,7 @@ class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
         result = await self.notifier.send_assignment_dm(ticket, "U12345678")
 
         self.assertFalse(result)
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.notifications.failed"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.notifications.failed")
 
     async def test_send_assignment_dm_includes_exigence_id(self):
         """Test that Exigence ID is included in blocks when present."""
@@ -346,9 +332,7 @@ class TestCSOPMSlackNotifierSendReminderDM(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(result)
         self.posting_handler.post_message.assert_awaited_once()
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.reminders.rca.sent"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.reminders.rca.sent")
 
     async def test_send_closure_reminder_dm_success(self):
         """Test successful closure reminder DM."""
@@ -367,9 +351,7 @@ class TestCSOPMSlackNotifierSendReminderDM(unittest.IsolatedAsyncioTestCase):
         result = await self.notifier.send_reminder_dm(ticket, "U12345678", "closure")
 
         self.assertTrue(result)
-        self.metrics.increment_counter.assert_awaited_once_with(
-            "csopm.reminders.closure.sent"
-        )
+        self.metrics.increment_counter.assert_awaited_once_with("csopm.reminders.closure.sent")
 
     async def test_send_reminder_dm_unknown_type(self):
         """Test with unknown reminder type."""
@@ -422,9 +404,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
         )
 
         self.assertTrue(result)
-        self.state_tracker.update_notification_status.assert_awaited_once_with(
-            "CSOPM-1234", "ack"
-        )
+        self.state_tracker.update_notification_status.assert_awaited_once_with("CSOPM-1234", "ack")
         self.mcp_client.create_issue_comment.assert_awaited_once()
 
         # Verify confirmation message was sent
@@ -471,9 +451,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
         )
 
         # Verify metric was incremented
-        metrics.increment_counter.assert_awaited_once_with(
-            "csopm.notifications.acknowledged"
-        )
+        metrics.increment_counter.assert_awaited_once_with("csopm.notifications.acknowledged")
 
     async def test_handle_done_action(self):
         """Test handling done button action."""
@@ -489,9 +467,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
         )
 
         self.assertTrue(result)
-        self.state_tracker.update_notification_status.assert_awaited_once_with(
-            "CSOPM-1234", "done"
-        )
+        self.state_tracker.update_notification_status.assert_awaited_once_with("CSOPM-1234", "done")
 
     async def test_handle_done_action_includes_followup_batch_info(self):
         """Test that done action includes follow-up ticket info in JIRA comment."""
@@ -835,11 +811,7 @@ class TestCSOPMNotificationBlocks(unittest.TestCase):
 
         # Find context block with warning
         context_blocks = [b for b in blocks if b.get("type") == "context"]
-        context_texts = [
-            e.get("text", "")
-            for b in context_blocks
-            for e in b.get("elements", [])
-        ]
+        context_texts = [e.get("text", "") for b in context_blocks for e in b.get("elements", [])]
 
         has_warning = any("escalated" in text.lower() for text in context_texts)
         self.assertTrue(has_warning, "Warning about escalation not found")
@@ -884,11 +856,7 @@ class TestCSOPMNotificationBlocks(unittest.TestCase):
         )
 
         context_blocks = [b for b in blocks if b.get("type") == "context"]
-        context_texts = [
-            e.get("text", "")
-            for b in context_blocks
-            for e in b.get("elements", [])
-        ]
+        context_texts = [e.get("text", "") for b in context_blocks for e in b.get("elements", [])]
 
         has_linked_warning = any("linked" in text.lower() for text in context_texts)
         self.assertTrue(has_linked_warning, "Linked tickets warning not found")
@@ -949,15 +917,10 @@ class TestCSOPMNotificationBlocks(unittest.TestCase):
             {"key": "CSOPM", "name": "CSO Project Management"},
             {"key": "OTHER", "name": "Other Project"},
         ]
-        modal = CSOPMNotificationBlocks.build_create_followup_modal(
-            ticket, projects=projects
-        )
+        modal = CSOPMNotificationBlocks.build_create_followup_modal(ticket, projects=projects)
 
         # Find project block
-        project_block = next(
-            b for b in modal["blocks"]
-            if b.get("block_id") == "project_block"
-        )
+        project_block = next(b for b in modal["blocks"] if b.get("block_id") == "project_block")
 
         # Verify it's a static_select with options
         element = project_block["element"]
@@ -978,14 +941,11 @@ class TestCSOPMNotificationBlocks(unittest.TestCase):
             {"id": "2", "name": "Bug"},
             {"id": "3", "name": "Story"},
         ]
-        modal = CSOPMNotificationBlocks.build_create_followup_modal(
-            ticket, issue_types=issue_types
-        )
+        modal = CSOPMNotificationBlocks.build_create_followup_modal(ticket, issue_types=issue_types)
 
         # Find issue type block
         issue_type_block = next(
-            b for b in modal["blocks"]
-            if b.get("block_id") == "issue_type_block"
+            b for b in modal["blocks"] if b.get("block_id") == "issue_type_block"
         )
 
         # Verify it's a static_select with options

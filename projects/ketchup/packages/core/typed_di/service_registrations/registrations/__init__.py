@@ -29,6 +29,9 @@ from .core_primitives import register_core_primitives
 
 # Missing modules for service expansion (3 functional modules)
 from .cross_component_integration import register_cross_component_integration
+
+# CSOPM notifier services (4 services) - state tracking, JIRA polling, Slack notifications, reminders
+from .csopm_services import register_csopm_services
 from .database_batches import register_database_batches
 from .event_processing import register_event_processing
 from .external_api_services import register_external_api_services
@@ -45,9 +48,6 @@ from .ui_services import register_ui_services
 
 # Workflow management services (5 services) - workflow engine, task management, process automation, state management, transitions
 from .workflow_management import register_workflow_management_services
-
-# CSOPM notifier services (4 services) - state tracking, JIRA polling, Slack notifications, reminders
-from .csopm_services import register_csopm_services
 
 __all__ = [
     "register_core_primitives",

@@ -64,16 +64,15 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
 
     # Import concrete implementations
     try:
-        from packages.integrations.async_mcp_client import AsyncMCPClient
-        from packages.slack.messages.posting import SlackPostingHandler
-        from packages.slack.user_operations.user_ops import SlackUserOps
-
         from ketchup_csopm_notifier.services.jira_poller import CSOPMJIRAPoller
         from ketchup_csopm_notifier.services.reminder_service import (
             CSOPMReminderService,
         )
         from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
+        from packages.integrations.async_mcp_client import AsyncMCPClient
+        from packages.slack.messages.posting import SlackPostingHandler
+        from packages.slack.user_operations.user_ops import SlackUserOps
     except ImportError as e:
         logger.warning(f"CSOPM services not available: {e}")
         return

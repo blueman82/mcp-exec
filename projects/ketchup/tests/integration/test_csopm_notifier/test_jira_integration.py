@@ -39,9 +39,7 @@ class TestCSOPMJIRAPollerIntegration:
         )
 
         # Mock the session establishment
-        with patch.object(
-            client, "_establish_session", new_callable=AsyncMock
-        ) as mock_establish:
+        with patch.object(client, "_establish_session", new_callable=AsyncMock) as mock_establish:
             mock_establish.return_value = "test-session-id"
             yield client
 
@@ -97,9 +95,7 @@ class TestCSOPMJIRAPollerIntegration:
             },
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -134,14 +130,10 @@ class TestCSOPMJIRAPollerIntegration:
         mock_response = {
             "jsonrpc": "2.0",
             "id": 1,
-            "result": {
-                "content": [{"type": "text", "text": json.dumps({"issues": []})}]
-            },
+            "result": {"content": [{"type": "text", "text": json.dumps({"issues": []})}]},
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -181,9 +173,7 @@ class TestCSOPMJIRAPollerIntegration:
             },
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -240,9 +230,7 @@ class TestCSOPMJIRAPollerIntegration:
             },
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 200,
                 "body": json.dumps(mock_response),
@@ -272,9 +260,7 @@ class TestCSOPMJIRAPollerIntegration:
             "error": {"code": -32603, "message": "Authentication failed"},
         }
 
-        with patch.object(
-            mcp_client, "_make_api_request", new_callable=AsyncMock
-        ) as mock_request:
+        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
             mock_request.return_value = {
                 "status": 401,
                 "body": json.dumps(mock_error_response),
