@@ -162,14 +162,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.db.dynamodb_base import DynamoDBBase; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.db.dynamodb_base import DynamoDBBase; print(\"Import OK\")'"
             description: "Verify DynamoDB base class is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.db.dynamodb_base import DynamoDBBase"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.db.dynamodb_base import DynamoDBBase"
             ls packages/db/
           </commands>
         </dependency_verification>
@@ -254,14 +254,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from ketchup_unified_scheduler.task_config import TaskConfig; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from ketchup_unified_scheduler.task_config import TaskConfig; print(\"Import OK\")'"
             description: "Verify TaskConfig is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from ketchup_unified_scheduler.task_config import TaskConfig"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from ketchup_unified_scheduler.task_config import TaskConfig"
             cat ketchup_unified_scheduler/tasks/jira_report_task.py
           </commands>
         </dependency_verification>
@@ -344,14 +344,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
             description: "Verify AsyncMCPClient imports correctly"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
             cat packages/integrations/async_mcp_client.py | head -100
           </commands>
         </dependency_verification>
@@ -443,14 +443,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
             description: "Verify AsyncMCPClient with new methods is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
           </commands>
         </dependency_verification>
         <task_description>
@@ -533,14 +533,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.slack.core.slack_async_client import SlackAsyncClient; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.slack.core.slack_async_client import SlackAsyncClient; print(\"Import OK\")'"
             description: "Verify SlackAsyncClient is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.slack.core.slack_async_client import SlackAsyncClient"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.slack.core.slack_async_client import SlackAsyncClient"
             cat packages/slack/user_operations/user_ops.py | head -60
           </commands>
         </dependency_verification>
@@ -624,14 +624,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.slack.user_operations.slack_user_lookup import SlackUserLookupService; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.slack.user_operations.slack_user_lookup import SlackUserLookupService; print(\"Import OK\")'"
             description: "Verify SlackUserLookupService is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.slack.core.slack_async_client import SlackAsyncClient"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.slack.core.slack_async_client import SlackAsyncClient"
             ls packages/slack/blockkits/
           </commands>
         </dependency_verification>
@@ -723,14 +723,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.slack.modals.modal_base import ModalBase; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.slack.modals.modal_base import ModalBase; print(\"Import OK\")'"
             description: "Verify modal base class is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.slack.modals.modal_base import ModalBase"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.slack.modals.modal_base import ModalBase"
             ls packages/slack/modals/
             ls packages/slack/interactivity/
           </commands>
@@ -826,14 +826,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
             description: "Verify AsyncMCPClient with create_issue and link_issues is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
           </commands>
         </dependency_verification>
         <task_description>
@@ -925,18 +925,18 @@ plan:
 
       test_commands:
         - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-typed-di"
-        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from ketchup_unified_scheduler.task_registry import TaskRegistry; print(TaskRegistry.get_all_task_configs())'"
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from ketchup_unified_scheduler.task_registry import TaskRegistry; print(TaskRegistry.get_all_task_configs())'"
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.core.typed_di import TypedServiceRegistry; print(\"Import OK\")'"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.core.typed_di import TypedServiceRegistry; print(\"Import OK\")'"
             description: "Verify TypedDI is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.core.typed_di import TypedServiceRegistry"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.core.typed_di import TypedServiceRegistry"
             cat packages/core/typed_di/protocols.py | head -100
             cat ketchup_unified_scheduler/task_registry.py
           </commands>
