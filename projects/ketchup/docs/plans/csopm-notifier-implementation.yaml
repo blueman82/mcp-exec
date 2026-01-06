@@ -718,8 +718,7 @@ plan:
         dependency_checks:
           - command: "cat infrastructure/Dockerfile.unified-scheduler | head -30"
             description: "Reference existing Dockerfile pattern"
-        documentation_targets:
-          - "infrastructure/docker-compose.yml"
+        documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
