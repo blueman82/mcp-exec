@@ -323,16 +323,14 @@ plan:
       name: "Extend MCP Client with Issue Creation and Linking"
       agent: "fastapi-pro"
       files:
-        - "packages/integrations/mcp_client.py"
-        - "packages/integrations/mcp_async_client.py"
+        - "packages/integrations/async_mcp_client.py"
       depends_on: []
 
       success_criteria:
-        - "MCPClient.create_issue(project_key, issue_type_id, summary, description, fields) method added"
-        - "MCPClient.link_issues(inward_key, outward_key, link_type='Relates') method added"
-        - "MCPClient.get_issuetype(project_key) method added returning available issue types"
-        - "MCPClient.get_issuetype_metadata(project_key, issue_type_id) method added for field requirements"
-        - "MCPAsyncClient mirrors all new methods with async implementations"
+        - "AsyncMCPClient.create_issue(project_key, issue_type_id, summary, description, fields) method added"
+        - "AsyncMCPClient.link_issues(inward_key, outward_key, link_type='Relates') method added"
+        - "AsyncMCPClient.get_issuetype(project_key) method added returning available issue types"
+        - "AsyncMCPClient.get_issuetype_metadata(project_key, issue_type_id) method added for field requirements"
         - "All methods use existing rate_limiter.acquire() pattern"
         - "All methods use existing _call_mcp_tool() pattern"
         - "Error handling follows existing patterns (log errors, return None or raise)"
