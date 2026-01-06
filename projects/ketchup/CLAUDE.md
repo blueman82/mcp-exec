@@ -20,15 +20,17 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 - **Deployment Path**: `/opt/ketchup` on both servers
 
 ### AWS Resources
-- **DynamoDB Table**: `ketchup_channel_information`
+- **DynamoDB Tables**:
+  - `ketchup_channel_information` - Main channel and user data
+  - `ketchup_csopm_notifications` - CSOPM notification state tracking
 - **Secrets Manager**: `Ketchup_Token_Secrets`
 - **SQS Queue**: `ketchup-events-queue` (https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue)
 
 ### Docker Containers in Production
 
-**Total Containers**: 11 across 2 servers
+**Total Containers**: 12 across 2 servers
 
-**prod1 (ketchup-prod1.campaign.adobe.com)** - 6 containers:
+**prod1 (ketchup-prod1.campaign.adobe.com)** - 7 containers:
 1. `nginx` - Reverse proxy (port 80)
 2. `ketchup-app-1` - FastAPI app replica 1 (port 8001)
 3. `ketchup-app-2` - FastAPI app replica 2 (port 8001)
@@ -39,7 +41,8 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
    - `jira_reporter` (continuous monitoring)
    - `maintenance_fetcher` (daily at 1:30 UTC)
    - `pat_rotator` (every 24 hours)
-6. `ketchup-access-monitor` - Access request monitoring
+6. `ketchup-csopm-notifier` - CSOPM assignment notifications (singleton, runs at 08:00/16:00 UTC)
+7. `ketchup-access-monitor` - Access request monitoring
 
 **prod2 (ketchup-prod2.campaign.adobe.com)** - 5 containers:
 1. `nginx` - Reverse proxy (port 80)
@@ -48,8 +51,8 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 4. `mcp-jira` - JIRA MCP service (port 8081)
 5. `ketchup-access-monitor` - Access request monitoring
 
-**Singleton Services** (prod1 only): `ketchup-unified-scheduler`
-- This is explicitly stopped/removed on prod2 during deployment (see deploy-ketchup.sh)
+**Singleton Services** (prod1 only): `ketchup-unified-scheduler`, `ketchup-csopm-notifier`
+- These are explicitly stopped/removed on prod2 during deployment (see deploy-ketchup.sh)
 - Prevents duplicate scheduled jobs and conflicting operations
 
 ## Developer Setup
@@ -182,6 +185,18 @@ ketchup/
 ├── ketchup_access_request_monitor/ # Access monitoring service
 │   └── main.py
 │
+├── ketchup_csopm_notifier/     # CSOPM assignment notification service
+│   ├── main.py
+│   ├── scheduler.py            # Runs at 08:00/16:00 UTC
+│   ├── container.py            # TypedDI container setup
+│   ├── blocks/                 # Slack Block Kit components
+│   │   └── notification_blocks.py
+│   └── services/               # Core services
+│       ├── jira_poller.py      # Polls JIRA for CSOPM assignments
+│       ├── slack_notifier.py   # Sends Slack DM notifications
+│       ├── state_tracker.py    # DynamoDB state persistence
+│       └── reminder_service.py # RCA and closure reminders
+│
 ├── corp_jira_mcp/              # MCP JIRA integration service
 │   └── (Node.js service)
 │
@@ -251,6 +266,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_JIRA_REPORTER_FEATURE=true`
 - `KETCHUP_TRUST_ENDORSEMENT_FEATURE=true`
 - `KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true`
+- `KETCHUP_CSOPM_NOTIFIER_ENABLED=true` - CSOPM assignment notifications
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
 
@@ -403,6 +419,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
+- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking
 - **December 2025**: Phase 1 Unified Scheduler Consolidation - 5 scheduler containers consolidated into 1 (`ketchup-unified-scheduler`) with shared TypedDI container, per-task health monitoring, and unified orchestration engine
 - **October 2025**: 300-400% performance optimization complete
 - **September 2025**: TypedDI migration complete (100% coverage)
