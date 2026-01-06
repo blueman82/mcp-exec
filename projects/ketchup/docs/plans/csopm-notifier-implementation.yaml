@@ -766,8 +766,8 @@ plan:
         - "Integration test reads/writes to DynamoDB with test prefix"
         - "CLAUDE.md updated with CSOPM notifier service in Docker Containers section"
         - "CLAUDE.md updated with KETCHUP_CSOPM_NOTIFIER_FEATURE in Feature Flags"
-        - "All unit tests pass: make test-fast"
-        - "Lint checks pass: make lint"
+        - "All unit tests pass: make test-parallel"
+        - "Lint checks pass: ./check"
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
