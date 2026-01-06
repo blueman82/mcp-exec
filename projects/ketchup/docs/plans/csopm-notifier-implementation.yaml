@@ -968,9 +968,7 @@ plan:
         - "packages/slack/interactive_elements/csopm_handler.py"
         - "packages/slack/interactive_elements/payload_processor.py"
         - "tests/unit/slack/interactive_elements/test_csopm_handler.py"
-      depends_on:
-        - 5
-        - 7
+      depends_on: [5, 7]
       success_criteria:
         - "CSOPMHandler class routes csopm_* action_ids to appropriate handlers"
         - "Handles: csopm_acknowledge, csopm_create_followup, csopm_done, csopm_close, csopm_snooze"
