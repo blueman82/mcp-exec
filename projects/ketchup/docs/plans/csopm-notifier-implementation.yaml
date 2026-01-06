@@ -506,10 +506,7 @@ plan:
         - "ketchup_csopm_notifier/services/slack_notifier.py"
         - "ketchup_csopm_notifier/blocks/notification_blocks.py"
         - "tests/unit/csopm_notifier/test_slack_notifier.py"
-      depends_on:
-        - 1
-        - 2
-        - 3
+      depends_on: [1, 2, 3]
       success_criteria:
         - "CSOPMSlackNotifier implements CSOPMSlackNotifierProtocol"
         - "send_assignment_dm() uses SlackUserOps.get_slack_id_by_email() to resolve assignee"
