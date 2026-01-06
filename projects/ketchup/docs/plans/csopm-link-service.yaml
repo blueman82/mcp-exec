@@ -443,14 +443,14 @@ plan:
 
       runtime_metadata:
         dependency_checks:
-          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.mcp_client import MCPClient; print(\"Import OK\")'"
-            description: "Verify MCPClient with new methods is available"
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+            description: "Verify AsyncMCPClient with new methods is available"
         documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
           <commands>
-            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.mcp_client import MCPClient"
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && PYTHONPATH=. python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
           </commands>
         </dependency_verification>
         <task_description>
