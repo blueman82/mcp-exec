@@ -1056,9 +1056,7 @@ plan:
         - "tests/integration/test_csopm_notifier/test_jira_integration.py"
         - "tests/integration/test_csopm_notifier/test_dynamodb_integration.py"
         - "CLAUDE.md"
-      depends_on:
-        - 9
-        - 10
+      depends_on: [9, 10]
       success_criteria:
         - "Integration test queries real CSOPM tickets via MCP-JIRA"
         - "Integration test reads/writes to DynamoDB with test prefix"
