@@ -37,7 +37,7 @@ logger = setup_logger(__name__)
 
 # Test data prefixes for isolation
 TEST_TICKET_PREFIX = "TEST_CSOPM-"
-TEST_TABLE_NAME = "ketchup_csopm_notifications"
+TEST_TABLE_NAME = "ketchup_channel_information"
 
 
 @pytest.mark.integration
