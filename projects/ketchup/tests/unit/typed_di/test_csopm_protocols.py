@@ -240,6 +240,7 @@ class TestCSOPMProtocolMethodSignatures(unittest.TestCase):
             "mark_rca_reminder_sent",
             "mark_closure_reminder_sent",
             "get_pending_notifications",
+            "record_followup",
         ]
 
         for method_name in required_methods:
@@ -258,6 +259,7 @@ class TestCSOPMProtocolMethodSignatures(unittest.TestCase):
             "send_assignment_dm",
             "send_reminder_dm",
             "resolve_slack_user_id",
+            "handle_button_action",
         ]
 
         for method_name in required_methods:
@@ -277,6 +279,8 @@ class TestCSOPMProtocolMethodSignatures(unittest.TestCase):
             "schedule_closure_reminder",
             "get_due_reminders",
             "complete_reminder",
+            "check_rca_reminders",
+            "check_closure_reminders",
         ]
 
         for method_name in required_methods:

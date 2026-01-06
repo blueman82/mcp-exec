@@ -244,6 +244,21 @@ class CSOPMStateTrackerProtocol(Protocol):
         """
         ...
 
+    async def record_followup(
+        self, ticket_key: str, followup_type: str, scheduled_at: datetime
+    ) -> FollowupRecord:
+        """Record a scheduled followup for a ticket.
+
+        Args:
+            ticket_key: The JIRA ticket key
+            followup_type: Type of followup ("rca_reminder", "closure_reminder", "ping")
+            scheduled_at: When the followup should be sent
+
+        Returns:
+            The created FollowupRecord.
+        """
+        ...
+
 
 @runtime_checkable
 class CSOPMSlackNotifierProtocol(Protocol):
@@ -291,6 +306,25 @@ class CSOPMSlackNotifierProtocol(Protocol):
 
         Returns:
             Slack user ID if found, None otherwise.
+        """
+        ...
+
+    async def handle_button_action(
+        self, action_id: str, user_id: str, ticket_key: str, payload: dict
+    ) -> bool:
+        """Handle a Slack button action from a CSOPM notification message.
+
+        Processes interactive button clicks from CSOPM notification DMs,
+        such as "Acknowledge", "Snooze", or "View in JIRA" actions.
+
+        Args:
+            action_id: The ID of the action button clicked
+            user_id: The Slack user ID who clicked the button
+            ticket_key: The JIRA ticket key associated with the action
+            payload: The full Slack interaction payload
+
+        Returns:
+            True if action was handled successfully, False otherwise.
         """
         ...
 
@@ -349,6 +383,28 @@ class CSOPMReminderServiceProtocol(Protocol):
 
         Returns:
             True if reminder was found and marked complete, False otherwise.
+        """
+        ...
+
+    async def check_rca_reminders(self) -> List[FollowupRecord]:
+        """Check for RCA reminders that are due to be sent.
+
+        Queries for all scheduled RCA reminders whose scheduled_at time
+        has passed and which have not been completed.
+
+        Returns:
+            List of FollowupRecords for due RCA reminders.
+        """
+        ...
+
+    async def check_closure_reminders(self) -> List[FollowupRecord]:
+        """Check for closure reminders that are due to be sent.
+
+        Queries for all scheduled closure reminders whose scheduled_at time
+        has passed and which have not been completed.
+
+        Returns:
+            List of FollowupRecords for due closure reminders.
         """
         ...
 
