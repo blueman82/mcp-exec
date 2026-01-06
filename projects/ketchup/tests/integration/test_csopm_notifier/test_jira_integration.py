@@ -173,12 +173,24 @@ class TestCSOPMJIRAPollerIntegration:
             },
         }
 
-        with patch.object(mcp_client, "_make_api_request", new_callable=AsyncMock) as mock_request:
-            mock_request.return_value = {
-                "status": 200,
-                "body": json.dumps(mock_response),
-                "headers": {},
-            }
+        # Mock search_issues which is called by get_issue internally
+        mock_search_result = {
+            "issues": [
+                {
+                    "key": "CSOPM-99999",
+                    "fields": {
+                        "summary": "Detailed CSOPM ticket",
+                        "description": "Full description with https://adobe.app.exigence.io/secure/index.html#/events/123456/situationroom",
+                        "status": {"name": "In Progress"},
+                        "assignee": {"name": "csopmuser"},
+                        "created": "2025-01-06T09:00:00.000+0000",
+                    },
+                }
+            ]
+        }
+
+        with patch.object(mcp_client, "search_issues", new_callable=AsyncMock) as mock_search:
+            mock_search.return_value = mock_search_result
 
             # Act
             ticket = await poller.get_ticket_details("CSOPM-99999")
