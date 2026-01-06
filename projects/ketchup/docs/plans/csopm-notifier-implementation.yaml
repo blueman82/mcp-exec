@@ -258,7 +258,7 @@ plan:
         files:
           - "packages/slack/user_operations/**"
           - "tests/unit/slack/user_operations/**"
-      status: "failed"
+      status: "completed"
       execution_history:
         - attempt_number: "1"
           commit_verification:
