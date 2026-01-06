@@ -252,7 +252,7 @@ plan:
         - "pytest tests/unit/csopm_notifier/test_state_tracker.py -v"
       runtime_metadata:
         dependency_checks:
-          - command: "python -c 'from packages.db.dynamodb_store import DynamoDBStore'"
+          - command: "PYTHONPATH=. uv run python -c 'from packages.db.dynamodb_store import DynamoDBStore'"
             description: "Verify DynamoDB store import"
         documentation_targets: []
       description: |
