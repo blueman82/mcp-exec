@@ -771,12 +771,12 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "cd tests/setup && make test-fast"
+        - "cd tests/setup && make test-parallel"
         - "./check"
         - "uv run pytest tests/integration/test_csopm_notifier/ -v || echo 'Integration tests require AWS_PROFILE'"
       runtime_metadata:
         dependency_checks:
-          - command: "cd tests/setup && make test-fast"
+          - command: "cd tests/setup && make test-parallel"
             description: "Run all unit tests"
         documentation_targets: []
       description: |
