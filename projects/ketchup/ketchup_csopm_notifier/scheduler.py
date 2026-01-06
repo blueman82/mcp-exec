@@ -170,7 +170,7 @@ class CSOPMScheduler(BaseScheduler):
             # Step 2: Filter out already-notified tickets and check for reassignments
             self.logger.info("Step 2: Checking notification state and reassignments")
             tickets_to_notify: List[CSOPMTicket] = []
-            # Note: reassignments tracking can be added in a follow-up when needed
+            reassignment_count = 0
 
             for ticket in new_tickets:
                 record = await state_tracker.get_notification_record(ticket.key)
@@ -183,15 +183,61 @@ class CSOPMScheduler(BaseScheduler):
                         ticket.key,
                     )
                 else:
-                    # Existing record - reassignment detection placeholder
-                    # Full reassignment logic (comparing old vs new assignee) can be
-                    # added in a follow-up when StateTracker stores assignee history
-                    self.logger.debug(
-                        "Ticket %s already tracked (status: %s, assignee: %s)",
-                        ticket.key,
-                        record.notification_status,
-                        ticket.assignee_username,
-                    )
+                    # Existing record - check for reassignment
+                    stored_assignee = record.assignee_jira_username
+                    current_assignee = ticket.assignee_username
+
+                    if stored_assignee and current_assignee != stored_assignee:
+                        # Reassignment detected - handle it
+                        self.logger.info(
+                            "Reassignment detected for %s: %s -> %s",
+                            ticket.key,
+                            stored_assignee,
+                            current_assignee,
+                        )
+
+                        try:
+                            # Resolve new assignee's Slack ID
+                            new_slack_id = await notifier.resolve_slack_user_id(
+                                current_assignee
+                            )
+
+                            if new_slack_id:
+                                # Call handle_reassignment to update state
+                                await state_tracker.handle_reassignment(
+                                    ticket_key=ticket.key,
+                                    new_jira_username=current_assignee,
+                                    new_slack_id=new_slack_id,
+                                )
+
+                                # Send notification to new assignee
+                                await notifier.send_assignment_dm(ticket, new_slack_id)
+                                reassignment_count += 1
+
+                                self.logger.info(
+                                    "Handled reassignment for %s to %s",
+                                    ticket.key,
+                                    current_assignee,
+                                )
+                            else:
+                                self.logger.warning(
+                                    "Could not resolve Slack ID for new assignee %s on %s",
+                                    current_assignee,
+                                    ticket.key,
+                                )
+                        except Exception as e:
+                            self.logger.error(
+                                "Error handling reassignment for %s: %s",
+                                ticket.key,
+                                e,
+                            )
+                    else:
+                        self.logger.debug(
+                            "Ticket %s already tracked (status: %s, assignee: %s)",
+                            ticket.key,
+                            record.notification_status,
+                            current_assignee,
+                        )
 
             self.logger.info(
                 "Filtered to %d new tickets needing notification",
@@ -224,10 +270,10 @@ class CSOPMScheduler(BaseScheduler):
 
                     if success:
                         # Create notification record in StateTracker
+                        # Uses correct API signature: (ticket: CSOPMTicket, slack_id: str)
                         await state_tracker.create_notification_record(
-                            ticket_key=ticket.key,
-                            assignee_username=ticket.assignee_username,
-                            exigence_id=ticket.exigence_id,
+                            ticket=ticket,
+                            slack_id=slack_user_id,
                         )
                         notification_count += 1
                         self.logger.info(
@@ -328,9 +374,10 @@ class CSOPMScheduler(BaseScheduler):
             # Log cycle summary
             elapsed = time.time() - start_time
             self.logger.info(
-                "CSOPM poll cycle completed in %.2fs: %d notifications, %d RCA reminders, %d closure reminders",
+                "CSOPM poll cycle completed in %.2fs: %d notifications, %d reassignments, %d RCA reminders, %d closure reminders",
                 elapsed,
                 notification_count,
+                reassignment_count,
                 len(rca_due),
                 len(closure_due),
             )

@@ -95,6 +95,7 @@ def make_notification_record(
     notification_status: str = "sent",
     ping_count: int = 1,
     assignee_slack_id: str = "U12345678",
+    assignee_jira_username: str = "testuser",
     rca_reminder_sent: bool = False,
     closure_reminder_sent: bool = False,
 ) -> NotificationRecord:
@@ -104,6 +105,7 @@ def make_notification_record(
         notification_status=notification_status,
         ping_count=ping_count,
         assignee_slack_id=assignee_slack_id,
+        assignee_jira_username=assignee_jira_username,
         rca_reminder_sent=rca_reminder_sent,
         closure_reminder_sent=closure_reminder_sent,
     )
@@ -352,6 +354,7 @@ class TestRCAReminder(unittest.IsolatedAsyncioTestCase):
                 notification_status="escalated",
                 ping_count=3,
                 assignee_slack_id="U12345678",
+                assignee_jira_username="testuser",
                 rca_reminder_sent=False,
                 closure_reminder_sent=False,
             ),

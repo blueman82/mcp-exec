@@ -75,6 +75,7 @@ class NotificationRecord:
         notification_status: Current notification state ("pending", "sent", "failed")
         ping_count: Number of reminder pings sent to the assignee
         assignee_slack_id: The Slack user ID of the assignee (resolved from username)
+        assignee_jira_username: The JIRA username of the current assignee (for reassignment detection)
         rca_reminder_sent: Whether the RCA reminder has been sent
         closure_reminder_sent: Whether the closure reminder has been sent
     """
@@ -83,6 +84,7 @@ class NotificationRecord:
     notification_status: str
     ping_count: int
     assignee_slack_id: Optional[str]
+    assignee_jira_username: Optional[str]
     rca_reminder_sent: bool
     closure_reminder_sent: bool
 
@@ -256,6 +258,26 @@ class CSOPMStateTrackerProtocol(Protocol):
 
         Returns:
             The created FollowupRecord.
+        """
+        ...
+
+    async def handle_reassignment(
+        self, ticket_key: str, new_jira_username: str, new_slack_id: str
+    ) -> Optional[NotificationRecord]:
+        """Handle ticket reassignment by updating assignee and resetting ping count.
+
+        When a ticket is reassigned:
+        1. Updates assignee_jira_username and assignee_slack_id
+        2. Resets ping_count to 1 (initial notification to new assignee)
+        3. Appends new assignee to assignee_history
+
+        Args:
+            ticket_key: The JIRA ticket key
+            new_jira_username: The new assignee's JIRA username
+            new_slack_id: The new assignee's Slack user ID
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
         """
         ...
 

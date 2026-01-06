@@ -336,6 +336,7 @@ class TestCSOPMSlackNotifierSendReminderDM(unittest.IsolatedAsyncioTestCase):
             notification_status="sent",
             ping_count=1,
             assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
             rca_reminder_sent=False,
             closure_reminder_sent=False,
         )
@@ -357,6 +358,7 @@ class TestCSOPMSlackNotifierSendReminderDM(unittest.IsolatedAsyncioTestCase):
             notification_status="sent",
             ping_count=0,
             assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
             rca_reminder_sent=True,
             closure_reminder_sent=False,
         )
@@ -407,6 +409,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
             notification_status="ack",
             ping_count=1,
             assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
             rca_reminder_sent=False,
             closure_reminder_sent=False,
         )

@@ -105,9 +105,7 @@ class TestCSOPMStateTrackerKeyGeneration(unittest.TestCase):
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     def test_make_pk_format(self):
         """Test partition key is generated correctly."""
@@ -131,9 +129,7 @@ class TestCSOPMStateTrackerItemParsing(unittest.TestCase):
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     def test_item_to_notification_record(self):
         """Test converting DynamoDB item to NotificationRecord."""
@@ -224,9 +220,7 @@ class TestCSOPMStateTrackerGetNotificationRecord(unittest.IsolatedAsyncioTestCas
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_get_notification_record_found(self):
         """Test get_notification_record returns record when found."""
@@ -285,9 +279,7 @@ class TestCSOPMStateTrackerCreateNotificationRecord(unittest.IsolatedAsyncioTest
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     def _make_ticket(
         self,
@@ -311,9 +303,7 @@ class TestCSOPMStateTrackerCreateNotificationRecord(unittest.IsolatedAsyncioTest
         self.mock_client.put_item.return_value = {}
         ticket = self._make_ticket()
 
-        result = await self.tracker.create_notification_record(
-            ticket=ticket, slack_id="U12345678"
-        )
+        result = await self.tracker.create_notification_record(ticket=ticket, slack_id="U12345678")
 
         self.assertIsInstance(result, NotificationRecord)
         self.assertEqual(result.ticket_key, "CSOPM-1234")
@@ -328,9 +318,7 @@ class TestCSOPMStateTrackerCreateNotificationRecord(unittest.IsolatedAsyncioTest
         self.mock_client.put_item.return_value = {}
         ticket = self._make_ticket(exigence_id="12345")
 
-        await self.tracker.create_notification_record(
-            ticket=ticket, slack_id="U12345678"
-        )
+        await self.tracker.create_notification_record(ticket=ticket, slack_id="U12345678")
 
         self.mock_client.put_item.assert_called_once()
         call_args = self.mock_client.put_item.call_args
@@ -344,9 +332,7 @@ class TestCSOPMStateTrackerCreateNotificationRecord(unittest.IsolatedAsyncioTest
         self.mock_client.put_item.return_value = {}
         ticket = self._make_ticket(exigence_id=None)
 
-        await self.tracker.create_notification_record(
-            ticket=ticket, slack_id="U12345678"
-        )
+        await self.tracker.create_notification_record(ticket=ticket, slack_id="U12345678")
 
         self.mock_client.put_item.assert_called_once()
         call_args = self.mock_client.put_item.call_args
@@ -359,9 +345,7 @@ class TestCSOPMStateTrackerCreateNotificationRecord(unittest.IsolatedAsyncioTest
         self.mock_client.put_item.return_value = {}
         ticket = self._make_ticket(assignee="jdoe")
 
-        await self.tracker.create_notification_record(
-            ticket=ticket, slack_id="U12345678"
-        )
+        await self.tracker.create_notification_record(ticket=ticket, slack_id="U12345678")
 
         self.mock_client.put_item.assert_called_once()
         call_args = self.mock_client.put_item.call_args
@@ -379,9 +363,7 @@ class TestCSOPMStateTrackerCreateNotificationRecord(unittest.IsolatedAsyncioTest
         ticket = self._make_ticket()
 
         with self.assertRaises(Exception):
-            await self.tracker.create_notification_record(
-                ticket=ticket, slack_id="U12345678"
-            )
+            await self.tracker.create_notification_record(ticket=ticket, slack_id="U12345678")
 
 
 class TestCSOPMStateTrackerUpdateNotificationStatus(unittest.IsolatedAsyncioTestCase):
@@ -392,9 +374,7 @@ class TestCSOPMStateTrackerUpdateNotificationStatus(unittest.IsolatedAsyncioTest
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_update_notification_status_success(self):
         """Test update_notification_status updates and returns record."""
@@ -450,9 +430,7 @@ class TestCSOPMStateTrackerIncrementPingCount(unittest.IsolatedAsyncioTestCase):
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_increment_ping_count_success(self):
         """Test increment_ping_count increments and returns updated record."""
@@ -474,13 +452,15 @@ class TestCSOPMStateTrackerIncrementPingCount(unittest.IsolatedAsyncioTestCase):
 
     async def test_increment_ping_count_uses_atomic_increment(self):
         """Test increment_ping_count uses atomic ADD operation."""
-        self.mock_client.update_item.return_value = {"Attributes": {
-            "ticket_key": {"S": "CSOPM-1234"},
-            "notification_status": {"S": "pending"},
-            "ping_count": {"N": "1"},
-            "rca_reminder_sent": {"BOOL": False},
-            "closure_reminder_sent": {"BOOL": False},
-        }}
+        self.mock_client.update_item.return_value = {
+            "Attributes": {
+                "ticket_key": {"S": "CSOPM-1234"},
+                "notification_status": {"S": "pending"},
+                "ping_count": {"N": "1"},
+                "rca_reminder_sent": {"BOOL": False},
+                "closure_reminder_sent": {"BOOL": False},
+            }
+        }
 
         await self.tracker.increment_ping_count("CSOPM-1234")
 
@@ -498,9 +478,7 @@ class TestCSOPMStateTrackerReminderMethods(unittest.IsolatedAsyncioTestCase):
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_mark_rca_reminder_sent_success(self):
         """Test mark_rca_reminder_sent updates record."""
@@ -522,13 +500,15 @@ class TestCSOPMStateTrackerReminderMethods(unittest.IsolatedAsyncioTestCase):
 
     async def test_mark_rca_reminder_sent_sets_timestamp(self):
         """Test mark_rca_reminder_sent includes timestamp."""
-        self.mock_client.update_item.return_value = {"Attributes": {
-            "ticket_key": {"S": "CSOPM-1234"},
-            "notification_status": {"S": "sent"},
-            "ping_count": {"N": "1"},
-            "rca_reminder_sent": {"BOOL": True},
-            "closure_reminder_sent": {"BOOL": False},
-        }}
+        self.mock_client.update_item.return_value = {
+            "Attributes": {
+                "ticket_key": {"S": "CSOPM-1234"},
+                "notification_status": {"S": "sent"},
+                "ping_count": {"N": "1"},
+                "rca_reminder_sent": {"BOOL": True},
+                "closure_reminder_sent": {"BOOL": False},
+            }
+        }
 
         await self.tracker.mark_rca_reminder_sent("CSOPM-1234")
 
@@ -564,9 +544,7 @@ class TestCSOPMStateTrackerGetPendingNotifications(unittest.IsolatedAsyncioTestC
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_get_pending_notifications_returns_list(self):
         """Test get_pending_notifications returns list of pending records."""
@@ -638,9 +616,7 @@ class TestCSOPMStateTrackerRecordFollowup(unittest.IsolatedAsyncioTestCase):
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_record_followup_success(self):
         """Test record_followup creates and returns FollowupRecord."""
@@ -675,9 +651,7 @@ class TestCSOPMStateTrackerRecordFollowup(unittest.IsolatedAsyncioTestCase):
         call_args = self.mock_client.put_item.call_args
         item = call_args.kwargs.get("item", {})
 
-        self.assertEqual(
-            item["SK"]["S"], f"FOLLOWUP#closure_reminder#{expected_timestamp}"
-        )
+        self.assertEqual(item["SK"]["S"], f"FOLLOWUP#closure_reminder#{expected_timestamp}")
 
     async def test_record_followup_on_error(self):
         """Test record_followup raises on DynamoDB error."""
@@ -699,9 +673,7 @@ class TestCSOPMStateTrackerGetAllActiveNotifications(unittest.IsolatedAsyncioTes
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_get_all_active_notifications_excludes_escalated(self):
         """Test get_all_active_notifications excludes escalated records."""
@@ -754,9 +726,7 @@ class TestCSOPMStateTrackerHandleReassignment(unittest.IsolatedAsyncioTestCase):
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_handle_reassignment_success(self):
         """Test handle_reassignment updates record correctly."""
@@ -784,13 +754,15 @@ class TestCSOPMStateTrackerHandleReassignment(unittest.IsolatedAsyncioTestCase):
 
     async def test_handle_reassignment_resets_ping_count_to_one(self):
         """Test handle_reassignment resets ping_count to 1."""
-        self.mock_client.update_item.return_value = {"Attributes": {
-            "ticket_key": {"S": "CSOPM-1234"},
-            "notification_status": {"S": "pending"},
-            "ping_count": {"N": "1"},
-            "rca_reminder_sent": {"BOOL": False},
-            "closure_reminder_sent": {"BOOL": False},
-        }}
+        self.mock_client.update_item.return_value = {
+            "Attributes": {
+                "ticket_key": {"S": "CSOPM-1234"},
+                "notification_status": {"S": "pending"},
+                "ping_count": {"N": "1"},
+                "rca_reminder_sent": {"BOOL": False},
+                "closure_reminder_sent": {"BOOL": False},
+            }
+        }
 
         await self.tracker.handle_reassignment(
             ticket_key="CSOPM-1234",
@@ -805,13 +777,15 @@ class TestCSOPMStateTrackerHandleReassignment(unittest.IsolatedAsyncioTestCase):
 
     async def test_handle_reassignment_appends_to_history(self):
         """Test handle_reassignment appends new assignee to history."""
-        self.mock_client.update_item.return_value = {"Attributes": {
-            "ticket_key": {"S": "CSOPM-1234"},
-            "notification_status": {"S": "pending"},
-            "ping_count": {"N": "1"},
-            "rca_reminder_sent": {"BOOL": False},
-            "closure_reminder_sent": {"BOOL": False},
-        }}
+        self.mock_client.update_item.return_value = {
+            "Attributes": {
+                "ticket_key": {"S": "CSOPM-1234"},
+                "notification_status": {"S": "pending"},
+                "ping_count": {"N": "1"},
+                "rca_reminder_sent": {"BOOL": False},
+                "closure_reminder_sent": {"BOOL": False},
+            }
+        }
 
         await self.tracker.handle_reassignment(
             ticket_key="CSOPM-1234",
@@ -846,9 +820,7 @@ class TestCSOPMStateTrackerDynamoDBTypeDescriptors(unittest.IsolatedAsyncioTestC
         from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         self.mock_client = MockDynamoDBAsyncClient()
-        self.tracker = CSOPMStateTracker(
-            client=self.mock_client, table_name="test-table"
-        )
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
     async def test_create_uses_proper_type_descriptors(self):
         """Test create_notification_record uses proper DynamoDB types."""

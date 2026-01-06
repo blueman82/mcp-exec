@@ -11,9 +11,9 @@ Unit tests for the CSOPMJIRAPoller service, verifying:
 """
 
 import unittest
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
+from typing import Any, Dict
+from unittest.mock import AsyncMock
 
 from packages.core.typed_di.protocols import CSOPMJIRAPollerProtocol, CSOPMTicket
 
@@ -102,10 +102,7 @@ class TestCSOPMJIRAPollerExigenceExtraction(unittest.TestCase):
 
     def test_extract_exigence_id_multiple_urls(self):
         """Test extraction finds first Exigence ID when multiple present."""
-        description = (
-            "First: /events/11111/situationroom "
-            "Second: /events/22222/situationroom"
-        )
+        description = "First: /events/11111/situationroom " "Second: /events/22222/situationroom"
 
         result = self.poller._extract_exigence_id(description)
 
@@ -166,9 +163,7 @@ class TestCSOPMJIRAPollerParsing(unittest.TestCase):
 
     def test_parse_issue_without_exigence_id(self):
         """Test parsing issue without Exigence ID in description."""
-        issue = self._make_jira_issue(
-            description="Regular description without Exigence link"
-        )
+        issue = self._make_jira_issue(description="Regular description without Exigence link")
 
         result = self.poller._parse_jira_issue(issue)
 

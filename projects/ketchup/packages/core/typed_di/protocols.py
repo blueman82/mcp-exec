@@ -37,6 +37,16 @@ from .service_protocols import (  # Business service protocols
     RateLimiterProtocol,
     StatusCommandServiceProtocol,
 )
+from .service_registrations.protocols.csopm_protocols import (  # CSOPM notifier protocols
+    CSOPMJIRAPollerProtocol,
+    CSOPMMetricsProtocol,
+    CSOPMReminderServiceProtocol,
+    CSOPMSlackNotifierProtocol,
+    CSOPMStateTrackerProtocol,
+    CSOPMTicket,
+    FollowupRecord,
+    NotificationRecord,
+)
 from .slack_protocols import (  # Slack-specific protocols
     CommandHandlerProtocol,
     EventHandlerProtocol,
@@ -47,16 +57,6 @@ from .slack_protocols import (  # Slack-specific protocols
     SlackPostingHandlerProtocol,
     SlackUserStoreProtocol,
     SlackWebClientProtocol,
-)
-from .service_registrations.protocols.csopm_protocols import (  # CSOPM notifier protocols
-    CSOPMJIRAPollerProtocol,
-    CSOPMMetricsProtocol,
-    CSOPMReminderServiceProtocol,
-    CSOPMSlackNotifierProtocol,
-    CSOPMStateTrackerProtocol,
-    CSOPMTicket,
-    FollowupRecord,
-    NotificationRecord,
 )
 
 # Re-export all protocols for backward compatibility

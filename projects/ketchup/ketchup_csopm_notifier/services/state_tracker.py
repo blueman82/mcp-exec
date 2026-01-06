@@ -107,6 +107,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 notification_status=normalized.get("notification_status", "pending"),
                 ping_count=int(normalized.get("ping_count", 0)),
                 assignee_slack_id=normalized.get("assignee_slack_id"),
+                assignee_jira_username=normalized.get("assignee_jira_username"),
                 rca_reminder_sent=bool(normalized.get("rca_reminder_sent", False)),
                 closure_reminder_sent=bool(
                     normalized.get("closure_reminder_sent", False)
@@ -244,6 +245,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 notification_status="pending",
                 ping_count=0,
                 assignee_slack_id=slack_id,
+                assignee_jira_username=ticket.assignee_username,
                 rca_reminder_sent=False,
                 closure_reminder_sent=False,
             )
