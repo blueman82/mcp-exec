@@ -864,8 +864,7 @@ plan:
         dependency_checks:
           - command: "cd tests/setup && make test-fast"
             description: "Run all unit tests"
-        documentation_targets:
-          - "CLAUDE.md"
+        documentation_targets: []
 
       description: |
         <dependency_verification priority="execute_first">
