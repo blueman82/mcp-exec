@@ -779,7 +779,7 @@ plan:
             details: "Register handler for action_id='csopm_link_create_followup', call views.open"
             reference: "packages/slack/interactivity/ patterns"
           - point: "Project select handler"
-            details: "On project selection, fetch issue types via MCPClient.get_issuetype(), update modal view"
+            details: "On project selection, fetch issue types via AsyncMCPClient.get_issuetype(), update modal view"
             reference: "Slack views.update API"
           - point: "private_metadata for context"
             details: "Store csopm_ticket_key in modal metadata for use in submission handler"
