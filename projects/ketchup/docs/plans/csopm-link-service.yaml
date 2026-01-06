@@ -400,7 +400,7 @@ plan:
             reference: "MCP tool schema: get_jira_issuetype"
           - point: "Rate limiting"
             details: "All new methods must call await self.rate_limiter.acquire() before MCP call"
-            reference: "packages/integrations/mcp_client.py:281-282"
+            reference: "packages/integrations/async_mcp_client.py (rate_limiter pattern)"
 
       code_quality:
         python:
