@@ -810,7 +810,7 @@ plan:
       code_quality:
         python:
           full_quality_pipeline:
-            command: "cd tests/setup && make lint"
+            command: "./check --fix"
             exit_on_failure: true
       commit:
         type: "docs"
