@@ -787,8 +787,7 @@ plan:
         - "ketchup_csopm_notifier/main.py"
         - "ketchup_csopm_notifier/scheduler.py"
         - "tests/unit/csopm_notifier/test_scheduler.py"
-      depends_on:
-        - 7
+      depends_on: [7]
       success_criteria:
         - "main.py initializes container, starts scheduler, handles graceful shutdown"
         - "CSOPMScheduler runs poll cycle at 08:00 and 16:00 UTC daily"
