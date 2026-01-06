@@ -364,7 +364,7 @@ plan:
         3. get_jira_issuetype - Get issue types for a project
         4. get_jira_issuetype_metadata - Get required fields for issue creation
 
-        New methods to add to MCPClient:
+        New methods to add to AsyncMCPClient:
 
         1. create_issue(project_key, issue_type_id, summary, description, fields=None)
            - Calls create_jira_issue MCP tool
