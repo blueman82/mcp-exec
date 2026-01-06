@@ -850,8 +850,8 @@ plan:
 
         FollowUpTicketCreator.create_and_link():
         1. Build issue fields from form data
-        2. Call MCPClient.create_issue(project_key, issue_type_id, summary, description)
-        3. If success, call MCPClient.link_issues(new_key, csopm_key, 'Relates')
+        2. Call AsyncMCPClient.create_issue(project_key, issue_type_id, summary, description)
+        3. If success, call AsyncMCPClient.link_issues(new_key, csopm_key, 'Relates')
         4. Return result object
 
         Link type: "Relates" (id: 10003)
