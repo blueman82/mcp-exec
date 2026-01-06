@@ -217,7 +217,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check ketchup_unified_scheduler/services/csopm_link/ packages/db/csopm_assignment_store.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/ packages/db/csopm_assignment_store.py"
             exit_on_failure: true
 
       commit:
@@ -309,7 +309,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check ketchup_unified_scheduler/tasks/csopm_link_task.py ketchup_unified_scheduler/services/csopm_link/"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/tasks/csopm_link_task.py ketchup_unified_scheduler/services/csopm_link/"
             exit_on_failure: true
 
       commit:
@@ -405,7 +405,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check packages/integrations/async_mcp_client.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/integrations/async_mcp_client.py"
             exit_on_failure: true
 
       commit:
@@ -499,7 +499,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check ketchup_unified_scheduler/services/csopm_link/project_discovery.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/project_discovery.py"
             exit_on_failure: true
 
       commit:
@@ -587,7 +587,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check packages/slack/user_operations/slack_user_lookup.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/slack/user_operations/slack_user_lookup.py"
             exit_on_failure: true
 
       commit:
@@ -681,7 +681,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check ketchup_unified_scheduler/services/csopm_link/notification_service.py packages/slack/blockkits/csopm_link_blocks.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/notification_service.py packages/slack/blockkits/csopm_link_blocks.py"
             exit_on_failure: true
 
       commit:
@@ -788,7 +788,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check packages/slack/modals/csopm_link_modal.py packages/slack/interactivity/csopm_link_handlers.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/slack/modals/csopm_link_modal.py packages/slack/interactivity/csopm_link_handlers.py"
             exit_on_failure: true
 
       commit:
@@ -885,7 +885,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check ketchup_unified_scheduler/services/csopm_link/ticket_creator.py packages/slack/interactivity/csopm_link_submit_handler.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/ticket_creator.py packages/slack/interactivity/csopm_link_submit_handler.py"
             exit_on_failure: true
 
       commit:
@@ -988,7 +988,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check packages/core/typed_di/service_registration.py packages/core/typed_di/protocols.py ketchup_unified_scheduler/task_registry.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/core/typed_di/service_registration.py packages/core/typed_di/protocols.py ketchup_unified_scheduler/task_registry.py"
             exit_on_failure: true
 
       commit:
@@ -1101,7 +1101,7 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check tests/unit/csopm_link/ tests/integration/test_csopm_link_flow.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check tests/unit/csopm_link/ tests/integration/test_csopm_link_flow.py"
             exit_on_failure: true
 
       commit:
