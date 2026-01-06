@@ -74,6 +74,7 @@ class TestCSOPMDataClasses(unittest.TestCase):
             "notification_status",
             "ping_count",
             "assignee_slack_id",
+            "assignee_jira_username",
             "rca_reminder_sent",
             "closure_reminder_sent",
         }
@@ -97,6 +98,7 @@ class TestCSOPMDataClasses(unittest.TestCase):
             notification_status="sent",
             ping_count=2,
             assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
             rca_reminder_sent=True,
             closure_reminder_sent=False,
         )
@@ -105,6 +107,7 @@ class TestCSOPMDataClasses(unittest.TestCase):
         self.assertEqual(record.notification_status, "sent")
         self.assertEqual(record.ping_count, 2)
         self.assertEqual(record.assignee_slack_id, "U12345678")
+        self.assertEqual(record.assignee_jira_username, "testuser")
         self.assertTrue(record.rca_reminder_sent)
         self.assertFalse(record.closure_reminder_sent)
 
