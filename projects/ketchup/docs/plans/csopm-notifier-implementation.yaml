@@ -707,7 +707,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/slack/interactive_elements/test_csopm_handler.py -v"
+        - "uv run pytest tests/unit/slack/interactive_elements/test_csopm_handler.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "grep -n 'action_id' packages/slack/interactive_elements/payload_processor.py | head -10"
