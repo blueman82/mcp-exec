@@ -124,7 +124,7 @@ Before starting, verify:
 - [ ] Branch created: `git checkout -b feature/csopm-link-service`
 - [ ] Familiarize with existing services:
   - `jira_reporter/` - Similar polling pattern
-  - `packages/integrations/mcp_client.py` - JIRA integration
+  - `packages/integrations/async_mcp_client.py` - JIRA integration (MCPAsyncClient)
   - `packages/slack/user_operations/user_ops.py` - Slack user resolution
   - `packages/db/dynamodb_store.py` - DynamoDB operations
   - `packages/slack/interactive_elements/payload_processor.py` - Slack interactive element processing
@@ -837,7 +837,7 @@ test poll_extracts_original_ticket_from_links
 ```
 
 **Test specifics**:
-- Mock all dependencies: `MCPClient`, `SlackUserOps`, `DynamoDBStore`, `CSOPMSlackClient`
+- Mock all dependencies: `MCPAsyncClient`, `SlackUserOps`, `DynamoDBStore`, `CSOPMSlackClient`
 - Use `AsyncMock` for all async methods
 - Test deduplication logic thoroughly
 - Verify logging calls with `caplog` fixture
@@ -850,7 +850,7 @@ from unittest.mock import AsyncMock, patch
 import time
 
 from packages.services.csopm_link_service import CSOPMLinkServiceImpl
-from packages.integrations.mcp_client import MCPClient
+from packages.integrations.async_mcp_client import MCPAsyncClient
 from packages.slack.user_operations.user_ops import SlackUserOps
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.slack.csopm_slack_client import CSOPMSlackClient
@@ -860,7 +860,7 @@ from packages.slack.csopm_slack_client import CSOPMSlackClient
 def mock_dependencies():
     """Create mocked dependencies following TypedDI pattern."""
     return {
-        "mcp_client": AsyncMock(spec=MCPClient),
+        "mcp_client": AsyncMock(spec=MCPAsyncClient),
         "user_ops": AsyncMock(spec=SlackUserOps),
         "db_store": AsyncMock(spec=DynamoDBStore),
         "slack_client": AsyncMock(spec=CSOPMSlackClient),
@@ -965,7 +965,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from packages.services.protocols.csopm_link_protocol import CSOPMLinkServiceProtocol
-from packages.integrations.mcp_client import MCPClient
+from packages.integrations.async_mcp_client import MCPAsyncClient
 from packages.slack.user_operations.user_ops import SlackUserOps
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.slack.csopm_slack_client import CSOPMSlackClient
@@ -977,7 +977,7 @@ class CSOPMLinkServiceImpl:
 
     def __init__(
         self,
-        mcp_client: MCPClient,
+        mcp_client: MCPAsyncClient,
         user_ops: SlackUserOps,
         db_store: DynamoDBStore,
         slack_client: CSOPMSlackClient,
@@ -1089,7 +1089,7 @@ class CSOPMLinkServiceImpl:
 - Use JQL: `project = CPGNREQ AND summary ~ "CSOPM" AND created >= -15m`
 
 **Integration points**:
-- Imports needed: `MCPClient`, `SlackUserOps`, `DynamoDBStore`, `CSOPMSlackClient`
+- Imports needed: `MCPAsyncClient`, `SlackUserOps`, `DynamoDBStore`, `CSOPMSlackClient`
 - Use `mcp_client.search_issues()` for JIRA queries
 - Use `db_store.get_item(pk, sk)` for deduplication
 
@@ -2514,7 +2514,7 @@ Fix test failures before metrics integration
 3. Don't create interdependent tests - Each test should be independent
 
 **Mocking guidelines**:
-- Mock external services: MCPClient, Slack API, DynamoDB
+- Mock external services: MCPAsyncClient, Slack API, DynamoDB
 - Don't mock: Protocol classes, data structures, utility functions
 - Use project's mocking pattern: Reference `tests/unit/test_jira_reporter/test_jira_service.py`
 
@@ -2614,7 +2614,7 @@ References: #issue-number
 
 ### Existing Code to Reference
 - Similar polling service: `jira_reporter/main.py`
-- MCP client usage: `packages/integrations/mcp_client.py`
+- MCP client usage: `packages/integrations/async_mcp_client.py`
 - User resolution pattern: `packages/slack/user_operations/user_ops.py`
 - DynamoDB operations: `packages/db/dynamodb_store.py`
 - TypedDI registration: `packages/core/typed_di/service_registrations/registrations/`

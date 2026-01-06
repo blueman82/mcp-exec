@@ -144,10 +144,9 @@ from .maintenance_protocols import (
     RavenMaintenanceClientProtocol,
 )
 
-# MCP protocols
+# MCP protocols (only MCPAsyncClientProtocol remains after consolidation)
 from .mcp_protocols import (
     MCPAsyncClientProtocol,
-    MCPClientProtocol,
     MCPConfigProtocol,
 )
 
@@ -298,7 +297,6 @@ __all__ = [
     "JoinNotificationOpsProtocol",
     "LookupMessageHandlerProtocol",
     "MCPAsyncClientProtocol",
-    "MCPClientProtocol",
     "MCPConfigProtocol",
     "MessagePreparerProtocol",
     "OpenAIHandlerProtocol",

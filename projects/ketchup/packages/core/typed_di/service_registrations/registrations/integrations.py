@@ -47,7 +47,6 @@ from ..protocols import (
     JIRACacheProtocol,
     JIRADataExtractorProtocol,
     MCPAsyncClientProtocol,
-    MCPClientProtocol,
     MCPConfigProtocol,
     TrustEndorsementHandlerProtocol,
     UsageExportHandlerProtocol,
@@ -117,52 +116,37 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
     except ImportError as e:
         logger.warning(f"ChannelOperations not available: {e}")
 
-    # IMSTokenManager with protocol (flagged async migration)
+    # IMSTokenManager with protocol (always uses AsyncIMSTokenManager)
     try:
-        from packages.core.config.mcp_feature_flags import MCPFeatureFlags
         from packages.integrations.async_ims_token_manager import AsyncIMSTokenManager
-        from packages.integrations.ims_token_manager import IMSTokenManager
-
-        use_async_ims = MCPFeatureFlags.use_async_clients()
-        ims_token_manager_cls = AsyncIMSTokenManager if use_async_ims else IMSTokenManager
 
         async def create_ims_token_manager(resolver):
-            """Factory function selecting legacy vs async IMS token manager."""
-
+            """Factory function for AsyncIMSTokenManager."""
             secrets_manager = await resolver.aget(SecretsManager)
-            logger.info(
-                "Creating %s via TypedDI",
-                ims_token_manager_cls.__name__,
-            )
-            return ims_token_manager_cls(secrets_manager=secrets_manager)
+            logger.info("Creating AsyncIMSTokenManager via TypedDI")
+            return AsyncIMSTokenManager(secrets_manager=secrets_manager)
 
         manager.register_protocol_with_concrete_alias(
             protocol_type=IMSTokenManagerProtocol,
-            concrete_type=ims_token_manager_cls,
+            concrete_type=AsyncIMSTokenManager,
             factory=create_ims_token_manager,
             dependencies=[DependencySpec(SecretsManager)],
             lifetime="singleton",
         )
-        logger.info("IMSTokenManager registered successfully (async flag=%s)", use_async_ims)
+        logger.info("IMSTokenManager registered successfully (AsyncIMSTokenManager)")
     except ImportError as e:
         logger.warning(f"IMSTokenManager not available: {e}")
 
-    # JIRA and MCP services
+    # JIRA and MCP services (always uses AsyncMCPClient)
     try:
-        from packages.core.config.mcp_feature_flags import MCPFeatureFlags
-        from packages.integrations.async_mcp_client import AsyncMCPClient
+        from packages.integrations.async_ims_token_manager import AsyncIMSTokenManager
+        from packages.integrations.async_mcp_client import (
+            AsyncMCPClient,
+            MCPClientConfig,
+            iPaaSRateLimiter,
+        )
         from packages.integrations.jira_cache import JIRACache
         from packages.integrations.jira_data_extractor import JIRADataExtractor
-        from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
-        from packages.integrations.mcp_client import MCPClient, iPaaSRateLimiter
-
-        use_async_mcp = MCPFeatureFlags.use_async_clients()
-        mcp_client_cls = AsyncMCPClient if use_async_mcp else MCPClient
-        # Reuse IMS class decision if already computed, otherwise fallback.
-        try:
-            ims_token_manager_cls  # noqa: B018 - check existence in scope
-        except NameError:  # pragma: no cover - safeguard when previous block failed
-            ims_token_manager_cls = AsyncIMSTokenManager if use_async_mcp else IMSTokenManager
 
         # JIRACache
         async def create_jira_cache(resolver) -> JIRACache:
@@ -204,37 +188,36 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
             lifetime="singleton",
         )
 
-        # MCPConfig
-        async def create_mcp_config(resolver) -> MCPConfig:
-            """Factory function for MCPConfig using TypedResolver."""
-            logger.info("Creating MCPConfig instance via TypedDI")
-            token_manager = await resolver.aget(ims_token_manager_cls)
-            return MCPConfig(base_url="http://mcp-jira:8081", token_manager=token_manager)
+        # MCPClientConfig (wrapper for MCP configuration)
+        async def create_mcp_config(resolver) -> MCPClientConfig:
+            """Factory function for MCPClientConfig using TypedResolver."""
+            logger.info("Creating MCPClientConfig instance via TypedDI")
+            token_manager = await resolver.aget(AsyncIMSTokenManager)
+            return MCPClientConfig(base_url="http://mcp-jira:8081", token_manager=token_manager)
 
         manager.register_protocol_with_concrete_alias(
             protocol_type=MCPConfigProtocol,
-            concrete_type=MCPConfig,
+            concrete_type=MCPClientConfig,
             factory=create_mcp_config,
-            dependencies=[DependencySpec(ims_token_manager_cls)],
+            dependencies=[DependencySpec(AsyncIMSTokenManager)],
             lifetime="singleton",
         )
 
-        # Always register MCPAsyncClient when available, needed for JIRADataExtractor
-        if MCPAsyncClient:
+        # Register AsyncMCPClient for MCPAsyncClientProtocol (httpx-based)
+        # Used by JIRADataExtractor and other consumers
+        async def create_mcp_async_client(resolver):
+            """Factory function for AsyncMCPClient using TypedResolver."""
+            logger.info("Creating AsyncMCPClient instance via TypedDI")
+            token_manager = await resolver.aget(AsyncIMSTokenManager)
+            return AsyncMCPClient(base_url="http://mcp-jira:8081", token_manager=token_manager)
 
-            async def create_mcp_async_client(resolver):
-                """Factory function for MCPAsyncClient using TypedResolver."""
-                logger.info("Creating MCPAsyncClient instance via TypedDI")
-                mcp_config = await resolver.aget(MCPConfig)
-                return MCPAsyncClient(mcp_config=mcp_config)
-
-            manager.register_protocol_with_concrete_alias(
-                protocol_type=MCPAsyncClientProtocol,
-                concrete_type=MCPAsyncClient,
-                factory=create_mcp_async_client,
-                dependencies=[DependencySpec(MCPConfig)],
-                lifetime="singleton",
-            )
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=MCPAsyncClientProtocol,
+            concrete_type=AsyncMCPClient,
+            factory=create_mcp_async_client,
+            dependencies=[DependencySpec(AsyncIMSTokenManager)],
+            lifetime="singleton",
+        )
 
         # iPaaSRateLimiter
         async def create_ipaas_rate_limiter(resolver) -> iPaaSRateLimiter:
@@ -250,39 +233,7 @@ def register_integrations(manager: "ServiceRegistrationManager") -> None:
             lifetime="singleton",
         )
 
-        # MCPClient
-        async def create_mcp_client(resolver):
-            """Factory selecting between legacy and async MCP implementations."""
-
-            logger.info(
-                "Creating %s instance via TypedDI",
-                mcp_client_cls.__name__,
-            )
-
-            if mcp_client_cls.__name__ == "AsyncMCPClient":
-                # AsyncMCPClient takes base_url and token_manager
-                token_manager = await resolver.aget(ims_token_manager_cls)
-                return mcp_client_cls(base_url="http://mcp-jira:8081", token_manager=token_manager)
-            else:
-                # Legacy MCPClient takes token_manager parameter
-                token_manager = await resolver.aget(ims_token_manager_cls)
-                return mcp_client_cls(token_manager=token_manager)
-
-        manager.register_protocol_with_concrete_alias(
-            protocol_type=MCPClientProtocol,
-            concrete_type=mcp_client_cls,
-            factory=create_mcp_client,
-            dependencies=[
-                DependencySpec(ims_token_manager_cls),
-                DependencySpec(MCPConfig),
-            ],
-            lifetime="singleton",
-        )
-
-        logger.info(
-            "JIRA and MCP services registered successfully (async flag=%s)",
-            use_async_mcp,
-        )
+        logger.info("JIRA and MCP services registered successfully (AsyncMCPClient)")
     except ImportError as e:
         logger.warning(f"JIRA/MCP services not available: {e}")
 

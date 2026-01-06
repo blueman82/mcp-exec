@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 from packages.db.dynamodb_store import DynamoDBStore
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.integrations.jira_cache import JIRACache
-from packages.integrations.mcp_async_client import MCPAsyncClient
 
 logger = setup_logger(__name__)
 
@@ -21,7 +21,7 @@ class JIRADataExtractor:
 
     def __init__(
         self,
-        mcp_client: MCPAsyncClient,
+        mcp_client: AsyncMCPClient,
         dynamodb_store: DynamoDBStore,
         cache: Optional[JIRACache] = None,
     ):

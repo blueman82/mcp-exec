@@ -436,3 +436,114 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         except Exception as exc:
             logger.error("Error listing projects: %s", exc)
             return []
+
+    async def create_pat(
+        self, token_name: str = "ketchup-pat-rotator", expiry_days: int = 90
+    ) -> Dict[str, Any]:
+        """Create new JIRA PAT via MCP service.
+
+        Args:
+            token_name: Name for the new PAT token.
+            expiry_days: Number of days until expiration (max 90).
+
+        Returns:
+            Dictionary containing PAT token details with keys:
+                - pat: str - the PAT token value
+                - id: str - the PAT token ID
+                - expiryDate: str - ISO 8601 expiry date
+
+        Raises:
+            Exception: If PAT creation fails.
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        arguments = {"tokenName": token_name, "expiryDays": expiry_days}
+
+        try:
+            result = await self._call_mcp_tool("create_jira_pat", arguments)
+
+            # Extract data from MCP response
+            # MCP returns: {success: bool, message: str, data: {pat, id, expiryDate}}
+            # We return just the data portion for compatibility with rotator.py
+            if result.get("success") and "data" in result:
+                data = result["data"]
+                logger.info("PAT created successfully: %s", data.get("id", "unknown"))
+                return data
+            else:
+                error_msg = result.get("message", "Unknown error")
+                logger.error("Failed to create PAT: %s", error_msg)
+                raise Exception(f"PAT creation failed: {error_msg}")
+
+        except Exception as exc:
+            logger.error("Error creating PAT: %s", exc)
+            raise
+
+    async def validate_pat(self, token: str) -> Dict[str, Any]:
+        """Validate PAT token via MCP service.
+
+        Args:
+            token: PAT token to validate.
+
+        Returns:
+            Dictionary containing validation result with keys:
+                - success: bool - whether validation request succeeded
+                - valid: bool - whether the token is valid
+                - message: str - status message
+                - error: str (optional) - error details if validation failed
+
+        Raises:
+            Exception: If validation request fails.
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        arguments = {"token": token}
+
+        try:
+            result = await self._call_mcp_tool("validate_jira_pat", arguments)
+
+            if result.get("valid"):
+                logger.info("PAT validation successful")
+            else:
+                logger.warning("PAT validation failed: %s", result.get("message", "Unknown error"))
+
+            return result
+        except Exception as exc:
+            logger.error("Error validating PAT: %s", exc)
+            raise
+
+    async def revoke_pat(self, token_id: str) -> Dict[str, Any]:
+        """Revoke PAT token via MCP service.
+
+        Args:
+            token_id: ID of the PAT token to revoke.
+
+        Returns:
+            Dictionary containing revocation result with keys:
+                - success: bool - whether revocation succeeded
+                - message: str - status message
+                - error: str (optional) - error details if revocation failed
+
+        Raises:
+            Exception: If revocation request fails.
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        arguments = {"tokenId": token_id}
+
+        try:
+            result = await self._call_mcp_tool("revoke_jira_pat", arguments)
+
+            if result.get("success"):
+                logger.info("PAT revoked successfully: %s", token_id)
+            else:
+                logger.warning(
+                    "Failed to revoke PAT %s: %s", token_id, result.get("message", "Unknown error")
+                )
+
+            return result
+        except Exception as exc:
+            logger.error("Error revoking PAT %s: %s", token_id, exc)
+            raise

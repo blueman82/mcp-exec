@@ -119,10 +119,10 @@ class BlockBuilder:
 
         blocks = [
             {
-                "type": "header",
+                "type": "section",
                 "text": {
-                    "type": "plain_text",
-                    "text": "Command Flagged for Review",
+                    "type": "mrkdwn",
+                    "text": "*Command Flagged for Review*",
                 },
             },
             {
@@ -328,10 +328,10 @@ class BlockBuilder:
 
         blocks = [
             {
-                "type": "header",
+                "type": "section",
                 "text": {
-                    "type": "plain_text",
-                    "text": "Summary Flagged for Review",
+                    "type": "mrkdwn",
+                    "text": "*Summary Flagged for Review*",
                 },
             },
             {

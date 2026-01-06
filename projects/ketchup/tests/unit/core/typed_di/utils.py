@@ -47,7 +47,7 @@ def patch_core_dependencies():
 
     from packages.ai.core.openai_handler import OpenAIHandler
     from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
-    from packages.integrations.mcp_async_client import MCPAsyncClient
+    from packages.integrations.async_mcp_client import AsyncMCPClient
     from packages.secrets.manager import SecretsManager
 
     slack_config_stub = _SlackConfigStub()
@@ -111,8 +111,8 @@ def patch_core_dependencies():
         patch.object(OpenAIHandler, "initialize", mock_openai_initialize),
         patch.object(OpenAIHandler, "setup", AsyncMock(return_value=None)),
         patch.object(OpenAIHandler, "__call__", AsyncMock(return_value={"choices": []})),
-        patch.object(MCPAsyncClient, "search_issues", AsyncMock(return_value={"issues": []})),
-        patch.object(MCPAsyncClient, "get_issue", AsyncMock(return_value={})),
+        patch.object(AsyncMCPClient, "search_issues", AsyncMock(return_value={"issues": []})),
+        patch.object(AsyncMCPClient, "get_issue", AsyncMock(return_value={})),
     ]
 
     started = []

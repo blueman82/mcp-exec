@@ -304,22 +304,23 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
 
     def test_batch_4_integration_services_registered(self):
         """Test Batch 4 integration services are registered."""
+        # Use protocol names which are what the registry stores as service_type
+        # The concrete implementations are registered via protocol-first pattern
         batch_4_services = [
-            "CommandTrackingOperations",
-            "ChannelOperations",
-            "IMSTokenManager",
-            "iPaaSRateLimiter",
-            "MCPClient",
-            "MCPConfig",
-            "MCPAsyncClient",
-            "JIRACache",
-            "JIRADataExtractor",
+            "CommandTrackingOperationsProtocol",
+            "ChannelOperationsProtocol",
+            "IMSTokenManagerProtocol",
+            "iPaaSRateLimiterProtocol",
+            "MCPConfigProtocol",
+            "MCPAsyncClientProtocol",
+            "JIRACacheProtocol",
+            "JIRADataExtractorProtocol",
             "TrustEndorsementHandlerProtocol",
-            "CommandUsageCSVGenerator",
+            "CommandUsageCSVGeneratorProtocol",
             "HomeTabHandlerProtocol",
             "UsageExportHandlerProtocol",
             "AccessRequestHandlerProtocol",
-            "FeatureCommand",
+            "FeatureCommandProtocol",
         ]
 
         registered_names = {

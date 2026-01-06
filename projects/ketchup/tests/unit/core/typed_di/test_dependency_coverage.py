@@ -169,6 +169,18 @@ class TestDependencyCoverage(unittest.TestCase):
             # Build set of dependency type names declared in registry
             # Include both Protocol and concrete names for compatibility
             dep_type_names = set()
+
+            # Known type name mappings where concrete names differ from protocol conventions
+            # These are types where the constructor uses a different name than the protocol/concrete alias
+            KNOWN_TYPE_MAPPINGS = {
+                # MCPAsyncClientProtocol -> AsyncMCPClient (the only MCP client implementation)
+                "MCPAsyncClientProtocol": ["AsyncMCPClient"],
+                "AsyncMCPClient": ["MCPAsyncClientProtocol"],
+                # IMSTokenManagerProtocol uses AsyncIMSTokenManager, but type hint is IMSTokenManager
+                "AsyncIMSTokenManager": ["IMSTokenManager", "IMSTokenManagerProtocol"],
+                "IMSTokenManagerProtocol": ["IMSTokenManager", "AsyncIMSTokenManager"],
+            }
+
             for dep in reg.dependencies:
                 dep_name = getattr(dep.type, "__name__", str(dep.type))
                 dep_type_names.add(dep_name)
@@ -178,6 +190,9 @@ class TestDependencyCoverage(unittest.TestCase):
                 # If it's not a Protocol, also add the Protocol name
                 else:
                     dep_type_names.add(dep_name + "Protocol")
+                # Add known type mappings for this dependency
+                if dep_name in KNOWN_TYPE_MAPPINGS:
+                    dep_type_names.update(KNOWN_TYPE_MAPPINGS[dep_name])
 
             # Validate each required param has a matching dependency type name
             PRIMITIVES = {

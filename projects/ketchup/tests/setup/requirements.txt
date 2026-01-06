@@ -1,7 +1,6 @@
 # Core dependencies
 aioboto3
 aiobotocore
-slack_sdk
 pydantic
 python-dotenv
 httpx

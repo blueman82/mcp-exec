@@ -1,7 +1,7 @@
 """
 Integration test for JIRA ticket discovery using MCP client.
 
-Tests the integration between JiraTicketDiscovery and MCPAsyncClient
+Tests the integration between JiraTicketDiscovery and AsyncMCPClient
 to ensure proper JIRA ticket discovery works with the real MCP client.
 """
 
@@ -11,8 +11,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import JiraTicketDiscovery
-from packages.integrations.ims_token_manager import IMSTokenManager
-from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
+from packages.integrations.async_ims_token_manager import AsyncIMSTokenManager
+from packages.integrations.async_mcp_client import AsyncMCPClient
 
 
 @pytest.mark.asyncio
@@ -22,17 +22,16 @@ class TestJiraDiscoveryMCPIntegration:
     @pytest.fixture
     async def mock_ims_token_manager(self):
         """Create a mock IMS token manager."""
-        token_manager = MagicMock(spec=IMSTokenManager)
+        token_manager = MagicMock(spec=AsyncIMSTokenManager)
         token_manager.get_valid_token = AsyncMock(return_value="mock-token-123")
         return token_manager
 
     @pytest.fixture
     async def mcp_client(self, mock_ims_token_manager):
         """Create an MCP client with mocked HTTP responses."""
-        config = MCPConfig(
+        client = AsyncMCPClient(
             base_url="http://test-mcp-server:8080", token_manager=mock_ims_token_manager
         )
-        client = MCPAsyncClient(mcp_config=config)
 
         # Mock the session establishment
         with patch.object(client, "_establish_session", new_callable=AsyncMock) as mock_establish:

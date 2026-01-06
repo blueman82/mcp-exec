@@ -59,7 +59,6 @@ services:
       - KETCHUP_USER_JOIN_NOTIFICATIONS_GLOBAL=true    # Enable globally for all channels
       - KETCHUP_MAINTENANCE_DETECTION=true  # Enable maintenance detection globally
       - USE_PIPELINE_PROCESSING=true   # Enable pipeline processing for slash commands
-      - KETCHUP_USE_ASYNC_MCP=true
     volumes:
       - ~/.aws:/home/ketchup/.aws:ro
       - ./logs:/var/log
@@ -85,7 +84,6 @@ services:
       - AWS_SECRET_NAME=Ketchup_Token_Secrets
       - LOG_LEVEL=INFO
       - PYTHONPATH=/app
-      - KETCHUP_USE_ASYNC_MCP=true
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
@@ -137,7 +135,6 @@ services:
       - KETCHUP_STATUS_UPDATER_FEATURE=true
       - KETCHUP_STATUS_UPDATER_GLOBAL=false  # Don't process all channels in test
       - KETCHUP_STATUS_UPDATER_ENABLED=true
-      - KETCHUP_USE_ASYNC_MCP=true
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
@@ -161,7 +158,6 @@ services:
       - ACCESS_REQUEST_MONITOR_INTERVAL=300  # 5 minutes
       - ACCESS_REQUEST_ALERT_COOLDOWN=3600  # 1 hour
       - MAX_CONCURRENT_REQUESTS=20
-      - KETCHUP_USE_ASYNC_MCP=true
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs/access_monitor:/var/log/access_monitor
@@ -194,7 +190,6 @@ services:
       - KETCHUP_JIRA_REPORTER_FEATURE=true
       - KETCHUP_JIRA_REPORTER_GLOBAL=true
       - USE_PIPELINE_PROCESSING=true
-      - KETCHUP_USE_ASYNC_MCP=true
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
@@ -217,7 +212,6 @@ services:
       - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
       - KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START=true
       - TZ=UTC
-      - KETCHUP_USE_ASYNC_MCP=true
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
@@ -252,7 +246,6 @@ services:
       - KETCHUP_JIRA_PAT_ROTATOR_FEATURE=true
       - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
       - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
-      - KETCHUP_USE_ASYNC_MCP=true
       - TZ=Europe/London
     volumes:
       - ~/.aws:/root/.aws:ro

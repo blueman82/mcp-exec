@@ -10,6 +10,7 @@ This module handles Services 185-195 (11 services) with enterprise-grade JIRA, M
 All registrations use protocol-first pattern with concrete class aliasing.
 """
 
+import uuid
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from packages.core.logging import setup_logger
@@ -27,8 +28,8 @@ except ImportError as e:
 
 # Integration services imports
 try:
+    from packages.integrations.async_mcp_client import AsyncMCPClient, MCPClientConfig
     from packages.integrations.jira_cache import JIRACache
-    from packages.integrations.mcp_async_client import MCPAsyncClient, MCPConfig
 
     _integration_imports_available = True
 except ImportError as e:
@@ -37,13 +38,13 @@ except ImportError as e:
     _integration_imports_available = False
 
     # Define fallback classes to prevent NameError
-    class MCPAsyncClient:
+    class AsyncMCPClient:
         pass
 
     class JIRACache:
         pass
 
-    class MCPConfig:
+    class MCPClientConfig:
         pass
 
 
@@ -87,20 +88,7 @@ def register_advanced_infrastructure(manager: "ServiceRegistrationManager") -> N
 def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     """Register JIRA integration services (185-188)."""
 
-    # Skip registration if async MCP is not enabled - MCPAsyncClient won't be registered
-    try:
-        from packages.core.config.mcp_feature_flags import MCPFeatureFlags
-
-        use_async_mcp = MCPFeatureFlags.use_async_clients()
-        if not use_async_mcp:
-            logger.warning(
-                "Skipping JIRA ticket service registration - async MCP disabled (KETCHUP_USE_ASYNC_MCP=false)"
-            )
-            return
-    except Exception as e:
-        logger.warning(f"Could not check async flag: {e}, skipping JIRA services")
-        return
-
+    # Always register JIRA services - AsyncMCPClient is always used (feature flag removed)
     # JIRAIntegrationService (Service 185)
     @runtime_checkable
     class JIRAIntegrationServiceProtocol(Protocol):
@@ -162,7 +150,7 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
     async def create_jira_ticket_service(resolver) -> JIRATicketServiceConcrete:
         """Factory function for JIRATicketService."""
         logger.info("Creating JIRATicketService instance via TypedDI")
-        mcp_client = await resolver.aget(MCPAsyncClient)
+        mcp_client = await resolver.aget(AsyncMCPClient)
         jira_cache = await resolver.aget(JIRACache)
 
         class JIRATicketService:
@@ -186,7 +174,7 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
         concrete_type=JIRATicketServiceConcrete,
         factory=create_jira_ticket_service,
         dependencies=[
-            DependencySpec(MCPAsyncClient),
+            DependencySpec(AsyncMCPClient),
             DependencySpec(JIRACache),
         ],
         lifetime="singleton",
@@ -219,9 +207,7 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=JIRAWorkflowServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_jira_workflow_service,
         dependencies=[DependencySpec(JIRAIntegrationServiceProtocol)],
         lifetime="singleton",
@@ -254,9 +240,7 @@ def _register_jira_services(manager: "ServiceRegistrationManager") -> None:
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=JIRAWebhookServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_jira_webhook_service,
         dependencies=[DependencySpec(JIRATicketServiceProtocol)],
         lifetime="singleton",
@@ -277,7 +261,7 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
     async def create_mcp_protocol_service(resolver) -> object:
         """Factory function for MCPProtocolService."""
         logger.info("Creating MCPProtocolService instance via TypedDI")
-        mcp_config = await resolver.aget(MCPConfig)
+        mcp_config = await resolver.aget(MCPClientConfig)
 
         class MCPProtocolService:
             def __init__(self, mcp_config):
@@ -293,11 +277,9 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=MCPProtocolServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_mcp_protocol_service,
-        dependencies=[DependencySpec(MCPConfig)],
+        dependencies=[DependencySpec(MCPClientConfig)],
         lifetime="singleton",
     )
 
@@ -328,9 +310,7 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=MCPClientServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_mcp_client_service,
         dependencies=[DependencySpec(MCPProtocolServiceProtocol)],
         lifetime="singleton",
@@ -363,9 +343,7 @@ def _register_mcp_services(manager: "ServiceRegistrationManager") -> None:
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=MCPServerServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_mcp_server_service,
         dependencies=[DependencySpec(MCPClientServiceProtocol)],
         lifetime="singleton",
@@ -398,9 +376,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=WebhookProcessorServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_webhook_processor_service,
         dependencies=[],
         lifetime="singleton",
@@ -433,9 +409,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=APIGatewayServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_api_gateway_service,
         dependencies=[DependencySpec(AsyncClient)],
         lifetime="singleton",
@@ -468,9 +442,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=ThirdPartyAuthServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_third_party_auth_service,
         dependencies=[DependencySpec(SecretsManagerProtocol)],
         lifetime="singleton",
@@ -505,9 +477,7 @@ def _register_api_gateway_services(manager: "ServiceRegistrationManager") -> Non
 
     manager.register_protocol_with_concrete_alias(
         protocol_type=ExternalAPIServiceProtocol,
-        concrete_type=type(
-            "ConcreteService" + str(__import__("random").randint(1000, 9999)), (), {}
-        ),
+        concrete_type=type("ConcreteService" + uuid.uuid4().hex[:8], (), {}),
         factory=create_external_api_service,
         dependencies=[DependencySpec(AsyncClient), DependencySpec(ThirdPartyAuthServiceProtocol)],
         lifetime="singleton",

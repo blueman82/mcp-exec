@@ -35,7 +35,7 @@ from packages.core.typed_di.service_registrations.protocols.handler_protocols im
     OpenAIHandlerProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
-    MCPClientProtocol,
+    MCPAsyncClientProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     ChannelInfoOpsProtocol,
@@ -429,7 +429,7 @@ async def run_auto_status(
             logger.info("Distributed lock acquired, proceeding with status update")
 
             # Get required services using TypedDI
-            mcp_client = await container.aget(MCPClientProtocol)
+            mcp_client = await container.aget(MCPAsyncClientProtocol)
             secrets_manager = await container.aget(SecretsManagerProtocol)
             slack_config = await container.aget(SlackConfigProtocol)
             openai_handler = await container.aget(OpenAIHandlerProtocol)

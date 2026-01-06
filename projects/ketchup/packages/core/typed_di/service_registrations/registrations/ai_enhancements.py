@@ -22,7 +22,7 @@ from packages.ai.cost_calculator import TokenTracker
 from packages.core.local_metrics import MetricsStorage
 from packages.core.logging import setup_logger
 from packages.core.typed_di.types import DependencySpec
-from packages.integrations.mcp_client import iPaaSRateLimiter
+from packages.integrations.async_mcp_client import iPaaSRateLimiter
 from packages.secrets.manager import SecretsManager
 
 # Protocol imports (conditional to avoid circular dependencies)

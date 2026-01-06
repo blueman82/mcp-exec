@@ -17,7 +17,7 @@ from ..protocols import (
     DynamoDBStoreProtocol,
     JiraPromptHandlerProtocol,
     MaintenanceCheckerProtocol,
-    MCPClientProtocol,
+    MCPAsyncClientProtocol,
     RavenMaintenanceClientProtocol,
     SecretsManagerProtocol,
     SlackChannelMessageOpsProtocol,
@@ -108,7 +108,7 @@ def register_maintenance_services(manager: "ServiceRegistrationManager") -> None
             posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
             maintenance_checker = await resolver.aget(MaintenanceCheckerProtocol)
             db_store = await resolver.aget(DynamoDBStoreProtocol)
-            mcp_client = await resolver.aget(MCPClientProtocol)
+            mcp_client = await resolver.aget(MCPAsyncClientProtocol)
             channel_msg_ops = await resolver.aget(SlackChannelMessageOpsProtocol)
             secrets_manager = await resolver.aget(SecretsManagerProtocol)
 
@@ -129,7 +129,7 @@ def register_maintenance_services(manager: "ServiceRegistrationManager") -> None
                 DependencySpec(SlackPostingHandlerProtocol),
                 DependencySpec(MaintenanceCheckerProtocol),
                 DependencySpec(DynamoDBStoreProtocol),
-                DependencySpec(MCPClientProtocol),
+                DependencySpec(MCPAsyncClientProtocol),
                 DependencySpec(SlackChannelMessageOpsProtocol),
                 DependencySpec(SecretsManagerProtocol),
             ],

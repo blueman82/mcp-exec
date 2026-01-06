@@ -186,7 +186,7 @@ class CoreTestGenerator:
         if "ai" in name_lower or "openai" in name_lower:
             dependencies.extend(["AzureAsyncClient", "AzureConfig"])
         if "jira" in name_lower or "mcp" in name_lower:
-            dependencies.extend(["MCPAsyncClient", "MCPConfig"])
+            dependencies.extend(["AsyncMCPClient", "MCPClientConfig"])
         if "access" in name_lower or "auth" in name_lower:
             dependencies.extend(["SecretsManager", "UserStore"])
 

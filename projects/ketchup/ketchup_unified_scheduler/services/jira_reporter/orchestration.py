@@ -35,7 +35,7 @@ from packages.core.typed_di.service_registrations.protocols.infrastructure_proto
     IMSTokenManagerProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
-    MCPClientProtocol,
+    MCPAsyncClientProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     SlackChannelArchiveOpsProtocol,
@@ -272,7 +272,7 @@ async def run_reporting_cycle(
         openai_handler = await container.aget(OpenAIHandlerProtocol)
         msg_ops = await container.aget(SlackChannelMessageOpsProtocol)
         secrets_manager = await container.aget(SecretsManagerProtocol)
-        mcp_client = await container.aget(MCPClientProtocol)
+        mcp_client = await container.aget(MCPAsyncClientProtocol)
         ims_token_manager = await container.aget(IMSTokenManagerProtocol)
         feature_service = await container.aget(FeatureServiceProtocol)
 

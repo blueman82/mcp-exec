@@ -38,6 +38,7 @@ from ..protocols import (
     BlockKitBuilderProtocol,
     ChannelInfoOpsProtocol,
     DynamoDBStoreProtocol,
+    JIRADataExtractorProtocol,
     MessagePreparerProtocol,
     OpenAIHandlerProtocol,
     SecretsManagerProtocol,
@@ -108,14 +109,22 @@ def _register_ai_core_services(manager: "ServiceRegistrationManager") -> None:
         channel_info_ops = await resolver.aget(ChannelInfoOpsProtocol)
         channel_msg_ops = await resolver.aget(SlackChannelMessageOpsProtocol)
         channel_ops = await resolver.aget(SlackChannelArchiveOpsProtocol)
-        # JIRA extractor is optional - skip for now to avoid circular dependencies
+
+        # Resolve JIRA extractor for ticket enrichment in status reports
+        jira_extractor = None
+        try:
+            jira_extractor = await resolver.aget(JIRADataExtractorProtocol)
+            logger.info("JIRADataExtractor resolved successfully for OpenAIHandler")
+        except Exception as e:
+            logger.warning(f"JIRADataExtractor not available for OpenAIHandler: {e}")
+
         handler = OpenAIHandler(
             token_tracker=token_tracker,
             secrets_manager=secrets_manager,
             channel_info_ops=channel_info_ops,
             channel_msg_ops=channel_msg_ops,
             channel_ops=channel_ops,
-            jira_extractor=None,
+            jira_extractor=jira_extractor,
         )
         # Initialize handler to set up API key and submodules
         await handler.initialize()
@@ -132,6 +141,7 @@ def _register_ai_core_services(manager: "ServiceRegistrationManager") -> None:
             DependencySpec(ChannelInfoOpsProtocol),
             DependencySpec(SlackChannelMessageOpsProtocol),
             DependencySpec(SlackChannelArchiveOpsProtocol),
+            DependencySpec(JIRADataExtractorProtocol),
         ],
         lifetime="singleton",
     )

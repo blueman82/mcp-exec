@@ -1,22 +1,26 @@
 """
 MCP Service Protocols
 
-Protocol definitions for MCP (Model Context Protocol) related services including
-client operations, configuration, and rate limiting.
+Protocol definitions for MCP (Model Context Protocol) related services.
+Only MCPAsyncClientProtocol remains after consolidation - all legacy protocols removed.
+AsyncMCPClient is the single MCP client implementation.
 """
 
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 __all__ = [
-    "MCPClientProtocol",
     "MCPAsyncClientProtocol",
     "MCPConfigProtocol",
 ]
 
 
 @runtime_checkable
-class MCPClientProtocol(Protocol):
-    """Protocol for MCP client operations."""
+class MCPAsyncClientProtocol(Protocol):
+    """Protocol for the unified async MCP client operations.
+
+    This is THE single MCP client protocol. AsyncMCPClient is the only implementation.
+    Legacy MCPClient and MCPAsyncClient (aiohttp) have been deleted.
+    """
 
     async def ensure_connection(self) -> None:
         """Ensure MCP connection is healthy, reconnect if needed."""
@@ -56,25 +60,26 @@ class MCPClientProtocol(Protocol):
         """Add a comment to a JIRA issue via MCP."""
         ...
 
-
-@runtime_checkable
-class MCPAsyncClientProtocol(Protocol):
-    """Protocol for MCP async client operations."""
-
-    async def get_issue(self, issue_key: str) -> Optional[Dict[str, Any]]:
-        """Get a single JIRA issue by key."""
+    async def get_fields(self) -> List[Dict[str, Any]]:
+        """Get all available JIRA fields including custom fields."""
         ...
 
-    async def get_issue_comments(self, issue_key: str) -> List[Dict[str, Any]]:
-        """Get comments for a JIRA issue."""
+    async def list_projects(self, expand: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all JIRA projects accessible to the authenticated user."""
         ...
 
-    async def search_issues(self, jql: str) -> Dict[str, Any]:
-        """Search JIRA issues using JQL."""
+    async def create_pat(
+        self, token_name: str = "ketchup-pat-rotator", expiry_days: int = 90
+    ) -> Dict[str, Any]:
+        """Create new JIRA PAT via MCP service."""
         ...
 
-    async def get_issues_batch(self, issue_keys: List[str]) -> Dict[str, Optional[Dict[str, Any]]]:
-        """Get multiple JIRA issues in a batch."""
+    async def validate_pat(self, token: str) -> Dict[str, Any]:
+        """Validate PAT token via MCP service."""
+        ...
+
+    async def revoke_pat(self, token_id: str) -> Dict[str, Any]:
+        """Revoke PAT token via MCP service."""
         ...
 
 

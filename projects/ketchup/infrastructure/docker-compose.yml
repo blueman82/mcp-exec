@@ -98,7 +98,6 @@ services:
       - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
       - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
       - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
-      - KETCHUP_USE_ASYNC_MCP=true
       - TZ=Europe/London
     volumes:
       - ./logs:/var/log
@@ -208,7 +207,6 @@ services:
   #     - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
   #     - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
   #     - TZ=Europe/London
-  #     - KETCHUP_USE_ASYNC_MCP=true
   #   volumes:
   #     - ./logs/jira_reporter:/var/log/jira_reporter
   #   depends_on:

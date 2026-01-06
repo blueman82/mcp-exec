@@ -53,7 +53,7 @@ PROTOCOL_IMPORTS = {
     "ChannelOperationsProtocol": "packages.db.protocols",
     # Integration protocols
     "IMSTokenManagerProtocol": "packages.integrations.protocols",
-    "MCPAsyncClientProtocol": "packages.integrations.protocols",
+    "MCPAsyncClientProtocol": "packages.core.typed_di.service_registrations.protocols.mcp_protocols",
     "JIRACacheProtocol": "packages.integrations.protocols",
     "JIRADataExtractorProtocol": "packages.integrations.protocols",
     # Core protocols

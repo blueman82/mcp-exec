@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-01-05T23:57:47.844983",
-  "total_services": 173,
+  "timestamp": "2026-01-06T11:45:34.344971",
+  "total_services": 174,
   "batch_breakdown": {
     "essential_services": 6,
     "batch_1_slack_core": 4,
@@ -8,16 +8,16 @@
     "batch_3_ai_operational": 7,
     "batch_4_integration": 13,
     "batch_5_additional": 40,
-    "batch_6_post_migration_services": 89
+    "batch_6_post_migration_services": 90
   },
   "domain_breakdown": {
     "core_infrastructure": 8,
     "db_operations": 7,
     "slack_commands": 3,
     "slack_interactive": 125,
-    "integrations": 18,
+    "integrations": 19,
     "ai_ui_metrics": 12,
-    "total_categorized": 173
+    "total_categorized": 174
   },
   "services": [
     "SecretsManagerProtocol:default",
@@ -66,7 +66,6 @@
     "MCPConfigProtocol:default",
     "MCPAsyncClientProtocol:default",
     "iPaaSRateLimiterProtocol:default",
-    "MCPClientProtocol:default",
     "CommandUsageCSVGeneratorProtocol:default",
     "TrustEndorsementHandlerProtocol:default",
     "FlagReviewHandlerProtocol:default",
@@ -125,6 +124,10 @@
     "FeedbackOperationsProtocol:default",
     "TrustOperationsProtocol:default",
     "BlockBuilderProtocol:default",
+    "JIRAIntegrationServiceProtocol:default",
+    "JIRATicketServiceProtocol:default",
+    "JIRAWorkflowServiceProtocol:default",
+    "JIRAWebhookServiceProtocol:default",
     "MCPProtocolServiceProtocol:default",
     "MCPClientServiceProtocol:default",
     "MCPServerServiceProtocol:default",
@@ -186,8 +189,6 @@
     "IntegrationMonitoringServiceProtocol:default",
     "JIRAServiceProtocol:default",
     "JiraTicketDiscovery:default",
-    "JIRATicketServiceProtocol:default",
-    "JIRAWorkflowServiceProtocol:default",
     "JIRAReportingServiceProtocol:default",
     "JIRAAnalyticsServiceProtocol:default",
     "RavenMaintenanceClientProtocol:default",
@@ -195,9 +196,9 @@
     "JiraPromptHandlerProtocol:default"
   ],
   "protocols_coverage": {
-    "total_services": 173,
-    "services_with_protocols": 177,
-    "protocol_coverage_percentage": 102.3
+    "total_services": 174,
+    "services_with_protocols": 180,
+    "protocol_coverage_percentage": 103.4
   },
   "qualifiers_implemented": [
     "primary"

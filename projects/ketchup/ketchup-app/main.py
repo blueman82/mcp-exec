@@ -34,7 +34,7 @@ from packages.core.typed_di.service_registrations.protocols.jira_protocols impor
     JIRACacheProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
-    MCPClientProtocol,
+    MCPAsyncClientProtocol,
 )
 
 # Import Ketchup modules
@@ -371,7 +371,7 @@ async def get_detailed_metrics():
         # Get MCP client via TypedDI
         mcp_client = None
         try:
-            mcp_client = await container.aget(MCPClientProtocol)
+            mcp_client = await container.aget(MCPAsyncClientProtocol)
         except (RuntimeError, MissingDependencyError, AttributeError):
             pass
 

@@ -83,7 +83,7 @@ class TestJIRADataExtractor:
 
     @pytest.fixture
     def mock_mcp_client(self):
-        """Create mock MCP client."""
+        """Create mock MCP client (simulates AsyncMCPClient - the unified client)."""
         client = AsyncMock()
         client.search_issues = AsyncMock()
         client.get_issue = AsyncMock()

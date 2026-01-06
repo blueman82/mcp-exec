@@ -447,3 +447,215 @@ class TestAsyncMCPClient:
         result = await client.list_projects()
 
         assert result == []
+
+    # ==========================================================================
+    # PAT (Personal Access Token) Method Tests
+    # ==========================================================================
+
+    @pytest.mark.asyncio
+    async def test_create_pat_success(self, client, mocker):
+        """create_pat should return PAT data on successful creation."""
+
+        ensure_conn_mock = AsyncMock()
+        acquire_mock = AsyncMock()
+        mocker.patch.object(client, "ensure_connection", ensure_conn_mock)
+        mocker.patch.object(client.rate_limiter, "acquire", acquire_mock)
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(
+                return_value={
+                    "success": True,
+                    "message": "PAT created",
+                    "data": {
+                        "pat": "test-pat-token-value",
+                        "id": "pat-123",
+                        "expiryDate": "2026-04-06T00:00:00Z",
+                    },
+                }
+            ),
+        )
+
+        result = await client.create_pat(token_name="test-pat", expiry_days=90)
+
+        assert result["pat"] == "test-pat-token-value"
+        assert result["id"] == "pat-123"
+        assert result["expiryDate"] == "2026-04-06T00:00:00Z"
+        ensure_conn_mock.assert_called_once()
+        acquire_mock.assert_called_once()
+        client._call_mcp_tool.assert_called_once_with(
+            "create_jira_pat", {"tokenName": "test-pat", "expiryDays": 90}
+        )
+
+    @pytest.mark.asyncio
+    async def test_create_pat_failure(self, client, mocker):
+        """create_pat should raise exception on failure response."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(
+                return_value={
+                    "success": False,
+                    "message": "Rate limit exceeded",
+                }
+            ),
+        )
+
+        with pytest.raises(Exception) as exc:
+            await client.create_pat()
+
+        assert "Rate limit exceeded" in str(exc.value)
+
+    @pytest.mark.asyncio
+    async def test_create_pat_network_error(self, client, mocker):
+        """create_pat should propagate network exceptions."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(side_effect=Exception("Connection refused")),
+        )
+
+        with pytest.raises(Exception) as exc:
+            await client.create_pat()
+
+        assert "Connection refused" in str(exc.value)
+
+    @pytest.mark.asyncio
+    async def test_validate_pat_success(self, client, mocker):
+        """validate_pat should return validation result on success."""
+
+        ensure_conn_mock = AsyncMock()
+        acquire_mock = AsyncMock()
+        mocker.patch.object(client, "ensure_connection", ensure_conn_mock)
+        mocker.patch.object(client.rate_limiter, "acquire", acquire_mock)
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(
+                return_value={
+                    "valid": True,
+                    "message": "Token is valid",
+                }
+            ),
+        )
+
+        result = await client.validate_pat("test-token-value")
+
+        assert result["valid"] is True
+        assert result["message"] == "Token is valid"
+        ensure_conn_mock.assert_called_once()
+        acquire_mock.assert_called_once()
+        client._call_mcp_tool.assert_called_once_with(
+            "validate_jira_pat", {"token": "test-token-value"}
+        )
+
+    @pytest.mark.asyncio
+    async def test_validate_pat_failure(self, client, mocker):
+        """validate_pat should return failure result for invalid tokens."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(
+                return_value={
+                    "valid": False,
+                    "message": "Token expired or invalid",
+                }
+            ),
+        )
+
+        result = await client.validate_pat("expired-token")
+
+        assert result["valid"] is False
+        assert "expired or invalid" in result["message"]
+
+    @pytest.mark.asyncio
+    async def test_validate_pat_network_error(self, client, mocker):
+        """validate_pat should propagate network exceptions."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(side_effect=Exception("Network timeout")),
+        )
+
+        with pytest.raises(Exception) as exc:
+            await client.validate_pat("test-token")
+
+        assert "Network timeout" in str(exc.value)
+
+    @pytest.mark.asyncio
+    async def test_revoke_pat_success(self, client, mocker):
+        """revoke_pat should return success result on successful revocation."""
+
+        ensure_conn_mock = AsyncMock()
+        acquire_mock = AsyncMock()
+        mocker.patch.object(client, "ensure_connection", ensure_conn_mock)
+        mocker.patch.object(client.rate_limiter, "acquire", acquire_mock)
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(
+                return_value={
+                    "success": True,
+                    "message": "PAT revoked successfully",
+                }
+            ),
+        )
+
+        result = await client.revoke_pat("pat-123")
+
+        assert result["success"] is True
+        assert result["message"] == "PAT revoked successfully"
+        ensure_conn_mock.assert_called_once()
+        acquire_mock.assert_called_once()
+        client._call_mcp_tool.assert_called_once_with("revoke_jira_pat", {"tokenId": "pat-123"})
+
+    @pytest.mark.asyncio
+    async def test_revoke_pat_failure(self, client, mocker):
+        """revoke_pat should return failure result when revocation fails."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(
+                return_value={
+                    "success": False,
+                    "message": "Token not found",
+                }
+            ),
+        )
+
+        result = await client.revoke_pat("nonexistent-pat-id")
+
+        assert result["success"] is False
+        assert "not found" in result["message"]
+
+    @pytest.mark.asyncio
+    async def test_revoke_pat_network_error(self, client, mocker):
+        """revoke_pat should propagate network exceptions."""
+
+        mocker.patch.object(client, "ensure_connection", AsyncMock())
+        mocker.patch.object(client.rate_limiter, "acquire", AsyncMock())
+        mocker.patch.object(
+            client,
+            "_call_mcp_tool",
+            AsyncMock(side_effect=Exception("Service unavailable")),
+        )
+
+        with pytest.raises(Exception) as exc:
+            await client.revoke_pat("pat-123")
+
+        assert "Service unavailable" in str(exc.value)

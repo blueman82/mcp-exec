@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 
 from packages.core.jira_constants import VALID_JIRA_PROJECTS
 from packages.core.logging import setup_logger
-from packages.integrations.mcp_async_client import MCPAsyncClient
+from packages.integrations.async_mcp_client import AsyncMCPClient
 
 logger = setup_logger(__name__)
 
@@ -23,12 +23,12 @@ EXIGENCE_URL_TEMPLATE = (
 class JiraTicketDiscovery:
     """Service for discovering JIRA tickets linked to CSO channels."""
 
-    def __init__(self, mcp_client: Optional[MCPAsyncClient] = None):
+    def __init__(self, mcp_client: Optional[AsyncMCPClient] = None):
         """
         Initialize the JIRA ticket discovery service.
 
         Args:
-            mcp_client: MCPAsyncClient for direct JIRA API access
+            mcp_client: AsyncMCPClient for direct JIRA API access
         """
         self.mcp_client = mcp_client
         self.valid_projects = os.environ.get(

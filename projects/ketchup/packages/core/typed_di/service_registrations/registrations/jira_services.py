@@ -19,15 +19,12 @@ try:
     from ketchup_unified_scheduler.services.jira_reporter.ticket_discovery import (
         JiraTicketDiscovery,
     )
-    from packages.core.config.mcp_feature_flags import MCPFeatureFlags
     from packages.core.local_metrics import MetricsStorage
     from packages.db.dynamodb_store import DynamoDBStore
     from packages.integrations.async_ims_token_manager import AsyncIMSTokenManager
     from packages.integrations.async_mcp_client import AsyncMCPClient
-    from packages.integrations.ims_token_manager import IMSTokenManager
     from packages.integrations.jira_cache import JIRACache
     from packages.integrations.jira_data_extractor import JIRADataExtractor
-    from packages.integrations.mcp_async_client import MCPAsyncClient
     from packages.secrets.manager import SecretsManager
 
     _JIRA_IMPORTS_AVAILABLE = True
@@ -40,12 +37,9 @@ except ImportError as e:
     JiraTicketDiscovery = Any
     JIRADataExtractor = Any
     JIRACache = Any
-    MCPFeatureFlags = Any
-    MCPAsyncClient = Any
     SecretsManager = Any
-    IMSTokenManager = Any
-    AsyncIMSTokenManager = IMSTokenManager
-    AsyncMCPClient = MCPAsyncClient
+    AsyncIMSTokenManager = Any
+    AsyncMCPClient = Any
     DynamoDBStore = Any
     MetricsStorage = Any
 
@@ -85,9 +79,9 @@ def register_jira_services(manager: "ServiceRegistrationManager") -> None:
 
     logger.info("Registering JIRA Integration Services (5 services)")
 
-    use_async_clients = MCPFeatureFlags.use_async_clients()
-    ims_token_manager_cls = AsyncIMSTokenManager if use_async_clients else IMSTokenManager
-    mcp_client_cls = AsyncMCPClient if use_async_clients else MCPAsyncClient
+    # Always use async clients (feature flag removed - consolidation complete)
+    ims_token_manager_cls = AsyncIMSTokenManager
+    mcp_client_cls = AsyncMCPClient
 
     # Core JIRA Service
     _register_core_jira_service(manager, ims_token_manager_cls)

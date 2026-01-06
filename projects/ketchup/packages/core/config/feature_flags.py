@@ -7,7 +7,6 @@ Feature flags for configurable features.
 import os
 from typing import Any, Dict
 
-from packages.core.config.mcp_feature_flags import MCPFeatureFlags
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -293,5 +292,5 @@ class FeatureFlags:
             "http2_enabled": FeatureFlags.is_http2_enabled(),
             "httpx_pool_limits": FeatureFlags.get_httpx_pool_limits(),
             "structured_json_output_enabled": FeatureFlags.is_structured_json_output_enabled(),
-            "async_mcp_enabled": MCPFeatureFlags.use_async_clients(),
+            # async_mcp_enabled removed - always True (consolidated to AsyncMCPClient)
         }

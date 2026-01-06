@@ -25,7 +25,7 @@ from packages.core.typed_di.service_registrations.protocols.infrastructure_proto
     IMSTokenManagerProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
-    MCPClientProtocol,
+    MCPAsyncClientProtocol,
 )
 from packages.core.typed_di_integration import get_unified_container
 
@@ -56,9 +56,9 @@ class TestMainTypeInitialization:
 
     @pytest.mark.asyncio
     async def test_mcp_client_protocol_resolved(self):
-        """Test that MCPClientProtocol can be resolved."""
+        """Test that MCPAsyncClientProtocol can be resolved."""
         container = await get_unified_container()
-        mcp_client = await container.aget(MCPClientProtocol)
+        mcp_client = await container.aget(MCPAsyncClientProtocol)
         assert mcp_client is not None
 
     @pytest.mark.asyncio
@@ -77,7 +77,7 @@ class TestMainTypeInitialization:
         required_protocols = [
             DynamoDBStoreProtocol,
             SecretsManagerProtocol,
-            MCPClientProtocol,
+            MCPAsyncClientProtocol,
             IMSTokenManagerProtocol,
         ]
 

@@ -326,25 +326,21 @@ class PATRotator:
         if self._container is not None:
             try:
                 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
-                    MCPClientProtocol,
+                    MCPAsyncClientProtocol,
                 )
 
-                self._mcp_client = await self._container.aget(MCPClientProtocol)
+                self._mcp_client = await self._container.aget(MCPAsyncClientProtocol)
                 logger.info("MCP client resolved via TypedDI")
                 return self._mcp_client
             except Exception as e:
                 logger.error(f"Failed to resolve MCP client via DI: {e}")
 
-        # Fallback to direct instantiation (legacy behavior)
+        # Fallback to direct instantiation with AsyncMCPClient (the single MCP client)
         try:
-            from packages.integrations.ims_token_manager import IMSTokenManager
-            from packages.integrations.mcp_client import MCPClient
-            from packages.secrets.manager import SecretsManager as PackageSecretsManager
+            from packages.integrations.async_mcp_client import AsyncMCPClient
 
-            package_secrets_manager = PackageSecretsManager()
-            token_manager = IMSTokenManager(package_secrets_manager)
-            self._mcp_client = MCPClient(token_manager)
-            logger.info("MCP client initialized via fallback (direct instantiation)")
+            self._mcp_client = AsyncMCPClient()
+            logger.info("MCP client initialized via fallback (AsyncMCPClient)")
             return self._mcp_client
         except Exception as e:
             logger.error(f"Failed to initialize MCP client: {e}")
