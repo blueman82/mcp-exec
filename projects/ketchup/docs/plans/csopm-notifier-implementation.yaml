@@ -311,7 +311,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/csopm_notifier/test_jira_poller.py -v"
+        - "uv run pytest tests/unit/csopm_notifier/test_jira_poller.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient'"
