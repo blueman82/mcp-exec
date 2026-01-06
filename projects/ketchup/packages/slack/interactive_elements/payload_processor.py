@@ -20,6 +20,11 @@ from packages.slack.interactive_elements.access_request_handler import (
 from packages.slack.interactive_elements.channel_metadata_edit import (
     ChannelMetadataEditHandler,
 )
+from packages.slack.interactive_elements.csopm_handler import (
+    CSOPMHandler,
+    is_csopm_action,
+    is_csopm_modal,
+)
 from packages.slack.interactive_elements.feedback_reactions import (
     FeedbackReactionsHandler,
 )
@@ -47,6 +52,7 @@ async def process_interactive_payload(
     trust_endorsement_handler: TrustEndorsementHandler,
     access_request_handler: AccessRequestHandler = None,  # AccessRequestHandler - optional until fully integrated
     flag_review_handler: Any = None,  # FlagReviewHandler - optional until fully implemented
+    csopm_handler: CSOPMHandler = None,  # CSOPMHandler - optional for CSOPM notifications
 ) -> bool:
     """
     Process an interactive payload from Slack.
@@ -282,6 +288,17 @@ async def process_interactive_payload(
                     logger.error("Failed to process command flag review action")
                 return True
 
+            # Process CSOPM actions (csopm_acknowledge, csopm_create_followup, etc.)
+            if is_csopm_action(action_id):
+                if csopm_handler is None:
+                    logger.error("CSOPM handler not available for action: %s", action_id)
+                    return True
+                logger.info("Processing CSOPM action: %s", action_id)
+                success = await csopm_handler.handle_block_action(payload=payload)
+                if not success:
+                    logger.error("Failed to process CSOPM action: %s", action_id)
+                return True
+
             # Unknown action
             logger.warning("Unknown action_id: %s", action_id)
             await posting_handler.post_message(
@@ -319,6 +336,15 @@ async def process_interactive_payload(
                     return True
                 logger.info("Processing flag review modal submission")
                 success = await flag_review_handler.process_flag_action(payload=payload)
+                return success
+
+            # Handle CSOPM modal submissions (e.g., csopm_create_followup_modal)
+            if is_csopm_modal(callback_id):
+                if csopm_handler is None:
+                    logger.error("CSOPM handler not available for modal submission: %s", callback_id)
+                    return True
+                logger.info("Processing CSOPM modal submission: %s", callback_id)
+                success = await csopm_handler.handle_view_submission(payload=payload)
                 return success
 
             if callback_id == "edit_channel_metadata":
