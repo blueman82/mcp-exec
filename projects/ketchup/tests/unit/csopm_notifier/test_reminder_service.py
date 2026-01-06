@@ -49,6 +49,25 @@ class MockMCPClient:
         self._call_mcp_tool = AsyncMock()
 
 
+class MockJIRAPoller:
+    """Mock CSOPMJIRAPollerProtocol for testing."""
+
+    def __init__(self) -> None:
+        self.poll_for_new_assignments = AsyncMock()
+        self.get_ticket_details = AsyncMock()
+        self.get_tickets_by_assignee = AsyncMock()
+
+
+class MockMetrics:
+    """Mock CSOPMMetricsProtocol for testing."""
+
+    def __init__(self) -> None:
+        self.increment_counter = AsyncMock()
+        self.record_gauge = AsyncMock()
+        self.record_latency = AsyncMock()
+        self.get_metrics_summary = AsyncMock()
+
+
 def make_ticket(
     key: str = "CSOPM-1234",
     summary: str = "Test Issue",
@@ -266,7 +285,7 @@ class TestRCAReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(call_args.kwargs["followup_type"], "rca_reminder")
 
     async def test_check_rca_reminders_returns_due_records(self):
-        """Test check_rca_reminders returns records that are due."""
+        """Test check_rca_reminders returns records that are 7+ days old and due."""
         records = [
             make_notification_record("CSOPM-1001", rca_reminder_sent=False),
             make_notification_record("CSOPM-1002", rca_reminder_sent=True),  # Skip
@@ -274,12 +293,56 @@ class TestRCAReminder(unittest.IsolatedAsyncioTestCase):
         ]
         self.mock_state_tracker.get_all_active_notifications.return_value = records
 
+        # Set up mock ticket details with 8-day old tickets
+        old_ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=8))
+        self.mock_mcp_client.get_issue.return_value = {
+            "key": "CSOPM-1001",
+            "fields": {
+                "summary": "Test",
+                "status": {"name": "New"},
+                "assignee": {"name": "testuser"},
+                "created": old_ticket.created_at.isoformat(),
+            },
+        }
+
         result = await self.service.check_rca_reminders()
 
         self.assertEqual(len(result), 2)
         ticket_keys = [r.ticket_key for r in result]
         self.assertIn("CSOPM-1001", ticket_keys)
         self.assertIn("CSOPM-1003", ticket_keys)
+
+    async def test_check_rca_reminders_filters_by_7_day_age(self):
+        """Test check_rca_reminders only returns tickets 7+ days old."""
+        records = [
+            make_notification_record("CSOPM-1001", rca_reminder_sent=False),  # Will be 8 days old
+            make_notification_record("CSOPM-1002", rca_reminder_sent=False),  # Will be 3 days old
+        ]
+        self.mock_state_tracker.get_all_active_notifications.return_value = records
+
+        # Mock get_issue to return different ages for each ticket
+        def mock_get_issue(issue_key, fields):
+            if issue_key == "CSOPM-1001":
+                created = datetime.now(timezone.utc) - timedelta(days=8)
+            else:
+                created = datetime.now(timezone.utc) - timedelta(days=3)
+            return {
+                "key": issue_key,
+                "fields": {
+                    "summary": "Test",
+                    "status": {"name": "New"},
+                    "assignee": {"name": "testuser"},
+                    "created": created.isoformat(),
+                },
+            }
+
+        self.mock_mcp_client.get_issue.side_effect = mock_get_issue
+
+        result = await self.service.check_rca_reminders()
+
+        # Only the 8-day old ticket should be returned
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].ticket_key, "CSOPM-1001")
 
     async def test_check_rca_reminders_skips_escalated(self):
         """Test check_rca_reminders skips escalated records."""
@@ -415,11 +478,23 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(call_args.kwargs["followup_type"], "closure_reminder")
 
     async def test_check_closure_reminders_checks_linked_tickets(self):
-        """Test check_closure_reminders checks for linked tickets."""
+        """Test check_closure_reminders checks for linked tickets for 45+ day old tickets."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
         self.mock_state_tracker.get_all_active_notifications.return_value = records
+
+        # Mock ticket details with 50-day old ticket
+        old_ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+        self.mock_mcp_client.get_issue.return_value = {
+            "key": "CSOPM-1001",
+            "fields": {
+                "summary": "Test",
+                "status": {"name": "New"},
+                "assignee": {"name": "testuser"},
+                "created": old_ticket.created_at.isoformat(),
+            },
+        }
         self.mock_mcp_client.search_issues.return_value = {"issues": []}
 
         result = await self.service.check_closure_reminders()
@@ -428,12 +503,57 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         call_args = self.mock_mcp_client.search_issues.call_args
         self.assertIn("linkedIssues", call_args.kwargs["jql"])
 
+    async def test_check_closure_reminders_filters_by_45_day_age(self):
+        """Test check_closure_reminders only returns tickets 45+ days old."""
+        records = [
+            make_notification_record("CSOPM-1001", closure_reminder_sent=False),  # Will be 50 days old
+            make_notification_record("CSOPM-1002", closure_reminder_sent=False),  # Will be 30 days old
+        ]
+        self.mock_state_tracker.get_all_active_notifications.return_value = records
+
+        # Mock get_issue to return different ages for each ticket
+        def mock_get_issue(issue_key, fields):
+            if issue_key == "CSOPM-1001":
+                created = datetime.now(timezone.utc) - timedelta(days=50)
+            else:
+                created = datetime.now(timezone.utc) - timedelta(days=30)
+            return {
+                "key": issue_key,
+                "fields": {
+                    "summary": "Test",
+                    "status": {"name": "New"},
+                    "assignee": {"name": "testuser"},
+                    "created": created.isoformat(),
+                },
+            }
+
+        self.mock_mcp_client.get_issue.side_effect = mock_get_issue
+        self.mock_mcp_client.search_issues.return_value = {"issues": []}
+
+        result = await self.service.check_closure_reminders()
+
+        # Only the 50-day old ticket should be returned
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].ticket_key, "CSOPM-1001")
+
     async def test_check_closure_reminders_skips_with_open_linked(self):
         """Test check_closure_reminders skips tickets with open linked tickets."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
         self.mock_state_tracker.get_all_active_notifications.return_value = records
+
+        # Mock ticket details with 50-day old ticket
+        old_ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+        self.mock_mcp_client.get_issue.return_value = {
+            "key": "CSOPM-1001",
+            "fields": {
+                "summary": "Test",
+                "status": {"name": "New"},
+                "assignee": {"name": "testuser"},
+                "created": old_ticket.created_at.isoformat(),
+            },
+        }
         # Return open linked tickets
         self.mock_mcp_client.search_issues.return_value = {
             "issues": [{"key": "LINKED-1", "fields": {"status": {"name": "In Progress"}}}]
@@ -630,14 +750,19 @@ class TestCloseTicketViaReminder(unittest.IsolatedAsyncioTestCase):
 
         self.mock_state_tracker = MockStateTracker()
         self.mock_mcp_client = MockMCPClient()
+        self.mock_metrics = MockMetrics()
         self.service = CSOPMReminderService(
             state_tracker=self.mock_state_tracker,
             mcp_client=self.mock_mcp_client,
+            metrics=self.mock_metrics,
         )
 
     async def test_close_ticket_success(self):
         """Test successfully closing a ticket via reminder."""
         self.mock_mcp_client._call_mcp_tool.return_value = {"success": True}
+        self.mock_state_tracker.get_notification_record.return_value = make_notification_record(
+            closure_reminder_sent=False
+        )
         self.mock_state_tracker.mark_closure_reminder_sent.return_value = make_notification_record(
             closure_reminder_sent=True
         )
@@ -651,8 +776,45 @@ class TestCloseTicketViaReminder(unittest.IsolatedAsyncioTestCase):
         )
         self.mock_state_tracker.mark_closure_reminder_sent.assert_called_once()
 
+    async def test_close_ticket_increments_metric_when_closure_reminder_sent(self):
+        """Test that closing a ticket increments csopm_closed_via_reminder when closure_reminder_sent was true."""
+        self.mock_mcp_client._call_mcp_tool.return_value = {"success": True}
+        # The record already had closure_reminder_sent=True before this close
+        self.mock_state_tracker.get_notification_record.return_value = make_notification_record(
+            closure_reminder_sent=True
+        )
+        self.mock_state_tracker.mark_closure_reminder_sent.return_value = make_notification_record(
+            closure_reminder_sent=True
+        )
+
+        result = await self.service.close_ticket_via_reminder("CSOPM-1234")
+
+        self.assertTrue(result)
+        # Should increment the metric because closure_reminder_sent was true
+        self.mock_metrics.increment_counter.assert_called_once_with("csopm_closed_via_reminder")
+
+    async def test_close_ticket_does_not_increment_metric_when_closure_reminder_not_sent(self):
+        """Test that closing a ticket does not increment metric when closure_reminder_sent was false."""
+        self.mock_mcp_client._call_mcp_tool.return_value = {"success": True}
+        # The record had closure_reminder_sent=False before this close
+        self.mock_state_tracker.get_notification_record.return_value = make_notification_record(
+            closure_reminder_sent=False
+        )
+        self.mock_state_tracker.mark_closure_reminder_sent.return_value = make_notification_record(
+            closure_reminder_sent=True
+        )
+
+        result = await self.service.close_ticket_via_reminder("CSOPM-1234")
+
+        self.assertTrue(result)
+        # Should NOT increment the metric because closure_reminder_sent was false
+        self.mock_metrics.increment_counter.assert_not_called()
+
     async def test_close_ticket_failure(self):
         """Test handling failure when closing a ticket."""
+        self.mock_state_tracker.get_notification_record.return_value = make_notification_record(
+            closure_reminder_sent=True
+        )
         self.mock_mcp_client._call_mcp_tool.return_value = {
             "success": False,
             "message": "Transition not available",
@@ -661,6 +823,8 @@ class TestCloseTicketViaReminder(unittest.IsolatedAsyncioTestCase):
         result = await self.service.close_ticket_via_reminder("CSOPM-1234")
 
         self.assertFalse(result)
+        # Should NOT increment metric on failure
+        self.mock_metrics.increment_counter.assert_not_called()
 
     async def test_close_ticket_error(self):
         """Test handling error when closing a ticket."""

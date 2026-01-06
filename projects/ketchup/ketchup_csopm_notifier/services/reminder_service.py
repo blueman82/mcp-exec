@@ -21,6 +21,8 @@ from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di.protocols import (
+    CSOPMJIRAPollerProtocol,
+    CSOPMMetricsProtocol,
     CSOPMReminderServiceProtocol,
     CSOPMStateTrackerProtocol,
     CSOPMTicket,
@@ -65,15 +67,21 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         self,
         state_tracker: CSOPMStateTrackerProtocol,
         mcp_client: AsyncMCPClient,
+        jira_poller: Optional[CSOPMJIRAPollerProtocol] = None,
+        metrics: Optional[CSOPMMetricsProtocol] = None,
     ) -> None:
         """Initialize the CSOPM reminder service.
 
         Args:
             state_tracker: CSOPMStateTrackerProtocol for state persistence.
             mcp_client: AsyncMCPClient for JIRA API access via MCP.
+            jira_poller: Optional CSOPMJIRAPollerProtocol for ticket details.
+            metrics: Optional CSOPMMetricsProtocol for metrics tracking.
         """
         self._state_tracker = state_tracker
         self._mcp_client = mcp_client
+        self._jira_poller = jira_poller
+        self._metrics = metrics
         logger.info("CSOPMReminderService initialized")
 
     def _calculate_days_old(self, ticket_created_at: datetime) -> int:
@@ -342,6 +350,63 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             logger.error("Error completing %s for %s: %s", followup_type, ticket_key, e)
             return False
 
+    async def _get_ticket_for_record(self, ticket_key: str) -> Optional[CSOPMTicket]:
+        """Get ticket details for a notification record.
+
+        Uses the JIRA poller if available, otherwise queries MCP client directly.
+
+        Args:
+            ticket_key: The JIRA ticket key.
+
+        Returns:
+            CSOPMTicket if found, None otherwise.
+        """
+        try:
+            if self._jira_poller:
+                return await self._jira_poller.get_ticket_details(ticket_key)
+
+            # Fallback: Query MCP client directly
+            issue = await self._mcp_client.get_issue(
+                issue_key=ticket_key,
+                fields=["summary", "status", "assignee", "created", "description"],
+            )
+
+            if not issue:
+                return None
+
+            fields = issue.get("fields", {})
+            assignee_obj = fields.get("assignee", {})
+            status_obj = fields.get("status", {})
+
+            # Parse created date
+            created_str = fields.get("created", "")
+            try:
+                created_at = datetime.fromisoformat(
+                    created_str.replace("+0000", "+00:00")
+                )
+            except (ValueError, AttributeError):
+                created_at = datetime.now(timezone.utc)
+
+            return CSOPMTicket(
+                key=ticket_key,
+                summary=fields.get("summary", ""),
+                assignee_username=(
+                    assignee_obj.get("name") or assignee_obj.get("displayName", "")
+                    if isinstance(assignee_obj, dict)
+                    else ""
+                ),
+                created_at=created_at,
+                status=(
+                    status_obj.get("name", "Unknown")
+                    if isinstance(status_obj, dict)
+                    else "Unknown"
+                ),
+            )
+
+        except Exception as e:
+            logger.error("Error getting ticket %s: %s", ticket_key, e)
+            return None
+
     async def check_rca_reminders(self) -> List[FollowupRecord]:
         """Check for RCA reminders that are due to be sent.
 
@@ -365,6 +430,25 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 if record.rca_reminder_sent:
                     continue
                 if record.notification_status == "escalated":
+                    continue
+
+                # Get ticket details to check age
+                ticket = await self._get_ticket_for_record(record.ticket_key)
+                if not ticket:
+                    logger.warning(
+                        "Could not get ticket details for %s, skipping RCA check",
+                        record.ticket_key,
+                    )
+                    continue
+
+                # Check if ticket is 7+ days old
+                days_old = self._calculate_days_old(ticket.created_at)
+                if days_old < RCA_REMINDER_THRESHOLD_DAYS:
+                    logger.debug(
+                        "Ticket %s is only %d days old, skipping RCA reminder",
+                        record.ticket_key,
+                        days_old,
+                    )
                     continue
 
                 # Create a followup record for RCA reminder
@@ -409,6 +493,25 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 if record.closure_reminder_sent:
                     continue
                 if record.notification_status == "escalated":
+                    continue
+
+                # Get ticket details to check age
+                ticket = await self._get_ticket_for_record(record.ticket_key)
+                if not ticket:
+                    logger.warning(
+                        "Could not get ticket details for %s, skipping closure check",
+                        record.ticket_key,
+                    )
+                    continue
+
+                # Check if ticket is 45+ days old
+                days_old = self._calculate_days_old(ticket.created_at)
+                if days_old < CLOSURE_REMINDER_THRESHOLD_DAYS:
+                    logger.debug(
+                        "Ticket %s is only %d days old, skipping closure reminder",
+                        record.ticket_key,
+                        days_old,
+                    )
                     continue
 
                 # Check for open linked tickets
@@ -591,6 +694,8 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         """Close a JIRA ticket via the reminder workflow.
 
         Transitions the ticket to 'Closed' status using the MCP tool.
+        If the closure reminder was sent (closure_reminder_sent=true) before
+        this closure, increments the csopm_closed_via_reminder metric.
 
         Args:
             ticket_key: The JIRA ticket key to close.
@@ -600,6 +705,12 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         """
         try:
             logger.info("Closing ticket %s via reminder workflow", ticket_key)
+
+            # Check if closure reminder was already sent before this closure
+            record = await self._state_tracker.get_notification_record(ticket_key)
+            closure_reminder_was_sent = (
+                record.closure_reminder_sent if record else False
+            )
 
             # Call MCP tool to transition ticket to Closed
             result = await self._mcp_client._call_mcp_tool(
@@ -616,6 +727,14 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 logger.info("Successfully closed ticket %s", ticket_key)
                 # Mark closure reminder as sent
                 await self._state_tracker.mark_closure_reminder_sent(ticket_key)
+
+                # Increment metric when closure_reminder_sent was true
+                if closure_reminder_was_sent and self._metrics:
+                    await self._metrics.increment_counter("csopm_closed_via_reminder")
+                    logger.info(
+                        "Incremented csopm_closed_via_reminder metric for %s",
+                        ticket_key,
+                    )
             else:
                 logger.error(
                     "Failed to close ticket %s: %s",
