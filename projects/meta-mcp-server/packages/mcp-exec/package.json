@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sandbox-runtime": "^0.0.19",
-    "@justanothermldude/meta-mcp-core": "*",
+    "@justanothermldude/meta-mcp-core": "^0.1.3",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "esbuild": "^0.25.12",
     "get-port": "^7.1.0"
