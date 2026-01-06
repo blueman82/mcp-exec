@@ -869,9 +869,9 @@ plan:
           Create FollowUpTicketCreator for business logic and
           CSOPMLinkSubmitHandler for modal submission handling.
         key_points:
-          - point: "Create issue with MCPClient"
+          - point: "Create issue with AsyncMCPClient"
             details: "Call create_issue(project_key, issue_type_id, summary, description) from Task 3"
-            reference: "packages/integrations/mcp_client.py (Task 3)"
+            reference: "packages/integrations/async_mcp_client.py (Task 3)"
           - point: "Bidirectional linking"
             details: "Call link_issues(followup_key, csopm_key, 'Relates') - 'Relates' is bidirectional"
             reference: "Link type id 10003: 'relates to' <-> 'relates to'"
