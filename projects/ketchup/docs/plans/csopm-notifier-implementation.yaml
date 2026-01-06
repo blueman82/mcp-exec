@@ -300,8 +300,7 @@ plan:
       files:
         - "ketchup_csopm_notifier/services/state_tracker.py"
         - "tests/unit/csopm_notifier/test_state_tracker.py"
-      depends_on:
-        - 1
+      depends_on: [1]
       success_criteria:
         - "CSOPMStateTracker implements CSOPMStateTrackerProtocol"
         - "get_notification_record() queries DynamoDB with PK=CSOPM_NOTIFICATION#{ticket_key}"
