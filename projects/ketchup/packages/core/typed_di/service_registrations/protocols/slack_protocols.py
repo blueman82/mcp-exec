@@ -4,7 +4,7 @@ This module contains protocol definitions for Slack-related services
 including authentication, clients, channels, and user management.
 """
 
-from typing import Protocol, runtime_checkable
+from typing import Dict, List, Optional, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -157,7 +157,17 @@ class SlackChannelRestoreOpsProtocol(Protocol):
 class SlackUserOpsProtocol(Protocol):
     """Protocol for Slack user operations."""
 
-    pass
+    async def get_user_names(self, user_ids: List[str]) -> Dict[str, str]:
+        """Get user names for a list of user IDs."""
+        ...
+
+    async def get_user_usernames(self, user_ids: List[str]) -> Dict[str, str]:
+        """Get usernames (not display names) for a list of user IDs."""
+        ...
+
+    async def get_slack_id_by_email(self, email: str) -> Optional[str]:
+        """Get Slack user ID for an email address using 3-level lookup."""
+        ...
 
 
 @runtime_checkable
