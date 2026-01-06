@@ -405,15 +405,14 @@ plan:
       code_quality:
         python:
           lint_check:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check packages/integrations/mcp_client.py packages/integrations/mcp_async_client.py"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && . .venv/bin/activate && ruff check packages/integrations/async_mcp_client.py"
             exit_on_failure: true
 
       commit:
         type: "feat"
-        message: "add create_issue, link_issues, get_issuetype methods to MCP client"
+        message: "add create_issue, link_issues, get_issuetype methods to AsyncMCPClient"
         files:
-          - "packages/integrations/mcp_client.py"
-          - "packages/integrations/mcp_async_client.py"
+          - "packages/integrations/async_mcp_client.py"
 
     # ========================================
     # PHASE 2: NOTIFICATION
