@@ -166,7 +166,7 @@ plan:
         files:
           - "packages/core/typed_di/**"
           - "tests/unit/typed_di/**"
-      status: "completed"
+      status: "failed"
       execution_history:
         - attempt_number: "1"
           commit_verification:
@@ -258,7 +258,7 @@ plan:
         files:
           - "packages/slack/user_operations/**"
           - "tests/unit/slack/user_operations/**"
-      status: "completed"
+      status: "failed"
       execution_history:
         - attempt_number: "1"
           commit_verification:
