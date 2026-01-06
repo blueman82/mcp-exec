@@ -23,7 +23,6 @@ conductor:
     - group_id: "infrastructure"
       tasks: [9, 10, 11]
       rationale: "Docker, deployment, and testing"
-
 planner_compliance:
   planner_version: "4.0.0"
   strict_enforcement: true
@@ -32,7 +31,6 @@ planner_compliance:
     - test_commands
     - success_criteria
     - data_flow_registry
-
 data_flow_registry:
   producers:
     CSOPMNotifierProtocol:
@@ -88,7 +86,6 @@ data_flow_registry:
     CSOPMNotifierContainer:
       - task: 8
         description: "Main entry point uses container"
-
 plan:
   metadata:
     feature_name: "CSOPM Assignment Notification System"
@@ -96,13 +93,11 @@ plan:
     target: "Automated CSOPM ticket notification with 3-ping retry, 7/45-day reminders, and metrics tracking"
     estimated_tasks: 11
     estimated_time: "3-4 days with parallelization"
-
   context:
     framework: "Python 3.12 + FastAPI"
     test_framework: "pytest + pytest-asyncio"
     package_manager: "uv"
     infrastructure: "Docker on EC2 (prod1/prod2)"
-
   tasks:
     # ============================================================
     # PHASE 1: FOUNDATION (Sequential)
@@ -115,7 +110,6 @@ plan:
         - "packages/core/typed_di/protocols.py"
         - "tests/unit/typed_di/test_csopm_protocols.py"
       depends_on: []
-
       success_criteria:
         - "CSOPMJIRAPollerProtocol defines poll_for_new_assignments() returning List[CSOPMTicket]"
         - "CSOPMStateTrackerProtocol defines get_notification_record(), update_notification_status(), record_followup()"
@@ -126,17 +120,14 @@ plan:
         - "No TODO comments in production code"
         - "No placeholder structs"
         - "All imports resolve"
-
       test_commands:
         - "cd tests/setup && make test-typed-di"
         - "pytest tests/unit/typed_di/test_csopm_protocols.py -v"
-
       runtime_metadata:
         dependency_checks:
-          - command: "python -c 'from packages.core.typed_di.protocols import *'"
+          - command: "PYTHONPATH=. uv run python -c 'from packages.core.typed_di.protocols import *'"
             description: "Verify protocol imports"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -149,7 +140,6 @@ plan:
           in slack_protocols.py and service_protocols.py. Each protocol should use
           @runtime_checkable decorator and define async methods.
         </task_description>
-
       implementation:
         approach: |
           Follow existing protocol patterns in packages/core/typed_di/service_registrations/protocols/.
@@ -165,20 +155,18 @@ plan:
           - point: "Protocol async method signatures"
             details: "All methods must be async def with proper return type hints"
             reference: "packages/core/typed_di/service_registrations/protocols/slack_protocols.py"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add CSOPM notifier protocol definitions for TypedDI"
         files:
           - "packages/core/typed_di/**"
           - "tests/unit/typed_di/**"
-
+      status: "failed"
     - task_number: "2"
       name: "Add Email-to-Slack Lookup Method"
       agent: "python-backend-tdd-agent"
@@ -186,7 +174,6 @@ plan:
         - "packages/slack/user_operations/user_ops.py"
         - "tests/unit/slack/user_operations/test_user_ops_email.py"
       depends_on: []
-
       success_criteria:
         - "SlackUserOps.get_slack_id_by_email() calls Slack users.lookupByEmail API"
         - "Email lookup checks DynamoDB cache (EMAIL_TO_SLACK#{email}) before API call"
@@ -195,16 +182,13 @@ plan:
         - "Returns Optional[str] - Slack user ID or None if not found"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/slack/user_operations/test_user_ops_email.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "grep -n 'lookupByEmail' packages/slack/user_operations/user_ops.py || echo 'Not found - will add'"
             description: "Check if method exists"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -217,7 +201,6 @@ plan:
           get_user_names() pattern. Implement 3-level lookup: memory cache → DynamoDB → Slack API.
           Cache results in DynamoDB with PK=EMAIL_TO_SLACK#{email}, SK=METADATA.
         </task_description>
-
       implementation:
         approach: |
           Follow the existing multi-level caching pattern in get_user_names().
@@ -233,20 +216,18 @@ plan:
           - point: "Backoff decorator"
             details: "Apply @with_exponential_backoff(max_retries=3) to _fetch_slack_id_by_email_internal"
             reference: "packages/core/resilience/backoff.py"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add email-to-Slack user ID lookup with DynamoDB caching"
         files:
           - "packages/slack/user_operations/**"
           - "tests/unit/slack/user_operations/**"
-
+      status: "failed"
     # ============================================================
     # PHASE 2: CORE SERVICES (Parallel - 4 tasks)
     # ============================================================
@@ -258,7 +239,6 @@ plan:
         - "tests/unit/csopm_notifier/test_state_tracker.py"
       depends_on:
         - 1
-
       success_criteria:
         - "CSOPMStateTracker implements CSOPMStateTrackerProtocol"
         - "get_notification_record() queries DynamoDB with PK=CSOPM_NOTIFICATION#{ticket_key}"
@@ -268,16 +248,13 @@ plan:
         - "handle_reassignment() updates assignee fields and resets ping_count"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/csopm_notifier/test_state_tracker.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "python -c 'from packages.db.dynamodb_store import DynamoDBStore'"
             description: "Verify DynamoDB store import"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -290,7 +267,6 @@ plan:
           Follow the existing operations pattern in packages/db/operations/.
           Use proper DynamoDB type descriptors ({"S": value}, {"N": str(num)}, {"BOOL": bool}).
         </task_description>
-
       implementation:
         approach: |
           Create CSOPMStateTracker in ketchup_csopm_notifier/services/state_tracker.py.
@@ -306,20 +282,17 @@ plan:
           - point: "Reassignment handling"
             details: "Update assignee_jira_username, assignee_slack_id, reset ping_count=1, append to assignee_history"
             reference: "Design Section 4"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add CSOPMStateTracker for DynamoDB notification state management"
         files:
           - "ketchup_csopm_notifier/**"
           - "tests/unit/csopm_notifier/**"
-
     - task_number: "4"
       name: "Implement CSOPMJIRAPoller Service"
       agent: "python-backend-tdd-agent"
@@ -328,7 +301,6 @@ plan:
         - "tests/unit/csopm_notifier/test_jira_poller.py"
       depends_on:
         - 1
-
       success_criteria:
         - "CSOPMJIRAPoller implements CSOPMJIRAPollerProtocol"
         - "poll_for_new_assignments() uses JQL: project = CSOPM AND assignee IS NOT EMPTY AND status = 'New'"
@@ -338,16 +310,13 @@ plan:
         - "Extracts exigence_id from ticket description using regex pattern"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/csopm_notifier/test_jira_poller.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient'"
             description: "Verify MCP client import"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -360,7 +329,6 @@ plan:
           ketchup_unified_scheduler/services/jira_reporter/ticket_discovery.py.
           Filter for NEW status CSOPM tickets with assignees.
         </task_description>
-
       implementation:
         approach: |
           Create CSOPMJIRAPoller in ketchup_csopm_notifier/services/jira_poller.py.
@@ -376,20 +344,17 @@ plan:
           - point: "Exigence ID extraction"
             details: "Regex pattern for 5-6 digit ID in description URL: r'/events/(\\d{5,6})/'"
             reference: "Design Section 5"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add CSOPMJIRAPoller for MCP-based JIRA ticket discovery"
         files:
           - "ketchup_csopm_notifier/**"
           - "tests/unit/csopm_notifier/**"
-
     - task_number: "5"
       name: "Implement CSOPMSlackNotifier Service"
       agent: "python-backend-tdd-agent"
@@ -401,7 +366,6 @@ plan:
         - 1
         - 2
         - 3
-
       success_criteria:
         - "CSOPMSlackNotifier implements CSOPMSlackNotifierProtocol"
         - "send_assignment_dm() uses SlackUserOps.get_slack_id_by_email() to resolve assignee"
@@ -412,16 +376,13 @@ plan:
         - "Increments csopm_notifications_sent metric on successful DM"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/csopm_notifier/test_slack_notifier.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "python -c 'from packages.slack.messages.posting import SlackPostingHandler'"
             description: "Verify Slack posting import"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -434,7 +395,6 @@ plan:
           Follow existing patterns in packages/slack/interactive_elements/.
           Create reusable block builders in ketchup_csopm_notifier/blocks/.
         </task_description>
-
       implementation:
         approach: |
           Create CSOPMSlackNotifier using SlackPostingHandler for DM sending.
@@ -450,20 +410,17 @@ plan:
           - point: "JIRA comment on acknowledge"
             details: "Call AsyncMCPClient.create_issue_comment() with acknowledgment message"
             reference: "packages/integrations/async_mcp_client.py"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add CSOPMSlackNotifier for DM notifications with interactive buttons"
         files:
           - "ketchup_csopm_notifier/**"
           - "tests/unit/csopm_notifier/**"
-
     - task_number: "6"
       name: "Implement CSOPMReminderService"
       agent: "python-backend-tdd-agent"
@@ -473,7 +430,6 @@ plan:
       depends_on:
         - 1
         - 3
-
       success_criteria:
         - "CSOPMReminderService implements CSOPMReminderServiceProtocol"
         - "check_rca_reminders() finds tickets 7+ days old with rca_reminder_sent=false"
@@ -485,16 +441,13 @@ plan:
         - "Increments csopm_closed_via_reminder when closure_reminder_sent was true"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/csopm_notifier/test_reminder_service.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "grep -n 'transition_jira_status' packages/integrations/async_mcp_client.py || echo 'Check MCP tools'"
             description: "Verify JIRA transition capability"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -506,7 +459,6 @@ plan:
           Calculate days since ticket_created_at for reminder triggers.
           Check linked tickets status before closure reminder.
         </task_description>
-
       implementation:
         approach: |
           Calculate reminder eligibility using datetime comparison with ticket_created_at.
@@ -522,20 +474,17 @@ plan:
           - point: "3-ping escalation for reminders"
             details: "rca_ping_count and closure_ping_count tracked separately, escalate at 3"
             reference: "Design Section 4"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add CSOPMReminderService for 7-day RCA and 45-day closure reminders"
         files:
           - "ketchup_csopm_notifier/**"
           - "tests/unit/csopm_notifier/**"
-
     # ============================================================
     # PHASE 3: INTEGRATION (Sequential)
     # ============================================================
@@ -553,7 +502,6 @@ plan:
         - 4
         - 5
         - 6
-
       success_criteria:
         - "CSOPMNotifierContainer class creates TypedServiceRegistry with all CSOPM services"
         - "Services registered: CSOPMJIRAPoller, CSOPMStateTracker, CSOPMSlackNotifier, CSOPMReminderService"
@@ -562,16 +510,13 @@ plan:
         - "Registration follows pattern in packages/core/typed_di/service_registrations/registrations/"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/csopm_notifier/test_container.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "ls packages/core/typed_di/service_registrations/registrations/"
             description: "List existing registration modules"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -584,7 +529,6 @@ plan:
           Follow the pattern in typed_di_integration.py for async initialization.
           Register services with factory functions that resolve dependencies.
         </task_description>
-
       implementation:
         approach: |
           Create container.py with async get_csopm_container() function.
@@ -600,13 +544,11 @@ plan:
           - point: "Shared dependency reuse"
             details: "Resolve DynamoDBStore, AsyncMCPClient from existing registrations, don't recreate"
             reference: "packages/core/typed_di_integration.py"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Wire TypedDI container for CSOPM notifier services"
@@ -614,7 +556,6 @@ plan:
           - "ketchup_csopm_notifier/**"
           - "packages/core/typed_di/**"
           - "tests/unit/csopm_notifier/**"
-
     - task_number: "8"
       name: "Create Main Entry Point and Scheduler"
       agent: "python-backend-tdd-agent"
@@ -624,7 +565,6 @@ plan:
         - "tests/unit/csopm_notifier/test_scheduler.py"
       depends_on:
         - 7
-
       success_criteria:
         - "main.py initializes container, starts scheduler, handles graceful shutdown"
         - "CSOPMScheduler runs poll cycle at 08:00 and 16:00 UTC daily"
@@ -634,16 +574,13 @@ plan:
         - "Graceful shutdown on SIGTERM/SIGINT"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/csopm_notifier/test_scheduler.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "cat ketchup_unified_scheduler/main.py | head -50"
             description: "Reference unified scheduler main pattern"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -656,7 +593,6 @@ plan:
           Use time-based scheduling for 08:00 and 16:00 UTC.
           Follow unified scheduler patterns for health monitoring and graceful shutdown.
         </task_description>
-
       implementation:
         approach: |
           Create main.py with asyncio event loop and signal handlers.
@@ -672,20 +608,17 @@ plan:
           - point: "Signal handling"
             details: "Register SIGTERM/SIGINT handlers to set running=False and graceful shutdown"
             reference: "ketchup_unified_scheduler/main.py"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add main entry point and scheduler for CSOPM notifier container"
         files:
           - "ketchup_csopm_notifier/**"
           - "tests/unit/csopm_notifier/**"
-
     # ============================================================
     # PHASE 4: INFRASTRUCTURE (Sequential)
     # ============================================================
@@ -698,7 +631,6 @@ plan:
         - "infrastructure/healthcheck-csopm-notifier.sh"
       depends_on:
         - 8
-
       success_criteria:
         - "Dockerfile.csopm-notifier uses multi-stage build matching Dockerfile.unified-scheduler"
         - "Stage 1 builder installs dependencies with uv to /opt/venv"
@@ -710,16 +642,13 @@ plan:
         - "Healthcheck uses healthcheck-csopm-notifier.sh script"
         - "Logging: json-file driver with max-size: 10m, max-file: 3"
         - "No TODO comments in production code"
-
       test_commands:
         - "docker build -f infrastructure/Dockerfile.csopm-notifier -t test-csopm-notifier .."
-
       runtime_metadata:
         dependency_checks:
           - command: "cat infrastructure/Dockerfile.unified-scheduler | head -30"
             description: "Reference existing Dockerfile pattern"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -732,7 +661,6 @@ plan:
           Follow existing patterns for multi-stage builds and docker-compose configuration.
           Add as singleton service on prod1 only (like unified-scheduler).
         </task_description>
-
       implementation:
         approach: |
           Copy Dockerfile.unified-scheduler structure, modify for csopm_notifier module.
@@ -748,19 +676,16 @@ plan:
           - point: "Healthcheck script"
             details: "Check /tmp/csopm_notifier_health exists and timestamp < 5 minutes old"
             reference: "infrastructure/healthcheck-scheduler.sh"
-
       code_quality:
         docker:
           hadolint:
             command: "hadolint infrastructure/Dockerfile.csopm-notifier || true"
             exit_on_failure: false
-
       commit:
         type: "feat"
         message: "Add Docker infrastructure for CSOPM notifier container"
         files:
           - "infrastructure/**"
-
     - task_number: "10"
       name: "Add Slack Interactive Element Handlers"
       agent: "python-integration-specialist"
@@ -771,7 +696,6 @@ plan:
       depends_on:
         - 5
         - 7
-
       success_criteria:
         - "CSOPMHandler class routes csopm_* action_ids to appropriate handlers"
         - "Handles: csopm_acknowledge, csopm_create_followup, csopm_done, csopm_close, csopm_snooze"
@@ -782,16 +706,13 @@ plan:
         - "Follow-up creation calls create_jira_issue then link_issues MCP tools"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "pytest tests/unit/slack/interactive_elements/test_csopm_handler.py -v"
-
       runtime_metadata:
         dependency_checks:
           - command: "grep -n 'action_id' packages/slack/interactive_elements/payload_processor.py | head -10"
             description: "Understand action routing pattern"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -804,7 +725,6 @@ plan:
           Integrate with payload_processor.py routing.
           Implement dynamic modal for follow-up ticket creation.
         </task_description>
-
       implementation:
         approach: |
           Create CSOPMHandler in packages/slack/interactive_elements/csopm_handler.py.
@@ -820,20 +740,17 @@ plan:
           - point: "Follow-up creation flow"
             details: "create_jira_issue() → link_issues(inward=CSOPM, outward=new, type='Relates')"
             reference: "MCP tool: link_issues"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "feat"
         message: "Add Slack interactive handlers for CSOPM button actions and modals"
         files:
           - "packages/slack/interactive_elements/**"
           - "tests/unit/slack/interactive_elements/**"
-
     - task_number: "11"
       name: "Integration Tests and Documentation"
       agent: "quality-control"
@@ -844,7 +761,6 @@ plan:
       depends_on:
         - 9
         - 10
-
       success_criteria:
         - "Integration test queries real CSOPM tickets via MCP-JIRA"
         - "Integration test reads/writes to DynamoDB with test prefix"
@@ -854,18 +770,15 @@ plan:
         - "Lint checks pass: make lint"
         - "No TODO comments in production code"
         - "All imports resolve"
-
       test_commands:
         - "cd tests/setup && make test-fast"
         - "cd tests/setup && make lint"
         - "pytest tests/integration/test_csopm_notifier/ -v --ignore=tests/integration/test_csopm_notifier/ || echo 'Integration tests require AWS_PROFILE'"
-
       runtime_metadata:
         dependency_checks:
           - command: "cd tests/setup && make test-fast"
             description: "Run all unit tests"
         documentation_targets: []
-
       description: |
         <dependency_verification priority="execute_first">
           <commands>
@@ -878,7 +791,6 @@ plan:
           Integration tests require AWS_PROFILE for DynamoDB and live MCP-JIRA.
           Update CLAUDE.md to document the new service.
         </task_description>
-
       implementation:
         approach: |
           Create integration test directory tests/integration/test_csopm_notifier/.
@@ -895,13 +807,11 @@ plan:
           - point: "Feature flag documentation"
             details: "Add KETCHUP_CSOPM_NOTIFIER_FEATURE to Feature Flags section"
             reference: "CLAUDE.md:Feature Flags"
-
       code_quality:
         python:
           full_quality_pipeline:
             command: "cd tests/setup && make lint"
             exit_on_failure: true
-
       commit:
         type: "docs"
         message: "Add integration tests and update CLAUDE.md for CSOPM notifier"
