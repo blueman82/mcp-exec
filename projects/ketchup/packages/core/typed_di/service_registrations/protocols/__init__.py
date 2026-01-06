@@ -144,6 +144,18 @@ from .maintenance_protocols import (
     RavenMaintenanceClientProtocol,
 )
 
+# CSOPM notifier protocols
+from .csopm_protocols import (
+    CSOPMJIRAPollerProtocol,
+    CSOPMMetricsProtocol,
+    CSOPMReminderServiceProtocol,
+    CSOPMSlackNotifierProtocol,
+    CSOPMStateTrackerProtocol,
+    CSOPMTicket,
+    FollowupRecord,
+    NotificationRecord,
+)
+
 # MCP protocols (only MCPAsyncClientProtocol remains after consolidation)
 from .mcp_protocols import (
     MCPAsyncClientProtocol,
@@ -417,4 +429,14 @@ __all__ = [
     "RavenMaintenanceClientProtocol",
     "MaintenanceCheckerProtocol",
     "JiraPromptHandlerProtocol",
+    # CSOPM notifier protocols (data classes)
+    "CSOPMTicket",
+    "NotificationRecord",
+    "FollowupRecord",
+    # CSOPM notifier protocols (service protocols)
+    "CSOPMJIRAPollerProtocol",
+    "CSOPMStateTrackerProtocol",
+    "CSOPMSlackNotifierProtocol",
+    "CSOPMReminderServiceProtocol",
+    "CSOPMMetricsProtocol",
 ]
