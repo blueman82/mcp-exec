@@ -18,3 +18,4 @@ tests/setup/logs/
 # Worktree symlinks (shared build artifacts)
 corp_jira_mcp/dist
 corp_jira_mcp/node_modules
+analysis/registered_services_summary.json
