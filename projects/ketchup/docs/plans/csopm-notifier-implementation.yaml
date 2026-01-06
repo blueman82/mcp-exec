@@ -379,8 +379,7 @@ plan:
       files:
         - "ketchup_csopm_notifier/services/jira_poller.py"
         - "tests/unit/csopm_notifier/test_jira_poller.py"
-      depends_on:
-        - 1
+      depends_on: [1]
       success_criteria:
         - "CSOPMJIRAPoller implements CSOPMJIRAPollerProtocol"
         - "poll_for_new_assignments() uses JQL: project = CSOPM AND assignee IS NOT EMPTY AND status = 'New'"
