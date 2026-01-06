@@ -809,8 +809,8 @@ plan:
       success_criteria:
         - "FollowUpTicketCreator service creates JIRA tickets and establishes bidirectional links"
         - "create_and_link(csopm_key, project_key, issue_type_id, summary, description) async method"
-        - "Creates new ticket using MCPClient.create_issue()"
-        - "Links new ticket to CSOPM using MCPClient.link_issues() with 'Relates' type"
+        - "Creates new ticket using AsyncMCPClient.create_issue()"
+        - "Links new ticket to CSOPM using AsyncMCPClient.link_issues() with 'Relates' type"
         - "Returns {success: bool, followup_key: str, error: str} result object"
         - "CSOPMLinkSubmitHandler handles 'csopm_link_modal_submit' callback"
         - "Submit handler extracts form data, calls FollowUpTicketCreator, sends confirmation message"
