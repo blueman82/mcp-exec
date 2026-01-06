@@ -365,6 +365,7 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
         """Handle the Acknowledge button action.
 
         Updates notification state to 'ack' and posts a comment to JIRA.
+        Also increments the csopm.notifications.acknowledged metric.
 
         Args:
             user_id: The Slack user ID who clicked.
@@ -391,6 +392,9 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
 
             if comment_success:
                 logger.info("Posted acknowledgment comment to JIRA for %s", ticket_key)
+                # Increment acknowledgment metric on successful JIRA comment
+                if self._metrics:
+                    await self._metrics.increment_counter("csopm.notifications.acknowledged")
             else:
                 logger.warning(
                     "Failed to post acknowledgment comment to JIRA for %s",
@@ -420,11 +424,8 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
     ) -> bool:
         """Handle the Create Follow-up button action.
 
-        Opens a modal for creating a follow-up ticket.
-
-        Note: This implementation provides the modal structure.
-        Full JIRA ticket creation requires additional integration
-        with project/issue type discovery via MCP client.
+        Opens a modal for creating a follow-up ticket with dynamic
+        project and issue type dropdowns populated from JIRA.
 
         Args:
             user_id: The Slack user ID who clicked.
@@ -463,10 +464,39 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                     },
                 }
 
+            # Fetch available JIRA projects for dropdown
+            projects = []
+            try:
+                projects = await self._mcp_client.list_projects(expand="issueTypes")
+                logger.info("Fetched %d projects for followup modal", len(projects))
+            except Exception as e:
+                logger.warning("Failed to fetch JIRA projects: %s", e)
+                # Continue with fallback text input
+
+            # Extract issue types from the CSOPM project if available
+            issue_types = []
+            try:
+                # Look for CSOPM project in the list to get its issue types
+                for project in projects:
+                    if project.get("key") == "CSOPM":
+                        issue_types = project.get("issueTypes", [])
+                        break
+
+                # If no CSOPM project found or no issue types, try first project
+                if not issue_types and projects:
+                    issue_types = projects[0].get("issueTypes", [])
+
+                logger.info("Extracted %d issue types for followup modal", len(issue_types))
+            except Exception as e:
+                logger.warning("Failed to extract issue types: %s", e)
+                # Continue with fallback text input
+
             # Build CSOPMTicket from issue data
             fields = ticket.get("fields", {})
             status_obj = fields.get("status", {})
             assignee_obj = fields.get("assignee", {})
+
+            from datetime import datetime, timezone as dt_timezone
 
             csopm_ticket = CSOPMTicket(
                 key=ticket_key,
@@ -474,16 +504,22 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                 assignee_username=(
                     assignee_obj.get("name", "") if isinstance(assignee_obj, dict) else ""
                 ),
-                created_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
+                created_at=datetime.now(dt_timezone.utc),
                 status=status_obj.get("name", "Unknown") if isinstance(status_obj, dict) else "Unknown",
             )
 
-            # Build and log modal (actual views.open call would need SlackAsyncClient)
-            modal = CSOPMNotificationBlocks.build_create_followup_modal(csopm_ticket)
+            # Build modal with dynamic project and issue type dropdowns
+            modal = CSOPMNotificationBlocks.build_create_followup_modal(
+                ticket=csopm_ticket,
+                projects=projects,
+                issue_types=issue_types,
+            )
             logger.info(
-                "Create followup modal built for %s (trigger_id: %s)",
+                "Create followup modal built for %s (trigger_id: %s, %d projects, %d issue_types)",
                 ticket_key,
                 trigger_id,
+                len(projects),
+                len(issue_types),
             )
 
             # Note: Opening the modal requires views.open API call
@@ -505,7 +541,9 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
     ) -> bool:
         """Handle the Done button action.
 
-        Marks the ticket as done and optionally posts a JIRA comment.
+        Marks the ticket as done and posts a JIRA comment with batch info
+        if follow-up tickets exist. Queries for linked follow-up tickets
+        and includes their status in the comment.
 
         Args:
             user_id: The Slack user ID who clicked.
@@ -523,8 +561,60 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                 await self._state_tracker.update_notification_status(ticket_key, "done")
                 logger.info("Updated notification status to 'done' for %s", ticket_key)
 
-            # Post done comment to JIRA
-            comment = f"Ticket marked as done via Slack notification (User: {user_id})"
+            # Query for linked follow-up tickets to include in comment
+            followup_info = ""
+            try:
+                # Search for tickets that link to this ticket as a parent
+                jql = f'project = CSOPM AND "Parent Link" = {ticket_key}'
+                search_result = await self._mcp_client.search_issues(
+                    jql=jql,
+                    fields=["key", "summary", "status"],
+                    max_results=10,
+                )
+
+                followup_issues = search_result.get("issues", [])
+                if followup_issues:
+                    # Build batch comment with follow-up ticket info
+                    followup_lines = []
+                    open_count = 0
+                    closed_count = 0
+
+                    for issue in followup_issues:
+                        issue_key = issue.get("key", "")
+                        fields = issue.get("fields", {})
+                        summary = fields.get("summary", "")
+                        status_obj = fields.get("status", {})
+                        status_name = status_obj.get("name", "Unknown") if isinstance(status_obj, dict) else "Unknown"
+
+                        followup_lines.append(f"  - {issue_key}: {summary} (Status: {status_name})")
+
+                        if status_name.lower() in ("closed", "done", "resolved"):
+                            closed_count += 1
+                        else:
+                            open_count += 1
+
+                    followup_info = (
+                        f"\n\nLinked Follow-up Tickets ({len(followup_issues)} total, "
+                        f"{open_count} open, {closed_count} closed):\n"
+                        + "\n".join(followup_lines)
+                    )
+                    logger.info(
+                        "Found %d follow-up tickets for %s (%d open, %d closed)",
+                        len(followup_issues),
+                        ticket_key,
+                        open_count,
+                        closed_count,
+                    )
+            except Exception as e:
+                logger.warning(
+                    "Failed to query follow-up tickets for %s: %s",
+                    ticket_key,
+                    e,
+                )
+                # Continue without follow-up info
+
+            # Post done comment to JIRA with optional follow-up batch info
+            comment = f"Ticket marked as done via Slack notification (User: {user_id}){followup_info}"
             await self._mcp_client.create_issue_comment(
                 issue_key=ticket_key,
                 comment=comment,

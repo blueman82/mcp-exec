@@ -482,22 +482,162 @@ class CSOPMNotificationBlocks:
     def build_create_followup_modal(
         cls,
         ticket: CSOPMTicket,
+        projects: List[Dict[str, Any]] = None,
+        issue_types: List[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Build a modal view for creating a follow-up ticket.
 
         Creates a modal with:
-        - Project selector
-        - Issue type selector
+        - Project selector (dynamic from JIRA)
+        - Issue type selector (dynamic from JIRA)
         - Summary input
         - Description input (pre-filled with parent reference)
 
         Args:
             ticket: The parent CSOPMTicket to create follow-up for.
+            projects: Optional list of JIRA projects for dropdown.
+                Each project dict should have 'key' and 'name' fields.
+            issue_types: Optional list of JIRA issue types for dropdown.
+                Each issue type dict should have 'id' and 'name' fields.
 
         Returns:
             Modal view dictionary for views.open API.
         """
         jira_url = f"{JIRA_BASE_URL}/{ticket.key}"
+
+        # Build blocks list
+        blocks: List[Dict[str, Any]] = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"Creating follow-up for *<{jira_url}|{ticket.key}>*",
+                },
+            },
+        ]
+
+        # Add project selector if projects are provided
+        if projects:
+            project_options = [
+                {
+                    "text": {"type": "plain_text", "text": f"{p['key']} - {p['name']}"[:75]},
+                    "value": p["key"],
+                }
+                for p in projects
+                if p.get("key") and p.get("name")
+            ]
+            if project_options:
+                blocks.append(
+                    {
+                        "type": "input",
+                        "block_id": "project_block",
+                        "label": {"type": "plain_text", "text": "Project"},
+                        "element": {
+                            "type": "static_select",
+                            "action_id": "project_input",
+                            "placeholder": {"type": "plain_text", "text": "Select a project"},
+                            "options": project_options[:100],  # Slack limit is 100 options
+                        },
+                    }
+                )
+        else:
+            # Fallback to text input if no projects provided
+            blocks.append(
+                {
+                    "type": "input",
+                    "block_id": "project_block",
+                    "label": {"type": "plain_text", "text": "Project Key"},
+                    "element": {
+                        "type": "plain_text_input",
+                        "action_id": "project_input",
+                        "initial_value": "CSOPM",
+                        "placeholder": {"type": "plain_text", "text": "Enter project key (e.g., CSOPM)"},
+                    },
+                }
+            )
+
+        # Add issue type selector if issue types are provided
+        if issue_types:
+            issue_type_options = [
+                {
+                    "text": {"type": "plain_text", "text": it["name"][:75]},
+                    "value": it.get("id", it["name"]),
+                }
+                for it in issue_types
+                if it.get("name")
+            ]
+            if issue_type_options:
+                blocks.append(
+                    {
+                        "type": "input",
+                        "block_id": "issue_type_block",
+                        "label": {"type": "plain_text", "text": "Issue Type"},
+                        "element": {
+                            "type": "static_select",
+                            "action_id": "issue_type_input",
+                            "placeholder": {"type": "plain_text", "text": "Select issue type"},
+                            "options": issue_type_options[:100],  # Slack limit is 100 options
+                        },
+                    }
+                )
+        else:
+            # Fallback to text input if no issue types provided
+            blocks.append(
+                {
+                    "type": "input",
+                    "block_id": "issue_type_block",
+                    "label": {"type": "plain_text", "text": "Issue Type"},
+                    "element": {
+                        "type": "plain_text_input",
+                        "action_id": "issue_type_input",
+                        "initial_value": "Task",
+                        "placeholder": {"type": "plain_text", "text": "Enter issue type (e.g., Task, Bug)"},
+                    },
+                }
+            )
+
+        # Add summary input
+        blocks.append(
+            {
+                "type": "input",
+                "block_id": "summary_block",
+                "label": {
+                    "type": "plain_text",
+                    "text": "Summary",
+                },
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "summary_input",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Enter follow-up summary",
+                    },
+                },
+            }
+        )
+
+        # Add description input
+        blocks.append(
+            {
+                "type": "input",
+                "block_id": "description_block",
+                "label": {
+                    "type": "plain_text",
+                    "text": "Description",
+                },
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "description_input",
+                    "multiline": True,
+                    "initial_value": f"Follow-up ticket for {ticket.key}.\n\nParent: {jira_url}",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Enter description",
+                    },
+                },
+                "optional": True,
+            }
+        )
 
         return {
             "type": "modal",
@@ -515,50 +655,7 @@ class CSOPMNotificationBlocks:
                 "type": "plain_text",
                 "text": "Cancel",
             },
-            "blocks": [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"Creating follow-up for *<{jira_url}|{ticket.key}>*",
-                    },
-                },
-                {
-                    "type": "input",
-                    "block_id": "summary_block",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Summary",
-                    },
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "summary_input",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Enter follow-up summary",
-                        },
-                    },
-                },
-                {
-                    "type": "input",
-                    "block_id": "description_block",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Description",
-                    },
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "description_input",
-                        "multiline": True,
-                        "initial_value": f"Follow-up ticket for {ticket.key}.\n\nParent: {jira_url}",
-                        "placeholder": {
-                            "type": "plain_text",
-                            "text": "Enter description",
-                        },
-                    },
-                    "optional": True,
-                },
-            ],
+            "blocks": blocks,
         }
 
     @classmethod

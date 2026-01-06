@@ -52,6 +52,8 @@ class MockAsyncMCPClient:
         self.create_issue_comment = AsyncMock()
         self.get_issue = AsyncMock()
         self._call_mcp_tool = AsyncMock()
+        self.search_issues = AsyncMock()
+        self.list_projects = AsyncMock()
 
 
 class MockStateTracker:
@@ -442,10 +444,39 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
         self.assertEqual(call_args["issue_key"], "CSOPM-1234")
         self.assertIn("acknowledged", call_args["comment"].lower())
 
+    async def test_handle_acknowledge_increments_metric(self):
+        """Test that acknowledge action increments metric on success."""
+        from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
+
+        metrics = MockMetrics()
+        notifier_with_metrics = CSOPMSlackNotifier(
+            posting_handler=self.posting_handler,
+            user_ops=self.user_ops,
+            mcp_client=self.mcp_client,
+            state_tracker=self.state_tracker,
+            metrics=metrics,
+        )
+
+        self.posting_handler.post_message.return_value = {"ok": True}
+        self.mcp_client.create_issue_comment.return_value = True
+
+        await notifier_with_metrics.handle_button_action(
+            action_id="csopm_acknowledge",
+            user_id="U12345678",
+            ticket_key="CSOPM-1234",
+            payload={},
+        )
+
+        # Verify metric was incremented
+        metrics.increment_counter.assert_awaited_once_with(
+            "csopm.notifications.acknowledged"
+        )
+
     async def test_handle_done_action(self):
         """Test handling done button action."""
         self.posting_handler.post_message.return_value = {"ok": True}
         self.mcp_client.create_issue_comment.return_value = True
+        self.mcp_client.search_issues.return_value = {"issues": []}
 
         result = await self.notifier.handle_button_action(
             action_id="csopm_done",
@@ -458,6 +489,68 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
         self.state_tracker.update_notification_status.assert_awaited_once_with(
             "CSOPM-1234", "done"
         )
+
+    async def test_handle_done_action_includes_followup_batch_info(self):
+        """Test that done action includes follow-up ticket info in JIRA comment."""
+        self.posting_handler.post_message.return_value = {"ok": True}
+        self.mcp_client.create_issue_comment.return_value = True
+        # Mock linked follow-up tickets
+        self.mcp_client.search_issues.return_value = {
+            "issues": [
+                {
+                    "key": "CSOPM-5001",
+                    "fields": {
+                        "summary": "Follow-up task 1",
+                        "status": {"name": "Open"},
+                    },
+                },
+                {
+                    "key": "CSOPM-5002",
+                    "fields": {
+                        "summary": "Follow-up task 2",
+                        "status": {"name": "Closed"},
+                    },
+                },
+            ]
+        }
+
+        await self.notifier.handle_button_action(
+            action_id="csopm_done",
+            user_id="U12345678",
+            ticket_key="CSOPM-1234",
+            payload={},
+        )
+
+        # Verify search was performed for linked follow-ups
+        self.mcp_client.search_issues.assert_awaited_once()
+
+        # Verify comment includes follow-up info
+        call_args = self.mcp_client.create_issue_comment.call_args.kwargs
+        comment = call_args["comment"]
+        self.assertIn("CSOPM-5001", comment)
+        self.assertIn("CSOPM-5002", comment)
+        self.assertIn("2 total", comment)
+        self.assertIn("1 open", comment)
+        self.assertIn("1 closed", comment)
+
+    async def test_handle_done_action_no_followups(self):
+        """Test done action when no follow-up tickets exist."""
+        self.posting_handler.post_message.return_value = {"ok": True}
+        self.mcp_client.create_issue_comment.return_value = True
+        self.mcp_client.search_issues.return_value = {"issues": []}
+
+        await self.notifier.handle_button_action(
+            action_id="csopm_done",
+            user_id="U12345678",
+            ticket_key="CSOPM-1234",
+            payload={},
+        )
+
+        # Verify simple comment without follow-up info
+        call_args = self.mcp_client.create_issue_comment.call_args.kwargs
+        comment = call_args["comment"]
+        self.assertIn("marked as done", comment)
+        self.assertNotIn("Follow-up Tickets", comment)
 
     async def test_handle_snooze_action(self):
         """Test handling snooze button action."""
@@ -553,6 +646,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
                 "assignee": {"name": "testuser"},
             },
         }
+        self.mcp_client.list_projects.return_value = []
 
         result = await self.notifier.handle_button_action(
             action_id="csopm_create_followup",
@@ -566,6 +660,45 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
             issue_key="CSOPM-1234",
             fields=["summary", "status", "assignee", "description"],
         )
+
+    async def test_handle_create_followup_fetches_projects(self):
+        """Test that create followup action fetches JIRA projects."""
+        self.mcp_client.get_issue.return_value = {
+            "key": "CSOPM-1234",
+            "fields": {
+                "summary": "Test Summary",
+                "status": {"name": "Open"},
+                "assignee": {"name": "testuser"},
+            },
+        }
+        self.mcp_client.list_projects.return_value = [
+            {
+                "key": "CSOPM",
+                "name": "CSO Project Management",
+                "issueTypes": [
+                    {"id": "1", "name": "Task"},
+                    {"id": "2", "name": "Bug"},
+                ],
+            },
+            {
+                "key": "OTHER",
+                "name": "Other Project",
+                "issueTypes": [
+                    {"id": "3", "name": "Story"},
+                ],
+            },
+        ]
+
+        result = await self.notifier.handle_button_action(
+            action_id="csopm_create_followup",
+            user_id="U12345678",
+            ticket_key="CSOPM-1234",
+            payload={"trigger_id": "12345.67890"},
+        )
+
+        self.assertTrue(result)
+        # Verify list_projects was called with expand=issueTypes
+        self.mcp_client.list_projects.assert_awaited_once_with(expand="issueTypes")
 
     async def test_handle_action_without_state_tracker(self):
         """Test handling action when state tracker is not available."""
@@ -794,6 +927,70 @@ class TestCSOPMNotificationBlocks(unittest.TestCase):
         # Verify input blocks are present
         block_types = [b["type"] for b in modal["blocks"]]
         self.assertIn("input", block_types)
+
+        # Verify project and issue type blocks exist (fallback text inputs)
+        block_ids = [b.get("block_id", "") for b in modal["blocks"]]
+        self.assertIn("project_block", block_ids)
+        self.assertIn("issue_type_block", block_ids)
+        self.assertIn("summary_block", block_ids)
+        self.assertIn("description_block", block_ids)
+
+    def test_build_create_followup_modal_with_dynamic_projects(self):
+        """Test create followup modal with dynamic project dropdown."""
+        from ketchup_csopm_notifier.blocks.notification_blocks import (
+            CSOPMNotificationBlocks,
+        )
+
+        ticket = _make_ticket()
+        projects = [
+            {"key": "CSOPM", "name": "CSO Project Management"},
+            {"key": "OTHER", "name": "Other Project"},
+        ]
+        modal = CSOPMNotificationBlocks.build_create_followup_modal(
+            ticket, projects=projects
+        )
+
+        # Find project block
+        project_block = next(
+            b for b in modal["blocks"]
+            if b.get("block_id") == "project_block"
+        )
+
+        # Verify it's a static_select with options
+        element = project_block["element"]
+        self.assertEqual(element["type"], "static_select")
+        self.assertEqual(len(element["options"]), 2)
+        self.assertEqual(element["options"][0]["value"], "CSOPM")
+        self.assertEqual(element["options"][1]["value"], "OTHER")
+
+    def test_build_create_followup_modal_with_dynamic_issue_types(self):
+        """Test create followup modal with dynamic issue type dropdown."""
+        from ketchup_csopm_notifier.blocks.notification_blocks import (
+            CSOPMNotificationBlocks,
+        )
+
+        ticket = _make_ticket()
+        issue_types = [
+            {"id": "1", "name": "Task"},
+            {"id": "2", "name": "Bug"},
+            {"id": "3", "name": "Story"},
+        ]
+        modal = CSOPMNotificationBlocks.build_create_followup_modal(
+            ticket, issue_types=issue_types
+        )
+
+        # Find issue type block
+        issue_type_block = next(
+            b for b in modal["blocks"]
+            if b.get("block_id") == "issue_type_block"
+        )
+
+        # Verify it's a static_select with options
+        element = issue_type_block["element"]
+        self.assertEqual(element["type"], "static_select")
+        self.assertEqual(len(element["options"]), 3)
+        self.assertEqual(element["options"][0]["value"], "1")
+        self.assertEqual(element["options"][0]["text"]["text"], "Task")
 
     def test_get_fallback_text(self):
         """Test fallback text generation."""
