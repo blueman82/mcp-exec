@@ -183,7 +183,7 @@ plan:
         - "No TODO comments in production code"
         - "All imports resolve"
       test_commands:
-        - "pytest tests/unit/slack/user_operations/test_user_ops_email.py -v"
+        - "uv run pytest tests/unit/slack/user_operations/test_user_ops_email.py -v"
       runtime_metadata:
         dependency_checks:
           - command: "grep -n 'lookupByEmail' packages/slack/user_operations/user_ops.py || echo 'Not found - will add'"
