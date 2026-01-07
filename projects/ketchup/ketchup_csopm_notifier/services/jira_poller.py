@@ -250,7 +250,7 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
 
             # Query for all active tickets assigned to the user
             jql = (
-                f"project = CSOPM AND "
+                f"project = {CSOPM_JIRA_PROJECT} AND "
                 f'assignee = "{assignee_username}" AND '
                 f"status NOT IN (Closed, Resolved, Done) "
                 f"ORDER BY created DESC"
