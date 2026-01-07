@@ -32,6 +32,7 @@ from packages.core.typed_di.protocols import (
     CSOPMStateTrackerProtocol,
     CSOPMTicket,
 )
+from packages.core.config.csopm_config import CSOPM_SCHEDULE_TIMES
 
 
 class CSOPMScheduler(BaseScheduler):
