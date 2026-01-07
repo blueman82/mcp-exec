@@ -140,6 +140,12 @@ services:
       - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
       # DynamoDB table for state tracking
       - CSOPM_DYNAMODB_TABLE=ketchup_csopm_notifications
+      # CSOPM configuration (can be overridden in docker-compose.local.yml for testing)
+      - CSOPM_JIRA_PROJECT=CSOPM
+      - CSOPM_RCA_REMINDER_DAYS=7
+      - CSOPM_CLOSURE_REMINDER_DAYS=45
+      - CSOPM_MAX_PING_COUNT=3
+      - CSOPM_SCHEDULE_TIMES=08:00,16:00
       - TZ=Europe/London
     volumes:
       - ./logs:/var/log
