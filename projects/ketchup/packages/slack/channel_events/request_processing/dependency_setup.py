@@ -372,6 +372,21 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
     except Exception as e:
         logger.warning("HomeTabHandler not available: %s", e)
 
+    # CSOPM Handler for interactive button actions
+    csopm_handler = None
+    try:
+        csopm_notifier = await container.aget(CSOPMSlackNotifierProtocol)
+        mcp_client = await container.aget(AsyncMCPClient)
+        if slack_posting_handler and csopm_notifier and mcp_client:
+            csopm_handler = CSOPMHandler(
+                slack_notifier=csopm_notifier,
+                mcp_client=mcp_client,
+                posting_handler=slack_posting_handler,
+            )
+            logger.info("CSOPMHandler instantiated")
+    except Exception as e:
+        logger.warning("CSOPMHandler not available: %s", e)
+
     # Handle missing Slack dependencies gracefully
     if not slack_posting_handler:
         logger.error(
