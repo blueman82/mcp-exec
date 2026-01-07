@@ -379,13 +379,24 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
         logger.info("Handling acknowledge action for %s by user %s", ticket_key, user_id)
 
         try:
-            # Update state to 'ack' if state tracker is available
+            # Get the JIRA username from notification record for proper mention format
+            jira_username = None
             if self._state_tracker:
+                record = await self._state_tracker.get_notification_record(ticket_key)
+                if record and record.assignee_jira_username:
+                    jira_username = record.assignee_jira_username
+                    logger.debug("Found JIRA username %s for ticket %s", jira_username, ticket_key)
+
+                # Update state to 'ack'
                 await self._state_tracker.update_notification_status(ticket_key, "ack")
                 logger.info("Updated notification status to 'ack' for %s", ticket_key)
 
-            # Post acknowledgment comment to JIRA
-            comment = f"Ticket acknowledged by assignee via Slack notification (User: {user_id})"
+            # Post acknowledgment comment to JIRA with proper mention format
+            if jira_username:
+                comment = f"Ticket acknowledged by assignee [~{jira_username}] via Slack notification"
+            else:
+                # Fallback to Slack user ID if JIRA username not available
+                comment = f"Ticket acknowledged by assignee via Slack notification (Slack User: {user_id})"
             comment_success = await self._mcp_client.create_issue_comment(
                 issue_key=ticket_key,
                 comment=comment,
