@@ -376,17 +376,27 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
         logger.warning("HomeTabHandler not available: %s", e)
 
     # CSOPM Handler for interactive button actions
+    # Note: CSOPMSlackNotifier is instantiated directly here because the protocol
+    # is only registered in the csopm_notifier container, not in ketchup-app.
+    # state_tracker and metrics are None (graceful degradation - core actions still work)
     csopm_handler = None
     try:
-        csopm_notifier = await container.aget(CSOPMSlackNotifierProtocol)
         mcp_client = await container.aget(AsyncMCPClient)
-        if slack_posting_handler and csopm_notifier and mcp_client:
+        if slack_posting_handler and user_ops and mcp_client:
+            # Create CSOPMSlackNotifier directly (not via protocol)
+            csopm_notifier = CSOPMSlackNotifier(
+                posting_handler=slack_posting_handler,
+                user_ops=user_ops,
+                mcp_client=mcp_client,
+                state_tracker=None,  # Not available in ketchup-app context
+                metrics=None,  # Not available in ketchup-app context
+            )
             csopm_handler = CSOPMHandler(
                 slack_notifier=csopm_notifier,
                 mcp_client=mcp_client,
                 posting_handler=slack_posting_handler,
             )
-            logger.info("CSOPMHandler instantiated")
+            logger.info("CSOPMHandler instantiated with direct CSOPMSlackNotifier")
     except Exception as e:
         logger.warning("CSOPMHandler not available: %s", e)
 
