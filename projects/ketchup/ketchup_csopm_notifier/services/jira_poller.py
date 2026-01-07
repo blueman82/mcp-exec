@@ -39,10 +39,17 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
     """
 
     # JQL query for discovering new CSOPM assignments
+    # NEW_ASSIGNMENTS_JQL = (
+    #     f"project = {CSOPM_JIRA_PROJECT} AND "
+    #     "assignee IS NOT EMPTY AND "
+    #     "status = 'New' AND "
+    #     "created >= -1d "
+    #     "ORDER BY created DESC"
+    # )
     NEW_ASSIGNMENTS_JQL = (
         f"project = {CSOPM_JIRA_PROJECT} AND "
         "assignee IS NOT EMPTY AND "
-        "status = 'New' AND "
+        "status = 'Not Started' AND "
         "created >= -1d "
         "ORDER BY created DESC"
     )
