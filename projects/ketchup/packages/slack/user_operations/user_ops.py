@@ -44,6 +44,9 @@ class SlackUserOps(SlackAsyncClient):
         # Store injected UserStore
         self.user_store = user_store
         self._user_cache: Dict[str, Dict[str, Any]] = {}  # In-memory cache for user info
+        self._email_to_slack_cache: Dict[str, Optional[str]] = (
+            {}
+        )  # In-memory cache for email-to-Slack ID
         logger.info("SlackUserOps initialized with injected UserStore.")
 
     async def get_user_names(self, user_ids: List[str]) -> Dict[str, str]:
@@ -241,3 +244,114 @@ class SlackUserOps(SlackAsyncClient):
         except Exception as e:
             logger.error("Error fetching user info for %s: %s", user_id, str(e))
             return None  # Return None on exception
+
+    async def get_slack_id_by_email(self, email: str) -> Optional[str]:
+        """
+        Get Slack user ID for an email address using 3-level lookup:
+        1. Memory cache
+        2. DynamoDB cache
+        3. Slack API (users.lookupByEmail)
+
+        Results are cached permanently in DynamoDB (no TTL) for future lookups.
+
+        Args:
+            email: Email address to look up
+
+        Returns:
+            Slack user ID if found, None if not found or on error
+
+        Architectural Notes:
+            - Uses EMAIL_TO_SLACK#{email} as the DynamoDB partition key, following
+              the established pattern of prefixed keys (USER#, CHANNEL#, etc.)
+            - No TTL is applied as email-to-Slack mappings are stable (per design decision)
+            - This is the first email-based lookup method; future features consuming
+              this should follow the same cache-first pattern
+        """
+        if not email or not isinstance(email, str):
+            logger.warning("get_slack_id_by_email called with invalid email: %s", email)
+            return None
+
+        email_lower = email.lower().strip()
+
+        # Level 1: Check in-memory cache
+        if email_lower in self._email_to_slack_cache:
+            cached_value = self._email_to_slack_cache[email_lower]
+            logger.debug("Email %s found in memory cache: %s", email_lower, cached_value)
+            return cached_value
+
+        # Level 2: Check DynamoDB cache
+        try:
+            db_result = await self.user_store.get_email_to_slack_mapping(email_lower)
+            if db_result is not None:
+                # Found in DynamoDB - update memory cache and return
+                self._email_to_slack_cache[email_lower] = db_result
+                logger.info("Email %s found in DynamoDB cache: %s", email_lower, db_result)
+                return db_result
+        except Exception as e:
+            logger.error("Error checking DynamoDB cache for email %s: %s", email_lower, str(e))
+            # Continue to Slack API lookup
+
+        # Level 3: Fetch from Slack API
+        logger.info("Fetching Slack ID for email %s from API", email_lower)
+        slack_user_id = await self._fetch_slack_id_by_email_internal(email_lower)
+
+        if slack_user_id:
+            # Cache in memory
+            self._email_to_slack_cache[email_lower] = slack_user_id
+
+            # Cache in DynamoDB (fire and forget, don't block on this)
+            try:
+                await self.user_store.store_email_to_slack_mapping(email_lower, slack_user_id)
+                logger.info(
+                    "Stored email-to-Slack mapping for %s -> %s in DynamoDB",
+                    email_lower,
+                    slack_user_id,
+                )
+            except Exception as e:
+                logger.error("Failed to store email-to-Slack mapping in DynamoDB: %s", str(e))
+                # Don't fail the lookup - we have the result
+
+        return slack_user_id
+
+    @with_exponential_backoff(max_retries=3)
+    async def _fetch_slack_id_by_email_internal(self, email: str) -> Optional[str]:
+        """
+        Fetch Slack user ID for an email from the Slack API.
+
+        Uses Slack's users.lookupByEmail endpoint.
+
+        Args:
+            email: Email address to look up
+
+        Returns:
+            Slack user ID if found, None if not found or on error
+        """
+        url = f"{self.config.get_api_base_url()}/users.lookupByEmail"
+        headers = self.config.get_headers()
+        params = {"email": email}
+
+        try:
+            response = await self._make_api_request(url, "GET", headers, params)
+            # Response is a SafeResponse dict, parse the body
+            data = orjson.loads(response["body"])
+
+            if data.get("ok"):
+                user = data.get("user", {})
+                slack_user_id = user.get("id")
+                if slack_user_id:
+                    logger.info("Found Slack user ID %s for email %s", slack_user_id, email)
+                    return slack_user_id
+                else:
+                    logger.warning("Slack API returned ok but no user ID for email %s", email)
+                    return None
+            else:
+                error = data.get("error", "Unknown error")
+                # "users_not_found" is a normal case when email doesn't match
+                if error == "users_not_found":
+                    logger.info("No Slack user found for email %s", email)
+                else:
+                    logger.error("Error looking up Slack user by email %s: %s", email, error)
+                return None
+        except Exception as e:
+            logger.error("Exception looking up Slack user by email %s: %s", email, str(e))
+            return None

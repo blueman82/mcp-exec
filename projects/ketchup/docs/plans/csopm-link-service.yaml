@@ -1,0 +1,1112 @@
+# CSOPM Link Service Implementation Plan
+# =====================================
+#
+# PRODUCERS:
+#   Task 1 → CSOPMAssignmentTracker (DynamoDB tracking)
+#   Task 2 → CSOPMPollingTask (TaskConfig for scheduler)
+#   Task 3 → AsyncMCPClient.create_issue(), AsyncMCPClient.link_issues()
+#   Task 4 → UserProjectDiscoveryService
+#   Task 5 → SlackUserLookupService (LDAP → Slack ID)
+#   Task 6 → CSOPMNotificationService (Slack DM)
+#   Task 7 → CSOPMLinkModalBuilder
+#   Task 8 → FollowUpTicketCreator
+#
+# CONSUMERS:
+#   Task 2 → [1] (uses assignment tracker)
+#   Task 6 → [5] (uses Slack user lookup)
+#   Task 7 → [3, 4] (uses MCP client, project discovery)
+#   Task 8 → [3, 7] (uses MCP client, modal data)
+#   Task 9 → [1, 2, 5, 6, 7, 8] (integrates all services)
+#   Task 10 → [1-9] (tests all components)
+#
+# VALIDATION: All consumers depend_on producers ✓
+
+conductor:
+  default_agent: fastapi-pro
+  worktree_groups:
+    - group_id: "phase1-foundation"
+      tasks: [1, 2, 3]
+      rationale: "Foundation: assignment tracking, polling task, MCP extensions"
+    - group_id: "phase2-notification"
+      tasks: [4, 5, 6]
+      rationale: "Notification: project discovery, Slack lookup, DM service"
+    - group_id: "phase3-interactive"
+      tasks: [7, 8]
+      rationale: "Interactive: modal builder, ticket creation"
+    - group_id: "phase4-integration"
+      tasks: [9, 10]
+      rationale: "Integration: registration, testing"
+
+planner_compliance:
+  planner_version: "4.0.0"
+  strict_enforcement: true
+  required_features: [dependency_checks, test_commands, success_criteria, data_flow_registry]
+
+data_flow_registry:
+  producers:
+    CSOPMAssignmentTracker:
+      - task: 1
+        description: "Creates DynamoDB-backed assignment tracking service"
+    CSOPMPollingTask:
+      - task: 2
+        description: "Creates TaskConfig for unified scheduler CSOPM polling"
+    AsyncMCPClientExtensions:
+      - task: 3
+        description: "Adds create_issue, link_issues, get_issuetype wrappers to AsyncMCPClient"
+    UserProjectDiscoveryService:
+      - task: 4
+        description: "Creates service to discover user's accessible JIRA projects"
+    SlackUserLookupService:
+      - task: 5
+        description: "Creates email-to-Slack-ID lookup service"
+    CSOPMNotificationService:
+      - task: 6
+        description: "Creates Slack DM notification service for CSOPM assignments"
+    CSOPMLinkModalBuilder:
+      - task: 7
+        description: "Creates Slack modal for follow-up ticket creation"
+    FollowUpTicketCreator:
+      - task: 8
+        description: "Creates service for JIRA ticket creation and bidirectional linking"
+  consumers:
+    CSOPMAssignmentTracker:
+      - task: 2
+        description: "Polling task uses tracker to avoid re-notifying"
+      - task: 9
+        description: "Integration registers tracker in TypedDI"
+    AsyncMCPClientExtensions:
+      - task: 7
+        description: "Modal uses get_issuetype for dynamic forms"
+      - task: 8
+        description: "Ticket creator uses create_issue and link_issues"
+    UserProjectDiscoveryService:
+      - task: 7
+        description: "Modal uses project discovery for dropdown"
+    SlackUserLookupService:
+      - task: 6
+        description: "Notification service uses Slack lookup"
+    CSOPMNotificationService:
+      - task: 9
+        description: "Integration registers notification in scheduler"
+    CSOPMLinkModalBuilder:
+      - task: 9
+        description: "Integration registers modal handlers"
+    FollowUpTicketCreator:
+      - task: 9
+        description: "Integration registers ticket creator"
+
+plan:
+  metadata:
+    feature_name: "CSOPM Link Service"
+    created: "2026-01-05"
+    target: "Notify CSOPM ticket assignees via Slack DM, allow them to create follow-up tickets in any accessible project with bidirectional linking"
+    estimated_tasks: 10
+    complexity: "high"
+
+  context:
+    framework: "Python/FastAPI"
+    test_framework: "pytest"
+    slack_sdk: "Block Kit"
+    jira_integration: "corp-jira MCP"
+    scheduler: "ketchup_unified_scheduler"
+    di_framework: "TypedDI"
+
+  business_requirements:
+    trigger: "CSOPM ticket assignment change detected"
+    notify: "JIRA assignee via Slack DM"
+    project_selection: "Dynamic - query user's recent JIRA activity to discover accessible projects"
+    fallback: "Pre-configured project list + free-text entry for users with no JIRA history"
+    linking: "Bidirectional using 'Relates' link type"
+    tracking: "DynamoDB table to prevent duplicate notifications"
+
+  technical_discoveries:
+    jira_user_format: "assignee.name field contains LDAP username (e.g., 'fontaine')"
+    project_discovery_jql: 'assignee = "{username}" OR reporter = "{username}" ORDER BY updated DESC'
+    link_type: "Relates (id: 10003) - bidirectional 'relates to' ↔ 'relates to'"
+    mcp_tools_available:
+      - "search_jira_issues - JQL search"
+      - "create_jira_issue - Create new issues"
+      - "link_issues - Link two issues"
+      - "get_jira_issuetype - Get project issue types"
+      - "get_jira_issuetype_metadata - Get required fields for issue creation"
+      - "get_project_config - Get project metadata"
+
+  tasks:
+    # ========================================
+    # PHASE 1: FOUNDATION
+    # ========================================
+
+    - task_number: "1"
+      name: "Create CSOPM Assignment Tracker Service"
+      agent: "fastapi-pro"
+      files:
+        - "ketchup_unified_scheduler/services/csopm_link/assignment_tracker.py"
+        - "packages/db/csopm_assignment_store.py"
+      depends_on: []
+
+      success_criteria:
+        - "CSOPMAssignmentStore class created with DynamoDB operations for tracking notified assignments"
+        - "Methods: is_notified(ticket_key, assignee), mark_notified(ticket_key, assignee, timestamp)"
+        - "DynamoDB table name configurable via CSOPM_ASSIGNMENT_TABLE env var, default 'ketchup_csopm_assignments'"
+        - "TTL attribute set on records (30 days default) for automatic cleanup"
+        - "Composite key: ticket_key (PK), assignee_username (SK) for efficient lookups"
+        - "CSOPMAssignmentTracker facade class wraps store with business logic"
+        - "Tracker.should_notify(ticket_key, assignee) returns True only if not previously notified"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_csopm_assignment'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.db.dynamodb_base import DynamoDBBase; print(\"Import OK\")'"
+            description: "Verify DynamoDB base class is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.db.dynamodb_base import DynamoDBBase"
+            ls packages/db/
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create the assignment tracking infrastructure to prevent duplicate notifications.
+
+        When a CSOPM ticket is assigned, we need to notify the assignee ONCE. If the polling
+        cycle runs again before the user takes action, we should NOT re-notify.
+
+        Architecture:
+        1. CSOPMAssignmentStore (packages/db/) - Low-level DynamoDB operations
+           - Table: ketchup_csopm_assignments
+           - Schema: ticket_key (PK), assignee_username (SK), notified_at, ttl
+           - TTL: 30 days (cleanup old records automatically)
+
+        2. CSOPMAssignmentTracker (ketchup_unified_scheduler/services/csopm_link/)
+           - Business logic facade
+           - should_notify() - Check if we should send notification
+           - record_notification() - Mark as notified after sending
+
+        Follow patterns from:
+        - packages/db/channel_store.py for DynamoDB operations
+        - packages/db/user_store.py for store patterns
+        </task_description>
+
+      implementation:
+        approach: |
+          Create two classes following existing patterns:
+          1. CSOPMAssignmentStore - extends DynamoDBBase for table operations
+          2. CSOPMAssignmentTracker - business logic layer
+        key_points:
+          - point: "CSOPMAssignmentStore extends DynamoDBBase"
+            details: "Use existing DynamoDB patterns from packages/db/ for consistent error handling and logging"
+            reference: "packages/db/channel_store.py"
+          - point: "Composite key for efficient lookups"
+            details: "PK: ticket_key, SK: assignee_username allows querying all assignments for a ticket"
+            reference: "DynamoDB best practices"
+          - point: "TTL for automatic cleanup"
+            details: "Set ttl attribute to 30 days from notified_at to automatically remove old records"
+            reference: "AWS DynamoDB TTL feature"
+          - point: "CSOPMAssignmentTracker as facade"
+            details: "Simple interface: should_notify(), record_notification() hiding DynamoDB complexity"
+            reference: "packages/db/user_store.py pattern"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/ packages/db/csopm_assignment_store.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add CSOPM assignment tracking service for duplicate notification prevention"
+        files:
+          - "ketchup_unified_scheduler/services/csopm_link/**"
+          - "packages/db/csopm_assignment_store.py"
+
+    - task_number: "2"
+      name: "Create CSOPM Polling Task for Unified Scheduler"
+      agent: "fastapi-pro"
+      files:
+        - "ketchup_unified_scheduler/tasks/csopm_link_task.py"
+        - "ketchup_unified_scheduler/services/csopm_link/polling_service.py"
+      depends_on: [1]
+
+      success_criteria:
+        - "CSOPMPollingService polls CSOPM project for recently assigned tickets"
+        - "JQL query: 'project = CSOPM AND assignee CHANGED AFTER -{interval}m ORDER BY updated DESC'"
+        - "Service extracts assignee.name (LDAP username) and assignee.emailAddress from each ticket"
+        - "Service uses CSOPMAssignmentTracker.should_notify() to filter already-notified assignments"
+        - "Returns list of (ticket_key, assignee_username, assignee_email, ticket_summary) tuples"
+        - "get_csopm_link_task_config() returns TaskConfig with 15-minute interval"
+        - "Feature flag: KETCHUP_CSOPM_LINK_FEATURE"
+        - "csopm_link_task async function follows jira_report_task pattern"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_csopm_link_task or test_csopm_polling'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from ketchup_unified_scheduler.task_config import TaskConfig; print(\"Import OK\")'"
+            description: "Verify TaskConfig is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from ketchup_unified_scheduler.task_config import TaskConfig"
+            cat ketchup_unified_scheduler/tasks/jira_report_task.py
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create the CSOPM polling task that runs in the unified scheduler.
+
+        The polling service:
+        1. Queries CSOPM project for tickets with recent assignee changes
+        2. JQL: 'project = CSOPM AND assignee CHANGED AFTER -15m'
+        3. For each ticket, extracts assignee info (username, email)
+        4. Checks with assignment tracker if we should notify
+        5. Returns list of assignments needing notification
+
+        The task config:
+        - 15-minute interval (same as metadata_updater)
+        - Feature flag: KETCHUP_CSOPM_LINK_FEATURE
+        - Follows jira_report_task.py pattern exactly
+
+        Key JIRA fields to extract:
+        - key (ticket key like CSOPM-12345)
+        - summary (ticket title)
+        - assignee.name (LDAP username)
+        - assignee.emailAddress (for Slack lookup)
+        - assignee.displayName (for notification message)
+        </task_description>
+
+      implementation:
+        approach: |
+          Follow the jira_report_task.py pattern for task structure.
+          Create CSOPMPollingService for the business logic.
+        key_points:
+          - point: "JQL for assignee changes"
+            details: "Use 'assignee CHANGED AFTER -15m' to catch recent assignments within polling interval"
+            reference: "JIRA JQL documentation"
+          - point: "Extract assignee fields"
+            details: "assignee.name contains LDAP username (e.g., 'fontaine'), emailAddress for Slack lookup"
+            reference: "Discovered in testing: assignee.name = LDAP username"
+          - point: "Integration with assignment tracker"
+            details: "Call tracker.should_notify() before adding to notification list"
+            reference: "Task 1 CSOPMAssignmentTracker"
+          - point: "TaskConfig pattern"
+            details: "Return TaskConfig with name='csopm_link', interval_minutes=15, feature_flag='KETCHUP_CSOPM_LINK_FEATURE'"
+            reference: "ketchup_unified_scheduler/tasks/jira_report_task.py:44-57"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/tasks/csopm_link_task.py ketchup_unified_scheduler/services/csopm_link/"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add CSOPM polling task for unified scheduler"
+        files:
+          - "ketchup_unified_scheduler/tasks/csopm_link_task.py"
+          - "ketchup_unified_scheduler/services/csopm_link/polling_service.py"
+
+    - task_number: "3"
+      name: "Extend MCP Client with Issue Creation and Linking"
+      agent: "fastapi-pro"
+      files:
+        - "packages/integrations/async_mcp_client.py"
+      depends_on: []
+
+      success_criteria:
+        - "AsyncMCPClient.create_issue(project_key, issue_type_id, summary, description, fields) method added"
+        - "AsyncMCPClient.link_issues(inward_key, outward_key, link_type='Relates') method added"
+        - "AsyncMCPClient.get_issuetype(project_key) method added returning available issue types"
+        - "AsyncMCPClient.get_issuetype_metadata(project_key, issue_type_id) method added for field requirements"
+        - "All methods use existing rate_limiter.acquire() pattern"
+        - "All methods use existing _call_mcp_tool() pattern"
+        - "Error handling follows existing patterns (log errors, return None or raise)"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_mcp_client'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+            description: "Verify AsyncMCPClient imports correctly"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+            cat packages/integrations/async_mcp_client.py | head -100
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Extend the MCP client with methods needed for follow-up ticket creation and linking.
+
+        The corp-jira MCP server provides these tools that we need wrappers for:
+        1. create_jira_issue - Create new issues
+        2. link_issues - Link two issues together
+        3. get_jira_issuetype - Get issue types for a project
+        4. get_jira_issuetype_metadata - Get required fields for issue creation
+
+        New methods to add to AsyncMCPClient:
+
+        1. create_issue(project_key, issue_type_id, summary, description, fields=None)
+           - Calls create_jira_issue MCP tool
+           - Returns created issue key or None on failure
+
+        2. link_issues(inward_key, outward_key, link_type='Relates')
+           - Calls link_issues MCP tool
+           - Returns True on success, False on failure
+
+        3. get_issuetype(project_key)
+           - Calls get_jira_issuetype MCP tool
+           - Returns list of {id, name, description} dicts
+
+        4. get_issuetype_metadata(project_key, issue_type_id)
+           - Calls get_jira_issuetype_metadata MCP tool
+           - Returns field metadata for creating issues of that type
+
+        Follow existing patterns in async_mcp_client.py for error handling and rate limiting.
+        </task_description>
+
+      implementation:
+        approach: |
+          Add new methods to AsyncMCPClient following the existing search_issues pattern.
+        key_points:
+          - point: "create_issue method"
+            details: "Call _call_mcp_tool('create_jira_issue', {...}) with project, issuetype, summary, description, fields"
+            reference: "packages/integrations/async_mcp_client.py (search_issues pattern)"
+          - point: "link_issues method"
+            details: "Call _call_mcp_tool('link_issues', {inwardIssue, outwardIssue, linkType})"
+            reference: "MCP tool schema: link_issues"
+          - point: "get_issuetype method"
+            details: "Call _call_mcp_tool('get_jira_issuetype', {projectIdOrKey})"
+            reference: "MCP tool schema: get_jira_issuetype"
+          - point: "Rate limiting"
+            details: "All new methods must call await self.rate_limiter.acquire() before MCP call"
+            reference: "packages/integrations/async_mcp_client.py (rate_limiter pattern)"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/integrations/async_mcp_client.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add create_issue, link_issues, get_issuetype methods to AsyncMCPClient"
+        files:
+          - "packages/integrations/async_mcp_client.py"
+
+    # ========================================
+    # PHASE 2: NOTIFICATION
+    # ========================================
+
+    - task_number: "4"
+      name: "Create User Project Discovery Service"
+      agent: "fastapi-pro"
+      files:
+        - "ketchup_unified_scheduler/services/csopm_link/project_discovery.py"
+      depends_on: [3]
+
+      success_criteria:
+        - "UserProjectDiscoveryService class queries user's accessible JIRA projects"
+        - "discover_projects(username) method uses JQL: 'assignee = \"{username}\" OR reporter = \"{username}\"'"
+        - "Extracts unique project keys from query results (max 100 issues sampled)"
+        - "Returns list of {key, name} dicts sorted alphabetically by key"
+        - "get_fallback_projects() returns pre-configured list when user has no JIRA history"
+        - "Fallback projects configurable via CSOPM_FALLBACK_PROJECTS env var"
+        - "Default fallback: ['CPGNREQ', 'CPGNTT', 'CPGNCX', 'NEO', 'CSOPM']"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_project_discovery'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+            description: "Verify AsyncMCPClient with new methods is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create service to discover which JIRA projects a user has access to.
+
+        Discovery approach (proven to work in testing):
+        1. Query: assignee = "{username}" OR reporter = "{username}"
+        2. Extract unique project.key values from results
+        3. Return sorted list of accessible projects
+
+        For users with no JIRA history (new users), use fallback list:
+        - CPGNREQ (Campaign Requests)
+        - CPGNTT (Campaign Trouble Tickets)
+        - CPGNCX (Campaign CX)
+        - NEO (Adobe Campaign Classic)
+        - CSOPM (CSO Problem Management)
+
+        The service should:
+        1. Try discovery first
+        2. If empty results, return fallback list
+        3. Optionally merge discovery + fallback for comprehensive list
+
+        Configuration via env vars:
+        - CSOPM_FALLBACK_PROJECTS: Comma-separated project keys
+        - CSOPM_MAX_DISCOVERY_RESULTS: Max issues to sample (default 100)
+        </task_description>
+
+      implementation:
+        approach: |
+          Create UserProjectDiscoveryService that uses MCPClient.search_issues()
+          with user activity JQL to discover accessible projects.
+        key_points:
+          - point: "JQL for user activity"
+            details: "assignee = \"{username}\" OR reporter = \"{username}\" ORDER BY updated DESC"
+            reference: "Tested successfully with corp-jira MCP"
+          - point: "Extract unique projects"
+            details: "Loop through results, extract fields.project.key, deduplicate with set()"
+            reference: "Tested: returns projects like ['CSOPM', 'CPGNREQ', 'CPGNTT']"
+          - point: "Fallback configuration"
+            details: "CSOPM_FALLBACK_PROJECTS env var, split by comma, default Campaign-related projects"
+            reference: "Similar to VALID_JIRA_PROJECTS in packages/core/jira_constants.py"
+          - point: "Merge strategy"
+            details: "Return discovery results + fallback, deduplicated, sorted"
+            reference: "Ensures new users see common projects"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/project_discovery.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add user project discovery service for CSOPM link"
+        files:
+          - "ketchup_unified_scheduler/services/csopm_link/project_discovery.py"
+
+    - task_number: "5"
+      name: "Create Slack User Lookup Service"
+      agent: "fastapi-pro"
+      files:
+        - "packages/slack/user_operations/slack_user_lookup.py"
+      depends_on: []
+
+      success_criteria:
+        - "SlackUserLookupService class looks up Slack user ID from email address"
+        - "lookup_by_email(email) method uses Slack users.lookupByEmail API"
+        - "Returns Slack user ID string or None if not found"
+        - "Caches results in-memory to avoid repeated API calls"
+        - "lookup_by_ldap(ldap_username) convenience method appends @adobe.com domain"
+        - "Handles rate limiting with exponential backoff"
+        - "Logs warnings for users not found in Slack"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_slack_user_lookup'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.slack.core.slack_async_client import SlackAsyncClient; print(\"Import OK\")'"
+            description: "Verify SlackAsyncClient is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.slack.core.slack_async_client import SlackAsyncClient"
+            cat packages/slack/user_operations/user_ops.py | head -60
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create service to look up Slack user IDs from email addresses.
+
+        When we get a CSOPM ticket assignee, we have their email (e.g., fontaine@adobe.com).
+        We need to convert this to a Slack user ID to send them a DM.
+
+        Slack API: users.lookupByEmail
+        - Input: email
+        - Output: user object with id field
+
+        Service features:
+        1. lookup_by_email(email) - Primary lookup method
+        2. lookup_by_ldap(username) - Convenience wrapper adding @adobe.com
+        3. In-memory cache to avoid repeated lookups
+        4. Rate limiting with exponential backoff
+        5. Graceful handling of users not in Slack
+
+        Follow patterns from:
+        - packages/slack/user_operations/user_ops.py (SlackUserOps)
+        - packages/slack/core/slack_async_client.py (base class)
+        </task_description>
+
+      implementation:
+        approach: |
+          Create SlackUserLookupService extending SlackAsyncClient,
+          adding email-to-Slack-ID lookup capability.
+        key_points:
+          - point: "Slack users.lookupByEmail API"
+            details: "POST to /users.lookupByEmail with email parameter, returns user.id"
+            reference: "Slack Web API documentation"
+          - point: "In-memory cache"
+            details: "Dict[email, slack_id] to cache successful lookups"
+            reference: "packages/slack/user_operations/user_ops.py:46 (_user_cache)"
+          - point: "LDAP convenience method"
+            details: "lookup_by_ldap('fontaine') -> lookup_by_email('fontaine@adobe.com')"
+            reference: "Business requirement: JIRA has username, need to add domain"
+          - point: "Error handling"
+            details: "Return None if user not found, log warning for debugging"
+            reference: "packages/slack/user_operations/user_ops.py:141-148 error handling"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/slack/user_operations/slack_user_lookup.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add Slack user lookup service for email-to-ID resolution"
+        files:
+          - "packages/slack/user_operations/slack_user_lookup.py"
+
+    - task_number: "6"
+      name: "Create CSOPM Notification Service"
+      agent: "fastapi-pro"
+      files:
+        - "ketchup_unified_scheduler/services/csopm_link/notification_service.py"
+        - "packages/slack/blockkits/csopm_link_blocks.py"
+      depends_on: [1, 5]
+
+      success_criteria:
+        - "CSOPMNotificationService sends DM to CSOPM ticket assignees"
+        - "notify_assignee(ticket_key, assignee_username, assignee_email, ticket_summary) method implemented"
+        - "Uses SlackUserLookupService to resolve email to Slack ID"
+        - "Sends Block Kit message with ticket details and 'Create Follow-up' button"
+        - "Button has action_id 'csopm_link_create_followup' and value containing ticket_key"
+        - "After successful notification, calls CSOPMAssignmentTracker.record_notification()"
+        - "Returns True on success, False on failure (logs errors)"
+        - "CSOPMLinkBlocks class builds the notification Block Kit message"
+        - "Message includes: ticket key (linked), summary, assignee name, 'Create Follow-up Ticket' button"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_csopm_notification'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.slack.user_operations.slack_user_lookup import SlackUserLookupService; print(\"Import OK\")'"
+            description: "Verify SlackUserLookupService is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.slack.core.slack_async_client import SlackAsyncClient"
+            ls packages/slack/blockkits/
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create the notification service that sends Slack DMs to CSOPM ticket assignees.
+
+        Workflow:
+        1. Receive ticket details from polling service
+        2. Look up assignee's Slack ID using email
+        3. Build Block Kit message with ticket info and action button
+        4. Send DM to user using chat.postMessage with channel=user_id
+        5. Record notification in assignment tracker
+
+        Block Kit message structure:
+        - Header: "🎫 CSOPM Ticket Assigned"
+        - Section: Ticket key (linked to JIRA), summary
+        - Context: Assignee name, assignment time
+        - Actions: "Create Follow-up Ticket" button
+
+        Button metadata:
+        - action_id: "csopm_link_create_followup"
+        - value: JSON with {ticket_key, ticket_summary}
+
+        Follow patterns from:
+        - packages/slack/blockkits/handlers/ for Block Kit builders
+        - packages/slack/dm/ for DM sending patterns
+        </task_description>
+
+      implementation:
+        approach: |
+          Create CSOPMNotificationService for orchestration and
+          CSOPMLinkBlocks for Block Kit message building.
+        key_points:
+          - point: "Slack DM via user ID"
+            details: "chat.postMessage with channel=slack_user_id sends DM"
+            reference: "packages/slack/dm/ patterns"
+          - point: "Block Kit with action button"
+            details: "Use actions block with button element, action_id='csopm_link_create_followup'"
+            reference: "packages/slack/blockkits/handlers/ patterns"
+          - point: "Button value as JSON"
+            details: "Encode ticket_key and ticket_summary in button value for modal prefill"
+            reference: "Slack Block Kit documentation"
+          - point: "Integration with assignment tracker"
+            details: "Call tracker.record_notification() after successful DM send"
+            reference: "Task 1 CSOPMAssignmentTracker"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/notification_service.py packages/slack/blockkits/csopm_link_blocks.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add CSOPM notification service for Slack DM alerts"
+        files:
+          - "ketchup_unified_scheduler/services/csopm_link/notification_service.py"
+          - "packages/slack/blockkits/csopm_link_blocks.py"
+
+    # ========================================
+    # PHASE 3: INTERACTIVE
+    # ========================================
+
+    - task_number: "7"
+      name: "Create CSOPM Link Modal Builder"
+      agent: "fastapi-pro"
+      files:
+        - "packages/slack/modals/csopm_link_modal.py"
+        - "packages/slack/interactivity/csopm_link_handlers.py"
+      depends_on: [3, 4]
+
+      success_criteria:
+        - "CSOPMLinkModalBuilder builds Slack modal for follow-up ticket creation"
+        - "build_modal(trigger_id, csopm_ticket_key, username) async method implemented"
+        - "Modal includes: static select for project, static select for issue type, text inputs for summary/description"
+        - "Project dropdown populated from UserProjectDiscoveryService.discover_projects()"
+        - "Issue type dropdown populated dynamically when project is selected (external_select with action)"
+        - "Modal private_metadata contains csopm_ticket_key for linking after creation"
+        - "CSOPMLinkActionHandler handles 'csopm_link_create_followup' button click, opens modal"
+        - "CSOPMLinkProjectSelectHandler handles project selection, updates issue type dropdown"
+        - "Modal callback_id is 'csopm_link_modal_submit'"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_csopm_link_modal'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.slack.modals.modal_base import ModalBase; print(\"Import OK\")'"
+            description: "Verify modal base class is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.slack.modals.modal_base import ModalBase"
+            ls packages/slack/modals/
+            ls packages/slack/interactivity/
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create the Slack modal for follow-up ticket creation.
+
+        Modal flow:
+        1. User clicks "Create Follow-up" button in DM
+        2. Action handler receives button click, extracts ticket_key from value
+        3. Modal builder fetches user's accessible projects
+        4. Modal opens with project dropdown
+        5. User selects project -> issue type dropdown updates
+        6. User fills summary/description, submits
+
+        Modal structure:
+        - Title: "Create Follow-up Ticket"
+        - Section: "Linking to CSOPM-XXXXX"
+        - Input: Project (static_select from discovery)
+        - Input: Issue Type (static_select, updates on project change)
+        - Input: Summary (plain_text_input)
+        - Input: Description (plain_text_input, multiline)
+        - private_metadata: {csopm_ticket_key, csopm_ticket_summary}
+
+        Handlers needed:
+        1. CSOPMLinkActionHandler - Opens modal on button click
+        2. CSOPMLinkProjectSelectHandler - Updates issue types on project change
+        3. CSOPMLinkModalSubmitHandler - Handles form submission (Task 8)
+
+        Block IDs for form data extraction:
+        - project_select_block
+        - issuetype_select_block
+        - summary_input_block
+        - description_input_block
+        </task_description>
+
+      implementation:
+        approach: |
+          Create CSOPMLinkModalBuilder for modal construction and
+          handler classes for button click and project selection.
+        key_points:
+          - point: "Modal with dynamic dropdowns"
+            details: "Use static_select for project (populated at open), update view for issue types"
+            reference: "packages/slack/modals/ patterns"
+          - point: "Action handler for button click"
+            details: "Register handler for action_id='csopm_link_create_followup', call views.open"
+            reference: "packages/slack/interactivity/ patterns"
+          - point: "Project select handler"
+            details: "On project selection, fetch issue types via AsyncMCPClient.get_issuetype(), update modal view"
+            reference: "Slack views.update API"
+          - point: "private_metadata for context"
+            details: "Store csopm_ticket_key in modal metadata for use in submission handler"
+            reference: "Slack modal private_metadata field"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/slack/modals/csopm_link_modal.py packages/slack/interactivity/csopm_link_handlers.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add CSOPM link modal builder and action handlers"
+        files:
+          - "packages/slack/modals/csopm_link_modal.py"
+          - "packages/slack/interactivity/csopm_link_handlers.py"
+
+    - task_number: "8"
+      name: "Create Follow-up Ticket Creator Service"
+      agent: "fastapi-pro"
+      files:
+        - "ketchup_unified_scheduler/services/csopm_link/ticket_creator.py"
+        - "packages/slack/interactivity/csopm_link_submit_handler.py"
+      depends_on: [3, 7]
+
+      success_criteria:
+        - "FollowUpTicketCreator service creates JIRA tickets and establishes bidirectional links"
+        - "create_and_link(csopm_key, project_key, issue_type_id, summary, description) async method"
+        - "Creates new ticket using AsyncMCPClient.create_issue()"
+        - "Links new ticket to CSOPM using AsyncMCPClient.link_issues() with 'Relates' type"
+        - "Returns {success: bool, followup_key: str, error: str} result object"
+        - "CSOPMLinkSubmitHandler handles 'csopm_link_modal_submit' callback"
+        - "Submit handler extracts form data, calls FollowUpTicketCreator, sends confirmation message"
+        - "Confirmation message shows: created ticket key (linked), CSOPM key (linked), success/error status"
+        - "On error, shows user-friendly error message in modal response"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k test_ticket_creator or test_csopm_link_submit'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.integrations.async_mcp_client import AsyncMCPClient; print(\"Import OK\")'"
+            description: "Verify AsyncMCPClient with create_issue and link_issues is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.integrations.async_mcp_client import AsyncMCPClient"
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create the service that creates follow-up tickets and links them to CSOPM.
+
+        Workflow:
+        1. Modal submit handler extracts: project_key, issue_type_id, summary, description
+        2. Extracts csopm_ticket_key from private_metadata
+        3. Calls FollowUpTicketCreator.create_and_link()
+        4. Creator creates new ticket via MCP
+        5. Creator links new ticket <-> CSOPM with 'Relates' link type
+        6. Returns result to handler
+        7. Handler sends confirmation/error message to user
+
+        FollowUpTicketCreator.create_and_link():
+        1. Build issue fields from form data
+        2. Call AsyncMCPClient.create_issue(project_key, issue_type_id, summary, description)
+        3. If success, call AsyncMCPClient.link_issues(new_key, csopm_key, 'Relates')
+        4. Return result object
+
+        Link type: "Relates" (id: 10003)
+        - Bidirectional: "relates to" <-> "relates to"
+        - Both CSOPM and follow-up will show the link
+
+        Error handling:
+        - If ticket creation fails, return error without attempting link
+        - If linking fails, return partial success (ticket created but not linked)
+        - Log all errors for debugging
+        </task_description>
+
+      implementation:
+        approach: |
+          Create FollowUpTicketCreator for business logic and
+          CSOPMLinkSubmitHandler for modal submission handling.
+        key_points:
+          - point: "Create issue with AsyncMCPClient"
+            details: "Call create_issue(project_key, issue_type_id, summary, description) from Task 3"
+            reference: "packages/integrations/async_mcp_client.py (Task 3)"
+          - point: "Bidirectional linking"
+            details: "Call link_issues(followup_key, csopm_key, 'Relates') - 'Relates' is bidirectional"
+            reference: "Link type id 10003: 'relates to' <-> 'relates to'"
+          - point: "Form data extraction"
+            details: "Extract values from view.state.values using block IDs from Task 7"
+            reference: "packages/slack/interactivity/ patterns"
+          - point: "Confirmation message"
+            details: "Send DM with ticket links using Block Kit, show success or error"
+            reference: "packages/slack/blockkits/ patterns"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check ketchup_unified_scheduler/services/csopm_link/ticket_creator.py packages/slack/interactivity/csopm_link_submit_handler.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "add follow-up ticket creator with bidirectional JIRA linking"
+        files:
+          - "ketchup_unified_scheduler/services/csopm_link/ticket_creator.py"
+          - "packages/slack/interactivity/csopm_link_submit_handler.py"
+
+    # ========================================
+    # PHASE 4: INTEGRATION
+    # ========================================
+
+    - task_number: "9"
+      name: "Register CSOPM Link Services in TypedDI and Scheduler"
+      agent: "fastapi-pro"
+      files:
+        - "packages/core/typed_di/service_registration.py"
+        - "packages/core/typed_di/protocols.py"
+        - "ketchup_unified_scheduler/task_registry.py"
+        - "ketchup-app/main.py"
+      depends_on: [1, 2, 5, 6, 7, 8]
+
+      success_criteria:
+        - "CSOPMAssignmentTrackerProtocol defined in protocols.py"
+        - "CSOPMNotificationServiceProtocol defined in protocols.py"
+        - "FollowUpTicketCreatorProtocol defined in protocols.py"
+        - "All CSOPM services registered in service_registration.py with proper dependencies"
+        - "csopm_link_task added to TaskRegistry.get_all_task_configs()"
+        - "FastAPI routes added for CSOPM link interactivity handlers"
+        - "Interactivity router includes csopm_link action and submit handlers"
+        - "Feature flag KETCHUP_CSOPM_LINK_FEATURE controls task enablement"
+        - "No TODO comments in production code"
+        - "No placeholder structs"
+        - "No unused variables"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-typed-di"
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from ketchup_unified_scheduler.task_registry import TaskRegistry; print(TaskRegistry.get_all_task_configs())'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c 'from packages.core.typed_di import TypedServiceRegistry; print(\"Import OK\")'"
+            description: "Verify TypedDI is available"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && PYTHONPATH=. uv run python -c "from packages.core.typed_di import TypedServiceRegistry"
+            cat packages/core/typed_di/protocols.py | head -100
+            cat ketchup_unified_scheduler/task_registry.py
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Integrate all CSOPM Link services into the application.
+
+        1. TypedDI Protocols (protocols.py):
+           - CSOPMAssignmentTrackerProtocol
+           - CSOPMNotificationServiceProtocol
+           - UserProjectDiscoveryServiceProtocol
+           - SlackUserLookupServiceProtocol
+           - FollowUpTicketCreatorProtocol
+
+        2. Service Registration (service_registration.py):
+           - Register all CSOPM services with dependencies
+           - Follow existing registration patterns
+
+        3. Task Registry (task_registry.py):
+           - Add csopm_link_task to get_all_task_configs()
+           - Import get_csopm_link_task_config from tasks module
+
+        4. FastAPI Routes (main.py):
+           - Add interactivity handlers for CSOPM link button and modal
+           - Route action_id='csopm_link_create_followup' to action handler
+           - Route callback_id='csopm_link_modal_submit' to submit handler
+
+        Follow existing patterns in each file.
+        </task_description>
+
+      implementation:
+        approach: |
+          Add protocols, registrations, task config, and routes
+          following existing patterns in each file.
+        key_points:
+          - point: "Protocol definitions"
+            details: "Define Protocol classes with abstract methods matching service interfaces"
+            reference: "packages/core/typed_di/protocols.py existing patterns"
+          - point: "Service registration"
+            details: "Register services with dependencies using registry.register() pattern"
+            reference: "packages/core/typed_di/service_registration.py"
+          - point: "Task registry"
+            details: "Add csopm_link to task list in TaskRegistry.get_all_task_configs()"
+            reference: "ketchup_unified_scheduler/task_registry.py"
+          - point: "Interactivity routing"
+            details: "Add routes for button action and modal submit callbacks"
+            reference: "ketchup-app/main.py interactivity section"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check packages/core/typed_di/service_registration.py packages/core/typed_di/protocols.py ketchup_unified_scheduler/task_registry.py"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "integrate CSOPM link services into TypedDI and scheduler"
+        files:
+          - "packages/core/typed_di/**"
+          - "ketchup_unified_scheduler/task_registry.py"
+          - "ketchup-app/main.py"
+
+    - task_number: "10"
+      name: "Add Comprehensive Tests for CSOPM Link Service"
+      agent: "fastapi-pro"
+      files:
+        - "tests/unit/csopm_link/test_assignment_tracker.py"
+        - "tests/unit/csopm_link/test_polling_service.py"
+        - "tests/unit/csopm_link/test_notification_service.py"
+        - "tests/unit/csopm_link/test_modal_builder.py"
+        - "tests/unit/csopm_link/test_ticket_creator.py"
+        - "tests/integration/test_csopm_link_flow.py"
+      depends_on: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+      success_criteria:
+        - "Unit tests for CSOPMAssignmentTracker: should_notify, record_notification, TTL handling"
+        - "Unit tests for CSOPMPollingService: JQL query, assignee extraction, filtering"
+        - "Unit tests for CSOPMNotificationService: Slack lookup, DM sending, tracker integration"
+        - "Unit tests for CSOPMLinkModalBuilder: modal structure, project dropdown, issue type update"
+        - "Unit tests for FollowUpTicketCreator: ticket creation, linking, error handling"
+        - "Integration test for full flow: poll -> notify -> modal -> create -> link"
+        - "All tests use mocked external dependencies (DynamoDB, Slack, JIRA)"
+        - "Test coverage for error scenarios and edge cases"
+        - "No TODO comments in test code"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='-k csopm_link'"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/tests/setup && make test-parallel ARGS='--collect-only -k csopm_link'"
+            description: "Verify test collection for CSOPM link tests"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            ls tests/unit/
+            ls tests/integration/
+          </commands>
+        </dependency_verification>
+        <task_description>
+        Create comprehensive test suite for the CSOPM Link Service.
+
+        Test structure:
+        1. tests/unit/csopm_link/test_assignment_tracker.py
+           - test_should_notify_new_assignment
+           - test_should_not_notify_already_notified
+           - test_record_notification_creates_dynamo_entry
+           - test_ttl_set_correctly
+
+        2. tests/unit/csopm_link/test_polling_service.py
+           - test_jql_query_format
+           - test_extracts_assignee_fields
+           - test_filters_already_notified
+           - test_handles_empty_results
+
+        3. tests/unit/csopm_link/test_notification_service.py
+           - test_sends_dm_to_correct_user
+           - test_handles_user_not_in_slack
+           - test_records_notification_after_send
+           - test_block_kit_message_structure
+
+        4. tests/unit/csopm_link/test_modal_builder.py
+           - test_modal_structure
+           - test_project_dropdown_populated
+           - test_issue_type_updates_on_project_select
+           - test_private_metadata_contains_csopm_key
+
+        5. tests/unit/csopm_link/test_ticket_creator.py
+           - test_creates_ticket_with_correct_fields
+           - test_links_ticket_to_csopm
+           - test_handles_creation_failure
+           - test_handles_linking_failure
+
+        6. tests/integration/test_csopm_link_flow.py
+           - test_full_flow_poll_to_notification
+           - test_full_flow_modal_to_ticket_creation
+
+        Use pytest fixtures and mocks for all external dependencies.
+        </task_description>
+
+      implementation:
+        approach: |
+          Create test files with pytest, using mocks for DynamoDB, Slack, and JIRA.
+          Follow existing test patterns in tests/unit/.
+        key_points:
+          - point: "Mock DynamoDB operations"
+            details: "Use moto or mock boto3 client for assignment tracker tests"
+            reference: "tests/unit/ existing DynamoDB test patterns"
+          - point: "Mock Slack API calls"
+            details: "Use AsyncMock for Slack client methods"
+            reference: "tests/unit/slack/ existing patterns"
+          - point: "Mock MCP client"
+            details: "Mock MCPClient methods for JIRA operations"
+            reference: "tests/unit/ existing MCP mock patterns"
+          - point: "Integration test with mocked externals"
+            details: "Test full flow with all components wired together, externals mocked"
+            reference: "tests/integration/ existing patterns"
+
+      code_quality:
+        python:
+          lint_check:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run ruff check tests/unit/csopm_link/ tests/integration/test_csopm_link_flow.py"
+            exit_on_failure: true
+
+      commit:
+        type: "test"
+        message: "add comprehensive tests for CSOPM link service"
+        files:
+          - "tests/unit/csopm_link/**"
+          - "tests/integration/test_csopm_link_flow.py"

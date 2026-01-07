@@ -260,6 +260,42 @@ services:
       retries: 3
       start_period: 180s
 
+  # CSOPM Notifier - local dev with shorter thresholds for testing
+  ketchup-csopm-notifier:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.csopm-notifier
+    image: ketchup-csopm-notifier:local-dev
+    environment:
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
+      - DYNAMODB_TABLE_NAME=ketchup_channel_information
+      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - LOG_LEVEL=DEBUG
+      - PYTHONPATH=/app
+      - MCP_BASE_URL=http://mcp-jira:8081
+      - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
+      - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
+      # Local testing configuration - shorter thresholds for faster feedback
+      - CSOPM_JIRA_PROJECT=CPGNCX
+      - CSOPM_RCA_REMINDER_DAYS=1
+      - CSOPM_CLOSURE_REMINDER_DAYS=3
+      - CSOPM_MAX_PING_COUNT=2
+      - CSOPM_SCHEDULE_TIMES=09:00,12:00,15:00,18:00
+      - TZ=Europe/London
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./logs:/var/log
+    depends_on:
+      - mcp-jira
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/csopm_notifier_health LAST_RUN_FILE=/tmp/csopm_notifier_last_run MAX_RUN_AGE=14400 MAX_HEALTH_AGE=600 SERVICE_NAME=CSOPMNotifier /app/infrastructure/healthcheck-scheduler.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+
   # ==============================================================================
   # LOCAL TEST SERVICES FOR TDD RECOVERY
   # ==============================================================================

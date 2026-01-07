@@ -28,11 +28,13 @@ DOCKERFILE_APP="infrastructure/Dockerfile.app-multistage"
 DOCKERFILE_MCP="infrastructure/Dockerfile.mcp-jira"
 DOCKERFILE_ACCESS_MONITOR="infrastructure/Dockerfile.access-monitor"
 DOCKERFILE_UNIFIED_SCHEDULER="infrastructure/Dockerfile.unified-scheduler"
+DOCKERFILE_CSOPM_NOTIFIER="infrastructure/Dockerfile.csopm-notifier"
 
-# Service names (4 active services after unified scheduler consolidation)
+# Service names (5 active services after unified scheduler consolidation + CSOPM notifier)
 # Legacy services (metadata-updater, status-updater, jira-reporter, maintenance-fetcher, jira-pat-rotator)
 # are now consolidated into ketchup-unified-scheduler
-SERVICES=("ketchup-app" "mcp-jira" "ketchup-access-monitor" "ketchup-unified-scheduler")
+# Singleton services (prod1 only): ketchup-unified-scheduler, ketchup-csopm-notifier
+SERVICES=("ketchup-app" "mcp-jira" "ketchup-access-monitor" "ketchup-unified-scheduler" "ketchup-csopm-notifier")
 
 # Default values
 VERSION=""
@@ -284,8 +286,8 @@ check_current_versions() {
 check_running_versions() {
     local server=$1
     log_info "Checking running versions on $server..."
-    
-    ssh "$server" "sudo docker ps --format 'table {{.Names}}\t{{.Image}}' | grep -E '(ketchup-app|mcp-jira|ketchup-access-monitor|ketchup-unified-scheduler)'"
+
+    ssh "$server" "sudo docker ps --format 'table {{.Names}}\t{{.Image}}' | grep -E '(ketchup-app|mcp-jira|ketchup-access-monitor|ketchup-unified-scheduler|ketchup-csopm-notifier)'"
 }
 
 build_images() {
@@ -349,6 +351,18 @@ build_images() {
         exit 1
     }
     log_success "Built ketchup-unified-scheduler:$VERSION"
+
+    # Build ketchup-csopm-notifier (standalone CSOPM notification service)
+    log_info "Building ketchup-csopm-notifier:$VERSION..."
+    BUILD_ARGS="-t ketchup-csopm-notifier:$VERSION -f $DOCKERFILE_CSOPM_NOTIFIER --platform linux/amd64"
+    if [ "$NO_CACHE" = true ]; then
+        BUILD_ARGS="$BUILD_ARGS --no-cache"
+    fi
+    docker build $BUILD_ARGS . || {
+        log_error "Failed to build ketchup-csopm-notifier"
+        exit 1
+    }
+    log_success "Built ketchup-csopm-notifier:$VERSION"
 
 }
 
@@ -473,9 +487,9 @@ deploy_to_server() {
         update_cmd+="sudo sed -i 's|${service}:v[0-9.]*|${service}:${version}|g' /opt/ketchup/docker-compose.yml; "
     done
 
-    # Deploy unified-scheduler ONLY to prod1 (singleton), exclude from prod2
+    # Deploy singleton services (unified-scheduler, csopm-notifier) ONLY to prod1, exclude from prod2
     if [[ "$server" == "$PROD1_SERVER" ]]; then
-        log_info "Deploying to prod1 (all services including unified-scheduler singleton)..."
+        log_info "Deploying to prod1 (all services including singleton schedulers)..."
         ssh "$server" "cd $PROD_DIR && \
             $update_cmd \
             sudo docker-compose pull && \
@@ -484,12 +498,12 @@ deploy_to_server() {
             return 1
         }
     else
-        # Deploy core services only, excluding unified-scheduler singleton on prod2
-        log_info "Deploying to prod2 (core services only, excluding unified-scheduler singleton)..."
+        # Deploy core services only, excluding singleton services on prod2
+        log_info "Deploying to prod2 (core services only, excluding singleton schedulers)..."
 
-        # Explicitly stop and remove unified-scheduler (singleton that should only run on prod1)
-        cleanup_cmd="sudo docker-compose stop ketchup-unified-scheduler 2>/dev/null; "
-        cleanup_cmd+="sudo docker-compose rm -f ketchup-unified-scheduler 2>/dev/null; "
+        # Explicitly stop and remove singleton services (should only run on prod1)
+        cleanup_cmd="sudo docker-compose stop ketchup-unified-scheduler ketchup-csopm-notifier 2>/dev/null; "
+        cleanup_cmd+="sudo docker-compose rm -f ketchup-unified-scheduler ketchup-csopm-notifier 2>/dev/null; "
 
         ssh "$server" "cd $PROD_DIR && \
             $update_cmd \

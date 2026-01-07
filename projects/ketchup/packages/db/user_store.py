@@ -5,6 +5,7 @@ This module contains the UserStore class for DynamoDB operations with user data.
 """
 
 import time
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -706,3 +707,80 @@ class UserStore:
         except Exception as e:
             logger.error(f"Error getting channels with feature {feature_name}: {e}")
             return []
+
+    async def get_email_to_slack_mapping(self, email: str) -> Optional[str]:
+        """
+        Get cached Slack user ID for an email address from DynamoDB.
+
+        Uses the EMAIL_TO_SLACK#{email} partition key pattern, consistent with
+        other entity types (USER#, CHANNEL#, etc.).
+
+        Args:
+            email: Email address to look up (should be lowercase)
+
+        Returns:
+            Slack user ID if found in cache, None otherwise
+        """
+        logger.debug("Looking up email-to-Slack mapping for: %s", email)
+        key = {"PK": {"S": f"EMAIL_TO_SLACK#{email}"}, "SK": {"S": "METADATA"}}
+
+        try:
+            response = await self.client.get_item(key, table_name=self.table_name)
+            item = response.get("Item")
+
+            if item:
+                slack_user_id = item.get("slack_user_id", {}).get("S")
+                if slack_user_id:
+                    logger.info(
+                        "Found cached email-to-Slack mapping: %s -> %s", email, slack_user_id
+                    )
+                    return slack_user_id
+
+            logger.debug("No email-to-Slack mapping found for: %s", email)
+            return None
+
+        except ClientError as e:
+            error_code = e.response["Error"]["Code"]
+            error_message = e.response["Error"]["Message"]
+            logger.error(
+                "DynamoDB error fetching email mapping %s: %s - %s",
+                email,
+                error_code,
+                error_message,
+            )
+            return None
+        except Exception as e:
+            logger.error("Unexpected error getting email mapping %s: %s", email, str(e))
+            return None
+
+    async def store_email_to_slack_mapping(self, email: str, slack_user_id: str) -> bool:
+        """
+        Store email-to-Slack user ID mapping in DynamoDB.
+
+        Uses the EMAIL_TO_SLACK#{email} partition key pattern. No TTL is applied
+        as email-to-Slack mappings are considered stable per design decision.
+
+        Args:
+            email: Email address (should be lowercase)
+            slack_user_id: The Slack user ID to cache
+
+        Returns:
+            True if stored successfully, False otherwise
+        """
+        logger.info("Storing email-to-Slack mapping: %s -> %s", email, slack_user_id)
+
+        try:
+            item = {
+                "PK": {"S": f"EMAIL_TO_SLACK#{email}"},
+                "SK": {"S": "METADATA"},
+                "slack_user_id": {"S": slack_user_id},
+                "cached_at": {"S": datetime.now(timezone.utc).isoformat()},
+            }
+
+            await self.client.put_item(item=item, table_name=self.table_name)
+            logger.info("Successfully stored email-to-Slack mapping for: %s", email)
+            return True
+
+        except Exception as e:
+            logger.error("Error storing email-to-Slack mapping for %s: %s", email, str(e))
+            return False

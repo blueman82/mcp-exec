@@ -131,6 +131,8 @@ class EventProcessor:
         self.access_request_handler = clients.get("access_request_handler")
         # Get FlagReviewHandler for flag button interactions
         self.flag_review_handler = clients.get("flag_review_handler")
+        # Get CSOPMHandler for CSOPM interactive button actions
+        self.csopm_handler = clients.get("csopm_handler")
 
     async def process_request(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -229,6 +231,7 @@ class EventProcessor:
                 trust_endorsement_handler=self.trust_endorsement_handler,
                 access_request_handler=self.access_request_handler,
                 flag_review_handler=self.flag_review_handler,
+                csopm_handler=self.csopm_handler,
             )
 
         elif "event" in parsed_body_dict or "event" in parsed_body_multivalue:

@@ -7,6 +7,7 @@ Module for setting up dependencies required for Slack event/command processing.
 from typing import Any, Awaitable, Callable, Dict, cast
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di.protocols import CSOPMSlackNotifierProtocol
 from packages.core.typed_di.registry import TypedServiceRegistry
 
 # Additional protocols for Phase 2 Tier 1 migration
@@ -38,6 +39,7 @@ from packages.core.typed_di.service_registrations.protocols import (
 )
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.db.user_store import UserStore
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.secrets.manager import SecretsManager
 from packages.slack.authorisation.auth import SlackAuth
 from packages.slack.authorisation.user_verification import UserVerifier
@@ -64,6 +66,7 @@ from packages.slack.command_processing.status_report_command import SlackReports
 from packages.slack.interactive_elements.channel_metadata_edit import (
     ChannelMetadataEditHandler,
 )
+from packages.slack.interactive_elements.csopm_handler import CSOPMHandler
 from packages.slack.interactive_elements.feedback_reactions import (
     FeedbackReactionsHandler,
 )
@@ -369,6 +372,23 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
     except Exception as e:
         logger.warning("HomeTabHandler not available: %s", e)
 
+    # CSOPM Handler for interactive button actions
+    # Uses TypedDI protocol pattern - CSOPMSlackNotifier is registered via csopm_services.py
+    # when ketchup_csopm_notifier package is available in the container
+    csopm_handler = None
+    try:
+        mcp_client = await container.aget(AsyncMCPClient)
+        csopm_notifier = await container.aget(CSOPMSlackNotifierProtocol)
+        if slack_posting_handler and csopm_notifier and mcp_client:
+            csopm_handler = CSOPMHandler(
+                slack_notifier=csopm_notifier,
+                mcp_client=mcp_client,
+                posting_handler=slack_posting_handler,
+            )
+            logger.info("CSOPMHandler instantiated via TypedDI CSOPMSlackNotifierProtocol")
+    except Exception as e:
+        logger.warning("CSOPMHandler not available: %s", e)
+
     # Handle missing Slack dependencies gracefully
     if not slack_posting_handler:
         logger.error(
@@ -596,6 +616,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
         "trust_endorsement_handler": trust_endorsement_handler,
         "access_request_handler": access_request_handler,
         "flag_review_handler": flag_review_handler,
+        "csopm_handler": csopm_handler,
         "secrets_manager": secrets_manager,
         "slack_auth": slack_auth,
         "user_verifier": user_verifier,

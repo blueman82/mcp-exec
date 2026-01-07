@@ -48,6 +48,8 @@ WORKDIR /app
 # Copy application code
 COPY --chown=ketchup:ketchup packages/ ./packages/
 COPY --chown=ketchup:ketchup ketchup-app/ ./
+# Include CSOPM notifier for interactive handler support (state tracker, notifier)
+COPY --chown=ketchup:ketchup ketchup_csopm_notifier/ ./ketchup_csopm_notifier/
 
 # Set environment variables
 ENV PYTHONPATH=/app

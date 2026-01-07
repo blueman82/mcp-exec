@@ -1,0 +1,64 @@
+# CSOPM Notifier Dockerfile
+# Standalone container for CSOPM (Customer Success Operations Project Management) notifications
+# Runs the notification poll cycle at 08:00 and 16:00 UTC
+#
+# Multi-stage build following existing pattern from Dockerfile.unified-scheduler
+
+# Stage 1: Builder
+FROM python:3.12-slim AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc g++ make curl git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements
+COPY infrastructure/requirements.txt /tmp/requirements.txt
+
+# Install Python packages
+RUN pip install --upgrade pip && \
+    pip install wheel && \
+    pip install -r /tmp/requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.12-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /app
+
+# Copy shared packages (used by CSOPM services)
+COPY packages/ ./packages/
+
+# Copy CSOPM notifier module
+COPY ketchup_csopm_notifier/ ./ketchup_csopm_notifier/
+
+# Copy parameterized healthcheck script (reused from unified-scheduler)
+COPY infrastructure/healthcheck-scheduler.sh ./infrastructure/
+
+# Make healthcheck script executable
+RUN chmod +x ./infrastructure/healthcheck-scheduler.sh
+
+# Create log directory
+RUN mkdir -p /var/log
+
+# Environment
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Health check writes to /tmp/csopm_notifier_health
+# Scheduler uses base_path=/tmp, health_file_prefix=csopm_notifier
+
+# Run CSOPM notifier scheduler
+CMD ["python", "-m", "ketchup_csopm_notifier.main"]

@@ -76,6 +76,18 @@ from .core_protocols import (
     UserStoreProtocol,
 )
 
+# CSOPM notifier protocols
+from .csopm_protocols import (
+    CSOPMJIRAPollerProtocol,
+    CSOPMMetricsProtocol,
+    CSOPMReminderServiceProtocol,
+    CSOPMSlackNotifierProtocol,
+    CSOPMStateTrackerProtocol,
+    CSOPMTicket,
+    FollowupRecord,
+    NotificationRecord,
+)
+
 # Database protocols
 from .database_protocols import (
     DatabaseBackupServiceProtocol,
@@ -417,4 +429,14 @@ __all__ = [
     "RavenMaintenanceClientProtocol",
     "MaintenanceCheckerProtocol",
     "JiraPromptHandlerProtocol",
+    # CSOPM notifier protocols (data classes)
+    "CSOPMTicket",
+    "NotificationRecord",
+    "FollowupRecord",
+    # CSOPM notifier protocols (service protocols)
+    "CSOPMJIRAPollerProtocol",
+    "CSOPMStateTrackerProtocol",
+    "CSOPMSlackNotifierProtocol",
+    "CSOPMReminderServiceProtocol",
+    "CSOPMMetricsProtocol",
 ]

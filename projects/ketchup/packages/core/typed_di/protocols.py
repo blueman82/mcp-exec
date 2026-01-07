@@ -37,6 +37,16 @@ from .service_protocols import (  # Business service protocols
     RateLimiterProtocol,
     StatusCommandServiceProtocol,
 )
+from .service_registrations.protocols.csopm_protocols import (  # CSOPM notifier protocols
+    CSOPMJIRAPollerProtocol,
+    CSOPMMetricsProtocol,
+    CSOPMReminderServiceProtocol,
+    CSOPMSlackNotifierProtocol,
+    CSOPMStateTrackerProtocol,
+    CSOPMTicket,
+    FollowupRecord,
+    NotificationRecord,
+)
 from .slack_protocols import (  # Slack-specific protocols
     CommandHandlerProtocol,
     EventHandlerProtocol,
@@ -94,4 +104,14 @@ __all__ = [
     "JiraValidationServiceProtocol",
     "RateLimiterProtocol",
     "FeatureServiceProtocol",
+    # CSOPM notifier protocols (data classes)
+    "CSOPMTicket",
+    "NotificationRecord",
+    "FollowupRecord",
+    # CSOPM notifier protocols (service protocols)
+    "CSOPMJIRAPollerProtocol",
+    "CSOPMStateTrackerProtocol",
+    "CSOPMSlackNotifierProtocol",
+    "CSOPMReminderServiceProtocol",
+    "CSOPMMetricsProtocol",
 ]
