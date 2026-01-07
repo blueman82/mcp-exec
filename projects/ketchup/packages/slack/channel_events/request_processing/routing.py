@@ -87,6 +87,7 @@ async def handle_interactive_component(
     trust_endorsement_handler: Any,  # TrustEndorsementHandler
     access_request_handler: Any = None,  # AccessRequestHandler - optional for access request automation
     flag_review_handler: Any = None,  # FlagReviewHandler - optional until implemented
+    csopm_handler: Any = None,  # CSOPMHandler - optional for CSOPM notifications
 ) -> Dict[str, Any]:
     """
     Handles incoming interactive component payloads.
