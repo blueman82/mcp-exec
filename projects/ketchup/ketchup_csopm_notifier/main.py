@@ -58,7 +58,7 @@ async def main() -> None:
         # Create TypedDI container with CSOPM services
         # Container is created once at startup and shared by the scheduler
         logger.info("Initializing CSOPM DI container...")
-        container = await get_csopm_container()
+        container = await get_unified_container()
         logger.info("CSOPM DI container initialized successfully")
 
         # Create scheduler with container
