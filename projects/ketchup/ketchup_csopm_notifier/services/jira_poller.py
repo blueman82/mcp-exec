@@ -46,10 +46,13 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
     #     "created >= -1d "
     #     "ORDER BY created DESC"
     # )
+    # TESTING ONLY: Filter to specific test tickets to avoid blasting all CPGNCX assignees
+    # REVERT FOR PRODUCTION: Remove the key IN clause and change status back to 'New'
     NEW_ASSIGNMENTS_JQL = (
         f"project = {CSOPM_JIRA_PROJECT} AND "
+        "key IN (CPGNCX-63714, CPGNCX-63715) AND "  # TESTING ONLY - REMOVE FOR PROD
         "assignee IS NOT EMPTY AND "
-        "status = 'Not Started' AND "
+        "status = 'Not Started' AND "  # TESTING ONLY - REVERT TO 'New' FOR PROD
         "created >= -1d "
         "ORDER BY created DESC"
     )
