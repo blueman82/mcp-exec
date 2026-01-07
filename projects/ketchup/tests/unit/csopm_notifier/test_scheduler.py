@@ -75,9 +75,7 @@ class TestDualTimeScheduling:
         # Mock current time to 06:00 UTC
         mock_now = datetime(2025, 1, 6, 6, 0, 0, tzinfo=timezone.utc)
 
-        with patch(
-            "ketchup_csopm_notifier.scheduler.datetime"
-        ) as mock_datetime:
+        with patch("ketchup_csopm_notifier.scheduler.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 
@@ -97,9 +95,7 @@ class TestDualTimeScheduling:
         # Mock current time to 10:00 UTC (between 08:00 and 16:00)
         mock_now = datetime(2025, 1, 6, 10, 0, 0, tzinfo=timezone.utc)
 
-        with patch(
-            "ketchup_csopm_notifier.scheduler.datetime"
-        ) as mock_datetime:
+        with patch("ketchup_csopm_notifier.scheduler.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 
@@ -118,9 +114,7 @@ class TestDualTimeScheduling:
         # Mock current time to 20:00 UTC (after 16:00)
         mock_now = datetime(2025, 1, 6, 20, 0, 0, tzinfo=timezone.utc)
 
-        with patch(
-            "ketchup_csopm_notifier.scheduler.datetime"
-        ) as mock_datetime:
+        with patch("ketchup_csopm_notifier.scheduler.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 
@@ -139,9 +133,7 @@ class TestDualTimeScheduling:
         # Mock current time to exactly 08:00 UTC
         mock_now = datetime(2025, 1, 6, 8, 0, 0, tzinfo=timezone.utc)
 
-        with patch(
-            "ketchup_csopm_notifier.scheduler.datetime"
-        ) as mock_datetime:
+        with patch("ketchup_csopm_notifier.scheduler.datetime") as mock_datetime:
             mock_datetime.now.return_value = mock_now
             mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
 
@@ -645,21 +637,19 @@ class TestMainEntryPoint:
         """Test main creates container and scheduler."""
         from ketchup_csopm_notifier import main as main_module
 
-        # Mock get_csopm_container and CSOPMScheduler
+        # Mock get_unified_container and CSOPMScheduler
         mock_container = AsyncMock()
         mock_scheduler = AsyncMock()
         mock_scheduler.start = AsyncMock()
 
-        with patch.object(
-            main_module, "get_csopm_container", return_value=mock_container
-        ):
+        with patch.object(main_module, "get_unified_container", return_value=mock_container):
             with patch.object(
                 main_module, "CSOPMScheduler", return_value=mock_scheduler
             ) as mock_scheduler_class:
                 await main_module.main()
 
                 # Verify container was created
-                main_module.get_csopm_container.assert_called_once()
+                main_module.get_unified_container.assert_called_once()
 
                 # Verify scheduler was created with container
                 mock_scheduler_class.assert_called_once()
