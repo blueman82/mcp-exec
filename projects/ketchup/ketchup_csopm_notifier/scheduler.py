@@ -59,8 +59,8 @@ class CSOPMScheduler(BaseScheduler):
         await scheduler.start()
     """
 
-    # Schedule times in UTC (24-hour format)
-    SCHEDULE_TIMES_UTC = ["08:00", "16:00"]
+    # Schedule times in UTC (24-hour format) - configurable via CSOPM_SCHEDULE_TIMES env var
+    SCHEDULE_TIMES_UTC = CSOPM_SCHEDULE_TIMES
 
     def __init__(
         self,
