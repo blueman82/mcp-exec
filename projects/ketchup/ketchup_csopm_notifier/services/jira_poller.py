@@ -20,6 +20,8 @@ logger = setup_logger(__name__)
 
 # Exigence URL pattern for extracting event IDs from ticket descriptions
 # Matches 5-6 digit IDs in Exigence URLs like: /events/12345/ or /events/123456/
+from packages.core.config.csopm_config import CSOPM_JIRA_PROJECT
+
 EXIGENCE_ID_PATTERN = re.compile(r"/events/(\d{5,6})/")
 
 
@@ -38,7 +40,7 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
 
     # JQL query for discovering new CSOPM assignments
     NEW_ASSIGNMENTS_JQL = (
-        "project = CSOPM AND "
+        f"project = {CSOPM_JIRA_PROJECT} AND "
         "assignee IS NOT EMPTY AND "
         "status = 'New' AND "
         "created >= -1d "
