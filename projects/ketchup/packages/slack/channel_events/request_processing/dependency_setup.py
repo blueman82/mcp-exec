@@ -64,6 +64,7 @@ from packages.slack.command_processing.status_report_command import SlackReports
 from packages.slack.interactive_elements.channel_metadata_edit import (
     ChannelMetadataEditHandler,
 )
+from packages.slack.interactive_elements.csopm_handler import CSOPMHandler
 from packages.slack.interactive_elements.feedback_reactions import (
     FeedbackReactionsHandler,
 )
