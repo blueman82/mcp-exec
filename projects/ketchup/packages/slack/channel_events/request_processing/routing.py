@@ -126,6 +126,7 @@ async def handle_interactive_component(
             trust_endorsement_handler=trust_endorsement_handler,
             access_request_handler=access_request_handler,
             flag_review_handler=flag_review_handler,
+            csopm_handler=csopm_handler,
         )
         logger.info("Processed interactive payload successfully.")
         return {"statusCode": 200, "body": ""}  # Ack interaction
