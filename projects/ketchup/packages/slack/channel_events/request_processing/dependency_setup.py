@@ -9,6 +9,10 @@ from typing import Any, Awaitable, Callable, Dict, cast
 from packages.core.logging import setup_logger
 from packages.core.typed_di.registry import TypedServiceRegistry
 
+# Import CSOPMSlackNotifier directly for ketchup-app interactive handling
+# (protocol is only registered in csopm_notifier container)
+from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
+
 # Additional protocols for Phase 2 Tier 1 migration
 from packages.core.typed_di.service_registrations import (
     AccessRequestHandlerProtocol,
@@ -36,10 +40,9 @@ from packages.core.typed_di.service_registrations.protocols import (
     FeedbackReportHandlerProtocol,
     ShortcutHandlerProtocol,
 )
-from packages.core.typed_di.protocols import CSOPMSlackNotifierProtocol
-from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.db.user_store import UserStore
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.secrets.manager import SecretsManager
 from packages.slack.authorisation.auth import SlackAuth
 from packages.slack.authorisation.user_verification import UserVerifier
