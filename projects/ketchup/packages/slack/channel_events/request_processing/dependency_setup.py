@@ -7,11 +7,8 @@ Module for setting up dependencies required for Slack event/command processing.
 from typing import Any, Awaitable, Callable, Dict, cast
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di.protocols import CSOPMSlackNotifierProtocol
 from packages.core.typed_di.registry import TypedServiceRegistry
-
-# Import CSOPMSlackNotifier directly for ketchup-app interactive handling
-# (protocol is only registered in csopm_notifier container)
-from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
 
 # Additional protocols for Phase 2 Tier 1 migration
 from packages.core.typed_di.service_registrations import (
