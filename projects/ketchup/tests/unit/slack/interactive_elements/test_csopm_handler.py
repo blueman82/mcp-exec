@@ -132,9 +132,7 @@ def sample_view_submission_payload():
                             "selected_option": {"value": "Task"},
                         }
                     },
-                    "summary_block": {
-                        "summary_input": {"value": "Follow-up task for CSOPM-1234"}
-                    },
+                    "summary_block": {"summary_input": {"value": "Follow-up task for CSOPM-1234"}},
                     "description_block": {
                         "description_input": {"value": "Follow-up description here"}
                     },

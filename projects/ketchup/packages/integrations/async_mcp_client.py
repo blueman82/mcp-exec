@@ -368,15 +368,26 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
             return []
 
     async def create_issue_comment(self, issue_key: str, comment: str) -> bool:
-        """Create a JIRA issue comment."""
-
+        """Create a JIRA issue comment.
+        
+        Args:
+            issue_key: The JIRA issue key (e.g., "CPGNCX-12345")
+            comment: Plain text comment to add
+            
+        Returns:
+            True if comment was added successfully, False otherwise.
+        """
         await self.ensure_connection()
         await self.rate_limiter.acquire()
+
+        # MCP JIRA server expects comment object with body as string
+        # The MCP server handles ADF conversion internally
+        comment_payload = {"body": comment}
 
         try:
             result = await self._call_mcp_tool(
                 "add_jira_comment",
-                {"issueIdOrKey": issue_key, "comment": comment},
+                {"issueIdOrKey": issue_key, "comment": comment_payload},
             )
             success = result.get("success", False)
             if success:

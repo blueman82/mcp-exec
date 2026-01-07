@@ -341,7 +341,9 @@ async def process_interactive_payload(
             # Handle CSOPM modal submissions (e.g., csopm_create_followup_modal)
             if is_csopm_modal(callback_id):
                 if csopm_handler is None:
-                    logger.error("CSOPM handler not available for modal submission: %s", callback_id)
+                    logger.error(
+                        "CSOPM handler not available for modal submission: %s", callback_id
+                    )
                     return True
                 logger.info("Processing CSOPM modal submission: %s", callback_id)
                 success = await csopm_handler.handle_view_submission(payload=payload)

@@ -509,8 +509,12 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
     async def test_check_closure_reminders_filters_by_45_day_age(self):
         """Test check_closure_reminders only returns tickets 45+ days old."""
         records = [
-            make_notification_record("CSOPM-1001", closure_reminder_sent=False),  # Will be 50 days old
-            make_notification_record("CSOPM-1002", closure_reminder_sent=False),  # Will be 30 days old
+            make_notification_record(
+                "CSOPM-1001", closure_reminder_sent=False
+            ),  # Will be 50 days old
+            make_notification_record(
+                "CSOPM-1002", closure_reminder_sent=False
+            ),  # Will be 30 days old
         ]
         self.mock_state_tracker.get_all_active_notifications.return_value = records
 

@@ -254,9 +254,7 @@ class CSOPMHandler:
                 ),
                 created_at=datetime.now(timezone.utc),
                 status=(
-                    status_obj.get("name", "Unknown")
-                    if isinstance(status_obj, dict)
-                    else "Unknown"
+                    status_obj.get("name", "Unknown") if isinstance(status_obj, dict) else "Unknown"
                 ),
             )
 
@@ -374,7 +372,11 @@ class CSOPMHandler:
             )
 
             if not create_result or not create_result.get("success"):
-                error_msg = create_result.get("message", "Unknown error") if create_result else "No response"
+                error_msg = (
+                    create_result.get("message", "Unknown error")
+                    if create_result
+                    else "No response"
+                )
                 logger.error("Failed to create follow-up ticket: %s", error_msg)
 
                 # Send error message to user
@@ -401,7 +403,7 @@ class CSOPMHandler:
                 "link_issues",
                 {
                     "inwardIssue": parent_ticket_key,  # Parent CSOPM ticket
-                    "outwardIssue": new_ticket_key,     # New follow-up ticket
+                    "outwardIssue": new_ticket_key,  # New follow-up ticket
                     "linkType": "Relates",
                 },
             )

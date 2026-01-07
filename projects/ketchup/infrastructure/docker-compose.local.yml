@@ -277,7 +277,7 @@ services:
       - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
       - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
       # Local testing configuration - shorter thresholds for faster feedback
-      - CSOPM_JIRA_PROJECT=CSOPM
+      - CSOPM_JIRA_PROJECT=CPGNCX
       - CSOPM_RCA_REMINDER_DAYS=1
       - CSOPM_CLOSURE_REMINDER_DAYS=3
       - CSOPM_MAX_PING_COUNT=2
