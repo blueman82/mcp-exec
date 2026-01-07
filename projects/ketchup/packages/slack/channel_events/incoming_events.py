@@ -231,6 +231,7 @@ class EventProcessor:
                 trust_endorsement_handler=self.trust_endorsement_handler,
                 access_request_handler=self.access_request_handler,
                 flag_review_handler=self.flag_review_handler,
+                csopm_handler=self.csopm_handler,
             )
 
         elif "event" in parsed_body_dict or "event" in parsed_body_multivalue:
