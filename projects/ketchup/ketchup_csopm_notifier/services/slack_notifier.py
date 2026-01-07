@@ -566,7 +566,7 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
             followup_info = ""
             try:
                 # Search for tickets that link to this ticket as a parent
-                jql = f'project = CSOPM AND "Parent Link" = {ticket_key}'
+                jql = f'project = {CSOPM_JIRA_PROJECT} AND "Parent Link" = {ticket_key}'
                 search_result = await self._mcp_client.search_issues(
                     jql=jql,
                     fields=["key", "summary", "status"],
