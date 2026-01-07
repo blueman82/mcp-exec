@@ -295,7 +295,7 @@ class TestCSOPMJIRAPollerPollForNewAssignments(unittest.IsolatedAsyncioTestCase)
         jql = call_args.kwargs.get("jql", "")
         self.assertIn("project = CSOPM", jql)
         self.assertIn("assignee IS NOT EMPTY", jql)
-        self.assertIn("status = 'New'", jql)
+        self.assertIn("status = 'Open'", jql)
         self.assertIn("created >= -1d", jql)
 
     async def test_poll_returns_empty_on_no_results(self):
@@ -477,7 +477,7 @@ class TestCSOPMJIRAPollerJQLConstruction(unittest.TestCase):
 
         self.assertIn("project = CSOPM", jql)
         self.assertIn("assignee IS NOT EMPTY", jql)
-        self.assertIn("status = 'New'", jql)
+        self.assertIn("status = 'Open'", jql)
         self.assertIn("created >= -1d", jql)
         self.assertIn("ORDER BY created DESC", jql)
 
