@@ -275,7 +275,7 @@ services:
       - PYTHONPATH=/app
       - MCP_BASE_URL=http://mcp-jira:8081
       - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
-      - CSOPM_DYNAMODB_TABLE=ketchup_csopm_notifications
+      - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
       # Local testing configuration - shorter thresholds for faster feedback
       - CSOPM_JIRA_PROJECT=CSOPM
       - CSOPM_RCA_REMINDER_DAYS=1
