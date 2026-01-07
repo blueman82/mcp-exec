@@ -20,9 +20,7 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 - **Deployment Path**: `/opt/ketchup` on both servers
 
 ### AWS Resources
-- **DynamoDB Tables**:
-  - `ketchup_channel_information` - Main channel and user data
-  - `ketchup_csopm_notifications` - CSOPM notification state tracking
+- **DynamoDB Table**: `ketchup_channel_information` (single-table design, includes CSOPM notification state with `CSOPM_NOTIFICATION#` prefix)
 - **Secrets Manager**: `Ketchup_Token_Secrets`
 - **SQS Queue**: `ketchup-events-queue` (https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue)
 
