@@ -36,6 +36,8 @@ from packages.core.typed_di.service_registrations.protocols import (
     FeedbackReportHandlerProtocol,
     ShortcutHandlerProtocol,
 )
+from packages.core.typed_di.protocols import CSOPMSlackNotifierProtocol
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.db.user_store import UserStore
 from packages.secrets.manager import SecretsManager
