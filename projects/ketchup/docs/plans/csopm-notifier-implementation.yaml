@@ -944,12 +944,12 @@ plan:
         message: "Add Docker infrastructure for CSOPM notifier container"
         files:
           - "infrastructure/**"
-      status: "failed"
+      status: "completed"
       execution_history:
         - attempt_number: "1"
           commit_verification:
             found: true
-            hash: f0ef369
+            hash: dcf4e09
             message: 'feat: Add Docker infrastructure for CSOPM notifier container'
         - attempt_number: "2"
           commit_verification:
@@ -961,6 +961,17 @@ plan:
             found: true
             hash: dcf4e09
             message: 'feat: Add Docker infrastructure for CSOPM notifier container'
+        - attempt_number: "1"
+          agent: docker-infrastructure-specialist
+          verdict: GREEN
+          agent_output: '{"errors":[],"files_modified":["infrastructure/Dockerfile.csopm-notifier","infrastructure/docker-compose.yml","infrastructure/healthcheck-csopm-notifier.sh","infrastructure/deploy-ketchup.sh"],"metadata":{"already_committed":true,"commit_hash":"dcf4e09","commit_message":"feat: Add Docker infrastructure for CSOPM notifier container","healthcheck_max_health_age":600,"healthcheck_max_run_age":32400,"singleton_services":["ketchup-unified-scheduler","ketchup-csopm-notifier"]},"output":"Task 9: Create Dockerfile and Docker Compose Configuration - COMPLETED\n\nAll required infrastructure files already exist and have been committed:\n\n1. **infrastructure/Dockerfile.csopm-notifier** (65 lines)\n   - Multi-stage build following Dockerfile.unified-scheduler pattern\n   - Stage 1: Builder with Python 3.12-slim, build deps, virtual environment\n   - Stage 2: Runtime with slim image, copied venv, packages, and healthcheck\n   - CMD: python -m ketchup_csopm_notifier.main\n\n2. **infrastructure/docker-compose.yml** (lines 119-163)\n   - Service: ketchup-csopm-notifier with singleton deployment pattern\n   - Build context pointing to Dockerfile.csopm-notifier\n   - Environment: KETCHUP_CSOPM_NOTIFIER_ENABLED=true, CSOPM_DYNAMODB_TABLE\n   - Healthcheck: Uses parameterized healthcheck-scheduler.sh with:\n     * HEALTH_FILE=/tmp/csopm_notifier_health\n     * MAX_RUN_AGE=32400 (9 hours, runs every 8 hours)\n     * MAX_HEALTH_AGE=600 (10 minutes)\n   - Logging: json-file driver with 10m max-size, 3 files\n\n3. **infrastructure/healthcheck-csopm-notifier.sh** (35 lines)\n   - Thin wrapper delegating to parameterized healthcheck-scheduler.sh\n   - CSOPM-specific defaults: MAX_RUN_AGE=32400, SERVICE_NAME=CSOPMNotifier\n\n4. **infrastructure/deploy-ketchup.sh** (updated)\n   - SERVICES array includes ketchup-csopm-notifier\n   - Build command for ketchup-csopm-notifier\n   - Singleton behavior: explicitly stopped on prod2 (line 505-506)\n\nCommit: dcf4e09 \"feat: Add Docker infrastructure for CSOPM notifier container\"\n\nThe implementation follows the same patterns as ketchup-unified-scheduler for consistency.","status":"success","summary":"Docker infrastructure for CSOPM notifier container is already complete and committed"}'
+          qc_feedback: |-
+            [code-reviewer] Task 9 successfully completed. All required Docker infrastructure files are in place and match expected patterns. The Dockerfile.csopm-notifier follows the exact multi-stage build pattern from Dockerfile.unified-scheduler, docker-compose.yml correctly defines the ketchup-csopm-notifier service as a singleton on prod1 with proper healthcheck and logging, and the deploy script correctly handles the singleton behavior. Docker build test passes successfully.
+            [docker-infrastructure-specialist] All success criteria have been verified and passed. The Docker infrastructure for CSOPM notifier container has been correctly implemented following existing patterns (Dockerfile.unified-scheduler). The implementation includes: (1) Multi-stage Dockerfile with builder stage using Python 3.12-slim for dependency installation and runtime stage for slim execution, (2) docker-compose.yml with singleton service configuration and proper healthcheck, (3) dedicated healthcheck wrapper script. Changes have been committed with hash dcf4e09.
+            [kubernetes-specialist] All Docker infrastructure files for the CSOPM notifier container have been successfully implemented and committed. The Dockerfile follows the multi-stage build pattern matching Dockerfile.unified-scheduler exactly. The docker-compose.yml service definition includes proper singleton deployment configuration, environment variables, and healthcheck. The deployment script ensures singleton behavior by explicitly stopping the service on prod2. Docker build test passed successfully.
+            [devops-engineer] All required Docker infrastructure files are correctly implemented and committed. The Dockerfile.csopm-notifier follows the multi-stage build pattern from Dockerfile.unified-scheduler, the docker-compose.yml adds the ketchup-csopm-notifier service as a singleton (prod1 only), and the healthcheck-csopm-notifier.sh script is properly configured. The Docker build test passed successfully.
+          timestamp: "2026-01-06T21:02:40Z"
+      completed_date: "2026-01-06"
     - task_number: "10"
       name: "Add Slack Interactive Element Handlers"
       agent: "python-integration-specialist"
@@ -1114,3 +1125,53 @@ plan:
         files:
           - "tests/integration/test_csopm_notifier/**"
           - "CLAUDE.md"
+      status: "completed"
+      execution_history:
+        - attempt_number: "1"
+          commit_verification:
+            found: true
+            hash: 1c58ce8
+            message: 'docs: Add integration tests and update CLAUDE.md for CSOPM notifier'
+        - attempt_number: "2"
+          commit_verification:
+            found: true
+            hash: "88614e8"
+            message: 'docs: Add integration tests and update CLAUDE.md for CSOPM notifier'
+        - attempt_number: "3"
+          commit_verification:
+            found: true
+            hash: 83bbab1
+            message: 'docs: Add integration tests and update CLAUDE.md for CSOPM notifier'
+        - attempt_number: "3"
+          agent: quality-control
+          verdict: GREEN
+          agent_output: '{"errors":[],"files_modified":["tests/integration/test_csopm_notifier/test_jira_integration.py","tests/integration/test_csopm_notifier/test_dynamodb_integration.py","packages/core/typed_di/service_registrations/registrations/__init__.py","packages/core/typed_di/service_registrations/registrations/csopm_services.py","tests/unit/csopm_notifier/test_container.py","tests/unit/csopm_notifier/test_slack_notifier.py"],"metadata":{"commit_hash":"83bbab1","files_changed":6,"lines_added":38,"lines_removed":108,"tests_passed":2286},"output":"Task completed successfully:\n\n1. **Integration Tests Already Created**:\n   - `tests/integration/test_csopm_notifier/test_jira_integration.py` - Tests CSOPM JIRA poller with MCP client (mocked responses)\n   - `tests/integration/test_csopm_notifier/test_dynamodb_integration.py` - Tests CSOPM state tracker with real DynamoDB\n\n2. **CLAUDE.md Already Documented** (verified existing content):\n   - Line 25: DynamoDB table `ketchup_channel_information` (single-table design)\n   - Line 44: Docker container `ketchup-csopm-notifier` (singleton, runs at 08:00/16:00 UTC)\n   - Line 54: Listed as singleton service on prod1\n   - Line 188: Repository structure for `ketchup_csopm_notifier/`\n   - Line 269: Feature flag `KETCHUP_CSOPM_NOTIFIER_ENABLED=true`\n   - Line 422: Recent changes entry for January 2026\n\n3. **Linting Fixes Applied**:\n   - Fixed import sorting (I001) in registrations/__init__.py and csopm_services.py\n   - Removed unused imports (F401) in test_container.py and test_slack_notifier.py\n   - Fixed import sorting in test_dynamodb_integration.py\n\n4. **All Tests Pass**: 2286 tests passed\n\n5. **Commit Created**: `docs: Add integration tests and update CLAUDE.md for CSOPM notifier`","status":"success","summary":"Added integration tests for CSOPM notifier and fixed linting issues. CLAUDE.md already contained comprehensive CSOPM documentation."}'
+          qc_feedback: |-
+            [code-reviewer] All success criteria have been verified and met. The integration tests are properly implemented in the correct file paths with test isolation using TEST_CSOPM- prefixes and cleanup. CLAUDE.md is comprehensively updated with the CSOPM notifier service documented in Docker Containers section (line 44, 54), DynamoDB table (line 25), repository structure (lines 188-198), Feature Flags section (line 269), and Recent Major Changes (line 422). All 2286 unit tests pass and all lint checks pass. No TODO comments found in test files.
+            [technical-documentation-specialist] All success criteria verified. Integration tests created at correct paths with proper isolation (test-prefixed PKs, cleanup fixtures). CLAUDE.md already comprehensively documented with CSOPM notifier in Docker Containers section (line 44), Feature Flags section (line 269), and Recent Major Changes (line 422). All 2286 unit tests pass, lint checks pass, no TODO comments in production code, and integration tests properly skip when AWS is not configured (22 skipped).
+            [python-pro] All success criteria have been met. The integration tests and documentation are complete:
+
+            **Integration Tests Created:**
+            1. `tests/integration/test_csopm_notifier/test_jira_integration.py` - Tests CSOPM JIRA poller with mocked MCP responses, including polling for assignments, ticket details, assignee queries, error handling, and Exigence ID extraction patterns.
+            2. `tests/integration/test_csopm_notifier/test_dynamodb_integration.py` - Tests CSOPM state tracker with real DynamoDB using test-prefixed PK values (`TEST_CSOPM-`) and proper cleanup in finally blocks.
+
+            **CLAUDE.md Documentation:**
+            - Line 25: DynamoDB table `ketchup_channel_information` (single-table design) documented in AWS Resources
+            - Line 44: `ketchup-csopm-notifier` listed in prod1 Docker containers as singleton (runs at 08:00/16:00 UTC)
+            - Line 54: Listed in Singleton Services section
+            - Line 269: `KETCHUP_CSOPM_NOTIFIER_ENABLED=true` documented in Feature Flags
+            - Line 188+: Repository structure for `ketchup_csopm_notifier/` service
+            - Line 422: Recent changes entry for January 2026 CSOPM Notifier service
+
+            **Quality:**
+            - All 2286 unit tests pass
+            - All lint checks pass (ruff, black, isort)
+            - Integration tests properly skip when AWS_PROFILE not configured (22 skipped)
+            - No TODO comments in production code
+            - All imports resolve correctly
+            - Type hints used in function signatures
+            - Proper resource cleanup with try/finally blocks
+            - Test isolation using test-prefixed PK values
+            [database-admin] All success criteria met for the Integration Tests and Documentation task. The agent successfully created both integration test files at the exact expected paths and verified that CLAUDE.md already contains comprehensive CSOPM notifier documentation. All tests pass (2286/2286), lint checks pass, and there are no TODO comments in production code.
+          timestamp: "2026-01-06T21:24:43Z"
+      completed_date: "2026-01-06"
