@@ -29,16 +29,21 @@ from packages.core.typed_di.protocols import (
     FollowupRecord,
 )
 from packages.integrations.async_mcp_client import AsyncMCPClient
+from packages.core.config.csopm_config import (
+    CSOPM_RCA_REMINDER_DAYS,
+    CSOPM_CLOSURE_REMINDER_DAYS,
+    CSOPM_MAX_PING_COUNT,
+)
 
 logger = setup_logger(__name__)
 
 
-# Reminder timing constants (in days)
-RCA_REMINDER_THRESHOLD_DAYS = 7
-CLOSURE_REMINDER_THRESHOLD_DAYS = 45
+# Reminder timing constants - imported from config for environment-driven configuration
+RCA_REMINDER_THRESHOLD_DAYS = CSOPM_RCA_REMINDER_DAYS
+CLOSURE_REMINDER_THRESHOLD_DAYS = CSOPM_CLOSURE_REMINDER_DAYS
 
 # Maximum pings before escalation
-MAX_PING_COUNT = 3
+MAX_PING_COUNT = CSOPM_MAX_PING_COUNT
 
 
 class CSOPMReminderService(CSOPMReminderServiceProtocol):
