@@ -54,7 +54,7 @@ class CSOPMScheduler(BaseScheduler):
         Status values: starting, running, idle, error, stopped
 
     Example:
-        container = await get_csopm_container()
+        container = await get_unified_container()
         scheduler = CSOPMScheduler(container=container)
         await scheduler.start()
     """
