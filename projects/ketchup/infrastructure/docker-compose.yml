@@ -139,7 +139,7 @@ services:
       # CSOPM feature flag
       - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
       # DynamoDB table for state tracking
-      - CSOPM_DYNAMODB_TABLE=ketchup_csopm_notifications
+      - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
       # CSOPM configuration (can be overridden in docker-compose.local.yml for testing)
       - CSOPM_JIRA_PROJECT=CSOPM
       - CSOPM_RCA_REMINDER_DAYS=7
