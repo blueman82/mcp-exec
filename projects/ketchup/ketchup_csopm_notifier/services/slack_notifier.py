@@ -38,6 +38,7 @@ from packages.slack.messages.posting import SlackPostingHandler
 from packages.slack.user_operations.user_ops import SlackUserOps
 
 from ketchup_csopm_notifier.blocks.notification_blocks import CSOPMNotificationBlocks
+from packages.core.config.csopm_config import CSOPM_JIRA_PROJECT
 
 logger = setup_logger(__name__)
 
