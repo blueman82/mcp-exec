@@ -35,7 +35,7 @@ Usage:
 import asyncio
 import sys
 
-from ketchup_csopm_notifier.container import get_csopm_container
+from packages.core.typed_di_integration import get_unified_container
 from ketchup_csopm_notifier.scheduler import CSOPMScheduler
 from packages.core.logging import setup_logger
 
