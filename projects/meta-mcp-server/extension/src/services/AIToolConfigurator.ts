@@ -304,10 +304,10 @@ export class AIToolConfigurator {
         };
 
         try {
-            // Check meta-mcp-server
+            // Check meta-mcp-server (stdio: 'pipe' suppresses stderr cross-platform)
             const metaMcpResult = execSync(
-                'npm list -g @justanothermldude/meta-mcp-server --depth=0 --json 2>/dev/null',
-                { encoding: 'utf-8', timeout: 5000 }
+                'npm list -g @justanothermldude/meta-mcp-server --depth=0 --json',
+                { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
             );
             const metaMcpJson = JSON.parse(metaMcpResult);
             if (metaMcpJson.dependencies?.['@justanothermldude/meta-mcp-server']) {
@@ -319,10 +319,10 @@ export class AIToolConfigurator {
         }
 
         try {
-            // Check mcp-exec
+            // Check mcp-exec (stdio: 'pipe' suppresses stderr cross-platform)
             const mcpExecResult = execSync(
-                'npm list -g @justanothermldude/mcp-exec --depth=0 --json 2>/dev/null',
-                { encoding: 'utf-8', timeout: 5000 }
+                'npm list -g @justanothermldude/mcp-exec --depth=0 --json',
+                { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
             );
             const mcpExecJson = JSON.parse(mcpExecResult);
             if (mcpExecJson.dependencies?.['@justanothermldude/mcp-exec']) {
