@@ -78,3 +78,4 @@ instance-config.json
 .swarm/
 .claude-flow/
 projects/meta-mcp-lazy-agents/
+.serena/
