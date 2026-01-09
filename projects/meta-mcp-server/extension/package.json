@@ -2,7 +2,7 @@
   "name": "meta-mcp-configurator",
   "displayName": "Meta-MCP",
   "description": "Configure and manage Meta-MCP server backends with a visual interface",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "publisher": "adobe",
   "icon": "media/meta-mcp-logo.png",
   "engines": {
