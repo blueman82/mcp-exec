@@ -40,3 +40,13 @@ export {
     findOrPromptForRepository,
     validatePackagePath,
 } from './RepoDetector';
+
+export {
+    downloadRepository,
+    isRepositoryDownloaded,
+    getRepositoryPath,
+    deleteRepository,
+    parseRepoIdentifier,
+    type DownloadProgress,
+    type ProgressCallback,
+} from './GitHubRepoDownloader';

@@ -8,6 +8,7 @@ import { AIToolConfigurator } from '../services/AIToolConfigurator';
 import { fetchCatalog, clearCatalogCache, CatalogServer } from '../services/GitHubCatalogService';
 import { parseLocalServer } from '../services/LocalServerParser';
 import { findRepository } from '../services/RepoDetector';
+import { downloadRepository, getRepositoryPath } from '../services/GitHubRepoDownloader';
 import { ServerConfig } from '../types';
 
 /**
@@ -258,11 +259,23 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      */
     private async handleInstallFromCatalog(item: CatalogServer): Promise<void> {
         try {
-            // First, check if this server exists locally in adobe-mcp-servers repo
-            const localServerPath = await this.findLocalServer(item.id);
-            if (localServerPath) {
-                await this.handleInstallLocalServer(item, localServerPath);
-                return;
+            // For Internal servers, check if available locally (should be downloaded when catalog opened)
+            if (item.serverType === 'Internal') {
+                const localServerPath = await this.findLocalServer(item.id);
+                if (localServerPath) {
+                    await this.handleInstallLocalServer(item, localServerPath);
+                    return;
+                } else {
+                    // Repo not downloaded yet - trigger download and retry
+                    await this.ensureInternalRepoDownloaded();
+                    const retryPath = await this.findLocalServer(item.id);
+                    if (retryPath) {
+                        await this.handleInstallLocalServer(item, retryPath);
+                        return;
+                    }
+                    vscode.window.showErrorMessage(`Could not find ${item.name} in adobe-mcp-servers. Make sure the repository downloaded successfully.`);
+                    return;
+                }
             }
 
             // Determine command based on serverType
@@ -309,30 +322,42 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
-     * Find a server in the local adobe-mcp-servers repo
+     * Find a server in local repos (auto-detected or downloaded)
      * Returns the full path to the server package if found, null otherwise
      */
     private async findLocalServer(serverId: string): Promise<{ repoPath: string; packagePath: string } | null> {
-        // Try to find adobe-mcp-servers repo
-        const repoPath = await findRepository('adobe-mcp-servers');
-        if (!repoPath) {
-            return null;
-        }
-        
         // Check common locations for the server
         const possiblePaths = [
             `src/${serverId}`,
             `packages/${serverId}`,
             serverId,
         ];
-        
-        for (const packagePath of possiblePaths) {
-            const fullPath = path.join(repoPath, packagePath);
-            if (fs.existsSync(fullPath) && (
-                fs.existsSync(path.join(fullPath, 'package.json')) ||
-                fs.existsSync(path.join(fullPath, 'requirements.txt'))
-            )) {
-                return { repoPath, packagePath };
+
+        // 1. Try auto-detected adobe-mcp-servers repo first
+        const autoDetectedRepo = await findRepository('adobe-mcp-servers');
+        if (autoDetectedRepo) {
+            for (const packagePath of possiblePaths) {
+                const fullPath = path.join(autoDetectedRepo, packagePath);
+                if (fs.existsSync(fullPath) && (
+                    fs.existsSync(path.join(fullPath, 'package.json')) ||
+                    fs.existsSync(path.join(fullPath, 'requirements.txt'))
+                )) {
+                    return { repoPath: autoDetectedRepo, packagePath };
+                }
+            }
+        }
+
+        // 2. Try downloaded repo in ~/.meta-mcp/repos/
+        const downloadedRepo = getRepositoryPath('adobe-mcp-servers');
+        if (downloadedRepo) {
+            for (const packagePath of possiblePaths) {
+                const fullPath = path.join(downloadedRepo, packagePath);
+                if (fs.existsSync(fullPath) && (
+                    fs.existsSync(path.join(fullPath, 'package.json')) ||
+                    fs.existsSync(path.join(fullPath, 'requirements.txt'))
+                )) {
+                    return { repoPath: downloadedRepo, packagePath };
+                }
             }
         }
         
@@ -597,7 +622,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
-     * Handle load catalog message - fetches from GitHub
+     * Handle load catalog message - fetches from GitHub and auto-downloads internal repos
      */
     private async handleLoadCatalog(forceRefresh?: boolean): Promise<void> {
         try {
@@ -607,6 +632,9 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 clearCatalogCache();
             }
             
+            // Auto-download adobe-mcp-servers repo in background if not present
+            this.ensureInternalRepoDownloaded();
+            
             const catalog = await fetchCatalog();
             this.postMessage({ type: 'updateCatalog', catalog });
         } catch (err) {
@@ -614,6 +642,41 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             console.error('[Meta-MCP] Failed to load catalog:', errorMsg);
             this.postMessage({ type: 'catalogError', message: `Failed to load catalog: ${errorMsg}` });
         }
+    }
+
+    /**
+     * Auto-download adobe-mcp-servers repo if not already present
+     * Runs in background without blocking catalog load
+     */
+    private async ensureInternalRepoDownloaded(): Promise<void> {
+        // Check if already exists (auto-detected or downloaded)
+        const autoDetected = await findRepository('adobe-mcp-servers');
+        const downloaded = getRepositoryPath('adobe-mcp-servers');
+        
+        if (autoDetected || downloaded) {
+            return; // Already have it
+        }
+
+        // Download in background with progress notification
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Downloading internal MCP servers repository',
+            cancellable: false
+        }, async (progress) => {
+            try {
+                await downloadRepository('Adobe-AIFoundations', 'adobe-mcp-servers', 'main', (downloadProgress) => {
+                    progress.report({ 
+                        message: downloadProgress.message,
+                        increment: downloadProgress.percent ? downloadProgress.percent / 4 : undefined
+                    });
+                });
+                vscode.window.showInformationMessage('Internal MCP servers repository downloaded successfully');
+            } catch (err) {
+                const errorMsg = err instanceof Error ? err.message : String(err);
+                console.error('[Meta-MCP] Failed to download internal repo:', errorMsg);
+                // Don't show error - user can still use public servers
+            }
+        });
     }
 
     /**
