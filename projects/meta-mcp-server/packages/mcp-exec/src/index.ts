@@ -141,11 +141,6 @@ async function main() {
   await server.connect(transport);
 
   process.stderr.write('mcp-exec server running on stdio\n');
-  
-  // Handle stdin close (parent process died without signaling)
-  // Register AFTER transport connects to avoid race conditions
-  process.stdin.on('end', handleShutdown);
-  process.stdin.on('close', handleShutdown);
 }
 
 // Only run main if this is the entry point (not when imported as a module)

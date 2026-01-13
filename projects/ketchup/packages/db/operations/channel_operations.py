@@ -273,6 +273,9 @@ class ChannelOperations(BaseOperations):
         """
         Store metadata for a Slack channel in DynamoDB.
 
+        Uses update_item instead of put_item to preserve fields from other services
+        (e.g., auto_status_* fields from status updater).
+
         Args:
             metadata: ChannelMetadata object containing all channel information
         """
@@ -282,13 +285,36 @@ class ChannelOperations(BaseOperations):
             metadata.channel_name,
         )
 
-        # Convert metadata to DynamoDB item
+        # Convert metadata to DynamoDB item format
         item = metadata.to_item()
 
+        # Extract fields to update (excluding PK and SK which are the key)
+        updates = {}
+        for key, value in item.items():
+            if key in ("PK", "SK"):
+                continue
+            # Convert DynamoDB format back to Python values
+            if "S" in value:
+                updates[key] = value["S"]
+            elif "N" in value:
+                num_str = value["N"]
+                if "." in num_str:
+                    updates[key] = float(num_str)
+                else:
+                    updates[key] = int(num_str)
+            elif "BOOL" in value:
+                updates[key] = value["BOOL"]
+
         try:
-            # Store in DynamoDB
-            await self.client.put_item(item=item, table_name=self.table_name)
-            logger.info("Channel metadata stored successfully: %s", metadata.channel_id)
+            # Use update_channel_fields which preserves other attributes
+            success = await self.update_channel_fields(
+                channel_id=metadata.channel_id,
+                updates=updates,
+            )
+            if success:
+                logger.info("Channel metadata stored successfully: %s", metadata.channel_id)
+            else:
+                logger.error("Failed to store channel metadata: %s", metadata.channel_id)
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
             error_message = e.response["Error"]["Message"]

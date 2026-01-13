@@ -240,12 +240,29 @@ async def test_get_channel_details_delegates(channel_ops: ChannelOperations) -> 
 @pytest.mark.asyncio
 async def test_store_metadata_success(monkeypatch, channel_ops: ChannelOperations) -> None:
     mock_metadata = MagicMock()
-    mock_metadata.channel_id = "id"
-    mock_metadata.channel_name = "name"
-    mock_metadata.to_item.return_value = {"foo": "bar"}
-    channel_ops.client.put_item = AsyncMock()
+    mock_metadata.channel_id = "test_channel_id"
+    mock_metadata.channel_name = "test_channel_name"
+    # Return proper DynamoDB-formatted item
+    mock_metadata.to_item.return_value = {
+        "PK": {"S": "CHANNEL#test_channel_id"},
+        "SK": {"S": "CSO_DETAILS"},
+        "channel_id": {"S": "test_channel_id"},
+        "channel_name": {"S": "test_channel_name"},
+        "archived": {"BOOL": False},
+    }
+    # Mock update_channel_fields which is now used instead of put_item
+    channel_ops.update_channel_fields = AsyncMock(return_value=True)
     await channel_ops.store_metadata(mock_metadata)
-    channel_ops.client.put_item.assert_awaited_once()
+    channel_ops.update_channel_fields.assert_awaited_once()
+    # Verify the correct channel_id was passed
+    call_args = channel_ops.update_channel_fields.call_args
+    assert call_args.kwargs["channel_id"] == "test_channel_id"
+    # Verify updates dict contains expected fields (without PK/SK)
+    updates = call_args.kwargs["updates"]
+    assert "channel_id" in updates
+    assert "channel_name" in updates
+    assert "PK" not in updates
+    assert "SK" not in updates
 
 
 @pytest.mark.asyncio
