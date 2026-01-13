@@ -122,7 +122,10 @@ async function main() {
   const { server, shutdown } = createMcpExecServer(pool);
 
   // Graceful shutdown handlers
+  let isShuttingDown = false;
   const handleShutdown = async () => {
+    if (isShuttingDown) return; // Prevent multiple shutdown attempts
+    isShuttingDown = true;
     process.stderr.write('Shutting down...\n');
     await shutdown();
     await pool.shutdown();
@@ -132,6 +135,10 @@ async function main() {
 
   process.on('SIGINT', handleShutdown);
   process.on('SIGTERM', handleShutdown);
+  
+  // Handle stdin close (parent process died without signaling)
+  process.stdin.on('end', handleShutdown);
+  process.stdin.on('close', handleShutdown);
 
   // Connect via stdio
   const transport = new StdioServerTransport();

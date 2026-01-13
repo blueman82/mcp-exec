@@ -78,15 +78,16 @@ async function main() {
   let httpServerResult: HttpServerResult | null = null;
 
   // Graceful shutdown handlers
+  let isShuttingDown = false;
   const handleShutdown = async () => {
+    if (isShuttingDown) return; // Prevent multiple shutdown attempts
+    isShuttingDown = true;
     process.stderr.write('Shutting down...\n');
     await shutdown();
-
     // Clean up based on transport mode
     if (httpServerResult) {
       await httpServerResult.stop();
     }
-
     await server.close();
     process.exit(0);
   };
@@ -102,6 +103,10 @@ async function main() {
     // Note: start() already logs the listening address
   } else {
     // stdio transport mode (default)
+    // Handle stdin close (parent process died without signaling)
+    process.stdin.on('end', handleShutdown);
+    process.stdin.on('close', handleShutdown);
+    
     const transport = new StdioServerTransport();
     await server.connect(transport);
     process.stderr.write('Meta MCP Server running on stdio\n');
