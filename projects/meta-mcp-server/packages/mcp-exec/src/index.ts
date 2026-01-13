@@ -135,16 +135,17 @@ async function main() {
 
   process.on('SIGINT', handleShutdown);
   process.on('SIGTERM', handleShutdown);
-  
-  // Handle stdin close (parent process died without signaling)
-  process.stdin.on('end', handleShutdown);
-  process.stdin.on('close', handleShutdown);
 
   // Connect via stdio
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
   process.stderr.write('mcp-exec server running on stdio\n');
+  
+  // Handle stdin close (parent process died without signaling)
+  // Register AFTER transport connects to avoid race conditions
+  process.stdin.on('end', handleShutdown);
+  process.stdin.on('close', handleShutdown);
 }
 
 // Only run main if this is the entry point (not when imported as a module)

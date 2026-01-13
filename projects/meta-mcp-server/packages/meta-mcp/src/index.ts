@@ -103,13 +103,14 @@ async function main() {
     // Note: start() already logs the listening address
   } else {
     // stdio transport mode (default)
-    // Handle stdin close (parent process died without signaling)
-    process.stdin.on('end', handleShutdown);
-    process.stdin.on('close', handleShutdown);
-    
     const transport = new StdioServerTransport();
     await server.connect(transport);
     process.stderr.write('Meta MCP Server running on stdio\n');
+    
+    // Handle stdin close (parent process died without signaling)
+    // Register AFTER transport connects to avoid race conditions
+    process.stdin.on('end', handleShutdown);
+    process.stdin.on('close', handleShutdown);
   }
 }
 
