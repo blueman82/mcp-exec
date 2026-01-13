@@ -502,6 +502,29 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     private async handleInstallMetaMcpServer(): Promise<void> {
         const terminal = vscode.window.createTerminal('meta-mcp-server install');
         terminal.show();
+
+        // On macOS/Linux, check if npm global prefix is writable
+        if (process.platform === 'darwin' || process.platform === 'linux') {
+            const { execSync } = require('child_process');
+            try {
+                const prefix = execSync('npm config get prefix', { encoding: 'utf-8' }).trim();
+                // Check if we can write to the prefix directory
+                try {
+                    fs.accessSync(prefix, fs.constants.W_OK);
+                } catch {
+                    // Can't write - auto-configure user-level npm global
+                    const shellRc = process.env.SHELL?.includes('zsh') ? '~/.zshrc' : '~/.bashrc';
+                    terminal.sendText('mkdir -p ~/.npm-global');
+                    terminal.sendText('npm config set prefix ~/.npm-global');
+                    terminal.sendText(`echo 'export PATH=~/.npm-global/bin:$PATH' >> ${shellRc}`);
+                    terminal.sendText(`source ${shellRc}`);
+                    vscode.window.showInformationMessage('Configured npm to use ~/.npm-global to avoid permission issues.');
+                }
+            } catch {
+                // npm config failed - proceed anyway
+            }
+        }
+
         terminal.sendText('npm install -g @justanothermldude/meta-mcp-server');
 
         await vscode.window.showInformationMessage(

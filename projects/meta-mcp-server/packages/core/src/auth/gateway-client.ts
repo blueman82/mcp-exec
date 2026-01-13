@@ -119,14 +119,19 @@ export async function resolveGatewayAuth(
   let backendHeaders: Record<string, string> = {};
   
   // Load from backendAuthEnvFile if specified
+  // Keys are converted from UPPERCASE_UNDERSCORE to lowercase-hyphen format
+  // and used directly as header names (e.g., JIRA_PAT_TOKEN -> x-jira-pat-token)
   if (gatewayConfig.backendAuthEnvFile) {
     const envPats = parseEnvFile(gatewayConfig.backendAuthEnvFile);
-    for (const [backend, value] of Object.entries(envPats)) {
-      backendHeaders[backend.toLowerCase()] = value;
+    for (const [envKey, value] of Object.entries(envPats)) {
+      // Convert JIRA_PAT_TOKEN -> x-jira-pat-token
+      const headerName = 'x-' + envKey.toLowerCase().replace(/_/g, '-');
+      headers[headerName] = value;
+      matchedBackends.push(envKey.toLowerCase().replace(/_/g, '-'));
     }
   }
   
-  // Merge explicit backendAuth (takes precedence over env file)
+  // Merge explicit backendAuth (uses X-Backend-Auth-* format, takes precedence)
   if (gatewayConfig.backendAuth) {
     for (const [backend, value] of Object.entries(gatewayConfig.backendAuth)) {
       try {
@@ -136,9 +141,8 @@ export async function resolveGatewayAuth(
       }
     }
   }
-  matchedBackends = Object.keys(backendHeaders);
   
-  // Add manual overrides
+  // Add manual overrides to backendHeaders
   if (manualBackendAuth) {
     for (const [backend, value] of Object.entries(manualBackendAuth)) {
       backendHeaders[backend.toLowerCase()] = value;
@@ -148,9 +152,17 @@ export async function resolveGatewayAuth(
     }
   }
   
-  // Format as X-Backend-Auth-* headers
-  const formattedBackendHeaders = formatBackendAuthHeaders(backendHeaders);
-  Object.assign(headers, formattedBackendHeaders);
+  // Format backendAuth and manualBackendAuth as X-Backend-Auth-* headers
+  if (Object.keys(backendHeaders).length > 0) {
+    const formattedBackendHeaders = formatBackendAuthHeaders(backendHeaders);
+    Object.assign(headers, formattedBackendHeaders);
+    // Add to matchedBackends if not already there
+    for (const backend of Object.keys(backendHeaders)) {
+      if (!matchedBackends.includes(backend)) {
+        matchedBackends.push(backend);
+      }
+    }
+  }
   
   // Include any other existing headers from config
   if (gatewayConfig.headers) {
