@@ -220,8 +220,8 @@ class JiraTicketDiscovery:
 
         # Search specifically for CSOPM tickets first
         try:
-            # Direct CSOPM search
-            jql = f'project = "CSO Problem Management" AND description ~ "{exigence_url}" OR comment ~ "{exigence_url}"'
+            # Direct CSOPM search - use parentheses to ensure correct operator precedence
+            jql = f'project = "CSO Problem Management" AND (description ~ "{exigence_url}" OR comment ~ "{exigence_url}")'
             logger.info(f"Searching for CSOPM ticket with JQL: {jql}")
 
             if self.mcp_client:
