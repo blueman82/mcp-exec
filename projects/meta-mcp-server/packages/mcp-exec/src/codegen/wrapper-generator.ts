@@ -112,7 +112,7 @@ function generateInterface(name: string, schema: { properties?: Record<string, u
 
     // Add JSDoc if description exists
     if (prop.description) {
-      lines.push(`  /** ${prop.description} */`);
+      lines.push(`  /** ${sanitizeJsDoc(prop.description)} */`);
     }
 
     lines.push(`  ${propName}${optionalMark}: ${tsType};`);
@@ -120,6 +120,18 @@ function generateInterface(name: string, schema: { properties?: Record<string, u
 
   lines.push('}');
   return lines.join('\n');
+}
+
+/**
+ * Sanitize description text for safe inclusion in JSDoc comments.
+ * Escapes star-slash sequences that would prematurely close the comment.
+ * @param text - The description text to sanitize
+ * @returns Sanitized text safe for JSDoc
+ */
+function sanitizeJsDoc(text: string): string {
+  // Escape */ to prevent premature JSDoc comment closure
+  // This handles glob patterns like "src/**/*.ts" in tool descriptions
+  return text.replace(/\*\//g, '* /');
 }
 
 /**
@@ -226,12 +238,12 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   // Add JSDoc comment
   if (tool.description) {
     lines.push('  /**');
-    lines.push(`   * ${tool.description}`);
+    lines.push(`   * ${sanitizeJsDoc(tool.description)}`);
     if (tool.inputSchema?.properties) {
       for (const [propName, propValue] of Object.entries(tool.inputSchema.properties)) {
         const prop = propValue as JsonSchemaProperty;
         if (prop.description) {
-          lines.push(`   * @param input.${propName} - ${prop.description}`);
+          lines.push(`   * @param input.${propName} - ${sanitizeJsDoc(prop.description)}`);
         }
       }
     }
@@ -296,13 +308,13 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string): s
   // Add JSDoc comment
   if (tool.description) {
     lines.push('/**');
-    lines.push(` * ${tool.description}`);
+    lines.push(` * ${sanitizeJsDoc(tool.description)}`);
     if (tool.inputSchema?.properties) {
       lines.push(' *');
       for (const [propName, propValue] of Object.entries(tool.inputSchema.properties)) {
         const prop = propValue as JsonSchemaProperty;
         if (prop.description) {
-          lines.push(` * @param input.${propName} - ${prop.description}`);
+          lines.push(` * @param input.${propName} - ${sanitizeJsDoc(prop.description)}`);
         }
       }
     }
