@@ -72,7 +72,7 @@ plan:
         - "All imports resolve correctly"
 
       test_commands:
-        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit operations/editComment.ts"
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit"
 
       runtime_metadata:
         dependency_checks:
