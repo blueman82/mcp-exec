@@ -641,8 +641,14 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        # Should still succeed because the ticket was created
-        assert result is True
+        # Modal closes immediately while JIRA work happens in background
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
+
+        # Should still send confirmation because the ticket was created
         mock_posting_handler.post_message.assert_awaited()
         call_kwargs = mock_posting_handler.post_message.call_args.kwargs
         # Now uses blocks instead of message
