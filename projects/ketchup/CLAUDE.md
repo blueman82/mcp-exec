@@ -164,26 +164,6 @@ ketchup/
 │       ├── maintenance_fetcher_task.py
 │       └── pat_rotator_task.py
 │
-├── ketchup_status_updater/      # [Legacy] Hourly status update service
-│   ├── main.py
-│   └── scheduler.py
-│
-├── jira_reporter/               # [Legacy] JIRA ticket automation service
-│   ├── main.py
-│   ├── channel_monitor.py
-│   └── jira_service.py
-│
-├── channel_metadata_updater/    # [Legacy] Metadata scanning service
-│   └── main.py
-│
-├── ketchup_maintenance_fetcher/ # [Legacy] Maintenance event service
-│   └── main.py
-│
-├── ketchup_jira_pat_rotator/    # [Legacy] JIRA PAT rotation service
-│   ├── main.py
-│   ├── scheduler.py
-│   └── rotator.py
-│
 ├── ketchup_access_request_monitor/ # Access monitoring service
 │   └── main.py
 │
@@ -252,7 +232,7 @@ All external service communication uses async clients:
   - `maintenance_fetcher` (daily at 1:30 UTC)
   - `pat_rotator` (every 24 hours)
 - **Benefits**: Single DI container initialization, unified healthcheck endpoint, simplified deployment
-- Legacy individual scheduler containers marked `[Legacy]` in repository structure, kept for rollback capability
+- Legacy individual scheduler directories have been removed (consolidated into unified scheduler)
 - See `docs/diagrams/04-background-services.md` for visual reference
 
 #### CSOPM Shared Services Pattern
@@ -439,6 +419,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 ## Recent Major Changes
 
 - **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking. Shared components (blocks, state, actions) moved to `packages/slack/csopm/` for use by both scheduler and main app containers.
+- **January 2026**: Legacy scheduler directories removed - `ketchup_status_updater/`, `jira_reporter/`, `channel_metadata_updater/`, `ketchup_maintenance_fetcher/`, `ketchup_jira_pat_rotator/` all deleted after successful unified scheduler consolidation.
 - **December 2025**: Phase 1 Unified Scheduler Consolidation - 5 scheduler containers consolidated into 1 (`ketchup-unified-scheduler`) with shared TypedDI container, per-task health monitoring, and unified orchestration engine
 - **October 2025**: 300-400% performance optimization complete
 - **September 2025**: TypedDI migration complete (100% coverage)
