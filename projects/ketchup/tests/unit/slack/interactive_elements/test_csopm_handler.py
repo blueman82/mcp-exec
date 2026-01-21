@@ -676,12 +676,18 @@ class TestCSOPMHandlerViewSubmission:
     async def test_handle_view_submission_exception(
         self, handler, mock_mcp_client, sample_view_submission_payload
     ):
-        """Test handling exception during modal submission."""
+        """Test handling exception during modal submission.
+
+        Note: MCP exceptions happen in background task, so modal still closes.
+        The exception is caught in the background task and logged.
+        """
         mock_mcp_client._call_mcp_tool.side_effect = Exception("Network error")
 
         result = await handler.handle_view_submission(sample_view_submission_payload)
 
-        assert result is False
+        # Modal closes immediately while JIRA work happens in background
+        # Exceptions in background task don't affect modal response
+        assert result == {"response_action": "clear"}
 
 
 class TestCSOPMHandlerIntegration:
