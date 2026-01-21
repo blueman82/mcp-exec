@@ -370,7 +370,7 @@ class AccessRequestHealthMonitor:
             try:
                 secrets_manager = await self.container.aget(SecretsManagerProtocol)
                 if secrets_manager:
-                    webhook_url = await secrets_manager.get_ketchup_alerts_webhook_url()
+                    webhook_url = await secrets_manager.get_slack_webhook_url()
             except Exception as e:
                 self.logger.info(f"Could not get webhook from secrets: {e}")
 

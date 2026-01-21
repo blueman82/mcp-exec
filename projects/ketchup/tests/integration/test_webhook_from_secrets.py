@@ -24,7 +24,7 @@ async def test_webhook_from_secrets():
     # Test 1: Direct retrieval from SecretsManager
     print("\n📌 Test 1: Direct retrieval from SecretsManager")
     secrets_manager = SecretsManager()
-    webhook_url = await secrets_manager.get_ketchup_alerts_webhook_url()
+    webhook_url = await secrets_manager.get_slack_webhook_url()
 
     if webhook_url:
         print(f"✅ Webhook retrieved from secrets (length: {len(webhook_url)} chars)")
@@ -40,7 +40,7 @@ async def test_webhook_from_secrets():
     container = await get_unified_container()
     secrets_from_di = await container.aget(SecretsManager)
     if secrets_from_di:
-        webhook_from_di = await secrets_from_di.get_ketchup_alerts_webhook_url()
+        webhook_from_di = await secrets_from_di.get_slack_webhook_url()
         if webhook_from_di:
             print("✅ Webhook retrieved via TypedDI container")
         else:

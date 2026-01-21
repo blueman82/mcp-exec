@@ -436,7 +436,12 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(sample_view_submission_payload)
 
-        assert result is True
+        # Modal closes immediately while JIRA work happens in background
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
 
         # Verify create_jira_issue was called
         create_call = mock_mcp_client._call_mcp_tool.call_args_list[0]
@@ -501,7 +506,13 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        assert result is True
+        # Modal closes immediately while JIRA work happens in background
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
+
         create_call = mock_mcp_client._call_mcp_tool.call_args_list[0]
         # The create call uses fields.project.key and fields.issuetype.name
         assert create_call[0][1]["fields"]["project"]["key"] == "CSOPM"
@@ -536,8 +547,15 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        assert result is False
-        # Error message should be sent to user
+        # Modal closes immediately while JIRA work happens in background
+        # Even if JIRA fails, modal still closes - user notified via DM
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
+
+        # Error message should be sent to user via DM
         mock_posting_handler.post_message.assert_awaited()
 
     @pytest.mark.asyncio
@@ -562,7 +580,11 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        assert result is False
+        # Validation errors return error dict to keep modal open with error message
+        assert result == {
+            "response_action": "errors",
+            "errors": {"summary_block": "Summary is required."},
+        }
         mock_mcp_client._call_mcp_tool.assert_not_awaited()
 
     @pytest.mark.asyncio
@@ -619,8 +641,14 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        # Should still succeed because the ticket was created
-        assert result is True
+        # Modal closes immediately while JIRA work happens in background
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
+
+        # Should still send confirmation because the ticket was created
         mock_posting_handler.post_message.assert_awaited()
         call_kwargs = mock_posting_handler.post_message.call_args.kwargs
         # Now uses blocks instead of message
@@ -648,12 +676,18 @@ class TestCSOPMHandlerViewSubmission:
     async def test_handle_view_submission_exception(
         self, handler, mock_mcp_client, sample_view_submission_payload
     ):
-        """Test handling exception during modal submission."""
+        """Test handling exception during modal submission.
+
+        Note: MCP exceptions happen in background task, so modal still closes.
+        The exception is caught in the background task and logged.
+        """
         mock_mcp_client._call_mcp_tool.side_effect = Exception("Network error")
 
         result = await handler.handle_view_submission(sample_view_submission_payload)
 
-        assert result is False
+        # Modal closes immediately while JIRA work happens in background
+        # Exceptions in background task don't affect modal response
+        assert result == {"response_action": "clear"}
 
 
 class TestCSOPMHandlerIntegration:
