@@ -31,12 +31,12 @@ class TestContainerRegistration:
     async def test_register_csopm_services_imports_correctly(self):
         """Test that CSOPM services can be imported without errors."""
         from ketchup_csopm_notifier.container import _register_csopm_services
-        from ketchup_csopm_notifier.services.jira_poller import CSOPMJIRAPoller
-        from ketchup_csopm_notifier.services.reminder_service import (
+        from ketchup_csopm_notifier.services import (
+            CSOPMJIRAPoller,
             CSOPMReminderService,
+            CSOPMSlackNotifier,
+            CSOPMStateTracker,
         )
-        from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
-        from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
         # Verify imports work
         assert CSOPMStateTracker is not None
@@ -76,7 +76,7 @@ class TestContainerRegistration:
     @pytest.mark.asyncio
     async def test_state_tracker_factory_creates_instance(self):
         """Test CSOPMStateTracker factory creates correct instance."""
-        from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
+        from ketchup_csopm_notifier.services import CSOPMStateTracker
 
         # Create mocks
         mock_client = AsyncMock()
@@ -280,13 +280,14 @@ class TestProtocolCompliance:
 
     def test_state_tracker_implements_protocol(self):
         """Test CSOPMStateTracker implements CSOPMStateTrackerProtocol."""
-        from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
+        from ketchup_csopm_notifier.services import CSOPMStateTracker
 
         # Check protocol methods exist
         assert hasattr(CSOPMStateTracker, "get_notification_record")
         assert hasattr(CSOPMStateTracker, "create_notification_record")
         assert hasattr(CSOPMStateTracker, "update_notification_status")
-        assert hasattr(CSOPMStateTracker, "increment_ping_count")
+        assert hasattr(CSOPMStateTracker, "increment_rca_ping_count")
+        assert hasattr(CSOPMStateTracker, "increment_closure_ping_count")
         assert hasattr(CSOPMStateTracker, "mark_rca_reminder_sent")
         assert hasattr(CSOPMStateTracker, "mark_closure_reminder_sent")
         assert hasattr(CSOPMStateTracker, "get_pending_notifications")
@@ -352,8 +353,8 @@ class TestServiceRegistrationModule:
         # Register services
         register_csopm_services(mock_manager)
 
-        # Should have 4 calls (one per service)
-        assert mock_manager.register_protocol_with_concrete_alias.call_count == 4
+        # Should have 7 calls (one per service: StateTracker, UserPATOperations, ButtonActionHandler, Handler, JIRAPoller, SlackNotifier, ReminderService)
+        assert mock_manager.register_protocol_with_concrete_alias.call_count == 7
 
     @pytest.mark.asyncio
     async def test_registration_uses_singleton_lifetime(self):

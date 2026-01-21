@@ -130,7 +130,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         if record.get("rca_reminder_sent", False):
             return False
 
-        if record.get("notification_status") == "escalated":
+        if record.get("notification_status") in ("escalated", "reminders_stopped"):
             return False
 
         return True
@@ -161,7 +161,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         if record.get("closure_reminder_sent", False):
             return False
 
-        if record.get("notification_status") == "escalated":
+        if record.get("notification_status") in ("escalated", "reminders_stopped"):
             return False
 
         # Check if snoozed
@@ -431,10 +431,10 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             now = datetime.now(timezone.utc)
 
             for record in active_notifications:
-                # Skip if already sent or escalated
+                # Skip if already sent, escalated, or reminders stopped
                 if record.rca_reminder_sent:
                     continue
-                if record.notification_status == "escalated":
+                if record.notification_status in ("escalated", "reminders_stopped"):
                     continue
 
                 # Get ticket details to check age
@@ -494,10 +494,10 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             now = datetime.now(timezone.utc)
 
             for record in active_notifications:
-                # Skip if already sent or escalated
+                # Skip if already sent, escalated, or reminders stopped
                 if record.closure_reminder_sent:
                     continue
-                if record.notification_status == "escalated":
+                if record.notification_status in ("escalated", "reminders_stopped"):
                     continue
 
                 # Get ticket details to check age

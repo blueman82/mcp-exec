@@ -93,7 +93,8 @@ def make_ticket(
 def make_notification_record(
     ticket_key: str = "CSOPM-1234",
     notification_status: str = "sent",
-    ping_count: int = 1,
+    rca_ping_count: int = 0,
+    closure_ping_count: int = 0,
     assignee_slack_id: str = "U12345678",
     assignee_jira_username: str = "testuser",
     rca_reminder_sent: bool = False,
@@ -103,7 +104,8 @@ def make_notification_record(
     return NotificationRecord(
         ticket_key=ticket_key,
         notification_status=notification_status,
-        ping_count=ping_count,
+        rca_ping_count=rca_ping_count,
+        closure_ping_count=closure_ping_count,
         assignee_slack_id=assignee_slack_id,
         assignee_jira_username=assignee_jira_username,
         rca_reminder_sent=rca_reminder_sent,
@@ -352,7 +354,8 @@ class TestRCAReminder(unittest.IsolatedAsyncioTestCase):
             NotificationRecord(
                 ticket_key="CSOPM-1001",
                 notification_status="escalated",
-                ping_count=3,
+                rca_ping_count=3,
+                closure_ping_count=0,
                 assignee_slack_id="U12345678",
                 assignee_jira_username="testuser",
                 rca_reminder_sent=False,
@@ -360,9 +363,7 @@ class TestRCAReminder(unittest.IsolatedAsyncioTestCase):
             ),
         ]
         self.mock_state_tracker.get_all_active_notifications.return_value = records
-
         result = await self.service.check_rca_reminders()
-
         self.assertEqual(len(result), 0)
 
     async def test_process_rca_reminder_first_ping(self):

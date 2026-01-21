@@ -18,6 +18,9 @@ Service Registration Order (topological sort):
 4. CSOPMReminderService - Depends on StateTracker, JIRAPoller, AsyncMCPClient
 
 This ordering ensures all dependencies are resolved before their dependents.
+
+Refactored to import shared components from packages/slack/csopm/:
+- CSOPMStateTracker: State tracking for CSOPM notifications
 """
 
 from typing import Optional
@@ -34,13 +37,13 @@ from packages.core.typed_di.types import DependencySpec
 from packages.db.config.dynamodb_config import DynamoDBConfig
 from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
 from packages.integrations.async_mcp_client import AsyncMCPClient
+from packages.slack.csopm.state import CSOPMStateTracker
 from packages.slack.messages.posting import SlackPostingHandler
 from packages.slack.user_operations.user_ops import SlackUserOps
 
 from ketchup_csopm_notifier.services.jira_poller import CSOPMJIRAPoller
 from ketchup_csopm_notifier.services.reminder_service import CSOPMReminderService
 from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
-from ketchup_csopm_notifier.services.state_tracker import CSOPMStateTracker
 
 logger = setup_logger(__name__)
 
@@ -116,9 +119,10 @@ def _register_csopm_services(
     logger.info("Registering CSOPM notifier services")
 
     # Service 1: CSOPMStateTracker (no CSOPM dependencies)
+    # Now imported from packages/slack/csopm/state.py
     async def create_state_tracker(resolver) -> CSOPMStateTracker:
         """Factory function for CSOPMStateTracker."""
-        logger.info("Creating CSOPMStateTracker via TypedDI")
+        logger.info("Creating CSOPMStateTracker via TypedDI (from packages/)")
 
         if parent_registry:
             async_client = await parent_registry.aget(DynamoDBAsyncClient)
@@ -149,7 +153,7 @@ def _register_csopm_services(
         ],
         lifetime="singleton",
     )
-    logger.info("CSOPMStateTracker registered")
+    logger.info("CSOPMStateTracker registered (from packages/)")
 
     # Service 2: CSOPMJIRAPoller (no CSOPM dependencies)
     async def create_jira_poller(resolver) -> CSOPMJIRAPoller:

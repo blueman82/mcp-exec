@@ -13,7 +13,8 @@ const CommentBodySchema = z.object({
 // Schema for add comment request
 export const AddJiraCommentSchema = z.object({
   issueIdOrKey: z.string(),
-  comment: CommentBodySchema
+  comment: CommentBodySchema,
+  userPat: z.string().optional()  // Optional user-provided PAT for authentication
 });
 
 export type AddJiraCommentRequest = z.infer<typeof AddJiraCommentSchema>;
@@ -24,12 +25,13 @@ export type AddJiraCommentRequest = z.infer<typeof AddJiraCommentSchema>;
  * @returns The result of the operation
  */
 export async function addJiraComment(params: AddJiraCommentRequest) {
-  const { issueIdOrKey, comment } = params;
+  const { issueIdOrKey, comment, userPat } = params;
   
   try {
     const response = await jiraRequest(`issue/${issueIdOrKey}/comment`, {
       method: "POST",
-      body: comment
+      body: comment,
+      userPat  // Pass user PAT for authentication if provided
     });
     
     return {

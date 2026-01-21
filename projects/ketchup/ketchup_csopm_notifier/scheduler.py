@@ -331,7 +331,7 @@ class CSOPMScheduler(BaseScheduler):
                         )
                         if success:
                             await state_tracker.mark_rca_reminder_sent(ticket.key)
-                            await state_tracker.increment_ping_count(ticket.key)
+                            await state_tracker.increment_rca_ping_count(ticket.key)
 
                 except Exception as e:
                     self.logger.error(
@@ -363,7 +363,7 @@ class CSOPMScheduler(BaseScheduler):
                         )
                         if success:
                             await state_tracker.mark_closure_reminder_sent(ticket.key)
-                            await state_tracker.increment_ping_count(ticket.key)
+                            await state_tracker.increment_closure_ping_count(ticket.key)
 
                 except Exception as e:
                     self.logger.error(

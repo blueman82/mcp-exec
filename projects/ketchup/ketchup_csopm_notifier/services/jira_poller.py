@@ -39,11 +39,13 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
     """
 
     # JQL query for discovering new CSOPM assignments
+    # TEST CONFIG: key IN filter + 'Not Started' status for CPGNCX testing
+    # PRODUCTION: Remove key IN, change to status = 'New', project = CSOPM
     NEW_ASSIGNMENTS_JQL = (
-        f"project = {CSOPM_JIRA_PROJECT} AND "
+        "key IN (CPGNCX-63714, CPGNCX-63715) AND "
         "assignee IS NOT EMPTY AND "
-        "status = 'New' AND "
-        "created >= -1d "
+        "status = 'Not Started' AND "
+        "created >= -30d "
         "ORDER BY created DESC"
     )
 

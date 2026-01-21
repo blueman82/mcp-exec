@@ -143,6 +143,10 @@ ketchup/
 │   ├── integrations/     # Third-party integrations
 │   ├── secrets/          # AWS Secrets Manager
 │   └── slack/            # Slack API handlers
+│       └── csopm/        # CSOPM shared components (used by notifier + app)
+│           ├── blocks.py    # Slack Block Kit notification components
+│           ├── state.py     # DynamoDB state tracking
+│           └── actions.py   # Interactive button action handlers
 │
 ├── ketchup-app/          # Main FastAPI webhook service
 │   └── main.py           # Entry point for ketchup-app containers
@@ -183,17 +187,15 @@ ketchup/
 ├── ketchup_access_request_monitor/ # Access monitoring service
 │   └── main.py
 │
-├── ketchup_csopm_notifier/     # CSOPM assignment notification service
-│   ├── main.py
+├── ketchup_csopm_notifier/     # CSOPM assignment notification scheduler
+│   ├── main.py                 # Entry point for scheduler container
 │   ├── scheduler.py            # Runs at 08:00/16:00 UTC
 │   ├── container.py            # TypedDI container setup
-│   ├── blocks/                 # Slack Block Kit components
-│   │   └── notification_blocks.py
-│   └── services/               # Core services
+│   └── services/               # Scheduler-specific services
 │       ├── jira_poller.py      # Polls JIRA for CSOPM assignments
 │       ├── slack_notifier.py   # Sends Slack DM notifications
-│       ├── state_tracker.py    # DynamoDB state persistence
 │       └── reminder_service.py # RCA and closure reminders
+│   # Note: Shared components (blocks, state, actions) are in packages/slack/csopm/
 │
 ├── corp_jira_mcp/              # MCP JIRA integration service
 │   └── (Node.js service)
@@ -252,6 +254,25 @@ All external service communication uses async clients:
 - **Benefits**: Single DI container initialization, unified healthcheck endpoint, simplified deployment
 - Legacy individual scheduler containers marked `[Legacy]` in repository structure, kept for rollback capability
 - See `docs/diagrams/04-background-services.md` for visual reference
+
+#### CSOPM Shared Services Pattern
+The CSOPM (Customer Support Operations Management) feature uses a split architecture:
+
+**Shared Components** (`packages/slack/csopm/`):
+- `blocks.py` - Slack Block Kit notification components
+- `state.py` - DynamoDB state tracking for notifications
+- `actions.py` - Interactive button action handlers
+
+**Scheduler-Specific Code** (`ketchup_csopm_notifier/`):
+- `scheduler.py` - Scheduled polling at 08:00/16:00 UTC
+- `jira_poller.py` - Polls JIRA for CSOPM assignments
+- `slack_notifier.py` - Sends Slack DM notifications
+- `reminder_service.py` - RCA and closure reminders
+
+**Why This Separation?**
+- Shared components in `packages/` are used by both the scheduler container (`ketchup-csopm-notifier`) and the main app container (`ketchup-app`) for handling interactive button callbacks
+- Scheduler-specific code remains in `ketchup_csopm_notifier/` because it only runs in the singleton scheduler container
+- This follows the monorepo pattern: shared code in `packages/`, service-specific code in service directories
 
 ### Event Flow
 ```
@@ -417,7 +438,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
-- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking
+- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking. Shared components (blocks, state, actions) moved to `packages/slack/csopm/` for use by both scheduler and main app containers.
 - **December 2025**: Phase 1 Unified Scheduler Consolidation - 5 scheduler containers consolidated into 1 (`ketchup-unified-scheduler`) with shared TypedDI container, per-task health monitoring, and unified orchestration engine
 - **October 2025**: 300-400% performance optimization complete
 - **September 2025**: TypedDI migration complete (100% coverage)

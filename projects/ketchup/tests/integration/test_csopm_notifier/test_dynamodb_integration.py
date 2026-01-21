@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 import pytest
 import pytest_asyncio
 
-from ketchup_csopm_notifier.services.state_tracker import (
+from packages.slack.csopm.state import (
     PK_NOTIFICATION_PREFIX,
     SK_NOTIFICATION,
     CSOPMStateTracker,

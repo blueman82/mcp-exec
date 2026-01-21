@@ -281,7 +281,7 @@ services:
       - CSOPM_RCA_REMINDER_DAYS=1
       - CSOPM_CLOSURE_REMINDER_DAYS=3
       - CSOPM_MAX_PING_COUNT=2
-      - CSOPM_SCHEDULE_TIMES=09:00,12:00,15:00,18:00
+      - CSOPM_SCHEDULE_TIMES=10:16,12:00,15:00,18:00
       - TZ=Europe/London
     volumes:
       - ~/.aws:/root/.aws:ro

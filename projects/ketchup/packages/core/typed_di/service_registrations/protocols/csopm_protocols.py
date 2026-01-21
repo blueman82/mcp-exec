@@ -31,6 +31,9 @@ __all__ = [
     "CSOPMSlackNotifierProtocol",
     "CSOPMReminderServiceProtocol",
     "CSOPMMetricsProtocol",
+    "CSOPMButtonActionHandlerProtocol",
+    "CSOPMHandlerProtocol",
+    "UserPATOperationsProtocol",
 ]
 
 
@@ -72,21 +75,27 @@ class NotificationRecord:
 
     Attributes:
         ticket_key: The JIRA ticket key this record is for
-        notification_status: Current notification state ("pending", "sent", "failed")
-        ping_count: Number of reminder pings sent to the assignee
+        notification_status: Current notification state ("pending", "sent", "ack", "escalated", "reminders_stopped")
+        rca_ping_count: Number of RCA reminder pings sent
+        closure_ping_count: Number of closure reminder pings sent
         assignee_slack_id: The Slack user ID of the assignee (resolved from username)
         assignee_jira_username: The JIRA username of the current assignee (for reassignment detection)
         rca_reminder_sent: Whether the RCA reminder has been sent
         closure_reminder_sent: Whether the closure reminder has been sent
+        created_at: Unix timestamp of when the notification record was created
+        updated_at: Unix timestamp of last update (used as acknowledged_at when status is "ack")
     """
 
     ticket_key: str
     notification_status: str
-    ping_count: int
+    rca_ping_count: int
+    closure_ping_count: int
     assignee_slack_id: Optional[str]
     assignee_jira_username: Optional[str]
     rca_reminder_sent: bool
     closure_reminder_sent: bool
+    created_at: Optional[int] = None
+    updated_at: Optional[int] = None
 
 
 @dataclass
@@ -205,8 +214,19 @@ class CSOPMStateTrackerProtocol(Protocol):
         """
         ...
 
-    async def increment_ping_count(self, ticket_key: str) -> Optional[NotificationRecord]:
-        """Increment the ping count for a ticket.
+    async def increment_rca_ping_count(self, ticket_key: str) -> Optional[NotificationRecord]:
+        """Increment the RCA ping count for a ticket.
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
+        """
+        ...
+
+    async def increment_closure_ping_count(self, ticket_key: str) -> Optional[NotificationRecord]:
+        """Increment the closure ping count for a ticket.
 
         Args:
             ticket_key: The JIRA ticket key
@@ -278,6 +298,17 @@ class CSOPMStateTrackerProtocol(Protocol):
 
         Returns:
             Updated NotificationRecord if found, None otherwise.
+        """
+        ...
+
+    async def get_all_notification_records(self) -> List[NotificationRecord]:
+        """Get all notification records for metrics collection.
+
+        Scans for all notification records regardless of status.
+        Used for dashboard metrics aggregation.
+
+        Returns:
+            List of all NotificationRecords.
         """
         ...
 
@@ -443,13 +474,34 @@ class CSOPMMetricsProtocol(Protocol):
         """Increment a named counter metric.
 
         Standard counter names:
+
+        Notifications:
         - "csopm.tickets.polled" - Tickets discovered in polling
         - "csopm.notifications.sent" - DM notifications sent
         - "csopm.notifications.failed" - Failed notification attempts
+        - "csopm.notifications.acknowledged" - Acknowledge button clicked
+
+        Reminders:
         - "csopm.reminders.rca.sent" - RCA reminders sent
         - "csopm.reminders.closure.sent" - Closure reminders sent
+
+        User Resolution:
         - "csopm.user.resolution.success" - Successful username->Slack ID resolutions
         - "csopm.user.resolution.failed" - Failed username->Slack ID resolutions
+
+        User Actions:
+        - "csopm.actions.stop_reminders" - Stop Reminders button clicked
+        - "csopm.actions.enable_reminders" - Enable Reminders button clicked
+        - "csopm.actions.snooze" - Snooze button clicked
+        - "csopm.actions.unsnooze" - Unsnooze button clicked
+
+        Ticket Transitions:
+        - "csopm.transitions.complete" - Marked Complete via Slack modal
+        - "csopm.transitions.closed" - Closed via Slack modal
+        - "csopm.followups.created" - Follow-up tickets created
+
+        State Changes:
+        - "csopm.reassignments" - Ticket reassignments detected
 
         Args:
             counter_name: The name of the counter to increment
@@ -489,5 +541,144 @@ class CSOPMMetricsProtocol(Protocol):
 
         Returns:
             Dictionary containing all tracked metrics and their values.
+        """
+        ...
+
+
+@runtime_checkable
+class CSOPMButtonActionHandlerProtocol(Protocol):
+    """Protocol for handling CSOPM button actions in Slack notification messages.
+
+    This handler processes interactive button clicks from CSOPM notification DMs
+    and performs the appropriate actions (JIRA comments, state updates, confirmations).
+
+    Key Responsibilities:
+    1. Dispatch button actions to appropriate handlers
+    2. Post acknowledgment comments to JIRA
+    3. Update notification state (if tracker available)
+    4. Send confirmation messages to users
+    5. Coordinate JIRA transitions (close, transition status)
+
+    This protocol is implemented by CSOPMButtonActionHandler in packages/slack/csopm/
+    and is used by both ketchup-app (interactive handlers) and ketchup_csopm_notifier.
+    """
+
+    async def handle_button_action(
+        self, action_id: str, user_id: str, ticket_key: str, payload: dict
+    ) -> bool:
+        """Handle a Slack button action from a CSOPM notification message.
+
+        Processes interactive button clicks from CSOPM notification DMs:
+        - csopm_acknowledge: Update state to 'ack', post JIRA comment
+        - csopm_create_followup: Return True to signal modal should open
+        - csopm_stop_reminders: Stop ketchup reminders for this ticket
+        - csopm_enable_reminders: Re-enable ketchup reminders
+        - csopm_snooze: Snooze closure reminder for 7 days
+        - csopm_close_ticket: Close ticket in JIRA
+        - csopm_view_jira: Link button (no backend action needed)
+
+        Args:
+            action_id: The ID of the action button clicked.
+            user_id: The Slack user ID who clicked the button.
+            ticket_key: The JIRA ticket key associated with the action.
+            payload: The full Slack interaction payload.
+
+        Returns:
+            True if action was handled successfully, False otherwise.
+        """
+        ...
+
+
+@runtime_checkable
+class CSOPMHandlerProtocol(Protocol):
+    """Protocol for handling CSOPM interactive elements in Slack.
+
+    This handler processes block actions and modal submissions for CSOPM notifications.
+    It routes interactive events to the CSOPMButtonActionHandler for processing.
+
+    Key Responsibilities:
+    1. Extract action context from Slack payloads
+    2. Route button clicks to CSOPMButtonActionHandler
+    3. Handle modal submissions for follow-up ticket creation
+    4. Coordinate MCP calls for JIRA operations
+
+    This protocol is implemented by CSOPMHandler in packages/slack/interactive_elements/
+    and is used by ketchup-app for handling interactive CSOPM elements.
+    """
+
+    async def handle_block_action(self, payload: dict) -> bool:
+        """Handle a block_actions payload for CSOPM buttons.
+
+        Extracts action context and delegates to the appropriate handler
+        based on action_id.
+
+        Args:
+            payload: The Slack block_actions payload.
+
+        Returns:
+            True if action was handled successfully, False otherwise.
+        """
+        ...
+
+    async def handle_view_submission(self, payload: dict) -> bool:
+        """Handle a view_submission payload for CSOPM modals.
+
+        Currently handles:
+        - csopm_create_followup_modal: Create follow-up ticket in JIRA
+
+        Args:
+            payload: The Slack view_submission payload.
+
+        Returns:
+            True if submission was handled successfully, False otherwise.
+        """
+        ...
+
+
+@runtime_checkable
+class UserPATOperationsProtocol(Protocol):
+    """Protocol for storing and retrieving user JIRA Personal Access Tokens.
+
+    PATs are stored with a 1-hour TTL and automatically deleted by DynamoDB
+    after expiry. Used to allow users to authenticate JIRA operations with
+    their own credentials when the service account lacks permissions.
+    """
+
+    async def store_pat(self, user_id: str, pat: str) -> None:
+        """Store a user's JIRA PAT with 1-hour TTL.
+
+        Args:
+            user_id: The Slack user ID
+            pat: The JIRA Personal Access Token
+        """
+        ...
+
+    async def get_pat(self, user_id: str) -> Optional[str]:
+        """Retrieve a user's JIRA PAT if not expired.
+
+        Args:
+            user_id: The Slack user ID
+
+        Returns:
+            The PAT if found and not expired, None otherwise.
+        """
+        ...
+
+    async def delete_pat(self, user_id: str) -> None:
+        """Delete a user's stored PAT.
+
+        Args:
+            user_id: The Slack user ID
+        """
+        ...
+
+    async def has_valid_pat(self, user_id: str) -> bool:
+        """Check if a user has a valid (non-expired) PAT stored.
+
+        Args:
+            user_id: The Slack user ID
+
+        Returns:
+            True if user has a valid PAT, False otherwise.
         """
         ...

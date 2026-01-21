@@ -4,10 +4,11 @@ metrics_data_collector.py
 Collects metrics data from DynamoDB for dashboard generation.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from packages.core.config.system_channels import get_excluded_channels
 from packages.core.logging import setup_logger
+from packages.core.typed_di.protocols import CSOPMStateTrackerProtocol
 from packages.db.operations.channel_operations import ChannelOperations
 from packages.db.operations.join_notification_ops import JoinNotificationOps
 from packages.slack.channel_operations.channel_membership_ops import (
@@ -37,6 +38,7 @@ class MetricsDataCollector:
         channel_ops: ChannelOperations,
         join_notification_ops: JoinNotificationOps,
         channel_membership_ops: ChannelMembershipOps,
+        csopm_state_tracker: Optional[CSOPMStateTrackerProtocol] = None,
     ):
         """
         Initialize MetricsDataCollector.
@@ -45,10 +47,12 @@ class MetricsDataCollector:
             channel_ops: Channel operations for DynamoDB queries
             join_notification_ops: Join notification tracking operations
             channel_membership_ops: Channel membership lookup operations
+            csopm_state_tracker: Optional CSOPM state tracker for CSOPM metrics
         """
         self._channel_ops = channel_ops
         self._join_notification_ops = join_notification_ops
         self._channel_membership_ops = channel_membership_ops
+        self._csopm_state_tracker = csopm_state_tracker
 
     async def _get_current_member_channels(self) -> List[str]:
         """
@@ -318,6 +322,110 @@ class MetricsDataCollector:
                     "pending": 0,
                 },
             }
+
+    async def collect_csopm_metrics(
+        self,
+        start_ts: int,
+        end_ts: int,
+    ) -> Dict[str, Any]:
+        """
+        Collect CSOPM notification metrics for dashboard.
+
+        Queries NotificationRecord items to calculate:
+        - Total notifications sent
+        - Acknowledgment counts and timing
+        - Reminder statistics
+
+        Args:
+            start_ts: Start timestamp for filtering (notifications created after)
+            end_ts: End timestamp for filtering (notifications created before)
+
+        Returns:
+            Dictionary containing CSOPM metrics.
+        """
+        logger.info("Collecting CSOPM metrics")
+
+        # Return empty metrics if state tracker not available
+        if not self._csopm_state_tracker:
+            logger.warning("CSOPM state tracker not available, returning empty metrics")
+            return self._get_empty_csopm_metrics()
+
+        try:
+            records = await self._csopm_state_tracker.get_all_notification_records()
+
+            # Filter by time range if created_at is available
+            filtered_records = []
+            for record in records:
+                if record.created_at:
+                    if start_ts <= record.created_at <= end_ts:
+                        filtered_records.append(record)
+                else:
+                    # Include records without created_at (legacy records)
+                    filtered_records.append(record)
+
+            total = len(filtered_records)
+
+            # Count by status
+            acknowledged = sum(1 for r in filtered_records if r.notification_status == "ack")
+            reminders_stopped = sum(
+                1 for r in filtered_records if r.notification_status == "reminders_stopped"
+            )
+            pending = sum(1 for r in filtered_records if r.notification_status == "pending")
+
+            # Count reminders sent
+            rca_reminders_sent = sum(1 for r in filtered_records if r.rca_reminder_sent)
+            closure_reminders_sent = sum(1 for r in filtered_records if r.closure_reminder_sent)
+
+            # Calculate acknowledgment timing (within 3 days = 259200 seconds)
+            three_days_seconds = 3 * 24 * 60 * 60
+            ack_within_3_days = 0
+            ack_after_3_days = 0
+
+            for record in filtered_records:
+                if record.notification_status == "ack" and record.created_at and record.updated_at:
+                    time_to_ack = record.updated_at - record.created_at
+                    if time_to_ack <= three_days_seconds:
+                        ack_within_3_days += 1
+                    else:
+                        ack_after_3_days += 1
+
+            # Calculate average ping counts
+            total_rca_pings = sum(r.rca_ping_count for r in filtered_records)
+            total_closure_pings = sum(r.closure_ping_count for r in filtered_records)
+            avg_rca_pings = total_rca_pings / total if total > 0 else 0
+            avg_closure_pings = total_closure_pings / total if total > 0 else 0
+
+            return {
+                "total_notifications": total,
+                "acknowledged": acknowledged,
+                "reminders_stopped": reminders_stopped,
+                "pending": pending,
+                "rca_reminders_sent": rca_reminders_sent,
+                "closure_reminders_sent": closure_reminders_sent,
+                "ack_within_3_days": ack_within_3_days,
+                "ack_after_3_days": ack_after_3_days,
+                "avg_rca_pings": round(avg_rca_pings, 2),
+                "avg_closure_pings": round(avg_closure_pings, 2),
+            }
+
+        except Exception as e:
+            logger.error(f"Error collecting CSOPM metrics: {e}", exc_info=True)
+            return self._get_empty_csopm_metrics()
+
+    def _get_empty_csopm_metrics(self) -> Dict[str, Any]:
+        """Return empty CSOPM metrics structure."""
+        return {
+            "total_notifications": 0,
+            "acknowledged": 0,
+            "reminders_stopped": 0,
+            "pending": 0,
+            "rca_reminders_sent": 0,
+            "closure_reminders_sent": 0,
+            "ack_within_3_days": 0,
+            "ack_after_3_days": 0,
+            "avg_rca_pings": 0.0,
+            "avg_closure_pings": 0.0,
+        }
 
     async def collect_all_metrics(
         self,

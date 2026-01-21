@@ -13,6 +13,7 @@ type RequestOptions = {
   body?: unknown;
   headers?: Record<string, string>;
   apiVersion?: string;
+  userPat?: string;  // Optional user-provided PAT to override config.auth.pat
 }
 
 async function parseResponseBody(response: Response): Promise<unknown> {
@@ -171,6 +172,11 @@ export async function jiraRequest(
   // Determine which authentication method to use based on config
   if (config.useIpaas) {
     // iPaaS authentication
+    // Determine which PAT to use: user-provided PAT takes precedence over config PAT
+    const effectivePat = options.userPat || config.auth.pat;
+    if (options.userPat) {
+      logToFile('Using user-provided PAT for authentication');
+    }
 
     // First, try to use the token from the incoming request
     if (currentAuthToken) {
@@ -185,23 +191,23 @@ export async function jiraRequest(
         ...constructIpaasHeaders(
           token,
           config.auth.apiKey || '',
-          config.auth.pat,       // PAT parameter (preferred)
-          config.auth.username,  // Fallback username
-          config.auth.password   // Fallback password
+          effectivePat,           // Use effective PAT (user-provided or config)
+          config.auth.username,   // Fallback username
+          config.auth.password    // Fallback password
         ),
         ...options.headers
       };
     } else {
       // Fallback to environment variables if no incoming token
       logToFile('No incoming token, falling back to environment variables');
-      const { imsToken, apiKey, pat, username, password } = config.auth;
+      const { imsToken, apiKey, username, password } = config.auth;
 
       if (!imsToken || !apiKey) {
         throw new Error("IMS token and API key are required for iPaaS authentication");
       }
 
       headers = {
-        ...constructIpaasHeaders(imsToken, apiKey, pat, username, password),
+        ...constructIpaasHeaders(imsToken, apiKey, effectivePat, username, password),
         ...options.headers
       };
     }

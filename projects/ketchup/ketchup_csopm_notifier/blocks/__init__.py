@@ -1,9 +1,12 @@
 """
 CSOPM Notifier Block Kit Builders.
 
-This package contains Block Kit message builders for CSOPM notifications.
+This package re-exports Block Kit message builders from the shared packages/
+location for backward compatibility.
+
+The actual implementation lives in packages/slack/csopm/blocks.py.
 """
 
-from .notification_blocks import CSOPMNotificationBlocks
+from packages.slack.csopm.blocks import CSOPMNotificationBlocks
 
 __all__ = ["CSOPMNotificationBlocks"]

@@ -38,6 +38,8 @@ from .service_protocols import (  # Business service protocols
     StatusCommandServiceProtocol,
 )
 from .service_registrations.protocols.csopm_protocols import (  # CSOPM notifier protocols
+    CSOPMButtonActionHandlerProtocol,
+    CSOPMHandlerProtocol,
     CSOPMJIRAPollerProtocol,
     CSOPMMetricsProtocol,
     CSOPMReminderServiceProtocol,
@@ -114,4 +116,6 @@ __all__ = [
     "CSOPMSlackNotifierProtocol",
     "CSOPMReminderServiceProtocol",
     "CSOPMMetricsProtocol",
+    "CSOPMButtonActionHandlerProtocol",
+    "CSOPMHandlerProtocol",
 ]
