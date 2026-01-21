@@ -1,0 +1,330 @@
+# PRODUCERS: Task 1 → EditJiraCommentSchema, editJiraComment
+# PRODUCERS: Task 2 → DeleteJiraCommentSchema, deleteJiraComment
+# CONSUMERS: Task 3 → [1, 2] (registers tools in index.ts)
+# VALIDATION: All consumers depend_on producers ✓
+
+conductor:
+  default_agent: typescript-pro
+  worktree_groups:
+    - group_id: "comment-tools"
+      tasks: [1, 2, 3]
+      rationale: "All tasks modify the same MCP server codebase"
+
+planner_compliance:
+  planner_version: "4.0.0"
+  strict_enforcement: true
+  required_features: [dependency_checks, test_commands, success_criteria, data_flow_registry]
+
+data_flow_registry:
+  producers:
+    EditJiraCommentSchema:
+      - task: 1
+        description: "Creates Zod schema for edit comment operation"
+    editJiraComment:
+      - task: 1
+        description: "Creates async function for editing comments"
+    DeleteJiraCommentSchema:
+      - task: 2
+        description: "Creates Zod schema for delete comment operation"
+    deleteJiraComment:
+      - task: 2
+        description: "Creates async function for deleting comments"
+  consumers:
+    EditJiraCommentSchema:
+      - task: 3
+        description: "Registers edit_jira_comment tool"
+    editJiraComment:
+      - task: 3
+        description: "Calls editJiraComment in tool handler"
+    DeleteJiraCommentSchema:
+      - task: 3
+        description: "Registers delete_jira_comment tool"
+    deleteJiraComment:
+      - task: 3
+        description: "Calls deleteJiraComment in tool handler"
+
+plan:
+  metadata:
+    feature_name: "JIRA Comment Edit/Delete Tools - Ketchup MCP"
+    created: "2026-01-21"
+    target: "Add edit_jira_comment and delete_jira_comment tools to ketchup mcp-jira server"
+
+  context:
+    framework: "TypeScript/Node.js MCP Server"
+    test_framework: "Manual validation via MCP tool calls"
+    base_path: "/Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp"
+
+  tasks:
+    - task_number: "1"
+      name: "Create editComment.ts operation"
+      agent: "typescript-pro"
+      files:
+        - "corp_jira_mcp/operations/editComment.ts"
+      depends_on: []
+
+      success_criteria:
+        - "EditJiraCommentSchema defined with issueIdOrKey, commentId, and comment body fields"
+        - "editJiraComment async function uses jiraRequest with PUT method"
+        - "API endpoint follows pattern: issue/{issueIdOrKey}/comment/{commentId}"
+        - "Returns standardized response: { success: boolean, message: string, data?: unknown }"
+        - "Error handling uses formatResponse and handleOperationError from update.ts"
+        - "No TODO comments in production code"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit operations/editComment.ts"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/addComment.ts"
+            description: "Verify addComment.ts exists as reference pattern"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            # Verify reference files exist
+            ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/addComment.ts
+            ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/update.ts
+          </commands>
+        </dependency_verification>
+        <task_description>
+          Create editComment.ts following the exact pattern from addComment.ts.
+
+          JIRA REST API endpoint: PUT /rest/api/2/issue/{issueIdOrKey}/comment/{commentId}
+
+          The file should:
+          1. Import z from "zod" and jiraRequest from "../common/utils.js"
+          2. Import formatResponse and handleOperationError from "./update.js"
+          3. Define EditJiraCommentSchema with:
+             - issueIdOrKey: z.string()
+             - commentId: z.string()
+             - comment: z.object({ body: z.string(), visibility: z.object({...}).optional() })
+          4. Export EditJiraCommentRequest type using z.infer
+          5. Implement editJiraComment async function that:
+             - Destructures params
+             - Calls jiraRequest(`issue/${issueIdOrKey}/comment/${commentId}`, { method: "PUT", body: comment })
+             - Returns formatResponse on success
+             - Returns handleOperationError on failure
+        </task_description>
+
+      implementation:
+        approach: |
+          Follow the exact pattern from addComment.ts but use PUT method instead of POST,
+          and include commentId parameter in the endpoint path.
+        key_points:
+          - point: "EditJiraCommentSchema with commentId field"
+            details: "Schema must include commentId to identify which comment to edit"
+            reference: "corp_jira_mcp/operations/addComment.ts"
+          - point: "PUT method for update operation"
+            details: "JIRA REST API uses PUT for comment updates"
+            reference: "https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-comments/"
+          - point: "Reuse formatResponse and handleOperationError"
+            details: "Import from update.ts to maintain consistency"
+            reference: "corp_jira_mcp/operations/update.ts"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "Add editComment operation to ketchup mcp-jira"
+        files: ["corp_jira_mcp/operations/editComment.ts"]
+
+    - task_number: "2"
+      name: "Create deleteComment.ts operation"
+      agent: "typescript-pro"
+      files:
+        - "corp_jira_mcp/operations/deleteComment.ts"
+      depends_on: []
+
+      success_criteria:
+        - "DeleteJiraCommentSchema defined with issueIdOrKey and commentId fields"
+        - "deleteJiraComment async function uses jiraRequest with DELETE method"
+        - "API endpoint follows pattern: issue/{issueIdOrKey}/comment/{commentId}"
+        - "Handles 204 No Content response correctly"
+        - "Returns standardized response: { success: boolean, message: string }"
+        - "Error handling uses formatResponse and handleOperationError from update.ts"
+        - "No TODO comments in production code"
+        - "All imports resolve correctly"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit operations/deleteComment.ts"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/addComment.ts"
+            description: "Verify addComment.ts exists as reference pattern"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            # Verify reference files exist
+            ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/addComment.ts
+            ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/update.ts
+          </commands>
+        </dependency_verification>
+        <task_description>
+          Create deleteComment.ts for deleting JIRA comments.
+
+          JIRA REST API endpoint: DELETE /rest/api/2/issue/{issueIdOrKey}/comment/{commentId}
+          Returns: 204 No Content on success
+
+          The file should:
+          1. Import z from "zod" and jiraRequest from "../common/utils.js"
+          2. Import formatResponse and handleOperationError from "./update.js"
+          3. Define DeleteJiraCommentSchema with:
+             - issueIdOrKey: z.string()
+             - commentId: z.string()
+          4. Export DeleteJiraCommentRequest type using z.infer
+          5. Implement deleteJiraComment async function that:
+             - Destructures params
+             - Calls jiraRequest(`issue/${issueIdOrKey}/comment/${commentId}`, { method: "DELETE" })
+             - Note: DELETE has no body
+             - Returns formatResponse(true, `Comment ${commentId} deleted from ${issueIdOrKey}`)
+             - Returns handleOperationError on failure
+        </task_description>
+
+      implementation:
+        approach: |
+          Create a minimal operation file for DELETE which requires no request body.
+          The jiraRequest utility already handles 204 No Content responses.
+        key_points:
+          - point: "DeleteJiraCommentSchema with only key identifiers"
+            details: "DELETE operation needs only issueIdOrKey and commentId"
+            reference: "corp_jira_mcp/operations/addComment.ts"
+          - point: "DELETE method with no body"
+            details: "DELETE requests don't include a request body"
+            reference: "JIRA REST API documentation"
+          - point: "Handle 204 No Content"
+            details: "jiraRequest already returns { success: true } for 204 responses"
+            reference: "corp_jira_mcp/common/utils.ts"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "Add deleteComment operation to ketchup mcp-jira"
+        files: ["corp_jira_mcp/operations/deleteComment.ts"]
+
+    - task_number: "3"
+      name: "Register tools in index.ts"
+      agent: "typescript-pro"
+      files:
+        - "corp_jira_mcp/index.ts"
+      depends_on: [1, 2]
+
+      success_criteria:
+        - "Import statements added for editComment and deleteComment modules"
+        - "edit_jira_comment tool definition added to ListToolsRequestSchema handler"
+        - "delete_jira_comment tool definition added to ListToolsRequestSchema handler"
+        - "Case handler for edit_jira_comment added to CallToolRequestSchema switch"
+        - "Case handler for delete_jira_comment added to CallToolRequestSchema switch"
+        - "Case handlers added to handleDirectToolCall function"
+        - "Tool definitions use zodToJsonSchema for inputSchema"
+        - "Handlers follow existing pattern: parse args, call function, check success, return content"
+        - "No TODO comments in production code"
+        - "TypeScript compiles without errors"
+
+      test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit"
+
+      runtime_metadata:
+        dependency_checks:
+          - command: "ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/editComment.ts"
+            description: "Verify editComment.ts was created"
+          - command: "ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/deleteComment.ts"
+            description: "Verify deleteComment.ts was created"
+        documentation_targets: []
+
+      description: |
+        <dependency_verification priority="execute_first">
+          <commands>
+            # Verify operation files exist
+            ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/editComment.ts
+            ls /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp/operations/deleteComment.ts
+          </commands>
+        </dependency_verification>
+        <task_description>
+          Register the new edit and delete comment tools in index.ts.
+
+          Three modifications needed:
+
+          1. ADD IMPORTS (near other operation imports ~line 15):
+             import * as editComment from "./operations/editComment.js";
+             import * as deleteComment from "./operations/deleteComment.js";
+
+          2. ADD TOOL DEFINITIONS in ListToolsRequestSchema handler (after get_jira_comments):
+             {
+               name: "edit_jira_comment",
+               description: "Edit an existing comment on a Jira issue",
+               inputSchema: zodToJsonSchema(editComment.EditJiraCommentSchema),
+             },
+             {
+               name: "delete_jira_comment",
+               description: "Delete a comment from a Jira issue",
+               inputSchema: zodToJsonSchema(deleteComment.DeleteJiraCommentSchema),
+             },
+
+          3. ADD CASE HANDLERS in CallToolRequestSchema switch (after get_jira_comments case):
+             case "edit_jira_comment": {
+               const args = editComment.EditJiraCommentSchema.parse(request.params.arguments);
+               const result = await editComment.editJiraComment(args);
+               if (result && typeof result === 'object' && 'success' in result && !result.success) {
+                 throw new Error('Failed to edit comment');
+               }
+               return {
+                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+               };
+             }
+
+             case "delete_jira_comment": {
+               const args = deleteComment.DeleteJiraCommentSchema.parse(request.params.arguments);
+               const result = await deleteComment.deleteJiraComment(args);
+               if (result && typeof result === 'object' && 'success' in result && !result.success) {
+                 throw new Error('Failed to delete comment');
+               }
+               return {
+                 content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+               };
+             }
+
+          4. ADD CASE HANDLERS in handleDirectToolCall function (similar pattern)
+        </task_description>
+
+      implementation:
+        approach: |
+          Follow the exact pattern used for add_jira_comment and get_jira_comments.
+          The index.ts has three places where tools are registered.
+        key_points:
+          - point: "Import modules at top of file"
+            details: "Use same pattern: import * as moduleName from './operations/file.js'"
+            reference: "corp_jira_mcp/index.ts line ~15"
+          - point: "Tool definition in ListToolsRequestSchema"
+            details: "Add name, description, inputSchema using zodToJsonSchema"
+            reference: "corp_jira_mcp/index.ts ListToolsRequestSchema handler"
+          - point: "Case handler in CallToolRequestSchema"
+            details: "Parse args, call function, check success, return JSON content"
+            reference: "corp_jira_mcp/index.ts case 'add_jira_comment'"
+          - point: "Case handler in handleDirectToolCall"
+            details: "Same pattern for direct HTTP calls"
+            reference: "corp_jira_mcp/index.ts handleDirectToolCall function"
+
+      code_quality:
+        typescript:
+          full_quality_pipeline:
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp && npx tsc --noEmit"
+            exit_on_failure: true
+
+      commit:
+        type: "feat"
+        message: "Register edit_jira_comment and delete_jira_comment tools in ketchup mcp-jira"
+        files: ["corp_jira_mcp/index.ts"]
