@@ -147,7 +147,8 @@ class TestCSOPMStateTrackerItemParsing(unittest.TestCase):
             "SK": {"S": "NOTIFICATION"},
             "ticket_key": {"S": "CSOPM-1234"},
             "notification_status": {"S": "sent"},
-            "rca_ping_count": {"N": "2"}, "closure_ping_count": {"N": "0"},
+            "rca_ping_count": {"N": "2"},
+            "closure_ping_count": {"N": "0"},
             "assignee_slack_id": {"S": "U12345678"},
             "rca_reminder_sent": {"BOOL": True},
             "closure_reminder_sent": {"BOOL": False},
@@ -237,7 +238,8 @@ class TestCSOPMStateTrackerGetNotificationRecord(unittest.IsolatedAsyncioTestCas
             "Item": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "sent"},
-                "rca_ping_count": {"N": "1"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
                 "assignee_slack_id": {"S": "U12345678"},
                 "rca_reminder_sent": {"BOOL": False},
                 "closure_reminder_sent": {"BOOL": False},
@@ -391,7 +393,8 @@ class TestCSOPMStateTrackerUpdateNotificationStatus(unittest.IsolatedAsyncioTest
             "Attributes": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "sent"},
-                "rca_ping_count": {"N": "1"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
                 "assignee_slack_id": {"S": "U12345678"},
                 "rca_reminder_sent": {"BOOL": False},
                 "closure_reminder_sent": {"BOOL": False},
@@ -417,7 +420,8 @@ class TestCSOPMStateTrackerUpdateNotificationStatus(unittest.IsolatedAsyncioTest
             "Attributes": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "sent"},
-                "rca_ping_count": {"N": "0"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "0"},
+                "closure_ping_count": {"N": "0"},
                 "rca_reminder_sent": {"BOOL": False},
                 "closure_reminder_sent": {"BOOL": False},
             }
@@ -516,7 +520,8 @@ class TestCSOPMStateTrackerReminderMethods(unittest.IsolatedAsyncioTestCase):
             "Attributes": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "sent"},
-                "rca_ping_count": {"N": "1"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
                 "assignee_slack_id": {"S": "U12345678"},
                 "rca_reminder_sent": {"BOOL": True},
                 "closure_reminder_sent": {"BOOL": False},
@@ -534,7 +539,8 @@ class TestCSOPMStateTrackerReminderMethods(unittest.IsolatedAsyncioTestCase):
             "Attributes": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "sent"},
-                "rca_ping_count": {"N": "1"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
                 "rca_reminder_sent": {"BOOL": True},
                 "closure_reminder_sent": {"BOOL": False},
             }
@@ -553,7 +559,8 @@ class TestCSOPMStateTrackerReminderMethods(unittest.IsolatedAsyncioTestCase):
             "Attributes": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "sent"},
-                "rca_ping_count": {"N": "1"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
                 "assignee_slack_id": {"S": "U12345678"},
                 "rca_reminder_sent": {"BOOL": True},
                 "closure_reminder_sent": {"BOOL": True},
@@ -583,7 +590,8 @@ class TestCSOPMStateTrackerGetPendingNotifications(unittest.IsolatedAsyncioTestC
                 {
                     "ticket_key": {"S": "CSOPM-1001"},
                     "notification_status": {"S": "pending"},
-                    "rca_ping_count": {"N": "0"}, "closure_ping_count": {"N": "0"},
+                    "rca_ping_count": {"N": "0"},
+                    "closure_ping_count": {"N": "0"},
                     "assignee_slack_id": {"S": "U11111111"},
                     "rca_reminder_sent": {"BOOL": False},
                     "closure_reminder_sent": {"BOOL": False},
@@ -591,7 +599,8 @@ class TestCSOPMStateTrackerGetPendingNotifications(unittest.IsolatedAsyncioTestC
                 {
                     "ticket_key": {"S": "CSOPM-1002"},
                     "notification_status": {"S": "pending"},
-                    "rca_ping_count": {"N": "0"}, "closure_ping_count": {"N": "0"},
+                    "rca_ping_count": {"N": "0"},
+                    "closure_ping_count": {"N": "0"},
                     "assignee_slack_id": {"S": "U22222222"},
                     "rca_reminder_sent": {"BOOL": False},
                     "closure_reminder_sent": {"BOOL": False},
@@ -727,7 +736,8 @@ class TestCSOPMStateTrackerGetAllActiveNotifications(unittest.IsolatedAsyncioTes
                 {
                     "ticket_key": {"S": "CSOPM-1001"},
                     "notification_status": {"S": "pending"},
-                    "rca_ping_count": {"N": "0"}, "closure_ping_count": {"N": "0"},
+                    "rca_ping_count": {"N": "0"},
+                    "closure_ping_count": {"N": "0"},
                     "assignee_slack_id": {"S": "U11111111"},
                     "rca_reminder_sent": {"BOOL": False},
                     "closure_reminder_sent": {"BOOL": False},
@@ -735,7 +745,8 @@ class TestCSOPMStateTrackerGetAllActiveNotifications(unittest.IsolatedAsyncioTes
                 {
                     "ticket_key": {"S": "CSOPM-1002"},
                     "notification_status": {"S": "sent"},
-                    "rca_ping_count": {"N": "2"}, "closure_ping_count": {"N": "0"},
+                    "rca_ping_count": {"N": "2"},
+                    "closure_ping_count": {"N": "0"},
                     "assignee_slack_id": {"S": "U22222222"},
                     "rca_reminder_sent": {"BOOL": True},
                     "closure_reminder_sent": {"BOOL": False},
@@ -764,7 +775,8 @@ class TestCSOPMStateTrackerHandleReassignment(unittest.IsolatedAsyncioTestCase):
             "Attributes": {
                 "ticket_key": {"S": "CSOPM-1234"},
                 "notification_status": {"S": "pending"},
-                "rca_ping_count": {"N": "1"}, "closure_ping_count": {"N": "0"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
                 "assignee_slack_id": {"S": "U99999999"},
                 "assignee_jira_username": {"S": "newuser"},
                 "rca_reminder_sent": {"BOOL": False},
@@ -885,6 +897,116 @@ class TestCSOPMStateTrackerDynamoDBTypeDescriptors(unittest.IsolatedAsyncioTestC
 
         # Verify list type descriptors
         self.assertIn("L", item["assignee_history"])
+
+
+class TestCSOPMStateTrackerAddFollowupTicket(unittest.IsolatedAsyncioTestCase):
+    """Test add_followup_ticket method."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from packages.slack.csopm.state import CSOPMStateTracker
+
+        self.mock_client = MockDynamoDBAsyncClient()
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
+
+    async def test_add_followup_ticket_success(self):
+        """Test add_followup_ticket returns True on success."""
+        self.mock_client.update_item.return_value = {}
+
+        result = await self.tracker.add_followup_ticket("CSOPM-1234", "CSOPM-5678")
+
+        self.assertTrue(result)
+
+    async def test_add_followup_ticket_uses_list_append(self):
+        """Test add_followup_ticket uses list_append with if_not_exists."""
+        self.mock_client.update_item.return_value = {}
+
+        await self.tracker.add_followup_ticket("CSOPM-1234", "CSOPM-5678")
+
+        call_args = self.mock_client.update_item.call_args
+        update_expr = call_args.kwargs.get("update_expression", "")
+
+        # Verify list_append and if_not_exists are used
+        self.assertIn("list_append", update_expr)
+        self.assertIn("if_not_exists", update_expr)
+        self.assertIn("followup_ticket_keys", update_expr)
+
+    async def test_add_followup_ticket_includes_followup_key(self):
+        """Test add_followup_ticket includes the followup key in expression values."""
+        self.mock_client.update_item.return_value = {}
+
+        await self.tracker.add_followup_ticket("CSOPM-1234", "CSOPM-5678")
+
+        call_args = self.mock_client.update_item.call_args
+        expr_values = call_args.kwargs.get("expression_attribute_values", {})
+
+        # Verify the new key is in the expression values
+        self.assertIn(":new_key", expr_values)
+        self.assertEqual(expr_values[":new_key"], {"L": [{"S": "CSOPM-5678"}]})
+
+    async def test_add_followup_ticket_uses_correct_key(self):
+        """Test add_followup_ticket uses correct PK and SK."""
+        self.mock_client.update_item.return_value = {}
+
+        await self.tracker.add_followup_ticket("CSOPM-1234", "CSOPM-5678")
+
+        call_args = self.mock_client.update_item.call_args
+        key = call_args.kwargs.get("key", {})
+
+        self.assertEqual(key["PK"]["S"], "CSOPM_NOTIFICATION#CSOPM-1234")
+        self.assertEqual(key["SK"]["S"], "NOTIFICATION")
+
+    async def test_add_followup_ticket_returns_false_on_error(self):
+        """Test add_followup_ticket returns False on error."""
+        self.mock_client.update_item.side_effect = Exception("DynamoDB error")
+
+        result = await self.tracker.add_followup_ticket("CSOPM-1234", "CSOPM-5678")
+
+        self.assertFalse(result)
+
+
+class TestCSOPMStateTrackerFollowupTicketKeysParsing(unittest.TestCase):
+    """Test followup_ticket_keys field parsing in _item_to_notification_record."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from packages.slack.csopm.state import CSOPMStateTracker
+
+        self.mock_client = MockDynamoDBAsyncClient()
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
+
+    def test_item_to_notification_record_parses_followup_ticket_keys(self):
+        """Test _item_to_notification_record parses followup_ticket_keys list."""
+        item = {
+            "ticket_key": {"S": "CSOPM-1234"},
+            "notification_status": {"S": "pending"},
+            "rca_ping_count": {"N": "0"},
+            "closure_ping_count": {"N": "0"},
+            "rca_reminder_sent": {"BOOL": False},
+            "closure_reminder_sent": {"BOOL": False},
+            "followup_ticket_keys": {"L": [{"S": "CSOPM-5678"}, {"S": "CSOPM-9012"}]},
+        }
+
+        result = self.tracker._item_to_notification_record(item)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.followup_ticket_keys, ["CSOPM-5678", "CSOPM-9012"])
+
+    def test_item_to_notification_record_defaults_empty_followup_keys(self):
+        """Test _item_to_notification_record defaults to empty list when missing."""
+        item = {
+            "ticket_key": {"S": "CSOPM-1234"},
+            "notification_status": {"S": "pending"},
+            "rca_ping_count": {"N": "0"},
+            "closure_ping_count": {"N": "0"},
+            "rca_reminder_sent": {"BOOL": False},
+            "closure_reminder_sent": {"BOOL": False},
+        }
+
+        result = self.tracker._item_to_notification_record(item)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.followup_ticket_keys, [])
 
 
 if __name__ == "__main__":

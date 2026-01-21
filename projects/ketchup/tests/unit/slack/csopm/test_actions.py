@@ -157,7 +157,7 @@ class TestCSOPMButtonActionHandlerDispatch(unittest.IsolatedAsyncioTestCase):
 
     async def test_dispatches_close_ticket_action(self):
         """Test that close ticket action ID dispatches correctly.
-        
+
         Note: Close ticket now signals modal opening (returns True)
         without calling MCP directly.
         """
@@ -305,7 +305,9 @@ class TestCSOPMButtonActionHandlerAcknowledge(unittest.IsolatedAsyncioTestCase):
         mock_response = AsyncMock()
         mock_response.json = AsyncMock(return_value={"ok": True})
         mock_session = AsyncMock()
-        mock_session.post = AsyncMock(return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response)))
+        mock_session.post = AsyncMock(
+            return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response))
+        )
         mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
 
         result = await self.handler.handle_button_action(
@@ -386,7 +388,9 @@ class TestCSOPMButtonActionHandlerStopReminders(unittest.IsolatedAsyncioTestCase
         mock_response = AsyncMock()
         mock_response.json = AsyncMock(return_value={"ok": True})
         mock_session = AsyncMock()
-        mock_session.post = AsyncMock(return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response)))
+        mock_session.post = AsyncMock(
+            return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response))
+        )
         mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
 
         result = await self.handler.handle_button_action(
@@ -464,7 +468,9 @@ class TestCSOPMButtonActionHandlerEnableReminders(unittest.IsolatedAsyncioTestCa
         mock_response = AsyncMock()
         mock_response.json = AsyncMock(return_value={"ok": True})
         mock_session = AsyncMock()
-        mock_session.post = AsyncMock(return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response)))
+        mock_session.post = AsyncMock(
+            return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response))
+        )
         mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
 
         result = await self.handler.handle_button_action(
@@ -516,7 +522,9 @@ class TestCSOPMButtonActionHandlerSnooze(unittest.IsolatedAsyncioTestCase):
         mock_response = AsyncMock()
         mock_response.json = AsyncMock(return_value={"ok": True})
         mock_session = AsyncMock()
-        mock_session.post = AsyncMock(return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response)))
+        mock_session.post = AsyncMock(
+            return_value=AsyncMock(__aenter__=AsyncMock(return_value=mock_response))
+        )
         mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
 
         result = await self.handler.handle_button_action(

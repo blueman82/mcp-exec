@@ -110,6 +110,21 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             if updated_at is not None:
                 updated_at = int(updated_at)
 
+            # Parse followup_ticket_keys as list of strings (default to empty list)
+            followup_ticket_keys = normalized.get("followup_ticket_keys", [])
+            if not isinstance(followup_ticket_keys, list):
+                followup_ticket_keys = []
+
+            # Parse completed_at as int if present
+            completed_at = normalized.get("completed_at")
+            if completed_at is not None:
+                completed_at = int(completed_at)
+
+            # Parse closed_at as int if present
+            closed_at = normalized.get("closed_at")
+            if closed_at is not None:
+                closed_at = int(closed_at)
+
             return NotificationRecord(
                 ticket_key=normalized.get("ticket_key", ""),
                 notification_status=normalized.get("notification_status", "pending"),
@@ -121,6 +136,9 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 closure_reminder_sent=bool(normalized.get("closure_reminder_sent", False)),
                 created_at=created_at,
                 updated_at=updated_at,
+                followup_ticket_keys=followup_ticket_keys,
+                completed_at=completed_at,
+                closed_at=closed_at,
             )
         except Exception as e:
             logger.error("Error parsing notification record: %s", e)
@@ -199,7 +217,20 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
         Returns:
             The created NotificationRecord.
+
+        Raises:
+            ValueError: If ticket.key is empty (data corruption prevention).
         """
+        # Validate ticket_key to prevent data corruption
+        if not ticket.key or not ticket.key.strip():
+            logger.error(
+                "CSOPM Data Corruption Prevention: Attempted to create notification "
+                "record with empty ticket_key. slack_id=%s, summary=%s",
+                slack_id,
+                ticket.summary[:50] if ticket.summary else "N/A",
+            )
+            raise ValueError("Cannot create notification record with empty ticket_key")
+
         logger.info(
             "Creating notification record for ticket: %s (slack_id=%s)",
             ticket.key,
@@ -222,6 +253,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             "updated_at": {"N": str(current_time)},
             "ticket_summary": {"S": ticket.summary},
             "ticket_status": {"S": ticket.status},
+            "followup_ticket_keys": {"L": []},
             "assignee_history": {
                 "L": [
                     {
@@ -254,6 +286,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 closure_reminder_sent=False,
                 created_at=current_time,
                 updated_at=current_time,
+                followup_ticket_keys=[],
             )
         except Exception as e:
             logger.error("Error creating notification record for %s: %s", ticket.key, e)
@@ -605,9 +638,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         logger.info("Getting all notification records for metrics")
 
         try:
-            filter_expression = (
-                "begins_with(PK, :pk_prefix) AND " "SK = :sk"
-            )
+            filter_expression = "begins_with(PK, :pk_prefix) AND " "SK = :sk"
 
             response = await self.client.scan(
                 table_name=self.table_name,
@@ -707,3 +738,153 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         except Exception as e:
             logger.error("Error handling reassignment for %s: %s", ticket_key, e)
             return None
+
+    async def add_followup_ticket(self, ticket_key: str, followup_key: str) -> bool:
+        """Add a follow-up ticket key to a notification record.
+
+        Atomically appends the follow-up ticket key to the followup_ticket_keys list
+        in DynamoDB. Uses list_append with if_not_exists to handle missing attribute.
+
+        Args:
+            ticket_key: The JIRA ticket key of the parent CSOPM notification
+            followup_key: The JIRA ticket key of the newly created follow-up ticket
+
+        Returns:
+            True if the follow-up was added successfully, False otherwise.
+        """
+        logger.info(
+            "Adding follow-up ticket %s to notification record %s",
+            followup_key,
+            ticket_key,
+        )
+
+        try:
+            current_time = int(time.time())
+
+            await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression=(
+                    "SET followup_ticket_keys = list_append("
+                    "if_not_exists(followup_ticket_keys, :empty_list), :new_key), "
+                    "updated_at = :updated_at"
+                ),
+                expression_attribute_values={
+                    ":empty_list": {"L": []},
+                    ":new_key": {"L": [{"S": followup_key}]},
+                    ":updated_at": {"N": str(current_time)},
+                },
+            )
+
+            logger.info(
+                "Successfully added follow-up ticket %s to %s",
+                followup_key,
+                ticket_key,
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                "Error adding follow-up ticket %s to %s: %s",
+                followup_key,
+                ticket_key,
+                e,
+            )
+            return False
+
+    async def mark_completed(self, ticket_key: str) -> bool:
+        """Mark a ticket as completed by setting the completed_at timestamp.
+
+        Records the timestamp when a ticket transitions to "Complete" status.
+        Uses attribute_not_exists condition to prevent overwriting existing value.
+
+        This timestamp is used for the "Completed within 7 days" metric
+        (compare completed_at to created_at).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            True if completed_at was set, False if already set or record not found.
+        """
+        logger.info("Marking ticket as completed: %s", ticket_key)
+
+        try:
+            current_time = int(time.time())
+
+            await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="SET completed_at = :timestamp, updated_at = :updated_at",
+                condition_expression="attribute_not_exists(completed_at)",
+                expression_attribute_values={
+                    ":timestamp": {"N": str(current_time)},
+                    ":updated_at": {"N": str(current_time)},
+                },
+            )
+
+            logger.info("Successfully marked ticket %s as completed", ticket_key)
+            return True
+        except self.client.client.exceptions.ConditionalCheckFailedException:
+            logger.debug("Ticket %s already marked as completed", ticket_key)
+            return False
+        except Exception as e:
+            # Check if it's a conditional check failure (attribute already exists)
+            if "ConditionalCheckFailedException" in str(e):
+                logger.debug("Ticket %s already marked as completed", ticket_key)
+                return False
+            logger.error("Error marking ticket %s as completed: %s", ticket_key, e)
+            return False
+
+    async def mark_closed(self, ticket_key: str) -> bool:
+        """Mark a ticket as closed by setting the closed_at timestamp.
+
+        Records the timestamp when a ticket transitions to a terminal closure
+        status (Closed, Done, Resolved). Uses attribute_not_exists condition
+        to prevent overwriting existing value.
+
+        This timestamp is used for the "Closed within 45 days" metric
+        (compare closed_at to created_at).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            True if closed_at was set, False if already set or record not found.
+        """
+        logger.info("Marking ticket as closed: %s", ticket_key)
+
+        try:
+            current_time = int(time.time())
+
+            await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="SET closed_at = :timestamp, updated_at = :updated_at",
+                condition_expression="attribute_not_exists(closed_at)",
+                expression_attribute_values={
+                    ":timestamp": {"N": str(current_time)},
+                    ":updated_at": {"N": str(current_time)},
+                },
+            )
+
+            logger.info("Successfully marked ticket %s as closed", ticket_key)
+            return True
+        except self.client.client.exceptions.ConditionalCheckFailedException:
+            logger.debug("Ticket %s already marked as closed", ticket_key)
+            return False
+        except Exception as e:
+            # Check if it's a conditional check failure (attribute already exists)
+            if "ConditionalCheckFailedException" in str(e):
+                logger.debug("Ticket %s already marked as closed", ticket_key)
+                return False
+            logger.error("Error marking ticket %s as closed: %s", ticket_key, e)
+            return False

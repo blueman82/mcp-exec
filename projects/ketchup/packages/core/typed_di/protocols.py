@@ -46,8 +46,10 @@ from .service_registrations.protocols.csopm_protocols import (  # CSOPM notifier
     CSOPMSlackNotifierProtocol,
     CSOPMStateTrackerProtocol,
     CSOPMTicket,
+    CSOPMTicketStatusPollerProtocol,
     FollowupRecord,
     NotificationRecord,
+    StatusCheckResult,
 )
 from .slack_protocols import (  # Slack-specific protocols
     CommandHandlerProtocol,
@@ -110,6 +112,7 @@ __all__ = [
     "CSOPMTicket",
     "NotificationRecord",
     "FollowupRecord",
+    "StatusCheckResult",
     # CSOPM notifier protocols (service protocols)
     "CSOPMJIRAPollerProtocol",
     "CSOPMStateTrackerProtocol",
@@ -118,4 +121,5 @@ __all__ = [
     "CSOPMMetricsProtocol",
     "CSOPMButtonActionHandlerProtocol",
     "CSOPMHandlerProtocol",
+    "CSOPMTicketStatusPollerProtocol",
 ]

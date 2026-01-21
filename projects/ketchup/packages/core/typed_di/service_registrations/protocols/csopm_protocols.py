@@ -16,7 +16,7 @@ when new tickets are assigned to them. The system tracks notification state to
 prevent duplicate notifications and provides RCA/closure reminders.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional, Protocol, runtime_checkable
 
@@ -25,6 +25,7 @@ __all__ = [
     "CSOPMTicket",
     "NotificationRecord",
     "FollowupRecord",
+    "StatusCheckResult",
     # Protocols
     "CSOPMJIRAPollerProtocol",
     "CSOPMStateTrackerProtocol",
@@ -33,6 +34,7 @@ __all__ = [
     "CSOPMMetricsProtocol",
     "CSOPMButtonActionHandlerProtocol",
     "CSOPMHandlerProtocol",
+    "CSOPMTicketStatusPollerProtocol",
     "UserPATOperationsProtocol",
 ]
 
@@ -84,6 +86,9 @@ class NotificationRecord:
         closure_reminder_sent: Whether the closure reminder has been sent
         created_at: Unix timestamp of when the notification record was created
         updated_at: Unix timestamp of last update (used as acknowledged_at when status is "ack")
+        followup_ticket_keys: List of JIRA ticket keys created as follow-ups from this notification
+        completed_at: Unix timestamp of when the ticket reached "Complete" status (for metrics)
+        closed_at: Unix timestamp of when the ticket reached "Closed/Done/Resolved" status (for metrics)
     """
 
     ticket_key: str
@@ -96,6 +101,9 @@ class NotificationRecord:
     closure_reminder_sent: bool
     created_at: Optional[int] = None
     updated_at: Optional[int] = None
+    followup_ticket_keys: List[str] = field(default_factory=list)
+    completed_at: Optional[int] = None
+    closed_at: Optional[int] = None
 
 
 @dataclass
@@ -118,6 +126,28 @@ class FollowupRecord:
     scheduled_at: datetime
     completed: bool
     completed_at: Optional[datetime] = None
+
+
+@dataclass
+class StatusCheckResult:
+    """Data class representing the result of a ticket status check.
+
+    Returned by CSOPMTicketStatusPoller.poll_ticket_statuses() to indicate
+    the current status and whether any transitions were recorded.
+
+    Attributes:
+        ticket_key: The JIRA ticket key that was checked
+        current_status: The current JIRA status (or None if fetch failed)
+        was_completed: Whether this check triggered a mark_completed() call
+        was_closed: Whether this check triggered a mark_closed() call
+        is_followup: Whether this ticket is a followup (not a main notification)
+    """
+
+    ticket_key: str
+    current_status: Optional[str]
+    was_completed: bool
+    was_closed: bool
+    is_followup: bool = False
 
 
 # =============================================================================
@@ -309,6 +339,56 @@ class CSOPMStateTrackerProtocol(Protocol):
 
         Returns:
             List of all NotificationRecords.
+        """
+        ...
+
+    async def add_followup_ticket(self, ticket_key: str, followup_key: str) -> bool:
+        """Add a follow-up ticket key to a notification record.
+
+        Atomically appends the follow-up ticket key to the followup_ticket_keys list
+        in DynamoDB. Uses list_append with if_not_exists to handle missing attribute.
+
+        Args:
+            ticket_key: The JIRA ticket key of the parent CSOPM notification
+            followup_key: The JIRA ticket key of the newly created follow-up ticket
+
+        Returns:
+            True if the follow-up was added successfully, False otherwise.
+        """
+        ...
+
+    async def mark_completed(self, ticket_key: str) -> bool:
+        """Mark a ticket as completed by setting the completed_at timestamp.
+
+        Records the timestamp when a ticket transitions to "Complete" status.
+        Uses attribute_not_exists condition to prevent overwriting existing value.
+
+        This timestamp is used for the "Completed within 7 days" metric
+        (compare completed_at to created_at).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            True if completed_at was set, False if already set or record not found.
+        """
+        ...
+
+    async def mark_closed(self, ticket_key: str) -> bool:
+        """Mark a ticket as closed by setting the closed_at timestamp.
+
+        Records the timestamp when a ticket transitions to a terminal closure
+        status (Closed, Done, Resolved). Uses attribute_not_exists condition
+        to prevent overwriting existing value.
+
+        This timestamp is used for the "Closed within 45 days" metric
+        (compare closed_at to created_at).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            True if closed_at was set, False if already set or record not found.
         """
         ...
 
@@ -680,5 +760,54 @@ class UserPATOperationsProtocol(Protocol):
 
         Returns:
             True if user has a valid PAT, False otherwise.
+        """
+        ...
+
+
+@runtime_checkable
+class CSOPMTicketStatusPollerProtocol(Protocol):
+    """Protocol for polling JIRA ticket statuses to track completion/closure.
+
+    This service periodically checks the status of all tracked CSOPM tickets
+    and records timestamps when tickets reach terminal states (Complete, Closed,
+    Done, Resolved). This enables metrics tracking:
+    - "Completed within 7 days" (compare completed_at to created_at)
+    - "Closed within 45 days" (compare closed_at to created_at)
+
+    Terminal Status Mapping:
+    - "Complete" -> mark_completed() - Records completed_at timestamp
+    - "Closed", "Done", "Resolved" -> mark_closed() - Records closed_at timestamp
+
+    The service also tracks followup ticket statuses for visibility.
+    """
+
+    async def poll_ticket_statuses(self) -> dict:
+        """Poll JIRA for status updates on all tracked tickets.
+
+        Fetches all notification records, batch retrieves their current JIRA
+        statuses, and updates records when tickets reach terminal states.
+
+        For each notification record:
+        1. Check if completed_at/closed_at is already set (skip if so)
+        2. Fetch current JIRA status
+        3. If status is "Complete", call mark_completed()
+        4. If status is "Closed/Done/Resolved", call mark_closed()
+
+        Also checks followup_ticket_keys for each notification record.
+
+        Returns:
+            Dictionary mapping ticket keys to StatusCheckResult containing
+            the current status and whether transitions were recorded.
+        """
+        ...
+
+    async def get_ticket_status(self, ticket_key: str) -> Optional[str]:
+        """Get the current status of a single ticket.
+
+        Args:
+            ticket_key: The JIRA ticket key (e.g., "CSOPM-1234")
+
+        Returns:
+            The current status name if found, None otherwise.
         """
         ...

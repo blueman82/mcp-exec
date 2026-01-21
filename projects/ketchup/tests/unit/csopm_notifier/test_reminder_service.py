@@ -481,8 +481,8 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(call_args.kwargs["ticket_key"], ticket.key)
         self.assertEqual(call_args.kwargs["followup_type"], "closure_reminder")
 
-    async def test_check_closure_reminders_checks_linked_tickets(self):
-        """Test check_closure_reminders checks for linked tickets for 45+ day old tickets."""
+    async def test_check_closure_reminders_does_not_check_linked_tickets_option_b(self):
+        """Test check_closure_reminders does NOT check linked tickets (Option B behavior)."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
@@ -499,13 +499,15 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
                 "created": old_ticket.created_at.isoformat(),
             },
         }
-        self.mock_mcp_client.search_issues.return_value = {"issues": []}
 
         result = await self.service.check_closure_reminders()
 
-        self.mock_mcp_client.search_issues.assert_called_once()
-        call_args = self.mock_mcp_client.search_issues.call_args
-        self.assertIn("linkedIssues", call_args.kwargs["jql"])
+        # Option B: search_issues should NOT be called in check_closure_reminders
+        # The linked ticket check is now done in process_closure_reminder instead
+        self.mock_mcp_client.search_issues.assert_not_called()
+        # But should still return the ticket
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].ticket_key, "CSOPM-1001")
 
     async def test_check_closure_reminders_filters_by_45_day_age(self):
         """Test check_closure_reminders only returns tickets 45+ days old."""
@@ -544,8 +546,8 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].ticket_key, "CSOPM-1001")
 
-    async def test_check_closure_reminders_skips_with_open_linked(self):
-        """Test check_closure_reminders skips tickets with open linked tickets."""
+    async def test_check_closure_reminders_includes_with_open_linked_option_b(self):
+        """Test check_closure_reminders includes tickets with open linked tickets (Option B)."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
@@ -562,30 +564,59 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
                 "created": old_ticket.created_at.isoformat(),
             },
         }
-        # Return open linked tickets
-        self.mock_mcp_client.search_issues.return_value = {
-            "issues": [{"key": "LINKED-1", "fields": {"status": {"name": "In Progress"}}}]
-        }
+        # Note: Option B does NOT check for linked tickets in check_closure_reminders
 
         result = await self.service.check_closure_reminders()
 
-        self.assertEqual(len(result), 0)
+        # Option B: Should return the ticket regardless of linked status
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].ticket_key, "CSOPM-1001")
 
-    async def test_process_closure_reminder_defers_with_open_linked(self):
-        """Test closure reminder processing defers if linked tickets open."""
+    async def test_process_closure_reminder_sends_with_open_linked_option_b(self):
+        """Test closure reminder processing sends reminder with open linked info (Option B)."""
         ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+
+        # Mock state tracker to return record with no followups
+        record = NotificationRecord(
+            ticket_key=ticket.key,
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=[],
+        )
+        self.mock_state_tracker.get_notification_record.return_value = record
         self.mock_mcp_client.search_issues.return_value = {"issues": [{"key": "LINKED-1"}]}
 
         result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
 
+        # Option B: Should SEND the reminder even with open linked tickets
         self.assertIsNotNone(result)
-        self.assertFalse(result["sent"])
+        self.assertTrue(result["sent"])  # Option B always sends
         self.assertTrue(result["has_open_linked"])
-        self.assertEqual(result["new_ping_count"], 0)
+        self.assertEqual(result["new_ping_count"], 1)  # Ping count incremented
+        self.assertIn("open_followups", result)  # Should include followups field
 
     async def test_process_closure_reminder_first_ping(self):
         """Test processing first closure reminder ping."""
         ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+
+        # Mock state tracker to return record with no followups
+        record = NotificationRecord(
+            ticket_key=ticket.key,
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=[],
+        )
+        self.mock_state_tracker.get_notification_record.return_value = record
         self.mock_mcp_client.search_issues.return_value = {"issues": []}
 
         result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
@@ -595,10 +626,25 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result["escalated"])
         self.assertEqual(result["new_ping_count"], 1)
         self.assertFalse(result["has_open_linked"])
+        self.assertEqual(result["open_followups"], [])
 
     async def test_process_closure_reminder_escalate_at_three(self):
         """Test closure reminder escalates at 3 pings."""
         ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+
+        # Mock state tracker to return record with no followups
+        record = NotificationRecord(
+            ticket_key=ticket.key,
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=2,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=[],
+        )
+        self.mock_state_tracker.get_notification_record.return_value = record
         self.mock_mcp_client.search_issues.return_value = {"issues": []}
 
         result = await self.service.process_closure_reminder(ticket, closure_ping_count=2)
@@ -937,6 +983,337 @@ class TestJQLConstruction(unittest.TestCase):
 
         self.assertIn("linkedIssues('CSOPM-1234')", jql)
         self.assertIn("NOT IN ('Closed', 'Done', 'Resolved')", jql)
+
+
+class MockStatusPoller:
+    """Mock CSOPMTicketStatusPollerProtocol for testing."""
+
+    def __init__(self) -> None:
+        self.get_followup_statuses = AsyncMock()
+        self.poll_ticket_status = AsyncMock()
+        self.poll_all_active_tickets = AsyncMock()
+        self.check_followup_completion = AsyncMock()
+
+
+class TestGetOpenFollowupTickets(unittest.IsolatedAsyncioTestCase):
+    """Test _get_open_followup_tickets method."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from ketchup_csopm_notifier.services.reminder_service import (
+            CSOPMReminderService,
+        )
+
+        self.mock_state_tracker = MockStateTracker()
+        self.mock_mcp_client = MockMCPClient()
+        self.mock_status_poller = MockStatusPoller()
+        self.service = CSOPMReminderService(
+            state_tracker=self.mock_state_tracker,
+            mcp_client=self.mock_mcp_client,
+            status_poller=self.mock_status_poller,
+        )
+
+    async def test_returns_empty_list_when_no_followups(self):
+        """Test returns empty list when record has no followup_ticket_keys."""
+        record = NotificationRecord(
+            ticket_key="CSOPM-1234",
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=[],
+        )
+
+        result = await self.service._get_open_followup_tickets(record)
+
+        self.assertEqual(result, [])
+
+    async def test_returns_open_followups_via_status_poller(self):
+        """Test returns open followups using status poller data."""
+        from packages.core.typed_di.protocols import StatusCheckResult
+
+        record = NotificationRecord(
+            ticket_key="CSOPM-1234",
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=["CAMP-123", "CPGNTT-456"],
+        )
+
+        # Mock status poller to return mixed statuses
+        self.mock_status_poller.get_followup_statuses.return_value = {
+            "CAMP-123": StatusCheckResult(
+                ticket_key="CAMP-123",
+                current_status="In Progress",
+                was_completed=False,
+                was_closed=False,
+                is_followup=True,
+            ),
+            "CPGNTT-456": StatusCheckResult(
+                ticket_key="CPGNTT-456",
+                current_status="Closed",
+                was_completed=True,
+                was_closed=True,
+                is_followup=True,
+            ),
+        }
+
+        result = await self.service._get_open_followup_tickets(record)
+
+        # Should only return non-terminal status (not Closed)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["key"], "CAMP-123")
+        self.assertEqual(result[0]["status"], "In Progress")
+
+    async def test_falls_back_to_direct_query_on_poller_error(self):
+        """Test falls back to direct JIRA query when status poller fails."""
+        record = NotificationRecord(
+            ticket_key="CSOPM-1234",
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=["CAMP-123"],
+        )
+
+        # Make status poller fail
+        self.mock_status_poller.get_followup_statuses.side_effect = Exception("Poller error")
+
+        # Mock direct JIRA query
+        self.mock_mcp_client.get_issue.return_value = {
+            "key": "CAMP-123",
+            "fields": {"status": {"name": "Open"}},
+        }
+
+        result = await self.service._get_open_followup_tickets(record)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["key"], "CAMP-123")
+        self.assertEqual(result[0]["status"], "Open")
+
+    async def test_filters_terminal_statuses(self):
+        """Test filters out tickets with terminal statuses."""
+        from packages.core.typed_di.protocols import StatusCheckResult
+
+        record = NotificationRecord(
+            ticket_key="CSOPM-1234",
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=["CAMP-1", "CAMP-2", "CAMP-3", "CAMP-4"],
+        )
+
+        # Mock status poller with various terminal statuses
+        self.mock_status_poller.get_followup_statuses.return_value = {
+            "CAMP-1": StatusCheckResult(
+                ticket_key="CAMP-1",
+                current_status="Closed",
+                was_completed=False,
+                was_closed=True,
+                is_followup=True,
+            ),
+            "CAMP-2": StatusCheckResult(
+                ticket_key="CAMP-2",
+                current_status="Done",
+                was_completed=True,
+                was_closed=False,
+                is_followup=True,
+            ),
+            "CAMP-3": StatusCheckResult(
+                ticket_key="CAMP-3",
+                current_status="Resolved",
+                was_completed=True,
+                was_closed=False,
+                is_followup=True,
+            ),
+            "CAMP-4": StatusCheckResult(
+                ticket_key="CAMP-4",
+                current_status="In Progress",
+                was_completed=False,
+                was_closed=False,
+                is_followup=True,
+            ),
+        }
+
+        result = await self.service._get_open_followup_tickets(record)
+
+        # Should only return CAMP-4 which is not terminal (not Closed/Done/Resolved)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["key"], "CAMP-4")
+        self.assertEqual(result[0]["status"], "In Progress")
+
+
+class TestClosureReminderOptionB(unittest.IsolatedAsyncioTestCase):
+    """Test Option B closure reminder behavior (send reminder with open followups info)."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from ketchup_csopm_notifier.services.reminder_service import (
+            CSOPMReminderService,
+        )
+
+        self.mock_state_tracker = MockStateTracker()
+        self.mock_mcp_client = MockMCPClient()
+        self.mock_status_poller = MockStatusPoller()
+        self.service = CSOPMReminderService(
+            state_tracker=self.mock_state_tracker,
+            mcp_client=self.mock_mcp_client,
+            status_poller=self.mock_status_poller,
+        )
+
+    async def test_process_closure_reminder_always_sends_option_b(self):
+        """Test closure reminder is always sent even with open followups (Option B)."""
+        from packages.core.typed_di.protocols import StatusCheckResult
+
+        ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+
+        # Set up notification record with open followups
+        record = NotificationRecord(
+            ticket_key=ticket.key,
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=["CAMP-123"],
+        )
+        self.mock_state_tracker.get_notification_record.return_value = record
+
+        # Mock status poller with open followup
+        self.mock_status_poller.get_followup_statuses.return_value = {
+            "CAMP-123": StatusCheckResult(
+                ticket_key="CAMP-123",
+                current_status="In Progress",
+                was_completed=False,
+                was_closed=False,
+                is_followup=True,
+            ),
+        }
+
+        # Also has open linked tickets in JIRA
+        self.mock_mcp_client.search_issues.return_value = {"issues": [{"key": "LINKED-1"}]}
+
+        result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
+
+        # Option B: Should still send the reminder
+        self.assertIsNotNone(result)
+        self.assertTrue(result["sent"])
+        self.assertTrue(result["has_open_linked"])
+        self.assertEqual(len(result["open_followups"]), 1)
+        self.assertEqual(result["open_followups"][0]["key"], "CAMP-123")
+        self.assertEqual(result["open_followups"][0]["status"], "In Progress")
+
+    async def test_process_closure_reminder_includes_open_followups(self):
+        """Test closure reminder includes open followups in result."""
+        from packages.core.typed_di.protocols import StatusCheckResult
+
+        ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+
+        record = NotificationRecord(
+            ticket_key=ticket.key,
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=["CAMP-123", "CPGNTT-456"],
+        )
+        self.mock_state_tracker.get_notification_record.return_value = record
+
+        # Two open followups
+        self.mock_status_poller.get_followup_statuses.return_value = {
+            "CAMP-123": StatusCheckResult(
+                ticket_key="CAMP-123",
+                current_status="In Progress",
+                was_completed=False,
+                was_closed=False,
+                is_followup=True,
+            ),
+            "CPGNTT-456": StatusCheckResult(
+                ticket_key="CPGNTT-456",
+                current_status="Open",
+                was_completed=False,
+                was_closed=False,
+                is_followup=True,
+            ),
+        }
+        self.mock_mcp_client.search_issues.return_value = {"issues": []}
+
+        result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
+
+        self.assertEqual(len(result["open_followups"]), 2)
+
+    async def test_check_closure_reminders_includes_tickets_with_open_linked(self):
+        """Test check_closure_reminders includes tickets with open linked (Option B)."""
+        records = [
+            make_notification_record("CSOPM-1001", closure_reminder_sent=False),
+        ]
+        self.mock_state_tracker.get_all_active_notifications.return_value = records
+
+        # Mock ticket details with 50-day old ticket
+        old_ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+        self.mock_mcp_client.get_issue.return_value = {
+            "key": "CSOPM-1001",
+            "fields": {
+                "summary": "Test",
+                "status": {"name": "New"},
+                "assignee": {"name": "testuser"},
+                "created": old_ticket.created_at.isoformat(),
+            },
+        }
+
+        # Note: Option B does NOT check for linked tickets in check_closure_reminders
+        # So we don't need to mock search_issues here
+
+        result = await self.service.check_closure_reminders()
+
+        # Should return the ticket regardless of linked status
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].ticket_key, "CSOPM-1001")
+
+    async def test_process_closure_reminder_empty_followups_no_linked(self):
+        """Test closure reminder works with no followups and no linked tickets."""
+        ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
+
+        record = NotificationRecord(
+            ticket_key=ticket.key,
+            notification_status="sent",
+            rca_ping_count=0,
+            closure_ping_count=0,
+            assignee_slack_id="U12345678",
+            assignee_jira_username="testuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+            followup_ticket_keys=[],
+        )
+        self.mock_state_tracker.get_notification_record.return_value = record
+        self.mock_mcp_client.search_issues.return_value = {"issues": []}
+
+        result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
+
+        self.assertIsNotNone(result)
+        self.assertTrue(result["sent"])
+        self.assertFalse(result["has_open_linked"])
+        self.assertEqual(result["open_followups"], [])
+        self.assertEqual(result["new_ping_count"], 1)
 
 
 if __name__ == "__main__":

@@ -9,8 +9,8 @@ from unittest.mock import patch
 import pytest
 
 from packages.core.logging import setup_logger
-from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.integrations.async_mcp_client import AsyncMCPClient
+from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.secrets.manager import SecretsManager
 
 logger = setup_logger(__name__)

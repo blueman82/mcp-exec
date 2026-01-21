@@ -567,9 +567,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
                 )
                 return {}
         except Exception as exc:
-            logger.error(
-                "Error getting metadata for %s/%s: %s", project_key, issue_type_id, exc
-            )
+            logger.error("Error getting metadata for %s/%s: %s", project_key, issue_type_id, exc)
             return {}
 
     async def get_transition_fields(
@@ -623,13 +621,15 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
                     # Convert fields dict to list format matching get_issuetype_metadata
                     field_list = []
                     for field_id, field_data in fields.items():
-                        field_list.append({
-                            "fieldId": field_id,
-                            "name": field_data.get("name", field_id),
-                            "required": field_data.get("required", False),
-                            "allowedValues": field_data.get("allowedValues", []),
-                            "schema": field_data.get("schema", {}),
-                        })
+                        field_list.append(
+                            {
+                                "fieldId": field_id,
+                                "name": field_data.get("name", field_id),
+                                "required": field_data.get("required", False),
+                                "allowedValues": field_data.get("allowedValues", []),
+                                "schema": field_data.get("schema", {}),
+                            }
+                        )
                     logger.info(
                         "Found %d fields for transition to '%s' on %s",
                         len(field_list),

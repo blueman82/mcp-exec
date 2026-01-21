@@ -154,19 +154,19 @@ def _create_monthly_params(
     # Calculate date range
     start, end = get_month_start_end(year, month)
 
-    # Validate
+    # Check if ongoing BEFORE validation (ongoing periods have future end dates)
+    is_partial = is_ongoing_period(start, end)
+    if is_partial:
+        # Adjust end to current time for ongoing periods
+        end = datetime.now(timezone.utc)
+
+    # Validate (now with adjusted end date for ongoing periods)
     is_valid, error_msg = validate_time_period(year, end)
     if not is_valid:
         raise ValidationError(
             message=f"Invalid time period: {month}/{year}",
             user_message=error_msg,
         )
-
-    # Check if ongoing
-    is_partial = is_ongoing_period(start, end)
-    if is_partial:
-        # Adjust end to current time
-        end = datetime.now(timezone.utc)
 
     return MetricsCommandParams(
         user_id="",  # Will be set by caller
@@ -194,19 +194,19 @@ def _create_quarterly_params(
     # Calculate date range
     start, end = get_quarter_start_end(year, quarter)
 
-    # Validate
+    # Check if ongoing BEFORE validation (ongoing periods have future end dates)
+    is_partial = is_ongoing_period(start, end)
+    if is_partial:
+        # Adjust end to current time for ongoing periods
+        end = datetime.now(timezone.utc)
+
+    # Validate (now with adjusted end date for ongoing periods)
     is_valid, error_msg = validate_time_period(year, end)
     if not is_valid:
         raise ValidationError(
             message=f"Invalid time period: Q{quarter} {year}",
             user_message=error_msg,
         )
-
-    # Check if ongoing
-    is_partial = is_ongoing_period(start, end)
-    if is_partial:
-        # Adjust end to current time
-        end = datetime.now(timezone.utc)
 
     return MetricsCommandParams(
         user_id="",  # Will be set by caller

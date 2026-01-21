@@ -1,49 +1,237 @@
 #!/usr/bin/env python3
 """
-Integration tests for scheduler migrations to BaseScheduler.
+Integration tests for the unified scheduler architecture.
 
 Tests verify:
-1. All scheduler classes can be imported and instantiated
-2. Health file paths are correct for backward compatibility
-3. Intervals/schedules are correct
-4. All schedulers inherit from BaseScheduler properly
+1. TaskConfig classes can be created and validated
+2. Task handler functions can be imported
+3. UnifiedSchedulerEngine can be instantiated
+4. TaskRegistry properly manages tasks
+5. Health monitoring functionality
 
-NOTE: MetadataUpdaterScheduler and MaintenanceFetcherScheduler classes were
-refactored and no longer exist in their original form. These tests are temporarily
-disabled until they can be rewritten for the new unified scheduler architecture.
+Note: Legacy BaseScheduler classes (StatusUpdaterScheduler, PatRotationScheduler)
+were removed as dead code - production uses TaskRegistry + TaskConfig pattern.
 """
 
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
-# NOTE: MaintenanceFetcherScheduler and MetadataUpdaterScheduler no longer exist.
-# The scheduler architecture was refactored to use the unified scheduler engine.
-# These imports have been commented out to prevent test collection errors.
-# from ketchup_unified_scheduler.services.maintenance.fetcher import MaintenanceFetcherScheduler
-# from ketchup_unified_scheduler.services.metadata.updater import MetadataUpdaterScheduler
-from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
+# Import core unified scheduler components
+from ketchup_unified_scheduler.engine import UnifiedSchedulerEngine
+from ketchup_unified_scheduler.health_monitor import PerTaskHealthMonitor
+from ketchup_unified_scheduler.task_config import TaskConfig
+from ketchup_unified_scheduler.task_registry import TaskRegistry
 
-# Import all migrated schedulers
-from ketchup_unified_scheduler.services.status.processor import StatusUpdaterScheduler
+# Import task configs and handlers
+from ketchup_unified_scheduler.tasks.maintenance_fetch_task import (
+    get_maintenance_fetch_task_config,
+    maintenance_fetch_task,
+)
+from ketchup_unified_scheduler.tasks.metadata_update_task import (
+    get_metadata_update_task_config,
+    metadata_update_task,
+)
 
-# Import BaseScheduler
+# Import BaseScheduler for reference
 from packages.core.schedulers import BaseScheduler
 
-# Mark all tests in this module as not requiring AWS and skip due to missing classes
-pytestmark = [
-    pytest.mark.no_aws_required,
-    pytest.mark.skip(
-        reason="MetadataUpdaterScheduler and MaintenanceFetcherScheduler classes were refactored. "
-        "Tests need rewriting for unified scheduler architecture."
-    ),
-]
+pytestmark = pytest.mark.no_aws_required
 
 
-@pytest.mark.no_aws_required
-class TestSchedulerImports:
-    """Test that all scheduler classes can be imported."""
+class TestTaskConfigValidation:
+    """Test TaskConfig dataclass validation and properties."""
+
+    def test_interval_based_task_config(self):
+        """Test creating an interval-based task config."""
+        config = TaskConfig(
+            name="test_task",
+            handler=AsyncMock(),
+            interval_minutes=15,
+        )
+        assert config.name == "test_task"
+        assert config.interval_minutes == 15
+        assert config.is_interval_based is True
+        assert config.is_time_based is False
+
+    def test_time_based_task_config(self):
+        """Test creating a time-based task config."""
+        config = TaskConfig(
+            name="test_task",
+            handler=AsyncMock(),
+            schedule_time="01:30",
+        )
+        assert config.name == "test_task"
+        assert config.schedule_time == "01:30"
+        assert config.is_interval_based is False
+        assert config.is_time_based is True
+
+    def test_task_config_requires_schedule(self):
+        """Test that TaskConfig requires either interval or time."""
+        with pytest.raises(ValueError, match="must specify either"):
+            TaskConfig(name="test", handler=AsyncMock())
+
+    def test_task_config_rejects_both_schedules(self):
+        """Test that TaskConfig rejects both interval and time."""
+        with pytest.raises(ValueError, match="cannot have both"):
+            TaskConfig(
+                name="test",
+                handler=AsyncMock(),
+                interval_minutes=15,
+                schedule_time="01:30",
+            )
+
+    def test_task_config_validates_time_format(self):
+        """Test that TaskConfig validates HH:MM format."""
+        with pytest.raises(ValueError, match="HH:MM format"):
+            TaskConfig(name="test", handler=AsyncMock(), schedule_time="invalid")
+
+    def test_task_config_validates_positive_interval(self):
+        """Test that TaskConfig requires positive interval."""
+        with pytest.raises(ValueError, match="must be positive"):
+            TaskConfig(name="test", handler=AsyncMock(), interval_minutes=0)
+
+
+class TestTaskHandlerImports:
+    """Test that task handler functions can be imported and have correct configs."""
+
+    def test_metadata_update_task_import(self):
+        """Test metadata_update_task can be imported."""
+        assert metadata_update_task is not None
+        assert callable(metadata_update_task)
+
+    def test_metadata_update_task_config(self):
+        """Test metadata update task config is correct."""
+        config = get_metadata_update_task_config()
+        assert config.name == "metadata_updater"
+        assert config.interval_minutes == 15
+        assert config.is_interval_based is True
+        assert config.feature_flag == "KETCHUP_METADATA_UPDATER_FEATURE"
+
+    def test_maintenance_fetch_task_import(self):
+        """Test maintenance_fetch_task can be imported."""
+        assert maintenance_fetch_task is not None
+        assert callable(maintenance_fetch_task)
+
+    def test_maintenance_fetch_task_config(self):
+        """Test maintenance fetch task config is correct."""
+        config = get_maintenance_fetch_task_config()
+        assert config.name == "maintenance_fetcher"
+        assert config.schedule_time == "01:30"
+        assert config.is_time_based is True
+        assert config.feature_flag == "KETCHUP_MAINTENANCE_FETCHER_ENABLED"
+
+
+class TestTaskRegistry:
+    """Test TaskRegistry functionality."""
+
+    def test_registry_creation(self):
+        """Test TaskRegistry can be created."""
+        registry = TaskRegistry()
+        assert registry is not None
+
+    def test_registry_register_task(self):
+        """Test registering a task with the registry."""
+        registry = TaskRegistry()
+        config = TaskConfig(
+            name="test_task",
+            handler=AsyncMock(),
+            interval_minutes=10,
+        )
+        registry.register(config)
+        assert "test_task" in registry
+
+    def test_registry_get_task(self):
+        """Test retrieving a task from the registry."""
+        registry = TaskRegistry()
+        config = TaskConfig(
+            name="test_task",
+            handler=AsyncMock(),
+            interval_minutes=10,
+        )
+        registry.register(config)
+        retrieved = registry.get_task("test_task")
+        assert retrieved is not None
+        assert retrieved.name == "test_task"
+
+    def test_registry_list_tasks(self):
+        """Test listing all tasks in registry."""
+        registry = TaskRegistry()
+        registry.register(TaskConfig(name="task1", handler=AsyncMock(), interval_minutes=10))
+        registry.register(TaskConfig(name="task2", handler=AsyncMock(), interval_minutes=20))
+        tasks = registry.list_tasks()
+        assert len(tasks) == 2
+        task_names = [t.name for t in tasks]
+        assert "task1" in task_names
+        assert "task2" in task_names
+
+
+class TestUnifiedSchedulerEngine:
+    """Test UnifiedSchedulerEngine functionality."""
+
+    def test_engine_instantiation(self):
+        """Test UnifiedSchedulerEngine can be instantiated."""
+        registry = TaskRegistry()
+        engine = UnifiedSchedulerEngine(registry)
+        assert engine is not None
+        assert engine.running is True
+
+    def test_engine_with_health_monitor(self):
+        """Test engine with custom health monitor."""
+        registry = TaskRegistry()
+        monitor = PerTaskHealthMonitor()
+        engine = UnifiedSchedulerEngine(
+            registry,
+            task_health_monitor=monitor,
+        )
+        assert engine is not None
+
+    def test_engine_health_file_path(self):
+        """Test engine respects custom health file path."""
+        registry = TaskRegistry()
+        engine = UnifiedSchedulerEngine(
+            registry,
+            health_file_path="/tmp/test_health",
+        )
+        assert engine.health_file == Path("/tmp/test_health")
+
+
+class TestPerTaskHealthMonitor:
+    """Test PerTaskHealthMonitor functionality."""
+
+    def test_health_monitor_creation(self):
+        """Test PerTaskHealthMonitor can be created."""
+        monitor = PerTaskHealthMonitor()
+        assert monitor is not None
+
+    def test_health_monitor_update_task_status(self):
+        """Test updating task status."""
+        monitor = PerTaskHealthMonitor()
+        monitor.update_task_status("test_task", "success")
+        status = monitor.get_task_status("test_task")
+        assert status is not None
+        assert status.get("status") == "success"
+
+    def test_health_monitor_update_task_error(self):
+        """Test updating task with error status."""
+        monitor = PerTaskHealthMonitor()
+        monitor.update_task_status("test_task", "error")
+        status = monitor.get_task_status("test_task")
+        assert status is not None
+        assert status.get("status") == "error"
+
+    def test_health_monitor_update_last_run(self):
+        """Test updating last run timestamp."""
+        monitor = PerTaskHealthMonitor()
+        monitor.update_task_last_run("test_task")
+        last_run = monitor.get_last_run("test_task")
+        assert last_run is not None
+        assert isinstance(last_run, int)
+
+
+class TestBaseSchedulerExists:
+    """Test that BaseScheduler is available for subclassing."""
 
     def test_basescheduler_import(self):
         """Test BaseScheduler can be imported from packages.core.schedulers."""
@@ -52,426 +240,30 @@ class TestSchedulerImports:
         assert hasattr(BaseScheduler, "run_task")
         assert hasattr(BaseScheduler, "get_sleep_seconds")
 
-    def test_status_updater_scheduler_import(self):
-        """Test StatusUpdaterScheduler can be imported."""
-        assert StatusUpdaterScheduler is not None
-        assert issubclass(StatusUpdaterScheduler, BaseScheduler)
 
-    def test_metadata_updater_scheduler_import(self):
-        """Test MetadataUpdaterScheduler can be imported."""
-        assert MetadataUpdaterScheduler is not None
-        assert issubclass(MetadataUpdaterScheduler, BaseScheduler)
-
-    def test_maintenance_fetcher_scheduler_import(self):
-        """Test MaintenanceFetcherScheduler can be imported."""
-        assert MaintenanceFetcherScheduler is not None
-        assert issubclass(MaintenanceFetcherScheduler, BaseScheduler)
-
-    def test_pat_rotation_scheduler_import(self):
-        """Test PatRotationScheduler can be imported."""
-        assert PatRotationScheduler is not None
-        assert issubclass(PatRotationScheduler, BaseScheduler)
-
-
-@pytest.mark.no_aws_required
-class TestSchedulerInstantiation:
-    """Test that all schedulers can be instantiated."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_instantiation(self, mock_run):
-        """Test StatusUpdaterScheduler can be instantiated."""
-        scheduler = StatusUpdaterScheduler()
-        assert scheduler is not None
-        assert isinstance(scheduler, BaseScheduler)
-        assert scheduler.running is True
-
-    @patch(
-        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-        new_callable=AsyncMock,
-    )
-    def test_metadata_updater_instantiation(self, mock_run):
-        """Test MetadataUpdaterScheduler can be instantiated."""
-        scheduler = MetadataUpdaterScheduler()
-        assert scheduler is not None
-        assert isinstance(scheduler, BaseScheduler)
-        assert scheduler.running is True
-
-    @patch(
-        "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-        new_callable=AsyncMock,
-    )
-    def test_maintenance_fetcher_instantiation(self, mock_run):
-        """Test MaintenanceFetcherScheduler can be instantiated."""
-        scheduler = MaintenanceFetcherScheduler()
-        assert scheduler is not None
-        assert isinstance(scheduler, BaseScheduler)
-        assert scheduler.running is True
-
-    def test_pat_rotation_instantiation(self):
-        """Test PatRotationScheduler can be instantiated."""
-        scheduler = PatRotationScheduler()
-        assert scheduler is not None
-        assert isinstance(scheduler, BaseScheduler)
-        assert scheduler.running is True
-
-
-@pytest.mark.no_aws_required
-class TestHealthFilePaths:
-    """Test health file paths for backward compatibility."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_health_file_path(self, mock_run):
-        """Test StatusUpdaterScheduler uses correct health file path."""
-        scheduler = StatusUpdaterScheduler()
-        # Health file: /tmp/scheduler_health
-        assert scheduler.health_file == Path("/tmp/scheduler_health")
-        # Last run file: /tmp/last_run (backward compatible override)
-        assert scheduler.last_run_file == Path("/tmp/last_run")
-
-    @patch(
-        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-        new_callable=AsyncMock,
-    )
-    def test_metadata_updater_health_file_path(self, mock_run):
-        """Test MetadataUpdaterScheduler uses correct health file path."""
-        scheduler = MetadataUpdaterScheduler()
-        # Health file: /tmp/metadata_scheduler_health
-        assert scheduler.health_file == Path("/tmp/metadata_scheduler_health")
-        # Last run file: /tmp/metadata_scheduler_last_run
-        assert scheduler.last_run_file == Path("/tmp/metadata_scheduler_last_run")
-
-    @patch(
-        "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-        new_callable=AsyncMock,
-    )
-    def test_maintenance_fetcher_health_file_path(self, mock_run):
-        """Test MaintenanceFetcherScheduler uses correct health file path."""
-        scheduler = MaintenanceFetcherScheduler()
-        # Health file: /app/health/maintenance_fetcher_health
-        assert scheduler.health_file == Path("/app/health/maintenance_fetcher_health")
-        # Last run file: /app/health/maintenance_fetcher_last_run
-        assert scheduler.last_run_file == Path("/app/health/maintenance_fetcher_last_run")
-
-    def test_pat_rotation_health_file_path(self):
-        """Test PatRotationScheduler uses correct health file path."""
-        scheduler = PatRotationScheduler()
-        # Health file: /tmp/pat_rotator_health
-        assert scheduler.health_file == Path("/tmp/pat_rotator_health")
-        # Last run file: /tmp/pat_rotator_last_run
-        assert scheduler.last_run_file == Path("/tmp/pat_rotator_last_run")
-
-
-@pytest.mark.no_aws_required
-class TestSchedulerIntervals:
-    """Test scheduler intervals are correct."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_interval(self, mock_run):
-        """Test StatusUpdaterScheduler uses 55-minute interval."""
-        scheduler = StatusUpdaterScheduler()
-        assert scheduler.interval_minutes == 55
-        assert scheduler.get_sleep_seconds() == 55 * 60  # 3300 seconds
-
-    @patch(
-        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-        new_callable=AsyncMock,
-    )
-    def test_metadata_updater_interval(self, mock_run):
-        """Test MetadataUpdaterScheduler uses 15-minute interval."""
-        scheduler = MetadataUpdaterScheduler()
-        assert scheduler.interval_minutes == 15
-        assert scheduler.get_sleep_seconds() == 15 * 60  # 900 seconds
-
-    @patch(
-        "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-        new_callable=AsyncMock,
-    )
-    def test_maintenance_fetcher_time_based_scheduling(self, mock_run):
-        """Test MaintenanceFetcherScheduler uses time-based scheduling."""
-        scheduler = MaintenanceFetcherScheduler()
-        # MaintenanceFetcherScheduler overrides get_sleep_seconds for daily scheduling at 1:30 AM UTC
-        sleep_seconds = scheduler.get_sleep_seconds()
-        # Should return a positive number of seconds until next 1:30 AM UTC
-        assert sleep_seconds > 0
-        # Should be at most ~24 hours (86400 seconds)
-        assert sleep_seconds <= 86400
-
-    def test_pat_rotation_interval(self):
-        """Test PatRotationScheduler uses 24-hour interval."""
-        scheduler = PatRotationScheduler()
-        assert scheduler.interval_minutes == 1440  # 24 hours
-        assert scheduler.get_sleep_seconds() == 1440 * 60  # 86400 seconds
-
-
-@pytest.mark.no_aws_required
-class TestRunOnStartConfiguration:
-    """Test run_on_start configuration for each scheduler."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_run_on_start(self, mock_run):
-        """Test StatusUpdaterScheduler runs on start."""
-        scheduler = StatusUpdaterScheduler()
-        assert scheduler.run_on_start is True
-
-    @patch(
-        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-        new_callable=AsyncMock,
-    )
-    def test_metadata_updater_run_on_start(self, mock_run):
-        """Test MetadataUpdaterScheduler runs on start."""
-        scheduler = MetadataUpdaterScheduler()
-        assert scheduler.run_on_start is True
-
-    @patch(
-        "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-        new_callable=AsyncMock,
-    )
-    def test_maintenance_fetcher_run_on_start(self, mock_run):
-        """Test MaintenanceFetcherScheduler does not run on start by default."""
-        scheduler = MaintenanceFetcherScheduler()
-        # Default is False, controlled by env var KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START
-        assert scheduler.run_on_start is False
-
-    @patch.dict("os.environ", {"KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START": "true"})
-    @patch(
-        "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-        new_callable=AsyncMock,
-    )
-    def test_maintenance_fetcher_run_on_start_env_override(self, mock_run):
-        """Test MaintenanceFetcherScheduler respects env var for run_on_start."""
-        scheduler = MaintenanceFetcherScheduler()
-        assert scheduler.run_on_start is True
-
-    def test_pat_rotation_run_on_start(self):
-        """Test PatRotationScheduler uses default run_on_start (True)."""
-        scheduler = PatRotationScheduler()
-        assert scheduler.run_on_start is True
-
-
-@pytest.mark.no_aws_required
-class TestSchedulerNames:
-    """Test scheduler names are set correctly."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_name(self, mock_run):
-        """Test StatusUpdaterScheduler has correct name."""
-        scheduler = StatusUpdaterScheduler()
-        assert scheduler.scheduler_name == "Status Updater Scheduler"
-
-    @patch(
-        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-        new_callable=AsyncMock,
-    )
-    def test_metadata_updater_name(self, mock_run):
-        """Test MetadataUpdaterScheduler has correct name."""
-        scheduler = MetadataUpdaterScheduler()
-        assert scheduler.scheduler_name == "Metadata Updater Scheduler"
-
-    @patch(
-        "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-        new_callable=AsyncMock,
-    )
-    def test_maintenance_fetcher_name(self, mock_run):
-        """Test MaintenanceFetcherScheduler has correct name."""
-        scheduler = MaintenanceFetcherScheduler()
-        assert scheduler.scheduler_name == "Maintenance Fetcher Scheduler"
-
-    def test_pat_rotation_name(self):
-        """Test PatRotationScheduler uses default class name."""
-        scheduler = PatRotationScheduler()
-        # Uses default (class name) since no scheduler_name provided
-        assert scheduler.scheduler_name == "PatRotationScheduler"
-
-
-@pytest.mark.no_aws_required
-class TestSignalHandling:
-    """Test signal handling for graceful shutdown."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_signal_handling(self, mock_run):
-        """Test StatusUpdaterScheduler responds to signals."""
-        scheduler = StatusUpdaterScheduler()
-        assert scheduler.running is True
-        scheduler._signal_handler(15, None)  # SIGTERM
-        assert scheduler.running is False
-
-    @patch(
-        "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-        new_callable=AsyncMock,
-    )
-    def test_metadata_updater_signal_handling(self, mock_run):
-        """Test MetadataUpdaterScheduler responds to signals."""
-        scheduler = MetadataUpdaterScheduler()
-        assert scheduler.running is True
-        scheduler._signal_handler(2, None)  # SIGINT
-        assert scheduler.running is False
-
-
-@pytest.mark.no_aws_required
-class TestHealthFileUpdates:
-    """Test health file update functionality."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_health_update(self, mock_run, tmp_path):
-        """Test StatusUpdaterScheduler can update health file."""
-        scheduler = StatusUpdaterScheduler()
-        # Override health file to tmp_path for testing
-        scheduler.health_file = tmp_path / "test_health"
-        scheduler._update_health_status("idle")
-
-        assert scheduler.health_file.exists()
-        content = scheduler.health_file.read_text()
-        assert ":idle" in content
-
-    def test_pat_rotation_health_update(self, tmp_path):
-        """Test PatRotationScheduler can update health file."""
-        scheduler = PatRotationScheduler()
-        # Override health file to tmp_path for testing
-        scheduler.health_file = tmp_path / "test_health"
-        scheduler._update_health_status("running")
-
-        assert scheduler.health_file.exists()
-        content = scheduler.health_file.read_text()
-        assert ":running" in content
-
-
-@pytest.mark.no_aws_required
-class TestLastRunTracking:
-    """Test last run file tracking."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    def test_status_updater_last_run_update(self, mock_run, tmp_path):
-        """Test StatusUpdaterScheduler can update last run file."""
-        scheduler = StatusUpdaterScheduler()
-        # Override last run file to tmp_path for testing
-        scheduler.last_run_file = tmp_path / "test_last_run"
-        scheduler._update_last_run()
-
-        assert scheduler.last_run_file.exists()
-        content = scheduler.last_run_file.read_text()
-        # Should be a unix timestamp
-        assert content.isdigit()
-
-
-@pytest.mark.no_aws_required
-@pytest.mark.asyncio
-class TestAsyncExecution:
-    """Test async execution of scheduler tasks."""
-
-    @patch(
-        "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-        new_callable=AsyncMock,
-    )
-    async def test_status_updater_task_execution(self, mock_run, tmp_path):
-        """Test StatusUpdaterScheduler can execute task."""
-        scheduler = StatusUpdaterScheduler()
-        scheduler.health_file = tmp_path / "health"
-        scheduler.last_run_file = tmp_path / "last_run"
-
-        await scheduler._execute_task_with_tracking()
-
-        mock_run.assert_called_once()
-        assert scheduler.health_file.exists()
-        assert scheduler.last_run_file.exists()
-
-    async def test_pat_rotation_task_execution(self, tmp_path):
-        """Test PatRotationScheduler can execute task."""
-        scheduler = PatRotationScheduler()
-        scheduler.health_file = tmp_path / "health"
-        scheduler.last_run_file = tmp_path / "last_run"
-
-        await scheduler._execute_task_with_tracking()
-
-        assert scheduler.health_file.exists()
-        assert scheduler.last_run_file.exists()
-        assert ":idle" in scheduler.health_file.read_text()
-
-
-@pytest.mark.no_aws_required
-class TestAllSchedulersInheritFromBaseScheduler:
-    """Verify all migrated schedulers properly inherit from BaseScheduler."""
-
-    def test_all_schedulers_have_required_methods(self):
-        """Test all schedulers have methods from BaseScheduler."""
-        required_methods = [
-            "start",
-            "run_task",
-            "get_sleep_seconds",
-            "_signal_handler",
-            "_update_health_status",
-            "_update_last_run",
-            "_execute_task_with_tracking",
-        ]
-
-        scheduler_classes = [
-            StatusUpdaterScheduler,
-            MetadataUpdaterScheduler,
-            MaintenanceFetcherScheduler,
-            PatRotationScheduler,
-        ]
-
-        for cls in scheduler_classes:
-            for method in required_methods:
-                assert hasattr(cls, method), f"{cls.__name__} missing method {method}"
-
-    def test_all_schedulers_have_required_attributes(self):
-        """Test all scheduler instances have required attributes."""
-        required_attrs = [
-            "running",
-            "health_file",
-            "last_run_file",
-            "interval_minutes",
-            "run_on_start",
-            "scheduler_name",
-            "logger",
-        ]
-
-        # Create instances with mocked dependencies
-        with patch(
-            "ketchup_unified_scheduler.services.status.processor.run_auto_status",
-            new_callable=AsyncMock,
-        ):
-            with patch(
-                "ketchup_unified_scheduler.services.metadata.updater.run_metadata_update",
-                new_callable=AsyncMock,
-            ):
-                with patch(
-                    "ketchup_unified_scheduler.services.maintenance.fetcher.fetch_and_store_maintenance_data",
-                    new_callable=AsyncMock,
-                ):
-                    schedulers = [
-                        StatusUpdaterScheduler(),
-                        MetadataUpdaterScheduler(),
-                        MaintenanceFetcherScheduler(),
-                        PatRotationScheduler(),
-                    ]
-
-                    for scheduler in schedulers:
-                        for attr in required_attrs:
-                            assert hasattr(
-                                scheduler, attr
-                            ), f"{scheduler.__class__.__name__} missing attr {attr}"
+class TestUnifiedSchedulerIntegration:
+    """Integration tests for the unified scheduler architecture."""
+
+    def test_full_registry_with_all_tasks(self):
+        """Test creating a registry with all production tasks."""
+        registry = TaskRegistry()
+
+        # Register metadata and maintenance tasks
+        registry.register(get_metadata_update_task_config())
+        registry.register(get_maintenance_fetch_task_config())
+
+        # Use list_tasks() to get all registered tasks
+        tasks = registry.list_tasks()
+        task_names = [t.name for t in tasks]
+        assert "metadata_updater" in task_names
+        assert "maintenance_fetcher" in task_names
+
+    def test_engine_with_full_registry(self):
+        """Test engine with full task registry."""
+        registry = TaskRegistry()
+        registry.register(get_metadata_update_task_config())
+        registry.register(get_maintenance_fetch_task_config())
+
+        engine = UnifiedSchedulerEngine(registry)
+        assert engine is not None
+        assert engine.running is True

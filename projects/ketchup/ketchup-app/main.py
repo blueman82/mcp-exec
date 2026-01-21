@@ -200,6 +200,28 @@ async def process_slack_request(body: bytes, headers: dict, path: str):
         logger.error(f"Error processing request: {e}", exc_info=True)
 
 
+async def process_slack_request_sync(body: bytes, headers: dict, path: str):
+    """Process Slack request synchronously and return result for modal responses."""
+    try:
+        lambda_event = create_lambda_event(body, headers, path)
+        result = await process_request(lambda_event, container)
+
+        # Check if body contains modal response (errors or update)
+        if result.get("statusCode") == 200 and result.get("body"):
+            try:
+                body_content = json.loads(result["body"])
+                if isinstance(body_content, dict) and body_content.get("response_action"):
+                    logger.info("Returning modal response: %s", body_content.get("response_action"))
+                    return body_content
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        return None
+    except Exception as e:
+        logger.error(f"Error processing sync request: {e}", exc_info=True)
+        return None
+
+
 @app.post("/slack/events")
 async def handle_slack_event(request: Request, background_tasks: BackgroundTasks):
     """Handle Slack Events API requests"""
@@ -274,7 +296,30 @@ async def handle_slack_interaction(request: Request, background_tasks: Backgroun
         logger.warning("Invalid Slack signature for interactions endpoint")
         raise HTTPException(status_code=403, detail="Invalid signature")
 
-    # Process asynchronously in background
+    # Parse payload to check if it's a view_submission that needs synchronous response
+    try:
+        from urllib.parse import parse_qs
+
+        parsed = parse_qs(body.decode("utf-8"))
+        payload_str = parsed.get("payload", ["{}"])[0]
+        payload = json.loads(payload_str)
+        payload_type = payload.get("type")
+
+        # view_submission requires synchronous response for errors/update
+        if payload_type == "view_submission":
+            logger.info("Processing view_submission synchronously for modal response")
+            result = await process_slack_request_sync(
+                body, dict(request.headers), "/slack/interactions"
+            )
+            if isinstance(result, dict):
+                # Return modal response (errors or update)
+                return JSONResponse(content=result)
+            # Otherwise return empty 200
+            return Response(status_code=200)
+    except Exception as e:
+        logger.warning("Failed to parse interaction payload for sync check: %s", e)
+
+    # Process other interactions asynchronously in background
     headers = dict(request.headers)
     background_tasks.add_task(process_slack_request, body, headers, "/slack/interactions")
 

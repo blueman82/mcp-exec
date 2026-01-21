@@ -23,8 +23,9 @@ Refactored to import shared components from packages/slack/csopm/:
 This eliminates ~460 lines of duplicated button handling code.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
+from packages.core.config.csopm_config import is_pilot_user
 from packages.core.logging import setup_logger
 from packages.core.typed_di.protocols import (
     CSOPMMetricsProtocol,
@@ -126,19 +127,13 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                     jira_username,
                     slack_id,
                 )
-                if self._metrics:
-                    await self._metrics.increment_counter("csopm.user.resolution.success")
             else:
                 logger.warning("Could not resolve Slack ID for %s", jira_username)
-                if self._metrics:
-                    await self._metrics.increment_counter("csopm.user.resolution.failed")
 
             return slack_id
 
         except Exception as e:
             logger.error("Error resolving Slack ID for %s: %s", jira_username, e)
-            if self._metrics:
-                await self._metrics.increment_counter("csopm.user.resolution.failed")
             return None
 
     async def send_assignment_dm(self, ticket: CSOPMTicket, slack_user_id: str) -> bool:
@@ -154,6 +149,15 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
         Returns:
             True if DM was sent successfully, False otherwise.
         """
+        # Check if user is in pilot program
+        if not is_pilot_user(slack_user_id):
+            logger.info(
+                "Skipping assignment DM for %s - user %s not in pilot program",
+                ticket.key,
+                slack_user_id,
+            )
+            return True  # Return True to not trigger failure handling
+
         logger.info(
             "Sending assignment DM for %s to user %s",
             ticket.key,
@@ -186,11 +190,6 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                     ticket.key,
                     slack_user_id,
                 )
-
-                # Increment notifications sent metric
-                if self._metrics:
-                    await self._metrics.increment_counter("csopm.notifications.sent")
-
                 return True
             else:
                 error = result.get("error", "Unknown error") if result else "No response"
@@ -199,21 +198,18 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                     ticket.key,
                     error,
                 )
-
-                # Increment failed notifications metric
-                if self._metrics:
-                    await self._metrics.increment_counter("csopm.notifications.failed")
-
                 return False
 
         except Exception as e:
             logger.error("Error sending assignment DM for %s: %s", ticket.key, e)
-            if self._metrics:
-                await self._metrics.increment_counter("csopm.notifications.failed")
             return False
 
     async def send_reminder_dm(
-        self, ticket: CSOPMTicket, slack_user_id: str, reminder_type: str
+        self,
+        ticket: CSOPMTicket,
+        slack_user_id: str,
+        reminder_type: str,
+        open_followups: Optional[List[Dict[str, str]]] = None,
     ) -> bool:
         """Send a reminder DM for a ticket.
 
@@ -221,10 +217,22 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
             ticket: The CSOPMTicket requiring reminder.
             slack_user_id: The Slack user ID to send the DM to.
             reminder_type: Type of reminder ("rca", "closure", "ping").
+            open_followups: List of open followup tickets (for closure reminders).
+                Format: [{'key': 'CAMP-123', 'status': 'In Progress'}, ...]
 
         Returns:
             True if DM was sent successfully, False otherwise.
         """
+        # Check if user is in pilot program
+        if not is_pilot_user(slack_user_id):
+            logger.info(
+                "Skipping %s reminder DM for %s - user %s not in pilot program",
+                reminder_type,
+                ticket.key,
+                slack_user_id,
+            )
+            return True  # Return True to not trigger failure handling
+
         logger.info(
             "Sending %s reminder DM for %s to user %s",
             reminder_type,
@@ -256,11 +264,13 @@ class CSOPMSlackNotifier(CSOPMSlackNotifierProtocol):
                 )
                 fallback_type = "rca"
             elif reminder_type in ("closure", "ping"):
+                has_open = has_open_linked or bool(open_followups)
                 blocks = CSOPMNotificationBlocks.build_closure_reminder(
                     ticket=ticket,
                     days_old=days_old,
                     ping_count=ping_count,
-                    has_open_linked=has_open_linked,
+                    has_open_linked=has_open,
+                    open_followups=open_followups,
                 )
                 fallback_type = "closure"
             else:

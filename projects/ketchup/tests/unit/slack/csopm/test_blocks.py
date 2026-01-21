@@ -55,8 +55,8 @@ class TestCSOPMNotificationBlocksBuildAssignment(unittest.TestCase):
         self.assertIn("divider", block_types)
         self.assertIn("context", block_types)
 
-    def test_build_assignment_notification_has_five_buttons(self):
-        """Test assignment notification has 5 action buttons."""
+    def test_build_assignment_notification_has_six_buttons(self):
+        """Test assignment notification has 6 action buttons."""
         ticket = _make_ticket()
         blocks = CSOPMNotificationBlocks.build_assignment_notification(ticket)
 
@@ -64,11 +64,12 @@ class TestCSOPMNotificationBlocksBuildAssignment(unittest.TestCase):
         actions_block = next(b for b in blocks if b["type"] == "actions")
         elements = actions_block["elements"]
 
-        self.assertEqual(len(elements), 5)
+        self.assertEqual(len(elements), 6)
 
         # Verify button action IDs
         action_ids = [e["action_id"] for e in elements]
         self.assertIn("csopm_acknowledge", action_ids)
+        self.assertIn("csopm_reassign", action_ids)
         self.assertIn("csopm_create_followup", action_ids)
         self.assertIn("csopm_mark_complete", action_ids)
         self.assertIn("csopm_stop_reminders", action_ids)
@@ -206,13 +207,14 @@ class TestCSOPMNotificationBlocksBuildClosureReminder(unittest.TestCase):
         self.assertIn("csopm_snooze", action_ids)
 
     def test_build_closure_reminder_shows_linked_tickets_warning(self):
-        """Test closure reminder shows warning about linked tickets."""
+        """Test closure reminder shows warning about linked tickets when no followups specified."""
         ticket = _make_ticket()
         blocks = CSOPMNotificationBlocks.build_closure_reminder(
             ticket=ticket,
             days_old=50,
             ping_count=1,
             has_open_linked=True,
+            open_followups=None,  # No specific followups
         )
 
         context_blocks = [b for b in blocks if b.get("type") == "context"]
@@ -236,6 +238,131 @@ class TestCSOPMNotificationBlocksBuildClosureReminder(unittest.TestCase):
 
         has_escalation_warning = any("escalated" in text.lower() for text in context_texts)
         self.assertTrue(has_escalation_warning, "Escalation warning not found")
+
+
+class TestCSOPMNotificationBlocksOpenFollowups(unittest.TestCase):
+    """Test open followups section in closure reminders (Option B)."""
+
+    def test_build_closure_reminder_with_open_followups(self):
+        """Test closure reminder includes open followups section (Option B)."""
+        ticket = _make_ticket()
+        open_followups = [
+            {"key": "CAMP-123", "status": "In Progress"},
+            {"key": "CPGNTT-456", "status": "Open"},
+        ]
+
+        blocks = CSOPMNotificationBlocks.build_closure_reminder(
+            ticket=ticket,
+            days_old=50,
+            ping_count=1,
+            has_open_linked=True,
+            open_followups=open_followups,
+        )
+
+        # Find context blocks
+        context_blocks = [b for b in blocks if b.get("type") == "context"]
+        context_texts = [e.get("text", "") for b in context_blocks for e in b.get("elements", [])]
+
+        # Should have open followups section
+        has_followups = any("Open follow-up tickets" in text for text in context_texts)
+        self.assertTrue(has_followups, "Open follow-up tickets section not found")
+
+        # Should include both ticket keys
+        has_camp_123 = any("CAMP-123" in text for text in context_texts)
+        has_cpgntt_456 = any("CPGNTT-456" in text for text in context_texts)
+        self.assertTrue(has_camp_123, "CAMP-123 not found in followups")
+        self.assertTrue(has_cpgntt_456, "CPGNTT-456 not found in followups")
+
+        # Should include status
+        has_in_progress = any("In Progress" in text for text in context_texts)
+        has_open = any("(Open)" in text for text in context_texts)
+        self.assertTrue(has_in_progress, "Status 'In Progress' not found")
+        self.assertTrue(has_open, "Status 'Open' not found")
+
+    def test_build_closure_reminder_no_linked_warning_when_followups_provided(self):
+        """Test closure reminder doesn't show generic linked warning when followups are provided."""
+        ticket = _make_ticket()
+        open_followups = [{"key": "CAMP-123", "status": "In Progress"}]
+
+        blocks = CSOPMNotificationBlocks.build_closure_reminder(
+            ticket=ticket,
+            days_old=50,
+            ping_count=1,
+            has_open_linked=True,
+            open_followups=open_followups,
+        )
+
+        context_blocks = [b for b in blocks if b.get("type") == "context"]
+        context_texts = [e.get("text", "") for b in context_blocks for e in b.get("elements", [])]
+
+        # Should NOT have the generic "This ticket has open linked tickets" message
+        has_generic_linked_warning = any(
+            "This ticket has open linked tickets" in text for text in context_texts
+        )
+        self.assertFalse(
+            has_generic_linked_warning,
+            "Generic linked warning should not appear when followups are provided",
+        )
+
+        # Should have the specific followups section instead
+        has_followups_section = any("Open follow-up tickets" in text for text in context_texts)
+        self.assertTrue(has_followups_section, "Open follow-up tickets section should appear")
+
+    def test_build_closure_reminder_empty_followups(self):
+        """Test closure reminder with empty followups list."""
+        ticket = _make_ticket()
+
+        blocks = CSOPMNotificationBlocks.build_closure_reminder(
+            ticket=ticket,
+            days_old=50,
+            ping_count=1,
+            has_open_linked=False,
+            open_followups=[],
+        )
+
+        context_blocks = [b for b in blocks if b.get("type") == "context"]
+        context_texts = [e.get("text", "") for b in context_blocks for e in b.get("elements", [])]
+
+        # Should NOT have followups section with empty list
+        has_followups = any("Open follow-up tickets" in text for text in context_texts)
+        self.assertFalse(has_followups, "Should not have followups section for empty list")
+
+    def test_build_open_followups_section_limits_to_five(self):
+        """Test _build_open_followups_section limits to 5 tickets."""
+        open_followups = [{"key": f"CAMP-{i}", "status": "Open"} for i in range(1, 10)]
+
+        section = CSOPMNotificationBlocks._build_open_followups_section(open_followups)
+
+        self.assertIsNotNone(section)
+        text = section["elements"][0]["text"]
+
+        # Should show first 5 and "... and X more"
+        for i in range(1, 6):
+            self.assertIn(f"CAMP-{i}", text, f"CAMP-{i} should be in section")
+
+        # Should NOT show tickets 6-9
+        self.assertNotIn("CAMP-6", text)
+        self.assertNotIn("CAMP-9", text)
+
+        # Should have "more" indicator
+        self.assertIn("... and 4 more", text)
+
+    def test_build_open_followups_section_returns_none_for_empty(self):
+        """Test _build_open_followups_section returns None for empty list."""
+        section = CSOPMNotificationBlocks._build_open_followups_section([])
+        self.assertIsNone(section)
+
+    def test_build_open_followups_section_includes_jira_links(self):
+        """Test _build_open_followups_section includes JIRA links."""
+        open_followups = [{"key": "CAMP-12345", "status": "In Progress"}]
+
+        section = CSOPMNotificationBlocks._build_open_followups_section(open_followups)
+
+        self.assertIsNotNone(section)
+        text = section["elements"][0]["text"]
+
+        # Should include JIRA URL
+        self.assertIn("jira.corp.adobe.com/browse/CAMP-12345", text)
 
 
 class TestCSOPMNotificationBlocksBuildAcknowledgment(unittest.TestCase):
@@ -322,6 +449,7 @@ class TestCSOPMNotificationBlocksBuildModal(unittest.TestCase):
         self.assertEqual(modal["callback_id"], "csopm_create_followup_modal")
         # private_metadata is now JSON format with ticket_key
         import json
+
         metadata = json.loads(modal["private_metadata"])
         self.assertEqual(metadata["ticket_key"], ticket.key)
         self.assertIn("blocks", modal)

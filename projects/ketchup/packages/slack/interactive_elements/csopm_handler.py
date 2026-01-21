@@ -30,14 +30,18 @@ Modal Callback IDs:
 """
 
 import json
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di.protocols import CSOPMButtonActionHandlerProtocol
 from packages.core.typed_di.service_registrations.protocols.csopm_protocols import (
+    CSOPMStateTrackerProtocol,
     UserPATOperationsProtocol,
+)
+from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
+    SlackUserOpsProtocol,
 )
 from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.slack.messages.posting import SlackPostingHandler
@@ -51,6 +55,7 @@ CSOPM_ACTION_PREFIX = "csopm_"
 # Modal callback IDs
 CSOPM_CREATE_FOLLOWUP_MODAL_CALLBACK_ID = "csopm_create_followup_modal"
 CSOPM_STATUS_TRANSITION_MODAL_CALLBACK_ID = "csopm_status_transition_modal"
+CSOPM_REASSIGN_MODAL_CALLBACK_ID = "csopm_reassign_modal"
 
 # Action IDs for modal selections (triggers dynamic updates)
 CSOPM_PROJECT_SELECT_ACTION_ID = "csopm_project_select"
@@ -77,6 +82,8 @@ class CSOPMHandler:
         mcp_client: AsyncMCPClient,
         posting_handler: SlackPostingHandler,
         user_pat_ops: Optional[UserPATOperationsProtocol] = None,
+        state_tracker: Optional[CSOPMStateTrackerProtocol] = None,
+        user_ops: Optional[SlackUserOpsProtocol] = None,
     ) -> None:
         """
         Initialize the CSOPM handler.
@@ -86,11 +93,15 @@ class CSOPMHandler:
             mcp_client: AsyncMCPClient for JIRA MCP operations.
             posting_handler: SlackPostingHandler for modal opening and messages.
             user_pat_ops: Optional UserPATOperations for storing user PATs.
+            state_tracker: Optional CSOPMStateTracker for tracking follow-up tickets.
+            user_ops: Optional SlackUserOps for email-to-Slack ID resolution.
         """
         self._button_handler = button_handler
         self._mcp_client = mcp_client
         self._posting_handler = posting_handler
         self._user_pat_ops = user_pat_ops
+        self._state_tracker = state_tracker
+        self._user_ops = user_ops
         logger.info("CSOPMHandler initialized")
 
     async def handle_block_action(self, payload: Dict[str, Any]) -> bool:
@@ -153,6 +164,15 @@ class CSOPMHandler:
             if action_id == "csopm_save_pat" and payload.get("view"):
                 logger.info("Detected PAT save button click, storing PAT")
                 return await self._handle_save_pat_button(payload)
+
+            # Handle reassign locally (opens modal, no delegation needed)
+            if action_id == "csopm_reassign":
+                await self._open_reassign_modal(
+                    trigger_id=payload.get("trigger_id"),
+                    ticket_key=ticket_key,
+                    user_id=user_id,
+                )
+                return True
 
             # Delegate to notifier's handle_button_action
             success = await self._button_handler.handle_button_action(
@@ -217,6 +237,8 @@ class CSOPMHandler:
                 return await self._handle_create_followup_submission(payload)
             elif callback_id == CSOPM_STATUS_TRANSITION_MODAL_CALLBACK_ID:
                 return await self._handle_status_transition_submission(payload)
+            elif callback_id == CSOPM_REASSIGN_MODAL_CALLBACK_ID:
+                return await self._handle_reassign_submission(payload)
             else:
                 logger.warning("Unknown CSOPM modal callback_id: %s", callback_id)
                 return False
@@ -329,7 +351,9 @@ class CSOPMHandler:
             if self._user_pat_ops:
                 pat_expiry_minutes = await self._user_pat_ops.get_pat_expiry_minutes(user_id)
                 if pat_expiry_minutes:
-                    logger.info("User %s has stored PAT, expires in %d min", user_id, pat_expiry_minutes)
+                    logger.info(
+                        "User %s has stored PAT, expires in %d min", user_id, pat_expiry_minutes
+                    )
 
             # Build modal view - issue types are now fetched dynamically on project change
             modal = CSOPMNotificationBlocks.build_create_followup_modal(
@@ -341,7 +365,9 @@ class CSOPMHandler:
             )
 
             # Open modal via direct Slack API call (views.open)
-            slack_api_token = await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
             url = "https://slack.com/api/views.open"
             headers = {
                 "Authorization": f"Bearer {slack_api_token}",
@@ -443,7 +469,9 @@ class CSOPMHandler:
             if self._user_pat_ops:
                 pat_expiry_minutes = await self._user_pat_ops.get_pat_expiry_minutes(user_id)
                 if pat_expiry_minutes:
-                    logger.info("User %s has stored PAT, expires in %d min", user_id, pat_expiry_minutes)
+                    logger.info(
+                        "User %s has stored PAT, expires in %d min", user_id, pat_expiry_minutes
+                    )
 
             # Build modal
             from packages.slack.csopm import CSOPMNotificationBlocks
@@ -457,7 +485,9 @@ class CSOPMHandler:
             )
 
             # Open modal via Slack API
-            slack_api_token = await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
             url = "https://slack.com/api/views.open"
             headers = {
                 "Authorization": f"Bearer {slack_api_token}",
@@ -547,9 +577,7 @@ class CSOPMHandler:
             # This uses the working /project/{key}/statuses endpoint
             issue_types = []
             try:
-                issue_types = await self._mcp_client.get_project_issue_types(
-                    selected_project_key
-                )
+                issue_types = await self._mcp_client.get_project_issue_types(selected_project_key)
                 logger.info(
                     "Fetched %d issue types for project %s",
                     len(issue_types),
@@ -568,8 +596,8 @@ class CSOPMHandler:
 
             from packages.core.typed_di.protocols import CSOPMTicket
 
-            # Reconstruct minimal ticket for modal rebuild
-            csopm_ticket = CSOPMTicket(
+            # Reconstruct minimal ticket for modal rebuild (kept for future use)
+            _csopm_ticket = CSOPMTicket(
                 key=ticket_key,
                 summary=metadata.get("ticket_summary", ""),
                 assignee_username="",
@@ -581,14 +609,12 @@ class CSOPMHandler:
             # Note: We need projects list for the dropdown - we'll rebuild from current view state
             # For now, just update issue types block directly via views.update
 
-            # Get current state values to preserve user input
+            # Get current state values to preserve user input (kept for future use)
             state_values = view.get("state", {}).get("values", {})
-            summary_value = (
-                state_values.get("summary_block", {})
-                .get("summary_input", {})
-                .get("value", "")
+            _summary_value = (
+                state_values.get("summary_block", {}).get("summary_input", {}).get("value", "")
             )
-            description_value = (
+            _description_value = (
                 state_values.get("description_block", {})
                 .get("description_input", {})
                 .get("value", "")
@@ -611,7 +637,7 @@ class CSOPMHandler:
                 ]
 
             # Build updated blocks for the modal
-            jira_url = f"https://jira.corp.adobe.com/browse/{ticket_key}"
+            _jira_url = f"https://jira.corp.adobe.com/browse/{ticket_key}"  # kept for future use
             blocks = view.get("blocks", [])
 
             # Find and update the issue_type_block
@@ -637,7 +663,9 @@ class CSOPMHandler:
                     updated_blocks.append(block)
 
             # Update modal via views.update
-            slack_api_token = await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
             url = "https://slack.com/api/views.update"
             headers = {
                 "Authorization": f"Bearer {slack_api_token}",
@@ -745,6 +773,13 @@ class CSOPMHandler:
                 ticket_key,
             )
 
+            # Get user's PAT for the metadata request
+            user = payload.get("user", {})
+            user_id = user.get("id")
+            user_pat = None
+            if user_id and self._user_pat_ops:
+                user_pat = await self._user_pat_ops.get_pat(user_id)
+
             # Fetch field metadata for the selected issue type
             from packages.slack.csopm import CSOPMNotificationBlocks
 
@@ -752,7 +787,7 @@ class CSOPMHandler:
             dynamic_blocks = []
             try:
                 metadata_result = await self._mcp_client.get_issuetype_metadata(
-                    selected_project_key, selected_issue_type_id
+                    selected_project_key, selected_issue_type_id, user_pat=user_pat
                 )
                 field_metadata = metadata_result.get("values", [])
                 logger.info(
@@ -815,13 +850,15 @@ class CSOPMHandler:
             if not found_issue_type and dynamic_blocks:
                 # Find summary block index and insert before it
                 summary_idx = next(
-                    (i for i, b in enumerate(updated_blocks) if b.get("block_id") == "summary_block"),
-                    len(updated_blocks)
+                    (
+                        i
+                        for i, b in enumerate(updated_blocks)
+                        if b.get("block_id") == "summary_block"
+                    ),
+                    len(updated_blocks),
                 )
                 updated_blocks = (
-                    updated_blocks[:summary_idx]
-                    + dynamic_blocks
-                    + updated_blocks[summary_idx:]
+                    updated_blocks[:summary_idx] + dynamic_blocks + updated_blocks[summary_idx:]
                 )
 
             # Add context about dynamic fields if any were added
@@ -841,7 +878,9 @@ class CSOPMHandler:
                         break
 
             # Update modal via views.update
-            slack_api_token = await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
             url = "https://slack.com/api/views.update"
             headers = {
                 "Authorization": f"Bearer {slack_api_token}",
@@ -959,7 +998,9 @@ class CSOPMHandler:
                     updated_blocks.append(block)
 
             # Update modal via views.update
-            slack_api_token = await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
             url = "https://slack.com/api/views.update"
             headers = {
                 "Authorization": f"Bearer {slack_api_token}",
@@ -1080,7 +1121,9 @@ class CSOPMHandler:
                     updated_blocks.append(block)
 
             # Update modal via views.update
-            slack_api_token = await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
             url = "https://slack.com/api/views.update"
             headers = {
                 "Authorization": f"Bearer {slack_api_token}",
@@ -1122,42 +1165,36 @@ class CSOPMHandler:
     async def _handle_create_followup_submission(
         self,
         payload: Dict[str, Any],
-    ) -> bool:
+    ) -> Union[bool, Dict[str, Any]]:
         """
         Handle the create follow-up modal submission.
 
-        Creates a new JIRA issue and links it to the parent CSOPM ticket
-        using the 'Relates' link type.
-
-        Flow:
-        1. Extract form values from modal submission
-        2. Create new JIRA issue via MCP
-        3. Link new issue to parent CSOPM ticket
-        4. Send confirmation message to user
+        Validates input and kicks off background ticket creation to avoid
+        Slack's 3-second timeout. Returns immediate modal update.
 
         Args:
             payload: The Slack view_submission payload.
 
         Returns:
-            True if follow-up was created successfully, False otherwise.
+            Dict with response_action to update modal, or error dict.
         """
+        import asyncio
+
         try:
             view = payload.get("view", {})
             user = payload.get("user", {})
             user_id = user.get("id")
 
-            # Extract parent ticket key from private_metadata (now JSON format)
+            # Extract parent ticket key from private_metadata
             private_metadata_str = view.get("private_metadata", "")
             if not private_metadata_str:
                 logger.error("No private_metadata in view submission")
                 return False
 
-            # Parse private_metadata - handle both new JSON format and legacy string
             try:
                 metadata = json.loads(private_metadata_str)
                 parent_ticket_key = metadata.get("ticket_key", "")
             except json.JSONDecodeError:
-                # Legacy format - just the ticket key as plain string
                 parent_ticket_key = private_metadata_str
 
             if not parent_ticket_key:
@@ -1169,8 +1206,9 @@ class CSOPMHandler:
 
             # Get project key - check both action_ids (new and legacy)
             project_block = state_values.get("project_block", {})
-            project_input = project_block.get(CSOPM_PROJECT_SELECT_ACTION_ID) or project_block.get("project_input", {})
-            # Handle both static_select and plain_text_input
+            project_input = project_block.get(CSOPM_PROJECT_SELECT_ACTION_ID) or project_block.get(
+                "project_input", {}
+            )
             if project_input.get("type") == "static_select":
                 project_key = project_input.get("selected_option", {}).get("value", "CSOPM")
             else:
@@ -1180,22 +1218,27 @@ class CSOPMHandler:
             # For static_select, we need the NAME (text.text) not the ID (value)
             # because the MCP create_jira_issue schema expects issuetype.name
             issue_type_block = state_values.get("issue_type_block", {})
-            issue_type_input = (
-                issue_type_block.get(CSOPM_ISSUETYPE_SELECT_ACTION_ID)
-                or issue_type_block.get("issue_type_input", {})
-            )
-            if issue_type_input.get("type") == "static_select" or issue_type_input.get("selected_option"):
-                # Get the display name from text.text, fallback to value
+            issue_type_input = issue_type_block.get(
+                CSOPM_ISSUETYPE_SELECT_ACTION_ID
+            ) or issue_type_block.get("issue_type_input", {})
+            if issue_type_input.get("type") == "static_select" or issue_type_input.get(
+                "selected_option"
+            ):
                 selected = issue_type_input.get("selected_option", {})
                 issue_type = selected.get("text", {}).get("text", selected.get("value", "Task"))
             else:
                 issue_type = issue_type_input.get("value", "Task")
 
-            # Get PAT if provided
+            # Get issue type ID for metadata lookup
+            issue_type_id = None
+            if issue_type_input.get("selected_option"):
+                issue_type_id = issue_type_input.get("selected_option", {}).get("value")
+
+            # Get PAT
             pat_block = state_values.get("pat_block", {})
             user_pat = pat_block.get("pat_input", {}).get("value")
 
-            # Store PAT if provided for future use
+            # Store PAT if provided
             if user_pat and self._user_pat_ops:
                 try:
                     await self._user_pat_ops.store_pat(user_id, user_pat)
@@ -1203,7 +1246,6 @@ class CSOPMHandler:
                 except Exception as e:
                     logger.warning("Failed to store PAT: %s", e)
             elif not user_pat and self._user_pat_ops:
-                # Try to retrieve stored PAT
                 user_pat = await self._user_pat_ops.get_pat(user_id)
                 if user_pat:
                     logger.info("Using stored PAT for user %s", user_id)
@@ -1215,7 +1257,7 @@ class CSOPMHandler:
                     "response_action": "errors",
                     "errors": {
                         "pat_block": "A JIRA Personal Access Token is required. Please enter your PAT and click Save PAT first."
-                    }
+                    },
                 }
 
             # Get summary and description
@@ -1226,8 +1268,10 @@ class CSOPMHandler:
             description = description_block.get("description_input", {}).get("value", "")
 
             if not summary:
-                logger.error("No summary provided for follow-up ticket")
-                return False
+                return {
+                    "response_action": "errors",
+                    "errors": {"summary_block": "Summary is required."},
+                }
 
             # Get issue type ID for field metadata lookup
             issue_type_id = None
@@ -1235,70 +1279,106 @@ class CSOPMHandler:
                 issue_type_id = issue_type_input.get("selected_option", {}).get("value")
 
             logger.info(
-                "Creating follow-up ticket: project=%s, type=%s (id=%s), parent=%s",
+                "Starting background follow-up creation: project=%s, type=%s, parent=%s",
                 project_key,
                 issue_type,
                 issue_type_id,
                 parent_ticket_key,
             )
 
+            # Kick off background task for JIRA work (fire and forget)
+            asyncio.create_task(
+                self._create_followup_ticket_background(
+                    user_id=user_id,
+                    parent_ticket_key=parent_ticket_key,
+                    project_key=project_key,
+                    issue_type=issue_type,
+                    issue_type_id=issue_type_id,
+                    summary=summary,
+                    description=description,
+                    user_pat=user_pat,
+                )
+            )
+
+            # Close modal immediately - user will receive DM confirmation
+            return {"response_action": "clear"}
+
+        except Exception as e:
+            logger.error(
+                "Error handling create followup submission: %s",
+                e,
+                exc_info=True,
+            )
+            return False
+
+    async def _create_followup_ticket_background(
+        self,
+        user_id: str,
+        parent_ticket_key: str,
+        project_key: str,
+        issue_type: str,
+        issue_type_id: Optional[str],
+        summary: str,
+        description: str,
+        user_pat: str,
+    ) -> None:
+        """
+        Background task to create a follow-up JIRA ticket.
+
+        Called via asyncio.create_task() to avoid blocking the modal response.
+        Handles JIRA ticket creation, linking, and sends confirmation/error to user.
+
+        Args:
+            user_id: Slack user ID to send confirmation to.
+            parent_ticket_key: Parent CSOPM ticket key.
+            project_key: JIRA project key for the new ticket.
+            issue_type: Issue type name.
+            issue_type_id: Issue type ID for metadata lookup.
+            summary: Ticket summary.
+            description: Ticket description.
+            user_pat: User's JIRA PAT.
+        """
+        try:
+            logger.info(
+                "Background: Creating follow-up ticket for %s in %s",
+                parent_ticket_key,
+                project_key,
+            )
+
             # Fetch field metadata to know which fields are allowed
-            # None means we couldn't fetch metadata (use fallback behavior)
-            # Empty set means we fetched successfully but no fields are allowed
             allowed_fields = None
             if issue_type_id:
                 try:
                     metadata_result = await self._mcp_client.get_issuetype_metadata(
                         project_key, issue_type_id, user_pat=user_pat
                     )
-                    # Only set allowed_fields if we got a successful response with actual data
                     if metadata_result and metadata_result.get("success"):
                         fields_data = metadata_result.get("data", {}).get("values", [])
-                        if fields_data:  # Only use if we actually got fields
-                            allowed_fields = {f.get("fieldId") for f in fields_data if f.get("fieldId")}
+                        if fields_data:
+                            allowed_fields = {
+                                f.get("fieldId") for f in fields_data if f.get("fieldId")
+                            }
                             logger.info(
                                 "Fetched %d allowed fields for %s/%s",
                                 len(allowed_fields),
                                 project_key,
                                 issue_type_id,
                             )
-                        else:
-                            logger.warning(
-                                "No fields returned from metadata for %s/%s, using fallback",
-                                project_key,
-                                issue_type_id,
-                            )
-                    else:
-                        logger.warning(
-                            "Metadata fetch unsuccessful for %s/%s, using fallback",
-                            project_key,
-                            issue_type_id,
-                        )
                 except Exception as e:
                     logger.warning("Failed to fetch field metadata: %s", e)
 
-            # Build fields object - only include fields that are allowed
-            # Always include project and issuetype (required for all issues)
+            # Build fields object
             fields = {
                 "project": {"key": project_key},
                 "issuetype": {"name": issue_type},
             }
 
-            # Only add summary/description if they're in the allowed fields
-            # If we got field metadata but summary isn't in it, don't include it
-            # If metadata fetch failed completely (allowed_fields is None), include as fallback
             if allowed_fields is None or "summary" in allowed_fields:
                 fields["summary"] = summary
-            else:
-                logger.warning("summary field not in allowed fields for %s/%s", project_key, issue_type_id)
-            
+
             if allowed_fields is None or "description" in allowed_fields:
                 if description:
                     fields["description"] = description
-            else:
-                logger.warning("description field not in allowed fields for %s/%s", project_key, issue_type_id)
-
-            logger.info("Creating issue with fields: %s", list(fields.keys()))
 
             # Create the new JIRA issue via MCP
             create_args: Dict[str, Any] = {"fields": fields}
@@ -1317,20 +1397,23 @@ class CSOPMHandler:
                     else "No response"
                 )
                 logger.error("Failed to create follow-up ticket: %s", error_msg)
-
-                # Send error message to user
                 await self._posting_handler.post_message(
                     channel_id=user_id,
-                    message=f"Failed to create follow-up ticket: {error_msg}",
+                    message=f":x: Failed to create follow-up ticket: {error_msg}",
                 )
-                return False
+                return
 
-            # Extract new ticket key from response
-            # MCP returns {success: true, data: {id, key, self}, message: "..."}
-            new_ticket_key = create_result.get("key") or create_result.get("data", {}).get("key", "")
+            # Extract new ticket key
+            new_ticket_key = create_result.get("key") or create_result.get("data", {}).get(
+                "key", ""
+            )
             if not new_ticket_key:
-                logger.error("No ticket key returned from create_jira_issue: %s", create_result)
-                return False
+                logger.error("No ticket key returned from create_jira_issue")
+                await self._posting_handler.post_message(
+                    channel_id=user_id,
+                    message=":x: Failed to create follow-up ticket: No ticket key returned",
+                )
+                return
 
             logger.info(
                 "Created follow-up ticket %s, linking to parent %s",
@@ -1338,18 +1421,17 @@ class CSOPMHandler:
                 parent_ticket_key,
             )
 
-            # Link the new issue to the parent CSOPM ticket (non-fatal if fails)
+            # Link the new issue to the parent CSOPM ticket
             try:
                 link_result = await self._mcp_client._call_mcp_tool(
                     "link_issues",
                     {
-                        "inwardIssue": parent_ticket_key,  # Parent CSOPM ticket
-                        "outwardIssue": new_ticket_key,  # New follow-up ticket
+                        "inwardIssue": parent_ticket_key,
+                        "outwardIssue": new_ticket_key,
                         "linkType": "Relates",
-                        "userPat": user_pat,  # Use stored PAT for linking
+                        "userPat": user_pat,
                     },
                 )
-
                 if link_result and link_result.get("success"):
                     logger.info(
                         "Successfully linked %s to parent %s",
@@ -1361,17 +1443,17 @@ class CSOPMHandler:
                         "Failed to link %s to parent %s: %s",
                         new_ticket_key,
                         parent_ticket_key,
-                        link_result.get("message", "Unknown error") if link_result else "No response",
+                        link_result.get("message", "Unknown") if link_result else "No response",
                     )
             except Exception as link_error:
                 logger.warning(
-                    "Failed to link %s to parent %s: %s (continuing anyway)",
+                    "Failed to link %s to parent %s: %s",
                     new_ticket_key,
                     parent_ticket_key,
                     str(link_error),
                 )
 
-            # Add comment to parent ticket about the follow-up (JIRA wiki format)
+            # Add comment to parent ticket
             try:
                 followup_url = f"https://jira.corp.adobe.com/browse/{new_ticket_key}"
                 comment_lines = [
@@ -1381,30 +1463,37 @@ class CSOPMHandler:
                     summary,
                 ]
                 if description:
-                    comment_lines.append("")
-                    comment_lines.append("*Description:*")
-                    comment_lines.append(description)
-                
-                comment_text = "\n".join(comment_lines)
+                    comment_lines.extend(["", "*Description:*", description])
+
                 await self._mcp_client.create_issue_comment(
                     issue_key=parent_ticket_key,
-                    comment=comment_text,
+                    comment="\n".join(comment_lines),
                     user_pat=user_pat,
                 )
-                logger.info("Added follow-up comment to parent ticket %s", parent_ticket_key)
             except Exception as comment_error:
                 logger.warning(
-                    "Failed to add comment to parent %s: %s (continuing anyway)",
+                    "Failed to add comment to parent %s: %s",
                     parent_ticket_key,
                     str(comment_error),
                 )
 
-            # Build JIRA URL for the new ticket
-            jira_url = f"https://jira.corp.adobe.com/browse/{new_ticket_key}"
+            # Track the follow-up ticket in notification record
+            if self._state_tracker:
+                try:
+                    await self._state_tracker.add_followup_ticket(
+                        ticket_key=parent_ticket_key,
+                        followup_key=new_ticket_key,
+                    )
+                except Exception as track_error:
+                    logger.warning(
+                        "Failed to track follow-up ticket: %s",
+                        str(track_error),
+                    )
 
-            # Send success confirmation with "Create Another" button
+            # Send success confirmation
             from packages.slack.csopm import CSOPMNotificationBlocks
 
+            jira_url = f"https://jira.corp.adobe.com/browse/{new_ticket_key}"
             confirmation_blocks = CSOPMNotificationBlocks.build_followup_confirmation(
                 new_ticket_key=new_ticket_key,
                 parent_ticket_key=parent_ticket_key,
@@ -1422,11 +1511,636 @@ class CSOPMHandler:
                 parent_ticket_key,
             )
 
+        except Exception as e:
+            logger.error(
+                "Error in background followup creation: %s",
+                e,
+                exc_info=True,
+            )
+            try:
+                await self._posting_handler.post_message(
+                    channel_id=user_id,
+                    message=f":x: Failed to create follow-up ticket: {str(e)}",
+                )
+            except Exception:
+                pass
+
+    async def _handle_status_transition_submission(
+        self,
+        payload: Dict[str, Any],
+    ) -> Union[bool, Dict[str, Any]]:
+        """
+        Handle the status transition modal submission.
+
+        Transitions a JIRA ticket to a new status (e.g., Complete, Closed)
+        using the user's PAT for authentication.
+
+        Flow:
+        1. Extract form values from modal submission
+        2. Validate PAT availability
+        3. Extract dynamic field values
+        4. Perform JIRA status transition with field updates
+        5. Optionally add comment to ticket
+        6. Send confirmation message to user
+
+        Args:
+            payload: The Slack view_submission payload.
+
+        Returns:
+            True if transition was successful.
+            False if transition failed.
+            Dict with response_action: "errors" for validation errors.
+        """
+        try:
+            view = payload.get("view", {})
+            user = payload.get("user", {})
+            user_id = user.get("id")
+
+            # Extract metadata from private_metadata
+            private_metadata_str = view.get("private_metadata", "")
+            if not private_metadata_str:
+                logger.error("No private_metadata in status transition submission")
+                return False
+
+            try:
+                metadata = json.loads(private_metadata_str)
+            except json.JSONDecodeError:
+                logger.error("Invalid JSON in private_metadata")
+                return False
+
+            ticket_key = metadata.get("ticket_key", "")
+            target_status = metadata.get("target_status", "")
+
+            if not ticket_key or not target_status:
+                logger.error("Missing ticket_key or target_status in metadata")
+                return False
+
+            logger.info(
+                "Processing status transition: %s -> %s (user: %s)",
+                ticket_key,
+                target_status,
+                user_id,
+            )
+
+            # Extract form values
+            state_values = view.get("state", {}).get("values", {})
+
+            # Get PAT if provided
+            pat_block = state_values.get("pat_block", {})
+            user_pat = pat_block.get("pat_input", {}).get("value")
+
+            # Store PAT if provided
+            if user_pat and self._user_pat_ops:
+                try:
+                    await self._user_pat_ops.store_pat(user_id, user_pat)
+                    logger.info("Stored PAT for user %s", user_id)
+                except Exception as e:
+                    logger.warning("Failed to store PAT: %s", e)
+            elif not user_pat and self._user_pat_ops:
+                # Try to retrieve stored PAT
+                user_pat = await self._user_pat_ops.get_pat(user_id)
+                if user_pat:
+                    logger.info("Using stored PAT for user %s", user_id)
+
+            # Validate PAT - required for transition
+            if not user_pat:
+                logger.warning("No PAT available for user %s - rejecting submission", user_id)
+                return {
+                    "response_action": "errors",
+                    "errors": {
+                        "pat_block": "A JIRA Personal Access Token is required to transition this ticket."
+                    },
+                }
+
+            # Get optional comment
+            comment_block = state_values.get("comment_block", {})
+            comment = comment_block.get("comment_input", {}).get("value")
+
+            # Extract dynamic field values from the modal
+            # Dynamic fields have block_id like "dynamic_{fieldId}_block"
+            transition_fields = {}
+            for block_id, block_values in state_values.items():
+                if block_id.startswith("dynamic_") and block_id.endswith("_block"):
+                    field_id = block_id[8:-6]  # Strip "dynamic_" prefix and "_block" suffix
+                    # Get the first (and only) action_id in this block
+                    for action_id, action_value in block_values.items():
+                        if action_value.get("selected_option"):
+                            # Select element - get the value
+                            transition_fields[field_id] = action_value["selected_option"]["value"]
+                        elif action_value.get("selected_options"):
+                            # Multi-select element - get list of values
+                            transition_fields[field_id] = [
+                                opt["value"] for opt in action_value["selected_options"]
+                            ]
+                        elif action_value.get("value"):
+                            # Text input
+                            transition_fields[field_id] = action_value["value"]
+
+            logger.info(
+                "Starting background transition: %s -> %s with fields: %s",
+                ticket_key,
+                target_status,
+                list(transition_fields.keys()),
+            )
+
+            # Kick off background task for JIRA work (fire and forget)
+            import asyncio
+
+            asyncio.create_task(
+                self._transition_ticket_background(
+                    user_id=user_id,
+                    ticket_key=ticket_key,
+                    target_status=target_status,
+                    transition_fields=transition_fields,
+                    comment=comment,
+                    user_pat=user_pat,
+                )
+            )
+
+            # Close modal immediately - user will receive DM confirmation
+            return {"response_action": "clear"}
+
+        except Exception as e:
+            logger.error(
+                "Error handling status transition submission: %s",
+                e,
+                exc_info=True,
+            )
+            return False
+
+    async def _transition_ticket_background(
+        self,
+        user_id: str,
+        ticket_key: str,
+        target_status: str,
+        transition_fields: Dict[str, Any],
+        comment: Optional[str],
+        user_pat: str,
+    ) -> None:
+        """
+        Background task to transition a JIRA ticket status.
+
+        Called via asyncio.create_task() to avoid blocking the modal response.
+        Handles JIRA transition, optional comment, and sends confirmation/error to user.
+        """
+        try:
+            logger.info(
+                "Background: Transitioning %s to %s",
+                ticket_key,
+                target_status,
+            )
+
+            # Build transition args
+            transition_args: Dict[str, Any] = {
+                "issueIdOrKey": ticket_key,
+                "statusName": target_status,
+            }
+            if transition_fields:
+                transition_args["fields"] = transition_fields
+            if user_pat:
+                transition_args["userPat"] = user_pat
+
+            transition_result = await self._mcp_client._call_mcp_tool(
+                "transition_jira_status_by_name",
+                transition_args,
+            )
+
+            if not transition_result or not transition_result.get("success"):
+                error_msg = (
+                    transition_result.get("message", "Unknown error")
+                    if transition_result
+                    else "No response"
+                )
+                logger.error(
+                    "Failed to transition %s to %s: %s",
+                    ticket_key,
+                    target_status,
+                    error_msg,
+                )
+                await self._posting_handler.post_message(
+                    channel_id=user_id,
+                    message=f":x: Failed to transition {ticket_key} to {target_status}: {error_msg}",
+                )
+                return
+
+            logger.info("Successfully transitioned %s to %s", ticket_key, target_status)
+
+            # Add comment if provided
+            if comment:
+                try:
+                    await self._mcp_client.create_issue_comment(
+                        issue_key=ticket_key,
+                        comment=comment,
+                        user_pat=user_pat,
+                    )
+                except Exception as comment_error:
+                    logger.warning(
+                        "Failed to add comment to %s: %s", ticket_key, str(comment_error)
+                    )
+
+            # Send confirmation
+            from packages.slack.csopm import CSOPMNotificationBlocks
+
+            confirmation_blocks = CSOPMNotificationBlocks.build_transition_confirmation(
+                ticket_key=ticket_key,
+                new_status=target_status,
+            )
+
+            await self._posting_handler.post_message(
+                channel_id=user_id,
+                blocks=confirmation_blocks,
+            )
+
+        except Exception as e:
+            logger.error("Error in background transition: %s", e, exc_info=True)
+            try:
+                await self._posting_handler.post_message(
+                    channel_id=user_id,
+                    message=f":x: Failed to transition {ticket_key}: {str(e)}",
+                )
+            except Exception:
+                pass
+
+    async def _open_reassign_modal(
+        self,
+        trigger_id: Optional[str],
+        ticket_key: str,
+        user_id: str,
+    ) -> bool:
+        """
+        Open a modal to reassign a CSOPM ticket to another user.
+
+        The modal prompts for an LDAP username (e.g., "harrison") which
+        will be used to reassign the ticket in JIRA.
+
+        Args:
+            trigger_id: Slack trigger_id for opening modal (required).
+            ticket_key: The CSOPM ticket key to reassign.
+            user_id: Slack user ID opening the modal.
+
+        Returns:
+            True if modal was opened successfully, False otherwise.
+        """
+        if not trigger_id:
+            logger.error("No trigger_id provided for reassign modal")
+            return False
+
+        logger.info(
+            "Opening reassign modal for ticket %s (user: %s)",
+            ticket_key,
+            user_id,
+        )
+
+        try:
+            # Build the modal view
+            modal_view = {
+                "type": "modal",
+                "callback_id": CSOPM_REASSIGN_MODAL_CALLBACK_ID,
+                "private_metadata": json.dumps({"ticket_key": ticket_key}),
+                "title": {
+                    "type": "plain_text",
+                    "text": "Reassign Ticket",
+                    "emoji": True,
+                },
+                "submit": {
+                    "type": "plain_text",
+                    "text": "Reassign",
+                    "emoji": True,
+                },
+                "close": {
+                    "type": "plain_text",
+                    "text": "Cancel",
+                    "emoji": True,
+                },
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"Reassign *{ticket_key}* to another user.",
+                        },
+                    },
+                    {
+                        "type": "input",
+                        "block_id": "ldap_username_block",
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "ldap_username_input",
+                            "placeholder": {
+                                "type": "plain_text",
+                                "text": "e.g., jsmith",
+                            },
+                        },
+                        "label": {
+                            "type": "plain_text",
+                            "text": "LDAP Username",
+                            "emoji": True,
+                        },
+                        "hint": {
+                            "type": "plain_text",
+                            "text": "Enter the LDAP username (without @adobe.com) of the new assignee.",
+                        },
+                    },
+                ],
+            }
+
+            # Open the modal via Slack API
+            slack_api_token = (
+                await self._posting_handler._secrets_manager.get_slack_api_token_async()
+            )
+            url = "https://slack.com/api/views.open"
+            headers = {
+                "Authorization": f"Bearer {slack_api_token}",
+                "Content-Type": "application/json",
+            }
+            body = {
+                "trigger_id": trigger_id,
+                "view": modal_view,
+            }
+
+            timeout = aiohttp.ClientTimeout(total=30)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, headers=headers, json=body) as response:
+                    result = await response.json()
+                    if result.get("ok"):
+                        logger.info("Successfully opened reassign modal for %s", ticket_key)
+                        return True
+                    else:
+                        logger.error(
+                            "Failed to open reassign modal: %s",
+                            result.get("error", "Unknown error"),
+                        )
+                        return False
+
+        except Exception as e:
+            logger.error(
+                "Error opening reassign modal for %s: %s",
+                ticket_key,
+                e,
+                exc_info=True,
+            )
+            return False
+
+    async def _handle_reassign_submission(
+        self,
+        payload: Dict[str, Any],
+    ) -> Union[bool, Dict[str, Any]]:
+        """
+        Handle the reassign modal submission.
+
+        Updates the JIRA ticket assignee using the provided LDAP username.
+        JIRA call is synchronous to allow validation errors, then modal
+        closes and confirmation is sent via DM.
+        """
+        try:
+            view = payload.get("view", {})
+            user = payload.get("user", {})
+            user_id = user.get("id")
+
+            # Extract metadata
+            private_metadata_str = view.get("private_metadata", "")
+            if not private_metadata_str:
+                logger.error("No private_metadata in reassign submission")
+                return False
+
+            try:
+                metadata = json.loads(private_metadata_str)
+            except json.JSONDecodeError:
+                logger.error("Invalid JSON in private_metadata")
+                return False
+
+            ticket_key = metadata.get("ticket_key", "")
+            if not ticket_key:
+                logger.error("Missing ticket_key in metadata")
+                return False
+
+            # Extract LDAP username from form
+            state_values = view.get("state", {}).get("values", {})
+            ldap_block = state_values.get("ldap_username_block", {})
+            ldap_username = ldap_block.get("ldap_username_input", {}).get("value", "").strip()
+
+            if not ldap_username:
+                return {
+                    "response_action": "errors",
+                    "errors": {
+                        "ldap_username_block": "Please enter an LDAP username.",
+                    },
+                }
+
+            # Remove @ prefix if user included it
+            if ldap_username.startswith("@"):
+                ldap_username = ldap_username[1:]
+
+            # Remove @adobe.com if user included it
+            if ldap_username.endswith("@adobe.com"):
+                ldap_username = ldap_username.replace("@adobe.com", "")
+
+            logger.info(
+                "Reassigning %s to %s (requested by user %s)",
+                ticket_key,
+                ldap_username,
+                user_id,
+            )
+
+            # Update the ticket assignee via MCP (sync to validate username)
+            update_result = await self._mcp_client._call_mcp_tool(
+                "update_jira_issue",
+                {
+                    "issueIdOrKey": ticket_key,
+                    "fields": {
+                        "assignee": {"name": ldap_username},
+                    },
+                },
+            )
+
+            if not update_result or not update_result.get("success"):
+                error_msg = (
+                    update_result.get("message", "Unknown error")
+                    if update_result
+                    else "No response"
+                )
+                logger.error(
+                    "Failed to reassign %s to %s: %s",
+                    ticket_key,
+                    ldap_username,
+                    error_msg,
+                )
+
+                # Check for common errors - show in modal
+                if (
+                    "does not exist" in error_msg.lower()
+                    or "cannot be assigned" in error_msg.lower()
+                ):
+                    return {
+                        "response_action": "errors",
+                        "errors": {
+                            "ldap_username_block": f"User '{ldap_username}' not found or cannot be assigned to this ticket.",
+                        },
+                    }
+
+                # Other errors - send DM
+                await self._posting_handler.post_message(
+                    channel_id=user_id,
+                    message=f":x: Failed to reassign {ticket_key} to {ldap_username}: {error_msg}",
+                )
+                return False
+
+            logger.info("Successfully reassigned %s to %s", ticket_key, ldap_username)
+
+            # Send notification to new assignee and confirmation to requester (background)
+            import asyncio
+
+            asyncio.create_task(
+                self._send_reassignment_notification(
+                    ticket_key=ticket_key,
+                    new_assignee_ldap=ldap_username,
+                )
+            )
+
+            # Send confirmation DM to requester
+            jira_url = f"https://jira.corp.adobe.com/browse/{ticket_key}"
+            asyncio.create_task(
+                self._posting_handler.post_message(
+                    channel_id=user_id,
+                    message=f":white_check_mark: *{ticket_key}* has been reassigned to *{ldap_username}*.\n<{jira_url}|View in JIRA>",
+                )
+            )
+
+            # Close modal immediately
+            return {"response_action": "clear"}
+
+        except Exception as e:
+            logger.error(
+                "Error handling reassign submission: %s",
+                e,
+                exc_info=True,
+            )
+            return False
+
+    async def _send_reassignment_notification(
+        self,
+        ticket_key: str,
+        new_assignee_ldap: str,
+    ) -> bool:
+        """
+        Send an immediate assignment notification to the new assignee.
+
+        Preserves followup_ticket_keys from the previous assignee's record.
+        """
+        if not self._user_ops:
+            logger.warning("Cannot send immediate notification - user_ops not available")
+            return False
+
+        try:
+            # 1. Get existing record to preserve followup_ticket_keys
+            existing_followups: List[str] = []
+            if self._state_tracker:
+                existing_record = await self._state_tracker.get_notification_record(ticket_key)
+                if existing_record and existing_record.followup_ticket_keys:
+                    existing_followups = existing_record.followup_ticket_keys
+                    logger.info(
+                        "Preserving %d followup tickets from previous assignee for %s",
+                        len(existing_followups),
+                        ticket_key,
+                    )
+
+            # 2. Resolve new assignee Slack ID
+            email = f"{new_assignee_ldap.lower()}@adobe.com"
+            new_slack_id = await self._user_ops.get_slack_id_by_email(email)
+
+            if not new_slack_id:
+                logger.warning(
+                    "Could not resolve Slack ID for %s, notification will be sent on next poll",
+                    new_assignee_ldap,
+                )
+                return False
+
+            # 3. Fetch ticket details for notification
+            ticket_data = await self._mcp_client.get_issue(
+                issue_key=ticket_key,
+                fields=["summary", "created", "description", "status"],
+            )
+
+            if not ticket_data:
+                logger.warning("Could not fetch ticket details for %s", ticket_key)
+                return False
+
+            fields = ticket_data.get("fields", {})
+            summary = fields.get("summary", "")
+            description = fields.get("description", "")
+            status_obj = fields.get("status", {})
+            status = status_obj.get("name", "New") if isinstance(status_obj, dict) else "New"
+
+            # Extract exigence ID from description if present
+            exigence_id = None
+            if description:
+                import re
+
+                match = re.search(r"exigence\.corp\.adobe\.com/event/(\d+)", description)
+                if match:
+                    exigence_id = match.group(1)
+
+            # 4. Build CSOPMTicket object for notification
+            from datetime import datetime, timezone
+
+            from packages.core.typed_di.protocols import CSOPMTicket
+            from packages.slack.csopm import CSOPMNotificationBlocks
+
+            ticket = CSOPMTicket(
+                key=ticket_key,
+                summary=summary,
+                assignee_username=new_assignee_ldap,
+                created_at=datetime.now(timezone.utc),
+                status=status,
+                exigence_id=exigence_id,
+            )
+
+            blocks = CSOPMNotificationBlocks.build_assignment_notification(
+                ticket=ticket,
+                exigence_id=exigence_id,
+            )
+
+            await self._posting_handler.post_message(
+                channel_id=new_slack_id,
+                blocks=blocks,
+            )
+
+            logger.info(
+                "Sent immediate reassignment notification for %s to %s (%s)",
+                ticket_key,
+                new_assignee_ldap,
+                new_slack_id,
+            )
+
+            # 5. Update state tracker - create new record then restore followups
+            if self._state_tracker:
+                await self._state_tracker.create_notification_record(
+                    ticket=ticket,
+                    slack_id=new_slack_id,
+                )
+
+                # Restore followup tickets from previous assignee
+                if existing_followups:
+                    for followup_key in existing_followups:
+                        try:
+                            await self._state_tracker.add_followup_ticket(
+                                ticket_key=ticket_key,
+                                followup_key=followup_key,
+                            )
+                        except Exception as e:
+                            logger.warning("Failed to restore followup %s: %s", followup_key, e)
+                    logger.info(
+                        "Restored %d followup tickets for %s",
+                        len(existing_followups),
+                        ticket_key,
+                    )
+
             return True
 
         except Exception as e:
             logger.error(
-                "Error handling create followup submission: %s",
+                "Error sending reassignment notification for %s: %s",
+                ticket_key,
                 e,
                 exc_info=True,
             )
@@ -1516,7 +2230,7 @@ class CSOPMHandler:
                     "response_action": "errors",
                     "errors": {
                         "pat_block": "A JIRA Personal Access Token is required to transition this ticket."
-                    }
+                    },
                 }
 
             # Get optional comment
@@ -1658,4 +2372,5 @@ def is_csopm_modal(callback_id: str) -> bool:
     return callback_id in (
         CSOPM_CREATE_FOLLOWUP_MODAL_CALLBACK_ID,
         CSOPM_STATUS_TRANSITION_MODAL_CALLBACK_ID,
+        CSOPM_REASSIGN_MODAL_CALLBACK_ID,
     )

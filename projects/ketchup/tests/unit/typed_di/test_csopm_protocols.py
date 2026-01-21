@@ -80,6 +80,9 @@ class TestCSOPMDataClasses(unittest.TestCase):
             "closure_reminder_sent",
             "created_at",
             "updated_at",
+            "followup_ticket_keys",
+            "completed_at",
+            "closed_at",
         }
 
         actual_fields = {f.name for f in fields(NotificationRecord)}
@@ -248,6 +251,7 @@ class TestCSOPMProtocolMethodSignatures(unittest.TestCase):
             "mark_closure_reminder_sent",
             "get_pending_notifications",
             "record_followup",
+            "add_followup_ticket",
         ]
 
         for method_name in required_methods:

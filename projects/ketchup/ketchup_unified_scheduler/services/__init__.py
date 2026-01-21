@@ -12,14 +12,12 @@ from ketchup_unified_scheduler.services.maintenance import main as maintenance_m
 from ketchup_unified_scheduler.services.status import (
     AutoStatusGenerator,
     AutoStatusProcessor,
-    StatusUpdaterScheduler,
     run_auto_status,
 )
 
 __all__ = [
     "AutoStatusGenerator",
     "AutoStatusProcessor",
-    "StatusUpdaterScheduler",
     "run_auto_status",
     "fetch_and_store_maintenance_data",
     "maintenance_main",

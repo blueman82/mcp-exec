@@ -58,6 +58,7 @@ class CSOPMNotificationBlocks:
     ACTION_UNSNOOZE = "csopm_unsnooze"
     ACTION_CLOSE_TICKET = "csopm_close_ticket"
     ACTION_MARK_COMPLETE = "csopm_mark_complete"
+    ACTION_REASSIGN = "csopm_reassign"
 
     @classmethod
     def build_assignment_notification(
@@ -134,6 +135,16 @@ class CSOPMNotificationBlocks:
                         "action_id": cls.ACTION_ACKNOWLEDGE,
                         "value": action_value,
                         "style": "primary",
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Reassign",
+                            "emoji": True,
+                        },
+                        "action_id": cls.ACTION_REASSIGN,
+                        "value": action_value,
                     },
                     {
                         "type": "button",
@@ -306,25 +317,72 @@ class CSOPMNotificationBlocks:
         return blocks
 
     @classmethod
+    def _build_open_followups_section(
+        cls,
+        open_followups: List[Dict[str, str]],
+    ) -> Optional[Dict[str, Any]]:
+        """Build a context block section for open follow-up tickets.
+
+        Args:
+            open_followups: List of dicts with 'key' and 'status' for open followups.
+                Format: [{'key': 'CAMP-123', 'status': 'In Progress'}, ...]
+
+        Returns:
+            Context block dict if there are open followups, None otherwise.
+        """
+        if not open_followups:
+            return None
+
+        # Format: :warning: Open follow-up tickets:
+        # • CAMP-123 (In Progress)
+        # • CPGNTT-456 (Open)
+        followup_lines = []
+        for followup in open_followups[:5]:  # Limit to 5 to avoid overly long messages
+            key = followup.get("key", "Unknown")
+            status = followup.get("status", "Unknown")
+            jira_url = f"{JIRA_BASE_URL}/{key}"
+            followup_lines.append(f"• <{jira_url}|{key}> ({status})")
+
+        if len(open_followups) > 5:
+            followup_lines.append(f"• _... and {len(open_followups) - 5} more_")
+
+        text = ":warning: *Open follow-up tickets:*\n" + "\n".join(followup_lines)
+
+        return {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": text,
+                }
+            ],
+        }
+
+    @classmethod
     def build_closure_reminder(
         cls,
         ticket: CSOPMTicket,
         days_old: int,
         ping_count: int,
         has_open_linked: bool = False,
+        open_followups: Optional[List[Dict[str, str]]] = None,
     ) -> List[Dict[str, Any]]:
         """Build Block Kit blocks for a closure reminder notification.
 
         Creates a reminder DM with:
         - Header indicating closure reminder
         - Ticket details with age information
+        - Open follow-up tickets section (Option B - for transparency)
         - Action buttons for closure actions
 
         Args:
             ticket: The CSOPMTicket requiring closure attention.
             days_old: Number of days since ticket creation.
             ping_count: Current ping count for this reminder.
-            has_open_linked: Whether ticket has open linked tickets.
+            has_open_linked: Whether ticket has open linked tickets (via JIRA links).
+            open_followups: List of open followup tickets with their statuses.
+                Format: [{'key': 'CAMP-123', 'status': 'In Progress'}, ...]
+                Used by Option B to show open followups for transparency.
 
         Returns:
             List of Block Kit block dictionaries.
@@ -365,15 +423,22 @@ class CSOPMNotificationBlocks:
             }
         )
 
-        # Warning for open linked tickets
-        if has_open_linked:
+        # Open follow-up tickets section (Option B - for transparency)
+        if open_followups:
+            followups_block = cls._build_open_followups_section(open_followups)
+            if followups_block:
+                blocks.append(followups_block)
+
+        # Warning for open linked tickets (general JIRA links, not tracked followups)
+        # Only show this if has_open_linked but no specific followups listed
+        if has_open_linked and not open_followups:
             blocks.append(
                 {
                     "type": "context",
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": "Info: This ticket has open linked tickets. Please review before closing.",
+                            "text": ":information_source: This ticket has open linked tickets. Please review before closing.",
                         }
                     ],
                 }
@@ -387,7 +452,7 @@ class CSOPMNotificationBlocks:
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": "Warning: This ticket will be escalated after 3 unanswered pings",
+                            "text": ":alarm_clock: This ticket will be escalated after 3 unanswered pings",
                         }
                     ],
                 }
@@ -728,7 +793,6 @@ class CSOPMNotificationBlocks:
             "blocks": blocks,
         }
 
-
     @classmethod
     def build_followup_confirmation(
         cls,
@@ -896,7 +960,9 @@ class CSOPMNotificationBlocks:
         metadata_str = json.dumps(metadata)
 
         # Determine modal title based on target status
-        title_text = f"Mark {target_status}" if target_status == "Complete" else f"{target_status} Ticket"
+        title_text = (
+            f"Mark {target_status}" if target_status == "Complete" else f"{target_status} Ticket"
+        )
 
         return {
             "type": "modal",
@@ -1092,15 +1158,19 @@ class CSOPMNotificationBlocks:
                     opt_value = str(val.get("id", val.get("value", val.get("name", ""))))
                     opt_name = val.get("name", val.get("value", opt_value))
                     if opt_value and opt_name:
-                        options.append({
-                            "text": {"type": "plain_text", "text": str(opt_name)[:75]},
-                            "value": str(opt_value),
-                        })
+                        options.append(
+                            {
+                                "text": {"type": "plain_text", "text": str(opt_name)[:75]},
+                                "value": str(opt_value),
+                            }
+                        )
                 elif isinstance(val, str):
-                    options.append({
-                        "text": {"type": "plain_text", "text": val[:75]},
-                        "value": val,
-                    })
+                    options.append(
+                        {
+                            "text": {"type": "plain_text", "text": val[:75]},
+                            "value": val,
+                        }
+                    )
 
             if options:
                 return {
@@ -1139,7 +1209,10 @@ class CSOPMNotificationBlocks:
                 "element": {
                     "type": "plain_text_input",
                     "action_id": action_id,
-                    "placeholder": {"type": "plain_text", "text": f"Enter {field_name} (comma-separated)"},
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": f"Enter {field_name} (comma-separated)",
+                    },
                 },
                 "optional": not required,
             }

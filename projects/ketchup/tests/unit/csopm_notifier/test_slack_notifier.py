@@ -161,7 +161,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
 
         self.assertEqual(result, "U12345678")
         self.user_ops.get_slack_id_by_email.assert_awaited_once_with("testuser@adobe.com")
-        self.metrics.increment_counter.assert_awaited_once_with("csopm.user.resolution.success")
+        # Note: user resolution metrics removed (system-level, not management-level)
 
     async def test_resolve_slack_user_id_not_found(self):
         """Test when Slack ID is not found."""
@@ -170,7 +170,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
         result = await self.notifier.resolve_slack_user_id("unknownuser")
 
         self.assertIsNone(result)
-        self.metrics.increment_counter.assert_awaited_once_with("csopm.user.resolution.failed")
+        # Note: user resolution metrics removed (system-level, not management-level)
 
     async def test_resolve_slack_user_id_empty_username(self):
         """Test with empty username."""
@@ -201,7 +201,7 @@ class TestCSOPMSlackNotifierResolveSlackUserId(unittest.IsolatedAsyncioTestCase)
         result = await self.notifier.resolve_slack_user_id("testuser")
 
         self.assertIsNone(result)
-        self.metrics.increment_counter.assert_awaited_once_with("csopm.user.resolution.failed")
+        # Note: user resolution metrics removed (system-level, not management-level)
 
 
 class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
@@ -241,9 +241,7 @@ class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
         self.assertIn("blocks", call_kwargs)
         self.assertIsInstance(call_kwargs["blocks"], list)
         self.assertTrue(len(call_kwargs["blocks"]) > 0)
-
-        # Verify metric was incremented
-        self.metrics.increment_counter.assert_awaited_once_with("csopm.notifications.sent")
+        # Note: notification delivery metrics removed (system-level, not management-level)
 
     async def test_send_assignment_dm_failure(self):
         """Test handling of DM send failure."""
@@ -256,7 +254,7 @@ class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
         result = await self.notifier.send_assignment_dm(ticket, "U12345678")
 
         self.assertFalse(result)
-        self.metrics.increment_counter.assert_awaited_once_with("csopm.notifications.failed")
+        # Note: notification delivery metrics removed (system-level, not management-level)
 
     async def test_send_assignment_dm_exception(self):
         """Test handling of exceptions during DM send."""
@@ -266,7 +264,7 @@ class TestCSOPMSlackNotifierSendAssignmentDM(unittest.IsolatedAsyncioTestCase):
         result = await self.notifier.send_assignment_dm(ticket, "U12345678")
 
         self.assertFalse(result)
-        self.metrics.increment_counter.assert_awaited_once_with("csopm.notifications.failed")
+        # Note: notification delivery metrics removed (system-level, not management-level)
 
     async def test_send_assignment_dm_includes_exigence_id(self):
         """Test that Exigence ID is included in blocks when present."""
@@ -320,7 +318,8 @@ class TestCSOPMSlackNotifierSendReminderDM(unittest.IsolatedAsyncioTestCase):
         self.state_tracker.get_notification_record.return_value = NotificationRecord(
             ticket_key="CSOPM-1234",
             notification_status="sent",
-            rca_ping_count=1, closure_ping_count=0,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U12345678",
             assignee_jira_username="testuser",
             rca_reminder_sent=False,
@@ -340,7 +339,8 @@ class TestCSOPMSlackNotifierSendReminderDM(unittest.IsolatedAsyncioTestCase):
         self.state_tracker.get_notification_record.return_value = NotificationRecord(
             ticket_key="CSOPM-1234",
             notification_status="sent",
-            rca_ping_count=0, closure_ping_count=0,
+            rca_ping_count=0,
+            closure_ping_count=0,
             assignee_slack_id="U12345678",
             assignee_jira_username="testuser",
             rca_reminder_sent=True,
@@ -388,7 +388,8 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
         self.state_tracker.update_notification_status.return_value = NotificationRecord(
             ticket_key="CSOPM-1234",
             notification_status="ack",
-            rca_ping_count=1, closure_ping_count=0,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U12345678",
             assignee_jira_username="testuser",
             rca_reminder_sent=False,
@@ -492,7 +493,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
 
     async def test_handle_close_ticket_action_success(self):
         """Test handling close ticket button action.
-        
+
         Note: Close ticket now signals modal opening (returns True)
         without calling MCP directly. The actual transition happens
         via modal submission in csopm_handler.py.
@@ -511,7 +512,7 @@ class TestCSOPMSlackNotifierHandleButtonAction(unittest.IsolatedAsyncioTestCase)
 
     async def test_handle_close_ticket_action_does_not_post_message(self):
         """Test close ticket does not post messages directly.
-        
+
         Confirmation messages are sent after modal submission,
         not when the button is clicked.
         """

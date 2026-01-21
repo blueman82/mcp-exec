@@ -263,7 +263,8 @@ class TestPollCycleOrchestration:
         mock_record = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            rca_ping_count=0, closure_ping_count=0,
+            rca_ping_count=0,
+            closure_ping_count=0,
             assignee_slack_id="U12345",
             assignee_jira_username="testuser",
             rca_reminder_sent=False,
@@ -391,7 +392,8 @@ class TestReassignmentDetection:
         mock_record = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            rca_ping_count=1, closure_ping_count=0,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U_OLD_USER",
             assignee_jira_username="olduser",  # Different from ticket.assignee_username
             rca_reminder_sent=False,
@@ -411,7 +413,8 @@ class TestReassignmentDetection:
         mock_state_tracker.handle_reassignment.return_value = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            rca_ping_count=1, closure_ping_count=0,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U_NEW_USER",
             assignee_jira_username="newuser",
             rca_reminder_sent=False,
@@ -471,7 +474,8 @@ class TestReassignmentDetection:
         mock_record = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            rca_ping_count=1, closure_ping_count=0,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U12345",
             assignee_jira_username="sameuser",
             rca_reminder_sent=False,

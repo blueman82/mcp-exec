@@ -378,10 +378,14 @@ class TestCSOPMHandlerCreateFollowupAction:
         mock_response.json = AsyncMock(return_value={"ok": True})
         mock_session_instance = MagicMock()
         mock_session_instance.post = MagicMock(
-            return_value=MagicMock(__aenter__=AsyncMock(return_value=mock_response), __aexit__=AsyncMock())
+            return_value=MagicMock(
+                __aenter__=AsyncMock(return_value=mock_response), __aexit__=AsyncMock()
+            )
         )
         mock_session = MagicMock(
-            return_value=MagicMock(__aenter__=AsyncMock(return_value=mock_session_instance), __aexit__=AsyncMock())
+            return_value=MagicMock(
+                __aenter__=AsyncMock(return_value=mock_session_instance), __aexit__=AsyncMock()
+            )
         )
 
         with patch("aiohttp.ClientSession", mock_session):

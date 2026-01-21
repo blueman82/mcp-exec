@@ -10,8 +10,8 @@ import subprocess
 
 import pytest
 
-from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.integrations.async_mcp_client import AsyncMCPClient
+from packages.integrations.ims_token_manager import IMSTokenManager
 from packages.secrets.manager import SecretsManager
 
 pytestmark = pytest.mark.integration

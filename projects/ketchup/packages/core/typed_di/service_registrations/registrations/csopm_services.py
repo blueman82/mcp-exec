@@ -79,6 +79,7 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
         CSOPMReminderServiceProtocol,
         CSOPMSlackNotifierProtocol,
         CSOPMStateTrackerProtocol,
+        CSOPMTicketStatusPollerProtocol,
         UserPATOperationsProtocol,
     )
 
@@ -88,6 +89,9 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
     # ===========================================================================
     # Import core implementations from packages/slack/csopm/ and interactive_elements/
     # These imports should always succeed as they're part of the main packages
+    from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
+        SlackUserOpsProtocol,
+    )
     from packages.db.operations.user_pat_operations import UserPATOperations
     from packages.integrations.async_mcp_client import AsyncMCPClient
     from packages.slack.csopm.actions import CSOPMButtonActionHandler
@@ -191,11 +195,15 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
             mcp_client = await resolver.aget(AsyncMCPClient)
             posting_handler = await resolver.aget(SlackPostingHandler)
             user_pat_ops = await resolver.aget(UserPATOperationsProtocol)
+            state_tracker = await resolver.aget(CSOPMStateTrackerProtocol)
+            user_ops = await resolver.aget(SlackUserOpsProtocol)
             return CSOPMHandler(
                 button_handler=button_handler,
                 mcp_client=mcp_client,
                 posting_handler=posting_handler,
                 user_pat_ops=user_pat_ops,
+                state_tracker=state_tracker,
+                user_ops=user_ops,
             )
 
         manager.register_protocol_with_concrete_alias(
@@ -207,6 +215,8 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
                 DependencySpec(AsyncMCPClient),
                 DependencySpec(SlackPostingHandler),
                 DependencySpec(UserPATOperationsProtocol),
+                DependencySpec(CSOPMStateTrackerProtocol),
+                DependencySpec(SlackUserOpsProtocol),
             ],
             lifetime="singleton",
         )
@@ -227,6 +237,7 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
             CSOPMReminderService,
         )
         from ketchup_csopm_notifier.services.slack_notifier import CSOPMSlackNotifier
+        from ketchup_csopm_notifier.services.status_poller import CSOPMTicketStatusPoller
         from packages.slack.user_operations.user_ops import SlackUserOps
     except ImportError as e:
         logger.info(f"Scheduler services not available (not in ketchup_csopm_notifier): {e}")
@@ -318,4 +329,31 @@ def register_csopm_services(manager: "ServiceRegistrationManager") -> None:
     except Exception as e:
         logger.warning(f"CSOPMReminderService registration failed: {e}")
 
-    logger.info("CSOPM Services registration completed (6 services)")
+    # Service 7: CSOPMTicketStatusPoller (scheduler service, depends on StateTracker and MCP)
+    try:
+
+        async def create_status_poller(resolver) -> CSOPMTicketStatusPoller:
+            """Factory function for CSOPMTicketStatusPoller using TypedResolver."""
+            logger.info("Creating CSOPMTicketStatusPoller instance via TypedDI")
+            mcp_client = await resolver.aget(AsyncMCPClient)
+            state_tracker = await resolver.aget(CSOPMStateTrackerProtocol)
+            return CSOPMTicketStatusPoller(
+                mcp_client=mcp_client,
+                state_tracker=state_tracker,
+            )
+
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=CSOPMTicketStatusPollerProtocol,
+            concrete_type=CSOPMTicketStatusPoller,
+            factory=create_status_poller,
+            dependencies=[
+                DependencySpec(AsyncMCPClient),
+                DependencySpec(CSOPMStateTrackerProtocol),
+            ],
+            lifetime="singleton",
+        )
+        logger.info("CSOPMTicketStatusPoller registered successfully")
+    except Exception as e:
+        logger.warning(f"CSOPMTicketStatusPoller registration failed: {e}")
+
+    logger.info("CSOPM Services registration completed (8 services)")

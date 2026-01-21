@@ -53,7 +53,7 @@ async def process_interactive_payload(
     access_request_handler: AccessRequestHandler = None,  # AccessRequestHandler - optional until fully integrated
     flag_review_handler: Any = None,  # FlagReviewHandler - optional until fully implemented
     csopm_handler: CSOPMHandler = None,  # CSOPMHandler - optional for CSOPM notifications
-) -> bool:
+) -> Union[bool, Dict[str, Any]]:
     """
     Process an interactive payload from Slack.
 
@@ -67,7 +67,7 @@ async def process_interactive_payload(
         slack_auth: SlackAuth instance for verification (not used in this function)
 
     Returns:
-        Boolean indicating success
+        Boolean indicating success, or Dict with response_action for modal responses
     """
     logger.info("Processing interactive payload")
 
@@ -346,8 +346,11 @@ async def process_interactive_payload(
                     )
                     return True
                 logger.info("Processing CSOPM modal submission: %s", callback_id)
-                success = await csopm_handler.handle_view_submission(payload=payload)
-                return success
+                result = await csopm_handler.handle_view_submission(payload=payload)
+                # Return dict responses (errors, update) directly to Slack
+                if isinstance(result, dict):
+                    return result
+                return result
 
             if callback_id == "edit_channel_metadata":
                 # Extract modal values

@@ -353,8 +353,8 @@ class TestServiceRegistrationModule:
         # Register services
         register_csopm_services(mock_manager)
 
-        # Should have 7 calls (one per service: StateTracker, UserPATOperations, ButtonActionHandler, Handler, JIRAPoller, SlackNotifier, ReminderService)
-        assert mock_manager.register_protocol_with_concrete_alias.call_count == 7
+        # Should have 8 calls (one per service: StateTracker, UserPATOperations, ButtonActionHandler, Handler, JIRAPoller, SlackNotifier, ReminderService, TicketStatusPoller)
+        assert mock_manager.register_protocol_with_concrete_alias.call_count == 8
 
     @pytest.mark.asyncio
     async def test_registration_uses_singleton_lifetime(self):

@@ -187,6 +187,7 @@ class CSOPMButtonActionHandler:
                         ack_time = "unknown time"
                         if record.updated_at:
                             from datetime import datetime, timezone
+
                             dt = datetime.fromtimestamp(record.updated_at, tz=timezone.utc)
                             ack_time = dt.strftime("%d/%m/%Y %H:%M UTC")
 
@@ -295,9 +296,7 @@ class CSOPMButtonActionHandler:
             logger.error("Error showing already-acknowledged modal: %s", e)
             return False
 
-    async def _show_acknowledgment_success_modal(
-        self, trigger_id: str, ticket_key: str
-    ) -> bool:
+    async def _show_acknowledgment_success_modal(self, trigger_id: str, ticket_key: str) -> bool:
         """Display modal popup confirming ticket acknowledgment.
 
         Args:
@@ -308,8 +307,9 @@ class CSOPMButtonActionHandler:
             True if modal was displayed successfully, False otherwise.
         """
         try:
-            import aiohttp
             from datetime import datetime, timezone
+
+            import aiohttp
 
             # Get current time for display
             now = datetime.now(timezone.utc)
@@ -351,9 +351,7 @@ class CSOPMButtonActionHandler:
             logger.error("Error showing acknowledgment success modal: %s", e)
             return False
 
-    async def _show_confirmation_modal(
-        self, trigger_id: str, title: str, message: str
-    ) -> bool:
+    async def _show_confirmation_modal(self, trigger_id: str, title: str, message: str) -> bool:
         """Display a generic confirmation modal popup.
 
         Args:
@@ -445,30 +443,40 @@ class CSOPMButtonActionHandler:
                     new_elements = []
                     for element in block.get("elements", []):
                         action_id = element.get("action_id", "")
-                        if action_id == CSOPMNotificationBlocks.ACTION_STOP_REMINDERS and enable_reminders:
+                        if (
+                            action_id == CSOPMNotificationBlocks.ACTION_STOP_REMINDERS
+                            and enable_reminders
+                        ):
                             # Swap to Enable Reminders
-                            new_elements.append({
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Enable Reminders",
-                                    "emoji": True,
-                                },
-                                "action_id": CSOPMNotificationBlocks.ACTION_ENABLE_REMINDERS,
-                                "value": ticket_key,
-                            })
-                        elif action_id == CSOPMNotificationBlocks.ACTION_ENABLE_REMINDERS and not enable_reminders:
+                            new_elements.append(
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Enable Reminders",
+                                        "emoji": True,
+                                    },
+                                    "action_id": CSOPMNotificationBlocks.ACTION_ENABLE_REMINDERS,
+                                    "value": ticket_key,
+                                }
+                            )
+                        elif (
+                            action_id == CSOPMNotificationBlocks.ACTION_ENABLE_REMINDERS
+                            and not enable_reminders
+                        ):
                             # Swap to Stop Reminders
-                            new_elements.append({
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Stop Reminders",
-                                    "emoji": True,
-                                },
-                                "action_id": CSOPMNotificationBlocks.ACTION_STOP_REMINDERS,
-                                "value": ticket_key,
-                            })
+                            new_elements.append(
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Stop Reminders",
+                                        "emoji": True,
+                                    },
+                                    "action_id": CSOPMNotificationBlocks.ACTION_STOP_REMINDERS,
+                                    "value": ticket_key,
+                                }
+                            )
                         else:
                             new_elements.append(element)
                     updated_blocks.append({**block, "elements": new_elements})
@@ -493,8 +501,11 @@ class CSOPMButtonActionHandler:
                         logger.error("Failed to update message for button toggle: %s", error_msg)
                         return False
 
-            logger.info("Updated message to %s reminders button for %s",
-                       "enable" if enable_reminders else "stop", ticket_key)
+            logger.info(
+                "Updated message to %s reminders button for %s",
+                "enable" if enable_reminders else "stop",
+                ticket_key,
+            )
             return True
         except Exception as e:
             logger.error("Error updating message for button toggle: %s", e)
@@ -545,28 +556,35 @@ class CSOPMButtonActionHandler:
                         action_id = element.get("action_id", "")
                         if action_id == CSOPMNotificationBlocks.ACTION_SNOOZE and show_unsnooze:
                             # Swap to Unsnooze
-                            new_elements.append({
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Unsnooze",
-                                    "emoji": True,
-                                },
-                                "action_id": CSOPMNotificationBlocks.ACTION_UNSNOOZE,
-                                "value": ticket_key,
-                            })
-                        elif action_id == CSOPMNotificationBlocks.ACTION_UNSNOOZE and not show_unsnooze:
+                            new_elements.append(
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Unsnooze",
+                                        "emoji": True,
+                                    },
+                                    "action_id": CSOPMNotificationBlocks.ACTION_UNSNOOZE,
+                                    "value": ticket_key,
+                                }
+                            )
+                        elif (
+                            action_id == CSOPMNotificationBlocks.ACTION_UNSNOOZE
+                            and not show_unsnooze
+                        ):
                             # Swap to Snooze
-                            new_elements.append({
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "Snooze",
-                                    "emoji": True,
-                                },
-                                "action_id": CSOPMNotificationBlocks.ACTION_SNOOZE,
-                                "value": ticket_key,
-                            })
+                            new_elements.append(
+                                {
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "Snooze",
+                                        "emoji": True,
+                                    },
+                                    "action_id": CSOPMNotificationBlocks.ACTION_SNOOZE,
+                                    "value": ticket_key,
+                                }
+                            )
                         else:
                             new_elements.append(element)
                     updated_blocks.append({**block, "elements": new_elements})
@@ -588,11 +606,16 @@ class CSOPMButtonActionHandler:
                     response_data = await response.json()
                     if not response_data.get("ok"):
                         error_msg = response_data.get("error", "unknown")
-                        logger.error("Failed to update message for snooze button toggle: %s", error_msg)
+                        logger.error(
+                            "Failed to update message for snooze button toggle: %s", error_msg
+                        )
                         return False
 
-            logger.info("Updated message to %s button for %s",
-                       "unsnooze" if show_unsnooze else "snooze", ticket_key)
+            logger.info(
+                "Updated message to %s button for %s",
+                "unsnooze" if show_unsnooze else "snooze",
+                ticket_key,
+            )
             return True
         except Exception as e:
             logger.error("Error updating message for snooze button toggle: %s", e)
@@ -801,7 +824,9 @@ class CSOPMButtonActionHandler:
             logger.error("Error handling snooze action for %s: %s", ticket_key, e)
             return False
 
-    async def _handle_unsnooze(self, user_id: str, ticket_key: str, payload: Dict[str, Any]) -> bool:
+    async def _handle_unsnooze(
+        self, user_id: str, ticket_key: str, payload: Dict[str, Any]
+    ) -> bool:
         """Handle the Unsnooze button action.
 
         Cancels the snooze and re-enables closure reminders immediately.

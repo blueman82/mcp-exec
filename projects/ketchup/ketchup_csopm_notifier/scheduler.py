@@ -20,7 +20,7 @@ separate from the unified scheduler. This enables:
 
 import time
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 from packages.core.schedulers.base_scheduler import BaseScheduler
@@ -31,6 +31,7 @@ from packages.core.typed_di.protocols import (
     CSOPMSlackNotifierProtocol,
     CSOPMStateTrackerProtocol,
     CSOPMTicket,
+    CSOPMTicketStatusPollerProtocol,
 )
 from packages.core.config.csopm_config import CSOPM_SCHEDULE_TIMES
 
@@ -354,12 +355,22 @@ class CSOPMScheduler(BaseScheduler):
                         )
                         continue
 
+                    # Get current ping count from notification record
+                    record = await state_tracker.get_notification_record(reminder.ticket_key)
+                    current_ping_count = record.closure_ping_count if record else 0
+
+                    # Process closure reminder to get open followups (Option B)
+                    closure_result = await reminder_service.process_closure_reminder(
+                        ticket, current_ping_count
+                    )
+                    open_followups = closure_result.get("open_followups", []) if closure_result else []
+
                     slack_user_id = await notifier.resolve_slack_user_id(
                         ticket.assignee_username
                     )
                     if slack_user_id:
                         success = await notifier.send_reminder_dm(
-                            ticket, slack_user_id, "closure"
+                            ticket, slack_user_id, "closure", open_followups=open_followups
                         )
                         if success:
                             await state_tracker.mark_closure_reminder_sent(ticket.key)
@@ -372,17 +383,111 @@ class CSOPMScheduler(BaseScheduler):
                         e,
                     )
 
+            # Step 5: Poll ticket statuses for completion/closure tracking
+            self.logger.info("Step 5: Polling ticket statuses for completion/closure")
+            status_completed_count = 0
+            status_closed_count = 0
+
+            try:
+                status_poller = await self._container.aget(CSOPMTicketStatusPollerProtocol)
+                status_results = await status_poller.poll_ticket_statuses()
+
+                for ticket_key, result in status_results.items():
+                    if result.was_completed:
+                        status_completed_count += 1
+                    if result.was_closed:
+                        status_closed_count += 1
+
+                self.logger.info(
+                    "Status polling complete: %d newly completed, %d newly closed",
+                    status_completed_count,
+                    status_closed_count,
+                )
+
+                # Check for corrupted records and send alert
+                corrupted = status_poller.get_corrupted_records()
+                if corrupted:
+                    await self._send_corruption_alert(corrupted)
+
+            except Exception as e:
+                self.logger.error("Error polling ticket statuses: %s", e)
+
             # Log cycle summary
             elapsed = time.time() - start_time
             self.logger.info(
-                "CSOPM poll cycle completed in %.2fs: %d notifications, %d reassignments, %d RCA reminders, %d closure reminders",
+                "CSOPM poll cycle completed in %.2fs: %d notifications, %d reassignments, "
+                "%d RCA reminders, %d closure reminders, %d status completions, %d status closures",
                 elapsed,
                 notification_count,
                 reassignment_count,
                 len(rca_due),
                 len(closure_due),
+                status_completed_count,
+                status_closed_count,
             )
 
         except Exception as e:
             self.logger.error("CSOPM poll cycle failed: %s", e, exc_info=True)
             raise
+
+    async def _send_corruption_alert(self, corrupted_records: List[Dict[str, Any]]) -> None:
+        """Send alert to #ketchup-alerts about corrupted CSOPM notification records.
+
+        Args:
+            corrupted_records: List of dicts with slack_id and notification_status.
+        """
+        from packages.core.constants import KETCHUP_ALERTS_CHANNEL
+        from packages.core.typed_di.protocols import SlackAsyncClientProtocol
+
+        try:
+            slack_client = await self._container.aget(SlackAsyncClientProtocol)
+            if not slack_client:
+                self.logger.error("Cannot send corruption alert - no Slack client available")
+                return
+
+            record_details = "\n".join(
+                f"• slack_id: `{r.get('slack_id', 'unknown')}`, status: `{r.get('notification_status', 'unknown')}`"
+                for r in corrupted_records[:10]  # Limit to first 10
+            )
+
+            blocks = [
+                {
+                    "type": "header",
+                    "text": {"type": "plain_text", "text": "🚨 CSOPM Data Corruption Alert"},
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*{len(corrupted_records)} notification record(s) with empty ticket_key detected.*\n\n"
+                        f"These records were skipped during status polling to prevent errors.\n\n"
+                        f"*Affected records:*\n{record_details}",
+                    },
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "Investigation needed: Check DynamoDB for CSOPM_NOTIFICATION# records with empty ticket_key",
+                        }
+                    ],
+                },
+            ]
+
+            await slack_client.api_call(
+                "chat.postMessage",
+                {
+                    "channel": KETCHUP_ALERTS_CHANNEL,
+                    "blocks": blocks,
+                    "text": f"CSOPM Data Corruption: {len(corrupted_records)} records with empty ticket_key",
+                },
+            )
+
+            self.logger.info(
+                "Sent CSOPM corruption alert for %d records to #ketchup-alerts",
+                len(corrupted_records),
+            )
+
+        except Exception as e:
+            self.logger.error("Failed to send corruption alert: %s", e)

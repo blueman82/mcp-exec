@@ -123,10 +123,12 @@ class MetricsExportHandler:
             )
 
             # Generate HTML with time parameters
+            # Note: jira_posting is nested inside cso metrics
             html_content = self._html_generator.generate(
                 metrics_data["cso"],
                 metrics_data["technical"],
-                metrics_data.get("jira_posting", {}),
+                metrics_data["cso"].get("jira_posting", {}),
+                csopm_metrics=metrics_data.get("csopm"),
                 period_type=period_type,
                 month=month,
                 quarter=quarter,
