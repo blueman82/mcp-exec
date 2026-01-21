@@ -1,0 +1,164 @@
+# Conductor Implementation Plan
+# Feature: Add edit_jira_comment and delete_jira_comment tools to ketchup mcp-jira server
+# Generated: 2026-01-21
+# Repository: camp-ops-emea/projects/ketchup
+
+feature:
+  name: "JIRA Comment Edit/Delete Tools (Ketchup MCP-JIRA)"
+  description: |
+    Add edit_jira_comment and delete_jira_comment MCP tools to the ketchup mcp-jira server.
+    This server runs as the mcp-jira Docker container on prod1/prod2.
+    These tools are currently missing, forcing CSOPM cleanup to use raw curl commands.
+    Following existing patterns from addComment.ts and getComments.ts in this codebase.
+
+  jira_api_reference:
+    edit: "PUT /rest/api/2/issue/{issueIdOrKey}/comment/{id}"
+    delete: "DELETE /rest/api/2/issue/{issueIdOrKey}/comment/{id}"
+
+  files_to_modify:
+    - operations/editComment.ts (new)
+    - operations/deleteComment.ts (new)
+    - index.ts (register tools)
+
+context:
+  working_directory: /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/corp_jira_mcp
+  docker_container: mcp-jira (runs on prod1 and prod2)
+  existing_patterns:
+    - operations/addComment.ts - POST pattern, returns {success, message, data/error}
+    - operations/getComments.ts - GET pattern, returns {success, data/error}
+    - common/utils.js - jiraRequest helper
+  note: |
+    This codebase uses a simpler response pattern (direct object return) compared to
+    adobe-mcp-servers which uses formatSuccessResponse/formatExceptionResponse.
+
+tasks:
+  - id: 1
+    title: "Create editComment.ts operation file"
+    description: |
+      Create new operation file for editing JIRA comments.
+      Uses PUT method to /issue/{issueIdOrKey}/comment/{commentId}.
+      Follow the addComment.ts pattern for response format.
+    files:
+      - operations/editComment.ts
+    acceptance_criteria:
+      - EditJiraCommentSchema with issueIdOrKey, commentId, and comment body
+      - editJiraComment function using PUT method
+      - Returns {success: true/false, message, data/error} format
+      - Follows existing TypeScript patterns in this codebase
+    test_command: "npm run build"
+
+  - id: 2
+    title: "Create deleteComment.ts operation file"
+    description: |
+      Create new operation file for deleting JIRA comments.
+      Uses DELETE method to /issue/{issueIdOrKey}/comment/{commentId}.
+      Handle HTTP 204 (no content) response as success.
+    files:
+      - operations/deleteComment.ts
+    acceptance_criteria:
+      - DeleteJiraCommentSchema with issueIdOrKey and commentId
+      - deleteJiraComment function using DELETE method
+      - Returns {success: true/false, message} format
+      - HTTP 204 response handling
+    test_command: "npm run build"
+
+  - id: 3
+    title: "Register edit_jira_comment tool in index.ts"
+    description: |
+      Add the edit_jira_comment tool to the MCP server registration.
+      Import the module, add to tools list, add case handler.
+      Note: This file has duplicate tool handling sections - update both.
+    files:
+      - index.ts
+    acceptance_criteria:
+      - Import editComment module at top of file
+      - Add edit_jira_comment to tools array with description and schema
+      - Add case handler in BOTH switch statement sections
+    depends_on: [1]
+    test_command: "npm run build"
+
+  - id: 4
+    title: "Register delete_jira_comment tool in index.ts"
+    description: |
+      Add the delete_jira_comment tool to the MCP server registration.
+      Import the module, add to tools list, add case handler.
+      Note: This file has duplicate tool handling sections - update both.
+    files:
+      - index.ts
+    acceptance_criteria:
+      - Import deleteComment module at top of file
+      - Add delete_jira_comment to tools array with description and schema
+      - Add case handler in BOTH switch statement sections
+    depends_on: [2]
+    test_command: "npm run build"
+
+  - id: 5
+    title: "Build and verify compilation"
+    description: |
+      Build the project to verify TypeScript compilation succeeds.
+    acceptance_criteria:
+      - npm run build succeeds with no errors
+      - dist/ folder contains compiled files
+    depends_on: [3, 4]
+    test_command: "npm run build"
+
+  - id: 6
+    title: "Local Docker test"
+    description: |
+      Build and run the mcp-jira container locally to verify tools work.
+      Test against a CSOPM test ticket.
+    acceptance_criteria:
+      - Container starts successfully
+      - Tools appear in tool listing
+      - edit_jira_comment updates comment
+      - delete_jira_comment removes comment
+    depends_on: [5]
+    manual: true
+    test_notes: |
+      Use docker-compose.local.yml to test:
+      cd infrastructure && docker-compose -f docker-compose.local.yml up mcp-jira
+
+  - id: 7
+    title: "Deploy to production"
+    description: |
+      Deploy updated mcp-jira container to prod1 and prod2 using ./deploy script.
+    acceptance_criteria:
+      - ./deploy completes successfully
+      - mcp-jira containers on both servers have new tools
+      - Verify with docker exec to list tools
+    depends_on: [6]
+    manual: true
+    deployment: true
+
+commit_points:
+  - after_task: 2
+    message: "feat(mcp-jira): add editComment and deleteComment operation files"
+  - after_task: 4
+    message: "feat(mcp-jira): register edit_jira_comment and delete_jira_comment tools"
+
+testing_strategy:
+  unit_tests: "npm run build (TypeScript compilation)"
+  integration_tests: "Manual testing with Docker container against JIRA API"
+  production_verification: |
+    After deployment, verify tools work by:
+    1. SSH to prod1
+    2. docker exec into mcp-jira container
+    3. Test tool availability
+
+rollback_plan: |
+  If issues occur after deployment:
+  1. ./deploy --rollback vX.XXX.XXX (previous version)
+  2. Or manually revert changes and redeploy:
+     - Remove imports from index.ts
+     - Remove tool registrations
+     - Remove case handlers
+     - Delete operations/editComment.ts and operations/deleteComment.ts
+     - npm run build && ./deploy
+
+related_cleanup_operations: |
+  These tools will simplify CSOPM cleanup by replacing:
+  ```bash
+  curl -X DELETE "https://jira.corp.adobe.com/rest/api/2/issue/TICKET/comment/ID" \
+    -H "Authorization: Bearer $JIRA_TOKEN"
+  ```
+  With MCP tool calls that handle auth automatically.
