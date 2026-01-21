@@ -1282,7 +1282,6 @@ class CSOPMHandler:
                 "Starting background follow-up creation: project=%s, type=%s, parent=%s",
                 project_key,
                 issue_type,
-                issue_type_id,
                 parent_ticket_key,
             )
 
