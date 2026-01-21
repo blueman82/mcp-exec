@@ -547,8 +547,15 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        assert result is False
-        # Error message should be sent to user
+        # Modal closes immediately while JIRA work happens in background
+        # Even if JIRA fails, modal still closes - user notified via DM
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
+
+        # Error message should be sent to user via DM
         mock_posting_handler.post_message.assert_awaited()
 
     @pytest.mark.asyncio
