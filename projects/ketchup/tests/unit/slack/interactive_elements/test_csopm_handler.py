@@ -436,7 +436,12 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(sample_view_submission_payload)
 
-        assert result is True
+        # Modal closes immediately while JIRA work happens in background
+        assert result == {"response_action": "clear"}
+
+        # Allow background task to complete
+        import asyncio
+        await asyncio.sleep(0.01)
 
         # Verify create_jira_issue was called
         create_call = mock_mcp_client._call_mcp_tool.call_args_list[0]
