@@ -580,7 +580,11 @@ class TestCSOPMHandlerViewSubmission:
 
         result = await handler.handle_view_submission(payload)
 
-        assert result is False
+        # Validation errors return error dict to keep modal open with error message
+        assert result == {
+            "response_action": "errors",
+            "errors": {"summary_block": "Summary is required."},
+        }
         mock_mcp_client._call_mcp_tool.assert_not_awaited()
 
     @pytest.mark.asyncio
