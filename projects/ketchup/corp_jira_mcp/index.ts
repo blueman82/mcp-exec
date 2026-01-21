@@ -22,6 +22,8 @@ import * as auth from './operations/auth.js';
 import * as status from './operations/status.js';
 import * as getComments from './operations/getComments.js';
 import * as addComment from './operations/addComment.js';
+import * as editComment from './operations/editComment.js';
+import * as deleteComment from './operations/deleteComment.js';
 import * as getFields from './operations/getFields.js';
 import * as createPAT from './operations/createPAT.js';
 import * as revokePAT from './operations/revokePAT.js';
@@ -96,6 +98,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "add_jira_comment",
         description: "Add a comment to a Jira issue",
         inputSchema: zodToJsonSchema(addComment.AddJiraCommentSchema),
+      },
+      {
+        name: "edit_jira_comment",
+        description: "Edit an existing comment on a Jira issue",
+        inputSchema: zodToJsonSchema(editComment.EditJiraCommentSchema),
+      },
+      {
+        name: "delete_jira_comment",
+        description: "Delete a comment from a Jira issue",
+        inputSchema: zodToJsonSchema(deleteComment.DeleteJiraCommentSchema),
       },
       {
         name: "transition_jira_status",
@@ -241,11 +253,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "add_jira_comment": {
         const args = addComment.AddJiraCommentSchema.parse(request.params.arguments);
         const result = await addComment.addJiraComment(args);
-        
+
         if (result && typeof result === 'object' && 'success' in result && !result.success) {
           throw new Error('Failed to add comment to issue');
         }
-        
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "edit_jira_comment": {
+        const args = editComment.EditJiraCommentSchema.parse(request.params.arguments);
+        const result = await editComment.editJiraComment(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to edit comment');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "delete_jira_comment": {
+        const args = deleteComment.DeleteJiraCommentSchema.parse(request.params.arguments);
+        const result = await deleteComment.deleteJiraComment(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to delete comment');
+        }
+
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
@@ -569,7 +607,25 @@ async function runServer() {
           };
           break;
         }
-        
+
+        case 'edit_jira_comment': {
+          const args = editComment.EditJiraCommentSchema.parse(request.params.arguments);
+          const editCommentResult = await editComment.editJiraComment(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(editCommentResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'delete_jira_comment': {
+          const args = deleteComment.DeleteJiraCommentSchema.parse(request.params.arguments);
+          const deleteCommentResult = await deleteComment.deleteJiraComment(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(deleteCommentResult, null, 2) }]
+          };
+          break;
+        }
+
         case 'create_jira_issue': {
           const args = create.CreateJiraIssueSchema.parse(request.params.arguments);
           const createResult = await create.createJiraIssue(args);
