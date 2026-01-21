@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
-Tests for main.py entry point with TypedDI integration.
+Tests for PAT rotator TypedDI integration.
 
 Verifies:
 - TypedDI container initializes correctly with mocked AWS dependencies
 - All required protocols are resolved
-- Scheduler starts without errors
+- PATRotator can be instantiated and works correctly
 - Services are properly initialized
 
 NOTE: These are unit tests with mocked AWS dependencies.
 AWS services are mocked via conftest.py fixtures.
+
+Note: PatRotationScheduler class was removed as dead code - production uses
+TaskRegistry + TaskConfig pattern via ketchup_unified_scheduler.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -101,134 +103,24 @@ class TestMainTypeInitialization:
         assert hasattr(secrets_manager, "__class__")
 
 
-class TestSchedulerIntegration:
-    """Test scheduler integration with TypedDI."""
+class TestPATRotatorInstantiation:
+    """Test PATRotator instantiation and basic functionality."""
 
     @pytest.mark.asyncio
-    async def test_scheduler_initialization_with_container(self):
-        """Test that scheduler can be initialized with container dependencies."""
-        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
-
-        # Scheduler should initialize without errors
-        scheduler = PatRotationScheduler()
-        assert scheduler is not None
-        assert scheduler.running is True
-        assert hasattr(scheduler, "start")
-        assert asyncio.iscoroutinefunction(scheduler.start)
-
-    @pytest.mark.asyncio
-    async def test_scheduler_has_rotation_interval(self):
-        """Test that scheduler has proper rotation interval configured."""
-        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
-
-        scheduler = PatRotationScheduler()
-
-        # Verify rotation interval - BaseScheduler uses interval_minutes
-        assert hasattr(scheduler, "interval_minutes")
-        # 24 hours in minutes = 1440
-        assert scheduler.interval_minutes == 1440
-        # get_sleep_seconds should return 24 hours in seconds
-        assert scheduler.get_sleep_seconds() == 24 * 60 * 60
-
-    @pytest.mark.asyncio
-    async def test_rotator_can_be_instantiated_with_dependencies(self):
-        """Test that PATRotator can be instantiated with dependencies."""
+    async def test_rotator_can_be_instantiated(self):
+        """Test that PATRotator can be instantiated."""
         from ketchup_unified_scheduler.services.pat_rotator.rotator import PATRotator
 
-        # Should instantiate without errors
         rotator = PATRotator()
         assert rotator is not None
         assert hasattr(rotator, "rotate")
-        assert asyncio.iscoroutinefunction(rotator.rotate)
 
     @pytest.mark.asyncio
-    async def test_main_entry_point_structure(self):
-        """Test that main module has correct entry point structure."""
-        # Import will fail if main.py doesn't exist
-        try:
-            import ketchup_unified_scheduler.services.pat_rotator.rotator as main_module
+    async def test_rotator_has_logger(self):
+        """Test that rotator module has logger configured."""
+        import ketchup_unified_scheduler.services.pat_rotator.rotator as rotator_module
 
-            # Verify main module has expected attributes
-            assert hasattr(main_module, "main")
-            assert callable(main_module.main)
-
-        except ImportError:
-            # main.py doesn't exist yet - this is expected during first implementation
-            pytest.skip("main.py not yet implemented")
-
-
-class TestMainAsyncFunctionality:
-    """Test async functionality in main module."""
-
-    @pytest.mark.asyncio
-    @patch("ketchup_unified_scheduler.services.pat_rotator.rotator.PatRotationScheduler")
-    async def test_main_can_start_scheduler(self, mock_scheduler_class):
-        """Test that main function can start scheduler."""
-        # Skip if main.py not yet implemented
-        try:
-            import ketchup_unified_scheduler.services.pat_rotator.rotator as main_module
-
-            # Mock the scheduler
-            mock_scheduler = AsyncMock()
-            mock_scheduler_class.return_value = mock_scheduler
-
-            # This would be the async main function
-            if hasattr(main_module, "async_main"):
-                await main_module.async_main()
-                mock_scheduler.start.assert_called_once()
-
-        except ImportError:
-            pytest.skip("main.py not yet implemented")
-
-    @pytest.mark.asyncio
-    async def test_scheduler_runs_without_errors(self):
-        """Test that scheduler can run initial cycle without errors."""
-        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
-
-        scheduler = PatRotationScheduler()
-
-        # Mock the run_task method to avoid actual network calls
-        with patch.object(scheduler, "run_task", new_callable=AsyncMock):
-            # Mock asyncio.sleep to prevent infinite loop
-            with patch(
-                "packages.core.schedulers.base_scheduler.asyncio.sleep", new_callable=AsyncMock
-            ) as mock_sleep:
-                # Schedule shutdown after first run
-                async def run_with_timeout():
-                    task = asyncio.create_task(scheduler.start())
-                    await asyncio.sleep(0.1)
-                    scheduler.running = False
-                    try:
-                        await asyncio.wait_for(task, timeout=2.0)
-                    except asyncio.TimeoutError:
-                        pass
-
-                try:
-                    await run_with_timeout()
-                except Exception as e:
-                    pytest.fail(f"Scheduler failed to run: {e}")
-
-
-class TestMainModuleExports:
-    """Test that main module exports required functions."""
-
-    def test_main_module_exports_main_function(self):
-        """Test that main module exports main function."""
-        try:
-            from ketchup_unified_scheduler.services.pat_rotator.rotator import main
-
-            assert callable(main)
-        except ImportError:
-            pytest.skip("main.py not yet implemented")
-
-    def test_main_module_imports_logger(self):
-        """Test that main module has logger configured."""
-        try:
-            import ketchup_unified_scheduler.services.pat_rotator.rotator as main_module
-
-            assert hasattr(main_module, "logger")
-        except ImportError:
-            pytest.skip("main.py not yet implemented")
+        assert hasattr(rotator_module, "logger")
 
 
 class TestPATRotatorDIIntegration:
@@ -269,25 +161,6 @@ class TestPATRotatorDIIntegration:
         assert rotator._container is None
         # MCP client should be None initially (lazy initialization)
         assert rotator._mcp_client is None
-
-    @pytest.mark.asyncio
-    async def test_scheduler_passes_container_to_rotator(self):
-        """Test that scheduler passes DI container to rotator."""
-        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
-
-        container = await get_unified_container()
-        scheduler = PatRotationScheduler(container=container)
-
-        assert scheduler._container is container
-
-    @pytest.mark.asyncio
-    async def test_scheduler_accepts_none_container(self):
-        """Test that scheduler works without container (backward compatible)."""
-        from ketchup_unified_scheduler.services.pat_rotator.rotator import PatRotationScheduler
-
-        scheduler = PatRotationScheduler()
-
-        assert scheduler._container is None
 
     @pytest.mark.asyncio
     async def test_mcp_client_caching(self):

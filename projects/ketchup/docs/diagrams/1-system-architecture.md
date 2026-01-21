@@ -19,10 +19,8 @@ graph TB
             MCP1["mcp-jira<br/>MCP Service :8081"]
 
             subgraph "Singleton Services (prod1 only)"
-                MetadataUpdater["metadata-updater<br/>Channel Scanner"]
-                StatusUpdater["status-updater<br/>Hourly Reports"]
-                JiraReporter["jira-reporter<br/>Automation"]
-                MaintenanceFetcher["maintenance-fetcher<br/>Detection"]
+                UnifiedScheduler["unified-scheduler<br/>5 Background Tasks"]
+                CsopmNotifier["csopm-notifier<br/>Assignment Notifications"]
             end
 
             AccessMonitor1["access-monitor<br/>Request Tracking"]
@@ -46,6 +44,7 @@ graph TB
 
     subgraph "Shared Code (All Services)"
         PackagesDir["packages/<br/>ai, core, db, integrations,<br/>secrets, slack"]
+        CsopmShared["packages/slack/csopm/<br/>blocks, state, actions"]
     end
 
     SlackAPI -->|HTTP POST Events| ALB
@@ -70,22 +69,22 @@ graph TB
     App2_1 -->|Query/Update| DDB
     App2_2 -->|Query/Update| DDB
 
-    MetadataUpdater -->|Get Creds| Secrets
-    StatusUpdater -->|Get Creds| Secrets
-    JiraReporter -->|Get Creds| Secrets
-    MaintenanceFetcher -->|Get Creds| Secrets
+    UnifiedScheduler -->|Get Creds| Secrets
+    CsopmNotifier -->|Get Creds| Secrets
     MCP1 -->|Get Creds| Secrets
     MCP2 -->|Get Creds| Secrets
 
-    MetadataUpdater -->|Pull Events| SQS
-    StatusUpdater -->|Pull Events| SQS
-    JiraReporter -->|Pull Events| SQS
-    MaintenanceFetcher -->|Pull Events| SQS
+    UnifiedScheduler -->|Pull Events| SQS
+    CsopmNotifier -->|Query/Update| DDB
 
-    MetadataUpdater -->|Response| SlackAPI
-    StatusUpdater -->|Response| SlackAPI
-    JiraReporter -->|Response| SlackAPI
-    MaintenanceFetcher -->|Response| SlackAPI
+    UnifiedScheduler -->|Response| SlackAPI
+    CsopmNotifier -->|DM Notifications| SlackAPI
+
+    CsopmNotifier -->|Uses| CsopmShared
+    App1_1 -->|Uses| CsopmShared
+    App1_2 -->|Uses| CsopmShared
+    App2_1 -->|Uses| CsopmShared
+    App2_2 -->|Uses| CsopmShared
 
     MCP1 -->|:8081 STDIO| App1_1
     MCP1 -->|:8081 STDIO| App1_2
@@ -99,6 +98,7 @@ graph TB
     style Secrets fill:#527fff
     style SQS fill:#527fff
     style PackagesDir fill:#00cc99
+    style CsopmShared fill:#00cc99
     style SlackAPI fill:#36c5f0
     style JiraCloud fill:#0052cc
 ```
@@ -116,12 +116,16 @@ graph TB
 
 ### Singleton Services (prod1 only)
 These run **only** on prod1 to prevent duplicate scheduled jobs:
-- `metadata-updater`: Scans channel metadata hourly
-- `status-updater`: Generates hourly status reports
-- `jira-reporter`: Automates JIRA ticket creation/updates
-- `maintenance-fetcher`: Detects maintenance windows
+- `unified-scheduler`: Orchestrates 5 background tasks (metadata_updater, status_updater, jira_reporter, maintenance_fetcher, pat_rotator)
+- `csopm-notifier`: CSOPM assignment notifications (runs at 08:00/16:00 UTC)
 
 Explicitly stopped on prod2 during deployment to prevent conflicts.
+
+### CSOPM Shared Services (`packages/slack/csopm/`)
+Shared components used by both the scheduler (`ketchup-csopm-notifier`) and main app (`ketchup-app`):
+- `blocks.py`: Slack Block Kit notification components
+- `state.py`: DynamoDB state tracking for notifications
+- `actions.py`: Interactive button action handlers (acknowledge/done/snooze)
 
 ### Data & Secrets
 - **DynamoDB**: Single table for channel information, queried by all services
@@ -138,4 +142,4 @@ All 7 services import from the **`packages/`** directory, enabling consistent:
 
 ---
 
-**Total Containers**: 14 across 2 servers (7 on prod1, 5 on prod2 + monitoring)
+**Total Containers**: 12 across 2 servers (7 on prod1, 5 on prod2)

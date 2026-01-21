@@ -426,6 +426,11 @@ This module contains all Slack-specific functionality:
   - **`home_modals.py`**: Builds and publishes modals (like success confirmations).
   - **`home_utils.py`**: Provides stateless helpers for UI blocks and preference management.
 
+- **`csopm/`**: CSOPM (Customer Support Operations Management) shared components used by both the scheduler container and main app.
+  - **`blocks.py`**: Slack Block Kit notification components for assignment alerts.
+  - **`state.py`**: DynamoDB state tracking for notification status (CSOPM_NOTIFICATION# prefix).
+  - **`actions.py`**: Interactive button action handlers (acknowledge/done/snooze) for callbacks.
+
 ## Key Async Clients in the Codebase
 
 Let's look at the most important async clients in our codebase:

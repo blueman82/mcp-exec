@@ -50,6 +50,7 @@ from ..protocols import (
     ChannelOperationsProtocol,
     CommandRouterProtocol,
     CommandTrackingOperationsProtocol,
+    CSOPMStateTrackerProtocol,
     DynamoDBStoreProtocol,
     FeatureCommandProtocol,
     FeatureServiceProtocol,
@@ -599,10 +600,12 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
         channel_ops = await resolver.aget(ChannelOperationsProtocol)
         join_notification_ops = await resolver.aget(JoinNotificationOpsProtocol)
         channel_membership_ops = await resolver.aget(ChannelMembershipOpsProtocol)
+        csopm_state_tracker = await resolver.aget(CSOPMStateTrackerProtocol)
         return MetricsDataCollector(
             channel_ops=channel_ops,
             join_notification_ops=join_notification_ops,
             channel_membership_ops=channel_membership_ops,
+            csopm_state_tracker=csopm_state_tracker,
         )
 
     manager.register_protocol_with_concrete_alias(
@@ -613,6 +616,7 @@ def _register_metrics_services(manager: "ServiceRegistrationManager") -> None:
             DependencySpec(ChannelOperationsProtocol),
             DependencySpec(JoinNotificationOpsProtocol),
             DependencySpec(ChannelMembershipOpsProtocol),
+            DependencySpec(CSOPMStateTrackerProtocol),
         ],
         lifetime="singleton",
     )

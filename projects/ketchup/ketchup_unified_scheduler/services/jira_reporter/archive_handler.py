@@ -176,30 +176,24 @@ class JiraReporterArchiveHandler:
         """
         Re-archive a channel after JIRA report processing.
         Mirrors SlackChannelRestoreOps pattern with real-time checks.
-
         Args:
             channel_id: The Slack channel ID to re-archive
-
         Returns:
             True if successful or already archived, False otherwise
         """
         try:
             logger.info(f"Checking archive status for channel {channel_id}")
-
             # First check real-time channel status (like SlackChannelRestoreOps does)
             channel_info = await self.archive_ops.get_channel_info(channel_id)
             if not channel_info.get("ok", False):
                 error_msg = channel_info.get("error", "unknown error")
                 logger.error(f"Failed to get channel info for {channel_id}: {error_msg}")
                 return False
-
             channel_data = channel_info.get("channel", {})
             is_archived = channel_data.get("is_archived", False)
-
             # If already archived, just update DB state
             if is_archived:
                 logger.info(f"Channel {channel_id} is already archived, updating DB state only")
-
                 # Still need to clear temporary unarchive state and restore original archived_at
                 original_archived_at = None
                 try:
@@ -210,23 +204,22 @@ class JiraReporterArchiveHandler:
                     logger.warning(
                         f"Could not retrieve original archived_at for {channel_id}: {str(db_e)}"
                     )
-
-                updates = {"archived": True, "temporary_unarchive": False}
-
+                updates = {
+                    "archived": True,
+                    "temporary_unarchive": False,
+                    "temp_unarchive_expiry": None,  # Remove TTL attribute to prevent auto-deletion
+                }
                 if original_archived_at:
                     updates["archived_at"] = original_archived_at
                     logger.info(
                         f"Restoring original archived_at for {channel_id}: {original_archived_at}"
                     )
-
                 await self.dynamodb_store.update_channel_fields(
                     channel_id=channel_id, updates=updates
                 )
                 return True
-
             # Channel is unarchived, proceed with archiving
             logger.info(f"Channel {channel_id} is unarchived, proceeding with re-archive")
-
             # Retrieve original archived_at timestamp before re-archiving
             original_archived_at = None
             try:
@@ -237,39 +230,33 @@ class JiraReporterArchiveHandler:
                 logger.warning(
                     f"Could not retrieve original archived_at for {channel_id}: {str(db_e)}"
                 )
-
             # Call Slack API to archive using archive ops
             # Skip status check since we just verified it's unarchived
             success = await self.archive_ops.archive_channel(
                 user_id=None, channel_id=channel_id, incoming_channel=None, skip_status_check=True
             )
-
             if success:
                 logger.info(f"Successfully re-archived channel {channel_id}")
-
                 # Update DynamoDB to clear temporary unarchive state and restore original archived_at
                 updates = {
                     "archived": True,
                     "temporary_unarchive": False,
                     "rearchive_timestamp": int(time.time()),
+                    "temp_unarchive_expiry": None,  # Remove TTL attribute to prevent auto-deletion
                 }
-
                 # Restore original archived_at if available
                 if original_archived_at:
                     updates["archived_at"] = original_archived_at
                     logger.info(
                         f"Restoring original archived_at for {channel_id}: {original_archived_at}"
                     )
-
                 await self.dynamodb_store.update_channel_fields(
                     channel_id=channel_id, updates=updates
                 )
-
                 return True
             else:
                 logger.error(f"Failed to re-archive channel {channel_id}")
                 return False
-
         except Exception as e:
             logger.error(f"Exception re-archiving channel {channel_id}: {str(e)}", exc_info=True)
             return False

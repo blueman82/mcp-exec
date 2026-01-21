@@ -23,14 +23,14 @@ from datetime import datetime, timezone
 import pytest
 import pytest_asyncio
 
-from ketchup_csopm_notifier.services.state_tracker import (
+from packages.core.logging import setup_logger
+from packages.core.typed_di.protocols import CSOPMTicket
+from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
+from packages.slack.csopm.state import (
     PK_NOTIFICATION_PREFIX,
     SK_NOTIFICATION,
     CSOPMStateTracker,
 )
-from packages.core.logging import setup_logger
-from packages.core.typed_di.protocols import CSOPMTicket
-from packages.db.core.dynamodb_async_client import DynamoDBAsyncClient
 
 logger = setup_logger(__name__)
 

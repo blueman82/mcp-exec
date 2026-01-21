@@ -452,10 +452,9 @@ class ChannelOperations(BaseOperations):
     async def update_channel_fields(self, channel_id: str, updates: Dict[str, Any]) -> bool:
         """
         Generic method to update arbitrary fields on a channel.
-
         Args:
             channel_id: The channel ID
-            updates: Dictionary of field names to values
+            updates: Dictionary of field names to values. Use None to remove an attribute.
         """
         logger.info(
             "Updating channel fields for %s: %s",
@@ -463,37 +462,57 @@ class ChannelOperations(BaseOperations):
             updates,
         )
         try:
-            # Build SET expression
+            # Separate SET and REMOVE operations
             set_parts = []
+            remove_parts = []
             expr_values = {}
             expr_names = {}
 
             for idx, (field, value) in enumerate(updates.items()):
-                placeholder = f":val{idx}"
                 name_placeholder = f"#{field}"
-
-                set_parts.append(f"{name_placeholder} = {placeholder}")
                 expr_names[name_placeholder] = field
 
-                # Convert Python types to DynamoDB types
-                if isinstance(value, bool):
-                    expr_values[placeholder] = {"BOOL": value}
-                elif isinstance(value, (int, float)):
-                    expr_values[placeholder] = {"N": str(value)}
-                elif isinstance(value, dict):
-                    expr_values[placeholder] = {"S": json.dumps(value)}
+                if value is None:
+                    # None means remove the attribute
+                    remove_parts.append(name_placeholder)
                 else:
-                    expr_values[placeholder] = {"S": str(value)}
+                    placeholder = f":val{idx}"
+                    set_parts.append(f"{name_placeholder} = {placeholder}")
+                    # Convert Python types to DynamoDB types
+                    if isinstance(value, bool):
+                        expr_values[placeholder] = {"BOOL": value}
+                    elif isinstance(value, (int, float)):
+                        expr_values[placeholder] = {"N": str(value)}
+                    elif isinstance(value, dict):
+                        expr_values[placeholder] = {"S": json.dumps(value)}
+                    else:
+                        expr_values[placeholder] = {"S": str(value)}
 
-            update_expr = "SET " + ", ".join(set_parts)
+            # Build update expression with SET and/or REMOVE
+            update_parts = []
+            if set_parts:
+                update_parts.append("SET " + ", ".join(set_parts))
+            if remove_parts:
+                update_parts.append("REMOVE " + ", ".join(remove_parts))
 
-            await self.client.update_item(
-                table_name=self.table_name,
-                key={"PK": {"S": f"CHANNEL#{channel_id}"}, "SK": {"S": "CSO_DETAILS"}},
-                update_expression=update_expr,
-                expression_attribute_names=expr_names,
-                expression_attribute_values=expr_values,
-            )
+            if not update_parts:
+                logger.warning("No updates to apply for channel %s", channel_id)
+                return True
+
+            update_expr = " ".join(update_parts)
+
+            # Build update_item kwargs
+            update_kwargs = {
+                "table_name": self.table_name,
+                "key": {"PK": {"S": f"CHANNEL#{channel_id}"}, "SK": {"S": "CSO_DETAILS"}},
+                "update_expression": update_expr,
+                "expression_attribute_names": expr_names,
+            }
+            # Only include expression_attribute_values if we have SET operations
+            if expr_values:
+                update_kwargs["expression_attribute_values"] = expr_values
+
+            await self.client.update_item(**update_kwargs)
             logger.info("Channel fields updated successfully for %s", channel_id)
             return True
         except Exception as e:
@@ -559,100 +578,80 @@ class ChannelOperations(BaseOperations):
         self,
         start_ts: int,
         end_ts: int,
+        channels_data: List[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Query all channels and aggregate JIRA posting statistics for time period.
+        Query CSO channels and aggregate JIRA posting statistics for time period.
 
         Analyzes JIRA reporter posting status for dashboard metrics.
         Only counts PROCESSED postings that occurred within the time window.
-        FAILED/PENDING statuses are counted regardless of age.
-
-        Success is defined as: primary_success OR (primary_invalid AND csopm_success)
+        Returns historical metrics only - no live state (pending/failed status).
 
         Args:
             start_ts: Start timestamp (Unix epoch)
             end_ts: End timestamp (Unix epoch)
+            channels_data: Pre-loaded channels list (optional, avoids duplicate DB calls)
 
         Returns:
             Dictionary containing:
-                - total_channels: Total CSO channels analyzed
+                - total_channels: Total CSO channels in time period
                 - posted_primary: Channels posted to primary ticket (in time window)
                 - posted_csopm: Channels posted to CSOPM ticket (in time window)
                 - posted_both: Channels posted to both tickets (in time window)
-                - failed_no_ticket: Channels failed due to missing/invalid ticket
-                - failed_api_error: Channels failed due to API errors
-                - pending: Channels with reports pending
-                - processing: Channels currently being processed
-                - success_rate: Percentage of successful postings (in time window)
-                - channels_needing_attention: List of channel IDs requiring action
+                - channels_posted: Unique channels that posted in time window
+                - success_rate: Percentage of channels that posted (historical)
         """
         logger.info(f"Starting get_jira_posting_metrics (time window: {start_ts} - {end_ts})")
 
         try:
-            # Get all channels (campaign/ajo only for CSO metrics)
-            all_channels = await self.query_ops._get_all_channels_scan()
-            normalized_channels = {
-                ch_id: self._normalize_item(item) for ch_id, item in all_channels.items()
-            }
+            # Use pre-loaded channels if provided, otherwise load from DB
+            if channels_data is not None:
+                # Convert list to dict format and filter for CSO channels
+                all_cso_channels = {
+                    ch.get("channel_id"): ch
+                    for ch in channels_data
+                    if ch.get("product") in ["campaign", "ajo"]
+                }
+            else:
+                # Fallback: load channels (for standalone calls)
+                active_channels = await self.get_all_channel_details()
+                days = (end_ts - start_ts) // (24 * 60 * 60)
+                archived_channels = await self.get_all_channel_details(
+                    archive_lookup=True, days_threshold=days
+                )
+                all_channels = {**active_channels, **archived_channels}
+                all_cso_channels = {
+                    ch_id: ch
+                    for ch_id, ch in all_channels.items()
+                    if ch.get("product") in ["campaign", "ajo"]
+                }
 
-            # Filter to campaign/ajo channels only (CSO channels)
-            cso_channels = {
-                ch_id: ch
-                for ch_id, ch in normalized_channels.items()
-                if ch.get("product") in ["campaign", "ajo"] and not ch.get("archived", False)
-            }
-
-            total_channels = len(cso_channels)
+            total_channels = len(all_cso_channels)
             posted_primary = 0
             posted_csopm = 0
             posted_both = 0
-            failed_no_ticket = 0
-            failed_api_error = 0
-            pending = 0
-            processing = 0
-            channels_needing_attention = []
+            channels_posted = 0
 
-            for channel_id, channel in cso_channels.items():
+            # Count PROCESSED posts within time window
+            for channel_id, channel in all_cso_channels.items():
                 status = channel.get("jira_report_status", "PENDING")
                 timestamp = channel.get("jira_report_timestamp", 0)
                 primary_invalid = channel.get("jira_report_primary_invalid", False)
                 csopm_posted = channel.get("jira_report_csopm_posted", False)
-                jira_ticket = channel.get("jira_ticket", "NOT YET AVAILABLE")
 
-                # Count by status
-                if status == "PENDING":
-                    pending += 1
-                    channels_needing_attention.append(channel_id)
-                elif status == "PROCESSING":
-                    processing += 1
-                elif status == "PROCESSED":
-                    # Only count if posted within time window
-                    if start_ts <= timestamp <= end_ts:
-                        # Determine what was posted
-                        if not primary_invalid and csopm_posted:
-                            posted_both += 1
-                            posted_primary += 1
-                            posted_csopm += 1
-                        elif not primary_invalid:
-                            posted_primary += 1
-                        elif csopm_posted:
-                            posted_csopm += 1
-                    # If outside time window, treat as stale/needing update
-                    else:
-                        pending += 1
-                        channels_needing_attention.append(channel_id)
-                elif status == "FAILED":
-                    # Distinguish failure types
-                    if primary_invalid and jira_ticket == "NOT YET AVAILABLE":
-                        failed_no_ticket += 1
-                    else:
-                        failed_api_error += 1
-                    channels_needing_attention.append(channel_id)
+                if status == "PROCESSED" and start_ts <= timestamp <= end_ts:
+                    channels_posted += 1
+                    if not primary_invalid and csopm_posted:
+                        posted_both += 1
+                        posted_primary += 1
+                        posted_csopm += 1
+                    elif not primary_invalid:
+                        posted_primary += 1
+                    elif csopm_posted:
+                        posted_csopm += 1
 
-            # Calculate success rate
-            successful = posted_primary + posted_csopm - posted_both
             success_rate = (
-                round((successful / total_channels) * 100, 1) if total_channels > 0 else 0.0
+                round((channels_posted / total_channels) * 100, 1) if total_channels > 0 else 0.0
             )
 
             metrics = {
@@ -660,17 +659,13 @@ class ChannelOperations(BaseOperations):
                 "posted_primary": posted_primary,
                 "posted_csopm": posted_csopm,
                 "posted_both": posted_both,
-                "failed_no_ticket": failed_no_ticket,
-                "failed_api_error": failed_api_error,
-                "pending": pending,
-                "processing": processing,
+                "channels_posted": channels_posted,
                 "success_rate": success_rate,
-                "channels_needing_attention": channels_needing_attention,
             }
 
             logger.info(
-                f"JIRA posting metrics: {successful}/{total_channels} "
-                f"successful ({success_rate}%)"
+                f"JIRA posting metrics: {channels_posted}/{total_channels} "
+                f"channels posted ({success_rate}%)"
             )
             return metrics
 
@@ -681,10 +676,6 @@ class ChannelOperations(BaseOperations):
                 "posted_primary": 0,
                 "posted_csopm": 0,
                 "posted_both": 0,
-                "failed_no_ticket": 0,
-                "failed_api_error": 0,
-                "pending": 0,
-                "processing": 0,
+                "channels_posted": 0,
                 "success_rate": 0.0,
-                "channels_needing_attention": [],
             }

@@ -263,7 +263,8 @@ class TestPollCycleOrchestration:
         mock_record = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            ping_count=0,
+            rca_ping_count=0,
+            closure_ping_count=0,
             assignee_slack_id="U12345",
             assignee_jira_username="testuser",
             rca_reminder_sent=False,
@@ -391,7 +392,8 @@ class TestReassignmentDetection:
         mock_record = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            ping_count=1,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U_OLD_USER",
             assignee_jira_username="olduser",  # Different from ticket.assignee_username
             rca_reminder_sent=False,
@@ -411,7 +413,8 @@ class TestReassignmentDetection:
         mock_state_tracker.handle_reassignment.return_value = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            ping_count=1,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U_NEW_USER",
             assignee_jira_username="newuser",
             rca_reminder_sent=False,
@@ -471,7 +474,8 @@ class TestReassignmentDetection:
         mock_record = NotificationRecord(
             ticket_key="CSOPM-123",
             notification_status="sent",
-            ping_count=1,
+            rca_ping_count=1,
+            closure_ping_count=0,
             assignee_slack_id="U12345",
             assignee_jira_username="sameuser",
             rca_reminder_sent=False,
@@ -531,13 +535,13 @@ class TestReminderProcessing:
         mock_reminder = NotificationRecord(
             ticket_key="CSOPM-789",
             notification_status="sent",
-            ping_count=0,
+            rca_ping_count=0,
+            closure_ping_count=0,
             assignee_slack_id="U12345",
             assignee_jira_username="testuser",
             rca_reminder_sent=False,
             closure_reminder_sent=False,
         )
-
         mock_ticket = CSOPMTicket(
             key="CSOPM-789",
             summary="Old ticket",
@@ -556,7 +560,6 @@ class TestReminderProcessing:
         mock_notifier.send_reminder_dm.return_value = True
 
         mock_state_tracker = AsyncMock(spec=CSOPMStateTrackerProtocol)
-
         mock_reminder_service = AsyncMock(spec=CSOPMReminderServiceProtocol)
         mock_reminder_service.check_rca_reminders.return_value = [mock_reminder]
         mock_reminder_service.check_closure_reminders.return_value = []
@@ -585,7 +588,7 @@ class TestReminderProcessing:
         # Verify RCA reminder was sent
         mock_notifier.send_reminder_dm.assert_called_with(mock_ticket, "U12345", "rca")
         mock_state_tracker.mark_rca_reminder_sent.assert_called_once_with("CSOPM-789")
-        mock_state_tracker.increment_ping_count.assert_called()
+        mock_state_tracker.increment_rca_ping_count.assert_called()
 
 
 class TestHealthFileManagement:

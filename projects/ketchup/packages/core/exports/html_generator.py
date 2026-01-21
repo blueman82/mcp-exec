@@ -33,6 +33,7 @@ class MetricsHTMLGenerator:
         cso_metrics: Dict[str, Any],
         technical_metrics: Dict[str, Any],
         jira_metrics: Dict[str, Any],
+        csopm_metrics: Dict[str, Any] = None,
         period_type: str = "7_days",
         month: int = None,
         quarter: int = None,
@@ -48,6 +49,7 @@ class MetricsHTMLGenerator:
             cso_metrics: Executive CSO metrics
             technical_metrics: Technical system health metrics
             jira_metrics: JIRA posting metrics
+            csopm_metrics: CSOPM notification metrics (optional)
             period_type: Time period type
             month: Month number for monthly
             quarter: Quarter number for quarterly
@@ -72,6 +74,10 @@ class MetricsHTMLGenerator:
         html = self._inject_cso_values(html, cso_metrics)
         html = self._inject_technical_values(html, technical_metrics)
         html = self._inject_jira_values(html, jira_metrics)
+
+        # Inject CSOPM metrics if available
+        if csopm_metrics:
+            html = self._inject_csopm_values(html, csopm_metrics)
 
         # Inject timestamp
         html = html.replace(
@@ -122,77 +128,37 @@ class MetricsHTMLGenerator:
         return html
 
     def _inject_cso_values(self, html: str, cso: Dict[str, Any]) -> str:
-        """Inject CSO metric values."""
-        html = html.replace("{{PRODUCTS_COUNT}}", str(len(cso.get("products_using_ketchup", []))))
-        html = html.replace("{{OVERALL_COVERAGE}}", f"{cso.get('overall_cso_coverage', 0)}%")
+        """Inject CSO metric values (historical only, no live state)."""
+        product_counts = cso.get("product_counts", {})
 
-        # Use consistent counts from product_coverage, not active_cso_channels
-        product_coverage = cso.get("product_coverage", {})
-        cso_with_tracking = sum(p.get("channels", 0) for p in product_coverage.values())
-        total_monitored = sum(p.get("total", 0) for p in product_coverage.values())
+        campaign = product_counts.get("campaign", 0)
+        ajo = product_counts.get("ajo", 0)
+        other = product_counts.get("other", 0)
+        total = product_counts.get("total", 0)
 
-        html = html.replace(
-            "{{CSO_DETAIL}}",
-            f"{cso_with_tracking} of {total_monitored} channels with CSO tracking",
-        )
+        # Total channels with product breakdown
+        html = html.replace("{{TOTAL_CSO_CHANNELS}}", str(total))
+
+        # Build breakdown string
+        breakdown_parts = [f"{campaign} Campaign", f"{ajo} AJO"]
+        if other > 0:
+            breakdown_parts.append(f"{other} Other (product type could not be determined)")
+        html = html.replace("{{CSO_BREAKDOWN}}", ", ".join(breakdown_parts))
 
         html = html.replace(
             "{{AUTO_NOTIFICATION_DELIVERY}}",
             f"{cso.get('auto_notification_delivery', 0)}%",
         )
 
-        campaign = product_coverage.get("campaign", {})
-        html = html.replace("{{CAMPAIGN_PERCENTAGE}}", str(campaign.get("percentage", 0)))
-        html = html.replace(
-            "{{CAMPAIGN_DETAIL}}",
-            f"{campaign.get('channels', 0)} of " f"{campaign.get('total', 0)} channels",
-        )
-
-        ajo = product_coverage.get("ajo", {})
-        html = html.replace("{{AJO_PERCENTAGE}}", str(ajo.get("percentage", 0)))
-        html = html.replace(
-            "{{AJO_DETAIL}}",
-            f"{ajo.get('channels', 0)} of {ajo.get('total', 0)} channels",
-        )
-
-        # Handle CSOMetrics dataclass for active vs archived split
-        cso_metrics = cso.get("cso_metrics")
-        if cso_metrics and hasattr(cso_metrics, "currently_active"):
-            # Extract values from CSOMetrics dataclass
-            currently_active = cso_metrics.currently_active
-            archived = cso_metrics.archived
-
-            # Currently Active card values
-            html = html.replace("{{CURRENTLY_ACTIVE_TOTAL}}", str(currently_active.total))
-            html = html.replace(
-                "{{CURRENTLY_ACTIVE_BREAKDOWN}}",
-                f"{currently_active.campaign} Campaign, {currently_active.ajo} AJO",
-            )
-
-            # Archived card values
-            html = html.replace("{{ARCHIVED_TOTAL}}", str(archived.total))
-            html = html.replace(
-                "{{ARCHIVED_BREAKDOWN}}",
-                f"{archived.campaign} Campaign, {archived.ajo} AJO",
-            )
-        else:
-            # Backward compatibility - use old active_cso_channels if cso_metrics not available
-            html = html.replace(
-                "{{CURRENTLY_ACTIVE_TOTAL}}", str(cso.get("active_cso_channels", 0))
-            )
-            html = html.replace("{{CURRENTLY_ACTIVE_BREAKDOWN}}", "N/A")
-            html = html.replace("{{ARCHIVED_TOTAL}}", "0")
-            html = html.replace("{{ARCHIVED_BREAKDOWN}}", "0 Campaign, 0 AJO")
-
         return html
 
     def _inject_jira_values(self, html: str, jira: Dict[str, Any]) -> str:
-        """Inject JIRA posting metric values."""
+        """Inject JIRA posting metric values (historical only, no live state)."""
         html = html.replace("{{JIRA_POSTING_RATE}}", f"{jira.get('total_coverage', 0)}")
         html = html.replace("{{CHANNELS_WITH_REPORTS}}", str(jira.get("channels_with_reports", 0)))
         html = html.replace("{{TOTAL_JIRA_CHANNELS}}", str(jira.get("total_channels", 0)))
 
-        # Technical breakdown details
+        # Technical breakdown details (historical only)
         details = jira.get("posting_details", {})
         primary_only = details.get("primary_only", 0)
         csopm_only = details.get("csopm_only", 0)
@@ -201,11 +167,60 @@ class MetricsHTMLGenerator:
         html = html.replace("{{PRIMARY_POSTED}}", str(primary_only + both))
         html = html.replace("{{CSOPM_POSTED}}", str(csopm_only + both))
         html = html.replace("{{BOTH_POSTED}}", str(both))
-        html = html.replace("{{FAILED_NO_TICKET}}", str(details.get("no_valid_ticket", 0)))
+        return html
+
+    def _inject_csopm_values(self, html: str, csopm: Dict[str, Any]) -> str:
+        """Inject CSOPM notification metric values."""
         html = html.replace(
-            "{{API_FAILURES_PENDING}}",
-            str(details.get("api_failures", 0) + details.get("pending", 0)),
+            "{{CSOPM_TOTAL_NOTIFICATIONS}}", str(csopm.get("total_notifications", 0))
         )
+        html = html.replace("{{CSOPM_ACKNOWLEDGED}}", str(csopm.get("acknowledged", 0)))
+        html = html.replace("{{CSOPM_REMINDERS_STOPPED}}", str(csopm.get("reminders_stopped", 0)))
+        html = html.replace("{{CSOPM_PENDING}}", str(csopm.get("pending", 0)))
+        html = html.replace("{{CSOPM_RCA_REMINDERS_SENT}}", str(csopm.get("rca_reminders_sent", 0)))
+        html = html.replace(
+            "{{CSOPM_CLOSURE_REMINDERS_SENT}}", str(csopm.get("closure_reminders_sent", 0))
+        )
+        html = html.replace("{{CSOPM_ACK_WITHIN_3_DAYS}}", str(csopm.get("ack_within_3_days", 0)))
+        html = html.replace("{{CSOPM_ACK_AFTER_3_DAYS}}", str(csopm.get("ack_after_3_days", 0)))
+        html = html.replace("{{CSOPM_AVG_RCA_PINGS}}", str(csopm.get("avg_rca_pings", 0.0)))
+        html = html.replace("{{CSOPM_AVG_CLOSURE_PINGS}}", str(csopm.get("avg_closure_pings", 0.0)))
+        # Ticket completion timing metrics (configurable threshold)
+        completion_days = csopm.get("completion_threshold_days", 7)
+        html = html.replace("{{CSOPM_COMPLETION_THRESHOLD_DAYS}}", str(completion_days))
+        html = html.replace(
+            "{{CSOPM_COMPLETED_WITHIN_THRESHOLD}}", str(csopm.get("completed_within_threshold", 0))
+        )
+        html = html.replace(
+            "{{CSOPM_COMPLETED_AFTER_THRESHOLD}}", str(csopm.get("completed_after_threshold", 0))
+        )
+        # Ticket closure timing metrics (configurable threshold)
+        closure_days = csopm.get("closure_threshold_days", 45)
+        html = html.replace("{{CSOPM_CLOSURE_THRESHOLD_DAYS}}", str(closure_days))
+        html = html.replace(
+            "{{CSOPM_CLOSED_WITHIN_THRESHOLD}}", str(csopm.get("closed_within_threshold", 0))
+        )
+        html = html.replace(
+            "{{CSOPM_CLOSED_AFTER_THRESHOLD}}", str(csopm.get("closed_after_threshold", 0))
+        )
+        return html
+
+    def _inject_csopm_values(self, html: str, csopm: Dict[str, Any]) -> str:
+        """Inject CSOPM notification metric values."""
+        html = html.replace(
+            "{{CSOPM_TOTAL_NOTIFICATIONS}}", str(csopm.get("total_notifications", 0))
+        )
+        html = html.replace("{{CSOPM_ACKNOWLEDGED}}", str(csopm.get("acknowledged", 0)))
+        html = html.replace("{{CSOPM_REMINDERS_STOPPED}}", str(csopm.get("reminders_stopped", 0)))
+        html = html.replace("{{CSOPM_PENDING}}", str(csopm.get("pending", 0)))
+        html = html.replace("{{CSOPM_RCA_REMINDERS_SENT}}", str(csopm.get("rca_reminders_sent", 0)))
+        html = html.replace(
+            "{{CSOPM_CLOSURE_REMINDERS_SENT}}", str(csopm.get("closure_reminders_sent", 0))
+        )
+        html = html.replace("{{CSOPM_ACK_WITHIN_3_DAYS}}", str(csopm.get("ack_within_3_days", 0)))
+        html = html.replace("{{CSOPM_ACK_AFTER_3_DAYS}}", str(csopm.get("ack_after_3_days", 0)))
+        html = html.replace("{{CSOPM_AVG_RCA_PINGS}}", str(csopm.get("avg_rca_pings", 0.0)))
+        html = html.replace("{{CSOPM_AVG_CLOSURE_PINGS}}", str(csopm.get("avg_closure_pings", 0.0)))
         return html
 
     def _inject_technical_values(self, html: str, tech: Dict[str, Any]) -> str:
@@ -213,7 +228,6 @@ class MetricsHTMLGenerator:
         # Status update metrics
         public_updates = tech.get("public_updates", {})
         total_posts = public_updates.get("total_posts")
-        channels_with_updates = public_updates.get("channels_with_updates", 0)
 
         # Inject total posts (show if available)
         if total_posts is not None:
@@ -221,7 +235,6 @@ class MetricsHTMLGenerator:
         else:
             html = html.replace("{{TOTAL_POSTS}}", "N/A")
 
-        html = html.replace("{{UPDATES_POSTED}}", str(channels_with_updates))
         html = html.replace("{{SUCCESS_RATE}}", f"{public_updates.get('success_rate', 0)}")
 
         war_room_msg = tech.get("war_room_messages", {})
@@ -544,14 +557,9 @@ class MetricsHTMLGenerator:
 
                 <div class="metrics-grid">
                     <div class="metric-card success">
-                        <div class="metric-label">Products Using Ketchup</div>
-                        <div class="metric-value">{{PRODUCTS_COUNT}}</div>
-                        <div class="metric-detail">Adobe Campaign & AJO</div>
-                    </div>
-                    <div class="metric-card success">
-                        <div class="metric-label">Overall CSO Coverage</div>
-                        <div class="metric-value">{{OVERALL_COVERAGE}}</div>
-                        <div class="metric-detail">{{CSO_DETAIL}}</div>
+                        <div class="metric-label">CSO Channels Tracked</div>
+                        <div class="metric-value">{{TOTAL_CSO_CHANNELS}}</div>
+                        <div class="metric-detail">{{CSO_BREAKDOWN}}</div>
                     </div>
 
                     <div class="metric-card success">
@@ -559,33 +567,7 @@ class MetricsHTMLGenerator:
                         <div class="metric-value">{{AUTO_NOTIFICATION_DELIVERY}}</div>
                         <div class="metric-detail">{{NOTIFICATION_DETAIL}} successfully</div>
                     </div>
-                </div>
 
-                <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 CSO Coverage Per Product</h3>
-                <div class="product-breakdown">
-                    <div class="product-item">
-                        <div class="product-name">Adobe Campaign</div>
-                        <div class="coverage-percentage">{{CAMPAIGN_PERCENTAGE}}%</div>
-                        <div class="metric-detail">{{CAMPAIGN_DETAIL}}</div>
-                    </div>
-                    <div class="product-item">
-                        <div class="product-name">Adobe Journey Optimizer</div>
-                        <div class="coverage-percentage">{{AJO_PERCENTAGE}}%</div>
-                        <div class="metric-detail">{{AJO_DETAIL}}</div>
-                    </div>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="metric-card success">
-                        <div class="metric-label">Currently Active CSO Channels</div>
-                        <div class="metric-value">{{CURRENTLY_ACTIVE_TOTAL}}</div>
-                        <div class="metric-detail">{{CURRENTLY_ACTIVE_BREAKDOWN}}</div>
-                    </div>
-                    <div class="metric-card info">
-                        <div class="metric-label">Archived CSO Channels</div>
-                        <div class="metric-value">{{ARCHIVED_TOTAL}}</div>
-                        <div class="metric-detail">{{ARCHIVED_BREAKDOWN}}</div>
-                    </div>
                     <div class="metric-card info">
                         <div class="metric-label">JIRA Reports Posted</div>
                         <div class="metric-value">{{JIRA_POSTING_RATE}}%</div>
@@ -606,10 +588,6 @@ class MetricsHTMLGenerator:
                         <div class="stat-row">
                             <span class="stat-label">Posts Created</span>
                             <span class="stat-value">{{TOTAL_POSTS}}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Active Channels</span>
-                            <span class="stat-value">{{UPDATES_POSTED}}</span>
                         </div>
                         <div class="stat-row">
                             <span class="stat-label">Success Rate</span>
@@ -644,7 +622,14 @@ class MetricsHTMLGenerator:
 
 
                     <div class="technical-card">
-                        <h3>📋 JIRA Posting Breakdown</h3>
+                        <h3>📋 JIRA Posting Breakdown
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">
+                                    Primary and CSOPM counts include channels that posted to both. "Posted to Both" shows the overlap.
+                                </span>
+                            </span>
+                        </h3>
                         <div class="stat-row">
                             <span class="stat-label">Posted to Primary Ticket</span>
                             <span class="stat-value">{{PRIMARY_POSTED}}</span>
@@ -657,13 +642,171 @@ class MetricsHTMLGenerator:
                             <span class="stat-label">Posted to Both</span>
                             <span class="stat-value success">{{BOTH_POSTED}}</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">🔔</div>
+                    <h2>CSOPM Notification System</h2>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card success">
+                        <div class="metric-label">Total Notifications</div>
+                        <div class="metric-value">{{CSOPM_TOTAL_NOTIFICATIONS}}</div>
+                        <div class="metric-detail">Assignment DMs sent to assignees</div>
+                    </div>
+                    <div class="metric-card success">
+                        <div class="metric-label">Acknowledged</div>
+                        <div class="metric-value">{{CSOPM_ACKNOWLEDGED}}</div>
+                        <div class="metric-detail">Tickets acknowledged by assignees</div>
+                    </div>
+                    <div class="metric-card info">
+                        <div class="metric-label">Reminders Stopped</div>
+                        <div class="metric-value">{{CSOPM_REMINDERS_STOPPED}}</div>
+                        <div class="metric-detail">Assignees opted out of reminders</div>
+                    </div>
+                </div>
+
+                <div class="technical-grid">
+                    <div class="technical-card">
+                        <h3>⏱️ Acknowledgment Timing</h3>
                         <div class="stat-row">
-                            <span class="stat-label">Failed (No Ticket Found)</span>
-                            <span class="stat-value">{{FAILED_NO_TICKET}}</span>
+                            <span class="stat-label">Acknowledged within 3 days</span>
+                            <span class="stat-value success">{{CSOPM_ACK_WITHIN_3_DAYS}}</span>
                         </div>
                         <div class="stat-row">
-                            <span class="stat-label">API Failures / Pending</span>
-                            <span class="stat-value">{{API_FAILURES_PENDING}}</span>
+                            <span class="stat-label">Acknowledged after 3 days</span>
+                            <span class="stat-value">{{CSOPM_ACK_AFTER_3_DAYS}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Pending Acknowledgment</span>
+                            <span class="stat-value">{{CSOPM_PENDING}}</span>
+                        </div>
+                    </div>
+
+                    <div class="technical-card">
+                        <h3>📬 Reminders Sent</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">RCA Reminders</span>
+                            <span class="stat-value">{{CSOPM_RCA_REMINDERS_SENT}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Closure Reminders</span>
+                            <span class="stat-value">{{CSOPM_CLOSURE_REMINDERS_SENT}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Avg RCA Pings</span>
+                            <span class="stat-value">{{CSOPM_AVG_RCA_PINGS}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Avg Closure Pings</span>
+                            <span class="stat-value">{{CSOPM_AVG_CLOSURE_PINGS}}</span>
+                        </div>
+                    </div>
+
+                    <div class="technical-card">
+                        <h3>✅ Ticket Completion Timing</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">
+                                Completed within {{CSOPM_COMPLETION_THRESHOLD_DAYS}} days
+                                <span class="tooltip">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">
+                                        Tickets that reached "Complete" status within {{CSOPM_COMPLETION_THRESHOLD_DAYS}} days of creation. Tracks time from ticket creation to completion.
+                                    </span>
+                                </span>
+                            </span>
+                            <span class="stat-value success">{{CSOPM_COMPLETED_WITHIN_THRESHOLD}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Completed after {{CSOPM_COMPLETION_THRESHOLD_DAYS}} days</span>
+                            <span class="stat-value">{{CSOPM_COMPLETED_AFTER_THRESHOLD}}</span>
+                        </div>
+                    </div>
+
+                    <div class="technical-card">
+                        <h3>🔒 Ticket Closure Timing</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">
+                                Closed within {{CSOPM_CLOSURE_THRESHOLD_DAYS}} days
+                                <span class="tooltip">
+                                    <span class="tooltip-icon">?</span>
+                                    <span class="tooltip-text">
+                                        Tickets that reached terminal closure status (Closed, Done, Resolved) within {{CSOPM_CLOSURE_THRESHOLD_DAYS}} days of creation. Tracks full lifecycle from creation to closure.
+                                    </span>
+                                </span>
+                            </span>
+                            <span class="stat-value success">{{CSOPM_CLOSED_WITHIN_THRESHOLD}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Closed after {{CSOPM_CLOSURE_THRESHOLD_DAYS}} days</span>
+                            <span class="stat-value">{{CSOPM_CLOSED_AFTER_THRESHOLD}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <div class="icon">🔔</div>
+                    <h2>CSOPM Notification System</h2>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card success">
+                        <div class="metric-label">Total Notifications</div>
+                        <div class="metric-value">{{CSOPM_TOTAL_NOTIFICATIONS}}</div>
+                        <div class="metric-detail">Assignment DMs sent to assignees</div>
+                    </div>
+                    <div class="metric-card success">
+                        <div class="metric-label">Acknowledged</div>
+                        <div class="metric-value">{{CSOPM_ACKNOWLEDGED}}</div>
+                        <div class="metric-detail">Tickets acknowledged by assignees</div>
+                    </div>
+                    <div class="metric-card info">
+                        <div class="metric-label">Reminders Stopped</div>
+                        <div class="metric-value">{{CSOPM_REMINDERS_STOPPED}}</div>
+                        <div class="metric-detail">Assignees opted out of reminders</div>
+                    </div>
+                </div>
+
+                <div class="technical-grid">
+                    <div class="technical-card">
+                        <h3>⏱️ Acknowledgment Timing</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">Acknowledged within 3 days</span>
+                            <span class="stat-value success">{{CSOPM_ACK_WITHIN_3_DAYS}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Acknowledged after 3 days</span>
+                            <span class="stat-value">{{CSOPM_ACK_AFTER_3_DAYS}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Pending Acknowledgment</span>
+                            <span class="stat-value">{{CSOPM_PENDING}}</span>
+                        </div>
+                    </div>
+
+                    <div class="technical-card">
+                        <h3>📬 Reminders Sent</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">RCA Reminders</span>
+                            <span class="stat-value">{{CSOPM_RCA_REMINDERS_SENT}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Closure Reminders</span>
+                            <span class="stat-value">{{CSOPM_CLOSURE_REMINDERS_SENT}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Avg RCA Pings</span>
+                            <span class="stat-value">{{CSOPM_AVG_RCA_PINGS}}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Avg Closure Pings</span>
+                            <span class="stat-value">{{CSOPM_AVG_CLOSURE_PINGS}}</span>
                         </div>
                     </div>
                 </div>

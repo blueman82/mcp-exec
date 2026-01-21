@@ -72,11 +72,17 @@ class TestCSOPMDataClasses(unittest.TestCase):
         expected_fields = {
             "ticket_key",
             "notification_status",
-            "ping_count",
+            "rca_ping_count",
+            "closure_ping_count",
             "assignee_slack_id",
             "assignee_jira_username",
             "rca_reminder_sent",
             "closure_reminder_sent",
+            "created_at",
+            "updated_at",
+            "followup_ticket_keys",
+            "completed_at",
+            "closed_at",
         }
 
         actual_fields = {f.name for f in fields(NotificationRecord)}
@@ -96,7 +102,8 @@ class TestCSOPMDataClasses(unittest.TestCase):
         record = NotificationRecord(
             ticket_key="CSOPM-1234",
             notification_status="sent",
-            ping_count=2,
+            rca_ping_count=2,
+            closure_ping_count=1,
             assignee_slack_id="U12345678",
             assignee_jira_username="testuser",
             rca_reminder_sent=True,
@@ -105,7 +112,8 @@ class TestCSOPMDataClasses(unittest.TestCase):
 
         self.assertEqual(record.ticket_key, "CSOPM-1234")
         self.assertEqual(record.notification_status, "sent")
-        self.assertEqual(record.ping_count, 2)
+        self.assertEqual(record.rca_ping_count, 2)
+        self.assertEqual(record.closure_ping_count, 1)
         self.assertEqual(record.assignee_slack_id, "U12345678")
         self.assertEqual(record.assignee_jira_username, "testuser")
         self.assertTrue(record.rca_reminder_sent)
@@ -237,11 +245,13 @@ class TestCSOPMProtocolMethodSignatures(unittest.TestCase):
             "get_notification_record",
             "create_notification_record",
             "update_notification_status",
-            "increment_ping_count",
+            "increment_rca_ping_count",
+            "increment_closure_ping_count",
             "mark_rca_reminder_sent",
             "mark_closure_reminder_sent",
             "get_pending_notifications",
             "record_followup",
+            "add_followup_ticket",
         ]
 
         for method_name in required_methods:

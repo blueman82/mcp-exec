@@ -13,6 +13,8 @@ graph TB
             DBProto["ChannelRepositoryProtocol<br/>interface"]
             AIProto["AIClientProtocol<br/>interface"]
             SecretProto["SecretsClientProtocol<br/>interface"]
+            CsopmStateProto["CsopmStateProtocol<br/>interface"]
+            CsopmBlocksProto["CsopmBlocksProtocol<br/>interface"]
         end
 
         subgraph "Implementations"
@@ -21,6 +23,8 @@ graph TB
             DBImpl["ChannelRepository<br/>DynamoDB"]
             AIImpl["AzureOpenAIClient<br/>async"]
             SecretImpl["AWSSecretsClient<br/>boto3"]
+            CsopmStateImpl["CsopmNotificationState<br/>DynamoDB"]
+            CsopmBlocksImpl["CsopmBlockBuilder<br/>Block Kit"]
         end
 
         subgraph "Service Registration"
@@ -53,18 +57,24 @@ graph TB
     Registry -->|Defines| DBProto
     Registry -->|Defines| AIProto
     Registry -->|Defines| SecretProto
+    Registry -->|Defines| CsopmStateProto
+    Registry -->|Defines| CsopmBlocksProto
 
     SlackProto -->|Implemented by| SlackImpl
     JiraProto -->|Implemented by| JiraImpl
     DBProto -->|Implemented by| DBImpl
     AIProto -->|Implemented by| AIImpl
     SecretProto -->|Implemented by| SecretImpl
+    CsopmStateProto -->|Implemented by| CsopmStateImpl
+    CsopmBlocksProto -->|Implemented by| CsopmBlocksImpl
 
     Registration -->|Registers all| SlackImpl
     Registration -->|Registers all| JiraImpl
     Registration -->|Registers all| DBImpl
     Registration -->|Registers all| AIImpl
     Registration -->|Registers all| SecretImpl
+    Registration -->|Registers all| CsopmStateImpl
+    Registration -->|Registers all| CsopmBlocksImpl
 
     CommandHandlers -->|Request from| Registry
     EventHandlers -->|Request from| Registry
@@ -87,11 +97,15 @@ graph TB
     style DBProto fill:#0099cc
     style AIProto fill:#0099cc
     style SecretProto fill:#0099cc
+    style CsopmStateProto fill:#0099cc
+    style CsopmBlocksProto fill:#0099cc
     style SlackImpl fill:#00ffcc
     style JiraImpl fill:#00ffcc
     style DBImpl fill:#00ffcc
     style AIImpl fill:#00ffcc
     style SecretImpl fill:#00ffcc
+    style CsopmStateImpl fill:#00ffcc
+    style CsopmBlocksImpl fill:#00ffcc
 ```
 
 ## Dependency Graph Example: Slack Event Handler
@@ -212,8 +226,12 @@ packages/slack/
 ├── handlers/
 │   ├── command_handlers.py      # Implement SlackCommandProtocol
 │   └── event_handlers.py        # Implement SlackEventProtocol
-└── clients/
-    └── slack_client.py          # Implement SlackClientProtocol
+├── clients/
+│   └── slack_client.py          # Implement SlackClientProtocol
+└── csopm/                        # CSOPM shared components
+    ├── blocks.py                 # Slack Block Kit notification builders
+    ├── state.py                  # DynamoDB state tracking
+    └── actions.py                # Interactive button action handlers
 
 packages/integrations/
 ├── jira_client.py               # Implement JiraClientProtocol
@@ -223,6 +241,15 @@ packages/integrations/
 packages/db/
 └── repositories/
     └── channel_repository.py    # Implement RepositoryProtocol
+
+ketchup_csopm_notifier/           # Scheduler-specific services
+├── main.py                       # Entry point
+├── scheduler.py                  # Runs at 08:00/16:00 UTC
+├── container.py                  # TypedDI container setup
+└── services/
+    ├── jira_poller.py            # Polls JIRA for assignments
+    ├── slack_notifier.py         # Sends Slack DM notifications
+    └── reminder_service.py       # RCA and closure reminders
 ```
 
 ## Key Advantages

@@ -545,8 +545,7 @@ class DynamoDBStore:
                     'auto_status_posts': 45,
                     'war_room_sent': 450,
                     'war_room_success': 445,
-                    'war_room_failed': 5,
-                    'war_room_unique_users': 128
+                    'war_room_failed': 5
                 },
                 '2025_09': {...}
             }
@@ -580,7 +579,6 @@ class DynamoDBStore:
                     "war_room_sent",
                     "war_room_success",
                     "war_room_failed",
-                    "war_room_unique_users",
                 ]
 
                 for prefix in counter_prefixes:

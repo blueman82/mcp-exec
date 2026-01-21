@@ -36,7 +36,7 @@ export interface JiraTransitionsResponse {
  */
 export async function getJiraTransitions(issueIdOrKey: string): Promise<{ success: boolean; message: string; data?: unknown }> {
   try {
-    const response = await jiraRequest(`issue/${issueIdOrKey}/transitions`) as JiraTransitionsResponse;
+    const response = await jiraRequest(`issue/${issueIdOrKey}/transitions?expand=transitions.fields`) as JiraTransitionsResponse;
     return formatResponse(true, `Successfully retrieved transitions for issue ${issueIdOrKey}`, response);
   } catch (error) {
     return handleOperationError(error, "retrieving transitions");
@@ -110,9 +110,10 @@ export function createTransitionRequestBody(
 /**
  * Transitions the status of a Jira issue by applying a transition
  * @param params The status transition parameters
+ * @param userPat Optional user PAT for authentication
  * @returns Result of the status transition operation
  */
-export async function transitionJiraStatus(params: TransitionJiraStatusRequest): Promise<{ success: boolean; message: string; data?: unknown }> {
+export async function transitionJiraStatus(params: TransitionJiraStatusRequest, userPat?: string): Promise<{ success: boolean; message: string; data?: unknown }> {
   const { issueIdOrKey, transitionId, comment, resolution, fields } = params;
   
   try {
@@ -122,7 +123,8 @@ export async function transitionJiraStatus(params: TransitionJiraStatusRequest):
     // Make the request to transition the issue status
     const response = await jiraRequest(`issue/${issueIdOrKey}/transitions`, {
       method: "POST",
-      body: body
+      body: body,
+      userPat
     });
     
     return formatResponse(
@@ -142,6 +144,7 @@ export async function transitionJiraStatus(params: TransitionJiraStatusRequest):
  * @param comment Optional comment to add
  * @param resolution Optional resolution to set
  * @param additionalFields Optional additional fields to set
+ * @param userPat Optional user PAT for authentication
  * @returns Result of the status transition operation
  */
 export async function transitionJiraStatusByName(
@@ -149,7 +152,8 @@ export async function transitionJiraStatusByName(
   statusName: string,
   comment?: string,
   resolution?: { name: string },
-  additionalFields?: Record<string, any>
+  additionalFields?: Record<string, any>,
+  userPat?: string
 ): Promise<{ success: boolean; message: string; data?: unknown }> {
   try {
     // Get available transitions
@@ -165,14 +169,14 @@ export async function transitionJiraStatusByName(
       );
     }
     
-    // Create and execute the transition
+    // Create and execute the transition with userPat
     return transitionJiraStatus({
       issueIdOrKey,
       transitionId,
       comment,
       resolution,
       fields: additionalFields
-    });
+    }, userPat);
   } catch (error) {
     return handleOperationError(error, "transitioning status by name");
   }

@@ -9,8 +9,8 @@ from unittest.mock import patch
 import pytest
 
 from packages.core.logging import setup_logger
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.integrations.ims_token_manager import IMSTokenManager
-from packages.integrations.mcp_client import MCPClient
 from packages.secrets.manager import SecretsManager
 
 logger = setup_logger(__name__)
@@ -65,7 +65,7 @@ async def test_real_jira_authentication():
 
     # Step 3: Initialize MCP client
     print("\n3️⃣ Initializing MCP client...")
-    mcp_client = MCPClient(ims_manager)
+    mcp_client = AsyncMCPClient(ims_manager)
 
     # Step 4: Test MCP server health
     print("\n4️⃣ Testing MCP server connection...")

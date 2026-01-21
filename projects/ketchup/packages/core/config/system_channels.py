@@ -11,10 +11,10 @@ from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
 
-# Default system channels to exclude from CSO metrics
+# Default system channels to exclude from CSO metrics (ID -> name mapping)
 DEFAULT_EXCLUDED_CHANNELS = {
-    "C090V88CB1N",  # ketchup_access
-    "C08CQN1JCSC",  # ketchup_feedback
+    "C090V88CB1N": "ketchup_access",
+    "C08CQN1JCSC": "ketchup_feedback",
 }
 
 
@@ -38,5 +38,15 @@ def get_excluded_channels() -> Set[str]:
         return excluded
 
     # Use defaults when env var not set
-    logger.info(f"Using default excluded channels: {DEFAULT_EXCLUDED_CHANNELS}")
-    return DEFAULT_EXCLUDED_CHANNELS.copy()
+    logger.info(f"Using default excluded channels: {set(DEFAULT_EXCLUDED_CHANNELS.keys())}")
+    return set(DEFAULT_EXCLUDED_CHANNELS.keys())
+
+
+def get_excluded_channel_names() -> list[str]:
+    """
+    Get list of excluded channel names for display purposes.
+
+    Returns:
+        List of channel names (e.g., ["ketchup_access", "ketchup_feedback"])
+    """
+    return list(DEFAULT_EXCLUDED_CHANNELS.values())

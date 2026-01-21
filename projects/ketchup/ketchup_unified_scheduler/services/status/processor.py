@@ -11,7 +11,6 @@ import asyncio
 import os
 import time
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
@@ -19,7 +18,6 @@ from packages.core.config.feature_flags import FeatureFlags
 from packages.core.constants import FEEDBACK_CHANNEL, TEST_CHANNEL
 from packages.core.distributed_lock import DistributedLock
 from packages.core.logging import setup_logger
-from packages.core.schedulers import BaseScheduler
 from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.protocols.command_protocols import (
@@ -471,43 +469,3 @@ async def run_auto_status(
     except Exception as e:
         logger.error(f"Auto-status update failed: {e}", exc_info=True)
         raise
-
-
-class StatusUpdaterScheduler(BaseScheduler):
-    """Scheduler for running status updates reliably in Docker."""
-
-    def __init__(self):
-        super().__init__(
-            health_file_prefix="scheduler",
-            base_path="/tmp",
-            interval_minutes=55,
-            run_on_start=True,
-            scheduler_name="Status Updater Scheduler",
-        )
-        # Override for backward compatibility (original was /tmp/last_run)
-        self.last_run_file = Path("/tmp/last_run")
-
-    async def run_task(self) -> None:
-        """Execute the status update task."""
-        await run_auto_status()
-
-
-async def async_main():
-    """Async main entry point."""
-    scheduler = StatusUpdaterScheduler()
-    await scheduler.start()
-
-
-def main():
-    """Main entry point."""
-    try:
-        asyncio.run(async_main())
-    except KeyboardInterrupt:
-        logger.info("Scheduler interrupted by user")
-    except Exception as e:
-        logger.error(f"Fatal error in scheduler: {e}", exc_info=True)
-        raise
-
-
-if __name__ == "__main__":
-    main()

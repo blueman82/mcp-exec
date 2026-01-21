@@ -22,14 +22,17 @@ import * as auth from './operations/auth.js';
 import * as status from './operations/status.js';
 import * as getComments from './operations/getComments.js';
 import * as addComment from './operations/addComment.js';
+import * as editComment from './operations/editComment.js';
+import * as deleteComment from './operations/deleteComment.js';
 import * as getFields from './operations/getFields.js';
 import * as createPAT from './operations/createPAT.js';
 import * as revokePAT from './operations/revokePAT.js';
 import * as validatePAT from './operations/validatePAT.js';
 import * as listProjects from './operations/listProjects.js';
+import * as createmeta from './operations/createmeta.js';
 import { VERSION } from "./common/version.js";
 import { isJiraError } from "./common/errors.js";
-import { setCurrentAuthToken } from "./common/utils.js";
+import { setCurrentAuthToken, jiraRequest } from "./common/utils.js";
 
 /**
  * Middleware to extract Authorization header from incoming requests
@@ -97,6 +100,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: zodToJsonSchema(addComment.AddJiraCommentSchema),
       },
       {
+        name: "edit_jira_comment",
+        description: "Edit an existing comment on a Jira issue",
+        inputSchema: zodToJsonSchema(editComment.EditJiraCommentSchema),
+      },
+      {
+        name: "delete_jira_comment",
+        description: "Delete a comment from a Jira issue",
+        inputSchema: zodToJsonSchema(deleteComment.DeleteJiraCommentSchema),
+      },
+      {
         name: "transition_jira_status",
         description: "Transition the status of a Jira issue by applying a transition",
         inputSchema: zodToJsonSchema(status.TransitionJiraStatusSchema),
@@ -114,7 +127,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           statusName: z.string(),
           comment: z.string().optional(),
           resolution: z.object({ name: z.string() }).optional(),
-          fields: z.record(z.any()).optional()
+          fields: z.record(z.any()).optional(),
+          userPat: z.string().optional().describe("Optional user PAT for authentication")
         })),
       },
       {
@@ -141,6 +155,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "list_jira_projects",
         description: "List all JIRA projects accessible to the authenticated user",
         inputSchema: zodToJsonSchema(listProjects.ListProjectsSchema),
+      },
+      {
+        name: "get_project_issue_types",
+        description: "Get all issue types available for a JIRA project. Use this to populate issue type dropdowns when creating tickets.",
+        inputSchema: zodToJsonSchema(createmeta.GetIssueTypesSchema),
+      },
+      {
+        name: "get_issuetype_metadata",
+        description: "Get field metadata for a specific issue type in a project. Returns required and optional fields with their allowed values.",
+        inputSchema: zodToJsonSchema(createmeta.GetFieldMetadataSchema),
+      },
+      {
+        name: "link_issues",
+        description: "Link two JIRA issues together (e.g., 'Relates to', 'Blocks', 'is blocked by')",
+        inputSchema: zodToJsonSchema(z.object({
+          inwardIssue: z.string().describe("The issue key that is the 'inward' side of the link (e.g., the blocked issue)"),
+          outwardIssue: z.string().describe("The issue key that is the 'outward' side of the link (e.g., the blocker)"),
+          linkType: z.string().describe("The link type name (e.g., 'Relates', 'Blocks', 'is blocked by')"),
+          userPat: z.string().optional().describe("Optional user PAT for authentication"),
+        })),
       },
     ],
   };
@@ -219,11 +253,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "add_jira_comment": {
         const args = addComment.AddJiraCommentSchema.parse(request.params.arguments);
         const result = await addComment.addJiraComment(args);
-        
+
         if (result && typeof result === 'object' && 'success' in result && !result.success) {
           throw new Error('Failed to add comment to issue');
         }
-        
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "edit_jira_comment": {
+        const args = editComment.EditJiraCommentSchema.parse(request.params.arguments);
+        const result = await editComment.editJiraComment(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to edit comment');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "delete_jira_comment": {
+        const args = deleteComment.DeleteJiraCommentSchema.parse(request.params.arguments);
+        const result = await deleteComment.deleteJiraComment(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to delete comment');
+        }
+
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
@@ -243,12 +303,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "transition_jira_status_by_name": {
-        const { issueIdOrKey, statusName, comment, resolution, fields } = z.object({
+        const { issueIdOrKey, statusName, comment, resolution, fields, userPat } = z.object({
           issueIdOrKey: z.string(),
           statusName: z.string(),
           comment: z.string().optional(),
           resolution: z.object({ name: z.string() }).optional(),
-          fields: z.record(z.any()).optional()
+          fields: z.record(z.any()).optional(),
+          userPat: z.string().optional()
         }).parse(request.params.arguments);
         
         const result = await status.transitionJiraStatusByName(
@@ -256,7 +317,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           statusName,
           comment,
           resolution,
-          fields
+          fields,
+          userPat
         );
         
         if (result && typeof result === 'object' && 'success' in result && !result.success) {
@@ -337,6 +399,57 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "get_project_issue_types": {
+        const args = createmeta.GetIssueTypesSchema.parse(request.params.arguments);
+        const result = await createmeta.getProjectIssueTypes(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to get project issue types');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "get_issuetype_metadata": {
+        const args = createmeta.GetFieldMetadataSchema.parse(request.params.arguments);
+        const result = await createmeta.getIssueTypeFieldMetadata(args);
+
+        if (result && typeof result === 'object' && 'success' in result && !result.success) {
+          throw new Error('Failed to get issue type metadata');
+        }
+
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      }
+
+      case "link_issues": {
+        const { inwardIssue, outwardIssue, linkType, userPat } = request.params.arguments as {
+          inwardIssue: string;
+          outwardIssue: string;
+          linkType: string;
+          userPat?: string;
+        };
+
+        const linkBody = {
+          type: { name: linkType },
+          inwardIssue: { key: inwardIssue },
+          outwardIssue: { key: outwardIssue },
+        };
+
+        await jiraRequest('issueLink', {
+          method: 'POST',
+          body: linkBody,
+          userPat,
+        });
+
+        return {
+          content: [{ type: "text", text: JSON.stringify({ success: true, message: `Linked ${inwardIssue} to ${outwardIssue} with type '${linkType}'` }, null, 2) }],
         };
       }
 
@@ -494,7 +607,25 @@ async function runServer() {
           };
           break;
         }
-        
+
+        case 'edit_jira_comment': {
+          const args = editComment.EditJiraCommentSchema.parse(request.params.arguments);
+          const editCommentResult = await editComment.editJiraComment(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(editCommentResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'delete_jira_comment': {
+          const args = deleteComment.DeleteJiraCommentSchema.parse(request.params.arguments);
+          const deleteCommentResult = await deleteComment.deleteJiraComment(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(deleteCommentResult, null, 2) }]
+          };
+          break;
+        }
+
         case 'create_jira_issue': {
           const args = create.CreateJiraIssueSchema.parse(request.params.arguments);
           const createResult = await create.createJiraIssue(args);
@@ -523,12 +654,13 @@ async function runServer() {
         }
         
         case 'transition_jira_status_by_name': {
-          const { issueIdOrKey, statusName, comment, resolution, fields } = z.object({
+          const { issueIdOrKey, statusName, comment, resolution, fields, userPat } = z.object({
             issueIdOrKey: z.string(),
             statusName: z.string(),
             comment: z.string().optional(),
             resolution: z.object({ name: z.string() }).optional(),
-            fields: z.record(z.any()).optional()
+            fields: z.record(z.any()).optional(),
+            userPat: z.string().optional()
           }).parse(request.params.arguments);
           
           const transitionResult = await status.transitionJiraStatusByName(
@@ -536,7 +668,8 @@ async function runServer() {
             statusName,
             comment,
             resolution,
-            fields
+            fields,
+            userPat
           );
           result = {
             content: [{ type: 'text', text: JSON.stringify(transitionResult, null, 2) }]
@@ -585,6 +718,50 @@ async function runServer() {
           const listProjectsResult = await listProjects.listJiraProjects(args);
           result = {
             content: [{ type: 'text', text: JSON.stringify(listProjectsResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'get_project_issue_types': {
+          const args = createmeta.GetIssueTypesSchema.parse(request.params.arguments);
+          const issueTypesResult = await createmeta.getProjectIssueTypes(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(issueTypesResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'get_issuetype_metadata': {
+          const args = createmeta.GetFieldMetadataSchema.parse(request.params.arguments);
+          const metadataResult = await createmeta.getIssueTypeFieldMetadata(args);
+          result = {
+            content: [{ type: 'text', text: JSON.stringify(metadataResult, null, 2) }]
+          };
+          break;
+        }
+
+        case 'link_issues': {
+          const { inwardIssue, outwardIssue, linkType, userPat } = request.params.arguments as {
+            inwardIssue: string;
+            outwardIssue: string;
+            linkType: string;
+            userPat?: string;
+          };
+
+          const linkBody = {
+            type: { name: linkType },
+            inwardIssue: { key: inwardIssue },
+            outwardIssue: { key: outwardIssue },
+          };
+
+          await jiraRequest('issueLink', {
+            method: 'POST',
+            body: linkBody,
+            userPat,
+          });
+
+          result = {
+            content: [{ type: 'text', text: JSON.stringify({ success: true, message: `Linked ${inwardIssue} to ${outwardIssue} with type '${linkType}'` }, null, 2) }]
           };
           break;
         }

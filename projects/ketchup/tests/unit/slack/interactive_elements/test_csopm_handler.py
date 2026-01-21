@@ -4,14 +4,15 @@ Test CSOPM interactive element handler.
 Unit tests for the CSOPMHandler class, verifying:
 1. Block action routing for all CSOPM button types
 2. Modal view submission handling for follow-up creation
-3. Integration with CSOPMSlackNotifier service
+3. Integration with CSOPMButtonActionHandler service
 4. MCP tool coordination for JIRA operations
 5. Error handling across all operations
 
 Action IDs Covered:
 - csopm_acknowledge: Acknowledge ticket
 - csopm_create_followup: Open follow-up creation modal
-- csopm_done: Mark ticket as done
+- csopm_stop_reminders: Stop ketchup reminders
+- csopm_enable_reminders: Re-enable ketchup reminders
 - csopm_snooze: Snooze closure reminder
 - csopm_close_ticket: Close ticket in JIRA
 - csopm_view_jira: View ticket in JIRA (no-op)
@@ -20,7 +21,7 @@ Modal Callback IDs Covered:
 - csopm_create_followup_modal: Create follow-up ticket submission
 """
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -33,8 +34,8 @@ from packages.slack.interactive_elements.csopm_handler import (
 )
 
 
-class MockCSOPMSlackNotifier:
-    """Mock CSOPMSlackNotifier for testing."""
+class MockCSOPMButtonActionHandler:
+    """Mock CSOPMButtonActionHandler for testing."""
 
     def __init__(self) -> None:
         self.handle_button_action = AsyncMock(return_value=True)
@@ -50,18 +51,43 @@ class MockAsyncMCPClient:
         self._call_mcp_tool = AsyncMock()
 
 
+class MockSecretsManager:
+    """Mock SecretsManager for testing."""
+
+    def __init__(self) -> None:
+        self.get_slack_api_token_async = AsyncMock(return_value="xoxb-test-token")
+
+
 class MockSlackPostingHandler:
     """Mock SlackPostingHandler for testing."""
 
     def __init__(self) -> None:
         self.post_message = AsyncMock()
         self.open_modal = AsyncMock()
+        self._secrets_manager = MockSecretsManager()
+
+
+class MockUserPATOperations:
+    """Mock UserPATOperations for testing."""
+
+    def __init__(self) -> None:
+        self.store_pat = AsyncMock()
+        self.get_pat = AsyncMock(return_value="test-pat-token")
+        self.delete_pat = AsyncMock()
+        self.has_valid_pat = AsyncMock(return_value=True)
+        self.get_pat_expiry_minutes = AsyncMock(return_value=45)
 
 
 @pytest.fixture
-def mock_notifier():
-    """Create mock CSOPMSlackNotifier."""
-    return MockCSOPMSlackNotifier()
+def mock_user_pat_ops():
+    """Create mock UserPATOperations."""
+    return MockUserPATOperations()
+
+
+@pytest.fixture
+def mock_button_handler():
+    """Create mock CSOPMButtonActionHandler."""
+    return MockCSOPMButtonActionHandler()
 
 
 @pytest.fixture
@@ -77,12 +103,13 @@ def mock_posting_handler():
 
 
 @pytest.fixture
-def handler(mock_notifier, mock_mcp_client, mock_posting_handler):
+def handler(mock_button_handler, mock_mcp_client, mock_posting_handler, mock_user_pat_ops):
     """Create CSOPMHandler instance with mocks."""
     return CSOPMHandler(
-        slack_notifier=mock_notifier,
+        button_handler=mock_button_handler,
         mcp_client=mock_mcp_client,
         posting_handler=mock_posting_handler,
+        user_pat_ops=mock_user_pat_ops,
     )
 
 
@@ -149,7 +176,8 @@ class TestCSOPMHandlerHelperFunctions:
         """Test is_csopm_action with CSOPM action IDs."""
         assert is_csopm_action("csopm_acknowledge") is True
         assert is_csopm_action("csopm_create_followup") is True
-        assert is_csopm_action("csopm_done") is True
+        assert is_csopm_action("csopm_stop_reminders") is True
+        assert is_csopm_action("csopm_enable_reminders") is True
         assert is_csopm_action("csopm_snooze") is True
         assert is_csopm_action("csopm_close_ticket") is True
         assert is_csopm_action("csopm_view_jira") is True
@@ -178,7 +206,7 @@ class TestCSOPMHandlerBlockActions:
 
     @pytest.mark.asyncio
     async def test_handle_block_action_acknowledge(
-        self, handler, mock_notifier, sample_block_action_payload
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
         """Test handling csopm_acknowledge action."""
         sample_block_action_payload["actions"][0]["action_id"] = "csopm_acknowledge"
@@ -186,7 +214,7 @@ class TestCSOPMHandlerBlockActions:
         result = await handler.handle_block_action(sample_block_action_payload)
 
         assert result is True
-        mock_notifier.handle_button_action.assert_awaited_once_with(
+        mock_button_handler.handle_button_action.assert_awaited_once_with(
             action_id="csopm_acknowledge",
             user_id="U12345678",
             ticket_key="CSOPM-1234",
@@ -194,22 +222,36 @@ class TestCSOPMHandlerBlockActions:
         )
 
     @pytest.mark.asyncio
-    async def test_handle_block_action_done(
-        self, handler, mock_notifier, sample_block_action_payload
+    async def test_handle_block_action_stop_reminders(
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
-        """Test handling csopm_done action."""
-        sample_block_action_payload["actions"][0]["action_id"] = "csopm_done"
+        """Test handling csopm_stop_reminders action."""
+        sample_block_action_payload["actions"][0]["action_id"] = "csopm_stop_reminders"
 
         result = await handler.handle_block_action(sample_block_action_payload)
 
         assert result is True
-        mock_notifier.handle_button_action.assert_awaited_once()
-        call_args = mock_notifier.handle_button_action.call_args
-        assert call_args.kwargs["action_id"] == "csopm_done"
+        mock_button_handler.handle_button_action.assert_awaited_once()
+        call_args = mock_button_handler.handle_button_action.call_args
+        assert call_args.kwargs["action_id"] == "csopm_stop_reminders"
+
+    @pytest.mark.asyncio
+    async def test_handle_block_action_enable_reminders(
+        self, handler, mock_button_handler, sample_block_action_payload
+    ):
+        """Test handling csopm_enable_reminders action."""
+        sample_block_action_payload["actions"][0]["action_id"] = "csopm_enable_reminders"
+
+        result = await handler.handle_block_action(sample_block_action_payload)
+
+        assert result is True
+        mock_button_handler.handle_button_action.assert_awaited_once()
+        call_args = mock_button_handler.handle_button_action.call_args
+        assert call_args.kwargs["action_id"] == "csopm_enable_reminders"
 
     @pytest.mark.asyncio
     async def test_handle_block_action_snooze(
-        self, handler, mock_notifier, sample_block_action_payload
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
         """Test handling csopm_snooze action."""
         sample_block_action_payload["actions"][0]["action_id"] = "csopm_snooze"
@@ -217,13 +259,13 @@ class TestCSOPMHandlerBlockActions:
         result = await handler.handle_block_action(sample_block_action_payload)
 
         assert result is True
-        mock_notifier.handle_button_action.assert_awaited_once()
-        call_args = mock_notifier.handle_button_action.call_args
+        mock_button_handler.handle_button_action.assert_awaited_once()
+        call_args = mock_button_handler.handle_button_action.call_args
         assert call_args.kwargs["action_id"] == "csopm_snooze"
 
     @pytest.mark.asyncio
     async def test_handle_block_action_close_ticket(
-        self, handler, mock_notifier, sample_block_action_payload
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
         """Test handling csopm_close_ticket action."""
         sample_block_action_payload["actions"][0]["action_id"] = "csopm_close_ticket"
@@ -231,13 +273,13 @@ class TestCSOPMHandlerBlockActions:
         result = await handler.handle_block_action(sample_block_action_payload)
 
         assert result is True
-        mock_notifier.handle_button_action.assert_awaited_once()
-        call_args = mock_notifier.handle_button_action.call_args
+        mock_button_handler.handle_button_action.assert_awaited_once()
+        call_args = mock_button_handler.handle_button_action.call_args
         assert call_args.kwargs["action_id"] == "csopm_close_ticket"
 
     @pytest.mark.asyncio
     async def test_handle_block_action_view_jira(
-        self, handler, mock_notifier, sample_block_action_payload
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
         """Test handling csopm_view_jira action (no-op, just logs)."""
         sample_block_action_payload["actions"][0]["action_id"] = "csopm_view_jira"
@@ -246,7 +288,7 @@ class TestCSOPMHandlerBlockActions:
 
         assert result is True
         # View JIRA is still routed to notifier which returns True immediately
-        mock_notifier.handle_button_action.assert_awaited_once()
+        mock_button_handler.handle_button_action.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_handle_block_action_no_actions(self, handler):
@@ -262,7 +304,7 @@ class TestCSOPMHandlerBlockActions:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_handle_block_action_non_csopm_action(self, handler, mock_notifier):
+    async def test_handle_block_action_non_csopm_action(self, handler, mock_button_handler):
         """Test handling non-CSOPM action returns False."""
         payload = {
             "type": "block_actions",
@@ -278,14 +320,14 @@ class TestCSOPMHandlerBlockActions:
         result = await handler.handle_block_action(payload)
 
         assert result is False
-        mock_notifier.handle_button_action.assert_not_awaited()
+        mock_button_handler.handle_button_action.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_handle_block_action_notifier_failure(
-        self, handler, mock_notifier, sample_block_action_payload
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
         """Test handling when notifier returns failure."""
-        mock_notifier.handle_button_action.return_value = False
+        mock_button_handler.handle_button_action.return_value = False
 
         result = await handler.handle_block_action(sample_block_action_payload)
 
@@ -293,10 +335,10 @@ class TestCSOPMHandlerBlockActions:
 
     @pytest.mark.asyncio
     async def test_handle_block_action_exception(
-        self, handler, mock_notifier, sample_block_action_payload
+        self, handler, mock_button_handler, sample_block_action_payload
     ):
         """Test handling exception during processing."""
-        mock_notifier.handle_button_action.side_effect = Exception("API Error")
+        mock_button_handler.handle_button_action.side_effect = Exception("API Error")
 
         result = await handler.handle_block_action(sample_block_action_payload)
 
@@ -310,7 +352,7 @@ class TestCSOPMHandlerCreateFollowupAction:
     async def test_handle_create_followup_opens_modal(
         self,
         handler,
-        mock_notifier,
+        mock_button_handler,
         mock_mcp_client,
         mock_posting_handler,
         sample_block_action_payload,
@@ -330,20 +372,38 @@ class TestCSOPMHandlerCreateFollowupAction:
         mock_mcp_client.list_projects.return_value = [
             {"key": "CSOPM", "name": "CSO PM", "issueTypes": [{"id": "1", "name": "Task"}]},
         ]
-        mock_posting_handler.open_modal.return_value = {"ok": True}
 
-        result = await handler.handle_block_action(sample_block_action_payload)
+        # Mock aiohttp response for views.open
+        mock_response = MagicMock()
+        mock_response.json = AsyncMock(return_value={"ok": True})
+        mock_session_instance = MagicMock()
+        mock_session_instance.post = MagicMock(
+            return_value=MagicMock(
+                __aenter__=AsyncMock(return_value=mock_response), __aexit__=AsyncMock()
+            )
+        )
+        mock_session = MagicMock(
+            return_value=MagicMock(
+                __aenter__=AsyncMock(return_value=mock_session_instance), __aexit__=AsyncMock()
+            )
+        )
+
+        with patch("aiohttp.ClientSession", mock_session):
+            result = await handler.handle_block_action(sample_block_action_payload)
 
         assert result is True
-        mock_notifier.handle_button_action.assert_awaited_once()
+        mock_button_handler.handle_button_action.assert_awaited_once()
         # Modal should be opened after notifier succeeds
         mock_mcp_client.get_issue.assert_awaited_once()
         mock_mcp_client.list_projects.assert_awaited_once()
-        mock_posting_handler.open_modal.assert_awaited_once()
+        # Verify views.open was called via aiohttp (no longer using posting_handler.open_modal)
+        mock_session_instance.post.assert_called_once()
+        call_args = mock_session_instance.post.call_args
+        assert "views.open" in call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_handle_create_followup_no_trigger_id(
-        self, handler, mock_notifier, mock_posting_handler, sample_block_action_payload
+        self, handler, mock_button_handler, mock_posting_handler, sample_block_action_payload
     ):
         """Test create_followup without trigger_id doesn't open modal."""
         sample_block_action_payload["actions"][0]["action_id"] = "csopm_create_followup"
@@ -381,9 +441,10 @@ class TestCSOPMHandlerViewSubmission:
         # Verify create_jira_issue was called
         create_call = mock_mcp_client._call_mcp_tool.call_args_list[0]
         assert create_call[0][0] == "create_jira_issue"
-        assert create_call[0][1]["projectKey"] == "CSOPM"
-        assert create_call[0][1]["issueType"] == "Task"
-        assert create_call[0][1]["summary"] == "Follow-up task for CSOPM-1234"
+        # The create call uses fields.project.key and fields.issuetype.name
+        assert create_call[0][1]["fields"]["project"]["key"] == "CSOPM"
+        assert create_call[0][1]["fields"]["issuetype"]["name"] == "Task"
+        assert create_call[0][1]["fields"]["summary"] == "Follow-up task for CSOPM-1234"
 
         # Verify link_issues was called
         link_call = mock_mcp_client._call_mcp_tool.call_args_list[1]
@@ -392,11 +453,14 @@ class TestCSOPMHandlerViewSubmission:
         assert link_call[0][1]["outwardIssue"] == "CSOPM-5001"
         assert link_call[0][1]["linkType"] == "Relates"
 
-        # Verify confirmation message was sent
+        # Verify confirmation blocks were sent (not plain message)
         mock_posting_handler.post_message.assert_awaited()
         call_kwargs = mock_posting_handler.post_message.call_args.kwargs
-        assert "CSOPM-5001" in call_kwargs["message"]
-        assert "CSOPM-1234" in call_kwargs["message"]
+        # Now uses blocks instead of message
+        assert "blocks" in call_kwargs
+        blocks_str = str(call_kwargs["blocks"])
+        assert "CSOPM-5001" in blocks_str
+        assert "CSOPM-1234" in blocks_str
 
     @pytest.mark.asyncio
     async def test_handle_view_submission_create_followup_with_text_input(
@@ -439,8 +503,9 @@ class TestCSOPMHandlerViewSubmission:
 
         assert result is True
         create_call = mock_mcp_client._call_mcp_tool.call_args_list[0]
-        assert create_call[0][1]["projectKey"] == "CSOPM"
-        assert create_call[0][1]["issueType"] == "Bug"
+        # The create call uses fields.project.key and fields.issuetype.name
+        assert create_call[0][1]["fields"]["project"]["key"] == "CSOPM"
+        assert create_call[0][1]["fields"]["issuetype"]["name"] == "Bug"
 
     @pytest.mark.asyncio
     async def test_handle_view_submission_create_failure(
@@ -558,7 +623,10 @@ class TestCSOPMHandlerViewSubmission:
         assert result is True
         mock_posting_handler.post_message.assert_awaited()
         call_kwargs = mock_posting_handler.post_message.call_args.kwargs
-        assert "CSOPM-5003" in call_kwargs["message"]
+        # Now uses blocks instead of message
+        assert "blocks" in call_kwargs
+        blocks_str = str(call_kwargs["blocks"])
+        assert "CSOPM-5003" in blocks_str
 
     @pytest.mark.asyncio
     async def test_handle_view_submission_unknown_modal(self, handler):
@@ -595,13 +663,13 @@ class TestCSOPMHandlerIntegration:
     async def test_handler_can_be_instantiated(self):
         """Test that CSOPMHandler can be instantiated with mock dependencies."""
         handler = CSOPMHandler(
-            slack_notifier=MockCSOPMSlackNotifier(),
+            button_handler=MockCSOPMButtonActionHandler(),
             mcp_client=MockAsyncMCPClient(),
             posting_handler=MockSlackPostingHandler(),
         )
 
         assert handler is not None
-        assert handler._notifier is not None
+        assert handler._button_handler is not None
         assert handler._mcp_client is not None
         assert handler._posting_handler is not None
 

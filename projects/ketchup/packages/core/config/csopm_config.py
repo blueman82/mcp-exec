@@ -25,7 +25,7 @@ Example docker-compose.yml:
 """
 
 import os
-from typing import List
+from typing import List, Set
 
 # JIRA Project Configuration
 # The JIRA project key used in JQL queries for CSOPM ticket discovery
@@ -46,3 +46,28 @@ CSOPM_MAX_PING_COUNT: int = int(os.environ.get("CSOPM_MAX_PING_COUNT", "3"))
 # Comma-separated times in 24-hour UTC format when the poll cycle runs
 _schedule_times_str: str = os.environ.get("CSOPM_SCHEDULE_TIMES", "08:00,16:00")
 CSOPM_SCHEDULE_TIMES: List[str] = [t.strip() for t in _schedule_times_str.split(",")]
+
+
+# Pilot Users Configuration
+# Comma-separated Slack user IDs for pilot rollout
+# Empty string = feature enabled for ALL users (production rollout)
+# Format: CSOPM_PILOT_SLACK_IDS=W7MGASQ2K,WDGLSLQRK,W5H6R82Q6
+_pilot_ids_str: str = os.environ.get("CSOPM_PILOT_SLACK_IDS", "")
+CSOPM_PILOT_SLACK_IDS: Set[str] = {uid.strip() for uid in _pilot_ids_str.split(",") if uid.strip()}
+
+
+def is_pilot_user(slack_user_id: str) -> bool:
+    """
+    Check if a Slack user is in the pilot program.
+
+    Args:
+        slack_user_id: The Slack user ID to check.
+
+    Returns:
+        True if user is in pilot (or pilot is empty = all users allowed),
+        False if pilot is active and user is not in list.
+    """
+    # Empty pilot list = all users allowed (production rollout)
+    if not CSOPM_PILOT_SLACK_IDS:
+        return True
+    return slack_user_id in CSOPM_PILOT_SLACK_IDS

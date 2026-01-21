@@ -367,12 +367,15 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
             logger.error("Error getting comments for %s: %s", issue_key, exc)
             return []
 
-    async def create_issue_comment(self, issue_key: str, comment: str) -> bool:
+    async def create_issue_comment(
+        self, issue_key: str, comment: str, user_pat: Optional[str] = None
+    ) -> bool:
         """Create a JIRA issue comment.
 
         Args:
             issue_key: The JIRA issue key (e.g., "CPGNCX-12345")
             comment: Plain text comment to add
+            user_pat: Optional user-provided PAT for authentication
 
         Returns:
             True if comment was added successfully, False otherwise.
@@ -384,10 +387,17 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         # The MCP server handles ADF conversion internally
         comment_payload = {"body": comment}
 
+        arguments: Dict[str, Any] = {
+            "issueIdOrKey": issue_key,
+            "comment": comment_payload,
+        }
+        if user_pat:
+            arguments["userPat"] = user_pat
+
         try:
             result = await self._call_mcp_tool(
                 "add_jira_comment",
-                {"issueIdOrKey": issue_key, "comment": comment_payload},
+                arguments,
             )
             success = result.get("success", False)
             if success:
@@ -398,6 +408,32 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         except Exception as exc:
             logger.error("Error adding comment to %s: %s", issue_key, exc)
             return False
+
+    async def create_issue(
+        self, fields: Dict[str, Any], user_pat: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Create a JIRA issue.
+
+        Args:
+            fields: The JIRA issue fields (project, issuetype, summary, etc.)
+            user_pat: Optional user-provided PAT for authentication
+
+        Returns:
+            Dictionary with success status and created issue key.
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        arguments: Dict[str, Any] = {"fields": fields}
+        if user_pat:
+            arguments["userPat"] = user_pat
+
+        try:
+            result = await self._call_mcp_tool("create_jira_issue", arguments)
+            return result
+        except Exception as exc:
+            logger.error("Error creating issue: %s", exc)
+            return {"success": False, "message": str(exc)}
 
     async def get_fields(self) -> List[Dict[str, Any]]:
         """Retrieve list of JIRA fields."""
@@ -446,6 +482,177 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
                 return []
         except Exception as exc:
             logger.error("Error listing projects: %s", exc)
+            return []
+
+    async def get_project_issue_types(self, project_key: str) -> List[Dict[str, Any]]:
+        """Get all issue types available for a specific JIRA project.
+
+        Args:
+            project_key: The project key (e.g., "CPGNCX", "CSOPM")
+
+        Returns:
+            List of issue types, each containing:
+                - id: str - the issue type ID
+                - name: str - the issue type name (e.g., "Task", "Bug")
+                - subtask: bool - whether this is a subtask type
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        try:
+            result = await self._call_mcp_tool(
+                "get_project_issue_types", {"projectKey": project_key}
+            )
+            # MCP returns: {success: bool, message: str, data: {issueTypes: [...]}}
+            if isinstance(result, dict) and result.get("success"):
+                return result.get("data", {}).get("issueTypes", [])
+            else:
+                logger.warning(
+                    "Failed to get issue types for %s: %s",
+                    project_key,
+                    result.get("message", "Unknown error"),
+                )
+                return []
+        except Exception as exc:
+            logger.error("Error getting issue types for %s: %s", project_key, exc)
+            return []
+
+    async def get_issuetype_metadata(
+        self, project_key: str, issue_type_id: str, user_pat: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Get field metadata for a specific issue type in a JIRA project.
+
+        This returns detailed field information including which fields are required
+        and their allowed values.
+
+        Args:
+            project_key: The project key (e.g., "CPGNCX", "CSOPM")
+            issue_type_id: The issue type ID (e.g., "10200")
+            user_pat: Optional user-provided PAT for authentication
+
+        Returns:
+            Dictionary containing field metadata with structure:
+                {
+                    "values": [
+                        {"fieldId": "summary", "name": "Summary", "required": true, ...},
+                        {"fieldId": "description", "name": "Description", "required": false, ...},
+                        ...
+                    ]
+                }
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        try:
+            arguments: Dict[str, Any] = {
+                "projectKey": project_key,
+                "issueTypeId": issue_type_id,
+            }
+            if user_pat:
+                arguments["userPat"] = user_pat
+
+            result = await self._call_mcp_tool(
+                "get_issuetype_metadata",
+                arguments,
+            )
+            # MCP returns: {success: bool, message: str, data: {...}}
+            if isinstance(result, dict) and result.get("success"):
+                return result.get("data", {})
+            else:
+                logger.warning(
+                    "Failed to get metadata for %s/%s: %s",
+                    project_key,
+                    issue_type_id,
+                    result.get("message", "Unknown error"),
+                )
+                return {}
+        except Exception as exc:
+            logger.error("Error getting metadata for %s/%s: %s", project_key, issue_type_id, exc)
+            return {}
+
+    async def get_transition_fields(
+        self, ticket_key: str, target_status: str, user_pat: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Get required fields for a specific status transition.
+
+        Fetches available transitions for a ticket and returns the fields
+        required for the specified target status transition.
+
+        Args:
+            ticket_key: The JIRA ticket key (e.g., "CSOPM-12345")
+            target_status: The target status name (e.g., "Complete", "Closed")
+            user_pat: Optional user-provided PAT for authentication
+
+        Returns:
+            List of field metadata dictionaries for the transition, e.g.:
+                [
+                    {"fieldId": "resolution", "name": "Resolution", "required": true, ...},
+                    ...
+                ]
+            Returns empty list if transition not found or on error.
+        """
+        await self.ensure_connection()
+        await self.rate_limiter.acquire()
+
+        try:
+            arguments: Dict[str, Any] = {"issueIdOrKey": ticket_key}
+            if user_pat:
+                arguments["userPat"] = user_pat
+
+            result = await self._call_mcp_tool("get_jira_transitions", arguments)
+
+            if not isinstance(result, dict) or not result.get("success"):
+                logger.warning(
+                    "Failed to get transitions for %s: %s",
+                    ticket_key,
+                    result.get("message", "Unknown error") if result else "No response",
+                )
+                return []
+
+            data = result.get("data", {})
+            transitions = data.get("transitions", [])
+
+            # Find the transition matching target status
+            for transition in transitions:
+                to_status = transition.get("to", {}).get("name", "")
+                if to_status.lower() == target_status.lower():
+                    # Return the fields for this transition
+                    fields = transition.get("fields", {})
+                    # Convert fields dict to list format matching get_issuetype_metadata
+                    field_list = []
+                    for field_id, field_data in fields.items():
+                        field_list.append(
+                            {
+                                "fieldId": field_id,
+                                "name": field_data.get("name", field_id),
+                                "required": field_data.get("required", False),
+                                "allowedValues": field_data.get("allowedValues", []),
+                                "schema": field_data.get("schema", {}),
+                            }
+                        )
+                    logger.info(
+                        "Found %d fields for transition to '%s' on %s",
+                        len(field_list),
+                        target_status,
+                        ticket_key,
+                    )
+                    return field_list
+
+            logger.warning(
+                "Transition to '%s' not found for %s. Available: %s",
+                target_status,
+                ticket_key,
+                [t.get("to", {}).get("name") for t in transitions],
+            )
+            return []
+
+        except Exception as exc:
+            logger.error(
+                "Error getting transition fields for %s to %s: %s",
+                ticket_key,
+                target_status,
+                exc,
+            )
             return []
 
     async def create_pat(

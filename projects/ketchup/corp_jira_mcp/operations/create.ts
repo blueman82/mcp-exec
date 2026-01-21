@@ -59,6 +59,7 @@ const IssueFieldsSchema = z.object({
 export const CreateJiraIssueSchema = z.object({
   fields: IssueFieldsSchema,
   update: z.record(z.string(), z.any()).optional(),
+  userPat: z.string().optional(),  // Optional user-provided PAT for authentication
 });
 
 export type CreateJiraIssueRequest = z.infer<typeof CreateJiraIssueSchema>;
@@ -81,9 +82,13 @@ export async function createJiraIssue(params: CreateJiraIssueRequest) {
       console.warn(`Warning: Project ${projectKey} typically requires QE Lead field (customfield_18203)`);
     }
 
+    // Extract userPat from params (don't send it to JIRA API)
+    const { userPat, ...jiraParams } = params;
+
     const result = await jiraRequest("issue", {
       method: "POST",
-      body: params
+      body: jiraParams,
+      userPat  // Pass user PAT for authentication
     });
 
     return {

@@ -10,8 +10,8 @@ import subprocess
 
 import pytest
 
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.integrations.ims_token_manager import IMSTokenManager
-from packages.integrations.mcp_client import MCPClient
 from packages.secrets.manager import SecretsManager
 
 pytestmark = pytest.mark.integration
@@ -146,7 +146,7 @@ class TestJIRAMCPIntegration:
         try:
             secrets_manager = SecretsManager()
             ims_manager = IMSTokenManager(secrets_manager)
-            mcp_client = MCPClient(ims_manager)
+            mcp_client = AsyncMCPClient(ims_manager)
 
             # Should initialize without error
             assert mcp_client is not None
@@ -161,7 +161,7 @@ class TestJIRAMCPIntegration:
         try:
             secrets_manager = SecretsManager()
             ims_manager = IMSTokenManager(secrets_manager)
-            mcp_client = MCPClient(ims_manager)
+            mcp_client = AsyncMCPClient(ims_manager)
 
             # Health check should not raise an error
             # (might return False if MCP server is not running, but shouldn't crash)

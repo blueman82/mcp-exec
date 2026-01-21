@@ -26,7 +26,10 @@ from packages.core.typed_di.protocols import (
     CSOPMReminderServiceProtocol,
     CSOPMStateTrackerProtocol,
     CSOPMTicket,
+    CSOPMTicketStatusPollerProtocol,
     FollowupRecord,
+    NotificationRecord,
+    StatusCheckResult,
 )
 from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.core.config.csopm_config import (
@@ -74,6 +77,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         mcp_client: AsyncMCPClient,
         jira_poller: Optional[CSOPMJIRAPollerProtocol] = None,
         metrics: Optional[CSOPMMetricsProtocol] = None,
+        status_poller: Optional[CSOPMTicketStatusPollerProtocol] = None,
     ) -> None:
         """Initialize the CSOPM reminder service.
 
@@ -82,11 +86,13 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             mcp_client: AsyncMCPClient for JIRA API access via MCP.
             jira_poller: Optional CSOPMJIRAPollerProtocol for ticket details.
             metrics: Optional CSOPMMetricsProtocol for metrics tracking.
+            status_poller: Optional CSOPMTicketStatusPollerProtocol for followup status checks.
         """
         self._state_tracker = state_tracker
         self._mcp_client = mcp_client
         self._jira_poller = jira_poller
         self._metrics = metrics
+        self._status_poller = status_poller
         logger.info("CSOPMReminderService initialized")
 
     def _calculate_days_old(self, ticket_created_at: datetime) -> int:
@@ -130,7 +136,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         if record.get("rca_reminder_sent", False):
             return False
 
-        if record.get("notification_status") == "escalated":
+        if record.get("notification_status") in ("escalated", "reminders_stopped"):
             return False
 
         return True
@@ -161,7 +167,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         if record.get("closure_reminder_sent", False):
             return False
 
-        if record.get("notification_status") == "escalated":
+        if record.get("notification_status") in ("escalated", "reminders_stopped"):
             return False
 
         # Check if snoozed
@@ -221,6 +227,96 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             logger.error("Error checking linked tickets for %s: %s", ticket_key, e)
             # On error, assume no open linked tickets (allow reminder to proceed)
             return False
+
+    # Terminal statuses that indicate a ticket is closed/complete
+    TERMINAL_STATUSES = frozenset({"Closed", "Done", "Resolved", "Complete"})
+
+    async def _get_open_followup_tickets(
+        self, record: NotificationRecord
+    ) -> List[Dict[str, str]]:
+        """Get open followup tickets with their statuses.
+
+        Queries followup_ticket_keys from the notification record and checks
+        their statuses using the status poller data or direct JIRA query.
+
+        Open followups are those with status NOT IN terminal statuses
+        (Closed, Done, Resolved, Complete).
+
+        Args:
+            record: The NotificationRecord containing followup_ticket_keys.
+
+        Returns:
+            List of dicts with 'key' and 'status' for open followups only.
+            Format: [{'key': 'CAMP-123', 'status': 'In Progress'}, ...]
+        """
+        followup_keys = record.followup_ticket_keys or []
+        if not followup_keys:
+            return []
+
+        open_followups: List[Dict[str, str]] = []
+
+        # Try to use status poller if available (uses cached/polled data)
+        if self._status_poller:
+            try:
+                status_results = await self._status_poller.get_followup_statuses(
+                    record.ticket_key
+                )
+                for ticket_key, status_result in status_results.items():
+                    if status_result.current_status not in self.TERMINAL_STATUSES:
+                        open_followups.append({
+                            "key": ticket_key,
+                            "status": status_result.current_status,
+                        })
+                logger.debug(
+                    "Found %d open followup tickets for %s via status poller",
+                    len(open_followups),
+                    record.ticket_key,
+                )
+                return open_followups
+            except Exception as e:
+                logger.warning(
+                    "Error getting followup statuses via poller for %s: %s, falling back to direct query",
+                    record.ticket_key,
+                    e,
+                )
+
+        # Fallback: Query JIRA directly for each followup ticket
+        for followup_key in followup_keys:
+            try:
+                issue = await self._mcp_client.get_issue(
+                    issue_key=followup_key,
+                    fields=["status"],
+                )
+                if issue:
+                    status_obj = issue.get("fields", {}).get("status", {})
+                    status_name = (
+                        status_obj.get("name", "Unknown")
+                        if isinstance(status_obj, dict)
+                        else "Unknown"
+                    )
+                    if status_name not in self.TERMINAL_STATUSES:
+                        open_followups.append({
+                            "key": followup_key,
+                            "status": status_name,
+                        })
+            except Exception as e:
+                logger.warning(
+                    "Error getting status for followup ticket %s: %s",
+                    followup_key,
+                    e,
+                )
+                # Include the ticket anyway with unknown status
+                open_followups.append({
+                    "key": followup_key,
+                    "status": "Unknown",
+                })
+
+        logger.debug(
+            "Found %d open followup tickets for %s via direct query",
+            len(open_followups),
+            record.ticket_key,
+        )
+        return open_followups
 
     async def schedule_rca_reminder(
         self, ticket: CSOPMTicket, delay_hours: int = 24
@@ -431,10 +527,10 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             now = datetime.now(timezone.utc)
 
             for record in active_notifications:
-                # Skip if already sent or escalated
+                # Skip if already sent, escalated, or reminders stopped
                 if record.rca_reminder_sent:
                     continue
-                if record.notification_status == "escalated":
+                if record.notification_status in ("escalated", "reminders_stopped"):
                     continue
 
                 # Get ticket details to check age
@@ -477,27 +573,33 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
     async def check_closure_reminders(self) -> List[FollowupRecord]:
         """Check for closure reminders that are due to be sent.
 
+        Option B Implementation: Returns all tickets that are due for closure
+        reminders regardless of open linked/followup tickets. The actual
+        process_closure_reminder() will include open followup info for transparency.
+
         Queries for tickets that:
         - Are 45+ days old
         - Have not had closure reminder sent
         - Are not escalated
-        - Have no open linked tickets
+
+        Note: Unlike Option A, we do NOT skip tickets with open linked/followup
+        tickets. Instead, we send the reminder with visibility into those tickets.
 
         Returns:
             List of FollowupRecords for due closure reminders.
         """
         try:
-            logger.info("Checking for due closure reminders")
+            logger.info("Checking for due closure reminders (Option B: includes tickets with open followups)")
 
             active_notifications = await self._state_tracker.get_all_active_notifications()
             due_reminders: List[FollowupRecord] = []
             now = datetime.now(timezone.utc)
 
             for record in active_notifications:
-                # Skip if already sent or escalated
+                # Skip if already sent, escalated, or reminders stopped
                 if record.closure_reminder_sent:
                     continue
-                if record.notification_status == "escalated":
+                if record.notification_status in ("escalated", "reminders_stopped"):
                     continue
 
                 # Get ticket details to check age
@@ -519,14 +621,8 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                     )
                     continue
 
-                # Check for open linked tickets
-                has_open_linked = await self._has_open_linked_tickets(record.ticket_key)
-                if has_open_linked:
-                    logger.debug(
-                        "Skipping closure reminder for %s - has open linked tickets",
-                        record.ticket_key,
-                    )
-                    continue
+                # Option B: Do NOT check for open linked tickets here.
+                # Reminder will be sent with visibility into open followups.
 
                 # Create a followup record for closure reminder
                 due_reminders.append(
@@ -597,8 +693,9 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
     ) -> Optional[Dict[str, Any]]:
         """Process a closure reminder for a ticket with 3-ping escalation.
 
-        Checks linked tickets before sending reminder. If all linked tickets
-        are closed, sends closure reminder.
+        Option B Implementation: Always sends the reminder, but includes
+        visibility into any open follow-up tickets for transparency.
+        The assignee can then decide if followups are blocking closure.
 
         Args:
             ticket: The CSOPMTicket to send reminder for.
@@ -606,7 +703,14 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
 
         Returns:
             Dict with reminder result, or None on error.
-            Contains: {sent: bool, escalated: bool, new_ping_count: int, has_open_linked: bool}
+            Contains: {
+                sent: bool,
+                escalated: bool,
+                new_ping_count: int,
+                days_old: int,
+                has_open_linked: bool,
+                open_followups: List[Dict[str, str]]  # [{key, status}, ...]
+            }
         """
         try:
             days_old = self._calculate_days_old(ticket.created_at)
@@ -619,38 +723,48 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 )
                 return None
 
-            # Check for open linked tickets
+            # Get notification record to check for followup tickets
+            record = await self._state_tracker.get_notification_record(ticket.key)
+            open_followups: List[Dict[str, str]] = []
+
+            if record:
+                open_followups = await self._get_open_followup_tickets(record)
+                if open_followups:
+                    logger.info(
+                        "Ticket %s has %d open follow-up tickets: %s (Option B: sending reminder with info)",
+                        ticket.key,
+                        len(open_followups),
+                        [f["key"] for f in open_followups],
+                    )
+
+            # Check for open linked tickets (general JIRA links, not tracked followups)
             has_open_linked = await self._has_open_linked_tickets(ticket.key)
             if has_open_linked:
                 logger.info(
-                    "Ticket %s has open linked tickets, deferring closure reminder",
+                    "Ticket %s has open linked tickets in JIRA (Option B: sending reminder with info)",
                     ticket.key,
                 )
-                return {
-                    "sent": False,
-                    "escalated": False,
-                    "new_ping_count": closure_ping_count,
-                    "days_old": days_old,
-                    "has_open_linked": True,
-                }
 
             new_ping_count = closure_ping_count + 1
             should_escalate = new_ping_count >= MAX_PING_COUNT
 
             logger.info(
-                "Processing closure reminder for %s (ping %d/%d, days_old=%d)",
+                "Processing closure reminder for %s (ping %d/%d, days_old=%d, open_followups=%d)",
                 ticket.key,
                 new_ping_count,
                 MAX_PING_COUNT,
                 days_old,
+                len(open_followups),
             )
 
+            # Option B: Always send reminder, but include open followups for transparency
             return {
                 "sent": True,
                 "escalated": should_escalate,
                 "new_ping_count": new_ping_count,
                 "days_old": days_old,
-                "has_open_linked": False,
+                "has_open_linked": has_open_linked or len(open_followups) > 0,
+                "open_followups": open_followups,
             }
 
         except Exception as e:

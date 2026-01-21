@@ -115,7 +115,7 @@ async def handle_interactive_component(
     try:
         payload = json.loads(payload_str)
         logger.info("Parsed Interactive Payload: %s", payload)
-        await process_interactive_payload(
+        result = await process_interactive_payload(
             payload_input=payload,
             posting_handler=posting_handler,
             feedback_handler=feedback_handler,
@@ -129,6 +129,9 @@ async def handle_interactive_component(
             csopm_handler=csopm_handler,
         )
         logger.info("Processed interactive payload successfully.")
+        # Return modal response (errors/update) if handler returned a dict
+        if isinstance(result, dict) and result.get("response_action"):
+            return {"statusCode": 200, "body": json.dumps(result)}
         return {"statusCode": 200, "body": ""}  # Ack interaction
     except json.JSONDecodeError:
         logger.error("Failed to parse interactive payload JSON: %s", payload_str[:100])

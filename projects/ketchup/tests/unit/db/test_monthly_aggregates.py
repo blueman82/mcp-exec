@@ -90,7 +90,6 @@ class TestGetMonthlyAggregates:
                 "war_room_sent_2025_10": {"N": "450"},
                 "war_room_success_2025_10": {"N": "445"},
                 "war_room_failed_2025_10": {"N": "5"},
-                "war_room_unique_users_2025_10": {"N": "128"},
             }
         }
 
@@ -101,7 +100,6 @@ class TestGetMonthlyAggregates:
         assert result["2025_10"]["war_room_sent"] == 450
         assert result["2025_10"]["war_room_success"] == 445
         assert result["2025_10"]["war_room_failed"] == 5
-        assert result["2025_10"]["war_room_unique_users"] == 128
 
     @pytest.mark.asyncio
     async def test_get_multiple_months(self, db_store, mock_client):
@@ -142,7 +140,6 @@ class TestGetMonthlyAggregates:
         assert result["2025_10"]["war_room_sent"] == 0
         assert result["2025_10"]["war_room_success"] == 0
         assert result["2025_10"]["war_room_failed"] == 0
-        assert result["2025_10"]["war_room_unique_users"] == 0
 
     @pytest.mark.asyncio
     async def test_get_record_not_found(self, db_store, mock_client):

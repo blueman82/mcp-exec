@@ -18,8 +18,8 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.insert(0, project_root)
 
 from packages.core.logging import setup_logger
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.integrations.ims_token_manager import IMSTokenManager
-from packages.integrations.mcp_client import MCPClient
 from packages.secrets.manager import SecretsManager
 
 logger = setup_logger(__name__)
@@ -114,7 +114,7 @@ async def run_mcp_authentication_test():
         # Step 6: Initialize MCP Client
         print("\n🔗 Step 6: Initializing MCP Client...")
         try:
-            mcp_client = MCPClient(ims_manager)
+            mcp_client = AsyncMCPClient(ims_manager)
             print("✅ MCP Client initialized")
         except Exception as e:
             print(f"❌ Failed to initialize MCP Client: {e}")
@@ -269,13 +269,13 @@ async def test_mcp_authentication():
                 # Mock MCP client health check and auth tests
                 with (
                     patch(
-                        "packages.integrations.mcp_client." "MCPClient.health_check"
+                        "packages.integrations.async_mcp_client." "AsyncMCPClient.health_check"
                     ) as mock_health,
                     patch(
-                        "packages.integrations.mcp_client." "MCPClient.test_jira_auth"
+                        "packages.integrations.async_mcp_client." "AsyncMCPClient.test_jira_auth"
                     ) as mock_auth,
                     patch(
-                        "packages.integrations.mcp_client." "MCPClient.search_issues"
+                        "packages.integrations.async_mcp_client." "AsyncMCPClient.search_issues"
                     ) as mock_search,
                 ):
 

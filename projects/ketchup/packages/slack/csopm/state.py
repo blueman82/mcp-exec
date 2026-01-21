@@ -88,9 +88,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         timestamp = int(scheduled_at.timestamp())
         return f"{SK_FOLLOWUP_PREFIX}{followup_type}#{timestamp}"
 
-    def _item_to_notification_record(
-        self, item: Dict[str, Any]
-    ) -> Optional[NotificationRecord]:
+    def _item_to_notification_record(self, item: Dict[str, Any]) -> Optional[NotificationRecord]:
         """Convert a DynamoDB item to a NotificationRecord.
 
         Args:
@@ -102,24 +100,51 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         try:
             normalized = self._normalize_item(item)
 
+            # Parse created_at as int if present
+            created_at = normalized.get("created_at")
+            if created_at is not None:
+                created_at = int(created_at)
+
+            # Parse updated_at as int if present
+            updated_at = normalized.get("updated_at")
+            if updated_at is not None:
+                updated_at = int(updated_at)
+
+            # Parse followup_ticket_keys as list of strings (default to empty list)
+            followup_ticket_keys = normalized.get("followup_ticket_keys", [])
+            if not isinstance(followup_ticket_keys, list):
+                followup_ticket_keys = []
+
+            # Parse completed_at as int if present
+            completed_at = normalized.get("completed_at")
+            if completed_at is not None:
+                completed_at = int(completed_at)
+
+            # Parse closed_at as int if present
+            closed_at = normalized.get("closed_at")
+            if closed_at is not None:
+                closed_at = int(closed_at)
+
             return NotificationRecord(
                 ticket_key=normalized.get("ticket_key", ""),
                 notification_status=normalized.get("notification_status", "pending"),
-                ping_count=int(normalized.get("ping_count", 0)),
+                rca_ping_count=int(normalized.get("rca_ping_count", 0)),
+                closure_ping_count=int(normalized.get("closure_ping_count", 0)),
                 assignee_slack_id=normalized.get("assignee_slack_id"),
                 assignee_jira_username=normalized.get("assignee_jira_username"),
                 rca_reminder_sent=bool(normalized.get("rca_reminder_sent", False)),
-                closure_reminder_sent=bool(
-                    normalized.get("closure_reminder_sent", False)
-                ),
+                closure_reminder_sent=bool(normalized.get("closure_reminder_sent", False)),
+                created_at=created_at,
+                updated_at=updated_at,
+                followup_ticket_keys=followup_ticket_keys,
+                completed_at=completed_at,
+                closed_at=closed_at,
             )
         except Exception as e:
             logger.error("Error parsing notification record: %s", e)
             return None
 
-    def _item_to_followup_record(
-        self, item: Dict[str, Any]
-    ) -> Optional[FollowupRecord]:
+    def _item_to_followup_record(self, item: Dict[str, Any]) -> Optional[FollowupRecord]:
         """Convert a DynamoDB item to a FollowupRecord.
 
         Args:
@@ -151,9 +176,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             logger.error("Error parsing followup record: %s", e)
             return None
 
-    async def get_notification_record(
-        self, ticket_key: str
-    ) -> Optional[NotificationRecord]:
+    async def get_notification_record(self, ticket_key: str) -> Optional[NotificationRecord]:
         """Get the notification record for a ticket.
 
         Args:
@@ -180,9 +203,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             return self._item_to_notification_record(item)
 
         except Exception as e:
-            logger.error(
-                "Error getting notification record for %s: %s", ticket_key, e
-            )
+            logger.error("Error getting notification record for %s: %s", ticket_key, e)
             return None
 
     async def create_notification_record(
@@ -196,7 +217,20 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
         Returns:
             The created NotificationRecord.
+
+        Raises:
+            ValueError: If ticket.key is empty (data corruption prevention).
         """
+        # Validate ticket_key to prevent data corruption
+        if not ticket.key or not ticket.key.strip():
+            logger.error(
+                "CSOPM Data Corruption Prevention: Attempted to create notification "
+                "record with empty ticket_key. slack_id=%s, summary=%s",
+                slack_id,
+                ticket.summary[:50] if ticket.summary else "N/A",
+            )
+            raise ValueError("Cannot create notification record with empty ticket_key")
+
         logger.info(
             "Creating notification record for ticket: %s (slack_id=%s)",
             ticket.key,
@@ -204,13 +238,13 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         )
 
         current_time = int(time.time())
-
         item = {
             "PK": {"S": self._make_pk(ticket.key)},
             "SK": {"S": SK_NOTIFICATION},
             "ticket_key": {"S": ticket.key},
             "notification_status": {"S": "pending"},
-            "ping_count": {"N": "0"},
+            "rca_ping_count": {"N": "0"},
+            "closure_ping_count": {"N": "0"},
             "assignee_slack_id": {"S": slack_id},
             "assignee_jira_username": {"S": ticket.assignee_username},
             "rca_reminder_sent": {"BOOL": False},
@@ -219,6 +253,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             "updated_at": {"N": str(current_time)},
             "ticket_summary": {"S": ticket.summary},
             "ticket_status": {"S": ticket.status},
+            "followup_ticket_keys": {"L": []},
             "assignee_history": {
                 "L": [
                     {
@@ -243,17 +278,18 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             return NotificationRecord(
                 ticket_key=ticket.key,
                 notification_status="pending",
-                ping_count=0,
+                rca_ping_count=0,
+                closure_ping_count=0,
                 assignee_slack_id=slack_id,
                 assignee_jira_username=ticket.assignee_username,
                 rca_reminder_sent=False,
                 closure_reminder_sent=False,
+                created_at=current_time,
+                updated_at=current_time,
+                followup_ticket_keys=[],
             )
-
         except Exception as e:
-            logger.error(
-                "Error creating notification record for %s: %s", ticket.key, e
-            )
+            logger.error("Error creating notification record for %s: %s", ticket.key, e)
             raise
 
     async def update_notification_status(
@@ -268,9 +304,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         Returns:
             Updated NotificationRecord if found, None otherwise.
         """
-        logger.info(
-            "Updating notification status for %s to: %s", ticket_key, status
-        )
+        logger.info("Updating notification status for %s to: %s", ticket_key, status)
 
         try:
             current_time = int(time.time())
@@ -291,23 +325,17 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
             attributes = response.get("Attributes")
             if not attributes:
-                logger.warning(
-                    "No record found to update status for: %s", ticket_key
-                )
+                logger.warning("No record found to update status for: %s", ticket_key)
                 return None
 
             return self._item_to_notification_record(attributes)
 
         except Exception as e:
-            logger.error(
-                "Error updating notification status for %s: %s", ticket_key, e
-            )
+            logger.error("Error updating notification status for %s: %s", ticket_key, e)
             return None
 
-    async def increment_ping_count(
-        self, ticket_key: str
-    ) -> Optional[NotificationRecord]:
-        """Increment the ping count for a ticket.
+    async def increment_rca_ping_count(self, ticket_key: str) -> Optional[NotificationRecord]:
+        """Increment the RCA ping count for a ticket.
 
         Args:
             ticket_key: The JIRA ticket key
@@ -315,7 +343,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         Returns:
             Updated NotificationRecord if found, None otherwise.
         """
-        logger.info("Incrementing ping count for: %s", ticket_key)
+        logger.info("Incrementing RCA ping count for: %s", ticket_key)
 
         try:
             current_time = int(time.time())
@@ -326,7 +354,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                     "PK": {"S": self._make_pk(ticket_key)},
                     "SK": {"S": SK_NOTIFICATION},
                 },
-                update_expression="SET ping_count = ping_count + :inc, updated_at = :updated_at",
+                update_expression="SET rca_ping_count = rca_ping_count + :inc, updated_at = :updated_at",
                 expression_attribute_values={
                     ":inc": {"N": "1"},
                     ":updated_at": {"N": str(current_time)},
@@ -336,20 +364,53 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
             attributes = response.get("Attributes")
             if not attributes:
-                logger.warning("No record found to increment ping for: %s", ticket_key)
+                logger.warning("No record found to increment RCA ping for: %s", ticket_key)
                 return None
 
             return self._item_to_notification_record(attributes)
-
         except Exception as e:
-            logger.error(
-                "Error incrementing ping count for %s: %s", ticket_key, e
-            )
+            logger.error("Error incrementing RCA ping count for %s: %s", ticket_key, e)
             return None
 
-    async def mark_rca_reminder_sent(
-        self, ticket_key: str
-    ) -> Optional[NotificationRecord]:
+    async def increment_closure_ping_count(self, ticket_key: str) -> Optional[NotificationRecord]:
+        """Increment the closure ping count for a ticket.
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
+        """
+        logger.info("Incrementing closure ping count for: %s", ticket_key)
+
+        try:
+            current_time = int(time.time())
+
+            response = await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="SET closure_ping_count = closure_ping_count + :inc, updated_at = :updated_at",
+                expression_attribute_values={
+                    ":inc": {"N": "1"},
+                    ":updated_at": {"N": str(current_time)},
+                },
+                return_values="ALL_NEW",
+            )
+
+            attributes = response.get("Attributes")
+            if not attributes:
+                logger.warning("No record found to increment closure ping for: %s", ticket_key)
+                return None
+
+            return self._item_to_notification_record(attributes)
+        except Exception as e:
+            logger.error("Error incrementing closure ping count for %s: %s", ticket_key, e)
+            return None
+
+    async def mark_rca_reminder_sent(self, ticket_key: str) -> Optional[NotificationRecord]:
         """Mark the RCA reminder as sent for a ticket.
 
         Args:
@@ -380,22 +441,16 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
             attributes = response.get("Attributes")
             if not attributes:
-                logger.warning(
-                    "No record found to mark RCA reminder for: %s", ticket_key
-                )
+                logger.warning("No record found to mark RCA reminder for: %s", ticket_key)
                 return None
 
             return self._item_to_notification_record(attributes)
 
         except Exception as e:
-            logger.error(
-                "Error marking RCA reminder sent for %s: %s", ticket_key, e
-            )
+            logger.error("Error marking RCA reminder sent for %s: %s", ticket_key, e)
             return None
 
-    async def mark_closure_reminder_sent(
-        self, ticket_key: str
-    ) -> Optional[NotificationRecord]:
+    async def mark_closure_reminder_sent(self, ticket_key: str) -> Optional[NotificationRecord]:
         """Mark the closure reminder as sent for a ticket.
 
         Args:
@@ -426,17 +481,13 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
             attributes = response.get("Attributes")
             if not attributes:
-                logger.warning(
-                    "No record found to mark closure reminder for: %s", ticket_key
-                )
+                logger.warning("No record found to mark closure reminder for: %s", ticket_key)
                 return None
 
             return self._item_to_notification_record(attributes)
 
         except Exception as e:
-            logger.error(
-                "Error marking closure reminder sent for %s: %s", ticket_key, e
-            )
+            logger.error("Error marking closure reminder sent for %s: %s", ticket_key, e)
             return None
 
     async def get_pending_notifications(self) -> List[NotificationRecord]:
@@ -454,9 +505,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             # Scan for pending notifications
             # Note: Uses scan because we don't have a GSI on notification_status
             filter_expression = (
-                "begins_with(PK, :pk_prefix) AND "
-                "SK = :sk AND "
-                "notification_status = :status"
+                "begins_with(PK, :pk_prefix) AND " "SK = :sk AND " "notification_status = :status"
             )
 
             response = await self.client.scan(
@@ -519,9 +568,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
         try:
             await self.client.put_item(item=item, table_name=self.table_name)
-            logger.info(
-                "Recorded followup for %s (type=%s)", ticket_key, followup_type
-            )
+            logger.info("Recorded followup for %s (type=%s)", ticket_key, followup_type)
 
             return FollowupRecord(
                 ticket_key=ticket_key,
@@ -532,9 +579,7 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             )
 
         except Exception as e:
-            logger.error(
-                "Error recording followup for %s: %s", ticket_key, e
-            )
+            logger.error("Error recording followup for %s: %s", ticket_key, e)
             raise
 
     async def get_all_active_notifications(self) -> List[NotificationRecord]:
@@ -581,17 +626,55 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
             logger.error("Error getting active notifications: %s", e)
             return []
 
+    async def get_all_notification_records(self) -> List[NotificationRecord]:
+        """Get all notification records for metrics collection.
+
+        Scans for all notification records regardless of status.
+        Used for dashboard metrics aggregation.
+
+        Returns:
+            List of all NotificationRecords.
+        """
+        logger.info("Getting all notification records for metrics")
+
+        try:
+            filter_expression = "begins_with(PK, :pk_prefix) AND " "SK = :sk"
+
+            response = await self.client.scan(
+                table_name=self.table_name,
+                filter_expression=filter_expression,
+                expression_attribute_values={
+                    ":pk_prefix": {"S": PK_NOTIFICATION_PREFIX},
+                    ":sk": {"S": SK_NOTIFICATION},
+                },
+            )
+
+            items = response.get("Items", [])
+            records: List[NotificationRecord] = []
+
+            for item in items:
+                record = self._item_to_notification_record(item)
+                if record:
+                    records.append(record)
+
+            logger.info("Found %d total notification records", len(records))
+            return records
+
+        except Exception as e:
+            logger.error("Error getting all notification records: %s", e)
+            return []
+
     async def handle_reassignment(
         self,
         ticket_key: str,
         new_jira_username: str,
         new_slack_id: str,
     ) -> Optional[NotificationRecord]:
-        """Handle ticket reassignment by updating assignee and resetting ping count.
+        """Handle ticket reassignment by updating assignee and resetting ping counts.
 
         When a ticket is reassigned:
         1. Updates assignee_jira_username and assignee_slack_id
-        2. Resets ping_count to 1 (initial notification to new assignee)
+        2. Resets rca_ping_count and closure_ping_count to 0 (fresh start for new assignee)
         3. Appends new assignee to assignee_history
 
         Args:
@@ -630,14 +713,15 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 update_expression=(
                     "SET assignee_jira_username = :jira_user, "
                     "assignee_slack_id = :slack_id, "
-                    "ping_count = :ping_count, "
+                    "rca_ping_count = :zero, "
+                    "closure_ping_count = :zero, "
                     "updated_at = :updated_at, "
                     "assignee_history = list_append(if_not_exists(assignee_history, :empty_list), :new_entry)"
                 ),
                 expression_attribute_values={
                     ":jira_user": {"S": new_jira_username},
                     ":slack_id": {"S": new_slack_id},
-                    ":ping_count": {"N": "1"},
+                    ":zero": {"N": "0"},
                     ":updated_at": {"N": str(current_time)},
                     ":empty_list": {"L": []},
                     ":new_entry": {"L": [new_history_entry]},
@@ -647,15 +731,160 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
             attributes = response.get("Attributes")
             if not attributes:
-                logger.warning(
-                    "No record found for reassignment: %s", ticket_key
-                )
+                logger.warning("No record found for reassignment: %s", ticket_key)
                 return None
 
             return self._item_to_notification_record(attributes)
+        except Exception as e:
+            logger.error("Error handling reassignment for %s: %s", ticket_key, e)
+            return None
 
+    async def add_followup_ticket(self, ticket_key: str, followup_key: str) -> bool:
+        """Add a follow-up ticket key to a notification record.
+
+        Atomically appends the follow-up ticket key to the followup_ticket_keys list
+        in DynamoDB. Uses list_append with if_not_exists to handle missing attribute.
+
+        Args:
+            ticket_key: The JIRA ticket key of the parent CSOPM notification
+            followup_key: The JIRA ticket key of the newly created follow-up ticket
+
+        Returns:
+            True if the follow-up was added successfully, False otherwise.
+        """
+        logger.info(
+            "Adding follow-up ticket %s to notification record %s",
+            followup_key,
+            ticket_key,
+        )
+
+        try:
+            current_time = int(time.time())
+
+            await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression=(
+                    "SET followup_ticket_keys = list_append("
+                    "if_not_exists(followup_ticket_keys, :empty_list), :new_key), "
+                    "updated_at = :updated_at"
+                ),
+                expression_attribute_values={
+                    ":empty_list": {"L": []},
+                    ":new_key": {"L": [{"S": followup_key}]},
+                    ":updated_at": {"N": str(current_time)},
+                },
+            )
+
+            logger.info(
+                "Successfully added follow-up ticket %s to %s",
+                followup_key,
+                ticket_key,
+            )
+            return True
         except Exception as e:
             logger.error(
-                "Error handling reassignment for %s: %s", ticket_key, e
+                "Error adding follow-up ticket %s to %s: %s",
+                followup_key,
+                ticket_key,
+                e,
             )
-            return None
+            return False
+
+    async def mark_completed(self, ticket_key: str) -> bool:
+        """Mark a ticket as completed by setting the completed_at timestamp.
+
+        Records the timestamp when a ticket transitions to "Complete" status.
+        Uses attribute_not_exists condition to prevent overwriting existing value.
+
+        This timestamp is used for the "Completed within 7 days" metric
+        (compare completed_at to created_at).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            True if completed_at was set, False if already set or record not found.
+        """
+        logger.info("Marking ticket as completed: %s", ticket_key)
+
+        try:
+            current_time = int(time.time())
+
+            await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="SET completed_at = :timestamp, updated_at = :updated_at",
+                condition_expression="attribute_not_exists(completed_at)",
+                expression_attribute_values={
+                    ":timestamp": {"N": str(current_time)},
+                    ":updated_at": {"N": str(current_time)},
+                },
+            )
+
+            logger.info("Successfully marked ticket %s as completed", ticket_key)
+            return True
+        except self.client.client.exceptions.ConditionalCheckFailedException:
+            logger.debug("Ticket %s already marked as completed", ticket_key)
+            return False
+        except Exception as e:
+            # Check if it's a conditional check failure (attribute already exists)
+            if "ConditionalCheckFailedException" in str(e):
+                logger.debug("Ticket %s already marked as completed", ticket_key)
+                return False
+            logger.error("Error marking ticket %s as completed: %s", ticket_key, e)
+            return False
+
+    async def mark_closed(self, ticket_key: str) -> bool:
+        """Mark a ticket as closed by setting the closed_at timestamp.
+
+        Records the timestamp when a ticket transitions to a terminal closure
+        status (Closed, Done, Resolved). Uses attribute_not_exists condition
+        to prevent overwriting existing value.
+
+        This timestamp is used for the "Closed within 45 days" metric
+        (compare closed_at to created_at).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            True if closed_at was set, False if already set or record not found.
+        """
+        logger.info("Marking ticket as closed: %s", ticket_key)
+
+        try:
+            current_time = int(time.time())
+
+            await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="SET closed_at = :timestamp, updated_at = :updated_at",
+                condition_expression="attribute_not_exists(closed_at)",
+                expression_attribute_values={
+                    ":timestamp": {"N": str(current_time)},
+                    ":updated_at": {"N": str(current_time)},
+                },
+            )
+
+            logger.info("Successfully marked ticket %s as closed", ticket_key)
+            return True
+        except self.client.client.exceptions.ConditionalCheckFailedException:
+            logger.debug("Ticket %s already marked as closed", ticket_key)
+            return False
+        except Exception as e:
+            # Check if it's a conditional check failure (attribute already exists)
+            if "ConditionalCheckFailedException" in str(e):
+                logger.debug("Ticket %s already marked as closed", ticket_key)
+                return False
+            logger.error("Error marking ticket %s as closed: %s", ticket_key, e)
+            return False

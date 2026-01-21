@@ -4,16 +4,22 @@ metrics_data_collector.py
 Collects metrics data from DynamoDB for dashboard generation.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+from packages.core.config.csopm_config import (
+    CSOPM_CLOSURE_REMINDER_DAYS,
+    CSOPM_RCA_REMINDER_DAYS,
+)
 from packages.core.config.system_channels import get_excluded_channels
 from packages.core.logging import setup_logger
+from packages.core.typed_di.service_registrations.protocols.csopm_protocols import (
+    CSOPMStateTrackerProtocol,
+)
 from packages.db.operations.channel_operations import ChannelOperations
 from packages.db.operations.join_notification_ops import JoinNotificationOps
 from packages.slack.channel_operations.channel_membership_ops import (
     ChannelMembershipOps,
 )
-from packages.slack.models.cso_metrics import CSOChannelCounts, CSOMetrics
 
 logger = setup_logger(__name__)
 
@@ -37,6 +43,7 @@ class MetricsDataCollector:
         channel_ops: ChannelOperations,
         join_notification_ops: JoinNotificationOps,
         channel_membership_ops: ChannelMembershipOps,
+        csopm_state_tracker: Optional[CSOPMStateTrackerProtocol] = None,
     ):
         """
         Initialize MetricsDataCollector.
@@ -45,10 +52,12 @@ class MetricsDataCollector:
             channel_ops: Channel operations for DynamoDB queries
             join_notification_ops: Join notification tracking operations
             channel_membership_ops: Channel membership lookup operations
+            csopm_state_tracker: Optional CSOPM state tracker for CSOPM metrics
         """
         self._channel_ops = channel_ops
         self._join_notification_ops = join_notification_ops
         self._channel_membership_ops = channel_membership_ops
+        self._csopm_state_tracker = csopm_state_tracker
 
     async def _get_current_member_channels(self) -> List[str]:
         """
@@ -76,8 +85,8 @@ class MetricsDataCollector:
                 "war_room_sent": total notifications sent,
                 "war_room_success": total delivered,
                 "war_room_failed": total failed,
-                "war_room_unique_users": total unique users,
             }
+
         """
         from packages.db.dynamodb_store import DynamoDBStore
 
@@ -93,7 +102,6 @@ class MetricsDataCollector:
             "war_room_sent": 0,
             "war_room_success": 0,
             "war_room_failed": 0,
-            "war_room_unique_users": 0,
         }
 
         for month_key in month_keys:
@@ -102,7 +110,6 @@ class MetricsDataCollector:
             aggregated["war_room_sent"] += month_metrics.get("war_room_sent", 0)
             aggregated["war_room_success"] += month_metrics.get("war_room_success", 0)
             aggregated["war_room_failed"] += month_metrics.get("war_room_failed", 0)
-            aggregated["war_room_unique_users"] += month_metrics.get("war_room_unique_users", 0)
 
         logger.info(f"Aggregated monthly data for {len(month_keys)} months: {aggregated}")
         return aggregated
@@ -113,43 +120,42 @@ class MetricsDataCollector:
         end_ts: int,
         period_type: str,
         month_keys: List[str] = None,
+        channels_data: List[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Collect executive CSO metrics with active vs archived split.
+        Collect executive CSO metrics (historical only, no live state).
 
-        Note: CSO metrics show current state (coverage, active channels)
-        and are not time-filtered. Parameters included for API consistency.
+        For quarterly reports, shows only historical data - total channels
+        that existed during the period, not current active/archived split.
 
         Args:
             start_ts: Start timestamp
             end_ts: End timestamp
             period_type: "7_days", "monthly", or "quarterly"
             month_keys: Month keys for monthly/quarterly lookups
+            channels_data: Pre-loaded channels list (optional, avoids duplicate DB calls)
 
         Returns:
             Dictionary containing:
-            - products_using_ketchup: List of products ["campaign", "ajo"]
-            - product_coverage: Per-product coverage stats
-            - overall_cso_coverage: Overall CSO coverage percentage
+            - product_counts: Channel counts by product (campaign, ajo, other)
             - auto_notification_delivery: Auto notification delivery rate
-            - cso_metrics: CSOMetrics dataclass with active vs archived split
         """
         logger.info(f"Collecting CSO metrics (period: {period_type})")
 
         try:
-            # Get active channels for "Currently Active" count
-            active_channels = await self._channel_ops.get_all_channel_details()
-            active_list = self._normalize_channels(active_channels)
-
-            # Get recently archived channels (past 7 days) for "Archived" count
-            days = (end_ts - start_ts) // (24 * 60 * 60)
-            archived_channels = await self._channel_ops.get_all_channel_details(
-                archive_lookup=True, days_threshold=days
-            )
-            archived_list = self._normalize_channels(archived_channels)
-
-            # Combine for full channel list
-            channels_list = active_list + archived_list
+            # Use pre-loaded channels if provided, otherwise load from DB
+            if channels_data is not None:
+                channels_list = channels_data
+            else:
+                # Fallback: load channels (for standalone calls)
+                days = (end_ts - start_ts) // (24 * 60 * 60)
+                active_channels = await self._channel_ops.get_all_channel_details()
+                active_list = self._normalize_channels(active_channels)
+                archived_channels = await self._channel_ops.get_all_channel_details(
+                    archive_lookup=True, days_threshold=days
+                )
+                archived_list = self._normalize_channels(archived_channels)
+                channels_list = active_list + archived_list
 
             # Filter out system channels
             excluded_channels = get_excluded_channels()
@@ -162,27 +168,20 @@ class MetricsDataCollector:
 
             cso_channels = self._filter_cso_channels(channels_list)
 
-            # Split CSO channels by archived status
-            cso_metrics = self._split_active_vs_archived(cso_channels)
-
-            product_stats = self._calculate_product_coverage(channels_list)
+            product_counts = self._calculate_product_coverage(channels_list)
             auto_notification_delivery = await self._calculate_auto_notification_delivery(
                 cso_channels
             )
 
-            overall_coverage = self._calculate_overall_coverage(product_stats)
-
             metrics = {
-                "products_using_ketchup": list(product_stats.keys()),
-                "product_coverage": product_stats,
-                "overall_cso_coverage": overall_coverage,
+                "product_counts": product_counts,
                 "auto_notification_delivery": auto_notification_delivery,
-                "cso_metrics": cso_metrics,
             }
 
             logger.info(
-                f"CSO metrics collected: {cso_metrics.currently_active.total} active, "
-                f"{cso_metrics.archived.total} archived"
+                f"CSO metrics collected: {product_counts['total']} total channels "
+                f"({product_counts['campaign']} Campaign, {product_counts['ajo']} AJO, "
+                f"{product_counts['other']} Other)"
             )
             return metrics
 
@@ -196,6 +195,7 @@ class MetricsDataCollector:
         end_ts: int,
         period_type: str,
         month_keys: List[str] = None,
+        channels_data: List[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Collect technical system health metrics.
@@ -205,6 +205,7 @@ class MetricsDataCollector:
             end_ts: End timestamp
             period_type: "7_days", "monthly", or "quarterly"
             month_keys: Month keys for monthly/quarterly lookups
+            channels_data: Pre-loaded channels list (optional, avoids duplicate DB calls)
 
         Returns:
             Dictionary containing:
@@ -215,9 +216,13 @@ class MetricsDataCollector:
         logger.info(f"Collecting technical metrics (period: {period_type})")
 
         try:
-            # Get all channels from DynamoDB (includes historical channels with counters)
-            channels = await self._channel_ops.get_all_channel_details()
-            channels_list = self._normalize_channels(channels)
+            # Use pre-loaded channels if provided, otherwise load from DB
+            if channels_data is not None:
+                channels_list = channels_data
+            else:
+                # Fallback: load channels (for standalone calls)
+                channels = await self._channel_ops.get_all_channel_details(include_all=True)
+                channels_list = self._normalize_channels(channels)
 
             # Fetch monthly aggregates if needed
             monthly_aggregates = None
@@ -232,15 +237,17 @@ class MetricsDataCollector:
                 start_ts,
                 end_ts,
                 period_type,
-                monthly_aggregates,  # Reuse from status metrics
+                monthly_aggregates,
             )
 
-            # Fetch recently archived channels for time period from DynamoDB
+            # Filter archived channels from the shared list for health metrics
             days = (end_ts - start_ts) // (24 * 60 * 60)
-            archived_channels = await self._channel_ops.get_all_channel_details(
-                archive_lookup=True, days_threshold=days
-            )
-            archived_list = self._normalize_channels(archived_channels)
+            threshold_ts = end_ts - (days * 24 * 60 * 60)
+            archived_list = [
+                ch
+                for ch in channels_list
+                if ch.get("archived") and ch.get("archived_at", 0) >= threshold_ts
+            ]
 
             health_metrics = self._calculate_system_health(channels_list, archived_list)
 
@@ -262,44 +269,42 @@ class MetricsDataCollector:
         start_ts: int,
         end_ts: int,
         period_type: str,
+        channels_data: List[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Collect JIRA posting metrics for dashboard.
+
+        Returns historical metrics only - no live state (pending/failed status).
 
         Args:
             start_ts: Start timestamp
             end_ts: End timestamp
             period_type: "7_days", "monthly", or "quarterly"
+            channels_data: Pre-loaded channels list (optional, avoids duplicate DB calls)
 
         Returns:
             Dictionary containing:
             - total_coverage: Overall posting success rate percentage
             - channels_with_reports: Number of channels with reports posted
             - total_channels: Total CSO channels analyzed
-            - posting_details: Breakdown by ticket type and failure reasons
+            - posting_details: Breakdown by ticket type (historical only)
         """
         logger.info(f"Collecting JIRA posting metrics (period: {period_type})")
 
         try:
-            # Delegate to ChannelOperations with time filter
-            metrics = await self._channel_ops.get_jira_posting_metrics(start_ts, end_ts)
-
-            # Calculate channels with reports (unique channels that got posted)
-            channels_with_reports = (
-                metrics["posted_primary"] + metrics["posted_csopm"] - metrics["posted_both"]
+            # Delegate to ChannelOperations with time filter and optional pre-loaded channels
+            metrics = await self._channel_ops.get_jira_posting_metrics(
+                start_ts, end_ts, channels_data=channels_data
             )
 
             return {
                 "total_coverage": metrics["success_rate"],
-                "channels_with_reports": channels_with_reports,
+                "channels_with_reports": metrics["channels_posted"],
                 "total_channels": metrics["total_channels"],
                 "posting_details": {
                     "primary_only": (metrics["posted_primary"] - metrics["posted_both"]),
                     "csopm_only": (metrics["posted_csopm"] - metrics["posted_both"]),
                     "both_tickets": metrics["posted_both"],
-                    "no_valid_ticket": metrics["failed_no_ticket"],
-                    "api_failures": metrics["failed_api_error"],
-                    "pending": metrics["pending"],
                 },
             }
 
@@ -313,11 +318,151 @@ class MetricsDataCollector:
                     "primary_only": 0,
                     "csopm_only": 0,
                     "both_tickets": 0,
-                    "no_valid_ticket": 0,
-                    "api_failures": 0,
-                    "pending": 0,
                 },
             }
+
+    async def collect_csopm_metrics(
+        self,
+        start_ts: int,
+        end_ts: int,
+    ) -> Dict[str, Any]:
+        """
+        Collect CSOPM notification metrics for dashboard.
+
+        Queries NotificationRecord items to calculate:
+        - Total notifications sent
+        - Acknowledgment counts and timing
+        - Reminder statistics
+
+        Args:
+            start_ts: Start timestamp for filtering (notifications created after)
+            end_ts: End timestamp for filtering (notifications created before)
+
+        Returns:
+            Dictionary containing CSOPM metrics.
+        """
+        logger.info("Collecting CSOPM metrics")
+
+        # Return empty metrics if state tracker not available
+        if not self._csopm_state_tracker:
+            logger.warning("CSOPM state tracker not available, returning empty metrics")
+            return self._get_empty_csopm_metrics()
+
+        try:
+            records = await self._csopm_state_tracker.get_all_notification_records()
+
+            # Filter by time range if created_at is available
+            filtered_records = []
+            for record in records:
+                if record.created_at:
+                    if start_ts <= record.created_at <= end_ts:
+                        filtered_records.append(record)
+                else:
+                    # Include records without created_at (legacy records)
+                    filtered_records.append(record)
+
+            total = len(filtered_records)
+
+            # Count by status
+            acknowledged = sum(1 for r in filtered_records if r.notification_status == "ack")
+            reminders_stopped = sum(
+                1 for r in filtered_records if r.notification_status == "reminders_stopped"
+            )
+            pending = sum(1 for r in filtered_records if r.notification_status == "pending")
+
+            # Count reminders sent
+            rca_reminders_sent = sum(1 for r in filtered_records if r.rca_reminder_sent)
+            closure_reminders_sent = sum(1 for r in filtered_records if r.closure_reminder_sent)
+
+            # Calculate acknowledgment timing (within 3 days = 259200 seconds)
+            three_days_seconds = 3 * 24 * 60 * 60
+            ack_within_3_days = 0
+            ack_after_3_days = 0
+
+            for record in filtered_records:
+                if record.notification_status == "ack" and record.created_at and record.updated_at:
+                    time_to_ack = record.updated_at - record.created_at
+                    if time_to_ack <= three_days_seconds:
+                        ack_within_3_days += 1
+                    else:
+                        ack_after_3_days += 1
+
+            # Calculate average ping counts
+            total_rca_pings = sum(r.rca_ping_count for r in filtered_records)
+            total_closure_pings = sum(r.closure_ping_count for r in filtered_records)
+            avg_rca_pings = total_rca_pings / total if total > 0 else 0
+            avg_closure_pings = total_closure_pings / total if total > 0 else 0
+
+            # Calculate ticket completion timing (uses CSOPM_RCA_REMINDER_DAYS threshold)
+            # completed_at and closed_at fields come from CSOPMTicketStatusPoller (Task 3)
+            completion_threshold_seconds = CSOPM_RCA_REMINDER_DAYS * 24 * 60 * 60
+            completed_within_threshold = 0
+            completed_after_threshold = 0
+
+            for record in filtered_records:
+                if record.completed_at and record.created_at:
+                    time_to_complete = record.completed_at - record.created_at
+                    if time_to_complete <= completion_threshold_seconds:
+                        completed_within_threshold += 1
+                    else:
+                        completed_after_threshold += 1
+
+            # Calculate ticket closure timing (uses CSOPM_CLOSURE_REMINDER_DAYS threshold)
+            closure_threshold_seconds = CSOPM_CLOSURE_REMINDER_DAYS * 24 * 60 * 60
+            closed_within_threshold = 0
+            closed_after_threshold = 0
+
+            for record in filtered_records:
+                if record.closed_at and record.created_at:
+                    time_to_close = record.closed_at - record.created_at
+                    if time_to_close <= closure_threshold_seconds:
+                        closed_within_threshold += 1
+                    else:
+                        closed_after_threshold += 1
+
+            return {
+                "total_notifications": total,
+                "acknowledged": acknowledged,
+                "reminders_stopped": reminders_stopped,
+                "pending": pending,
+                "rca_reminders_sent": rca_reminders_sent,
+                "closure_reminders_sent": closure_reminders_sent,
+                "ack_within_3_days": ack_within_3_days,
+                "ack_after_3_days": ack_after_3_days,
+                "avg_rca_pings": round(avg_rca_pings, 2),
+                "avg_closure_pings": round(avg_closure_pings, 2),
+                "completed_within_threshold": completed_within_threshold,
+                "completed_after_threshold": completed_after_threshold,
+                "closed_within_threshold": closed_within_threshold,
+                "closed_after_threshold": closed_after_threshold,
+                "completion_threshold_days": CSOPM_RCA_REMINDER_DAYS,
+                "closure_threshold_days": CSOPM_CLOSURE_REMINDER_DAYS,
+            }
+
+        except Exception as e:
+            logger.error(f"Error collecting CSOPM metrics: {e}", exc_info=True)
+            return self._get_empty_csopm_metrics()
+
+    def _get_empty_csopm_metrics(self) -> Dict[str, Any]:
+        """Return empty CSOPM metrics structure."""
+        return {
+            "total_notifications": 0,
+            "acknowledged": 0,
+            "reminders_stopped": 0,
+            "pending": 0,
+            "rca_reminders_sent": 0,
+            "closure_reminders_sent": 0,
+            "ack_within_3_days": 0,
+            "ack_after_3_days": 0,
+            "avg_rca_pings": 0.0,
+            "avg_closure_pings": 0.0,
+            "completed_within_threshold": 0,
+            "completed_after_threshold": 0,
+            "closed_within_threshold": 0,
+            "closed_after_threshold": 0,
+            "completion_threshold_days": CSOPM_RCA_REMINDER_DAYS,
+            "closure_threshold_days": CSOPM_CLOSURE_REMINDER_DAYS,
+        }
 
     async def collect_all_metrics(
         self,
@@ -341,12 +486,21 @@ class MetricsDataCollector:
         logger.info(f"Collecting all metrics (period: {period_type})")
 
         try:
-            # Collect each section with time parameters
-            cso_metrics = await self.collect_cso_metrics(start_ts, end_ts, period_type, month_keys)
-            technical_metrics = await self.collect_technical_metrics(
-                start_ts, end_ts, period_type, month_keys
+            # Load all channels ONCE and share across all metric collectors
+            all_channels = await self._channel_ops.get_all_channel_details(include_all=True)
+            all_channels_list = self._normalize_channels(all_channels)
+
+            # Collect each section with shared channel data
+            cso_metrics = await self.collect_cso_metrics(
+                start_ts, end_ts, period_type, month_keys, channels_data=all_channels_list
             )
-            jira_metrics = await self.collect_jira_posting_metrics(start_ts, end_ts, period_type)
+            technical_metrics = await self.collect_technical_metrics(
+                start_ts, end_ts, period_type, month_keys, channels_data=all_channels_list
+            )
+            jira_metrics = await self.collect_jira_posting_metrics(
+                start_ts, end_ts, period_type, channels_data=all_channels_list
+            )
+            csopm_metrics = await self.collect_csopm_metrics(start_ts, end_ts)
 
             # Add JIRA posting metrics to CSO section
             cso_metrics["jira_posting"] = jira_metrics
@@ -354,6 +508,7 @@ class MetricsDataCollector:
             return {
                 "cso": cso_metrics,
                 "technical": technical_metrics,
+                "csopm": csopm_metrics,
             }
         except Exception as e:
             logger.error(f"Error collecting metrics: {e}", exc_info=True)
@@ -371,70 +526,21 @@ class MetricsDataCollector:
         # Only count campaign/ajo product channels as CSO channels
         return [ch for ch in channels if ch.get("product") in ["campaign", "ajo"]]
 
-    def _split_active_vs_archived(self, cso_channels: List[Dict[str, Any]]) -> CSOMetrics:
+    def _calculate_product_coverage(self, channels: List[Dict[str, Any]]) -> Dict[str, int]:
+        """Calculate channel counts by product type.
+
+        Returns counts for campaign, ajo, and other (unknown/missing product type).
         """
-        Split CSO channels into currently active vs archived.
+        campaign_count = len([ch for ch in channels if ch.get("product") == "campaign"])
+        ajo_count = len([ch for ch in channels if ch.get("product") == "ajo"])
+        other_count = len([ch for ch in channels if ch.get("product") not in ["campaign", "ajo"]])
 
-        Args:
-            cso_channels: List of CSO channel records
-
-        Returns:
-            CSOMetrics with counts for active and archived channels
-        """
-        # Split by archived status
-        active_channels = [ch for ch in cso_channels if not ch.get("archived", False)]
-        archived_channels = [ch for ch in cso_channels if ch.get("archived", False)]
-
-        # Count Campaign vs AJO for active channels
-        active_campaign = len([ch for ch in active_channels if ch.get("product") == "campaign"])
-        active_ajo = len([ch for ch in active_channels if ch.get("product") == "ajo"])
-
-        # Count Campaign vs AJO for archived channels
-        archived_campaign = len([ch for ch in archived_channels if ch.get("product") == "campaign"])
-        archived_ajo = len([ch for ch in archived_channels if ch.get("product") == "ajo"])
-
-        # Create dataclass instances
-        currently_active = CSOChannelCounts(
-            total=len(active_channels), campaign=active_campaign, ajo=active_ajo
-        )
-
-        archived = CSOChannelCounts(
-            total=len(archived_channels), campaign=archived_campaign, ajo=archived_ajo
-        )
-
-        return CSOMetrics(currently_active=currently_active, archived=archived)
-
-    def _calculate_product_coverage(
-        self, channels: List[Dict[str, Any]]
-    ) -> Dict[str, Dict[str, int]]:
-        """Calculate CSO coverage by product from DynamoDB channel records."""
-        product_stats = {}
-
-        for product in ["campaign", "ajo"]:
-            product_channels = [ch for ch in channels if ch.get("product") == product]
-            # All channels in DynamoDB for this product
-            cso_count = len(product_channels)
-            total = cso_count
-
-            percentage = 100 if cso_count > 0 else 0
-
-            product_stats[product] = {
-                "channels": cso_count,
-                "total": total,
-                "percentage": percentage,
-            }
-
-        return product_stats
-
-    def _calculate_overall_coverage(self, product_stats: Dict[str, Dict[str, int]]) -> int:
-        """Calculate overall CSO coverage percentage."""
-        total_channels = sum(stats["total"] for stats in product_stats.values())
-        cso_channels = sum(stats["channels"] for stats in product_stats.values())
-
-        if total_channels == 0:
-            return 0
-
-        return round((cso_channels / total_channels) * 100)
+        return {
+            "campaign": campaign_count,
+            "ajo": ajo_count,
+            "other": other_count,
+            "total": campaign_count + ajo_count + other_count,
+        }
 
     async def _calculate_auto_notification_delivery(
         self, cso_channels: List[Dict[str, Any]]
@@ -536,21 +642,10 @@ class MetricsDataCollector:
         Note: unique_users counts unique users PER CHANNEL summed across channels,
         not globally unique users (users can appear in multiple channels).
         """
-        # Branch based on period type
-        if period_type == "7_days":
-            # Use detail record queries (current implementation)
-            return await self._calculate_war_room_metrics_7_day(channels, start_ts, end_ts)
-        elif period_type in ["monthly", "quarterly"] and monthly_aggregates:
-            # Use monthly aggregates
-            return self._calculate_war_room_metrics_from_aggregates(monthly_aggregates)
-        else:
-            # Fallback to empty
-            return {
-                "people_joined": 0,
-                "unique_users_per_channel": 0,
-                "delivery_rate": 0,
-                "total_sent": 0,
-            }
+        # Use query-based approach for all period types to get accurate unique user counts
+        # (monthly aggregates don't track unique users correctly - same user rejoining
+        # the same channel would be counted multiple times in war_room_success)
+        return await self._calculate_war_room_metrics_7_day(channels, start_ts, end_ts)
 
     async def _calculate_war_room_metrics_7_day(
         self,
@@ -559,50 +654,23 @@ class MetricsDataCollector:
         end_ts: int,
     ) -> Dict[str, Any]:
         """
-        Calculate war room metrics using detail record queries (7-day mode).
+        Calculate war room metrics from channel data already loaded.
 
-        Note: Falls back to all-time stats if detail records don't exist.
+        Uses user_join_notifications field from CSO_DETAILS which is already
+        in the channels list - no need for additional DB queries.
         """
         total_delivered = 0
         total_attempted = 0
         total_unique_per_channel = 0
-        channels_count = min(20, len(channels))
 
-        # Track if we got any data from time-filtered queries
-        got_time_filtered_data = False
-
-        for channel in channels[:channels_count]:
-            channel_id = channel.get("channel_id")
-            if not channel_id:
-                continue
-
-            # Try time-filtered stats first
-            stats = await self._join_notification_ops.get_time_filtered_stats(
-                channel_id, start_ts, end_ts
-            )
-
-            if stats and stats.get("total_sent", 0) > 0:
-                # Got time-filtered data
-                total_attempted += stats.get("total_sent", 0)
-                total_delivered += stats.get("total_success", 0)
-                total_unique_per_channel += stats.get("unique_users", 0)
-                got_time_filtered_data = True
-
-        # Fallback: If no time-filtered data exists, use all-time stats
-        if not got_time_filtered_data:
-            logger.info("No time-filtered war room data found, using all-time stats")
-            for channel in channels[:channels_count]:
-                channel_id = channel.get("channel_id")
-                if not channel_id:
-                    continue
-
-                stats = await self._join_notification_ops.get_channel_stats(channel_id)
-                if stats:
-                    total_attempted += stats.get("total_sent", 0)
-                    total_delivered += stats.get("total_success", 0)
-                    # Note: get_channel_stats doesn't have unique_users field
-                    # Use total_success as approximation
-                    total_unique_per_channel += stats.get("total_success", 0)
+        # Extract user_join_notifications from already-loaded channel data
+        for channel in channels:
+            ujn = channel.get("user_join_notifications", {})
+            if ujn:
+                total_attempted += ujn.get("total_sent", 0)
+                total_delivered += ujn.get("total_success", 0)
+                # Use total_success as unique users approximation
+                total_unique_per_channel += ujn.get("total_success", 0)
 
         delivery_rate = (
             round((total_delivered / total_attempted) * 100) if total_attempted > 0 else 0
@@ -613,26 +681,6 @@ class MetricsDataCollector:
             "unique_users_per_channel": total_unique_per_channel,
             "delivery_rate": delivery_rate,
             "total_sent": total_attempted,
-        }
-
-    def _calculate_war_room_metrics_from_aggregates(
-        self,
-        monthly_aggregates: Dict[str, int],
-    ) -> Dict[str, Any]:
-        """
-        Calculate war room metrics from monthly aggregates (monthly/quarterly mode).
-        """
-        total_sent = monthly_aggregates.get("war_room_sent", 0)
-        total_success = monthly_aggregates.get("war_room_success", 0)
-        unique_users = monthly_aggregates.get("war_room_unique_users", 0)
-
-        delivery_rate = round((total_success / total_sent) * 100) if total_sent > 0 else 0
-
-        return {
-            "people_joined": total_success,
-            "unique_users_per_channel": unique_users,
-            "delivery_rate": delivery_rate,
-            "total_sent": total_sent,
         }
 
     def _calculate_system_health(
@@ -669,27 +717,13 @@ class MetricsDataCollector:
     def _get_empty_cso_metrics(self) -> Dict[str, Any]:
         """Return empty CSO metrics structure."""
         return {
-            "products_using_ketchup": [],
-            "product_coverage": {},
-            "overall_cso_coverage": 0,
-            "auto_notification_delivery": 0,
-            "cso_metrics": CSOMetrics(
-                currently_active=CSOChannelCounts(0, 0, 0),
-                archived=CSOChannelCounts(0, 0, 0),
-            ),
-            "jira_posting": {
-                "total_coverage": 0.0,
-                "channels_with_reports": 0,
-                "total_channels": 0,
-                "posting_details": {
-                    "primary_only": 0,
-                    "csopm_only": 0,
-                    "both_tickets": 0,
-                    "no_valid_ticket": 0,
-                    "api_failures": 0,
-                    "pending": 0,
-                },
+            "product_counts": {
+                "campaign": 0,
+                "ajo": 0,
+                "other": 0,
+                "total": 0,
             },
+            "auto_notification_delivery": 0,
         }
 
     def _get_empty_technical_metrics(self) -> Dict[str, Any]:

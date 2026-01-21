@@ -12,7 +12,7 @@ import pytest
 
 from packages.ai.maintenance_checker import MaintenanceChecker
 from packages.db.dynamodb_store import DynamoDBStore
-from packages.integrations.mcp_client import MCPClient
+from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.slack.maintenance.jira_prompt_handler import JiraPromptHandler
 
 pytestmark = pytest.mark.integration
@@ -77,7 +77,7 @@ def sample_maintenance_cache_data():
 @pytest.fixture
 def mock_mcp_client():
     """Create mock MCP client."""
-    client = AsyncMock(spec=MCPClient)
+    client = AsyncMock(spec=AsyncMCPClient)
     client.search_issues = AsyncMock()
     client.ensure_connection = AsyncMock()
     client.rate_limiter = MagicMock()
