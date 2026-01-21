@@ -120,54 +120,54 @@ services:
   # CSOPM Notifier - Standalone CSOPM notification service (singleton on prod1)
   # Polls JIRA for CSOPM assignments and sends Slack DM notifications
   # Runs at 08:00 and 16:00 UTC daily
-  # ketchup-csopm-notifier:
-  #   build:
-  #     context: ..
-  #     dockerfile: infrastructure/Dockerfile.csopm-notifier
-  #     platforms:
-  #       - linux/amd64
-  #     x-bake:
-  #       cache-from:
-  #         - type=local,src=/tmp/.buildx-cache
-  #       cache-to:
-  #         - type=local,dest=/tmp/.buildx-cache
-  #   image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-csopm-notifier:v2.360.368
-  #   env_file:
-  #     - common.env
-  #     - performance.env
-  #   environment:
-  #     - MCP_BASE_URL=http://mcp-jira:8081
-  #     # CSOPM feature flag
-  #     - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
-  #     # DynamoDB table for state tracking
-  #     - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
-  #     # CSOPM configuration (can be overridden in docker-compose.local.yml for testing)
-  #     - CSOPM_JIRA_PROJECT=CSOPM
-  #     - CSOPM_RCA_REMINDER_DAYS=7
-  #     - CSOPM_CLOSURE_REMINDER_DAYS=45
-  #     - CSOPM_MAX_PING_COUNT=3
-  #     - CSOPM_SCHEDULE_TIMES=08:00,16:00
-  #     - TZ=Europe/London
-  #   volumes:
-  #     - ./logs:/var/log
-  #   depends_on:
-  #     - mcp-jira
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     # Health file: /tmp/csopm_notifier_health (format: timestamp:status)
-  #     # Last run file: /tmp/csopm_notifier_last_run
-  #     # MAX_RUN_AGE: 32400 = 9 hours (runs every 8 hours at 08:00 and 16:00 UTC)
-  #     # MAX_HEALTH_AGE: 600 = 10 minutes
-  #     test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/csopm_notifier_health LAST_RUN_FILE=/tmp/csopm_notifier_last_run MAX_RUN_AGE=32400 MAX_HEALTH_AGE=600 SERVICE_NAME=CSOPMNotifier /app/infrastructure/healthcheck-scheduler.sh"]
-  #     interval: 60s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 180s
-  #   logging:
-  #     driver: json-file
-  #     options:
-  #       max-size: "50m"
-  #       max-file: "3"
+  ketchup-csopm-notifier:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.csopm-notifier
+      platforms:
+        - linux/amd64
+      x-bake:
+        cache-from:
+          - type=local,src=/tmp/.buildx-cache
+        cache-to:
+          - type=local,dest=/tmp/.buildx-cache
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-csopm-notifier:v2.360.368
+    env_file:
+      - common.env
+      - performance.env
+    environment:
+      - MCP_BASE_URL=http://mcp-jira:8081
+      # CSOPM feature flag
+      - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
+      # DynamoDB table for state tracking
+      - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
+      # CSOPM configuration (can be overridden in docker-compose.local.yml for testing)
+      - CSOPM_JIRA_PROJECT=CSOPM
+      - CSOPM_RCA_REMINDER_DAYS=7
+      - CSOPM_CLOSURE_REMINDER_DAYS=45
+      - CSOPM_MAX_PING_COUNT=3
+      - CSOPM_SCHEDULE_TIMES=08:00,16:00
+      - TZ=Europe/London
+    volumes:
+      - ./logs:/var/log
+    depends_on:
+      - mcp-jira
+    restart: unless-stopped
+    healthcheck:
+      # Health file: /tmp/csopm_notifier_health (format: timestamp:status)
+      # Last run file: /tmp/csopm_notifier_last_run
+      # MAX_RUN_AGE: 32400 = 9 hours (runs every 8 hours at 08:00 and 16:00 UTC)
+      # MAX_HEALTH_AGE: 600 = 10 minutes
+      test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/csopm_notifier_health LAST_RUN_FILE=/tmp/csopm_notifier_last_run MAX_RUN_AGE=32400 MAX_HEALTH_AGE=600 SERVICE_NAME=CSOPMNotifier /app/infrastructure/healthcheck-scheduler.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
 
   mcp-jira:
     build:
