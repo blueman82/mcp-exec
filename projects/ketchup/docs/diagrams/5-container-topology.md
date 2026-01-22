@@ -278,5 +278,5 @@ graph TB
 
 ---
 
-**Total Containers**: 11 (6 on prod1, 5 on prod2)
-**Total Services**: 6 (FastAPI x2, MCP, unified-scheduler, access-monitor x2)
+**Total Containers**: 12 (7 on prod1, 5 on prod2)
+**Total Services**: 7 (FastAPI x2, MCP, unified-scheduler, csopm-notifier, access-monitor x2)
