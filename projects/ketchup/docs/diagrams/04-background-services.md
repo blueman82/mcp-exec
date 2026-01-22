@@ -541,12 +541,13 @@ GET /health
 
 ## Singleton Pattern Rationale
 
-**Why Unified Scheduler is Singleton:**
+**Why Unified Scheduler and CSOPM Notifier are Singletons:**
 - **Prevent duplicate Slack posts**: Users would see duplicate status updates
 - **Prevent duplicate JIRA tickets**: Same incident would create multiple tickets
 - **Prevent duplicate metadata scans**: Wasteful API calls, rate limit issues
 - **Prevent duplicate alerts**: Maintenance alerts would spam channels
 - **Prevent duplicate PAT rotations**: Token conflicts and security issues
+- **Prevent duplicate CSOPM notifications**: Users would receive duplicate DMs for same ticket
 
 **Implementation (Phase 1 Consolidation):**
 - **Before:** 5 separate singleton containers on prod1
