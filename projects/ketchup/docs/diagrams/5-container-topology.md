@@ -167,6 +167,7 @@ graph LR
         P1_FastAPI["FastAPI<br/>2 replicas"]
         P1_MCP["MCP Server<br/>JIRA"]
         P1_Unified["Unified Scheduler<br/>5 tasks"]
+        P1_CSOPM["CSOPM Notifier<br/>2x daily"]
         P1_Monitor["Monitoring<br/>access-monitor"]
     end
 
@@ -174,7 +175,7 @@ graph LR
         P2_FastAPI["FastAPI<br/>2 replicas"]
         P2_MCP["MCP Server<br/>JIRA"]
         P2_Monitor["Monitoring<br/>access-monitor"]
-        P2_Disabled["Unified Scheduler<br/>(disabled)"]
+        P2_Disabled["Unified Scheduler<br/>CSOPM Notifier<br/>(disabled)"]
     end
 
     P1_FastAPI -->|Handles requests| Slack
