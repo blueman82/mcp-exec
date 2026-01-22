@@ -581,6 +581,7 @@ All background services respect feature flags:
 - `KETCHUP_JIRA_REPORTER_FEATURE=true`
 - `KETCHUP_JIRA_REPORTER_GLOBAL=false`
 - `KETCHUP_TRUST_ENDORSEMENT_FEATURE=true`
+- `KETCHUP_CSOPM_NOTIFIER_ENABLED=true`
 
 **DynamoDB Channel Flags:**
 - `features.status_updater_enabled`
