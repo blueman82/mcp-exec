@@ -488,7 +488,10 @@ async def route_interaction(payload: dict):
         
         elif action_id.startswith("flag_review_"):
             return await flag_review_handler.handle(payload)
-        
+
+        elif action_id.startswith("csopm_"):
+            return await csopm_button_handler.handle(payload)
+
         elif action_id == "metrics_download":
             return await metrics_handler.handle_download(payload)
     
