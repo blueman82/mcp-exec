@@ -87,6 +87,18 @@ graph TB
         RavenDetect -->|"No"| RavenWait["Wait for next poll"]
     end
     
+    subgraph CSOPMFlow["CSOPM Notifier Flow"]
+        CSOPMNotifier --> CSOPMCheck{"Check Feature<br/>Flag"}
+        CSOPMCheck -->|"Enabled"| CSOPMPoll["Poll JIRA for<br/>CSOPM assignments"]
+        CSOPMCheck -->|"Disabled"| CSOPMSkip["Skip Execution"]
+
+        CSOPMPoll --> CSOPMFilter["Filter new/reassigned<br/>tickets"]
+        CSOPMFilter --> CSOPMNotify["For each ticket:<br/>1. Look up assignee Slack ID<br/>2. Send DM notification<br/>3. Track state in DynamoDB"]
+
+        CSOPMNotify --> CSOPMReminders["Process reminders:<br/>• RCA (7 days)<br/>• Closure (45 days)"]
+        CSOPMReminders --> CSOPMButtons["Interactive buttons:<br/>Acknowledge, Done,<br/>Snooze, Stop Reminders"]
+    end
+
     subgraph AccessFlow["Access Monitor Flow (Both Servers)"]
         AccessMonitor1 --> SQSPoll1["Poll SQS queue"]
         AccessMonitor2 --> SQSPoll2["Poll SQS queue"]
