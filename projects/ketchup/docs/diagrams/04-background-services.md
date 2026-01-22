@@ -450,6 +450,95 @@ GET /health
 
 ---
 
+### 7. ketchup-csopm-notifier (SINGLETON)
+
+**Purpose:** Automated CSOPM (Customer Success Operations Project Management) ticket assignment notifications via Slack DMs
+
+**Schedule:**
+- Twice daily at 08:00 and 16:00 UTC
+- Runs as standalone container on prod1 only
+
+**Architecture:**
+- **Scheduler:** `CSOPMScheduler` (`ketchup_csopm_notifier/scheduler.py`)
+- **Services:** 4 internal services orchestrated by scheduler
+- **Shared Components:** State tracking and button handlers in `packages/slack/csopm/`
+- **TypedDI Container:** Shared container initialized at startup
+
+**Internal Services:**
+
+| Service | Purpose | Key Methods |
+|---------|---------|-------------|
+| `CSOPMJIRAPoller` | Poll JIRA for CSOPM assignments | `poll_assignments()` |
+| `CSOPMSlackNotifier` | Send Slack DM notifications | `send_notification()` |
+| `CSOPMReminderService` | RCA and closure reminders | `process_reminders()` |
+| `CSOPMTicketStatusPoller` | Track ticket status changes | `poll_status()` |
+| `CSOPMStateTracker` | DynamoDB state persistence | `get_notification_record()`, `update_notification_record()` |
+
+**Logic:**
+1. Check `KETCHUP_CSOPM_NOTIFIER_ENABLED` flag → If false, skip
+2. Poll JIRA for CSOPM project tickets assigned to users
+3. For each assignment:
+   - Look up assignee's Slack user ID (via email domain matching)
+   - Check if notification already sent (DynamoDB state)
+   - Send Slack DM with ticket details and interactive buttons
+   - Track notification state in DynamoDB
+4. Process reminders:
+   - RCA reminders after 7 days (configurable via `CSOPM_RCA_REMINDER_DAYS`)
+   - Closure reminders after 45 days (configurable via `CSOPM_CLOSURE_REMINDER_DAYS`)
+   - Maximum 3 pings before escalation (`CSOPM_MAX_PING_COUNT`)
+5. Poll ticket status for completion/closure tracking
+
+**Interactive Buttons:**
+- **Acknowledge:** Mark notification as seen
+- **Mark Complete:** Transition ticket with dynamic JIRA fields
+- **Close Ticket:** Transition to closed with required fields
+- **Snooze/Unsnooze:** Pause reminders temporarily
+- **Stop/Enable Reminders:** Toggle reminder notifications
+
+**Dependencies:**
+- `MCPAsyncClient` (JIRA ticket operations via mcp-jira)
+- `SlackAsyncClient` (DM notifications, button handling)
+- `DynamoDBClient` (state persistence with `CSOPM_NOTIFICATION#` prefix)
+- `SecretsManager` (API tokens, user PATs)
+
+**DynamoDB State Keys:**
+- `PK_NOTIFICATION_PREFIX`: `CSOPM_NOTIFICATION#`
+- `SK_NOTIFICATION`: `NOTIFICATION`
+- `SK_FOLLOWUP_PREFIX`: `FOLLOWUP#`
+
+**Configuration (Environment Variables):**
+```yaml
+KETCHUP_CSOPM_NOTIFIER_ENABLED=true
+CSOPM_JIRA_PROJECT=CSOPM
+CSOPM_RCA_REMINDER_DAYS=7
+CSOPM_CLOSURE_REMINDER_DAYS=45
+CSOPM_MAX_PING_COUNT=3
+CSOPM_SCHEDULE_TIMES=08:00,16:00
+```
+
+**Deployment:**
+- Dockerfile: `Dockerfile.csopm-notifier`
+- Container name: `ketchup-csopm-notifier`
+- **MUST run on prod1 only** (singleton constraint)
+- Deployment script explicitly stops/removes on prod2
+
+**Health Monitoring:**
+```python
+GET /health
+{
+  "status": "healthy",
+  "last_poll": "2026-01-22T08:00:00Z",
+  "notifications_sent": 15,
+  "reminders_processed": 8
+}
+```
+
+**Split Architecture (Shared vs Scheduler-Specific):**
+- **Shared** (`packages/slack/csopm/`): `actions.py`, `state.py`, `blocks.py` - used by both scheduler and ketchup-app for button callbacks
+- **Scheduler-Specific** (`ketchup_csopm_notifier/`): `scheduler.py`, `services/*.py` - only runs in singleton container
+
+---
+
 ## Singleton Pattern Rationale
 
 **Why Unified Scheduler is Singleton:**
