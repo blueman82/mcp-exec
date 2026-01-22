@@ -489,6 +489,6 @@ Combined optimizations achieved **300-400% overall improvement**:
 
 ---
 
-**Last Updated**: November 18, 2025
-**Documentation Version**: v1.0
-**Applicable to**: v2.360.347+
+**Last Updated**: January 22, 2026
+**Documentation Version**: v1.1
+**Applicable to**: v2.360.369+
