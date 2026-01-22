@@ -116,7 +116,7 @@ graph TB
         end
 
         subgraph "⛔ EXPLICITLY DISABLED"
-            DisabledServices["❌ unified-scheduler<br/><br/>Stopped during deployment<br/>to prevent duplicate jobs<br/>(5 tasks run on prod1 only)"]
+            DisabledServices["❌ unified-scheduler<br/>❌ csopm-notifier<br/><br/>Stopped during deployment<br/>to prevent duplicate jobs<br/>(singletons run on prod1 only)"]
         end
     end
 
