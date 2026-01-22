@@ -22,6 +22,10 @@ graph TB
             UnifiedScheduler["unified-scheduler<br/>Runs 5 tasks internally:<br/>• metadata-updater (15min)<br/>• status-updater (55min)<br/>• jira-reporter (continuous)<br/>• maintenance-fetcher (1:30 UTC)<br/>• jira-pat-rotator (24hr)"]
         end
 
+        subgraph "CSOPM Notifier (prod1 ONLY)"
+            CSOPMNotifier["csopm-notifier<br/>Schedule: 08:00 & 16:00 UTC<br/>• JIRA CSOPM polling<br/>• Slack DM notifications<br/>• RCA/closure reminders"]
+        end
+
         subgraph "Monitoring & Logging"
             AccessMonitor["access-monitor<br/>Request Tracking"]
         end
@@ -53,7 +57,13 @@ graph TB
 
     UnifiedScheduler -->|Pull Tasks| SQS
     UnifiedScheduler -->|Import| Packages
-    UnifiedScheduler -->|Post Responses| SlackAPI["Slack API"]
+    UnifiedScheduler -->|Post Responses| SlackAPI
+
+    CSOPMNotifier -->|Import| Packages
+    CSOPMNotifier -->|MCP Tunnel| MCP
+    CSOPMNotifier -->|Send DMs| SlackAPI
+    CSOPMNotifier -->|Query/Update| DDB
+    CSOPMNotifier -->|Get Secrets| Secrets["Slack API"]
 
     App1 -->|Query/Update| DDB
     App2 -->|Query/Update| DDB
@@ -72,6 +82,7 @@ graph TB
     style App2 fill:#36c5f0
     style MCP fill:#ff9900
     style UnifiedScheduler fill:#cc99ff
+    style CSOPMNotifier fill:#cc99ff
     style AccessMonitor fill:#ffcc99
     style DDB fill:#527fff
     style Secrets fill:#527fff
@@ -105,7 +116,7 @@ graph TB
         end
 
         subgraph "⛔ EXPLICITLY DISABLED"
-            DisabledServices["❌ unified-scheduler<br/><br/>Stopped during deployment<br/>to prevent duplicate jobs<br/>(5 tasks run on prod1 only)"]
+            DisabledServices["❌ unified-scheduler<br/>❌ csopm-notifier<br/><br/>Stopped during deployment<br/>to prevent duplicate jobs<br/>(singletons run on prod1 only)"]
         end
     end
 
@@ -156,6 +167,7 @@ graph LR
         P1_FastAPI["FastAPI<br/>2 replicas"]
         P1_MCP["MCP Server<br/>JIRA"]
         P1_Unified["Unified Scheduler<br/>5 tasks"]
+        P1_CSOPM["CSOPM Notifier<br/>2x daily"]
         P1_Monitor["Monitoring<br/>access-monitor"]
     end
 
@@ -163,14 +175,16 @@ graph LR
         P2_FastAPI["FastAPI<br/>2 replicas"]
         P2_MCP["MCP Server<br/>JIRA"]
         P2_Monitor["Monitoring<br/>access-monitor"]
-        P2_Disabled["Unified Scheduler<br/>(disabled)"]
+        P2_Disabled["Unified Scheduler<br/>CSOPM Notifier<br/>(disabled)"]
     end
 
     P1_FastAPI -->|Handles requests| Slack
     P1_Unified -->|Background jobs| Slack
+    P1_CSOPM -->|DM notifications| Slack
     P2_FastAPI -->|Handles requests| Slack
 
     style P1_Unified fill:#cc99ff
+    style P1_CSOPM fill:#cc99ff
     style P2_Disabled fill:#ff6666
 
     P1_MCP -.->|2 servers| Jira
@@ -219,9 +233,9 @@ graph TD
 ```mermaid
 graph TB
     subgraph "prod1 Resource Usage"
-        CPU1["6 Containers<br/>Total CPU: ~2 cores shared"]
-        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>access-monitor: 128MB"]
-        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~350MB"]
+        CPU1["7 Containers<br/>Total CPU: ~2.5 cores shared"]
+        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>csopm-notifier: 256MB<br/>access-monitor: 128MB"]
+        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~400MB"]
     end
 
     subgraph "prod2 Resource Usage"
@@ -246,12 +260,12 @@ graph TB
 - Data conflicts in DynamoDB
 
 **Solution**:
-- Run unified scheduler **only** on prod1
-- Explicitly **stop and remove** this container from prod2
+- Run unified scheduler and csopm-notifier **only** on prod1
+- Explicitly **stop and remove** these containers from prod2
 - deployment script (deploy-ketchup.sh):
   ```bash
-  # Remove unified scheduler from prod2
-  ssh prod2 "docker-compose rm -f unified-scheduler"
+  # Remove singleton containers from prod2
+  ssh prod2 "docker-compose rm -f unified-scheduler csopm-notifier"
   ```
 
 **Benefits**:
@@ -264,5 +278,5 @@ graph TB
 
 ---
 
-**Total Containers**: 11 (6 on prod1, 5 on prod2)
-**Total Services**: 6 (FastAPI x2, MCP, unified-scheduler, access-monitor x2)
+**Total Containers**: 12 (7 on prod1, 5 on prod2)
+**Total Services**: 7 (FastAPI x2, MCP, unified-scheduler, csopm-notifier, access-monitor x2)

@@ -91,6 +91,24 @@ Feature flags enable/disable functionality across Ketchup services. All flags fo
 - **Details**: Enables the maintenance fetcher service to detect and alert about scheduled Adobe maintenance
 - **Related**: ketchup_maintenance_fetcher service (singleton on prod1)
 
+### CSOPM Notifier Feature
+
+**Purpose**: Enable automated CSOPM ticket assignment notifications via Slack DMs
+
+- **Flag**: `KETCHUP_CSOPM_NOTIFIER_ENABLED`
+- **Current Value**: `true`
+- **Services**: ketchup-csopm-notifier, ketchup-app (for button callbacks)
+- **Details**: Enables the CSOPM notifier service to poll JIRA for CSOPM assignments and send Slack DM notifications to assignees
+- **Schedule**: 08:00 and 16:00 UTC daily
+- **Related Configuration**:
+  - `CSOPM_JIRA_PROJECT=CSOPM` - JIRA project key
+  - `CSOPM_RCA_REMINDER_DAYS=7` - Days before RCA reminder
+  - `CSOPM_CLOSURE_REMINDER_DAYS=45` - Days before closure reminder
+  - `CSOPM_MAX_PING_COUNT=3` - Maximum reminder pings
+  - `CSOPM_SCHEDULE_TIMES=08:00,16:00` - UTC schedule times
+- **Dependencies**: MCP JIRA service (mcp-jira), Slack API for DMs
+- **Added**: January 2026
+
 ---
 
 ## Performance Tuning Variables
@@ -418,7 +436,7 @@ Add reference in the Feature Flags section:
 
 ---
 
-## Production Feature Flag Status (v2.360.347)
+## Production Feature Flag Status (v2.360.369)
 
 | Flag | Status | Services | Impact |
 |------|--------|----------|--------|
@@ -428,6 +446,7 @@ Add reference in the Feature Flags section:
 | KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE | ✅ ENABLED | All | High |
 | KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE | ✅ ENABLED | All | Low |
 | KETCHUP_MAINTENANCE_DETECTION | ✅ ENABLED | All | Medium |
+| KETCHUP_CSOPM_NOTIFIER_ENABLED | ✅ ENABLED | csopm-notifier, app | High |
 | USE_PIPELINE_PROCESSING | ✅ ENABLED | Most | High (Performance) |
 | KETCHUP_USE_HTTPX | ✅ ENABLED | All | High (Performance) |
 | KETCHUP_HTTP2_ENABLED | ✅ ENABLED | All | High (Performance) |
@@ -470,6 +489,6 @@ Combined optimizations achieved **300-400% overall improvement**:
 
 ---
 
-**Last Updated**: November 18, 2025
-**Documentation Version**: v1.0
-**Applicable to**: v2.360.347+
+**Last Updated**: January 22, 2026
+**Documentation Version**: v1.1
+**Applicable to**: v2.360.369+

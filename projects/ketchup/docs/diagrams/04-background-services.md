@@ -1,6 +1,6 @@
 # Background Services Architecture
 
-This component diagram shows the 2 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. The unified scheduler runs ONLY on prod1 as a singleton to prevent duplicate operations, while the access monitor runs on both servers.
+This component diagram shows the 3 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. The unified scheduler and CSOPM notifier run ONLY on prod1 as singletons to prevent duplicate operations, while the access monitor runs on both servers.
 
 > **Note**: As of Phase 1 Scheduler Consolidation (December 2025), all 5 scheduler tasks run within a single `ketchup-unified-scheduler` container orchestrated by `UnifiedSchedulerEngine` (`packages/ketchup_unified_scheduler/unified_scheduler_engine.py`).
 
@@ -22,6 +22,22 @@ graph TB
         UnifiedScheduler -->|"Orchestrates"| JiraReporter
         UnifiedScheduler -->|"Orchestrates"| MaintenanceFetcher
         UnifiedScheduler -->|"Orchestrates"| PatRotator
+    end
+
+    subgraph prod1CSOPMSingleton["🔴 CSOPM NOTIFIER (prod1 ONLY)"]
+        CSOPMNotifier["📬 ketchup-csopm-notifier<br/>━━━━━━━━━━━━━━━━━━━━━━━━━<br/>Schedule: 08:00 & 16:00 UTC<br/>━━━━━━━━━━━━━━━━━━━━━━━━━"]
+
+        subgraph CSOPMServices["Internal Services"]
+            JIRAPoller["🎫 CSOPMJIRAPoller<br/>Poll JIRA for assignments"]
+            SlackNotifier["💬 CSOPMSlackNotifier<br/>Send DM notifications"]
+            ReminderService["⏰ CSOPMReminderService<br/>RCA & closure reminders"]
+            StatusPoller["📊 CSOPMTicketStatusPoller<br/>Track ticket status"]
+        end
+
+        CSOPMNotifier -->|"Orchestrates"| JIRAPoller
+        CSOPMNotifier -->|"Orchestrates"| SlackNotifier
+        CSOPMNotifier -->|"Orchestrates"| ReminderService
+        CSOPMNotifier -->|"Orchestrates"| StatusPoller
     end
 
     subgraph BothServers["🟢 DISTRIBUTED SERVICE (prod1 + prod2)"]
@@ -71,6 +87,18 @@ graph TB
         RavenDetect -->|"No"| RavenWait["Wait for next poll"]
     end
     
+    subgraph CSOPMFlow["CSOPM Notifier Flow"]
+        CSOPMNotifier --> CSOPMCheck{"Check Feature<br/>Flag"}
+        CSOPMCheck -->|"Enabled"| CSOPMPoll["Poll JIRA for<br/>CSOPM assignments"]
+        CSOPMCheck -->|"Disabled"| CSOPMSkip["Skip Execution"]
+
+        CSOPMPoll --> CSOPMFilter["Filter new/reassigned<br/>tickets"]
+        CSOPMFilter --> CSOPMNotify["For each ticket:<br/>1. Look up assignee Slack ID<br/>2. Send DM notification<br/>3. Track state in DynamoDB"]
+
+        CSOPMNotify --> CSOPMReminders["Process reminders:<br/>• RCA (7 days)<br/>• Closure (45 days)"]
+        CSOPMReminders --> CSOPMButtons["Interactive buttons:<br/>Acknowledge, Done,<br/>Snooze, Stop Reminders"]
+    end
+
     subgraph AccessFlow["Access Monitor Flow (Both Servers)"]
         AccessMonitor1 --> SQSPoll1["Poll SQS queue"]
         AccessMonitor2 --> SQSPoll2["Poll SQS queue"]
@@ -111,6 +139,12 @@ graph TB
     
     RavenPoll --> RavenAPI
     RavenNotify --> SlackAPI
+
+    CSOPMPoll --> MCPJira
+    CSOPMNotify --> SlackAPI
+    CSOPMNotify --> DDB
+    CSOPMReminders --> SlackAPI
+    CSOPMNotifier -.->|"Get tokens"| Secrets
     
     SQSPoll1 --> SQS
     SQSPoll2 --> SQS
@@ -132,7 +166,7 @@ graph TB
     classDef scheduler fill:#9B59B6,stroke:#6C3483,stroke-width:2px,color:#fff
     classDef flow fill:#ECF0F1,stroke:#95A5A6,stroke-width:1px
     
-    class UnifiedScheduler,StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator singleton
+    class UnifiedScheduler,StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator,CSOPMNotifier,JIRAPoller,SlackNotifier,ReminderService,StatusPoller singleton
     class AccessMonitor1,AccessMonitor2 distributed
     class SlackAPI,AzureAI,MCPJira,RavenAPI external
     class DDB,Secrets,SQS dataStore
@@ -416,14 +450,104 @@ GET /health
 
 ---
 
+### 7. ketchup-csopm-notifier (SINGLETON)
+
+**Purpose:** Automated CSOPM (Customer Success Operations Project Management) ticket assignment notifications via Slack DMs
+
+**Schedule:**
+- Twice daily at 08:00 and 16:00 UTC
+- Runs as standalone container on prod1 only
+
+**Architecture:**
+- **Scheduler:** `CSOPMScheduler` (`ketchup_csopm_notifier/scheduler.py`)
+- **Services:** 4 internal services orchestrated by scheduler
+- **Shared Components:** State tracking and button handlers in `packages/slack/csopm/`
+- **TypedDI Container:** Shared container initialized at startup
+
+**Internal Services:**
+
+| Service | Purpose | Key Methods |
+|---------|---------|-------------|
+| `CSOPMJIRAPoller` | Poll JIRA for CSOPM assignments | `poll_assignments()` |
+| `CSOPMSlackNotifier` | Send Slack DM notifications | `send_notification()` |
+| `CSOPMReminderService` | RCA and closure reminders | `process_reminders()` |
+| `CSOPMTicketStatusPoller` | Track ticket status changes | `poll_status()` |
+| `CSOPMStateTracker` | DynamoDB state persistence | `get_notification_record()`, `update_notification_record()` |
+
+**Logic:**
+1. Check `KETCHUP_CSOPM_NOTIFIER_ENABLED` flag → If false, skip
+2. Poll JIRA for CSOPM project tickets assigned to users
+3. For each assignment:
+   - Look up assignee's Slack user ID (via email domain matching)
+   - Check if notification already sent (DynamoDB state)
+   - Send Slack DM with ticket details and interactive buttons
+   - Track notification state in DynamoDB
+4. Process reminders:
+   - RCA reminders after 7 days (configurable via `CSOPM_RCA_REMINDER_DAYS`)
+   - Closure reminders after 45 days (configurable via `CSOPM_CLOSURE_REMINDER_DAYS`)
+   - Maximum 3 pings before escalation (`CSOPM_MAX_PING_COUNT`)
+5. Poll ticket status for completion/closure tracking
+
+**Interactive Buttons:**
+- **Acknowledge:** Mark notification as seen
+- **Mark Complete:** Transition ticket with dynamic JIRA fields
+- **Close Ticket:** Transition to closed with required fields
+- **Snooze/Unsnooze:** Pause reminders temporarily
+- **Stop/Enable Reminders:** Toggle reminder notifications
+
+**Dependencies:**
+- `MCPAsyncClient` (JIRA ticket operations via mcp-jira)
+- `SlackAsyncClient` (DM notifications, button handling)
+- `DynamoDBClient` (state persistence with `CSOPM_NOTIFICATION#` prefix)
+- `SecretsManager` (API tokens, user PATs)
+
+**DynamoDB State Keys:**
+- `PK_NOTIFICATION_PREFIX`: `CSOPM_NOTIFICATION#`
+- `SK_NOTIFICATION`: `NOTIFICATION`
+- `SK_FOLLOWUP_PREFIX`: `FOLLOWUP#`
+
+**Configuration (Environment Variables):**
+```yaml
+KETCHUP_CSOPM_NOTIFIER_ENABLED=true
+CSOPM_JIRA_PROJECT=CSOPM
+CSOPM_RCA_REMINDER_DAYS=7
+CSOPM_CLOSURE_REMINDER_DAYS=45
+CSOPM_MAX_PING_COUNT=3
+CSOPM_SCHEDULE_TIMES=08:00,16:00
+```
+
+**Deployment:**
+- Dockerfile: `Dockerfile.csopm-notifier`
+- Container name: `ketchup-csopm-notifier`
+- **MUST run on prod1 only** (singleton constraint)
+- Deployment script explicitly stops/removes on prod2
+
+**Health Monitoring:**
+```python
+GET /health
+{
+  "status": "healthy",
+  "last_poll": "2026-01-22T08:00:00Z",
+  "notifications_sent": 15,
+  "reminders_processed": 8
+}
+```
+
+**Split Architecture (Shared vs Scheduler-Specific):**
+- **Shared** (`packages/slack/csopm/`): `actions.py`, `state.py`, `blocks.py` - used by both scheduler and ketchup-app for button callbacks
+- **Scheduler-Specific** (`ketchup_csopm_notifier/`): `scheduler.py`, `services/*.py` - only runs in singleton container
+
+---
+
 ## Singleton Pattern Rationale
 
-**Why Unified Scheduler is Singleton:**
+**Why Unified Scheduler and CSOPM Notifier are Singletons:**
 - **Prevent duplicate Slack posts**: Users would see duplicate status updates
 - **Prevent duplicate JIRA tickets**: Same incident would create multiple tickets
 - **Prevent duplicate metadata scans**: Wasteful API calls, rate limit issues
 - **Prevent duplicate alerts**: Maintenance alerts would spam channels
 - **Prevent duplicate PAT rotations**: Token conflicts and security issues
+- **Prevent duplicate CSOPM notifications**: Users would receive duplicate DMs for same ticket
 
 **Implementation (Phase 1 Consolidation):**
 - **Before:** 5 separate singleton containers on prod1
@@ -457,6 +581,7 @@ All background services respect feature flags:
 - `KETCHUP_JIRA_REPORTER_FEATURE=true`
 - `KETCHUP_JIRA_REPORTER_GLOBAL=false`
 - `KETCHUP_TRUST_ENDORSEMENT_FEATURE=true`
+- `KETCHUP_CSOPM_NOTIFIER_ENABLED=true`
 
 **DynamoDB Channel Flags:**
 - `features.status_updater_enabled`
