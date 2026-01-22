@@ -260,12 +260,12 @@ graph TB
 - Data conflicts in DynamoDB
 
 **Solution**:
-- Run unified scheduler **only** on prod1
-- Explicitly **stop and remove** this container from prod2
+- Run unified scheduler and csopm-notifier **only** on prod1
+- Explicitly **stop and remove** these containers from prod2
 - deployment script (deploy-ketchup.sh):
   ```bash
-  # Remove unified scheduler from prod2
-  ssh prod2 "docker-compose rm -f unified-scheduler"
+  # Remove singleton containers from prod2
+  ssh prod2 "docker-compose rm -f unified-scheduler csopm-notifier"
   ```
 
 **Benefits**:
