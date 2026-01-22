@@ -22,6 +22,10 @@ graph TB
             UnifiedScheduler["unified-scheduler<br/>Runs 5 tasks internally:<br/>• metadata-updater (15min)<br/>• status-updater (55min)<br/>• jira-reporter (continuous)<br/>• maintenance-fetcher (1:30 UTC)<br/>• jira-pat-rotator (24hr)"]
         end
 
+        subgraph "CSOPM Notifier (prod1 ONLY)"
+            CSOPMNotifier["csopm-notifier<br/>Schedule: 08:00 & 16:00 UTC<br/>• JIRA CSOPM polling<br/>• Slack DM notifications<br/>• RCA/closure reminders"]
+        end
+
         subgraph "Monitoring & Logging"
             AccessMonitor["access-monitor<br/>Request Tracking"]
         end
