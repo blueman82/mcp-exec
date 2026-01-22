@@ -1,6 +1,6 @@
 # Background Services Architecture
 
-This component diagram shows the 2 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. The unified scheduler runs ONLY on prod1 as a singleton to prevent duplicate operations, while the access monitor runs on both servers.
+This component diagram shows the 3 background services running in Ketchup, their scheduling patterns, data flows, and singleton constraints. The unified scheduler and CSOPM notifier run ONLY on prod1 as singletons to prevent duplicate operations, while the access monitor runs on both servers.
 
 > **Note**: As of Phase 1 Scheduler Consolidation (December 2025), all 5 scheduler tasks run within a single `ketchup-unified-scheduler` container orchestrated by `UnifiedSchedulerEngine` (`packages/ketchup_unified_scheduler/unified_scheduler_engine.py`).
 
