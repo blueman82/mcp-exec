@@ -166,7 +166,7 @@ graph TB
     classDef scheduler fill:#9B59B6,stroke:#6C3483,stroke-width:2px,color:#fff
     classDef flow fill:#ECF0F1,stroke:#95A5A6,stroke-width:1px
     
-    class UnifiedScheduler,StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator singleton
+    class UnifiedScheduler,StatusUpdater,MetadataUpdater,JiraReporter,MaintenanceFetcher,PatRotator,CSOPMNotifier,JIRAPoller,SlackNotifier,ReminderService,StatusPoller singleton
     class AccessMonitor1,AccessMonitor2 distributed
     class SlackAPI,AzureAI,MCPJira,RavenAPI external
     class DDB,Secrets,SQS dataStore
