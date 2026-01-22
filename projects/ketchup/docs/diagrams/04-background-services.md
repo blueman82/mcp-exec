@@ -139,6 +139,12 @@ graph TB
     
     RavenPoll --> RavenAPI
     RavenNotify --> SlackAPI
+
+    CSOPMPoll --> MCPJira
+    CSOPMNotify --> SlackAPI
+    CSOPMNotify --> DDB
+    CSOPMReminders --> SlackAPI
+    CSOPMNotifier -.->|"Get tokens"| Secrets
     
     SQSPoll1 --> SQS
     SQSPoll2 --> SQS
