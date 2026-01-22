@@ -180,9 +180,11 @@ graph LR
 
     P1_FastAPI -->|Handles requests| Slack
     P1_Unified -->|Background jobs| Slack
+    P1_CSOPM -->|DM notifications| Slack
     P2_FastAPI -->|Handles requests| Slack
 
     style P1_Unified fill:#cc99ff
+    style P1_CSOPM fill:#cc99ff
     style P2_Disabled fill:#ff6666
 
     P1_MCP -.->|2 servers| Jira
