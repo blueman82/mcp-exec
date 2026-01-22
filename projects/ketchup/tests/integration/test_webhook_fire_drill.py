@@ -20,11 +20,11 @@ async def run_webhook_fire_drill():
     """Run fire drill with webhook alerts."""
     # Get webhook from environment (for testing only)
     # In production, this should come from AWS Secrets Manager
-    webhook_url = os.environ.get("KETCHUP_ALERTS_WEBHOOK")
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
     if not webhook_url:
         print("❌ No webhook URL configured!")
-        print("   Set KETCHUP_ALERTS_WEBHOOK environment variable")
-        print("   Or add KETCHUP_ALERTS_WEBHOOK_URL to AWS Secrets Manager")
+        print("   Set SLACK_WEBHOOK_URL environment variable")
+        print("   Or add slack_webhook_url to AWS Secrets Manager")
         return
 
     print("\n" + "=" * 60)

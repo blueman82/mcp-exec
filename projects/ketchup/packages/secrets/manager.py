@@ -146,6 +146,7 @@ class SecretsManager:
                 "AUTHORISED_USERS_LDAP_BACKUP": parse_json_field(
                     secrets_async.get("authorised_users_ldap_backup"), default=[]
                 ),
+                "SLACK_WEBHOOK_URL": secrets_async.get("slack_webhook_url", ""),
             }
 
             # Update cache
@@ -269,32 +270,10 @@ class SecretsManager:
             secrets = await self.get_app_secrets()
             return secrets["AUTHORISED_USERS_LDAP_BACKUP"]
 
-    async def get_ketchup_alerts_webhook_url(self):
-        """Get the Ketchup alerts webhook URL from secrets.
-
-        Returns:
-            str: The webhook URL for posting to #ketchup-alerts channel,
-                 or None if not configured.
-        """
-        logger.info("Starting get_ketchup_alerts_webhook_url function.")
-
-        try:
-            # Force fresh fetch to ensure we have the latest webhook URL
-            # This is important for security - always use the current webhook
-            secrets_async = await self.get_secret_async(self.APP_SECRETS_NAME)
-            webhook_url = secrets_async.get("KETCHUP_ALERTS_WEBHOOK_URL")
-
-            if webhook_url:
-                logger.info("Retrieved Ketchup alerts webhook URL from secrets")
-                # Don't log the actual URL for security
-            else:
-                logger.info("No Ketchup alerts webhook URL configured in secrets")
-
-            return webhook_url
-
-        except Exception as e:
-            logger.error(f"Failed to retrieve Ketchup alerts webhook URL: {e}")
-            return None
+    async def get_slack_webhook_url(self):
+        """Get the Slack webhook URL asynchronously."""
+        secrets = await self.get_app_secrets()
+        return secrets.get("SLACK_WEBHOOK_URL", "")
 
     async def update_secret(self, updates: dict) -> None:
         """

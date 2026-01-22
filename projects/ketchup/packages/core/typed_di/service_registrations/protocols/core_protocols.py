@@ -12,6 +12,7 @@ class SecretsManagerProtocol(Protocol):
     """Protocol for SecretsManager operations."""
 
     async def get_slack_api_token_async(self) -> Optional[str]: ...
+    async def get_slack_webhook_url(self) -> Optional[str]: ...
 
 
 @runtime_checkable

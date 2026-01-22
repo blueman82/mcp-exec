@@ -21,12 +21,13 @@ import boto3
 
 from packages.core.constants import AWS_REGION
 from packages.core.logging import setup_logger
+from packages.secrets.manager import SecretsManager as PackagesSecretsManager
 
 logger = setup_logger(__name__)
 
 
-class SecretsManager:
-    """Manages AWS Secrets Manager operations for PAT storage."""
+class PATSecretsManager:
+    """Manages AWS Secrets Manager operations for PAT storage (legacy local implementation)."""
 
     def __init__(self):
         """Initialize secrets manager."""
@@ -134,9 +135,33 @@ class SlackNotifier:
 
     def __init__(self):
         """Initialize Slack notifier."""
-        import os
+        self._secrets_manager = PackagesSecretsManager()
+        self._webhook_url: Optional[str] = None
+        self._webhook_url_fetched = False
 
-        self.webhook_url = os.getenv("SLACK_WEBHOOK_URL")
+    async def _get_webhook_url(self) -> Optional[str]:
+        """
+        Lazily fetch webhook URL from AWS Secrets Manager.
+
+        Returns:
+            Webhook URL if available, None otherwise.
+        """
+        if self._webhook_url_fetched:
+            return self._webhook_url
+
+        try:
+            self._webhook_url = await self._secrets_manager.get_slack_webhook_url()
+            self._webhook_url_fetched = True
+
+            if not self._webhook_url:
+                logger.warning("Slack webhook URL not configured in Secrets Manager")
+
+            return self._webhook_url
+
+        except Exception as e:
+            logger.error(f"Failed to retrieve webhook URL from Secrets Manager: {e}")
+            self._webhook_url_fetched = True
+            return None
 
     async def notify_success(
         self,
@@ -152,7 +177,8 @@ class SlackNotifier:
             new_expiry: Expiry date of new PAT
             old_pat_id: ID of revoked old PAT
         """
-        if not self.webhook_url:
+        webhook_url = await self._get_webhook_url()
+        if not webhook_url:
             logger.warning("Slack webhook URL not configured")
             return
 
@@ -173,7 +199,7 @@ class SlackNotifier:
                 ],
             }
 
-            await self._send_slack_message(message)
+            await self._send_slack_message(message, webhook_url)
             logger.info("Success notification sent to Slack")
 
         except Exception as e:
@@ -191,7 +217,8 @@ class SlackNotifier:
             reason: Reason for rotation failure
             error_details: Details about the error
         """
-        if not self.webhook_url:
+        webhook_url = await self._get_webhook_url()
+        if not webhook_url:
             logger.warning("Slack webhook URL not configured")
             return
 
@@ -211,7 +238,7 @@ class SlackNotifier:
                 ],
             }
 
-            await self._send_slack_message(message)
+            await self._send_slack_message(message, webhook_url)
             logger.info("Failure notification sent to Slack")
 
         except Exception as e:
@@ -233,7 +260,8 @@ class SlackNotifier:
             new_pat_id: ID of new PAT
             revocation_error: Error details if revocation failed
         """
-        if not self.webhook_url:
+        webhook_url = await self._get_webhook_url()
+        if not webhook_url:
             logger.warning("Slack webhook URL not configured")
             return
 
@@ -257,25 +285,26 @@ class SlackNotifier:
                 ],
             }
 
-            await self._send_slack_message(message)
+            await self._send_slack_message(message, webhook_url)
             logger.info("Partial success notification sent to Slack")
 
         except Exception as e:
             logger.error(f"Failed to send partial success notification: {e}")
 
-    async def _send_slack_message(self, message: Dict[str, Any]) -> None:
+    async def _send_slack_message(self, message: Dict[str, Any], webhook_url: str) -> None:
         """
         Send message to Slack via webhook.
 
         Args:
             message: Message payload
+            webhook_url: Slack webhook URL
         """
         try:
             import aiohttp
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    self.webhook_url,
+                    webhook_url,
                     json=message,
                     timeout=aiohttp.ClientTimeout(total=10),
                 ) as response:
@@ -312,7 +341,7 @@ class PATRotator:
         from ketchup_unified_scheduler.services.pat_rotator.monitor import PatMonitor
 
         self._monitor = PatMonitor()
-        self._secrets_manager = SecretsManager()  # Local SecretsManager for PAT storage
+        self._secrets_manager = PATSecretsManager()  # Local SecretsManager for PAT storage
         self._slack_notifier = SlackNotifier()
         self._container = container
         self._mcp_client = None  # Resolved lazily via DI

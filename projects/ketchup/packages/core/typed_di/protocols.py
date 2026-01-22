@@ -4,7 +4,6 @@
 # Import all protocols from modular files
 from .aws_protocols import (  # AWS-specific protocols
     KetchupConfigProtocol,
-    SecretsManagerProtocol,
     SecretStoreProtocol,
     VersionComparatorProtocol,
 )
@@ -83,7 +82,6 @@ __all__ = [
     # AWS-specific protocols
     "VersionComparatorProtocol",
     "SecretStoreProtocol",
-    "SecretsManagerProtocol",
     "KetchupConfigProtocol",
     # Slack-specific protocols
     "SlackUserStoreProtocol",

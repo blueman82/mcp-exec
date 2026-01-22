@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 
 from ketchup_unified_scheduler.services.status.generator import AutoStatusGenerator
 from packages.core.config.feature_flags import FeatureFlags
-from packages.core.constants import FEEDBACK_CHANNEL, TEST_CHANNEL
+from packages.core.constants import ACCESS_REQUEST_CHANNEL, FEEDBACK_CHANNEL, TEST_CHANNEL
 from packages.core.distributed_lock import DistributedLock
 from packages.core.logging import setup_logger
 from packages.core.typed_di.exceptions import MissingDependencyError
@@ -182,9 +182,9 @@ class AutoStatusProcessor:
             for channel in channels_to_process:
                 channel_id = channel.get("channel_id")
 
-                # Skip feedback channel
-                if channel_id == FEEDBACK_CHANNEL:
-                    logger.info(f"Skipping feedback channel {channel_id}")
+                # Skip feedback and access request channels (not warroom channels)
+                if channel_id in (FEEDBACK_CHANNEL, ACCESS_REQUEST_CHANNEL):
+                    logger.info(f"Skipping non-warroom channel {channel_id}")
                     results["skipped"] += 1
                     continue
 

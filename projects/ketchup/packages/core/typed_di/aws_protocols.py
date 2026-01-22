@@ -22,20 +22,6 @@ class SecretStoreProtocol(Protocol):
     async def get_secret(self, secret_name: str) -> Dict[str, Any]: ...
 
 
-class SecretsManagerProtocol(Protocol):
-    """Protocol for SecretsManager."""
-
-    async def get_secret_value(self, secret_id: str) -> str: ...
-
-    async def get_secret_dict(self, secret_id: str) -> Dict[str, Any]: ...
-
-    async def put_secret_value(self, secret_id: str, secret_value: str) -> None: ...
-
-    async def update_secret(self, secret_id: str, secret_dict: Dict[str, Any]) -> None: ...
-
-    async def delete_secret(self, secret_id: str) -> None: ...
-
-
 class KetchupConfigProtocol(Protocol):
     """Protocol for KetchupConfig."""
 

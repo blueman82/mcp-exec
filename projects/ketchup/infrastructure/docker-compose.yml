@@ -94,7 +94,6 @@ services:
       - KETCHUP_METADATA_UPDATER_FEATURE=true
       - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
       - KETCHUP_JIRA_PAT_ROTATOR_FEATURE=true
-      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
       - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
       - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
       - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
