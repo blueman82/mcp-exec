@@ -24,6 +24,22 @@ graph TB
         UnifiedScheduler -->|"Orchestrates"| PatRotator
     end
 
+    subgraph prod1CSOPMSingleton["🔴 CSOPM NOTIFIER (prod1 ONLY)"]
+        CSOPMNotifier["📬 ketchup-csopm-notifier<br/>━━━━━━━━━━━━━━━━━━━━━━━━━<br/>Schedule: 08:00 & 16:00 UTC<br/>━━━━━━━━━━━━━━━━━━━━━━━━━"]
+
+        subgraph CSOPMServices["Internal Services"]
+            JIRAPoller["🎫 CSOPMJIRAPoller<br/>Poll JIRA for assignments"]
+            SlackNotifier["💬 CSOPMSlackNotifier<br/>Send DM notifications"]
+            ReminderService["⏰ CSOPMReminderService<br/>RCA & closure reminders"]
+            StatusPoller["📊 CSOPMTicketStatusPoller<br/>Track ticket status"]
+        end
+
+        CSOPMNotifier -->|"Orchestrates"| JIRAPoller
+        CSOPMNotifier -->|"Orchestrates"| SlackNotifier
+        CSOPMNotifier -->|"Orchestrates"| ReminderService
+        CSOPMNotifier -->|"Orchestrates"| StatusPoller
+    end
+
     subgraph BothServers["🟢 DISTRIBUTED SERVICE (prod1 + prod2)"]
         AccessMonitor1["🔐 ketchup-access-monitor<br/>(prod1)<br/>━━━━━━━━━━━━━━━<br/>Schedule: SQS polling<br/>━━━━━━━━━━━━━━━"]
         AccessMonitor2["🔐 ketchup-access-monitor<br/>(prod2)<br/>━━━━━━━━━━━━━━━<br/>Schedule: SQS polling<br/>━━━━━━━━━━━━━━━"]
