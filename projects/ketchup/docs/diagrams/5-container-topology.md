@@ -57,7 +57,13 @@ graph TB
 
     UnifiedScheduler -->|Pull Tasks| SQS
     UnifiedScheduler -->|Import| Packages
-    UnifiedScheduler -->|Post Responses| SlackAPI["Slack API"]
+    UnifiedScheduler -->|Post Responses| SlackAPI
+
+    CSOPMNotifier -->|Import| Packages
+    CSOPMNotifier -->|MCP Tunnel| MCP
+    CSOPMNotifier -->|Send DMs| SlackAPI
+    CSOPMNotifier -->|Query/Update| DDB
+    CSOPMNotifier -->|Get Secrets| Secrets["Slack API"]
 
     App1 -->|Query/Update| DDB
     App2 -->|Query/Update| DDB
