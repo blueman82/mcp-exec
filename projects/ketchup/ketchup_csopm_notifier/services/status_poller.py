@@ -21,10 +21,8 @@ This service follows the existing CSOPM services pattern:
 - Called from scheduler.py during each poll cycle
 """
 
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set
 
-from packages.core.constants import KETCHUP_ALERTS_CHANNEL
 from packages.core.logging import setup_logger
 from packages.core.typed_di.service_registrations.protocols.csopm_protocols import (
     CSOPMStateTrackerProtocol,

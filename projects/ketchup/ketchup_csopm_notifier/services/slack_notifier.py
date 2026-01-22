@@ -23,7 +23,7 @@ Refactored to import shared components from packages/slack/csopm/:
 This eliminates ~460 lines of duplicated button handling code.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from packages.core.config.csopm_config import is_pilot_user
 from packages.core.logging import setup_logger
