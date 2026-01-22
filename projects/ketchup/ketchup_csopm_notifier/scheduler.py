@@ -359,7 +359,7 @@ class CSOPMScheduler(BaseScheduler):
                     record = await state_tracker.get_notification_record(reminder.ticket_key)
                     current_ping_count = record.closure_ping_count if record else 0
 
-                    # Process closure reminder to get open followups (Option B)
+                    # Process closure reminder (includes open followups for visibility)
                     closure_result = await reminder_service.process_closure_reminder(
                         ticket, current_ping_count
                     )

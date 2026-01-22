@@ -573,23 +573,21 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
     async def check_closure_reminders(self) -> List[FollowupRecord]:
         """Check for closure reminders that are due to be sent.
 
-        Option B Implementation: Returns all tickets that are due for closure
-        reminders regardless of open linked/followup tickets. The actual
-        process_closure_reminder() will include open followup info for transparency.
+        Returns all tickets that are due for closure reminders regardless of
+        open linked/followup tickets. The actual process_closure_reminder()
+        will include open followup info for transparency, allowing assignees
+        to decide if followups are blocking closure.
 
         Queries for tickets that:
         - Are 45+ days old
         - Have not had closure reminder sent
         - Are not escalated
 
-        Note: Unlike Option A, we do NOT skip tickets with open linked/followup
-        tickets. Instead, we send the reminder with visibility into those tickets.
-
         Returns:
             List of FollowupRecords for due closure reminders.
         """
         try:
-            logger.info("Checking for due closure reminders (Option B: includes tickets with open followups)")
+            logger.info("Checking for due closure reminders (includes tickets with open followups)")
 
             active_notifications = await self._state_tracker.get_all_active_notifications()
             due_reminders: List[FollowupRecord] = []
@@ -621,8 +619,8 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                     )
                     continue
 
-                # Option B: Do NOT check for open linked tickets here.
-                # Reminder will be sent with visibility into open followups.
+                # Reminders are sent with visibility into open followups,
+                # allowing assignees to decide if they block closure.
 
                 # Create a followup record for closure reminder
                 due_reminders.append(
@@ -693,9 +691,9 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
     ) -> Optional[Dict[str, Any]]:
         """Process a closure reminder for a ticket with 3-ping escalation.
 
-        Option B Implementation: Always sends the reminder, but includes
-        visibility into any open follow-up tickets for transparency.
-        The assignee can then decide if followups are blocking closure.
+        Always sends the reminder, but includes visibility into any open
+        follow-up tickets for transparency. The assignee can then decide
+        if followups are blocking closure.
 
         Args:
             ticket: The CSOPMTicket to send reminder for.
@@ -731,7 +729,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 open_followups = await self._get_open_followup_tickets(record)
                 if open_followups:
                     logger.info(
-                        "Ticket %s has %d open follow-up tickets: %s (Option B: sending reminder with info)",
+                        "Ticket %s has %d open follow-up tickets: %s (sending reminder with followup visibility)",
                         ticket.key,
                         len(open_followups),
                         [f["key"] for f in open_followups],
@@ -741,7 +739,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             has_open_linked = await self._has_open_linked_tickets(ticket.key)
             if has_open_linked:
                 logger.info(
-                    "Ticket %s has open linked tickets in JIRA (Option B: sending reminder with info)",
+                    "Ticket %s has open linked tickets in JIRA (sending reminder with linked ticket visibility)",
                     ticket.key,
                 )
 
@@ -757,7 +755,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 len(open_followups),
             )
 
-            # Option B: Always send reminder, but include open followups for transparency
+            # Always send reminder, including open followups for transparency
             return {
                 "sent": True,
                 "escalated": should_escalate,

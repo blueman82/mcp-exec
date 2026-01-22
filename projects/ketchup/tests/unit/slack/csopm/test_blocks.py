@@ -241,10 +241,10 @@ class TestCSOPMNotificationBlocksBuildClosureReminder(unittest.TestCase):
 
 
 class TestCSOPMNotificationBlocksOpenFollowups(unittest.TestCase):
-    """Test open followups section in closure reminders (Option B)."""
+    """Test open followups section in closure reminders."""
 
     def test_build_closure_reminder_with_open_followups(self):
-        """Test closure reminder includes open followups section (Option B)."""
+        """Test closure reminder includes open followups section for visibility."""
         ticket = _make_ticket()
         open_followups = [
             {"key": "CAMP-123", "status": "In Progress"},

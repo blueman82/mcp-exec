@@ -481,8 +481,8 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(call_args.kwargs["ticket_key"], ticket.key)
         self.assertEqual(call_args.kwargs["followup_type"], "closure_reminder")
 
-    async def test_check_closure_reminders_does_not_check_linked_tickets_option_b(self):
-        """Test check_closure_reminders does NOT check linked tickets (Option B behavior)."""
+    async def test_check_closure_reminders_does_not_check_linked_tickets(self):
+        """Test check_closure_reminders does NOT check linked tickets upfront."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
@@ -502,8 +502,8 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
 
         result = await self.service.check_closure_reminders()
 
-        # Option B: search_issues should NOT be called in check_closure_reminders
-        # The linked ticket check is now done in process_closure_reminder instead
+        # search_issues should NOT be called in check_closure_reminders
+        # The linked ticket check is done in process_closure_reminder instead
         self.mock_mcp_client.search_issues.assert_not_called()
         # But should still return the ticket
         self.assertEqual(len(result), 1)
@@ -546,8 +546,8 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].ticket_key, "CSOPM-1001")
 
-    async def test_check_closure_reminders_includes_with_open_linked_option_b(self):
-        """Test check_closure_reminders includes tickets with open linked tickets (Option B)."""
+    async def test_check_closure_reminders_includes_with_open_linked(self):
+        """Test check_closure_reminders includes tickets even with open linked tickets."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
@@ -564,16 +564,16 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
                 "created": old_ticket.created_at.isoformat(),
             },
         }
-        # Note: Option B does NOT check for linked tickets in check_closure_reminders
+        # Does NOT check for linked tickets in check_closure_reminders
 
         result = await self.service.check_closure_reminders()
 
-        # Option B: Should return the ticket regardless of linked status
+        # Should return the ticket regardless of linked status
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].ticket_key, "CSOPM-1001")
 
-    async def test_process_closure_reminder_sends_with_open_linked_option_b(self):
-        """Test closure reminder processing sends reminder with open linked info (Option B)."""
+    async def test_process_closure_reminder_sends_with_open_linked(self):
+        """Test closure reminder processing sends reminder with open linked info visible."""
         ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
 
         # Mock state tracker to return record with no followups
@@ -593,9 +593,9 @@ class TestClosureReminder(unittest.IsolatedAsyncioTestCase):
 
         result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
 
-        # Option B: Should SEND the reminder even with open linked tickets
+        # Should SEND the reminder even with open linked tickets
         self.assertIsNotNone(result)
-        self.assertTrue(result["sent"])  # Option B always sends
+        self.assertTrue(result["sent"])  # Always sends with linked ticket visibility
         self.assertTrue(result["has_open_linked"])
         self.assertEqual(result["new_ping_count"], 1)  # Ping count incremented
         self.assertIn("open_followups", result)  # Should include followups field
@@ -1157,8 +1157,8 @@ class TestGetOpenFollowupTickets(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result[0]["status"], "In Progress")
 
 
-class TestClosureReminderOptionB(unittest.IsolatedAsyncioTestCase):
-    """Test Option B closure reminder behavior (send reminder with open followups info)."""
+class TestClosureReminderWithOpenFollowups(unittest.IsolatedAsyncioTestCase):
+    """Test closure reminder behavior (sends reminder with open followups visibility)."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -1175,8 +1175,8 @@ class TestClosureReminderOptionB(unittest.IsolatedAsyncioTestCase):
             status_poller=self.mock_status_poller,
         )
 
-    async def test_process_closure_reminder_always_sends_option_b(self):
-        """Test closure reminder is always sent even with open followups (Option B)."""
+    async def test_process_closure_reminder_always_sends_with_visibility(self):
+        """Test closure reminder is always sent even with open followups (with visibility)."""
         from packages.core.typed_di.protocols import StatusCheckResult
 
         ticket = make_ticket(created_at=datetime.now(timezone.utc) - timedelta(days=50))
@@ -1211,7 +1211,7 @@ class TestClosureReminderOptionB(unittest.IsolatedAsyncioTestCase):
 
         result = await self.service.process_closure_reminder(ticket, closure_ping_count=0)
 
-        # Option B: Should still send the reminder
+        # Should still send the reminder with followup visibility
         self.assertIsNotNone(result)
         self.assertTrue(result["sent"])
         self.assertTrue(result["has_open_linked"])
@@ -1262,7 +1262,7 @@ class TestClosureReminderOptionB(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(result["open_followups"]), 2)
 
     async def test_check_closure_reminders_includes_tickets_with_open_linked(self):
-        """Test check_closure_reminders includes tickets with open linked (Option B)."""
+        """Test check_closure_reminders includes tickets with open linked tickets."""
         records = [
             make_notification_record("CSOPM-1001", closure_reminder_sent=False),
         ]
@@ -1280,7 +1280,7 @@ class TestClosureReminderOptionB(unittest.IsolatedAsyncioTestCase):
             },
         }
 
-        # Note: Option B does NOT check for linked tickets in check_closure_reminders
+        # check_closure_reminders does NOT check for linked tickets upfront
         # So we don't need to mock search_issues here
 
         result = await self.service.check_closure_reminders()

@@ -372,7 +372,7 @@ class CSOPMNotificationBlocks:
         Creates a reminder DM with:
         - Header indicating closure reminder
         - Ticket details with age information
-        - Open follow-up tickets section (Option B - for transparency)
+        - Open follow-up tickets section (for transparency)
         - Action buttons for closure actions
 
         Args:
@@ -382,7 +382,7 @@ class CSOPMNotificationBlocks:
             has_open_linked: Whether ticket has open linked tickets (via JIRA links).
             open_followups: List of open followup tickets with their statuses.
                 Format: [{'key': 'CAMP-123', 'status': 'In Progress'}, ...]
-                Used by Option B to show open followups for transparency.
+                Shown to provide visibility into open followups.
 
         Returns:
             List of Block Kit block dictionaries.
@@ -423,7 +423,7 @@ class CSOPMNotificationBlocks:
             }
         )
 
-        # Open follow-up tickets section (Option B - for transparency)
+        # Open follow-up tickets section (for transparency)
         if open_followups:
             followups_block = cls._build_open_followups_section(open_followups)
             if followups_block:
