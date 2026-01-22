@@ -15,9 +15,6 @@ All registrations use protocol-first pattern with concrete class aliasing.
 
 from typing import TYPE_CHECKING, List
 
-from packages.core.logging import setup_logger
-from packages.core.typed_di.service_spec import ServiceSpec, register_from_specs
-
 # Essential imports for business rule services
 from packages.core.business import (
     AuditService,
@@ -26,6 +23,8 @@ from packages.core.business import (
     PolicyValidationService,
     RuleEngineService,
 )
+from packages.core.logging import setup_logger
+from packages.core.typed_di.service_spec import ServiceSpec, register_from_specs
 
 # Protocol imports
 if TYPE_CHECKING:
