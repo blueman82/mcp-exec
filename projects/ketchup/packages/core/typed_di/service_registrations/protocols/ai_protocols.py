@@ -21,16 +21,6 @@ __all__ = [
     "AIBatchProcessingServiceProtocol",
     "AIRateLimitServiceProtocol",
     "AIRetryServiceProtocol",
-    "AIEmbeddingServiceProtocol",
-    "AISimilarityServiceProtocol",
-    "AIClassificationServiceProtocol",
-    "AISummarizationServiceProtocol",
-    "AITranslationServiceProtocol",
-    "AISentimentServiceProtocol",
-    "AIKeywordServiceProtocol",
-    "AIConversationServiceProtocol",
-    "AIPersonalityServiceProtocol",
-    "AIAnalyticsServiceProtocol",
     "AIErrorHandlingServiceProtocol",
     "AIPerformanceMonitoringServiceProtocol",
 ]
@@ -145,96 +135,6 @@ class AIRetryServiceProtocol(Protocol):
     async def retry_request(self, request: dict, max_retries: int = 3) -> dict: ...
     async def calculate_backoff(self, attempt: int) -> float: ...
     async def should_retry(self, error: dict) -> bool: ...
-
-
-@runtime_checkable
-class AIEmbeddingServiceProtocol(Protocol):
-    """Protocol for text embedding generation."""
-
-    async def generate_embedding(self, text: str) -> list: ...
-    async def batch_embeddings(self, texts: list) -> list: ...
-    async def similarity_search(self, query_embedding: list, embeddings: list) -> list: ...
-
-
-@runtime_checkable
-class AISimilarityServiceProtocol(Protocol):
-    """Protocol for semantic similarity calculation."""
-
-    async def calculate_similarity(self, text1: str, text2: str) -> float: ...
-    async def find_similar_texts(self, query: str, corpus: list) -> list: ...
-    async def cluster_texts(self, texts: list) -> dict: ...
-
-
-@runtime_checkable
-class AIClassificationServiceProtocol(Protocol):
-    """Protocol for content classification."""
-
-    async def classify_text(self, text: str, categories: list) -> str: ...
-    async def detect_intent(self, text: str) -> str: ...
-    async def categorize_content(self, content: dict) -> dict: ...
-
-
-@runtime_checkable
-class AISummarizationServiceProtocol(Protocol):
-    """Protocol for content summarization."""
-
-    async def summarize_text(self, text: str, max_length: int = 100) -> str: ...
-    async def extract_key_points(self, text: str) -> list: ...
-    async def generate_abstract(self, content: dict) -> str: ...
-
-
-@runtime_checkable
-class AITranslationServiceProtocol(Protocol):
-    """Protocol for multi-language translation."""
-
-    async def translate_text(self, text: str, target_lang: str) -> str: ...
-    async def detect_language(self, text: str) -> str: ...
-    async def batch_translate(self, texts: list, target_lang: str) -> list: ...
-
-
-@runtime_checkable
-class AISentimentServiceProtocol(Protocol):
-    """Protocol for sentiment analysis."""
-
-    async def analyze_sentiment(self, text: str) -> dict: ...
-    async def batch_sentiment_analysis(self, texts: list) -> list: ...
-    async def get_emotion_analysis(self, text: str) -> dict: ...
-
-
-@runtime_checkable
-class AIKeywordServiceProtocol(Protocol):
-    """Protocol for keyword extraction."""
-
-    async def extract_keywords(self, text: str, max_keywords: int = 10) -> list: ...
-    async def generate_tags(self, content: dict) -> list: ...
-    async def analyze_topics(self, text: str) -> dict: ...
-
-
-@runtime_checkable
-class AIConversationServiceProtocol(Protocol):
-    """Protocol for conversation flow management."""
-
-    async def start_conversation(self, user_id: str) -> dict: ...
-    async def add_message(self, conversation_id: str, message: dict): ...
-    async def get_conversation_history(self, conversation_id: str) -> list: ...
-
-
-@runtime_checkable
-class AIPersonalityServiceProtocol(Protocol):
-    """Protocol for AI personality configuration."""
-
-    async def set_personality(self, personality_config: dict): ...
-    async def get_personality_prompt(self, personality_id: str) -> str: ...
-    async def list_personalities(self) -> list: ...
-
-
-@runtime_checkable
-class AIAnalyticsServiceProtocol(Protocol):
-    """Protocol for AI usage analytics."""
-
-    async def track_usage(self, usage_data: dict): ...
-    async def generate_usage_report(self, period: str) -> dict: ...
-    async def get_cost_breakdown(self, period: str) -> dict: ...
 
 
 @runtime_checkable

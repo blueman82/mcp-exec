@@ -29,7 +29,6 @@ from packages.core.typed_di.protocols import (
     CSOPMTicketStatusPollerProtocol,
     FollowupRecord,
     NotificationRecord,
-    StatusCheckResult,
 )
 from packages.integrations.async_mcp_client import AsyncMCPClient
 from packages.core.config.csopm_config import (
