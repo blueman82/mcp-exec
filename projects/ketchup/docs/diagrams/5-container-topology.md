@@ -233,9 +233,9 @@ graph TD
 ```mermaid
 graph TB
     subgraph "prod1 Resource Usage"
-        CPU1["6 Containers<br/>Total CPU: ~2 cores shared"]
-        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>access-monitor: 128MB"]
-        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~350MB"]
+        CPU1["7 Containers<br/>Total CPU: ~2.5 cores shared"]
+        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>csopm-notifier: 256MB<br/>access-monitor: 128MB"]
+        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~400MB"]
     end
 
     subgraph "prod2 Resource Usage"
