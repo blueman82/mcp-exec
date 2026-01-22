@@ -205,24 +205,6 @@ class MetricsHTMLGenerator:
         )
         return html
 
-    def _inject_csopm_values(self, html: str, csopm: Dict[str, Any]) -> str:
-        """Inject CSOPM notification metric values."""
-        html = html.replace(
-            "{{CSOPM_TOTAL_NOTIFICATIONS}}", str(csopm.get("total_notifications", 0))
-        )
-        html = html.replace("{{CSOPM_ACKNOWLEDGED}}", str(csopm.get("acknowledged", 0)))
-        html = html.replace("{{CSOPM_REMINDERS_STOPPED}}", str(csopm.get("reminders_stopped", 0)))
-        html = html.replace("{{CSOPM_PENDING}}", str(csopm.get("pending", 0)))
-        html = html.replace("{{CSOPM_RCA_REMINDERS_SENT}}", str(csopm.get("rca_reminders_sent", 0)))
-        html = html.replace(
-            "{{CSOPM_CLOSURE_REMINDERS_SENT}}", str(csopm.get("closure_reminders_sent", 0))
-        )
-        html = html.replace("{{CSOPM_ACK_WITHIN_3_DAYS}}", str(csopm.get("ack_within_3_days", 0)))
-        html = html.replace("{{CSOPM_ACK_AFTER_3_DAYS}}", str(csopm.get("ack_after_3_days", 0)))
-        html = html.replace("{{CSOPM_AVG_RCA_PINGS}}", str(csopm.get("avg_rca_pings", 0.0)))
-        html = html.replace("{{CSOPM_AVG_CLOSURE_PINGS}}", str(csopm.get("avg_closure_pings", 0.0)))
-        return html
-
     def _inject_technical_values(self, html: str, tech: Dict[str, Any]) -> str:
         """Inject technical metric values."""
         # Status update metrics
@@ -744,69 +726,6 @@ class MetricsHTMLGenerator:
                         <div class="stat-row">
                             <span class="stat-label">Closed after {{CSOPM_CLOSURE_THRESHOLD_DAYS}} days</span>
                             <span class="stat-value">{{CSOPM_CLOSED_AFTER_THRESHOLD}}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <div class="section-header">
-                    <div class="icon">🔔</div>
-                    <h2>CSOPM Notification System</h2>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="metric-card success">
-                        <div class="metric-label">Total Notifications</div>
-                        <div class="metric-value">{{CSOPM_TOTAL_NOTIFICATIONS}}</div>
-                        <div class="metric-detail">Assignment DMs sent to assignees</div>
-                    </div>
-                    <div class="metric-card success">
-                        <div class="metric-label">Acknowledged</div>
-                        <div class="metric-value">{{CSOPM_ACKNOWLEDGED}}</div>
-                        <div class="metric-detail">Tickets acknowledged by assignees</div>
-                    </div>
-                    <div class="metric-card info">
-                        <div class="metric-label">Reminders Stopped</div>
-                        <div class="metric-value">{{CSOPM_REMINDERS_STOPPED}}</div>
-                        <div class="metric-detail">Assignees opted out of reminders</div>
-                    </div>
-                </div>
-
-                <div class="technical-grid">
-                    <div class="technical-card">
-                        <h3>⏱️ Acknowledgment Timing</h3>
-                        <div class="stat-row">
-                            <span class="stat-label">Acknowledged within 3 days</span>
-                            <span class="stat-value success">{{CSOPM_ACK_WITHIN_3_DAYS}}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Acknowledged after 3 days</span>
-                            <span class="stat-value">{{CSOPM_ACK_AFTER_3_DAYS}}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Pending Acknowledgment</span>
-                            <span class="stat-value">{{CSOPM_PENDING}}</span>
-                        </div>
-                    </div>
-
-                    <div class="technical-card">
-                        <h3>📬 Reminders Sent</h3>
-                        <div class="stat-row">
-                            <span class="stat-label">RCA Reminders</span>
-                            <span class="stat-value">{{CSOPM_RCA_REMINDERS_SENT}}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Closure Reminders</span>
-                            <span class="stat-value">{{CSOPM_CLOSURE_REMINDERS_SENT}}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Avg RCA Pings</span>
-                            <span class="stat-value">{{CSOPM_AVG_RCA_PINGS}}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Avg Closure Pings</span>
-                            <span class="stat-value">{{CSOPM_AVG_CLOSURE_PINGS}}</span>
                         </div>
                     </div>
                 </div>

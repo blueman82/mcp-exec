@@ -223,7 +223,22 @@ check_preflight() {
     else
         log_info "AWS profile '$AWS_PROFILE' is configured"
     fi
-    
+
+    # Validate AWS credentials are not expired
+    log_info "Validating AWS credentials..."
+    local sts_output
+    if ! sts_output=$(aws sts get-caller-identity --profile "$AWS_PROFILE" 2>&1); then
+        if echo "$sts_output" | grep -q "ExpiredToken"; then
+            log_error "AWS credentials have expired. Please refresh with: aws sso login --profile $AWS_PROFILE"
+        elif echo "$sts_output" | grep -q "InvalidClientTokenId"; then
+            log_error "AWS credentials are invalid. Please refresh with: aws sso login --profile $AWS_PROFILE"
+        else
+            log_error "AWS credential validation failed: $sts_output"
+        fi
+        exit 1
+    fi
+    log_success "AWS credentials are valid"
+
     # Check SSH access to production servers if not skipping deployment
     if [ "$VERIFY_ONLY" = false ] && [ "$CHECK_VERSION" = false ]; then
         if [ "$PROD2_ONLY" = false ]; then  # Deploy to prod1 unless --prod2-only
@@ -250,20 +265,39 @@ check_preflight() {
 
 check_current_versions() {
     log_section "Current Versions in ECR"
-    
+
     for service in "${SERVICES[@]}"; do
         echo -e "${BOLD}${service}:${NC}"
-        
+
         # Check if repository has any images first
-        local image_count=$(aws ecr describe-images \
+        local ecr_output
+        local ecr_exit_code
+        ecr_output=$(aws ecr describe-images \
             --repository-name="${service}" \
             --profile "$AWS_PROFILE" \
             --region "$AWS_REGION" \
             --filter tagStatus=TAGGED \
             --query 'length(imageDetails)' \
-            --output text 2>/dev/null || echo "0")
-            
-        if [ "$image_count" = "0" ] || [ "$image_count" = "None" ]; then
+            --output text 2>&1)
+        ecr_exit_code=$?
+
+        # Handle credential/auth errors explicitly
+        if [ $ecr_exit_code -ne 0 ]; then
+            if echo "$ecr_output" | grep -q "ExpiredToken\|InvalidClientTokenId"; then
+                log_error "AWS credentials expired or invalid. Run: aws sso login --profile $AWS_PROFILE"
+                exit 1
+            elif echo "$ecr_output" | grep -q "RepositoryNotFoundException"; then
+                echo -e "${YELLOW}(repository not found - first build)${NC}"
+                continue
+            else
+                log_error "ECR query failed for $service: $ecr_output"
+                exit 1
+            fi
+        fi
+
+        local image_count="$ecr_output"
+
+        if [ "$image_count" = "0" ] || [ "$image_count" = "None" ] || [ -z "$image_count" ]; then
             echo -e "${YELLOW}(no versions - first build)${NC}"
         else
             # Repository has images, list the versions
