@@ -436,7 +436,7 @@ Add reference in the Feature Flags section:
 
 ---
 
-## Production Feature Flag Status (v2.360.347)
+## Production Feature Flag Status (v2.360.369)
 
 | Flag | Status | Services | Impact |
 |------|--------|----------|--------|
@@ -446,6 +446,7 @@ Add reference in the Feature Flags section:
 | KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE | ✅ ENABLED | All | High |
 | KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE | ✅ ENABLED | All | Low |
 | KETCHUP_MAINTENANCE_DETECTION | ✅ ENABLED | All | Medium |
+| KETCHUP_CSOPM_NOTIFIER_ENABLED | ✅ ENABLED | csopm-notifier, app | High |
 | USE_PIPELINE_PROCESSING | ✅ ENABLED | Most | High (Performance) |
 | KETCHUP_USE_HTTPX | ✅ ENABLED | All | High (Performance) |
 | KETCHUP_HTTP2_ENABLED | ✅ ENABLED | All | High (Performance) |
