@@ -329,7 +329,7 @@ sequenceDiagram
 
 ---
 
-### 5. Metrics Export
+### 6. Metrics Export
 
 ```mermaid
 sequenceDiagram
