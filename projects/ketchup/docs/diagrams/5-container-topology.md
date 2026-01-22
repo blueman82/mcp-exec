@@ -82,6 +82,7 @@ graph TB
     style App2 fill:#36c5f0
     style MCP fill:#ff9900
     style UnifiedScheduler fill:#cc99ff
+    style CSOPMNotifier fill:#cc99ff
     style AccessMonitor fill:#ffcc99
     style DDB fill:#527fff
     style Secrets fill:#527fff
