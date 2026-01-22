@@ -296,7 +296,7 @@ sequenceDiagram
 
 ---
 
-### 4. Feedback Reactions
+### 5. Feedback Reactions
 
 ```mermaid
 sequenceDiagram
