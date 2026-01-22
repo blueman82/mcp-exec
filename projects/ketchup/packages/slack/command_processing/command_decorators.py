@@ -7,72 +7,20 @@ This module contains decorators for Slack command processing.
 from functools import wraps
 from typing import Any, Callable, Optional
 
-from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
 from packages.core.logging import setup_logger
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
-    ChannelNameResolverProtocol,
-)
-from packages.core.typed_di_integration import get_typed_registry
 
 logger = setup_logger(__name__)
 
 
 async def _resolve_channel_parameter_in_decorator(channel_param: str) -> Optional[str]:
     """Resolve channel parameter to actual channel ID in decorator context."""
-    if not channel_param:
-        return channel_param
+    from packages.slack.command_processing.channel_resolver import resolve_channel_parameter
 
-    try:
-        # Attempt to resolve using TypedDI registry
-        channel_name_resolver = None
-        try:
-            registry = get_typed_registry()
-            channel_name_resolver = await registry.aget(ChannelNameResolverProtocol)
-        except (RuntimeError, MissingDependencyError):
-            # Service not available - proceed with fallback
-            pass
-
-        if not channel_name_resolver:
-            logger.warning("ChannelNameResolver not available in decorator, using fallback parsing")
-            # Fallback: try to extract channel ID from Slack mention format
-            mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
-            if mention_match:
-                channel_id = mention_match.group(1)
-                logger.info(
-                    "Decorator extracted channel ID '%s' from mention format '%s'",
-                    channel_id,
-                    channel_param,
-                )
-                return channel_id
-            # If not a mention format, return as-is (might be already a valid ID)
-            return channel_param
-
-        resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
-            channel_param
-        )
-        if resolved_id:
-            logger.info(
-                "Decorator resolved channel parameter '%s' to ID '%s' (type: %s)",
-                channel_param,
-                resolved_id,
-                format_type,
-            )
-            return resolved_id
-        else:
-            logger.warning(
-                "Decorator failed to resolve channel parameter '%s': %s",
-                channel_param,
-                format_type,
-            )
-            return channel_param  # Return original if resolution fails
-    except Exception as e:
-        logger.error(
-            "Error resolving channel parameter '%s' in decorator: %s",
-            channel_param,
-            str(e),
-        )
-        return channel_param  # Return original on error
+    return await resolve_channel_parameter(
+        channel_param,
+        context="Decorator",
+        return_none_on_failure=False,
+    )  # Return original on error
 
 
 def _extract_channel_params(kwargs):

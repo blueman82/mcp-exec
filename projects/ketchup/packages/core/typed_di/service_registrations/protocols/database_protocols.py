@@ -103,5 +103,3 @@ class DatabaseMonitoringServiceProtocol(Protocol):
     async def monitor_performance(self) -> dict:
         """Monitor database performance."""
         pass
-
-

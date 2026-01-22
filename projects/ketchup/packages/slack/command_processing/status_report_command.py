@@ -11,11 +11,6 @@ import orjson
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.exceptions import MessagePreparationError
 from packages.core.logging import setup_logger
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
-    ChannelNameResolverProtocol,
-)
-from packages.core.typed_di_integration import get_typed_registry
 from packages.secrets.manager import SecretsManager  # Import for secrets_manager
 from packages.slack.blockkits.handlers.report import ReportMessageHandler
 from packages.slack.blockkits.handlers.status import StatusMessageHandler
@@ -164,50 +159,9 @@ class SlackReports(BaseCommandHandler):
 
     async def _resolve_channel_parameter(self, channel_param: str) -> Optional[str]:
         """Resolve channel parameter to actual channel ID."""
-        try:
-            # Attempt to resolve using TypedDI registry
-            channel_name_resolver = None
-            try:
-                registry = get_typed_registry()
-                channel_name_resolver = await registry.aget(ChannelNameResolverProtocol)
-            except (RuntimeError, MissingDependencyError):
-                # Service not available - proceed with fallback
-                pass
+        from packages.slack.command_processing.channel_resolver import resolve_channel_parameter
 
-            if not channel_name_resolver:
-                logger.warning("ChannelNameResolver not available, using fallback parsing")
-                # Fallback: try to extract channel ID from Slack mention format
-                from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
-
-                mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
-                if mention_match:
-                    channel_id = mention_match.group(1)
-                    logger.info(
-                        "Extracted channel ID '%s' from mention format '%s'",
-                        channel_id,
-                        channel_param,
-                    )
-                    return channel_id
-                # If not a mention format, return as-is (might be already a valid ID)
-                return channel_param
-
-            resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
-                channel_param
-            )
-            if resolved_id:
-                logger.info(
-                    "Resolved channel parameter '%s' to ID '%s' (type: %s)",
-                    channel_param,
-                    resolved_id,
-                    format_type,
-                )
-                return resolved_id
-            else:
-                logger.error("Failed to resolve channel parameter: %s", format_type)
-                return None
-        except Exception as e:
-            logger.error("Error resolving channel parameter '%s': %s", channel_param, str(e))
-            return channel_param  # Return as-is on error
+        return await resolve_channel_parameter(channel_param)
 
     def _parse_and_validate_initial_input(
         self,
@@ -449,20 +403,30 @@ class SlackReports(BaseCommandHandler):
 
     # --- End Private Helper Methods ---
 
-    @handle_archived_channel
-    async def process_status_request(
+    async def _process_command_request(
         self,
+        command_type: str,
         command_verified: str,
         text: str,
         user_id: str,
         incoming_channel: str,
         dm_channel_id: Optional[str] = None,
         response_url: Optional[str] = None,
-        channel_id: Optional[str] = None,  # Target channel_id
-        user_name: Optional[str] = None,  # Add user_name parameter
+        channel_id: Optional[str] = None,
+        user_name: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Process the 'status' command using helper methods."""
-        logger.info("Starting process_status_request function.")
+        """Shared implementation for status and report commands."""
+        # Command-specific configuration
+        if command_type == "status":
+            ack_message = "Generating status update... :clipboard:"
+            query_text = None
+            success_message = "Status update generated successfully"
+        else:  # report
+            ack_message = "Generating detailed incident report... :memo:"
+            query_text = "generate comprehensive incident report"
+            success_message = "Incident report generated successfully"
+
+        logger.info("Starting process_%s_request function.", command_type)
 
         target_channel_id_opt, user_id_opt, dm_channel_id_opt, response_url_opt = (
             self._parse_and_validate_initial_input(
@@ -488,54 +452,36 @@ class SlackReports(BaseCommandHandler):
                 "Invalid initial input parameters or validation failed."
             )
         target_channel_id: str = target_channel_id_opt
-        # Rename variables to avoid redefinition
         validated_user_id: str = user_id_opt
         validated_dm_channel_id: str = dm_channel_id_opt
         validated_response_url: str = response_url_opt or ""
 
-        ack_message = "Generating status update... :clipboard:"
-        command_type_log = "status"
-
-        logger.info(
-            "Processing %s command with channel_id: %s",
-            command_type_log,
-            target_channel_id,
-        )
+        logger.info("Processing %s command with channel_id: %s", command_type, target_channel_id)
 
         # 1. Post Acknowledgement
         await self._post_initial_ack(
-            validated_user_id,
-            validated_dm_channel_id,
-            ack_message,
-            validated_response_url,
+            validated_user_id, validated_dm_channel_id, ack_message, validated_response_url
         )
 
         # 2. Validate Channel and Membership
         channel_name_from_slack_opt, is_valid_channel = await self._get_and_validate_channel_info(
-            validated_user_id,
-            target_channel_id,
-            validated_dm_channel_id,
-            validated_response_url,
+            validated_user_id, target_channel_id, validated_dm_channel_id, validated_response_url
         )
         if not is_valid_channel:
             return self.create_error_response("Channel validation failed or bot not member.")
         if channel_name_from_slack_opt is None:
-            logger.error(
-                "Could not retrieve channel name for valid channel %s",
-                target_channel_id,
-            )
+            logger.error("Could not retrieve channel name for valid channel %s", target_channel_id)
             await self.slack_posting_handler.post_message(
-                user_id=validated_user_id,  # Use validated var
-                channel_id=validated_dm_channel_id,  # Use validated var
+                user_id=validated_user_id,
+                channel_id=validated_dm_channel_id,
                 message="Error: Could not retrieve channel details.",
-                response_url=validated_response_url,  # Use validated var
+                response_url=validated_response_url,
             )
             return self.create_error_response("Internal error retrieving channel details.")
         channel_name_from_slack: str = channel_name_from_slack_opt
 
         # 3. Fetch user preferences and build adaptive prompt
         user_data = await self.user_store.get_user(validated_user_id)
-        # Define default raw preferences
         default_raw_prefs = {
             "product_focus": ["all_products"],
             "detail_level": "balanced",
@@ -546,29 +492,31 @@ class SlackReports(BaseCommandHandler):
         )
         normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
         logger.info(
-            "Status command: user_id=%s, raw_prefs=%s, normalized_prefs_for_ai=%s",
+            "%s command: user_id=%s, raw_prefs=%s, normalized_prefs_for_ai=%s",
+            command_type.capitalize(),
             validated_user_id,
             raw_preferences,
             normalized_prefs_for_ai,
         )
+
         # 4. Call OpenAI with adaptive prompt
         models_response = await self._call_openai_and_extract(
             command_verified=command_verified,
-            user_id=validated_user_id,  # Use validated var
-            dm_channel_id=validated_dm_channel_id,  # Use validated var
+            user_id=validated_user_id,
+            dm_channel_id=validated_dm_channel_id,
             passed_channel_id=target_channel_id,
             channel_name=channel_name_from_slack,
+            query_text=query_text,
             response_url=validated_response_url,
             normalized_prefs_for_ai=normalized_prefs_for_ai,
-            user_name=user_name,  # Pass user_name
+            user_name=user_name,
         )
         if models_response is None:
-            # Error logged in helper, maybe post error to user?
             await self.slack_posting_handler.post_message(
-                user_id=validated_user_id,  # Use validated var
-                channel_id=validated_dm_channel_id,  # Use validated var
+                user_id=validated_user_id,
+                channel_id=validated_dm_channel_id,
                 message="Failed to get response from AI.",
-                response_url=validated_response_url,  # Use validated var
+                response_url=validated_response_url,
             )
             return self.create_error_response("Failed to get response from AI.")
 
@@ -577,36 +525,84 @@ class SlackReports(BaseCommandHandler):
             models_response=models_response,
             channel_id=target_channel_id,
             channel_name_from_slack=channel_name_from_slack,
-            command_type=command_type_log,
+            command_type=command_type,
         )
 
         # 6. Send Final Response
-        # Use DM channel if no response_url is available (e.g., app mentions)
         effective_response_target = (
             validated_response_url if validated_response_url else validated_dm_channel_id
         )
 
-        # Use block_kit_builder if available (it has feedback blocks configured)
         if self.block_kit_builder:
-            await self.block_kit_builder.send_ketchup_status_block_kit(
-                combined_command=command_verified,
-                response_url=effective_response_target,
-                response_text=corrected_response,
-                query=None,  # No query for status command
-                target_channel=target_channel_id,
-                execution_channel=validated_dm_channel_id,
-            )
+            if command_type == "status":
+                await self.block_kit_builder.send_ketchup_status_block_kit(
+                    combined_command=command_verified,
+                    response_url=effective_response_target,
+                    response_text=corrected_response,
+                    query=None,
+                    target_channel=target_channel_id,
+                    execution_channel=validated_dm_channel_id,
+                )
+            else:
+                await self.block_kit_builder.send_ketchup_report_block_kit(
+                    combined_command=command_verified,
+                    response_url=effective_response_target,
+                    response_text=corrected_response,
+                    query=query_text,
+                    target_channel=target_channel_id,
+                    execution_channel=validated_dm_channel_id,
+                )
         else:
-            # Fallback to status_message_handler (without feedback blocks)
-            await self.status_message_handler.send_message(
-                combined_command=command_verified,
-                response_url=effective_response_target,
-                response_text=corrected_response,
-                target_channel=target_channel_id,
-                execution_channel=validated_dm_channel_id,
+            handler = (
+                self.status_message_handler
+                if command_type == "status"
+                else self.report_message_handler
             )
-        logger.info("Successfully processed %s command.", command_type_log)
-        return self.create_success_response("Status update generated successfully")
+            if command_type == "status":
+                await handler.send_message(
+                    combined_command=command_verified,
+                    response_url=effective_response_target,
+                    response_text=corrected_response,
+                    target_channel=target_channel_id,
+                    execution_channel=validated_dm_channel_id,
+                )
+            else:
+                await handler.send_message(
+                    combined_command=command_verified,
+                    response_url=effective_response_target,
+                    response_text=corrected_response,
+                    query=query_text,
+                    target_channel=target_channel_id,
+                    execution_channel=validated_dm_channel_id,
+                )
+
+        logger.info("Successfully processed %s command.", command_type)
+        return self.create_success_response(success_message)
+
+    @handle_archived_channel
+    async def process_status_request(
+        self,
+        command_verified: str,
+        text: str,
+        user_id: str,
+        incoming_channel: str,
+        dm_channel_id: Optional[str] = None,
+        response_url: Optional[str] = None,
+        channel_id: Optional[str] = None,
+        user_name: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Process the 'status' command."""
+        return await self._process_command_request(
+            "status",
+            command_verified,
+            text,
+            user_id,
+            incoming_channel,
+            dm_channel_id,
+            response_url,
+            channel_id,
+            user_name,
+        )
 
     @handle_archived_channel
     async def process_report_request(
@@ -617,153 +613,18 @@ class SlackReports(BaseCommandHandler):
         incoming_channel: str,
         dm_channel_id: Optional[str] = None,
         response_url: Optional[str] = None,
-        channel_id: Optional[str] = None,  # Target channel_id
-        user_name: Optional[str] = None,  # Add user_name parameter
+        channel_id: Optional[str] = None,
+        user_name: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        """Process the 'report' command using helper methods."""
-        logger.info("Starting process_report_request function.")
-
-        target_channel_id_opt, user_id_opt, dm_channel_id_opt, response_url_opt = (
-            self._parse_and_validate_initial_input(
-                text, user_id, incoming_channel, dm_channel_id, response_url, channel_id
-            )
+        """Process the 'report' command."""
+        return await self._process_command_request(
+            "report",
+            command_verified,
+            text,
+            user_id,
+            incoming_channel,
+            dm_channel_id,
+            response_url,
+            channel_id,
+            user_name,
         )
-
-        # Resolve channel parameter if needed
-        if target_channel_id_opt:
-            resolved_channel_id = await self._resolve_channel_parameter(target_channel_id_opt)
-            if resolved_channel_id:
-                target_channel_id_opt = resolved_channel_id
-            else:
-                logger.error("Failed to resolve channel parameter: %s", target_channel_id_opt)
-                return self.create_validation_error_response(
-                    "Could not resolve the specified channel. Please check the channel name or ID and try again."
-                )
-
-        # Ensure required parameters are not None after validation
-        if not target_channel_id_opt or not user_id_opt or not dm_channel_id_opt:
-            logger.error("Validation failed, required parameters are None.")
-            return self.create_validation_error_response(
-                "Invalid initial input parameters or validation failed."
-            )
-        target_channel_id: str = target_channel_id_opt
-        # Rename variables to avoid redefinition
-        validated_user_id: str = user_id_opt
-        validated_dm_channel_id: str = dm_channel_id_opt
-        validated_response_url: str = response_url_opt or ""
-
-        report_query = "generate comprehensive incident report"
-        ack_message = "Generating detailed incident report... :memo:"
-        command_type_log = "report"
-
-        logger.info(
-            "Processing %s command with channel_id: %s",
-            command_type_log,
-            target_channel_id,
-        )
-
-        # 1. Post Acknowledgement
-        await self._post_initial_ack(
-            validated_user_id,
-            validated_dm_channel_id,
-            ack_message,
-            validated_response_url,
-        )
-
-        # 2. Validate Channel and Membership
-        channel_name_from_slack_opt, is_valid_channel = await self._get_and_validate_channel_info(
-            validated_user_id,
-            target_channel_id,
-            validated_dm_channel_id,
-            validated_response_url,
-        )
-        if not is_valid_channel:
-            return self.create_error_response("Channel validation failed or bot not member.")
-        if channel_name_from_slack_opt is None:
-            logger.error(f"Could not retrieve channel name for valid channel {target_channel_id}")
-            # Post error message to user
-            await self.slack_posting_handler.post_message(
-                user_id=validated_user_id,  # Use validated var
-                channel_id=validated_dm_channel_id,  # Use validated var
-                message="Error: Could not retrieve channel details.",
-                response_url=validated_response_url,  # Use validated var
-            )
-            return self.create_error_response("Internal error retrieving channel details.")
-        channel_name_from_slack: str = channel_name_from_slack_opt
-
-        # 3. Fetch user preferences and build adaptive prompt
-        user_data = await self.user_store.get_user(validated_user_id)
-        # Define default raw preferences
-        default_raw_prefs = {
-            "product_focus": ["all_products"],
-            "detail_level": "balanced",
-            "time_window": "past_24_hours",
-        }
-        raw_preferences = (
-            user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs
-        )
-        normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
-        logger.info(
-            "Report command: user_id=%s, raw_prefs=%s, normalized_prefs_for_ai=%s",
-            validated_user_id,
-            raw_preferences,
-            normalized_prefs_for_ai,
-        )
-        # 4. Call OpenAI with adaptive prompt
-        models_response = await self._call_openai_and_extract(
-            command_verified=command_verified,
-            user_id=validated_user_id,  # Use validated var
-            dm_channel_id=validated_dm_channel_id,  # Use validated var
-            passed_channel_id=target_channel_id,
-            channel_name=channel_name_from_slack,
-            query_text=report_query,
-            response_url=validated_response_url,
-            normalized_prefs_for_ai=normalized_prefs_for_ai,
-            user_name=user_name,  # Pass user_name
-        )
-        if models_response is None:
-            # Error logged in helper, maybe post error to user?
-            await self.slack_posting_handler.post_message(
-                user_id=validated_user_id,  # Use validated var
-                channel_id=validated_dm_channel_id,  # Use validated var
-                message="Failed to get response from AI.",
-                response_url=validated_response_url,  # Use validated var
-            )
-            return self.create_error_response("Failed to get response from AI.")
-
-        # 5. Apply Corrections
-        corrected_response = await self._apply_corrections_to_response(
-            models_response=models_response,
-            channel_id=target_channel_id,
-            channel_name_from_slack=channel_name_from_slack,
-            command_type=command_type_log,
-        )
-
-        # 6. Send Final Response
-        # Use DM channel if no response_url is available (e.g., app mentions)
-        effective_response_target = (
-            validated_response_url if validated_response_url else validated_dm_channel_id
-        )
-
-        # Use block_kit_builder if available (it has feedback blocks configured)
-        if self.block_kit_builder:
-            await self.block_kit_builder.send_ketchup_report_block_kit(
-                combined_command=command_verified,
-                response_url=effective_response_target,
-                response_text=corrected_response,
-                query=report_query,
-                target_channel=target_channel_id,
-                execution_channel=validated_dm_channel_id,
-            )
-        else:
-            # Fallback to report_message_handler (without feedback blocks)
-            await self.report_message_handler.send_message(
-                combined_command=command_verified,
-                response_url=effective_response_target,
-                response_text=corrected_response,
-                query=report_query,
-                target_channel=target_channel_id,
-                execution_channel=validated_dm_channel_id,
-            )
-        logger.info("Successfully processed %s command.", command_type_log)
-        return self.create_success_response("Incident report generated successfully")

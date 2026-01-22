@@ -14,11 +14,6 @@ from packages.ai.core.openai_handler import OpenAIHandler
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.exceptions import MessagePreparationError
 from packages.core.logging import setup_logger
-from packages.core.typed_di.exceptions import MissingDependencyError
-from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
-    ChannelNameResolverProtocol,
-)
-from packages.core.typed_di_integration import get_typed_registry
 from packages.core.utils import normalize_prompt_for_agent
 from packages.db.user_store import UserStore
 from packages.secrets.manager import SecretsManager
@@ -177,50 +172,9 @@ class SlackQueryHandler(BaseCommandHandler):
 
     async def _resolve_channel_parameter(self, channel_param: str) -> Optional[str]:
         """Resolve channel parameter to actual channel ID."""
-        try:
-            # Attempt to resolve using TypedDI registry
-            channel_name_resolver = None
-            try:
-                registry = get_typed_registry()
-                channel_name_resolver = await registry.aget(ChannelNameResolverProtocol)
-            except (RuntimeError, MissingDependencyError):
-                # Service not available - proceed with fallback
-                pass
+        from packages.slack.command_processing.channel_resolver import resolve_channel_parameter
 
-            if not channel_name_resolver:
-                logger.warning("ChannelNameResolver not available, using fallback parsing")
-                # Fallback: try to extract channel ID from Slack mention format
-                from packages.core.constants import SLACK_CHANNEL_MENTION_REGEX
-
-                mention_match = SLACK_CHANNEL_MENTION_REGEX.match(channel_param)
-                if mention_match:
-                    channel_id = mention_match.group(1)
-                    logger.info(
-                        "Extracted channel ID '%s' from mention format '%s'",
-                        channel_id,
-                        channel_param,
-                    )
-                    return channel_id
-                # If not a mention format, return as-is (might be already a valid ID)
-                return channel_param
-
-            resolved_id, format_type = await channel_name_resolver.resolve_channel_parameter(
-                channel_param
-            )
-            if resolved_id:
-                logger.info(
-                    "Resolved channel parameter '%s' to ID '%s' (type: %s)",
-                    channel_param,
-                    resolved_id,
-                    format_type,
-                )
-                return resolved_id
-            else:
-                logger.error("Failed to resolve channel parameter: %s", format_type)
-                return None
-        except Exception as e:
-            logger.error("Error resolving channel parameter '%s': %s", channel_param, str(e))
-            return channel_param  # Return as-is on error
+        return await resolve_channel_parameter(channel_param)  # Return as-is on error
 
     @handle_archived_channel
     async def process_query_request(

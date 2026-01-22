@@ -132,7 +132,7 @@ class TestHandleArchivedChannelResolution:
         channel_id = "C1234567890"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -163,7 +163,7 @@ class TestHandleArchivedChannelResolution:
         expected_text = f"status {resolved_id}"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -193,7 +193,7 @@ class TestHandleArchivedChannelResolution:
         expected_text = f"status {resolved_id}"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -223,7 +223,7 @@ class TestHandleArchivedChannelResolution:
         channel_param = "<#C1234567890|general>"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_registry = AsyncMock()
             mock_registry.aget.return_value = None  # Resolver not available
@@ -246,7 +246,7 @@ class TestHandleArchivedChannelResolution:
         channel_param = "#general"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.side_effect = Exception("Resolution failed")
@@ -273,7 +273,7 @@ class TestHandleArchivedChannelResolution:
         expected_text = f"status {resolved_id}"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -305,7 +305,7 @@ class TestHandleArchivedChannelResolution:
         resolved_id = "C1234567890"
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -344,7 +344,7 @@ class TestHandleArchivedChannelResolution:
         self.handler.channel_restore_ops.rearchive_channel_if_needed = AsyncMock()
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -393,7 +393,7 @@ class TestHandleArchivedChannelResolution:
         self.handler.channel_restore_ops.rearchive_channel_if_needed = AsyncMock()
 
         with patch(
-            "packages.slack.command_processing.command_decorators.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_typed_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (

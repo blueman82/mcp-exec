@@ -59,9 +59,7 @@ class TestAccessRequestHealthMonitor:
 
         # Mock secrets manager with webhook URL
         mock_secrets = AsyncMock()
-        mock_secrets.get_slack_webhook_url = AsyncMock(
-            return_value="https://hooks.slack.com/test"
-        )
+        mock_secrets.get_slack_webhook_url = AsyncMock(return_value="https://hooks.slack.com/test")
 
         # Mock access request handler
         mock_handler = AsyncMock()

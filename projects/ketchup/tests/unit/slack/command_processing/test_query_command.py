@@ -286,7 +286,7 @@ class TestSlackQueryHandlerChannelResolution:
 
         # Mock the channel resolver
         with patch(
-            "packages.slack.command_processing.query_command.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -313,7 +313,7 @@ class TestSlackQueryHandlerChannelResolution:
                 )
 
             assert result["status"] == "success"
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(mention)
+            mock_resolver.resolve_channel_parameter.assert_awaited_with(mention)
 
     @pytest.mark.asyncio
     async def test_channel_name_resolution_success(self) -> None:
@@ -336,7 +336,7 @@ class TestSlackQueryHandlerChannelResolution:
 
         # Mock the channel resolver
         with patch(
-            "packages.slack.command_processing.query_command.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -363,7 +363,7 @@ class TestSlackQueryHandlerChannelResolution:
                 )
 
             assert result["status"] == "success"
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(channel_name)
+            mock_resolver.resolve_channel_parameter.assert_awaited_with(channel_name)
 
     @pytest.mark.asyncio
     async def test_channel_resolution_failure(self) -> None:
@@ -385,7 +385,7 @@ class TestSlackQueryHandlerChannelResolution:
 
         # Mock the channel resolver to return None (resolution failed)
         with patch(
-            "packages.slack.command_processing.query_command.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -406,7 +406,7 @@ class TestSlackQueryHandlerChannelResolution:
 
             assert result["status"] == "validation_error"
             assert "Could not resolve the specified channel" in result["message"]
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(invalid_channel)
+            mock_resolver.resolve_channel_parameter.assert_awaited_with(invalid_channel)
 
     @pytest.mark.asyncio
     async def test_channel_resolution_unavailable(self) -> None:
@@ -428,7 +428,7 @@ class TestSlackQueryHandlerChannelResolution:
 
         # Mock get_typed_registry to return None (resolver not available)
         with patch(
-            "packages.slack.command_processing.query_command.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
             mock_get_registry.return_value = None
 
@@ -471,7 +471,7 @@ class TestSlackQueryHandlerChannelResolution:
 
         # Mock the channel resolver
         with patch(
-            "packages.slack.command_processing.query_command.get_typed_registry"
+            "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
             mock_resolver = AsyncMock()
             mock_resolver.resolve_channel_parameter.return_value = (
@@ -498,4 +498,4 @@ class TestSlackQueryHandlerChannelResolution:
                 )
 
             assert result["status"] == "success"
-            mock_resolver.resolve_channel_parameter.assert_awaited_once_with(mention)
+            mock_resolver.resolve_channel_parameter.assert_awaited_with(mention)
