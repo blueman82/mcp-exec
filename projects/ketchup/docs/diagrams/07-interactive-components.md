@@ -172,7 +172,93 @@ sequenceDiagram
 
 ---
 
-### 3. Flag Review Interactive Form
+### 3. CSOPM Notification Interactive Buttons
+
+```mermaid
+sequenceDiagram
+    participant Scheduler as ⏰ CSOPM Scheduler<br/>(prod1)
+    participant JIRA as 🎫 JIRA API<br/>(via MCP)
+    participant Slack as 📱 Slack
+    participant User as 👤 Assignee
+    participant DDB as 💾 DynamoDB
+    participant App as 🚀 ketchup-app
+
+    Note over Scheduler,App: 📋 PHASE 1: Notification (08:00/16:00 UTC)
+
+    Scheduler->>JIRA: Poll CSOPM assignments
+    JIRA-->>Scheduler: New ticket CPGNCX-12345<br/>assigned to alice@adobe.com
+
+    Scheduler->>Scheduler: Look up Slack ID<br/>for alice@adobe.com
+
+    Scheduler->>DDB: Check if already notified
+    DDB-->>Scheduler: Not found
+
+    Scheduler->>Slack: Send DM to @alice<br/>with ticket details +<br/>interactive buttons
+    Note right of Scheduler: Buttons:<br/>• Acknowledge<br/>• Mark Complete<br/>• Close Ticket<br/>• Snooze<br/>• Stop Reminders
+
+    Scheduler->>DDB: Store notification record<br/>(PK: CSOPM_NOTIFICATION#CPGNCX-12345)
+
+    Note over User,App: 📋 PHASE 2: User Interaction (Acknowledge)
+
+    User->>Slack: Click "Acknowledge"
+    Slack->>App: POST /slack/interactions<br/>(block_actions)
+
+    App->>App: Route to CSOPMButtonActionHandler
+    App->>DDB: Update notification_status = "ack"
+    App->>Slack: Update message:<br/>"✅ Acknowledged"
+
+    Note over User,App: 📋 PHASE 3: Mark Complete (with Modal)
+
+    User->>Slack: Click "Mark Complete"
+    Slack->>App: POST /slack/interactions
+
+    App->>JIRA: Get transition fields<br/>for "Complete" status
+    JIRA-->>App: Required fields:<br/>resolution, comment
+
+    App->>Slack: Open modal with<br/>dynamic JIRA fields
+
+    User->>Slack: Fill fields + Submit
+    Slack->>App: POST /slack/interactions<br/>(view_submission)
+
+    App->>JIRA: Transition ticket<br/>with user's PAT
+    JIRA-->>App: ✅ Transitioned
+
+    App->>DDB: Update completed_at
+    App->>Slack: Update DM:<br/>"✅ Ticket marked complete"
+```
+
+**Handler**: `packages/slack/csopm/actions.py` → `CSOPMButtonActionHandler`
+
+**Button Actions:**
+
+| Action ID | Description | Handler Method |
+|-----------|-------------|----------------|
+| `csopm_acknowledge` | Mark notification as seen | `_handle_acknowledge()` |
+| `csopm_mark_complete` | Open modal for ticket completion | `_handle_mark_complete()` |
+| `csopm_close_ticket` | Open modal for ticket closure | `_handle_close_ticket()` |
+| `csopm_snooze` | Pause reminders temporarily | `_handle_snooze()` |
+| `csopm_unsnooze` | Resume reminders | `_handle_unsnooze()` |
+| `csopm_stop_reminders` | Stop all reminders | `_handle_stop_reminders()` |
+| `csopm_enable_reminders` | Re-enable reminders | `_handle_enable_reminders()` |
+
+**Modal Submissions:**
+
+| Callback ID | Description |
+|-------------|-------------|
+| `csopm_complete_modal` | Transition ticket to complete with dynamic fields |
+| `csopm_close_modal` | Transition ticket to closed with dynamic fields |
+
+**DynamoDB State Keys:**
+- `PK`: `CSOPM_NOTIFICATION#{ticket_key}`
+- `SK`: `NOTIFICATION` (main record) or `FOLLOWUP#{followup_key}` (followups)
+
+**Split Architecture:**
+- **Scheduler container** (`ketchup-csopm-notifier`): Polls JIRA, sends initial DMs
+- **App container** (`ketchup-app`): Handles button callbacks via shared `packages/slack/csopm/` code
+
+---
+
+### 4. Flag Review Interactive Form
 
 ```mermaid
 sequenceDiagram
