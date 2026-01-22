@@ -1278,11 +1278,44 @@ class CSOPMHandler:
             if issue_type_input.get("selected_option"):
                 issue_type_id = issue_type_input.get("selected_option", {}).get("value")
 
+            # Extract dynamic field values from the modal
+            # Dynamic fields have block_id like "dynamic_{fieldId}_block"
+            # MCP create_jira_issue expects components/versions as: [{"name": "..."}]
+            dynamic_fields: Dict[str, Any] = {}
+            for block_id, block_values in state_values.items():
+                if block_id.startswith("dynamic_") and block_id.endswith("_block"):
+                    field_id = block_id[8:-6]  # Strip "dynamic_" prefix and "_block" suffix
+                    for action_id, action_value in block_values.items():
+                        if action_value.get("selected_option"):
+                            selected = action_value["selected_option"]
+                            # Get the display name from text.text
+                            name = selected.get("text", {}).get("text", selected.get("value"))
+                            # components/versions need array format with "name" key for create
+                            if field_id in ("components", "versions"):
+                                dynamic_fields[field_id] = [{"name": name}]
+                            else:
+                                dynamic_fields[field_id] = {"id": selected.get("value")}
+                        elif action_value.get("selected_options"):
+                            # Multi-select - array format with names
+                            if field_id in ("components", "versions"):
+                                dynamic_fields[field_id] = [
+                                    {"name": opt.get("text", {}).get("text", opt.get("value"))}
+                                    for opt in action_value["selected_options"]
+                                ]
+                            else:
+                                dynamic_fields[field_id] = [
+                                    {"id": opt["value"]} for opt in action_value["selected_options"]
+                                ]
+                        elif action_value.get("value"):
+                            # Text input
+                            dynamic_fields[field_id] = action_value["value"]
+
             logger.info(
-                "Starting background follow-up creation: project=%s, type=%s, parent=%s",
+                "Starting background follow-up creation: project=%s, type=%s, parent=%s, dynamic_fields=%s",
                 project_key,
                 issue_type,
                 parent_ticket_key,
+                list(dynamic_fields.keys()),
             )
 
             # Kick off background task for JIRA work (fire and forget)
@@ -1296,6 +1329,7 @@ class CSOPMHandler:
                     summary=summary,
                     description=description,
                     user_pat=user_pat,
+                    dynamic_fields=dynamic_fields,
                 )
             )
 
@@ -1320,6 +1354,7 @@ class CSOPMHandler:
         summary: str,
         description: str,
         user_pat: str,
+        dynamic_fields: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Background task to create a follow-up JIRA ticket.
@@ -1336,6 +1371,7 @@ class CSOPMHandler:
             summary: Ticket summary.
             description: Ticket description.
             user_pat: User's JIRA PAT.
+            dynamic_fields: Optional dict of dynamic field values (components, versions, etc.)
         """
         try:
             logger.info(
@@ -1367,7 +1403,7 @@ class CSOPMHandler:
                     logger.warning("Failed to fetch field metadata: %s", e)
 
             # Build fields object
-            fields = {
+            fields: Dict[str, Any] = {
                 "project": {"key": project_key},
                 "issuetype": {"name": issue_type},
             }
@@ -1378,6 +1414,15 @@ class CSOPMHandler:
             if allowed_fields is None or "description" in allowed_fields:
                 if description:
                     fields["description"] = description
+
+            # Add dynamic fields (components, versions, etc.)
+            if dynamic_fields:
+                for field_id, field_value in dynamic_fields.items():
+                    if allowed_fields is None or field_id in allowed_fields:
+                        fields[field_id] = field_value
+                        logger.info(
+                            "Added dynamic field %s=%s to create request", field_id, field_value
+                        )
 
             # Create the new JIRA issue via MCP
             create_args: Dict[str, Any] = {"fields": fields}
@@ -1617,6 +1662,7 @@ class CSOPMHandler:
 
             # Extract dynamic field values from the modal
             # Dynamic fields have block_id like "dynamic_{fieldId}_block"
+            # JIRA expects select fields as {"id": "value"} format, not raw strings
             transition_fields = {}
             for block_id, block_values in state_values.items():
                 if block_id.startswith("dynamic_") and block_id.endswith("_block"):
@@ -1624,15 +1670,23 @@ class CSOPMHandler:
                     # Get the first (and only) action_id in this block
                     for action_id, action_value in block_values.items():
                         if action_value.get("selected_option"):
-                            # Select element - get the value
-                            transition_fields[field_id] = action_value["selected_option"]["value"]
+                            # Select element - wrap in {"id": value} for JIRA
+                            # customfield_17309 (Issue Attributes) needs array format
+                            if field_id == "customfield_17309":
+                                transition_fields[field_id] = [
+                                    {"id": action_value["selected_option"]["value"]}
+                                ]
+                            else:
+                                transition_fields[field_id] = {
+                                    "id": action_value["selected_option"]["value"]
+                                }
                         elif action_value.get("selected_options"):
-                            # Multi-select element - get list of values
+                            # Multi-select element - list of {"id": value} objects
                             transition_fields[field_id] = [
-                                opt["value"] for opt in action_value["selected_options"]
+                                {"id": opt["value"]} for opt in action_value["selected_options"]
                             ]
                         elif action_value.get("value"):
-                            # Text input
+                            # Text input - keep as string
                             transition_fields[field_id] = action_value["value"]
 
             logger.info(
@@ -2245,15 +2299,23 @@ class CSOPMHandler:
                     # Get the first (and only) action_id in this block
                     for action_id, action_value in block_values.items():
                         if action_value.get("selected_option"):
-                            # Select element - get the value
-                            transition_fields[field_id] = action_value["selected_option"]["value"]
+                            # Select element - wrap in {"id": value} for JIRA API
+                            # customfield_17309 (Issue Attributes) needs array format
+                            if field_id == "customfield_17309":
+                                transition_fields[field_id] = [
+                                    {"id": action_value["selected_option"]["value"]}
+                                ]
+                            else:
+                                transition_fields[field_id] = {
+                                    "id": action_value["selected_option"]["value"]
+                                }
                         elif action_value.get("selected_options"):
-                            # Multi-select element - get list of values
+                            # Multi-select element - list of {"id": value} objects
                             transition_fields[field_id] = [
-                                opt["value"] for opt in action_value["selected_options"]
+                                {"id": opt["value"]} for opt in action_value["selected_options"]
                             ]
                         elif action_value.get("value"):
-                            # Text input
+                            # Text input - keep as string
                             transition_fields[field_id] = action_value["value"]
 
             logger.info(

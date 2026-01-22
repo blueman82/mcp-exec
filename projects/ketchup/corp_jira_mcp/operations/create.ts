@@ -21,6 +21,12 @@ const IssueFieldsSchema = z.object({
   components: z.array(z.object({
     name: z.string()
   })).optional(),
+  versions: z.array(z.object({
+    name: z.string()
+  })).optional(),
+  fixVersions: z.array(z.object({
+    name: z.string()
+  })).optional(),
   // Custom fields with proper value typing
   customfield_18203: z.object({
     value: z.string()

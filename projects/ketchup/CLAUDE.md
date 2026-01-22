@@ -143,6 +143,8 @@ ketchup/
 │   ├── integrations/     # Third-party integrations
 │   ├── secrets/          # AWS Secrets Manager
 │   └── slack/            # Slack API handlers
+│       ├── command_processing/  # Command utilities
+│       │   └── channel_resolver.py  # Shared channel parameter resolution
 │       └── csopm/        # CSOPM shared components (used by notifier + app)
 │           ├── blocks.py    # Slack Block Kit notification components
 │           ├── state.py     # DynamoDB state tracking
@@ -206,6 +208,22 @@ ketchup/
 - `typed_service_registry.py` - Main DI container with topological sorting
 - `protocols.py` - Protocol definitions for all services
 - `service_registration.py` - Registration logic for all services
+- `service_spec.py` - Declarative service registration system
+
+**ServiceSpec** (added January 2026):
+Declarative alternative to manual factory functions, reducing registration boilerplate from 15-25 lines to 3-8 lines per service:
+```python
+# Instead of writing factory + registration (15-25 lines):
+ServiceSpec(
+    protocol=ShortcutHandlerProtocol,
+    concrete=ShortcutHandler,
+    deps={"feedback_report_handler": FeedbackReportHandlerProtocol,
+          "posting_handler": SlackPostingHandlerProtocol},
+)
+```
+- Auto-generates factory functions from `deps` dictionary
+- Supports optional dependencies: `deps={"name": (Protocol, True)}`
+- Use `register_from_specs(manager, specs_list)` for batch registration
 
 #### Two-Phase Processing
 Slack requires responses within 3 seconds, but AI operations take longer. Solution:
@@ -411,13 +429,18 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Version Management
 
-- Version format: `vX.Y.Z` (e.g., `v2.360.344`)
+- Version format: `vX.Y.Z` (e.g., `v2.360.372`)
 - Deploy script auto-increments patch version
 - All service images use same version tag
 - Rollback capability built into deployment script
 
 ## Recent Major Changes
 
+- **January 2026**: LOC reduction initiative - ServiceSpec declarative system and code cleanup removing ~2,600 lines:
+  - PR #165: Dead code audit (-1,460 LOC) - Removed unused handlers, orphan classes, legacy compatibility shims
+  - PR #166: Documentation sync cleanup (-833 LOC) - Architecture diagram cleanup, removed outdated docs
+  - PR #167: Phase 1 LOC reduction (-176 LOC) - `channel_resolver.py` shared utility, eliminated duplicate code
+  - PR #168: Phase 3 ServiceSpec (-125 LOC) - Declarative service registration system in `packages/core/typed_di/service_spec.py`
 - **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking. Shared components (blocks, state, actions) moved to `packages/slack/csopm/` for use by both scheduler and main app containers.
 - **January 2026**: Legacy scheduler directories removed - `ketchup_status_updater/`, `jira_reporter/`, `channel_metadata_updater/`, `ketchup_maintenance_fetcher/`, `ketchup_jira_pat_rotator/` all deleted after successful unified scheduler consolidation.
 - **December 2025**: Phase 1 Unified Scheduler Consolidation - 5 scheduler containers consolidated into 1 (`ketchup-unified-scheduler`) with shared TypedDI container, per-task health monitoring, and unified orchestration engine

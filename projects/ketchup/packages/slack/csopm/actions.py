@@ -203,6 +203,15 @@ class CSOPMButtonActionHandler:
                         logger.info("Ticket %s already acknowledged at %s", ticket_key, ack_time)
                         return True
 
+            # CRITICAL: Show modal FIRST before trigger_id expires (3 second limit!)
+            if trigger_id:
+                await self._show_acknowledgment_success_modal(
+                    trigger_id=trigger_id,
+                    ticket_key=ticket_key,
+                )
+            else:
+                logger.warning("No trigger_id for acknowledgment success modal")
+
             # Get user's PAT if available
             user_pat = None
             if self._user_pat_ops:
@@ -229,15 +238,6 @@ class CSOPMButtonActionHandler:
                 user_pat=user_pat,
             )
             logger.info("Posted acknowledgment comment to JIRA for %s", ticket_key)
-
-            # Show acknowledgment confirmation modal instead of message
-            if trigger_id:
-                await self._show_acknowledgment_success_modal(
-                    trigger_id=trigger_id,
-                    ticket_key=ticket_key,
-                )
-            else:
-                logger.warning("No trigger_id for acknowledgment success modal")
 
             return True
         except Exception as e:
