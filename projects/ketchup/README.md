@@ -107,12 +107,10 @@ packages/
 
 1. **nginx**: Reverse proxy (port 80)
 2. **ketchup-app**: Main FastAPI application (2 replicas for HA)
-3. **ketchup-metadata-updater**: Channel metadata scanner
-4. **mcp-jira**: JIRA MCP integration service (port 8081)
-5. **ketchup-status-updater**: Hourly status updates
-6. **ketchup-jira-reporter**: JIRA ticket automation
-7. **ketchup-access-monitor**: Access request monitoring
-8. **ketchup-maintenance-fetcher**: Adobe maintenance event detection and propagation
+3. **mcp-jira**: JIRA MCP integration service (port 8081)
+4. **ketchup-unified-scheduler**: Consolidated scheduler (metadata, status, JIRA reporter, maintenance, PAT rotation)
+5. **ketchup-csopm-notifier**: CSOPM assignment notifications (08:00/16:00 UTC)
+6. **ketchup-access-monitor**: Access request monitoring
 
 For comprehensive architecture documentation, see the [Documentation](#documentation) section below.
 

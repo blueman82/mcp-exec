@@ -30,8 +30,8 @@ Feature flags enable/disable functionality across Ketchup services. All flags fo
 - **Global Enable**: `KETCHUP_STATUS_UPDATER_GLOBAL`
 - **Instance Override**: `KETCHUP_STATUS_UPDATER_ENABLED` (prod1 only, singleton service)
 - **Current Value**: `true`
-- **Services**: ketchup-app, ketchup-status-updater
-- **Details**: Enables the status updater service to run hourly background tasks that generate and post status updates to channels
+- **Services**: ketchup-app, ketchup-unified-scheduler
+- **Details**: Enables the status updater task (within unified scheduler) to run hourly background tasks that generate and post status updates to channels
 - **Related PRs**: #165, #196
 
 ### JIRA Reporter Feature
@@ -41,8 +41,8 @@ Feature flags enable/disable functionality across Ketchup services. All flags fo
 - **Flag**: `KETCHUP_JIRA_REPORTER_FEATURE`
 - **Global Enable**: `KETCHUP_JIRA_REPORTER_GLOBAL`
 - **Current Value**: `true`
-- **Services**: ketchup-app, ketchup-jira-reporter
-- **Details**: Enables the JIRA reporter service to monitor channels for ticket-worthy activity and automatically create JIRA tickets
+- **Services**: ketchup-app, ketchup-unified-scheduler
+- **Details**: Enables the JIRA reporter task (within unified scheduler) to monitor channels for ticket-worthy activity and automatically create JIRA tickets
 - **Dependencies**: MCP JIRA service (mcp-jira), Azure OpenAI for analysis
 - **Related PRs**: #185, #192
 
@@ -53,7 +53,7 @@ Feature flags enable/disable functionality across Ketchup services. All flags fo
 - **Flag**: `KETCHUP_TRUST_ENDORSEMENT_FEATURE`
 - **Global Enable**: `KETCHUP_TRUST_ENDORSEMENT_GLOBAL`
 - **Current Value**: `true`
-- **Services**: ketchup-app, ketchup-status-updater, ketchup-jira-reporter
+- **Services**: ketchup-app, ketchup-unified-scheduler
 - **Details**: Enables trust endorsement buttons and tracking in interactive components
 - **Added**: October 2025
 
@@ -121,7 +121,7 @@ Performance optimization variables that improve throughput, latency, and resourc
 
 - **Variable**: `USE_PIPELINE_PROCESSING`
 - **Current Value**: `true`
-- **Services**: ketchup-app, ketchup-status-updater, ketchup-jira-reporter, ketchup-metadata-updater
+- **Services**: ketchup-app, ketchup-unified-scheduler
 - **Performance Impact**: 59% throughput improvement proven in production (PR #198)
 - **Details**: Enables 4 concurrent workers for batch operations on Slack API calls
 - **Recommendation**: Always enable in production
@@ -133,7 +133,7 @@ Performance optimization variables that improve throughput, latency, and resourc
 
 - **Variable**: `KETCHUP_STRUCTURED_JSON_OUTPUT`
 - **Current Value**: `true`
-- **Services**: ketchup-app, ketchup-status-updater, ketchup-jira-reporter
+- **Services**: ketchup-app, ketchup-unified-scheduler
 - **Performance Impact**: 10-20% faster AI response times when enabled
 - **Details**: Uses Azure OpenAI's JSON mode for deterministic, structured responses
 - **Added**: October 2025
@@ -219,15 +219,15 @@ Variables controlling Azure OpenAI integration and LLM behavior.
 - **API Version**: `OPENAI_API_VERSION=2025-01-01-preview`
 - **Endpoint**: `AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview`
 - **Model**: GPT-4.1 (with turbo mode)
-- **Services**: ketchup-app, ketchup-status-updater, ketchup-jira-reporter
+- **Services**: ketchup-app, ketchup-unified-scheduler
 - **Details**: Azure OpenAI integration for intelligent channel analysis and status generation
 
 ### MCP (Model Context Protocol) Configuration
 
 - **Base URL**: `MCP_BASE_URL=http://mcp-jira:8081`
-- **Services**: ketchup-app, ketchup-status-updater, ketchup-jira-reporter
+- **Services**: ketchup-app, ketchup-unified-scheduler
 - **Details**: JIRA MCP service endpoint for ticket operations
-- **Async Mode**: `KETCHUP_USE_ASYNC_MCP=true` (ketchup-jira-reporter only)
+- **Async Mode**: `KETCHUP_USE_ASYNC_MCP=true` (unified scheduler JIRA reporter task)
 
 ---
 
@@ -260,7 +260,7 @@ Variables for AWS connectivity and resource configuration.
 ### SQS Queue Configuration
 
 - **Queue URL**: `KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue`
-- **Services**: ketchup-app, ketchup-jira-reporter
+- **Services**: ketchup-app, ketchup-unified-scheduler
 - **Details**: Event queue for async event processing
 
 ### Container Registry (ECR)
@@ -282,17 +282,7 @@ MAX_CONCURRENT_REQUESTS=20
 TZ=Europe/London
 ```
 
-### ketchup-metadata-updater
-
-```
-PYTHONPATH=/app
-LOG_LEVEL=INFO
-MAX_CONCURRENT_REQUESTS=20
-```
-
-**Purpose**: Scans and updates channel metadata periodically
-
-### ketchup-status-updater
+### ketchup-unified-scheduler
 
 ```
 PYTHONPATH=/app
@@ -304,21 +294,22 @@ BATCH_SIZE=5
 TZ=Europe/London
 ```
 
-**Purpose**: Generates and posts hourly status updates
+**Purpose**: Consolidated scheduler running 5 internal tasks:
+- `metadata_updater` - Scans and updates channel metadata (every 15 min)
+- `status_updater` - Generates and posts status updates (every 55 min)
+- `jira_reporter` - Monitors channels and creates JIRA tickets (continuous)
+- `maintenance_fetcher` - Fetches Adobe maintenance events (daily 1:30 UTC)
+- `pat_rotator` - Rotates JIRA PAT tokens (every 24 hours)
 
-### ketchup-jira-reporter
+### ketchup-csopm-notifier
 
 ```
 PYTHONPATH=/app
 LOG_LEVEL=INFO
-MAX_CONCURRENT_REQUESTS=20
-CHECK_INTERVAL_MINUTES=15
-LOOKBACK_HOURS=24
-BATCH_SIZE=5
-TZ=Europe/London
+KETCHUP_CSOPM_NOTIFIER_ENABLED=true
 ```
 
-**Purpose**: Monitors channels and creates JIRA tickets automatically
+**Purpose**: CSOPM assignment notifications (runs at 08:00/16:00 UTC on prod1 only)
 
 ### ketchup-access-monitor
 
