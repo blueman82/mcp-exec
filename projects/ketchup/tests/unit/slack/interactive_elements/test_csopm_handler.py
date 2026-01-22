@@ -441,6 +441,7 @@ class TestCSOPMHandlerViewSubmission:
 
         # Allow background task to complete
         import asyncio
+
         await asyncio.sleep(0.01)
 
         # Verify create_jira_issue was called
@@ -511,6 +512,7 @@ class TestCSOPMHandlerViewSubmission:
 
         # Allow background task to complete
         import asyncio
+
         await asyncio.sleep(0.01)
 
         create_call = mock_mcp_client._call_mcp_tool.call_args_list[0]
@@ -553,6 +555,7 @@ class TestCSOPMHandlerViewSubmission:
 
         # Allow background task to complete
         import asyncio
+
         await asyncio.sleep(0.01)
 
         # Error message should be sent to user via DM
@@ -646,6 +649,7 @@ class TestCSOPMHandlerViewSubmission:
 
         # Allow background task to complete
         import asyncio
+
         await asyncio.sleep(0.01)
 
         # Should still send confirmation because the ticket was created

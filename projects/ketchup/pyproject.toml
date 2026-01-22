@@ -283,3 +283,8 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 skip = [".venv", "node_modules", "ketchup-log-viewer", "corp_jira_mcp"]
+
+[dependency-groups]
+dev = [
+    "vulture>=2.14",
+]
