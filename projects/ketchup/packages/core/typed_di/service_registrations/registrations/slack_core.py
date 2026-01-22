@@ -16,9 +16,10 @@ These services provide the core Slack functionality for channel and user managem
 All registrations use protocol-first pattern with concrete class aliasing.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di.service_spec import ServiceSpec, register_from_specs
 from packages.core.typed_di.types import DependencySpec
 
 # Core Slack operations imports
@@ -40,7 +41,6 @@ from packages.slack.user_operations.user_ops import SlackUserOps
 if TYPE_CHECKING:
     from ..manager import ServiceRegistrationManager
 
-# Import protocols from the protocols module to avoid circular dependencies
 # Import required dependencies from core primitives
 from packages.db.dynamodb_store import DynamoDBStore
 from packages.db.user_store import UserStore
@@ -74,6 +74,107 @@ from ..protocols import (
 logger = setup_logger(__name__)
 
 
+# =============================================================================
+# ServiceSpec Declarations (declarative registration - minimal boilerplate)
+# =============================================================================
+
+
+def _get_basic_channel_ops_specs() -> List[ServiceSpec]:
+    """Return specs for basic channel operations."""
+    return [
+        ServiceSpec(
+            protocol=ChannelInfoOpsProtocol,
+            concrete=ChannelInfoOps,
+            deps={
+                "posting_handler": SlackPostingHandler,
+                "slack_config": SlackConfig,
+            },
+        ),
+        ServiceSpec(
+            protocol=ChannelMembershipOpsProtocol,
+            concrete=ChannelMembershipOps,
+            deps={"slack_config": SlackConfig},
+        ),
+        ServiceSpec(
+            protocol=SlackChannelArchiveOpsProtocol,
+            concrete=SlackChannelArchiveOps,
+            deps={
+                "posting_handler": SlackPostingHandler,
+                "secrets_manager": SecretsManager,
+                "dynamodb_store": DynamoDBStore,
+                "state_manager": RestoreStateManager,
+                "slack_config": SlackConfig,
+            },
+        ),
+    ]
+
+
+def _get_advanced_channel_ops_specs() -> List[ServiceSpec]:
+    """Return specs for advanced channel operations."""
+    return [
+        ServiceSpec(
+            protocol=SlackChannelBotMembershipOpsProtocol,
+            concrete=SlackChannelBotMembershipOps,
+            deps={
+                "secrets_manager": SecretsManager,
+                "posting_handler": SlackPostingHandler,
+                "slack_config": SlackConfig,
+            },
+        ),
+        ServiceSpec(
+            protocol=SlackChannelRestoreOpsProtocol,
+            concrete=SlackChannelRestoreOps,
+            deps={
+                "posting_handler": SlackPostingHandlerProtocol,
+                "archive_ops": SlackChannelArchiveOpsProtocol,
+                "secrets_manager": SecretsManagerProtocol,
+                "dynamodb_store": DynamoDBStoreProtocol,
+                "restore_state_manager": RestoreStateManagerProtocol,
+                "bot_membership_ops": SlackChannelBotMembershipOpsProtocol,
+                "slack_config": SlackConfigProtocol,
+            },
+        ),
+        ServiceSpec(
+            protocol=SlackChannelMessageOpsProtocol,
+            concrete=SlackChannelMessageOps,
+            deps={
+                "user_ops": SlackUserOps,
+                "archive_ops": SlackChannelArchiveOps,
+                "slack_config": SlackConfig,
+            },
+        ),
+    ]
+
+
+def _get_user_and_utility_specs() -> List[ServiceSpec]:
+    """Return specs for user operations and utilities."""
+    return [
+        ServiceSpec(
+            protocol=SlackUserOpsProtocol,
+            concrete=SlackUserOps,
+            deps={
+                "user_store": UserStore,
+                "slack_config": SlackConfig,
+            },
+        ),
+        ServiceSpec(
+            protocol=ChannelNameResolverProtocol,
+            concrete=ChannelNameResolver,
+            deps={"slack_config": SlackConfig},
+        ),
+        ServiceSpec(
+            protocol=BatchSizeManagerProtocol,
+            concrete=BatchSizeManager,
+            deps={},
+        ),
+    ]
+
+
+# =============================================================================
+# Main Registration Entry Point
+# =============================================================================
+
+
 def register_slack_core(manager: "ServiceRegistrationManager") -> None:
     """
     Register core Slack channel operation services.
@@ -89,235 +190,31 @@ def register_slack_core(manager: "ServiceRegistrationManager") -> None:
     """
     logger.info("Registering Slack core operation services")
 
-    # Register basic channel operations
-    _register_basic_channel_ops(manager)
+    # Register declarative specs
+    register_from_specs(manager, _get_basic_channel_ops_specs(), "basic_channel_ops")
+    register_from_specs(manager, _get_advanced_channel_ops_specs(), "advanced_channel_ops")
+    register_from_specs(manager, _get_user_and_utility_specs(), "user_and_utility_ops")
 
-    # Register advanced channel operations
-    _register_advanced_channel_ops(manager)
+    # Register services requiring custom factory logic
+    _register_user_join_notification_service(manager)
 
-    # Register user and utility operations
-    _register_user_and_utility_ops(manager)
-
-    logger.info("Slack core operation services registered successfully")
-
-
-def _register_basic_channel_ops(manager: "ServiceRegistrationManager") -> None:
-    """Register basic channel operations: info, membership, and archiving."""
-
-    # ChannelInfoOps with protocol
-    async def create_channel_info_ops(resolver) -> ChannelInfoOps:
-        """Factory function for ChannelInfoOps using TypedResolver."""
-        logger.info("Creating ChannelInfoOps instance via TypedDI")
-        posting_handler = await resolver.aget(SlackPostingHandler)
-        slack_config = await resolver.aget(SlackConfig)
-        return ChannelInfoOps(
-            posting_handler=posting_handler,
-            slack_config=slack_config,
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=ChannelInfoOpsProtocol,
-        concrete_type=ChannelInfoOps,
-        factory=create_channel_info_ops,
-        dependencies=[
-            DependencySpec(SlackPostingHandler),
-            DependencySpec(SlackConfig),
-        ],
-        lifetime="singleton",
-    )
-
-    # ChannelMembershipOps with protocol
-    async def create_channel_membership_ops(resolver) -> ChannelMembershipOps:
-        """Factory function for ChannelMembershipOps using TypedResolver."""
-        logger.info("Creating ChannelMembershipOps instance via TypedDI")
-        slack_config = await resolver.aget(SlackConfig)
-        return ChannelMembershipOps(slack_config=slack_config)
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=ChannelMembershipOpsProtocol,
-        concrete_type=ChannelMembershipOps,
-        factory=create_channel_membership_ops,
-        dependencies=[DependencySpec(SlackConfig)],
-        lifetime="singleton",
-    )
-
-    # SlackChannelArchiveOps with protocol
-    async def create_slack_channel_archive_ops(resolver) -> SlackChannelArchiveOps:
-        """Factory function for SlackChannelArchiveOps using TypedResolver."""
-        logger.info("Creating SlackChannelArchiveOps instance via TypedDI")
-        posting_handler = await resolver.aget(SlackPostingHandler)
-        secrets_manager = await resolver.aget(SecretsManager)
-        dynamodb_store = await resolver.aget(DynamoDBStore)
-        state_manager = await resolver.aget(RestoreStateManager)
-        slack_config = await resolver.aget(SlackConfig)
-        return SlackChannelArchiveOps(
-            posting_handler=posting_handler,
-            secrets_manager=secrets_manager,
-            dynamodb_store=dynamodb_store,
-            state_manager=state_manager,
-            slack_config=slack_config,
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackChannelArchiveOpsProtocol,
-        concrete_type=SlackChannelArchiveOps,
-        factory=create_slack_channel_archive_ops,
-        dependencies=[
-            DependencySpec(SlackPostingHandler),
-            DependencySpec(SecretsManager),
-            DependencySpec(DynamoDBStore),
-            DependencySpec(RestoreStateManager),
-            DependencySpec(SlackConfig),
-        ],
-        lifetime="singleton",
-    )
+    logger.info("Slack core operation services registered successfully (10 services)")
 
 
-def _register_advanced_channel_ops(manager: "ServiceRegistrationManager") -> None:
-    """Register advanced channel operations: bot membership, restore, and messaging."""
-
-    # SlackChannelBotMembershipOps with protocol
-    async def create_slack_channel_bot_membership_ops(resolver) -> SlackChannelBotMembershipOps:
-        """Factory function for SlackChannelBotMembershipOps using TypedResolver."""
-        logger.info("Creating SlackChannelBotMembershipOps instance via TypedDI")
-        secrets_manager = await resolver.aget(SecretsManager)
-        posting_handler = await resolver.aget(SlackPostingHandler)
-        slack_config = await resolver.aget(SlackConfig)
-        return SlackChannelBotMembershipOps(
-            secrets_manager=secrets_manager,
-            posting_handler=posting_handler,
-            slack_config=slack_config,
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackChannelBotMembershipOpsProtocol,
-        concrete_type=SlackChannelBotMembershipOps,
-        factory=create_slack_channel_bot_membership_ops,
-        dependencies=[
-            DependencySpec(SecretsManager),
-            DependencySpec(SlackPostingHandler),
-            DependencySpec(SlackConfig),
-        ],
-        lifetime="singleton",
-    )
-
-    # SlackChannelRestoreOps with protocol
-    async def create_slack_channel_restore_ops(resolver) -> SlackChannelRestoreOps:
-        """Factory function for SlackChannelRestoreOps using TypedResolver."""
-        logger.info("Creating SlackChannelRestoreOps instance via TypedDI")
-        posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
-        archive_ops = await resolver.aget(SlackChannelArchiveOpsProtocol)
-        secrets_manager = await resolver.aget(SecretsManagerProtocol)
-        dynamodb_store = await resolver.aget(DynamoDBStoreProtocol)
-        restore_state_manager = await resolver.aget(RestoreStateManagerProtocol)
-        bot_membership_ops = await resolver.aget(SlackChannelBotMembershipOpsProtocol)
-        slack_config = await resolver.aget(SlackConfigProtocol)
-        return SlackChannelRestoreOps(
-            posting_handler=posting_handler,
-            archive_ops=archive_ops,
-            secrets_manager=secrets_manager,
-            dynamodb_store=dynamodb_store,
-            restore_state_manager=restore_state_manager,
-            bot_membership_ops=bot_membership_ops,
-            slack_config=slack_config,
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackChannelRestoreOpsProtocol,
-        concrete_type=SlackChannelRestoreOps,
-        factory=create_slack_channel_restore_ops,
-        dependencies=[
-            DependencySpec(SlackPostingHandlerProtocol),
-            DependencySpec(SlackChannelArchiveOpsProtocol),
-            DependencySpec(SecretsManagerProtocol),
-            DependencySpec(DynamoDBStoreProtocol),
-            DependencySpec(RestoreStateManagerProtocol),
-            DependencySpec(SlackChannelBotMembershipOpsProtocol),
-            DependencySpec(SlackConfigProtocol),
-        ],
-        lifetime="singleton",
-    )
-
-    # SlackChannelMessageOps with protocol
-    async def create_slack_channel_message_ops(resolver) -> SlackChannelMessageOps:
-        """Factory function for SlackChannelMessageOps using TypedResolver."""
-        logger.info("Creating SlackChannelMessageOps instance via TypedDI")
-        slack_config = await resolver.aget(SlackConfig)
-        user_ops = await resolver.aget(SlackUserOps)
-        archive_ops = await resolver.aget(SlackChannelArchiveOps)
-        return SlackChannelMessageOps(
-            user_ops=user_ops, archive_ops=archive_ops, slack_config=slack_config
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackChannelMessageOpsProtocol,
-        concrete_type=SlackChannelMessageOps,
-        factory=create_slack_channel_message_ops,
-        dependencies=[
-            DependencySpec(SlackUserOps),
-            DependencySpec(SlackChannelArchiveOps),
-            DependencySpec(SlackConfig),
-        ],
-        lifetime="singleton",
-    )
+# =============================================================================
+# Custom Factories (for services with non-standard initialization)
+# =============================================================================
 
 
-def _register_user_and_utility_ops(manager: "ServiceRegistrationManager") -> None:
-    """Register user operations and utility services."""
+def _register_user_join_notification_service(manager: "ServiceRegistrationManager") -> None:
+    """Register UserJoinNotificationService (has inline import + optional deps)."""
 
-    # SlackUserOps with protocol (required by other services)
-    async def create_slack_user_ops(resolver) -> SlackUserOps:
-        """Factory function for SlackUserOps using TypedResolver."""
-        logger.info("Creating SlackUserOps instance via TypedDI")
-        user_store = await resolver.aget(UserStore)
-        slack_config = await resolver.aget(SlackConfig)
-        return SlackUserOps(user_store=user_store, slack_config=slack_config)
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackUserOpsProtocol,
-        concrete_type=SlackUserOps,
-        factory=create_slack_user_ops,
-        dependencies=[
-            DependencySpec(UserStore),
-            DependencySpec(SlackConfig),
-        ],
-        lifetime="singleton",
-    )
-
-    # ChannelNameResolver with protocol
-    async def create_channel_name_resolver(resolver) -> ChannelNameResolver:
-        """Factory function for ChannelNameResolver using TypedResolver."""
-        logger.info("Creating ChannelNameResolver instance via TypedDI")
-        slack_config = await resolver.aget(SlackConfig)
-        return ChannelNameResolver(slack_config=slack_config)
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=ChannelNameResolverProtocol,
-        concrete_type=ChannelNameResolver,
-        factory=create_channel_name_resolver,
-        dependencies=[DependencySpec(SlackConfig)],
-        lifetime="singleton",
-    )
-
-    # BatchSizeManager with protocol
-    async def create_batch_size_manager(resolver) -> BatchSizeManager:
-        """Factory function for BatchSizeManager."""
-        return BatchSizeManager()
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=BatchSizeManagerProtocol,
-        concrete_type=BatchSizeManager,
-        factory=create_batch_size_manager,
-        dependencies=[],
-        lifetime="singleton",
-    )
-
-    # UserJoinNotificationService with protocol
     async def create_user_join_notification_service(resolver) -> "UserJoinNotificationService":
-        """Factory function for UserJoinNotificationService using TypedResolver."""
         from packages.slack.services.user_join_notification_service import (
             UserJoinNotificationService,
         )
+
+        logger.info("Creating UserJoinNotificationService instance via TypedDI")
 
         # Resolve required dependencies
         openai_handler = await resolver.aget(OpenAIHandlerProtocol)
@@ -361,7 +258,7 @@ def _register_user_and_utility_ops(manager: "ServiceRegistrationManager") -> Non
         protocol_type=UserJoinNotificationServiceProtocol,
         concrete_type=UserJoinNotificationService,
         factory=create_user_join_notification_service,
-        dependencies=[
+        dependencies=[  # type: ignore[arg-type]
             DependencySpec(OpenAIHandlerProtocol),
             DependencySpec(SlackPostingHandlerProtocol),
             DependencySpec(ChannelInfoOpsProtocol),
