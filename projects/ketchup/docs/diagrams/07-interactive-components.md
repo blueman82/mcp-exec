@@ -503,6 +503,9 @@ async def route_interaction(payload: dict):
         
         elif callback_id == "flag_review_modal":
             return await flag_review_handler.handle_submission(payload)
+
+        elif callback_id in ("csopm_complete_modal", "csopm_close_modal"):
+            return await csopm_button_handler.handle_modal_submission(payload)
     
     elif interaction_type == "shortcut":
         callback_id = payload.get("callback_id")
