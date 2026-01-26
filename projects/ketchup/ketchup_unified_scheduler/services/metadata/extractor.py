@@ -27,7 +27,7 @@ class MetadataExtractor:
         Args:
             ai_handler: An initialized OpenAIHandler instance.
         """
-        if not ai_handler:
+        if ai_handler is None:
             raise ValueError("An initialized OpenAIHandler instance is required.")
         self.ai_handler = ai_handler
 
@@ -217,7 +217,9 @@ class MetadataExtractor:
             if FeatureFlags.is_structured_json_output_enabled():
                 try:
                     data = orjson.loads(raw_content)
-                    response_content = data.get("response_text", raw_content)
+                    # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
+                    lower_data = {k.lower(): v for k, v in data.items()}
+                    response_content = lower_data.get("response_text", raw_content)
                     logger.info(
                         "Extracted text from JSON response (%d chars)", len(response_content)
                     )

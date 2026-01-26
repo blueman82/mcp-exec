@@ -262,7 +262,9 @@ class OpenAIHandler(AzureAsyncClient):
                 if FeatureFlags.is_structured_json_output_enabled():
                     try:
                         data = orjson.loads(raw_content)
-                        extracted_text = data.get("response_text", raw_content)
+                        # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
+                        lower_data = {k.lower(): v for k, v in data.items()}
+                        extracted_text = lower_data.get("response_text", raw_content)
                         logger.info(
                             "Extracted text from JSON response (%d chars)",
                             len(extracted_text),
@@ -324,7 +326,9 @@ class OpenAIHandler(AzureAsyncClient):
                 if FeatureFlags.is_structured_json_output_enabled():
                     try:
                         data = orjson.loads(raw_content)
-                        extracted_text = data.get("response_text", raw_content)
+                        # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
+                        lower_data = {k.lower(): v for k, v in data.items()}
+                        extracted_text = lower_data.get("response_text", raw_content)
                         logger.info(
                             "Extracted text from JSON response (%d chars)",
                             len(extracted_text),

@@ -514,6 +514,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         - Are 7+ days old
         - Have not had RCA reminder sent
         - Are not escalated
+        - Are not in terminal status (Closed, Done, Resolved, Complete)
 
         Returns:
             List of FollowupRecords for due RCA reminders.
@@ -538,6 +539,15 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                     logger.warning(
                         "Could not get ticket details for %s, skipping RCA check",
                         record.ticket_key,
+                    )
+                    continue
+
+                # Skip if ticket is in terminal status (Closed, Done, Resolved, Complete)
+                if ticket.status in self.TERMINAL_STATUSES:
+                    logger.debug(
+                        "Ticket %s is in terminal status '%s', skipping RCA reminder",
+                        record.ticket_key,
+                        ticket.status,
                     )
                     continue
 
@@ -581,6 +591,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         - Are 45+ days old
         - Have not had closure reminder sent
         - Are not escalated
+        - Are not in terminal status (Closed, Done, Resolved, Complete)
 
         Returns:
             List of FollowupRecords for due closure reminders.
@@ -605,6 +616,15 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                     logger.warning(
                         "Could not get ticket details for %s, skipping closure check",
                         record.ticket_key,
+                    )
+                    continue
+
+                # Skip if ticket is in terminal status (Closed, Done, Resolved, Complete)
+                if ticket.status in self.TERMINAL_STATUSES:
+                    logger.debug(
+                        "Ticket %s is in terminal status '%s', skipping closure reminder",
+                        record.ticket_key,
+                        ticket.status,
                     )
                     continue
 
