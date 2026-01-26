@@ -1,0 +1,26 @@
+name: CI Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: [self-hosted] # add your org's runner label(s) if required
+    timeout-minutes: 15
+    steps:
+      - name: Show runner info
+        run: |
+          uname -a
+          whoami
+          pwd
+          df -h
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: List repo files
+        run: |
+          ls -la
