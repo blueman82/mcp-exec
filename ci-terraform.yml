@@ -1,0 +1,33 @@
+name: Terraform CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: [self-hosted] # add your runner label(s) if required
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Terraform version
+        run: terraform version
+
+      - name: Terraform fmt (check)
+        run: terraform fmt -check -recursive terraform
+
+      - name: Terraform validate (all dirs with .tf)
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' dir; do
+            echo "Validating: $dir"
+            terraform -chdir="$dir" init -backend=false -input=false -no-color
+            terraform -chdir="$dir" validate -no-color
+          done < <(find terraform -type f -name '*.tf' -print0 | xargs -0 -n1 dirname | sort -u | tr '\n' '\0')
