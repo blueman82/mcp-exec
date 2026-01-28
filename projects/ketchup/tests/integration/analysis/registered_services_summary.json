@@ -1,6 +1,6 @@
 {
   "timestamp": "2025-10-14T19:32:36.111523",
-  "total_services": 174,
+  "total_services": 170,
   "batch_breakdown": {
     "essential_services": 6,
     "batch_1_slack_core": 4,
@@ -166,10 +166,6 @@
     "ChannelMetricsServiceProtocol:default",
     "ChannelAnalyticsServiceProtocol:default",
     "ChannelValidationServiceProtocol:default",
-    "RuleEngineServiceProtocol:default",
-    "PolicyValidationServiceProtocol:default",
-    "ComplianceServiceProtocol:default",
-    "GovernanceServiceProtocol:default",
     "TaskManagementServiceProtocol:default",
     "ProcessAutomationServiceProtocol:default",
     "StateManagementServiceProtocol:default",
@@ -196,9 +192,9 @@
     "JiraPromptHandlerProtocol:default"
   ],
   "protocols_coverage": {
-    "total_services": 174,
-    "services_with_protocols": 180,
-    "protocol_coverage_percentage": 103.4
+    "total_services": 170,
+    "services_with_protocols": 176,
+    "protocol_coverage_percentage": 103.5
   },
   "qualifiers_implemented": [
     "primary"
