@@ -43,8 +43,9 @@ env/
 *.swp
 *.swo
 
-# Claude Code
-.claude/
+# Claude Code (ignore all except skills/)
+.claude/*
+!.claude/skills/
 
 # Node
 node_modules/
