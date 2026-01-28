@@ -68,8 +68,6 @@ __all__ = [
     "register_communication_services",
     # Channel management services (5 services)
     "register_channel_management",
-    # Business rule services (5 services)
-    "register_business_rule_services",
     # Workflow management services (5 services)
     "register_workflow_management_services",
     # Archive processing services (5 services)
