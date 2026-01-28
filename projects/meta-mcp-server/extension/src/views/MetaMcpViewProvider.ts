@@ -171,6 +171,12 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 await this.handleInstallMcpExec();
                 break;
 
+            case 'switchActivePackage':
+                await this.handleSwitchActivePackage(
+                    message.payload as { toolId: string; mode: 'meta-mcp' | 'mcp-exec' | 'both' }
+                );
+                break;
+
             case 'showError':
                 vscode.window.showErrorMessage(message.message as string);
                 break;
@@ -203,7 +209,12 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             const genericSnippet = this.toolConfigurator.generateGenericSnippet();
             const mcpPackages = this.toolConfigurator.detectMcpPackages();
 
-            this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet, mcpPackages });
+            const activePackages: Record<string, string> = {};
+            for (const t of tools) {
+                activePackages[t.tool.id] = this.toolConfigurator.getActivePackage(t.tool);
+            }
+
+            this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet, mcpPackages, activePackages });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
             console.error('[Meta-MCP] Failed to load setup:', errorMsg);
@@ -551,6 +562,38 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         // Always refresh after dialog closes (whether Refresh clicked or dismissed)
         // This ensures the button state is updated and doesn't stay stuck at "Installing..."
         await this.handleLoadSetup();
+    }
+
+    /**
+     * Handle switching active MCP package for a tool
+     */
+    private async handleSwitchActivePackage(
+        payload: { toolId: string; mode: 'meta-mcp' | 'mcp-exec' | 'both' }
+    ): Promise<void> {
+        if (!payload?.toolId || !payload?.mode) {
+            this.postMessage({ type: 'switchActivePackageResponse', success: false, error: 'Missing toolId or mode' });
+            return;
+        }
+
+        try {
+            const result = await this.toolConfigurator.switchActivePackage(payload.toolId, payload.mode);
+            if (result.success) {
+                vscode.window.showInformationMessage(
+                    `Switched to ${payload.mode}. Restart your AI tool to apply.`
+                );
+                await this.handleLoadSetup();
+            } else {
+                vscode.window.showErrorMessage(result.error || 'Failed to switch package');
+            }
+            this.postMessage({
+                type: 'switchActivePackageResponse',
+                success: result.success,
+                error: result.error
+            });
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            this.postMessage({ type: 'switchActivePackageResponse', success: false, error: errorMsg });
+        }
     }
 
     /**

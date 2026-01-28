@@ -739,6 +739,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             let genericSnippet = null;
             let mcpPackages = { metaMcpInstalled: false, metaMcpVersion: null, mcpExecInstalled: false, mcpExecVersion: null };
             let localServerSetupData = null;
+            let activePackages = {};
 
             // DOM Elements
             const navTabs = document.querySelectorAll('.nav-tab');
@@ -1114,6 +1115,29 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                                         Copy Snippet
                                     </button>
                                 </div>
+                                \${(mcpPackages.metaMcpInstalled || mcpPackages.mcpExecInstalled) ? \`
+                                <div class="package-toggle" data-tool-id="\${escapeHtml(tool.tool.id)}">
+                                    <span class="toggle-label">Active package:</span>
+                                    <label class="toggle-option\${!mcpPackages.metaMcpInstalled ? ' disabled' : ''}">
+                                        <input type="radio" name="pkg-\${escapeHtml(tool.tool.id)}" value="meta-mcp"
+                                            \${activePackages[tool.tool.id] === 'meta-mcp' ? 'checked' : ''}
+                                            \${!mcpPackages.metaMcpInstalled ? 'disabled' : ''}>
+                                        meta-mcp
+                                    </label>
+                                    <label class="toggle-option\${!mcpPackages.mcpExecInstalled ? ' disabled' : ''}">
+                                        <input type="radio" name="pkg-\${escapeHtml(tool.tool.id)}" value="mcp-exec"
+                                            \${activePackages[tool.tool.id] === 'mcp-exec' ? 'checked' : ''}
+                                            \${!mcpPackages.mcpExecInstalled ? 'disabled' : ''}>
+                                        mcp-exec
+                                    </label>
+                                    <label class="toggle-option">
+                                        <input type="radio" name="pkg-\${escapeHtml(tool.tool.id)}" value="both"
+                                            \${activePackages[tool.tool.id] === 'both' ? 'checked' : ''}
+                                            \${!mcpPackages.metaMcpInstalled || !mcpPackages.mcpExecInstalled ? 'disabled' : ''}>
+                                        Both
+                                    </label>
+                                </div>
+                                \` : ''}
                             \` : ''}
                         </div>
                     \`;
@@ -1145,7 +1169,10 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
     },
     "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"]
+      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "env": {
+        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
+      }
     }
   }
 }\`}</code></pre>
@@ -1187,6 +1214,11 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         .snippet-code { margin: var(--spacing-sm) 0 0; padding: var(--spacing-md); background: var(--vscode-textCodeBlock-background); border-radius: var(--border-radius); overflow-x: auto; font-size: 11px; }
                         .hint-text { color: var(--vscode-descriptionForeground); font-size: 11px; margin-top: var(--spacing-sm); font-style: italic; }
                         .hint-text code { background: var(--vscode-textCodeBlock-background); padding: 1px 4px; border-radius: 3px; }
+                        .package-toggle { display: flex; align-items: center; gap: var(--spacing-sm); margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--vscode-panel-border); flex-wrap: wrap; }
+                        .toggle-label { font-size: 12px; color: var(--vscode-descriptionForeground); }
+                        .toggle-option { font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+                        .toggle-option.disabled { opacity: 0.4; cursor: not-allowed; }
+                        .toggle-option input { margin: 0; }
                     </style>
                 \`;
                 
@@ -1202,6 +1234,20 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                     });
                 });
                 
+                setupContainer.querySelectorAll('.package-toggle input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        const toggle = e.target.closest('.package-toggle');
+                        const toolId = toggle?.dataset?.toolId;
+                        const mode = e.target.value;
+                        if (toolId && mode) {
+                            vscode.postMessage({
+                                type: 'switchActivePackage',
+                                payload: { toolId, mode }
+                            });
+                        }
+                    });
+                });
+
                 setupContainer.querySelectorAll('.btn-copy-snippet').forEach(btn => {
                     btn.addEventListener('click', async () => {
                         const toolId = btn.dataset.toolId;
@@ -1232,7 +1278,10 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
     },
     "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"]
+      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "env": {
+        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
+      }
     }
   }
 }\`;
@@ -1460,12 +1509,19 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         setupSnippets = message.snippets || [];
                         genericSnippet = message.genericSnippet || null;
                         mcpPackages = message.mcpPackages || { metaMcpInstalled: false, metaMcpVersion: null, mcpExecInstalled: false, mcpExecVersion: null };
+                        activePackages = message.activePackages || {};
                         document.getElementById('setup-loading').classList.add('hidden');
                         renderSetup();
                         break;
                     case 'configureMetaMcpResponse':
                         if (message.success) {
                             // Refresh the setup view
+                            setupTools = [];
+                            vscode.postMessage({ type: 'loadSetup' });
+                        }
+                        break;
+                    case 'switchActivePackageResponse':
+                        if (message.success) {
                             setupTools = [];
                             vscode.postMessage({ type: 'loadSetup' });
                         }

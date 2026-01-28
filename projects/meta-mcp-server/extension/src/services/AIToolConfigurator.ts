@@ -274,6 +274,7 @@ export class AIToolConfigurator {
         const mcpExecEntry = {
             command: 'npx',
             args: ['-y', '@justanothermldude/mcp-exec'],
+            env: { SERVERS_CONFIG: this.serversConfigPath },
         };
 
         const fullConfig = {
@@ -536,7 +537,7 @@ export class AIToolConfigurator {
      * Build the meta-mcp server entry for a tool
      * Prefers npx if package is installed globally, falls back to local path for development
      */
-    private buildServerEntry(tool: AIToolDefinition, packageInstalled: boolean): McpServerEntry {
+    private buildServerEntry(tool: AIToolDefinition, packageInstalled = false): McpServerEntry {
         let entry: McpServerEntry;
 
         if (packageInstalled) {
@@ -582,6 +583,9 @@ export class AIToolConfigurator {
         const entry: McpServerEntry = {
             command: 'npx',
             args: ['-y', '@justanothermldude/mcp-exec'],
+            env: {
+                SERVERS_CONFIG: this.serversConfigPath,
+            },
         };
 
         if (tool.requiresType) {
@@ -589,6 +593,73 @@ export class AIToolConfigurator {
         }
 
         return entry;
+    }
+
+    /**
+     * Get which MCP package(s) are currently configured in a tool's config
+     */
+    getActivePackage(tool: AIToolDefinition): 'meta-mcp' | 'mcp-exec' | 'both' | 'none' {
+        const configPath = this.resolveConfigPath(tool.configPath);
+        if (!fs.existsSync(configPath)) return 'none';
+        try {
+            const content = fs.readFileSync(configPath, 'utf-8');
+            const config = JSON.parse(content);
+            const servers = config[tool.configKey] || {};
+            const hasMeta = META_MCP_SERVER_NAME in servers;
+            const hasExec = 'mcp-exec' in servers;
+            if (hasMeta && hasExec) return 'both';
+            if (hasMeta) return 'meta-mcp';
+            if (hasExec) return 'mcp-exec';
+            return 'none';
+        } catch {
+            return 'none';
+        }
+    }
+
+    /**
+     * Switch which MCP package is active in a tool's config
+     */
+    async switchActivePackage(
+        toolId: string,
+        mode: 'meta-mcp' | 'mcp-exec' | 'both'
+    ): Promise<{ success: boolean; error?: string }> {
+        const packages = this.detectMcpPackages();
+        const tool = getToolById(toolId);
+        if (!tool) return { success: false, error: `Unknown tool: ${toolId}` };
+
+        const configPath = this.resolveConfigPath(tool.configPath);
+        let existingConfig: Record<string, unknown> = {};
+        if (fs.existsSync(configPath)) {
+            try {
+                const content = fs.readFileSync(configPath, 'utf-8');
+                existingConfig = JSON.parse(content);
+            } catch (e) {
+                return { success: false, error: `Failed to parse config: ${e}` };
+            }
+        }
+
+        const newServers: Record<string, unknown> = {};
+        if (mode === 'meta-mcp' || mode === 'both') {
+            newServers[META_MCP_SERVER_NAME] = this.buildServerEntry(tool, packages.metaMcpInstalled);
+        }
+        if (mode === 'mcp-exec' || mode === 'both') {
+            newServers['mcp-exec'] = this.buildMcpExecEntry(tool);
+        }
+
+        existingConfig[tool.configKey] = newServers;
+        this.ensureServersConfig();
+
+        const configDir = path.dirname(configPath);
+        if (!fs.existsSync(configDir)) {
+            fs.mkdirSync(configDir, { recursive: true });
+        }
+
+        try {
+            fs.writeFileSync(configPath, JSON.stringify(existingConfig, null, 2), 'utf-8');
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: `Failed to write config: ${e}` };
+        }
     }
 
     /**
