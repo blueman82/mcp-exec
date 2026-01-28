@@ -15,9 +15,6 @@ from .archive_processing import register_archive_processing_services
 
 # Core infrastructure extensions (16 services) - modular breakdown
 from .basic_infrastructure import register_basic_infrastructure
-
-# Business rule services (5 services) - rule engine, policy, compliance, audit, governance
-from .business_rule_services import register_business_rule_services
 from .caching_storage import register_caching_storage
 
 # Channel management services (5 services) - business logic
@@ -70,8 +67,6 @@ __all__ = [
     "register_communication_services",
     # Channel management services (5 services)
     "register_channel_management",
-    # Business rule services (5 services)
-    "register_business_rule_services",
     # Workflow management services (5 services)
     "register_workflow_management_services",
     # Archive processing services (5 services)
@@ -144,9 +139,6 @@ def register_all_focused_services(manager) -> None:
 
     # Channel management services (5 business logic services)
     register_channel_management(manager)
-
-    # Business rule services (5 business logic services)
-    register_business_rule_services(manager)
 
     # Workflow management services (5 workflow services)
     register_workflow_management_services(manager)
