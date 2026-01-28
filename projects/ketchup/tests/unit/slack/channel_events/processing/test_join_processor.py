@@ -136,6 +136,7 @@ class TestProcessEligibleBotJoin:
 
         dynamodb = MagicMock()
         dynamodb.get_channel_details = AsyncMock(return_value={"exists": True})
+        dynamodb.check_if_temporary_unarchive = AsyncMock(return_value=False)
         channel_info_ops = MagicMock()
         posting_handler = MagicMock()
         event = {"event_ts": "1234567890"}
@@ -145,6 +146,7 @@ class TestProcessEligibleBotJoin:
         )
 
         # Handler should be called and workflow started in background
+        dynamodb.check_if_temporary_unarchive.assert_awaited_once_with("C7")
         mock_get_handler.assert_awaited_once()
         mock_create_task.assert_called_once()
 
@@ -162,6 +164,7 @@ class TestProcessEligibleBotJoin:
 
         dynamodb = MagicMock()
         dynamodb.get_channel_details = AsyncMock(return_value={"exists": True})
+        dynamodb.check_if_temporary_unarchive = AsyncMock(return_value=False)
         channel_info_ops = MagicMock()
         posting_handler = MagicMock()
         event = {"event_ts": "1234567890"}
@@ -185,6 +188,7 @@ class TestProcessEligibleBotJoin:
 
         dynamodb = MagicMock()
         dynamodb.get_channel_details = AsyncMock(return_value={"exists": True})
+        dynamodb.check_if_temporary_unarchive = AsyncMock(return_value=False)
         channel_info_ops = MagicMock()
         posting_handler = MagicMock()
         event = {"event_ts": "1234567890"}
@@ -195,8 +199,35 @@ class TestProcessEligibleBotJoin:
         )
 
         # Verify handler was resolved and task creation was attempted
+        dynamodb.check_if_temporary_unarchive.assert_awaited_once_with("C9")
         mock_get_handler.assert_awaited_once()
         mock_create_task.assert_called_once()
+
+    @patch("packages.slack.channel_events.processing.join_processor.asyncio.create_task")
+    @patch("packages.slack.channel_events.processing.join_processor.os.getenv")
+    @patch("packages.slack.channel_events.processing.join_processor.get_jira_prompt_handler")
+    async def test_maintenance_detection_skipped_for_temporary_unarchive(
+        self, mock_get_handler, mock_getenv, mock_create_task
+    ):
+        """Test that maintenance detection is skipped for temporarily unarchived channels."""
+        mock_getenv.return_value = "true"
+
+        dynamodb = MagicMock()
+        dynamodb.get_channel_details = AsyncMock(return_value={"exists": True})
+        dynamodb.check_if_temporary_unarchive = AsyncMock(return_value=True)
+        channel_info_ops = MagicMock()
+        posting_handler = MagicMock()
+        event = {"event_ts": "1234567890"}
+
+        await process_eligible_bot_join(
+            event, "C10", "U10", None, dynamodb, channel_info_ops, posting_handler
+        )
+
+        # Temporary unarchive check should be called
+        dynamodb.check_if_temporary_unarchive.assert_awaited_once_with("C10")
+        # Handler should NOT be resolved since channel is temporarily unarchived
+        mock_get_handler.assert_not_called()
+        mock_create_task.assert_not_called()
 
 
 @pytest.mark.asyncio

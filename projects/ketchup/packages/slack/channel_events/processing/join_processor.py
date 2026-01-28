@@ -142,16 +142,25 @@ async def process_eligible_bot_join(
         is_test_channel = any(channel_id == ch.strip() for ch in test_channels if ch.strip())
 
         if maintenance_feature_enabled or is_test_channel:
-            logger.info("Maintenance detection enabled, starting JIRA prompt workflow")
+            logger.info("Maintenance detection enabled, checking temporary unarchive status")
 
             try:
-                # Get JIRA prompt handler via TypedDI (all dependencies auto-resolved)
-                jira_handler = await get_jira_prompt_handler()
+                # Skip maintenance prompt for channels temporarily unarchived by JIRA reporter
+                is_temporary = await dynamodb_store.check_if_temporary_unarchive(channel_id)
+                if is_temporary:
+                    logger.info(
+                        "Channel %s is temporarily unarchived by JIRA reporter, "
+                        "skipping maintenance detection workflow",
+                        channel_id,
+                    )
+                else:
+                    # Get JIRA prompt handler via TypedDI (all dependencies auto-resolved)
+                    jira_handler = await get_jira_prompt_handler()
 
-                # Start workflow in background (don't block bot join)
-                asyncio.create_task(jira_handler.start_jira_prompt_workflow(channel_id))
+                    # Start workflow in background (don't block bot join)
+                    asyncio.create_task(jira_handler.start_jira_prompt_workflow(channel_id))
 
-                logger.info("Maintenance detection workflow started for channel %s", channel_id)
+                    logger.info("Maintenance detection workflow started for channel %s", channel_id)
 
             except Exception as maintenance_error:
                 logger.error(
