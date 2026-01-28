@@ -30,7 +30,6 @@ from packages.core.typed_di.service_registrations.registrations import (
     ai_operational,
     archive_processing,
     basic_infrastructure,
-    business_rule_services,
     caching_storage,
     channel_management,
     command_processing,
