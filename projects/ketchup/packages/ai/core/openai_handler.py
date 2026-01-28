@@ -208,6 +208,47 @@ class OpenAIHandler(AzureAsyncClient):
             # and prevents error details from being sent to the AI
             raise
 
+    def _parse_json_response(self, raw_content: str) -> str:
+        """Parse JSON response and extract response_text.
+
+        Raises:
+            orjson.JSONDecodeError: If raw_content is not valid JSON.
+        """
+        data = orjson.loads(raw_content)
+        lower_data = {k.lower(): v for k, v in data.items()}
+        return lower_data.get("response_text", raw_content)
+
+    async def _extract_response_content(
+        self,
+        raw_content: str,
+        messages: List[Dict[str, str]],
+        normalized_prefs_for_ai: Dict[str, Any],
+    ) -> str:
+        """Extract response text, retrying once on JSON parse failure."""
+        if not FeatureFlags.is_structured_json_output_enabled():
+            return raw_content
+
+        try:
+            extracted = self._parse_json_response(raw_content)
+            logger.info("Extracted text from JSON response (%d chars)", len(extracted))
+            return extracted
+        except orjson.JSONDecodeError:
+            logger.warning("JSON parse failed, retrying API call once")
+
+        try:
+            response = await self.call_openai_endpoint(
+                messages=messages,
+                normalized_prefs_for_ai=normalized_prefs_for_ai,
+            )
+            retry_content = response["choices"][0]["message"]["content"]
+            extracted = self._parse_json_response(retry_content)
+            logger.info("Retry succeeded, extracted text (%d chars)", len(extracted))
+            return extracted
+        except Exception as e:
+            logger.error("Retry also failed, returning raw content: %s", e)
+
+        return raw_content
+
     async def process_with_context(
         self,
         messages: List[Dict[str, str]],
@@ -246,43 +287,15 @@ class OpenAIHandler(AzureAsyncClient):
 
         # Execute the request
         try:
+            normalized_prefs = {"temperature": temperature, "max_tokens": max_tokens}
             response = await self.call_openai_endpoint(
                 messages=full_messages,
-                normalized_prefs_for_ai={
-                    "temperature": temperature,
-                    "max_tokens": max_tokens,
-                },
+                normalized_prefs_for_ai=normalized_prefs,
             )
-
-            # Extract response text
-            if response and "choices" in response and response["choices"]:
-                raw_content = response["choices"][0]["message"]["content"]
-
-                # Extract from JSON if structured output is enabled
-                if FeatureFlags.is_structured_json_output_enabled():
-                    try:
-                        data = orjson.loads(raw_content)
-                        # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
-                        lower_data = {k.lower(): v for k, v in data.items()}
-                        extracted_text = lower_data.get("response_text", raw_content)
-                        logger.info(
-                            "Extracted text from JSON response (%d chars)",
-                            len(extracted_text),
-                        )
-                        return extracted_text
-                    except orjson.JSONDecodeError as e:
-                        logger.error(
-                            "Failed to parse JSON response, falling back to raw content: %s",
-                            e,
-                        )
-                        return raw_content
-                else:
-                    # Prose mode - return as-is
-                    return raw_content
-            else:
-                logger.error("Invalid response structure from OpenAI")
-                return "I encountered an error processing your request."
-
+            raw_content = response["choices"][0]["message"]["content"]
+            return await self._extract_response_content(
+                raw_content, full_messages, normalized_prefs
+            )
         except Exception as e:
             logger.error(f"Error processing with context: {e}")
             raise
@@ -310,43 +323,13 @@ class OpenAIHandler(AzureAsyncClient):
         logger.info("Executing prompt with OpenAI")
 
         try:
+            normalized_prefs = {"temperature": temperature, "max_tokens": max_tokens}
             response = await self.call_openai_endpoint(
                 messages=messages,
-                normalized_prefs_for_ai={
-                    "temperature": temperature,
-                    "max_tokens": max_tokens,
-                },
+                normalized_prefs_for_ai=normalized_prefs,
             )
-
-            # Extract response text
-            if response and "choices" in response and response["choices"]:
-                raw_content = response["choices"][0]["message"]["content"]
-
-                # Extract from JSON if structured output is enabled
-                if FeatureFlags.is_structured_json_output_enabled():
-                    try:
-                        data = orjson.loads(raw_content)
-                        # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
-                        lower_data = {k.lower(): v for k, v in data.items()}
-                        extracted_text = lower_data.get("response_text", raw_content)
-                        logger.info(
-                            "Extracted text from JSON response (%d chars)",
-                            len(extracted_text),
-                        )
-                        return extracted_text
-                    except orjson.JSONDecodeError as e:
-                        logger.error(
-                            "Failed to parse JSON response, falling back to raw content: %s",
-                            e,
-                        )
-                        return raw_content
-                else:
-                    # Prose mode - return as-is
-                    return raw_content
-            else:
-                logger.error("Invalid response structure from OpenAI")
-                raise OpenAIError("Invalid response from OpenAI API")
-
+            raw_content = response["choices"][0]["message"]["content"]
+            return await self._extract_response_content(raw_content, messages, normalized_prefs)
         except Exception as e:
             logger.error(f"Error executing prompt: {e}")
             raise
