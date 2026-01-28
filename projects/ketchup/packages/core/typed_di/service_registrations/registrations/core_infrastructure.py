@@ -70,6 +70,9 @@ def register_core_infrastructure(manager: "ServiceRegistrationManager") -> None:
     # Register resilience infrastructure (optional)
     _register_resilience_infrastructure(manager)
 
+    # Register database operations (JoinNotificationOps, FlagReviewDatabaseOps, AccessRequest*)
+    _register_database_operations(manager)
+
     logger.info("Core infrastructure services registered successfully")
 
 
@@ -228,3 +231,164 @@ def _register_resilience_infrastructure(manager: "ServiceRegistrationManager") -
         logger.info("BackoffStrategy services registered successfully")
     except ImportError as e:
         logger.warning(f"BackoffStrategy services not available: {e}")
+
+
+def _register_database_operations(manager: "ServiceRegistrationManager") -> None:
+    """Register database operations services (JoinNotificationOps, FlagReview, AccessRequest)."""
+    from packages.slack.interactive_elements.flag_review.database import (
+        FlagReviewDatabaseOperations,
+    )
+
+    from ..protocols import (
+        AccessRequestHandlerProtocol,
+        AccessRequestMonitorProtocol,
+        AccessRequestOperationsProtocol,
+        DistributedLockProtocol,
+        DynamoDBAsyncClientProtocol,
+        DynamoDBConfigProtocol,
+        DynamoDBStoreProtocol,
+        FlagReviewDatabaseOperationsProtocol,
+        JoinNotificationOpsProtocol,
+        SecretsManagerProtocol,
+        SlackAsyncClientProtocol,
+    )
+
+    # JoinNotificationOps
+    try:
+        from packages.db.operations.join_notification_ops import JoinNotificationOps
+
+        async def create_join_notification_ops(resolver) -> JoinNotificationOps:
+            """Factory function for JoinNotificationOps using TypedResolver."""
+            logger.info("Creating JoinNotificationOps instance via TypedDI")
+            dynamodb_async_client = await resolver.aget(DynamoDBAsyncClientProtocol)
+            dynamodb_config = await resolver.aget(DynamoDBConfigProtocol)
+            table_name = (
+                dynamodb_config.table_name
+                if hasattr(dynamodb_config, "table_name")
+                else "ketchup_channel_information"
+            )
+            return JoinNotificationOps(client=dynamodb_async_client, table_name=table_name)
+
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=JoinNotificationOpsProtocol,
+            concrete_type=JoinNotificationOps,
+            factory=create_join_notification_ops,
+            dependencies=[
+                DependencySpec(DynamoDBAsyncClientProtocol),
+                DependencySpec(DynamoDBConfigProtocol),
+            ],
+            lifetime="singleton",
+        )
+        logger.info("JoinNotificationOps registered successfully")
+    except ImportError as e:
+        logger.warning(f"JoinNotificationOps not available: {e}")
+
+    # FlagReviewDatabaseOperations
+    async def create_flag_review_database_operations(resolver) -> FlagReviewDatabaseOperations:
+        """Factory function for FlagReviewDatabaseOperations using TypedResolver."""
+        logger.info("Creating FlagReviewDatabaseOperations instance via TypedDI")
+        dynamodb_store = await resolver.aget(DynamoDBStoreProtocol)
+        return FlagReviewDatabaseOperations(db_store=dynamodb_store)
+
+    manager.register_protocol_with_concrete_alias(
+        protocol_type=FlagReviewDatabaseOperationsProtocol,
+        concrete_type=FlagReviewDatabaseOperations,
+        factory=create_flag_review_database_operations,
+        dependencies=[DependencySpec(DynamoDBStoreProtocol)],
+        lifetime="singleton",
+    )
+
+    # Access Request services
+    try:
+        from packages.core.distributed_lock import DistributedLock
+        from packages.db.operations.access_request_operations import AccessRequestOperations
+        from packages.slack.interactive_elements.access_request_handler import AccessRequestHandler
+        from packages.slack.metrics.access_request_monitor import AccessRequestMonitor
+
+        # DistributedLock
+        async def create_distributed_lock(resolver) -> DistributedLock:
+            """Factory function for DistributedLock using TypedResolver."""
+            logger.info("Creating DistributedLock instance via TypedDI")
+            async_client = await resolver.aget(DynamoDBAsyncClientProtocol)
+            config = await resolver.aget(DynamoDBConfigProtocol)
+            table_name = config.get_table_name()
+            return DistributedLock(dynamodb_client=async_client, table_name=table_name)
+
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=DistributedLockProtocol,
+            concrete_type=DistributedLock,
+            factory=create_distributed_lock,
+            dependencies=[
+                DependencySpec(DynamoDBAsyncClientProtocol),
+                DependencySpec(DynamoDBConfigProtocol),
+            ],
+            lifetime="singleton",
+        )
+
+        # AccessRequestOperations
+        async def create_access_request_operations(resolver) -> AccessRequestOperations:
+            """Factory function for AccessRequestOperations using TypedResolver."""
+            logger.info("Creating AccessRequestOperations instance via TypedDI")
+            async_client = await resolver.aget(DynamoDBAsyncClientProtocol)
+            config = await resolver.aget(DynamoDBConfigProtocol)
+            table_name = config.get_table_name()
+            return AccessRequestOperations(client=async_client, table_name=table_name)
+
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=AccessRequestOperationsProtocol,
+            concrete_type=AccessRequestOperations,
+            factory=create_access_request_operations,
+            dependencies=[
+                DependencySpec(DynamoDBAsyncClientProtocol),
+                DependencySpec(DynamoDBConfigProtocol),
+            ],
+            lifetime="singleton",
+        )
+
+        # AccessRequestMonitor
+        async def create_access_request_monitor(resolver) -> AccessRequestMonitor:
+            """Factory function for AccessRequestMonitor using TypedResolver."""
+            logger.info("Creating AccessRequestMonitor instance via TypedDI")
+            return AccessRequestMonitor()
+
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=AccessRequestMonitorProtocol,
+            concrete_type=AccessRequestMonitor,
+            factory=create_access_request_monitor,
+            dependencies=[DependencySpec(MetricsStorageProtocol)],
+            lifetime="singleton",
+        )
+
+        # AccessRequestHandler
+        async def create_access_request_handler(resolver) -> AccessRequestHandler:
+            """Factory function for AccessRequestHandler using TypedResolver."""
+            logger.info("Creating AccessRequestHandler instance via TypedDI")
+            slack_client = await resolver.aget(SlackAsyncClientProtocol)
+            access_request_ops = await resolver.aget(AccessRequestOperationsProtocol)
+            secrets_manager = await resolver.aget(SecretsManagerProtocol)
+            metrics_service = await resolver.aget(AccessRequestMonitorProtocol)
+            distributed_lock = await resolver.aget(DistributedLockProtocol)
+            return AccessRequestHandler(
+                slack_client=slack_client,
+                access_request_ops=access_request_ops,
+                secrets_manager=secrets_manager,
+                metrics_service=metrics_service,
+                distributed_lock=distributed_lock,
+            )
+
+        manager.register_protocol_with_concrete_alias(
+            protocol_type=AccessRequestHandlerProtocol,
+            concrete_type=AccessRequestHandler,
+            factory=create_access_request_handler,
+            dependencies=[
+                DependencySpec(AccessRequestOperationsProtocol),
+                DependencySpec(SecretsManagerProtocol),
+                DependencySpec(AccessRequestMonitorProtocol),
+                DependencySpec(DistributedLockProtocol),
+            ],
+            lifetime="singleton",
+        )
+
+        logger.info("AccessRequest services registered successfully")
+    except ImportError as e:
+        logger.warning(f"AccessRequest services not available: {e}")

@@ -11,32 +11,12 @@ These services handle incoming events from Slack and other platforms.
 All registrations use protocol-first pattern with concrete class aliasing.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di.types import DependencySpec
 
-# Essential imports for event processing services
-# NOTE: Both EventProcessor and SlackEventHandler are imported lazily in factory to avoid circular dependency
-try:
-    _IMPORTS_AVAILABLE = True
-except ImportError as e:
-    # Allow module to load even with missing imports for testing
-    logger = setup_logger(__name__)
-    logger.error(f"Failed to import event processing services: {e}")
-    _IMPORTS_AVAILABLE = False
-    # Define placeholder types to prevent NameError
-    # EventProcessor and SlackEventHandler will be imported lazily in factory
-    EventProcessor = type("EventProcessor", (), {})
-    SlackEventHandler = type("SlackEventHandler", (), {})
-
-# Protocol imports
 if TYPE_CHECKING:
-    from packages.slack.channel_events.events import SlackEventHandler
-    from packages.slack.channel_events.incoming_events import EventProcessor
-
     from ..manager import ServiceRegistrationManager
 
 from ..protocols import (
@@ -72,6 +52,7 @@ def register_event_processing(manager: "ServiceRegistrationManager") -> None:
     """
     logger.info("Registering event processing services")
 
+    _register_channel_eligibility_service(manager)
     _register_core_event_services(manager)
     _register_channel_lifecycle_processors(manager)
     _register_event_filtering_services(manager)
@@ -79,19 +60,44 @@ def register_event_processing(manager: "ServiceRegistrationManager") -> None:
     logger.info("Event processing services registered successfully (8 services)")
 
 
+def _register_channel_eligibility_service(manager: "ServiceRegistrationManager") -> None:
+    """Register ChannelEligibilityService (dependency for SlackEventHandler)."""
+    from packages.slack.channel_operations.channel_eligibility import ChannelEligibilityService
+
+    async def create_channel_eligibility_service(resolver):
+        """Factory function for ChannelEligibilityService."""
+        channel_info_ops = await resolver.aget(ChannelInfoOpsProtocol)
+        posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
+        dynamodb_store = await resolver.aget(DynamoDBStoreProtocol)
+        return ChannelEligibilityService(
+            channel_info_ops=channel_info_ops,
+            posting_handler=posting_handler,
+            dynamodb_store=dynamodb_store,
+        )
+
+    manager.register_protocol_with_concrete_alias(
+        protocol_type=ChannelEligibilityServiceProtocol,
+        concrete_type=ChannelEligibilityService,
+        factory=create_channel_eligibility_service,
+        dependencies=[
+            DependencySpec(ChannelInfoOpsProtocol),
+            DependencySpec(SlackPostingHandlerProtocol),
+            DependencySpec(DynamoDBStoreProtocol),
+        ],
+        lifetime="singleton",
+    )
+    logger.info("ChannelEligibilityService registered successfully")
+
+
 def _register_core_event_services(manager: "ServiceRegistrationManager") -> None:
     """Register core event handling services."""
-    if not _IMPORTS_AVAILABLE:
-        logger.warning("Skipping event service registration - imports not available")
-        return
-
     # Lazy imports to avoid circular dependency at module load time
     # incoming_events.py imports from dependency_setup.py which imports protocols
     from packages.slack.channel_events.events import SlackEventHandler
     from packages.slack.channel_events.incoming_events import EventProcessor
 
     # SlackEventHandler
-    async def create_slack_event_handler(resolver) -> SlackEventHandler:
+    async def create_slack_event_handler(resolver):
         """Factory function for SlackEventHandler using TypedResolver."""
         logger.info("Creating SlackEventHandler instance via TypedDI")
 
@@ -138,7 +144,7 @@ def _register_core_event_services(manager: "ServiceRegistrationManager") -> None
     )
 
     # EventProcessor
-    async def create_event_processor(resolver) -> EventProcessor:
+    async def create_event_processor(resolver):
         """Factory function for EventProcessor using TypedDI."""
         logger.info("Creating EventProcessor instance via TypedDI")
 

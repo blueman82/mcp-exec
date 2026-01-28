@@ -11,8 +11,6 @@ The registration system is now organized into focused modules:
 - slack_handlers: Slack interactive handlers (feedback, metadata, shortcuts)
 - ai_operational: AI services (TokenTracker, OpenAI handler, bot helpers)
 - integrations: External integrations (JIRA, MCP, token management)
-- database_batches: Database batch operations and utilities
-- ai_enhancements: Advanced AI services (templates, caching, streaming)
 
 Each module is ≤400 lines and focuses on a specific domain.
 """
@@ -25,29 +23,15 @@ from packages.core.typed_di.registry import TypedServiceRegistry
 # This fixes the "Service X depends on Y which is not registered" errors
 # These modules are imported for their side effects during registration
 from packages.core.typed_di.service_registrations.registrations import (
-    advanced_infrastructure,
-    ai_enhancements,
     ai_operational,
-    archive_processing,
-    basic_infrastructure,
-    caching_storage,
-    channel_management,
     command_processing,
-    communication_services,
     core_infrastructure,
     core_primitives,
-    cross_component_integration,
-    database_batches,
     event_processing,
-    external_api_services,
-    integration_management,
     integrations,
-    jira_services,
-    security_monitoring,
     slack_core,
     slack_handlers,
     ui_services,
-    workflow_management,
 )
 from packages.slack.channel_operations.channel_archive_ops import SlackChannelArchiveOps
 from packages.slack.channel_operations.restore_state_manager import RestoreStateManager
@@ -169,7 +153,7 @@ def register_all_services(registry: TypedServiceRegistry) -> None:
 
     logger.info("Using modular ServiceRegistrationManager for protocol-first service registration")
 
-    # Use the modular focused registration system - all 204 services
+    # Use the modular focused registration system
     register_all_focused_services(_registration_manager)
 
     # Freeze registry after all registrations
@@ -281,7 +265,6 @@ __all__ = [
     "MCPAsyncClientProtocol",
     "MCPConfigProtocol",
     "MessagePreparerProtocol",
-    "MetricsStorageProtocol",
     "OpenAIHandlerProtocol",
     "RestoreStateManagerProtocol",
     "RestoreStateOperationsProtocol",
@@ -321,21 +304,7 @@ __all__ = [
     "slack_handlers",
     "ai_operational",
     "integrations",
-    "database_batches",
-    "ai_enhancements",
     "command_processing",
     "event_processing",
     "ui_services",
-    "advanced_infrastructure",
-    "integration_management",
-    "basic_infrastructure",
-    "caching_storage",
-    "security_monitoring",
-    "communication_services",
-    "channel_management",
-    "workflow_management",
-    "archive_processing",
-    "cross_component_integration",
-    "external_api_services",
-    "jira_services",
 ]

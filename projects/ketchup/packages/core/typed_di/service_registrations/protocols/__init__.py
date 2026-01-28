@@ -13,29 +13,9 @@ circular dependencies and improve maintainability.
 # Core infrastructure protocols
 # AI protocols
 from .ai_protocols import (
-    AIBatchProcessingServiceProtocol,
-    AIContextWindowServiceProtocol,
-    AICostCalculationServiceProtocol,
-    AIErrorHandlingServiceProtocol,
-    AIModelSelectionServiceProtocol,
-    AIPerformanceMonitoringServiceProtocol,
-    AIPromptTemplateServiceProtocol,
-    AIRateLimitServiceProtocol,
-    AIResponseCacheServiceProtocol,
-    AIRetryServiceProtocol,
-    AIStreamingServiceProtocol,
-    AITokenCountServiceProtocol,
     ApiExecutorProtocol,
     AzureConfigProtocol,
     MessagePreparerProtocol,
-)
-
-# Archive processing protocols
-from .archive_processing_protocols import (
-    ArchiveAnalyticsServiceProtocol,
-    ArchiveCleanupServiceProtocol,
-    ArchiveReportingServiceProtocol,
-    ArchiveValidationServiceProtocol,
 )
 
 # Command protocols
@@ -77,28 +57,6 @@ from .csopm_protocols import (
     CSOPMTicket,
     FollowupRecord,
     NotificationRecord,
-)
-
-# Database protocols
-from .database_protocols import (
-    DatabaseBackupServiceProtocol,
-    DatabaseConnectionServiceProtocol,
-    DatabaseIndexServiceProtocol,
-    DatabaseMigrationServiceProtocol,
-    DatabaseMonitoringServiceProtocol,
-    DatabasePoolServiceProtocol,
-    DatabaseQueryServiceProtocol,
-    DatabaseRestoreServiceProtocol,
-    DatabaseTransactionServiceProtocol,
-)
-
-# External API integration protocols
-from .external_api_protocols import (
-    APIGatewayServiceProtocol,
-    CallbackServiceProtocol,
-    ExternalServiceClientProtocol,
-    IntegrationMonitoringServiceProtocol,
-    WebhookServiceProtocol,
 )
 
 # Handler protocols
@@ -234,15 +192,6 @@ from .ui_protocols import (
     SummaryMessageHandlerProtocol,
 )
 
-# Workflow management protocols
-from .workflow_protocols import (
-    ProcessAutomationServiceProtocol,
-    StateManagementServiceProtocol,
-    TaskManagementServiceProtocol,
-    TransitionServiceProtocol,
-    WorkflowEngineServiceProtocol,
-)
-
 # All protocols are imported from modular domain-specific files
 
 __all__ = [
@@ -343,8 +292,6 @@ __all__ = [
     "AccessRequestBlocksProtocol",
     "AccessRequestMonitorProtocol",
     "UnarchiveProcessorProtocol",
-    "AIErrorHandlingServiceProtocol",
-    "AIPerformanceMonitoringServiceProtocol",
     # Command service protocols
     "ListCommandProtocol",
     "QueryCommandProtocol",
@@ -366,6 +313,7 @@ __all__ = [
     "SlackMessageFormatterProtocol",
     "FeedbackOperationsProtocol",
     "BlockBuilderProtocol",
+<<<<<<< HEAD
     # Database service protocols
     "DatabaseBackupServiceProtocol",
     "DatabaseConnectionServiceProtocol",
@@ -393,23 +341,14 @@ __all__ = [
     "ProcessAutomationServiceProtocol",
     "StateManagementServiceProtocol",
     "TransitionServiceProtocol",
+=======
+>>>>>>> c692bfd8 (chore: Remove 91 dead batch_6 DI services (~6,080 LOC))
     # Status update protocols
     "StatusUpdateProcessorProtocol",
     "StatusGeneratorProtocol",
     "StatusValidationServiceProtocol",
     "StatusReportingServiceProtocol",
     "StatusAnalyticsServiceProtocol",
-    # Archive processing protocols
-    "ArchiveValidationServiceProtocol",
-    "ArchiveReportingServiceProtocol",
-    "ArchiveAnalyticsServiceProtocol",
-    "ArchiveCleanupServiceProtocol",
-    # External API integration protocols
-    "APIGatewayServiceProtocol",
-    "ExternalServiceClientProtocol",
-    "WebhookServiceProtocol",
-    "CallbackServiceProtocol",
-    "IntegrationMonitoringServiceProtocol",
     # Maintenance detection protocols
     "RavenMaintenanceClientProtocol",
     "MaintenanceCheckerProtocol",
