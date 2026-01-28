@@ -16,8 +16,6 @@ from .archive_processing import register_archive_processing_services
 # Core infrastructure extensions (16 services) - modular breakdown
 from .basic_infrastructure import register_basic_infrastructure
 
-# Business rule services (5 services) - rule engine, policy, compliance, audit, governance
-from .business_rule_services import register_business_rule_services
 from .caching_storage import register_caching_storage
 
 # Channel management services (5 services) - business logic
