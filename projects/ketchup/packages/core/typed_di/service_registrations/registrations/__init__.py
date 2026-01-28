@@ -141,9 +141,6 @@ def register_all_focused_services(manager) -> None:
     # Channel management services (5 business logic services)
     register_channel_management(manager)
 
-    # Business rule services (5 business logic services)
-    register_business_rule_services(manager)
-
     # Workflow management services (5 workflow services)
     register_workflow_management_services(manager)
 
