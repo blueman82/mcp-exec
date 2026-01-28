@@ -313,36 +313,6 @@ __all__ = [
     "SlackMessageFormatterProtocol",
     "FeedbackOperationsProtocol",
     "BlockBuilderProtocol",
-<<<<<<< HEAD
-    # Database service protocols
-    "DatabaseBackupServiceProtocol",
-    "DatabaseConnectionServiceProtocol",
-    "DatabaseIndexServiceProtocol",
-    "DatabaseMigrationServiceProtocol",
-    "DatabaseMonitoringServiceProtocol",
-    "DatabasePoolServiceProtocol",
-    "DatabaseQueryServiceProtocol",
-    "DatabaseRestoreServiceProtocol",
-    "DatabaseTransactionServiceProtocol",
-    # AI enhancement service protocols
-    "AIBatchProcessingServiceProtocol",
-    "AICostCalculationServiceProtocol",
-    "AIContextWindowServiceProtocol",
-    "AIModelSelectionServiceProtocol",
-    "AIPromptTemplateServiceProtocol",
-    "AIRateLimitServiceProtocol",
-    "AIResponseCacheServiceProtocol",
-    "AIRetryServiceProtocol",
-    "AIStreamingServiceProtocol",
-    "AITokenCountServiceProtocol",
-    # Workflow management protocols
-    "WorkflowEngineServiceProtocol",
-    "TaskManagementServiceProtocol",
-    "ProcessAutomationServiceProtocol",
-    "StateManagementServiceProtocol",
-    "TransitionServiceProtocol",
-=======
->>>>>>> c692bfd8 (chore: Remove 91 dead batch_6 DI services (~6,080 LOC))
     # Status update protocols
     "StatusUpdateProcessorProtocol",
     "StatusGeneratorProtocol",
