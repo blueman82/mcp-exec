@@ -173,7 +173,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
 
             case 'switchActivePackage':
                 await this.handleSwitchActivePackage(
-                    message.payload as { toolId: string; mode: 'meta-mcp' | 'mcp-exec' | 'both' }
+                    message.payload as { toolId: string; mode: 'meta-mcp' | 'mcp-exec' }
                 );
                 break;
 
@@ -568,7 +568,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Handle switching active MCP package for a tool
      */
     private async handleSwitchActivePackage(
-        payload: { toolId: string; mode: 'meta-mcp' | 'mcp-exec' | 'both' }
+        payload: { toolId: string; mode: 'meta-mcp' | 'mcp-exec' }
     ): Promise<void> {
         if (!payload?.toolId || !payload?.mode) {
             this.postMessage({ type: 'switchActivePackageResponse', success: false, error: 'Missing toolId or mode' });

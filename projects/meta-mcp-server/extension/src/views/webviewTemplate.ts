@@ -1130,12 +1130,6 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                                             \${!mcpPackages.mcpExecInstalled ? 'disabled' : ''}>
                                         mcp-exec
                                     </label>
-                                    <label class="toggle-option">
-                                        <input type="radio" name="pkg-\${escapeHtml(tool.tool.id)}" value="both"
-                                            \${activePackages[tool.tool.id] === 'both' ? 'checked' : ''}
-                                            \${!mcpPackages.metaMcpInstalled || !mcpPackages.mcpExecInstalled ? 'disabled' : ''}>
-                                        Both
-                                    </label>
                                 </div>
                                 \` : ''}
                             \` : ''}

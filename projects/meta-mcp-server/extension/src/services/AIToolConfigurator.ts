@@ -46,8 +46,10 @@ export interface ConfigSnippet {
 export interface McpPackageStatus {
     metaMcpInstalled: boolean;
     metaMcpVersion: string | null;
+    metaMcpSource: 'global' | 'local' | null;
     mcpExecInstalled: boolean;
     mcpExecVersion: string | null;
+    mcpExecSource: 'global' | 'local' | null;
 }
 
 interface McpServerEntry {
@@ -63,13 +65,41 @@ interface McpServerEntry {
 export class AIToolConfigurator {
     private homeDir: string;
     private metaMcpPath: string;
+    private mcpExecPath: string;
     private serversConfigPath: string;
 
-    constructor(metaMcpPath?: string) {
+    constructor(metaMcpPath?: string, mcpExecPath?: string) {
         this.homeDir = os.homedir();
         // Use provided path, or setting, or empty (will show error in UI)
         this.metaMcpPath = metaMcpPath ?? getMetaMcpServerPath();
+        this.mcpExecPath = mcpExecPath ?? this.getMcpExecPath();
         this.serversConfigPath = getServersConfigPath();
+    }
+
+    private getMcpExecPath(): string {
+        const setting = vscode.workspace
+            .getConfiguration('meta-mcp')
+            .get<string>('mcpExecPath');
+        return setting?.trim() || '';
+    }
+
+    /**
+     * Auto-detect local monorepo builds without requiring settings.
+     * Checks paths relative to the extension location.
+     */
+    private detectLocalBuilds(): { metaMcp: string | null; mcpExec: string | null } {
+        // Extension is at: extension/dist/extension.js
+        // Monorepo packages are at: packages/meta-mcp/dist/index.js, packages/mcp-exec/dist/index.js
+        const extensionDir = __dirname; // extension/dist
+        const monorepoRoot = path.resolve(extensionDir, '..', '..'); // meta-mcp-server/
+
+        const metaMcpLocal = path.join(monorepoRoot, 'packages', 'meta-mcp', 'dist', 'index.js');
+        const mcpExecLocal = path.join(monorepoRoot, 'packages', 'mcp-exec', 'dist', 'index.js');
+
+        return {
+            metaMcp: fs.existsSync(metaMcpLocal) ? metaMcpLocal : null,
+            mcpExec: fs.existsSync(mcpExecLocal) ? mcpExecLocal : null,
+        };
     }
 
     /**
@@ -293,19 +323,21 @@ export class AIToolConfigurator {
     }
 
     /**
-     * Detect if meta-mcp-server and mcp-exec are installed globally
-     * Uses `npm list -g` to check for global packages
+     * Detect if meta-mcp-server and mcp-exec are installed (global npm or local builds)
+     * Checks: 1) npm list -g, 2) meta-mcp.serverPath setting, 3) local monorepo builds
      */
     detectMcpPackages(): McpPackageStatus {
         const status: McpPackageStatus = {
             metaMcpInstalled: false,
             metaMcpVersion: null,
+            metaMcpSource: null,
             mcpExecInstalled: false,
             mcpExecVersion: null,
+            mcpExecSource: null,
         };
 
+        // 1. Check global npm packages
         try {
-            // Check meta-mcp-server (stdio: 'pipe' suppresses stderr cross-platform)
             const metaMcpResult = execSync(
                 'npm list -g @justanothermldude/meta-mcp-server --depth=0 --json',
                 { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
@@ -314,13 +346,13 @@ export class AIToolConfigurator {
             if (metaMcpJson.dependencies?.['@justanothermldude/meta-mcp-server']) {
                 status.metaMcpInstalled = true;
                 status.metaMcpVersion = metaMcpJson.dependencies['@justanothermldude/meta-mcp-server'].version || null;
+                status.metaMcpSource = 'global';
             }
         } catch {
-            // Not installed or error - leave as false
+            // Not installed globally
         }
 
         try {
-            // Check mcp-exec (stdio: 'pipe' suppresses stderr cross-platform)
             const mcpExecResult = execSync(
                 'npm list -g @justanothermldude/mcp-exec --depth=0 --json',
                 { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
@@ -329,9 +361,31 @@ export class AIToolConfigurator {
             if (mcpExecJson.dependencies?.['@justanothermldude/mcp-exec']) {
                 status.mcpExecInstalled = true;
                 status.mcpExecVersion = mcpExecJson.dependencies['@justanothermldude/mcp-exec'].version || null;
+                status.mcpExecSource = 'global';
             }
         } catch {
-            // Not installed or error - leave as false
+            // Not installed globally
+        }
+
+        // 2. Check local builds (auto-detect from monorepo structure, then settings)
+        const localBuilds = this.detectLocalBuilds();
+
+        if (!status.metaMcpInstalled) {
+            const localPath = localBuilds.metaMcp ?? (this.metaMcpPath && fs.existsSync(this.metaMcpPath) ? this.metaMcpPath : null);
+            if (localPath) {
+                status.metaMcpInstalled = true;
+                status.metaMcpVersion = 'local';
+                status.metaMcpSource = 'local';
+            }
+        }
+
+        if (!status.mcpExecInstalled) {
+            const localPath = localBuilds.mcpExec ?? (this.mcpExecPath && fs.existsSync(this.mcpExecPath) ? this.mcpExecPath : null);
+            if (localPath) {
+                status.mcpExecInstalled = true;
+                status.mcpExecVersion = 'local';
+                status.mcpExecSource = 'local';
+            }
         }
 
         return status;
@@ -535,7 +589,7 @@ export class AIToolConfigurator {
 
     /**
      * Build the meta-mcp server entry for a tool
-     * Prefers npx if package is installed globally, falls back to local path for development
+     * Priority: 1) global npm, 2) auto-detected local build, 3) setting, 4) npx fallback
      */
     private buildServerEntry(tool: AIToolDefinition, packageInstalled = false): McpServerEntry {
         let entry: McpServerEntry;
@@ -549,24 +603,29 @@ export class AIToolConfigurator {
                     SERVERS_CONFIG: this.serversConfigPath,
                 },
             };
-        } else if (this.metaMcpPath) {
-            // Fallback: local development mode
-            entry = {
-                command: 'node',
-                args: [this.metaMcpPath],
-                env: {
-                    SERVERS_CONFIG: this.serversConfigPath,
-                },
-            };
         } else {
-            // Default to npx (will prompt install on first run)
-            entry = {
-                command: 'npx',
-                args: ['-y', '@justanothermldude/meta-mcp-server'],
-                env: {
-                    SERVERS_CONFIG: this.serversConfigPath,
-                },
-            };
+            // Check auto-detected local build or setting
+            const localBuilds = this.detectLocalBuilds();
+            const localPath = localBuilds.metaMcp ?? (this.metaMcpPath && fs.existsSync(this.metaMcpPath) ? this.metaMcpPath : null);
+
+            if (localPath) {
+                entry = {
+                    command: 'node',
+                    args: [localPath],
+                    env: {
+                        SERVERS_CONFIG: this.serversConfigPath,
+                    },
+                };
+            } else {
+                // Default to npx (will prompt install on first run)
+                entry = {
+                    command: 'npx',
+                    args: ['-y', '@justanothermldude/meta-mcp-server'],
+                    env: {
+                        SERVERS_CONFIG: this.serversConfigPath,
+                    },
+                };
+            }
         }
 
         if (tool.requiresType) {
@@ -578,15 +637,33 @@ export class AIToolConfigurator {
 
     /**
      * Build the mcp-exec server entry for a tool
+     * Priority: 1) auto-detected local build, 2) setting, 3) npx fallback
      */
     private buildMcpExecEntry(tool: AIToolDefinition): McpServerEntry {
-        const entry: McpServerEntry = {
-            command: 'npx',
-            args: ['-y', '@justanothermldude/mcp-exec'],
-            env: {
-                SERVERS_CONFIG: this.serversConfigPath,
-            },
-        };
+        let entry: McpServerEntry;
+
+        // Check auto-detected local build or setting
+        const localBuilds = this.detectLocalBuilds();
+        const localPath = localBuilds.mcpExec ?? (this.mcpExecPath && fs.existsSync(this.mcpExecPath) ? this.mcpExecPath : null);
+
+        if (localPath) {
+            entry = {
+                command: 'node',
+                args: [localPath],
+                env: {
+                    SERVERS_CONFIG: this.serversConfigPath,
+                },
+            };
+        } else {
+            // Default: use npx
+            entry = {
+                command: 'npx',
+                args: ['-y', '@justanothermldude/mcp-exec'],
+                env: {
+                    SERVERS_CONFIG: this.serversConfigPath,
+                },
+            };
+        }
 
         if (tool.requiresType) {
             entry.type = 'stdio';
@@ -598,7 +675,7 @@ export class AIToolConfigurator {
     /**
      * Get which MCP package(s) are currently configured in a tool's config
      */
-    getActivePackage(tool: AIToolDefinition): 'meta-mcp' | 'mcp-exec' | 'both' | 'none' {
+    getActivePackage(tool: AIToolDefinition): 'meta-mcp' | 'mcp-exec' | 'none' {
         const configPath = this.resolveConfigPath(tool.configPath);
         if (!fs.existsSync(configPath)) return 'none';
         try {
@@ -607,9 +684,9 @@ export class AIToolConfigurator {
             const servers = config[tool.configKey] || {};
             const hasMeta = META_MCP_SERVER_NAME in servers;
             const hasExec = 'mcp-exec' in servers;
-            if (hasMeta && hasExec) return 'both';
-            if (hasMeta) return 'meta-mcp';
+            // Prefer mcp-exec if both are configured (legacy state)
             if (hasExec) return 'mcp-exec';
+            if (hasMeta) return 'meta-mcp';
             return 'none';
         } catch {
             return 'none';
@@ -621,7 +698,7 @@ export class AIToolConfigurator {
      */
     async switchActivePackage(
         toolId: string,
-        mode: 'meta-mcp' | 'mcp-exec' | 'both'
+        mode: 'meta-mcp' | 'mcp-exec'
     ): Promise<{ success: boolean; error?: string }> {
         const packages = this.detectMcpPackages();
         const tool = getToolById(toolId);
@@ -639,10 +716,9 @@ export class AIToolConfigurator {
         }
 
         const newServers: Record<string, unknown> = {};
-        if (mode === 'meta-mcp' || mode === 'both') {
+        if (mode === 'meta-mcp') {
             newServers[META_MCP_SERVER_NAME] = this.buildServerEntry(tool, packages.metaMcpInstalled);
-        }
-        if (mode === 'mcp-exec' || mode === 'both') {
+        } else {
             newServers['mcp-exec'] = this.buildMcpExecEntry(tool);
         }
 

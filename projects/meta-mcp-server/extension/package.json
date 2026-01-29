@@ -52,7 +52,12 @@
           "meta-mcp.serverPath": {
             "type": "string",
             "default": "",
-            "description": "Path to meta-mcp-server dist/index.js. Required for Setup wizard to configure AI tools."
+            "description": "Path to meta-mcp-server dist/index.js for local development."
+          },
+          "meta-mcp.mcpExecPath": {
+            "type": "string",
+            "default": "",
+            "description": "Path to mcp-exec dist/index.js for local development."
           }
         }
       }
