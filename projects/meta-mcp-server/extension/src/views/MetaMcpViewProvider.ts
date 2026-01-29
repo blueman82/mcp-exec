@@ -223,45 +223,9 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
     
     /**
-     * Try to find dist/index.js - first in workspace, then system-wide
+     * Auto-detection disabled. Only use npm global installs or manual settings.
      */
     private async detectServerPathFromWorkspace(): Promise<string | null> {
-        // 1. Check workspace folders first
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders) {
-            for (const folder of workspaceFolders) {
-                const candidates = [
-                    vscode.Uri.joinPath(folder.uri, 'dist', 'index.js'),
-                    vscode.Uri.joinPath(folder.uri, 'projects', 'meta-mcp-server', 'dist', 'index.js'),
-                ];
-
-                for (const candidate of candidates) {
-                    try {
-                        await vscode.workspace.fs.stat(candidate);
-                        return candidate.fsPath;
-                    } catch {
-                        // File doesn't exist, try next
-                    }
-                }
-            }
-        }
-
-        // 2. Use Spotlight on macOS to find it anywhere
-        if (process.platform === 'darwin') {
-            try {
-                const { execSync } = require('child_process');
-                const result = execSync(
-                    'mdfind -name "index.js" | grep "meta-mcp-server/dist/index.js$" | head -1',
-                    { encoding: 'utf-8', timeout: 5000 }
-                ).trim();
-                if (result) {
-                    return result;
-                }
-            } catch {
-                // mdfind failed or timed out
-            }
-        }
-
         return null;
     }
 

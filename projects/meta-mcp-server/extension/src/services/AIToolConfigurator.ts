@@ -84,22 +84,10 @@ export class AIToolConfigurator {
     }
 
     /**
-     * Auto-detect local monorepo builds without requiring settings.
-     * Checks paths relative to the extension location.
+     * Check for local builds via settings only. No auto-detection.
      */
     private detectLocalBuilds(): { metaMcp: string | null; mcpExec: string | null } {
-        // Extension is at: extension/dist/extension.js
-        // Monorepo packages are at: packages/meta-mcp/dist/index.js, packages/mcp-exec/dist/index.js
-        const extensionDir = __dirname; // extension/dist
-        const monorepoRoot = path.resolve(extensionDir, '..', '..'); // meta-mcp-server/
-
-        const metaMcpLocal = path.join(monorepoRoot, 'packages', 'meta-mcp', 'dist', 'index.js');
-        const mcpExecLocal = path.join(monorepoRoot, 'packages', 'mcp-exec', 'dist', 'index.js');
-
-        return {
-            metaMcp: fs.existsSync(metaMcpLocal) ? metaMcpLocal : null,
-            mcpExec: fs.existsSync(mcpExecLocal) ? mcpExecLocal : null,
-        };
+        return { metaMcp: null, mcpExec: null };
     }
 
     /**
