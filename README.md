@@ -14,6 +14,7 @@ This repository houses multiple related projects that share common infrastructur
 
 | Project | Description | Status | Documentation |
 |---------|-------------|--------|---------------|
+| [Bravo](./projects/bravo) | Slack bot for nudging engineers to log unrecorded Jira work with minimal friction | Design | [Design Doc](./projects/bravo/docs/bravo_design_doc.md) |
 | [Ketchup](./projects/ketchup) | Multi-service Slack app for CSO warroom summarization, JIRA integration, and channel management | Production | [README](./projects/ketchup/README.md) |
 | [Maptimize](./projects/maptimize) | Slack bot for task mapping, process optimization, and team collaboration | Alpha | [README](./projects/maptimize/README.md) |
 | [Meta-MCP](./projects/meta-mcp-server) | MCP server wrapper for token-efficient tool discovery via lazy loading | Production | [README](./projects/meta-mcp-server/README.md) |
@@ -25,6 +26,9 @@ camp-ops-emea/
 ├── .gitignore              # Shared gitignore for all projects
 ├── README.md               # This file
 ├── projects/
+│   ├── bravo/              # Jira hygiene nudge bot
+│   │   └── docs/           # Design documentation
+│   │
 │   ├── ketchup/            # CSO summarization Slack app
 │   │   ├── README.md
 │   │   ├── CLAUDE.md       # AI assistant guidelines
@@ -260,6 +264,9 @@ docs/ketchup-api-reference      # Documentation updates
 ---
 
 ## Documentation
+
+### Bravo
+- [Design Document](./projects/bravo/docs/bravo_design_doc.md) - Architecture and implementation plan
 
 ### Ketchup
 - [README](./projects/ketchup/README.md) - Quick start and overview
