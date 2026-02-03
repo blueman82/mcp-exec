@@ -53,6 +53,5 @@ chore/{description}         # Maintenance
 ### PR Process
 
 1. Create feature branch (use worktree if needed)
-2. Make changes
-3. Run tests (see project README for commands)
-4. Create PR, get approval, merge
+2. Make changes, run tests
+3. Create PR, get approval, merge
