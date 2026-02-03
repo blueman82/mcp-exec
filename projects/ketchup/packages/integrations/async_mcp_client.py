@@ -335,7 +335,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
 
         try:
             result = await self.search_issues(jql, fields=fields, max_results=len(issue_keys))
-            issues_map = {key: None for key in issue_keys}
+            issues_map: Dict[str, Optional[Dict[str, Any]]] = {key: None for key in issue_keys}
             for issue in result.get("issues", []):
                 issue_key = issue.get("key")
                 if issue_key in issues_map:
@@ -347,7 +347,8 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
             return issues_map
         except Exception as exc:
             logger.error("Error batch fetching issues: %s", exc)
-            return {key: None for key in issue_keys}
+            empty_result: Dict[str, Optional[Dict[str, Any]]] = {key: None for key in issue_keys}
+            return empty_result
 
     async def get_issue_comments(self, issue_key: str) -> List[Dict[str, Any]]:
         """Retrieve comments for a JIRA issue."""
@@ -679,7 +680,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         arguments = {"tokenName": token_name, "expiryDays": expiry_days}
 
         try:
-            result = await self._call_mcp_tool("create_jira_pat", arguments)
+            result = await self._call_mcp_tool("create_pat", arguments)
 
             # Extract data from MCP response
             # MCP returns: {success: bool, message: str, data: {pat, id, expiryDate}}
@@ -719,7 +720,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         arguments = {"token": token}
 
         try:
-            result = await self._call_mcp_tool("validate_jira_pat", arguments)
+            result = await self._call_mcp_tool("validate_pat", arguments)
 
             if result.get("valid"):
                 logger.info("PAT validation successful")
@@ -752,7 +753,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         arguments = {"tokenId": token_id}
 
         try:
-            result = await self._call_mcp_tool("revoke_jira_pat", arguments)
+            result = await self._call_mcp_tool("revoke_pat", arguments)
 
             if result.get("success"):
                 logger.info("PAT revoked successfully: %s", token_id)

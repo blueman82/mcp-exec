@@ -484,7 +484,7 @@ class TestAsyncMCPClient:
         ensure_conn_mock.assert_called_once()
         acquire_mock.assert_called_once()
         client._call_mcp_tool.assert_called_once_with(
-            "create_jira_pat", {"tokenName": "test-pat", "expiryDays": 90}
+            "create_pat", {"tokenName": "test-pat", "expiryDays": 90}
         )
 
     @pytest.mark.asyncio
@@ -551,9 +551,7 @@ class TestAsyncMCPClient:
         assert result["message"] == "Token is valid"
         ensure_conn_mock.assert_called_once()
         acquire_mock.assert_called_once()
-        client._call_mcp_tool.assert_called_once_with(
-            "validate_jira_pat", {"token": "test-token-value"}
-        )
+        client._call_mcp_tool.assert_called_once_with("validate_pat", {"token": "test-token-value"})
 
     @pytest.mark.asyncio
     async def test_validate_pat_failure(self, client, mocker):
@@ -619,7 +617,7 @@ class TestAsyncMCPClient:
         assert result["message"] == "PAT revoked successfully"
         ensure_conn_mock.assert_called_once()
         acquire_mock.assert_called_once()
-        client._call_mcp_tool.assert_called_once_with("revoke_jira_pat", {"tokenId": "pat-123"})
+        client._call_mcp_tool.assert_called_once_with("revoke_pat", {"tokenId": "pat-123"})
 
     @pytest.mark.asyncio
     async def test_revoke_pat_failure(self, client, mocker):

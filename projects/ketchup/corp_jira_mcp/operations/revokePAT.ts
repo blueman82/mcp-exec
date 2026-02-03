@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiClient } from "../common/api-client.js";
+import { config } from "../common/config.js";
 
 // Schema for PAT revocation request
 export const RevokePATSchema = z.object({
@@ -29,9 +30,11 @@ export async function revokePAT(params: RevokePATRequest): Promise<{
     // Log token revocation request
     console.log(`Revoking PAT token with ID: ${params.tokenId}`);
 
-    // Call JIRA API endpoint via iPaaS proxy
-    // Endpoint: DELETE /tokens/tokens/{tokenId}
-    await apiClient.jiraRequest(`tokens/tokens/${params.tokenId}`, {
+    // Call JIRA PAT API endpoint via iPaaS proxy
+    // PAT API is at /rest/pat/latest/tokens, NOT under /rest/api/2/
+    // Construct full URL to bypass buildUrl which appends to apiBaseUrl
+    const patApiUrl = config.apiBaseUrl.replace('/rest/api/2', `/rest/pat/latest/tokens/${params.tokenId}`);
+    await apiClient.jiraRequest(patApiUrl, {
       method: "DELETE"
     });
 

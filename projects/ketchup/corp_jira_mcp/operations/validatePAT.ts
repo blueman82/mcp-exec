@@ -36,12 +36,10 @@ export async function validatePAT(request: ValidatePATRequest): Promise<Validate
     console.log("Validating PAT token by attempting authentication");
 
     // Attempt to use the token for authentication
-    // We'll make a request to the API using the token to see if it's valid
+    // Use userPat option which sets x-authorization header for iPaaS
     const result = await apiClient.jiraRequest("myself", {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+      userPat: token
     });
 
     // If we get here without an exception, the token is valid

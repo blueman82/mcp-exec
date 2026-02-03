@@ -93,13 +93,29 @@ interface JiraAuthConfig {
 
 ### 3. MCP Operations (TypeScript/Node.js)
 
-**Location**: `ketchup/corp_jira_mcp/corp_jira_mcp/operations/`
+**Location**: `ketchup/corp_jira_mcp/operations/`
 
-**Core rotation operations** (planned Phase 1):
-- `createPAT.ts`: Creates new JIRA PAT via iPaaS proxy, returns token + 90-day expiry
-- `revokePAT.ts`: Revokes/deletes old PAT by token ID
-- `validatePAT.ts`: Tests if PAT token works by attempting authentication
-- `listPATs.ts`: Lists all active PATs (useful for debugging)
+**Core rotation operations**:
+- `createPAT.ts`: Creates new JIRA PAT via iPaaS proxy, returns `{pat, id, expiryDate}`
+- `revokePAT.ts`: Revokes/deletes old PAT by token ID (DELETE request)
+- `validatePAT.ts`: Tests if PAT token works by attempting authentication with `userPat` option
+
+**IMPORTANT - PAT API Endpoint**:
+The PAT API lives at `/rest/pat/latest/tokens`, NOT under `/rest/api/2/`. The `buildUrl()` function strips leading slashes and prepends `apiBaseUrl`, so PAT operations must construct the **full URL** to bypass this:
+```typescript
+const patApiUrl = config.apiBaseUrl.replace('/rest/api/2', '/rest/pat/latest/tokens');
+```
+
+**iPaaS Authentication for PAT validation**:
+For iPaaS, the PAT must be in the `x-authorization` header (not `Authorization`):
+```
+headers = {
+  'Authorization': IMS_Token,
+  'api_key': IPAAS_API_KEY,
+  'x-authorization': 'Bearer {PAT_TOKEN}'  // PAT goes here
+}
+```
+Use `userPat` option in `jiraRequest()` which sets this header correctly.
 
 **Existing operations** (9 files): Standard JIRA operations (search, create, update, etc.) that use the core authentication layer
 
@@ -187,22 +203,25 @@ async def perform_rotation(self) -> bool:
         logger.info("PAT rotation not needed yet")
         return True  # Success (no action needed)
 
-    # 2. Create new PAT
-    new_token_response = await mcp_client.createPAT()
-    new_pat = new_token_response['token']
-    new_expiry = new_token_response['expiresAt']
+    # 2. Create new PAT via MCP
+    # Returns: {pat: str, id: str, expiryDate: str}
+    new_token_response = await mcp_client.create_pat()
+    new_pat = new_token_response['pat']
+    new_pat_id = new_token_response['id']  # String, not number
+    new_expiry = new_token_response['expiryDate']
 
-    # 3. Validate new PAT
-    is_valid = await mcp_client.validatePAT(new_pat)
+    # 3. Validate new PAT (uses x-authorization header via userPat option)
+    is_valid = await mcp_client.validate_pat(new_pat)
     if not is_valid:
         raise RuntimeError("New PAT validation failed")
 
     # 4. Update secrets (point of no return)
     await secrets_mgr.update_secret('ketchup_jira_pat', new_pat)
+    await secrets_mgr.update_secret('ketchup_jira_pat_id', new_pat_id)
     await secrets_mgr.update_secret('ketchup_jira_pat_expiry', new_expiry)
 
     # 5. Revoke old PAT
-    await mcp_client.revokePAT(old_token_id)
+    await mcp_client.revoke_pat(old_token_id)
 
     # 6. Send success alert
     await slack_client.send_message(
@@ -971,12 +990,19 @@ The JIRA PAT rotation system ensures continuous access to JIRA by:
 
 **Key timeline**: JIRA Basic Auth deprecated Nov 30, 2025. PAT rotation must be working before then.
 
-**Current status** (Phase 1):
-- Configuration system and validation in place (TypeScript/Node.js)
-- Tests cover all validation logic
-- MCP operations planned for rotation service
-- Python rotation service to be implemented
-- Feature flag allows safe rollout
+**Current status** (February 2026):
+- ✅ PAT rotation fully operational in production (v2.360.382)
+- ✅ MCP operations implemented: createPAT, validatePAT, revokePAT
+- ✅ Python rotation service running as singleton on prod1
+- ✅ Unified scheduler runs PAT rotation every 24 hours
+- ✅ Alerts sent to #ketchup-alerts on success/failure
+
+**Key technical details** (fixed Feb 3, 2026):
+- PAT API endpoint: `/rest/pat/latest/tokens` (NOT under `/rest/api/2/`)
+- Must construct full URL to bypass `buildUrl()` which strips leading slashes
+- Response fields: `pat`, `id` (string), `expiryDate`
+- Request field: `expirationDuration` (not `expirationDays`)
+- Validation uses `userPat` option → sets `x-authorization: Bearer {token}` header
 
 **Next phases**:
 - Detailed metrics collection

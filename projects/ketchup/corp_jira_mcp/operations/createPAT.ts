@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiClient } from "../common/api-client.js";
+import { config } from "../common/config.js";
 
 // Schema for PAT creation request
 export const CreatePATSchema = z.object({
@@ -10,9 +11,11 @@ export const CreatePATSchema = z.object({
 export type CreatePATRequest = z.infer<typeof CreatePATSchema>;
 
 // Response type from JIRA PAT creation endpoint
+// API returns rawToken (token value), id (token ID), and expiringAt (ISO date)
 interface JiraPATResponse {
-  token: string;
-  expiresAt: string;
+  rawToken: string;
+  id: string;
+  expiringAt: string;
 }
 
 /**
@@ -31,33 +34,36 @@ interface JiraPATResponse {
 export async function createPAT(params: CreatePATRequest): Promise<{
   success: boolean;
   message: string;
-  data?: { token: string; expiresAt: string };
+  data?: { pat: string; id: string; expiryDate: string };
 }> {
   try {
     // Log token creation request (without exposing parameters)
     console.log(`Creating PAT token: ${params.tokenName} with ${params.expiryDays}-day expiry`);
 
-    // Call JIRA API endpoint via iPaaS proxy
-    // Endpoint: POST /tokens/tokens
-    const result = await apiClient.jiraRequest("tokens/tokens", {
+    // Call JIRA PAT API endpoint via iPaaS proxy
+    // PAT API is at /rest/pat/latest/tokens, NOT under /rest/api/2/
+    // Construct full URL to bypass buildUrl which appends to apiBaseUrl
+    const patApiUrl = config.apiBaseUrl.replace('/rest/api/2', '/rest/pat/latest/tokens');
+    const result = await apiClient.jiraRequest(patApiUrl, {
       method: "POST",
       body: {
         name: params.tokenName,
-        expirationDays: params.expiryDays
+        expirationDuration: params.expiryDays
       }
     });
 
     const patResponse = result as JiraPATResponse;
 
     // Log successful creation without exposing the token value
-    console.log(`Created PAT token: ${params.tokenName} - expires at ${patResponse.expiresAt}`);
+    console.log(`Created PAT token: ${params.tokenName} (ID: ${patResponse.id}) - expires at ${patResponse.expiringAt}`);
 
     return {
       success: true,
       message: `Successfully created PAT token: ${params.tokenName}`,
       data: {
-        token: patResponse.token,
-        expiresAt: patResponse.expiresAt
+        pat: patResponse.rawToken,
+        id: String(patResponse.id),  // Convert to string for revokePAT schema
+        expiryDate: patResponse.expiringAt
       }
     };
   } catch (error) {
