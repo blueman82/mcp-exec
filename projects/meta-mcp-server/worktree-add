@@ -1,0 +1,86 @@
+#!/bin/bash
+#
+# worktree-add - Create a git worktree with all build artifacts symlinked
+#
+# Usage: ./worktree-add <path> <branch>
+# Example: ./worktree-add ../camp-ops-emea-feature feature/my-feature
+#
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Get the main repo root (where this script lives)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MAIN_REPO="$SCRIPT_DIR"
+
+if [ $# -lt 2 ]; then
+    echo -e "${RED}Usage: ./worktree-add <path> <branch>${NC}"
+    echo ""
+    echo "Examples:"
+    echo "  ./worktree-add ../camp-ops-emea-feature feature/my-feature"
+    echo "  ./worktree-add /tmp/meta-mcp-test feature/test-branch"
+    exit 1
+fi
+
+WORKTREE_PATH="$1"
+BRANCH="$2"
+
+echo -e "${BLUE}[INFO]${NC} Creating worktree at: $WORKTREE_PATH"
+echo -e "${BLUE}[INFO]${NC} Branch: $BRANCH"
+
+# Create the worktree
+# Find git root dynamically
+GIT_ROOT="$(cd "$MAIN_REPO" && git rev-parse --show-toplevel)"
+cd "$GIT_ROOT"
+git worktree add "$WORKTREE_PATH" -b "$BRANCH" 2>/dev/null || git worktree add "$WORKTREE_PATH" "$BRANCH"
+
+# Resolve the absolute path of the new worktree
+WORKTREE_ABS="$(cd "$WORKTREE_PATH" && pwd)"
+WORKTREE_META_MCP="$WORKTREE_ABS/projects/meta-mcp-server"
+
+echo -e "${BLUE}[INFO]${NC} Setting up symlinks for build artifacts..."
+
+# Symlink root node_modules
+if [ -d "$MAIN_REPO/node_modules" ]; then
+    ln -sf "$MAIN_REPO/node_modules" "$WORKTREE_META_MCP/node_modules"
+    echo -e "${GREEN}[SUCCESS]${NC} Symlinked node_modules"
+else
+    echo -e "${RED}[WARN]${NC} No node_modules found - run 'npm install' in main repo first"
+fi
+
+# Symlink root dist
+if [ -d "$MAIN_REPO/dist" ]; then
+    ln -sf "$MAIN_REPO/dist" "$WORKTREE_META_MCP/dist"
+    echo -e "${GREEN}[SUCCESS]${NC} Symlinked dist"
+else
+    echo -e "${RED}[WARN]${NC} No dist found - run 'npm run build' in main repo first"
+fi
+
+# Symlink extension/node_modules
+if [ -d "$MAIN_REPO/extension/node_modules" ]; then
+    ln -sf "$MAIN_REPO/extension/node_modules" "$WORKTREE_META_MCP/extension/node_modules"
+    echo -e "${GREEN}[SUCCESS]${NC} Symlinked extension/node_modules"
+else
+    echo -e "${RED}[WARN]${NC} No extension/node_modules found - run 'cd extension && npm install' first"
+fi
+
+# Symlink extension/dist
+if [ -d "$MAIN_REPO/extension/dist" ]; then
+    ln -sf "$MAIN_REPO/extension/dist" "$WORKTREE_META_MCP/extension/dist"
+    echo -e "${GREEN}[SUCCESS]${NC} Symlinked extension/dist"
+else
+    echo -e "${RED}[WARN]${NC} No extension/dist found - run 'cd extension && npm run compile' first"
+fi
+
+echo ""
+echo -e "${GREEN}[SUCCESS]${NC} Worktree ready at: $WORKTREE_META_MCP"
+echo ""
+echo "Next steps:"
+echo "  cd $WORKTREE_META_MCP"
+echo "  npx vitest run      # Run tests"
+echo "  npx tsc --noEmit    # Type check"

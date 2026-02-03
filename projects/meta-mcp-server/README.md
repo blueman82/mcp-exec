@@ -13,6 +13,9 @@ packages/
 ├── core/           # @justanothermldude/meta-mcp-core - Shared utilities, types, pool, and registry
 ├── meta-mcp/       # @justanothermldude/meta-mcp-server - Main MCP server with 3 meta-tools
 └── mcp-exec/       # @justanothermldude/mcp-exec - Sandboxed code execution with typed wrappers
+
+extension/          # VS Code/Cursor extension (VSIX)
+jetbrains-plugin/   # IntelliJ IDEA plugin (works with Junie)
 ```
 
 | Package | Description | Install |
@@ -72,10 +75,11 @@ The extension auto-detects installed AI tools and shows their status:
 
 | Tool | Config Location | Detection |
 |------|-----------------|-----------|
-| Claude | `~/.claude.json` | `~/.claude.json` exists |
+| Claude Code | `~/.claude.json` | `~/.claude.json` exists |
 | Cursor | `~/.cursor/mcp.json` | `~/.cursor/` exists |
 | Droid (Factory) | `~/.factory/mcp.json` | `~/.factory/` exists |
 | VS Code | `~/.vscode/mcp.json` | `~/.vscode/` exists |
+| Junie (JetBrains) | `~/.junie/mcp/mcp.json` | `~/.junie/` exists |
 
 For each detected tool, use these buttons:
 

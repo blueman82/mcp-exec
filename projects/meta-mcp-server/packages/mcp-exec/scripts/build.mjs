@@ -36,6 +36,9 @@ await esbuild.build({
   minify: false,
   keepNames: true,
   logLevel: 'info',
+  banner: {
+    js: '#!/usr/bin/env node',
+  },
   define: {
     '__MCP_EXEC_VERSION__': JSON.stringify(version),
   },
