@@ -25,6 +25,7 @@ from typing import Any, Dict, Optional
 import aioboto3
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from packages.core.cleanup_utils import cleanup_resources
 from packages.core.logging import setup_logger
@@ -62,6 +63,23 @@ MAINTENANCE_MESSAGE: str = os.getenv(
 def is_maintenance_mode() -> bool:
     """Check if maintenance mode is enabled."""
     return MAINTENANCE_MODE.lower() == "true"
+
+
+class MaintenanceMiddleware(BaseHTTPMiddleware):
+    """Return 503 during maintenance mode, except for /health."""
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        if is_maintenance_mode() and request.url.path != "/health":
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "maintenance",
+                    "message": MAINTENANCE_MESSAGE,
+                    "retry_after": 300,
+                },
+                headers={"Retry-After": "300"},
+            )
+        return await call_next(request)
 
 
 @asynccontextmanager
@@ -115,6 +133,7 @@ app = FastAPI(
     description="Handles both webhook reception and API processing",
     lifespan=lifespan,
 )
+app.add_middleware(MaintenanceMiddleware)
 
 
 def verify_slack_signature(body: bytes, timestamp: str, signature: str) -> bool:
