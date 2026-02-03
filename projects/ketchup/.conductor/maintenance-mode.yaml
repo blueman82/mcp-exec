@@ -1,18 +1,18 @@
 # Conductor Plan: Ketchup Maintenance Mode
-# Generated: 2026-02-03
-# Planner: implementation-planner v4.2
+# Generated: 2026-02-03 (Revised)
+# Planner: implementation-planner v4.2 + strictcode integration
 
 conductor:
   worktree_groups:
     - group_id: "core"
-      tasks: [1, 2, 3]
-      rationale: "Sequential: config → middleware → docker-compose (each depends on prior)"
-    - group_id: "integration"
-      tasks: [4, 5]
-      rationale: "Deploy script and manual control depend on docker-compose config"
+      tasks: [1, 2]
+      rationale: "Sequential: config → middleware"
+    - group_id: "infra"
+      tasks: [3, 4]
+      rationale: "docker-compose and deploy flag can parallel after core"
     - group_id: "validation"
-      tasks: [6]
-      rationale: "Tests depend on all implementation tasks"
+      tasks: [5]
+      rationale: "Tests depend on implementation"
 
 planner_compliance:
   planner_version: "4.2.0"
@@ -23,25 +23,26 @@ data_flow_registry:
   producers:
     maintenance_config:
       - task: 1
-        description: "Creates MAINTENANCE_MODE, MAINTENANCE_MESSAGE env var reading"
+        description: "Creates MAINTENANCE_MODE, MAINTENANCE_MESSAGE env var reading, is_maintenance_mode()"
     maintenance_middleware:
       - task: 2
-        description: "Creates MaintenanceMiddleware class with is_maintenance_mode() check"
+        description: "Creates MaintenanceMiddleware class"
     docker_env_vars:
       - task: 3
         description: "Adds KETCHUP_MAINTENANCE_MODE to docker-compose.yml"
+    deploy_flag:
+      - task: 4
+        description: "Adds --maintenance flag to deploy script"
   consumers:
     maintenance_config:
       - task: 2
-        description: "Middleware uses config to check maintenance state"
+        description: "Middleware uses is_maintenance_mode()"
     maintenance_middleware:
-      - task: 6
+      - task: 5
         description: "Tests import and test MaintenanceMiddleware"
     docker_env_vars:
       - task: 4
-        description: "Deploy script sets KETCHUP_MAINTENANCE_MODE via docker-compose"
-      - task: 5
-        description: "Manual script sets KETCHUP_MAINTENANCE_MODE"
+        description: "Deploy script passes env var via docker-compose"
 
 plan:
   metadata:
@@ -53,6 +54,7 @@ plan:
   context:
     framework: "Python 3.11, FastAPI"
     test_framework: "pytest"
+    quality_tool: "./check --fix"
     existing_patterns: |
       - startup_complete global flag controls readiness
       - /health returns 200 always (liveness)
@@ -61,20 +63,23 @@ plan:
 
   tasks:
     - task_number: "1"
-      name: "Add maintenance mode environment variable reading"
+      name: "Add maintenance mode configuration"
       agent: "fastapi-pro"
       files:
         - "ketchup-app/main.py"
       depends_on: []
 
       success_criteria:
-        - "MAINTENANCE_MODE global variable reads from os.getenv('KETCHUP_MAINTENANCE_MODE', 'false')"
-        - "MAINTENANCE_MESSAGE global variable reads from os.getenv('KETCHUP_MAINTENANCE_MESSAGE', 'Ketchup is undergoing maintenance. Please try again in a few minutes.')"
-        - "is_maintenance_mode() function returns MAINTENANCE_MODE.lower() == 'true'"
-        - "No TODO comments in production code"
+        - "MAINTENANCE_MODE: str = os.getenv('KETCHUP_MAINTENANCE_MODE', 'false')"
+        - "MAINTENANCE_MESSAGE: str = os.getenv('KETCHUP_MAINTENANCE_MESSAGE', 'Ketchup is undergoing maintenance. Please try again in a few minutes.')"
+        - "is_maintenance_mode() -> bool returns MAINTENANCE_MODE.lower() == 'true'"
+        - "All functions have full type hints (Pyright strict)"
+        - "./check --fix passes with no errors"
+        - "No TODO comments"
 
       test_commands:
-        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run python -c \"from ketchup_app_main import MAINTENANCE_MODE, MAINTENANCE_MESSAGE, is_maintenance_mode; print('OK')\""
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check --fix"
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run python -c \"import sys; sys.path.insert(0, 'ketchup-app'); from main import MAINTENANCE_MODE, is_maintenance_mode; print('OK')\""
 
       runtime_metadata:
         dependency_checks:
@@ -83,41 +88,64 @@ plan:
         documentation_targets: []
 
       description: |
+        <mandatory_principles>
+        ENGINEERING: YAGNI (no speculative features), KISS (minimum complexity), DRY, Fail Fast, SSOT.
+        PYTHON:
+          - PEP 8: snake_case functions, PascalCase classes, UPPER_CASE constants
+          - Full type hints on ALL signatures (must pass Pyright strict)
+          - Explicit imports (no star imports, no lazy imports, no TYPE_CHECKING)
+          - EAFP over LBYL (try/except not if-checks)
+          - f-strings over .format()
+          - No mutable default arguments
+        CODE REDUCTION:
+          - No helpers for one-time ops
+          - Delete unused code completely
+          - No backwards-compat shims
+        QUALITY: Run ./check --fix before committing
+        </mandatory_principles>
+
         <task_description>
         Add maintenance mode configuration to ketchup-app/main.py.
 
         Add after line 53 (after startup_complete = False):
+
         ```python
         MAINTENANCE_MODE: str = os.getenv("KETCHUP_MAINTENANCE_MODE", "false")
         MAINTENANCE_MESSAGE: str = os.getenv(
             "KETCHUP_MAINTENANCE_MESSAGE",
-            "Ketchup is undergoing maintenance. Please try again in a few minutes."
+            "Ketchup is undergoing maintenance. Please try again in a few minutes.",
         )
+
 
         def is_maintenance_mode() -> bool:
             """Check if maintenance mode is enabled."""
             return MAINTENANCE_MODE.lower() == "true"
         ```
+
+        Run ./check --fix after changes.
         </task_description>
 
       implementation:
         approach: |
-          Simple config addition following existing pattern (SLACK_SIGNING_SECRET, container, startup_complete).
+          Simple config following existing pattern (SLACK_SIGNING_SECRET, container, startup_complete).
         key_points:
-          - point: "MAINTENANCE_MODE global variable"
-            details: "Reads from os.getenv('KETCHUP_MAINTENANCE_MODE', 'false')"
+          - point: "MAINTENANCE_MODE: str type hint"
+            details: "os.getenv('KETCHUP_MAINTENANCE_MODE', 'false')"
             reference: "ketchup-app/main.py:54"
-          - point: "MAINTENANCE_MESSAGE global variable"
-            details: "Reads from os.getenv with default friendly message"
+          - point: "MAINTENANCE_MESSAGE: str type hint"
+            details: "os.getenv with default friendly message"
             reference: "ketchup-app/main.py:55"
-          - point: "is_maintenance_mode() function"
-            details: "Returns bool comparing MAINTENANCE_MODE.lower() == 'true'"
+          - point: "is_maintenance_mode() -> bool return type"
+            details: "Returns MAINTENANCE_MODE.lower() == 'true'"
             reference: "ketchup-app/main.py:60"
+          - point: "./check --fix passes"
+            details: "Run quality pipeline after changes"
+            reference: "project root"
 
       code_quality:
         python:
           full_quality_pipeline:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check --fix"
             exit_on_failure: true
 
       commit:
@@ -133,28 +161,39 @@ plan:
       depends_on: ["1"]
 
       success_criteria:
-        - "MaintenanceMiddleware class inherits from BaseHTTPMiddleware"
-        - "dispatch() method checks is_maintenance_mode() on each request"
-        - "dispatch() allows /health endpoint when maintenance mode enabled"
-        - "dispatch() returns JSONResponse with status_code=503 for blocked requests"
-        - "JSONResponse body contains keys: status, message, retry_after"
-        - "Response includes Retry-After header set to 300"
-        - "Middleware registered with app.add_middleware(MaintenanceMiddleware)"
-        - "No TODO comments in production code"
+        - "from starlette.middleware.base import BaseHTTPMiddleware import added"
+        - "MaintenanceMiddleware(BaseHTTPMiddleware) class defined"
+        - "async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response"
+        - "dispatch() checks is_maintenance_mode() and request.url.path != '/health'"
+        - "Returns JSONResponse(status_code=503, content={'status': 'maintenance', 'message': MAINTENANCE_MESSAGE, 'retry_after': 300}, headers={'Retry-After': '300'})"
+        - "app.add_middleware(MaintenanceMiddleware) called after FastAPI instantiation"
+        - "All methods have full type hints (Pyright strict)"
+        - "./check --fix passes with no errors"
+        - "No TODO comments"
 
       test_commands:
-        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run pytest tests/unit/test_maintenance_middleware.py -v"
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check --fix"
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && grep -q 'MaintenanceMiddleware' ketchup-app/main.py"
 
       runtime_metadata:
         dependency_checks:
-          - command: "grep -q 'MaintenanceMiddleware' ketchup-app/main.py"
+          - command: "grep -q 'class MaintenanceMiddleware' ketchup-app/main.py"
             description: "Verify middleware class exists"
         documentation_targets: []
 
       description: |
         <mandatory_principles>
-        ENGINEERING: YAGNI, KISS, DRY, Fail Fast, Single Source of Truth.
-        PYTHONIC: Full type hints (Pyright strict), EAFP (try/except), context managers.
+        ENGINEERING: YAGNI, KISS, DRY, Fail Fast, SSOT, Law of Demeter.
+        PYTHON:
+          - PEP 8: snake_case functions, PascalCase classes
+          - Full type hints on ALL signatures including dispatch() -> Response
+          - Explicit imports from starlette.middleware.base
+          - EAFP over LBYL
+          - Use typing imports: RequestResponseEndpoint for call_next type
+        CODE REDUCTION:
+          - Single dispatch method, no extra helpers
+          - No premature abstractions
+        QUALITY: Run ./check --fix before committing
         </mandatory_principles>
 
         <task_description>
@@ -162,15 +201,17 @@ plan:
 
         Add import at top:
         ```python
-        from starlette.middleware.base import BaseHTTPMiddleware
+        from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
         ```
 
         Add class after is_maintenance_mode() function:
         ```python
         class MaintenanceMiddleware(BaseHTTPMiddleware):
-            """Middleware to return 503 during maintenance mode."""
+            """Return 503 during maintenance mode, except for /health."""
 
-            async def dispatch(self, request: Request, call_next) -> Response:
+            async def dispatch(
+                self, request: Request, call_next: RequestResponseEndpoint
+            ) -> Response:
                 if is_maintenance_mode() and request.url.path != "/health":
                     return JSONResponse(
                         status_code=503,
@@ -188,39 +229,44 @@ plan:
         ```python
         app.add_middleware(MaintenanceMiddleware)
         ```
+
+        Run ./check --fix after changes.
         </task_description>
 
       implementation:
         approach: |
-          Use Starlette's BaseHTTPMiddleware for simple request interception.
-          Check path to always allow /health for load balancer liveness probes.
+          Starlette BaseHTTPMiddleware with typed dispatch.
+          /health always allowed for load balancer liveness probes.
         key_points:
-          - point: "MaintenanceMiddleware class inherits from BaseHTTPMiddleware"
-            details: "Import from starlette.middleware.base"
+          - point: "BaseHTTPMiddleware import"
+            details: "from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint"
+            reference: "ketchup-app/main.py imports"
+          - point: "dispatch() full type hints"
+            details: "(self, request: Request, call_next: RequestResponseEndpoint) -> Response"
+            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
+          - point: "is_maintenance_mode() check"
+            details: "First condition before path check"
+            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
+          - point: "request.url.path != '/health'"
+            details: "Always allow health endpoint"
+            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
+          - point: "JSONResponse status_code=503"
+            details: "content has status, message, retry_after keys"
+            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
+          - point: "Retry-After header"
+            details: "headers={'Retry-After': '300'}"
+            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
+          - point: "app.add_middleware(MaintenanceMiddleware)"
+            details: "After FastAPI instantiation"
             reference: "ketchup-app/main.py"
-          - point: "dispatch() method checks is_maintenance_mode()"
-            details: "Called on every request, checks global function"
-            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
-          - point: "dispatch() allows /health endpoint"
-            details: "Condition: request.url.path != '/health'"
-            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
-          - point: "dispatch() returns JSONResponse with status_code=503"
-            details: "Uses FastAPI JSONResponse, not plain dict"
-            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
-          - point: "JSONResponse body contains status, message, retry_after"
-            details: "status='maintenance', message=MAINTENANCE_MESSAGE, retry_after=300"
-            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
-          - point: "Retry-After header set to 300"
-            details: "Added via headers={'Retry-After': '300'}"
-            reference: "ketchup-app/main.py:MaintenanceMiddleware.dispatch"
-          - point: "Middleware registered with app.add_middleware()"
-            details: "Called after FastAPI app instantiation"
-            reference: "ketchup-app/main.py"
+          - point: "./check --fix passes"
+            details: "Run quality pipeline"
+            reference: "project root"
 
       code_quality:
         python:
           full_quality_pipeline:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check --fix"
             exit_on_failure: true
 
       commit:
@@ -236,9 +282,9 @@ plan:
       depends_on: ["1"]
 
       success_criteria:
-        - "KETCHUP_MAINTENANCE_MODE env var added to ketchup-app service with default false"
-        - "KETCHUP_MAINTENANCE_MESSAGE env var added to ketchup-app service"
-        - "No TODO comments in production code"
+        - "KETCHUP_MAINTENANCE_MODE=${KETCHUP_MAINTENANCE_MODE:-false} added to ketchup-app environment"
+        - "KETCHUP_MAINTENANCE_MESSAGE=${KETCHUP_MAINTENANCE_MESSAGE:-} added to ketchup-app environment"
+        - "No TODO comments"
 
       test_commands:
         - "grep -q 'KETCHUP_MAINTENANCE_MODE' /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/infrastructure/docker-compose.yml"
@@ -258,18 +304,19 @@ plan:
         - KETCHUP_MAINTENANCE_MODE=${KETCHUP_MAINTENANCE_MODE:-false}
         - KETCHUP_MAINTENANCE_MESSAGE=${KETCHUP_MAINTENANCE_MESSAGE:-}
         ```
+
+        Simple config change - no code quality check needed for YAML.
         </task_description>
 
       implementation:
         approach: |
-          Simple addition to existing environment section. Use shell variable expansion
-          with defaults so it works even when not explicitly set.
+          Shell variable expansion with defaults.
         key_points:
-          - point: "KETCHUP_MAINTENANCE_MODE env var with default false"
-            details: "Format: ${KETCHUP_MAINTENANCE_MODE:-false}"
+          - point: "KETCHUP_MAINTENANCE_MODE with default false"
+            details: "${KETCHUP_MAINTENANCE_MODE:-false}"
             reference: "infrastructure/docker-compose.yml:ketchup-app.environment"
-          - point: "KETCHUP_MAINTENANCE_MESSAGE env var"
-            details: "Format: ${KETCHUP_MAINTENANCE_MESSAGE:-} (empty default uses code default)"
+          - point: "KETCHUP_MAINTENANCE_MESSAGE with empty default"
+            details: "${KETCHUP_MAINTENANCE_MESSAGE:-}"
             reference: "infrastructure/docker-compose.yml:ketchup-app.environment"
 
       commit:
@@ -278,195 +325,116 @@ plan:
         files: ["infrastructure/docker-compose.yml"]
 
     - task_number: "4"
-      name: "Add set_maintenance_mode function to deploy script"
+      name: "Add --maintenance flag to deploy script"
       agent: "deployment-engineer"
       files:
         - "infrastructure/deploy-ketchup.sh"
       depends_on: ["3"]
 
       success_criteria:
-        - "set_maintenance_mode() function accepts server and enabled (true/false) parameters"
-        - "set_maintenance_mode() runs docker-compose with KETCHUP_MAINTENANCE_MODE env var"
-        - "deploy_to_server() calls set_maintenance_mode(server, true) before deployment"
-        - "deploy_to_server() calls set_maintenance_mode(server, false) after successful deployment"
-        - "No TODO comments in production code"
+        - "MAINTENANCE_MODE variable initialized to empty string"
+        - "--maintenance) flag case added to argument parser setting MAINTENANCE_MODE=$2"
+        - "If MAINTENANCE_MODE is set, runs: ssh $server 'cd $PROD_DIR && sudo KETCHUP_MAINTENANCE_MODE=$MAINTENANCE_MODE docker-compose up -d ketchup-app'"
+        - "Help text includes: --maintenance on|off  Set maintenance mode"
+        - "No TODO comments"
 
       test_commands:
-        - "grep -q 'set_maintenance_mode' /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/infrastructure/deploy-ketchup.sh"
+        - "grep -q '\\-\\-maintenance' /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/infrastructure/deploy-ketchup.sh"
+        - "bash -n /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/infrastructure/deploy-ketchup.sh"
 
       runtime_metadata:
         dependency_checks:
-          - command: "grep 'set_maintenance_mode' infrastructure/deploy-ketchup.sh"
-            description: "Verify function added"
+          - command: "grep 'maintenance' infrastructure/deploy-ketchup.sh"
+            description: "Verify flag added"
         documentation_targets: []
 
       description: |
         <mandatory_principles>
-        ENGINEERING: YAGNI, KISS, DRY, Fail Fast.
+        ENGINEERING: KISS (simple flag, no auto-magic), YAGNI.
+        BASH: set -euo pipefail, local variables, clear error messages.
         </mandatory_principles>
 
         <task_description>
-        Add maintenance mode control to deploy script.
+        Add --maintenance flag to deploy script for manual maintenance control.
 
-        Add function after sync_docker_compose_if_changed():
+        Usage:
+        ```bash
+        ./deploy --maintenance on   # Enable maintenance mode
+        ./deploy --maintenance off  # Disable maintenance mode
+        ```
+
+        Add to VARIABLES section:
+        ```bash
+        MAINTENANCE_MODE=""
+        ```
+
+        Add to argument parser (case statement):
+        ```bash
+        --maintenance)
+            MAINTENANCE_MODE="$2"
+            shift 2
+            ;;
+        ```
+
+        Add to show_help():
+        ```bash
+        echo -e "      --maintenance on|off    Set maintenance mode on target servers"
+        ```
+
+        Add new function after sync_docker_compose_if_changed():
         ```bash
         set_maintenance_mode() {
             local server=$1
-            local enabled=$2
-            log_info "Setting maintenance mode to $enabled on $server..."
-            ssh "$server" "cd ${PROD_DIR} && sudo KETCHUP_MAINTENANCE_MODE=$enabled docker-compose up -d ketchup-app"
-            log_success "Maintenance mode set to $enabled on $server"
+            local mode=$2
+            log_info "Setting maintenance mode to $mode on $server..."
+            ssh "$server" "cd ${PROD_DIR} && sudo KETCHUP_MAINTENANCE_MODE=$mode docker-compose up -d ketchup-app"
+            log_success "Maintenance mode set to $mode on $server"
         }
         ```
 
-        Modify deploy_to_server() to wrap deployment:
-        - Before docker-compose pull: set_maintenance_mode "$server" true
-        - After successful docker-compose up: set_maintenance_mode "$server" false
+        Add at start of main execution (after preflight, before build):
+        ```bash
+        # Handle maintenance mode if specified
+        if [ -n "$MAINTENANCE_MODE" ]; then
+            if [ "$PROD2_ONLY" = false ]; then
+                set_maintenance_mode "$PROD1_SERVER" "$MAINTENANCE_MODE"
+            fi
+            if [ "$PROD1_ONLY" = false ]; then
+                set_maintenance_mode "$PROD2_SERVER" "$MAINTENANCE_MODE"
+            fi
+            log_success "Maintenance mode set to $MAINTENANCE_MODE"
+            exit 0
+        fi
+        ```
         </task_description>
 
       implementation:
         approach: |
-          Minimal change to deploy script. Enable maintenance before pull/deploy,
-          disable after successful deploy. On failure, maintenance stays on (safe default).
+          Simple flag that sets maintenance and exits. No auto-wrap of deploy.
+          User runs: ./deploy --maintenance on, deploys, ./deploy --maintenance off
         key_points:
-          - point: "set_maintenance_mode() function accepts server and enabled parameters"
-            details: "local server=$1, local enabled=$2"
-            reference: "infrastructure/deploy-ketchup.sh:set_maintenance_mode"
-          - point: "set_maintenance_mode() runs docker-compose with env var"
-            details: "KETCHUP_MAINTENANCE_MODE=$enabled docker-compose up -d ketchup-app"
-            reference: "infrastructure/deploy-ketchup.sh:set_maintenance_mode"
-          - point: "deploy_to_server() calls set_maintenance_mode true before deployment"
-            details: "Called before docker-compose pull"
-            reference: "infrastructure/deploy-ketchup.sh:deploy_to_server"
-          - point: "deploy_to_server() calls set_maintenance_mode false after deployment"
-            details: "Called after successful docker-compose up"
-            reference: "infrastructure/deploy-ketchup.sh:deploy_to_server"
+          - point: "MAINTENANCE_MODE variable"
+            details: "Initialized to empty string"
+            reference: "infrastructure/deploy-ketchup.sh:variables"
+          - point: "--maintenance) case"
+            details: "Sets MAINTENANCE_MODE=$2, shift 2"
+            reference: "infrastructure/deploy-ketchup.sh:argument parser"
+          - point: "set_maintenance_mode() function"
+            details: "ssh + KETCHUP_MAINTENANCE_MODE=$mode docker-compose up -d"
+            reference: "infrastructure/deploy-ketchup.sh"
+          - point: "Early exit after maintenance"
+            details: "If MAINTENANCE_MODE set, apply and exit 0"
+            reference: "infrastructure/deploy-ketchup.sh:main"
+          - point: "Help text"
+            details: "--maintenance on|off"
+            reference: "infrastructure/deploy-ketchup.sh:show_help"
 
       commit:
         type: "feat"
-        message: "integrate maintenance mode into deployment"
+        message: "add --maintenance flag to deploy script"
         files: ["infrastructure/deploy-ketchup.sh"]
 
     - task_number: "5"
-      name: "Create manual maintenance control script"
-      agent: "deployment-engineer"
-      files:
-        - "scripts/maintenance.sh"
-      depends_on: ["3"]
-
-      success_criteria:
-        - "scripts/maintenance.sh created with executable permissions"
-        - "Script accepts commands: on, off, status"
-        - "Script accepts optional server argument (prod1, prod2, both)"
-        - "on command sets KETCHUP_MAINTENANCE_MODE=true via docker-compose"
-        - "off command sets KETCHUP_MAINTENANCE_MODE=false via docker-compose"
-        - "status command shows current KETCHUP_MAINTENANCE_MODE value"
-        - "No TODO comments in production code"
-
-      test_commands:
-        - "test -x /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup/scripts/maintenance.sh"
-
-      runtime_metadata:
-        dependency_checks:
-          - command: "test -f scripts/maintenance.sh"
-            description: "Verify script exists"
-        documentation_targets: []
-
-      description: |
-        <task_description>
-        Create scripts/maintenance.sh for manual maintenance mode control.
-
-        ```bash
-        #!/usr/bin/env bash
-        set -euo pipefail
-
-        PROD1_SERVER="ketchup-prod1.campaign.adobe.com"
-        PROD2_SERVER="ketchup-prod2.campaign.adobe.com"
-        PROD_DIR="/opt/ketchup"
-
-        usage() {
-            echo "Usage: $0 <on|off|status> [prod1|prod2|both]"
-            echo "  on     - Enable maintenance mode"
-            echo "  off    - Disable maintenance mode"
-            echo "  status - Show current maintenance mode status"
-            exit 1
-        }
-
-        set_maintenance() {
-            local server=$1
-            local enabled=$2
-            echo "Setting maintenance mode to $enabled on $server..."
-            ssh "$server" "cd ${PROD_DIR} && sudo KETCHUP_MAINTENANCE_MODE=$enabled docker-compose up -d ketchup-app"
-        }
-
-        get_status() {
-            local server=$1
-            echo "=== $server ==="
-            ssh "$server" "cd ${PROD_DIR} && sudo docker-compose exec ketchup-app printenv KETCHUP_MAINTENANCE_MODE 2>/dev/null || echo 'false'"
-        }
-
-        [[ $# -lt 1 ]] && usage
-
-        COMMAND=$1
-        TARGET=${2:-both}
-
-        case $TARGET in
-            prod1) SERVERS=("$PROD1_SERVER") ;;
-            prod2) SERVERS=("$PROD2_SERVER") ;;
-            both)  SERVERS=("$PROD1_SERVER" "$PROD2_SERVER") ;;
-            *)     usage ;;
-        esac
-
-        case $COMMAND in
-            on)
-                for server in "${SERVERS[@]}"; do
-                    set_maintenance "$server" "true"
-                done
-                ;;
-            off)
-                for server in "${SERVERS[@]}"; do
-                    set_maintenance "$server" "false"
-                done
-                ;;
-            status)
-                for server in "${SERVERS[@]}"; do
-                    get_status "$server"
-                done
-                ;;
-            *)
-                usage
-                ;;
-        esac
-        ```
-        </task_description>
-
-      implementation:
-        approach: |
-          Standalone script mirroring deploy script server definitions.
-          Simple case statement for commands.
-        key_points:
-          - point: "Script accepts commands: on, off, status"
-            details: "Case statement handles each command"
-            reference: "scripts/maintenance.sh"
-          - point: "Script accepts optional server argument"
-            details: "prod1, prod2, or both (default)"
-            reference: "scripts/maintenance.sh"
-          - point: "on command sets KETCHUP_MAINTENANCE_MODE=true"
-            details: "Via docker-compose up with env var"
-            reference: "scripts/maintenance.sh:set_maintenance"
-          - point: "off command sets KETCHUP_MAINTENANCE_MODE=false"
-            details: "Via docker-compose up with env var"
-            reference: "scripts/maintenance.sh:set_maintenance"
-          - point: "status command shows current value"
-            details: "Via docker-compose exec printenv"
-            reference: "scripts/maintenance.sh:get_status"
-
-      commit:
-        type: "feat"
-        message: "add manual maintenance mode control script"
-        files: ["scripts/maintenance.sh"]
-
-    - task_number: "6"
       name: "Write unit tests for MaintenanceMiddleware"
       agent: "test-automator"
       files:
@@ -474,15 +442,18 @@ plan:
       depends_on: ["2"]
 
       success_criteria:
-        - "test_maintenance_mode_disabled_allows_requests() verifies 200 response when KETCHUP_MAINTENANCE_MODE=false"
-        - "test_maintenance_mode_enabled_returns_503() verifies 503 response when KETCHUP_MAINTENANCE_MODE=true"
-        - "test_maintenance_mode_health_endpoint_always_allowed() verifies /health returns 200 even when maintenance enabled"
-        - "test_maintenance_mode_response_body() verifies JSON contains status, message, retry_after keys"
-        - "test_maintenance_mode_retry_after_header() verifies Retry-After header equals '300'"
-        - "test_maintenance_mode_custom_message() verifies KETCHUP_MAINTENANCE_MESSAGE is used in response"
-        - "No TODO comments in production code"
+        - "test_maintenance_disabled_allows_requests() - patches KETCHUP_MAINTENANCE_MODE=false, GET /health returns 200"
+        - "test_maintenance_enabled_returns_503() - patches KETCHUP_MAINTENANCE_MODE=true, GET /readiness returns 503"
+        - "test_health_always_allowed() - patches KETCHUP_MAINTENANCE_MODE=true, GET /health returns 200"
+        - "test_response_body_format() - verifies JSON has status, message, retry_after keys"
+        - "test_retry_after_header() - verifies Retry-After header equals '300'"
+        - "test_custom_message() - patches KETCHUP_MAINTENANCE_MESSAGE, verifies in response"
+        - "All test functions have type hints where applicable"
+        - "./check --fix passes"
+        - "No TODO comments"
 
       test_commands:
+        - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check --fix"
         - "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && uv run pytest tests/unit/test_maintenance_middleware.py -v"
 
       runtime_metadata:
@@ -493,15 +464,21 @@ plan:
 
       description: |
         <mandatory_principles>
-        ENGINEERING: YAGNI, KISS, DRY.
-        PYTHONIC: Full type hints, pytest fixtures.
+        ENGINEERING: DRY (fixtures for common setup), KISS (simple assertions).
+        PYTHON:
+          - snake_case test function names
+          - Type hints where applicable
+          - pytest fixtures over setUp/tearDown
+          - unittest.mock.patch.dict for env vars
+        QUALITY: Run ./check --fix before committing
         </mandatory_principles>
 
         <task_description>
-        Create tests/unit/test_maintenance_middleware.py with comprehensive tests.
+        Create tests/unit/test_maintenance_middleware.py.
 
         ```python
         """Tests for MaintenanceMiddleware."""
+
         import os
         from unittest.mock import patch
 
@@ -510,98 +487,125 @@ plan:
 
 
         @pytest.fixture
-        def client_maintenance_off():
-            """Client with maintenance mode disabled."""
-            with patch.dict(os.environ, {"KETCHUP_MAINTENANCE_MODE": "false"}):
-                # Import after patching to pick up env var
-                from ketchup_app.main import app
-                yield TestClient(app)
+        def app_maintenance_off():
+            """App with maintenance mode disabled."""
+            with patch.dict(os.environ, {"KETCHUP_MAINTENANCE_MODE": "false"}, clear=False):
+                # Must reimport to pick up patched env
+                import importlib
+                import sys
+                if "main" in sys.modules:
+                    del sys.modules["main"]
+                sys.path.insert(0, "ketchup-app")
+                import main
+                importlib.reload(main)
+                yield main.app
 
 
         @pytest.fixture
-        def client_maintenance_on():
-            """Client with maintenance mode enabled."""
-            with patch.dict(os.environ, {"KETCHUP_MAINTENANCE_MODE": "true"}):
-                from ketchup_app.main import app
-                yield TestClient(app)
+        def app_maintenance_on():
+            """App with maintenance mode enabled."""
+            with patch.dict(os.environ, {"KETCHUP_MAINTENANCE_MODE": "true"}, clear=False):
+                import importlib
+                import sys
+                if "main" in sys.modules:
+                    del sys.modules["main"]
+                sys.path.insert(0, "ketchup-app")
+                import main
+                importlib.reload(main)
+                yield main.app
 
 
-        def test_maintenance_mode_disabled_allows_requests(client_maintenance_off):
-            """Verify requests allowed when maintenance disabled."""
-            response = client_maintenance_off.get("/health")
+        def test_maintenance_disabled_allows_requests(app_maintenance_off):
+            """Requests allowed when maintenance disabled."""
+            client = TestClient(app_maintenance_off)
+            response = client.get("/health")
             assert response.status_code == 200
 
 
-        def test_maintenance_mode_enabled_returns_503(client_maintenance_on):
-            """Verify 503 returned when maintenance enabled."""
-            response = client_maintenance_on.get("/readiness")
+        def test_maintenance_enabled_returns_503(app_maintenance_on):
+            """503 returned when maintenance enabled."""
+            client = TestClient(app_maintenance_on)
+            response = client.get("/readiness")
             assert response.status_code == 503
 
 
-        def test_maintenance_mode_health_endpoint_always_allowed(client_maintenance_on):
-            """Verify /health returns 200 even during maintenance."""
-            response = client_maintenance_on.get("/health")
+        def test_health_always_allowed(app_maintenance_on):
+            """/health returns 200 even during maintenance."""
+            client = TestClient(app_maintenance_on)
+            response = client.get("/health")
             assert response.status_code == 200
 
 
-        def test_maintenance_mode_response_body(client_maintenance_on):
-            """Verify response JSON contains required keys."""
-            response = client_maintenance_on.get("/readiness")
+        def test_response_body_format(app_maintenance_on):
+            """Response JSON has required keys."""
+            client = TestClient(app_maintenance_on)
+            response = client.get("/readiness")
             data = response.json()
-            assert "status" in data
-            assert "message" in data
-            assert "retry_after" in data
             assert data["status"] == "maintenance"
+            assert "message" in data
+            assert data["retry_after"] == 300
 
 
-        def test_maintenance_mode_retry_after_header(client_maintenance_on):
-            """Verify Retry-After header is set."""
-            response = client_maintenance_on.get("/readiness")
+        def test_retry_after_header(app_maintenance_on):
+            """Retry-After header is set."""
+            client = TestClient(app_maintenance_on)
+            response = client.get("/readiness")
             assert response.headers.get("Retry-After") == "300"
 
 
-        def test_maintenance_mode_custom_message():
-            """Verify custom message is used."""
-            custom_msg = "Custom maintenance message"
+        def test_custom_message():
+            """Custom message is used in response."""
+            custom = "Custom maintenance"
             with patch.dict(os.environ, {
                 "KETCHUP_MAINTENANCE_MODE": "true",
-                "KETCHUP_MAINTENANCE_MESSAGE": custom_msg,
-            }):
-                from ketchup_app.main import app
-                client = TestClient(app)
+                "KETCHUP_MAINTENANCE_MESSAGE": custom,
+            }, clear=False):
+                import importlib
+                import sys
+                if "main" in sys.modules:
+                    del sys.modules["main"]
+                sys.path.insert(0, "ketchup-app")
+                import main
+                importlib.reload(main)
+                client = TestClient(main.app)
                 response = client.get("/readiness")
-                assert response.json()["message"] == custom_msg
+                assert response.json()["message"] == custom
         ```
+
+        Run ./check --fix after creating file.
         </task_description>
 
       implementation:
         approach: |
-          Use pytest fixtures with os.environ patching to test different modes.
+          Pytest fixtures with env patching and module reload.
           TestClient for FastAPI testing.
         key_points:
-          - point: "test_maintenance_mode_disabled_allows_requests()"
-            details: "Patches KETCHUP_MAINTENANCE_MODE=false, asserts 200"
+          - point: "test_maintenance_disabled_allows_requests()"
+            details: "KETCHUP_MAINTENANCE_MODE=false, /health returns 200"
             reference: "tests/unit/test_maintenance_middleware.py"
-          - point: "test_maintenance_mode_enabled_returns_503()"
-            details: "Patches KETCHUP_MAINTENANCE_MODE=true, asserts 503"
+          - point: "test_maintenance_enabled_returns_503()"
+            details: "KETCHUP_MAINTENANCE_MODE=true, /readiness returns 503"
             reference: "tests/unit/test_maintenance_middleware.py"
-          - point: "test_maintenance_mode_health_endpoint_always_allowed()"
-            details: "Asserts /health returns 200 even with maintenance on"
+          - point: "test_health_always_allowed()"
+            details: "/health returns 200 even with maintenance on"
             reference: "tests/unit/test_maintenance_middleware.py"
-          - point: "test_maintenance_mode_response_body()"
-            details: "Asserts JSON has status, message, retry_after keys"
+          - point: "test_response_body_format()"
+            details: "JSON has status='maintenance', message, retry_after=300"
             reference: "tests/unit/test_maintenance_middleware.py"
-          - point: "test_maintenance_mode_retry_after_header()"
-            details: "Asserts Retry-After header equals '300'"
+          - point: "test_retry_after_header()"
+            details: "Retry-After header equals '300'"
             reference: "tests/unit/test_maintenance_middleware.py"
-          - point: "test_maintenance_mode_custom_message()"
-            details: "Patches KETCHUP_MAINTENANCE_MESSAGE, verifies in response"
+          - point: "test_custom_message()"
+            details: "KETCHUP_MAINTENANCE_MESSAGE appears in response"
             reference: "tests/unit/test_maintenance_middleware.py"
+          - point: "./check --fix passes"
+            details: "Run quality pipeline"
+            reference: "project root"
 
       code_quality:
         python:
           full_quality_pipeline:
-            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check"
+            command: "cd /Users/harrison/Documents/Github/camp-ops-emea/projects/ketchup && ./check --fix"
             exit_on_failure: true
 
       commit:
