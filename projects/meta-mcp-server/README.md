@@ -54,71 +54,58 @@ Backend servers are spawned lazily on first access and managed via a connection 
 
 ### Option 1: VS Code/Cursor Extension (Recommended)
 
-The **Meta-MCP** extension provides a visual interface for configuration:
+**Install:**
+1. Download `meta-mcp-configurator-0.4.0.vsix` from [Releases](https://github.com/OneAdobe/camp-ops-emea/releases)
+2. `Cmd+Shift+P` → "Install from VSIX" → select file → Reload
 
-1. **Install the extension** from `extension/meta-mcp-configurator-0.1.2.vsix`
-2. **Open the Meta-MCP panel** - click the Meta-MCP icon in the activity bar (left sidebar)
-3. **Go to the Setup tab** and complete the setup wizard:
+**Setup (follow in order):**
 
-#### Step 1: Install meta-mcp-server
-- Click **Install via npm** (opens terminal with `npm install -g @justanothermldude/meta-mcp-server`)
-- Or run manually: `npm install -g @justanothermldude/meta-mcp-server`
+| Step | Action |
+|------|--------|
+| 1 | Click **Meta-MCP icon** in sidebar to open panel |
+| 2 | **Setup tab** → Click "Install" for meta-mcp-server (and optionally mcp-exec) |
+| 3 | **Catalog tab** → Click "Add" on a server you want |
+| 4 | **Build** → Popup appears → Click **"Build Server"** → Wait for terminal |
+| 5 | **Install** → Click "Install" (enabled after build completes) |
+| 6 | **Setup tab** → Click "Configure" next to your AI tool |
+| 7 | **Restart** your AI tool (Cursor, VS Code, etc.) |
 
-#### Step 1b: Install mcp-exec (Optional)
-- Click **Install** next to mcp-exec for sandboxed code execution with MCP tool access
-- Or run manually: `npm install -g @justanothermldude/mcp-exec`
+> **Important:** Step 4 (Build) is required. The Install button stays disabled until the build completes successfully.
 
-mcp-exec enables AI to execute TypeScript/JavaScript code with typed wrappers for your MCP servers.
+**Supported AI Tools:**
 
-#### Step 2: Configure Your AI Tools
-The extension auto-detects installed AI tools and shows their status:
+| Tool | Config Location |
+|------|-----------------|
+| Claude Code | `~/.claude.json` |
+| Cursor | `~/.cursor/mcp.json` |
+| VS Code | `~/.vscode/mcp.json` |
+| Droid | `~/.factory/mcp.json` |
+| Junie | `~/.junie/mcp/mcp.json` |
 
-| Tool | Config Location | Detection |
-|------|-----------------|-----------|
-| Claude Code | `~/.claude.json` | `~/.claude.json` exists |
-| Cursor | `~/.cursor/mcp.json` | `~/.cursor/` exists |
-| Droid (Factory) | `~/.factory/mcp.json` | `~/.factory/` exists |
-| VS Code | `~/.vscode/mcp.json` | `~/.vscode/` exists |
-| Junie (JetBrains) | `~/.junie/mcp/mcp.json` | `~/.junie/` exists |
+<details>
+<summary>Other platforms (Windsurf, Augment, etc.)</summary>
 
-For each detected tool, use these buttons:
-
-| Button | Action |
-|--------|--------|
-| **Configure** | Auto-configures the tool: adds meta-mcp and mcp-exec (if installed globally), migrates existing servers to `servers.json`, creates backup first |
-| **Copy Snippet** | Copies JSON config to clipboard for manual setup |
-
-The Configure button intelligently:
-- Detects which packages are installed (`npm list -g`)
-- Adds only installed packages to the tool config
-- Migrates any existing MCP servers to `~/.meta-mcp/servers.json`
-- Shows migration count in success message
-
-#### Other Platforms (Windsurf, Augment, etc.)
-For tools not auto-detected, copy and adapt this snippet:
 ```json
 {
   "mcpServers": {
     "meta-mcp": {
       "command": "npx",
       "args": ["-y", "@justanothermldude/meta-mcp-server"],
-      "env": {
-        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
-      }
+      "env": { "SERVERS_CONFIG": "~/.meta-mcp/servers.json" }
     },
     "mcp-exec": {
       "command": "npx",
       "args": ["-y", "@justanothermldude/mcp-exec"],
-      "env": {
-        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
-      }
+      "env": { "SERVERS_CONFIG": "~/.meta-mcp/servers.json" }
     }
   }
 }
 ```
+</details>
 
-4. **Restart your AI tool** to load the new configuration
-5. **Add servers** from the **Catalog** tab or **Servers** tab manually
+### Option 1b: JetBrains Plugin
+
+For IntelliJ IDEA with **Junie** - download from [Releases](https://github.com/OneAdobe/camp-ops-emea/releases) (jetbrains-v1.0.0). See [JetBrains README](jetbrains-plugin/README.md).
 
 ### Option 2: npm Package
 
