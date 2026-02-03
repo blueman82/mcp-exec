@@ -52,6 +52,17 @@ SLACK_SIGNING_SECRET: Optional[str] = None
 container: Optional[Dict[str, Any]] = None
 startup_complete = False
 
+MAINTENANCE_MODE: str = os.getenv("KETCHUP_MAINTENANCE_MODE", "false")
+MAINTENANCE_MESSAGE: str = os.getenv(
+    "KETCHUP_MAINTENANCE_MESSAGE",
+    "Ketchup is undergoing maintenance. Please try again in a few minutes.",
+)
+
+
+def is_maintenance_mode() -> bool:
+    """Check if maintenance mode is enabled."""
+    return MAINTENANCE_MODE.lower() == "true"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
