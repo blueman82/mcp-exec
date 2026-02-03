@@ -15,11 +15,17 @@ Meta-MCP Server wraps multiple backend MCP servers, exposing only 3 meta-tools i
 
 ```
 meta-mcp-server/
-├── src/                    # Core MCP server (npm package)
+├── packages/               # npm workspaces (publishable)
+│   ├── core/               # @justanothermldude/meta-mcp-core
+│   ├── mcp-exec/           # @justanothermldude/mcp-exec
+│   └── meta-mcp/           # @justanothermldude/meta-mcp-server
+├── src/                    # Core MCP server source
 ├── extension/              # VS Code/Cursor extension
 ├── tests/                  # Vitest tests
 └── servers.json            # Backend MCP server config
 ```
+
+**npm workspaces:** Dependencies are hoisted to root `node_modules/`. Always run `npm install` from repo root, never from individual packages (causes symlink conflicts).
 
 ## Commands
 
@@ -94,3 +100,30 @@ See [Architecture Guide](docs/ARCHITECTURE.md) and [Diagram Index](docs/diagrams
 ## Testing
 
 Tests use vitest. Integration tests in `tests/integration/` test real backend scenarios (Docker, Node, uvx servers). Unit tests mock the pool/connections.
+
+## Publishing
+
+**NPM Packages** (in `packages/`):
+| Package | npm Name | Purpose |
+|---------|----------|---------|
+| `packages/core` | `@justanothermldude/meta-mcp-core` | Shared types/utils |
+| `packages/mcp-exec` | `@justanothermldude/mcp-exec` | Code execution MCP server |
+| `packages/meta-mcp` | `@justanothermldude/meta-mcp-server` | Main meta-MCP server |
+
+**Publish workflow:**
+```bash
+# 1. Bump version in package.json
+cd packages/<package>
+npm version patch  # or minor/major
+
+# 2. Build
+npm run build
+
+# 3. Publish (requires npm login to @justanothermldude scope)
+npm publish --access public
+
+# 4. Commit version bump
+git add -A && git commit -m "chore(release): @justanothermldude/<package>@X.Y.Z"
+```
+
+**Note:** Monorepo git tags (v0.4.x) are separate from npm package versions. Git tags track overall project releases; npm versions track individual package releases.
