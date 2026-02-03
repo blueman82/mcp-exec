@@ -12,7 +12,7 @@ Reads ketchup_jira_pat_expiry from AWS Secrets Manager and calculates
 days remaining until expiry.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import boto3
@@ -95,8 +95,8 @@ class PatMonitor:
                 # Fallback for other ISO formats
                 expiry_date = datetime.fromisoformat(expiry_date_iso)
 
-            # Calculate days remaining
-            now = datetime.utcnow()
+            # Calculate days remaining (use timezone-aware datetime)
+            now = datetime.now(timezone.utc)
             time_remaining = expiry_date - now
             days_remaining = time_remaining.days
 

@@ -39,12 +39,13 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
     """
 
     # JQL query for discovering new CSOPM assignments
-    # TEST CONFIG: Testing with CSOPM-69052
-    # PRODUCTION: project = CSOPM AND assignee IS NOT EMPTY AND status = 'New'
+    # Note: We don't filter by 'assignee IS NOT EMPTY' in JQL because CSOPM project
+    # restricts that field. Instead, we filter out unassigned tickets in Python code.
+    # Filter by TechOps Product (customfield_20800) for Adobe Campaign/AJO only.
     NEW_ASSIGNMENTS_JQL = (
-        "key = CSOPM-69052 AND "
-        "assignee IS NOT EMPTY AND "
-        "status = 'New' "
+        f"project = {CSOPM_JIRA_PROJECT} AND "
+        "status = 'New' AND "
+        "cf[20800] IN ('Adobe Campaign', 'Adobe Journey Optimizer') "
         "ORDER BY created DESC"
     )
 

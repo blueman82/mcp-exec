@@ -292,9 +292,14 @@ class TestCSOPMJIRAPollerPollForNewAssignments(unittest.IsolatedAsyncioTestCase)
         call_args = self.mock_client.search_issues.call_args
 
         # Verify JQL contains expected clauses
-        # Note: Test config uses different JQL than production
+        # Note: We don't filter by 'assignee IS NOT EMPTY' in JQL because CSOPM project
+        # restricts that field. Instead, we filter out unassigned tickets in Python code.
+        # Filter by TechOps Product (customfield_20800) for Adobe Campaign/AJO only.
         jql = call_args.kwargs.get("jql", "")
-        self.assertIn("assignee IS NOT EMPTY", jql)
+        self.assertIn("project = CSOPM", jql)
+        self.assertIn("status = 'New'", jql)
+        self.assertIn("cf[20800]", jql)
+        self.assertIn("Adobe Campaign", jql)
 
     async def test_poll_returns_empty_on_no_results(self):
         """Test poll_for_new_assignments returns empty list when no issues."""
@@ -473,9 +478,15 @@ class TestCSOPMJIRAPollerJQLConstruction(unittest.TestCase):
 
         jql = CSOPMJIRAPoller.NEW_ASSIGNMENTS_JQL
 
-        # Note: Test config uses different JQL than production
-        self.assertIn("assignee IS NOT EMPTY", jql)
+        # Note: We don't filter by 'assignee IS NOT EMPTY' in JQL because CSOPM project
+        # restricts that field. Instead, we filter out unassigned tickets in Python code.
+        # Filter by TechOps Product (customfield_20800) for Adobe Campaign/AJO only.
+        self.assertIn("project = CSOPM", jql)
+        self.assertIn("status = 'New'", jql)
         self.assertIn("ORDER BY created DESC", jql)
+        self.assertIn("cf[20800]", jql)
+        self.assertIn("Adobe Campaign", jql)
+        self.assertIn("Adobe Journey Optimizer", jql)
 
 
 if __name__ == "__main__":

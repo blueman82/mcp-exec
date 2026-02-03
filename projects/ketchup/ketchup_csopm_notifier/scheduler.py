@@ -33,7 +33,7 @@ from packages.core.typed_di.protocols import (
     CSOPMTicket,
     CSOPMTicketStatusPollerProtocol,
 )
-from packages.core.config.csopm_config import CSOPM_SCHEDULE_TIMES
+from packages.core.config.csopm_config import CSOPM_SCHEDULE_TIMES, is_pilot_user
 
 
 class CSOPMScheduler(BaseScheduler):
@@ -267,6 +267,16 @@ class CSOPMScheduler(BaseScheduler):
                         notification_failures += 1
                         continue
 
+                    # Check pilot status BEFORE sending/recording
+                    # Skip entirely if user is not in pilot program
+                    if not is_pilot_user(slack_user_id):
+                        self.logger.info(
+                            "Skipping %s - user %s not in pilot program (no DM, no record)",
+                            ticket.key,
+                            slack_user_id,
+                        )
+                        continue
+
                     # Send DM notification
                     success = await notifier.send_assignment_dm(ticket, slack_user_id)
 
@@ -437,10 +447,10 @@ class CSOPMScheduler(BaseScheduler):
             corrupted_records: List of dicts with slack_id and notification_status.
         """
         from packages.core.constants import KETCHUP_ALERTS_CHANNEL
-        from packages.core.typed_di.protocols import SlackAsyncClientProtocol
+        from packages.core.typed_di.protocols import SlackPostingHandlerProtocol
 
         try:
-            slack_client = await self._container.aget(SlackAsyncClientProtocol)
+            slack_client = await self._container.aget(SlackPostingHandlerProtocol)
             if not slack_client:
                 self.logger.error("Cannot send corruption alert - no Slack client available")
                 return
@@ -475,13 +485,10 @@ class CSOPMScheduler(BaseScheduler):
                 },
             ]
 
-            await slack_client.api_call(
-                "chat.postMessage",
-                {
-                    "channel": KETCHUP_ALERTS_CHANNEL,
-                    "blocks": blocks,
-                    "text": f"CSOPM Data Corruption: {len(corrupted_records)} records with empty ticket_key",
-                },
+            await slack_client.post_message(
+                channel=KETCHUP_ALERTS_CHANNEL,
+                message=f"CSOPM Data Corruption: {len(corrupted_records)} records with empty ticket_key",
+                blocks=blocks,
             )
 
             self.logger.info(

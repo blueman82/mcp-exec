@@ -414,7 +414,11 @@ class CSOPMSlackNotifierProtocol(Protocol):
         ...
 
     async def send_reminder_dm(
-        self, ticket: CSOPMTicket, slack_user_id: str, reminder_type: str
+        self,
+        ticket: CSOPMTicket,
+        slack_user_id: str,
+        reminder_type: str,
+        open_followups: Optional[List[dict]] = None,
     ) -> bool:
         """Send a reminder DM for a ticket.
 
@@ -422,6 +426,7 @@ class CSOPMSlackNotifierProtocol(Protocol):
             ticket: The CSOPMTicket requiring reminder
             slack_user_id: The Slack user ID to send the DM to
             reminder_type: Type of reminder ("rca", "closure", "ping")
+            open_followups: Optional list of open followup tickets for closure reminders
 
         Returns:
             True if DM was sent successfully, False otherwise.
@@ -538,6 +543,20 @@ class CSOPMReminderServiceProtocol(Protocol):
 
         Returns:
             List of FollowupRecords for due closure reminders.
+        """
+        ...
+
+    async def process_closure_reminder(
+        self, ticket: CSOPMTicket, closure_ping_count: int
+    ) -> Optional[dict]:
+        """Process a closure reminder for a ticket with 3-ping escalation.
+
+        Args:
+            ticket: The CSOPMTicket to send reminder for.
+            closure_ping_count: Current closure ping count for this ticket.
+
+        Returns:
+            Dict with reminder result including open_followups, or None on error.
         """
         ...
 
@@ -809,5 +828,13 @@ class CSOPMTicketStatusPollerProtocol(Protocol):
 
         Returns:
             The current status name if found, None otherwise.
+        """
+        ...
+
+    def get_corrupted_records(self) -> List[dict]:
+        """Get list of corrupted records detected during last poll.
+
+        Returns:
+            List of dicts with slack_id and notification_status for each corrupted record.
         """
         ...
