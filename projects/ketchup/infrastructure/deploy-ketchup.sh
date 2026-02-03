@@ -50,6 +50,8 @@ VERIFY_ONLY=false
 CHECK_VERSION=false
 SKIP_COMPOSE_SYNC=false
 NO_CACHE=false
+MAINTENANCE_MODE=""
+WITH_MAINTENANCE=false
 
 # Script directory for validate.sh
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -113,6 +115,25 @@ sync_docker_compose_if_changed() {
         log_success "docker-compose.yml synchronized to $server"
     else
         log_info "docker-compose.yml is already up to date on $server"
+    fi
+}
+
+# ========== MAINTENANCE MODE ==========
+set_maintenance_mode() {
+    local server=$1
+    local mode=$2
+    log_info "Setting maintenance mode to $mode on $server..."
+    ssh "$server" "cd ${PROD_DIR} && sudo KETCHUP_MAINTENANCE_MODE=$mode docker-compose up -d ketchup-app"
+    log_success "Maintenance mode set to $mode on $server"
+}
+
+set_maintenance_all() {
+    local mode=$1
+    if [ "$PROD2_ONLY" = false ]; then
+        set_maintenance_mode "$PROD1_SERVER" "$mode"
+    fi
+    if [ "$PROD1_ONLY" = false ]; then
+        set_maintenance_mode "$PROD2_SERVER" "$mode"
     fi
 }
 
@@ -187,6 +208,8 @@ show_help() {
     echo -e "  --check-version           Check current versions in ECR and exit"
     echo -e "  --skip-compose-sync       Skip docker-compose.yml sync (useful when called by wrapper scripts)"
     echo -e "  --no-cache                Build Docker images without cache"
+    echo -e "      --maintenance on|off  Set maintenance mode on target servers"
+    echo -e "      --with-maintenance    Auto: enable before deploy, disable after"
     echo
     echo -e "${BOLD}Examples:${NC}"
     echo -e "  ./deploy-ketchup.sh                      # Auto-increment version and deploy"
@@ -194,6 +217,9 @@ show_help() {
     echo -e "  ./deploy-ketchup.sh --rollback v2.0.33   # Rollback to v2.0.33"
     echo -e "  ./deploy-ketchup.sh --verify             # Verify deployment status"
     echo -e "  ./deploy-ketchup.sh --check-version      # Check current versions"
+    echo -e "  ./deploy-ketchup.sh --maintenance on     # Enable maintenance mode"
+    echo -e "  ./deploy-ketchup.sh --maintenance off    # Disable maintenance mode"
+    echo -e "  ./deploy-ketchup.sh --force --with-maintenance  # Deploy with auto maintenance"
     echo
 }
 
@@ -664,6 +690,14 @@ while [[ $# -gt 0 ]]; do
             NO_CACHE=true
             shift
             ;;
+        --maintenance)
+            MAINTENANCE_MODE="$2"
+            shift 2
+            ;;
+        --with-maintenance)
+            WITH_MAINTENANCE=true
+            shift
+            ;;
         *)
             log_error "Unknown option: $1"
             show_help
@@ -682,6 +716,13 @@ echo -e "${NC}"
 
 # Run pre-flight checks
 check_preflight
+
+# Handle manual maintenance mode (set and exit)
+if [ -n "$MAINTENANCE_MODE" ]; then
+    set_maintenance_all "$MAINTENANCE_MODE"
+    log_success "Maintenance mode set to $MAINTENANCE_MODE"
+    exit 0
+fi
 
 # Check current versions in ECR
 check_current_versions
@@ -787,6 +828,11 @@ if ! confirm "Are you sure you want to deploy version $VERSION to production?"; 
     exit 0
 fi
 
+# Enable maintenance if --with-maintenance
+if [ "$WITH_MAINTENANCE" = true ]; then
+    set_maintenance_all "true"
+fi
+
 # Update local docker-compose.yml first
 update_local_docker_compose
 
@@ -848,6 +894,11 @@ fi
 
 # Verify deployment
 verify_deployment
+
+# Disable maintenance if --with-maintenance
+if [ "$WITH_MAINTENANCE" = true ]; then
+    set_maintenance_all "false"
+fi
 
 log_section "Deployment Summary"
 echo -e "${GREEN}${BOLD}Deployment of version $VERSION completed successfully!${NC}"
