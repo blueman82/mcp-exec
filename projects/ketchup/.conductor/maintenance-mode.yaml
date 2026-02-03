@@ -1,0 +1,267 @@
+# Conductor Plan: Ketchup Maintenance Mode Feature
+# Generated: 2026-02-03
+# Request: Return friendly maintenance message during deployment phase
+
+metadata:
+  name: ketchup-maintenance-mode
+  description: Add maintenance mode middleware to return friendly messages during deployments
+  project: ketchup
+  version: "1.0"
+  estimated_tasks: 8
+
+context:
+  architecture: |
+    Ketchup is a FastAPI application serving Slack webhooks and APIs.
+    - Entry point: ketchup-app/main.py
+    - Uses lifespan context manager for startup/shutdown
+    - Has `startup_complete` global flag for readiness
+    - Deployed via docker-compose to prod1/prod2 servers
+    - Load balancer routes traffic through nginx
+
+  existing_patterns: |
+    - readiness_check returns 503 when startup_complete=False
+    - health_check always returns 200 (for liveness)
+    - Global flags used for state management
+    - Environment variables for configuration (KETCHUP_* prefix)
+
+  key_files:
+    - ketchup-app/main.py (FastAPI app, lifespan, health endpoints)
+    - infrastructure/docker-compose.yml (service configuration)
+    - deploy (deployment script)
+    - packages/core/config/ (configuration patterns)
+
+tasks:
+  - id: "1"
+    subject: Create maintenance mode configuration
+    description: |
+      Add maintenance mode configuration to the application.
+
+      Implementation:
+      1. Add environment variable KETCHUP_MAINTENANCE_MODE (default: false)
+      2. Add KETCHUP_MAINTENANCE_MESSAGE for custom message
+      3. Follow existing config patterns in packages/core/config/
+
+      Config defaults:
+      - KETCHUP_MAINTENANCE_MODE=false
+      - KETCHUP_MAINTENANCE_MESSAGE="Ketchup is undergoing maintenance. Please try again in a few minutes."
+    activeForm: Creating maintenance mode configuration
+    agent: python-pro
+    validation:
+      - Config loads from environment variables
+      - Defaults work when env vars not set
+      - Type hints pass Pyright strict mode
+
+  - id: "2"
+    subject: Create maintenance mode middleware
+    description: |
+      Add FastAPI middleware that intercepts requests during maintenance mode.
+
+      Implementation in ketchup-app/main.py:
+      1. Create MaintenanceMiddleware class
+      2. Check maintenance_mode flag on each request
+      3. Return 503 with friendly JSON message for API routes
+      4. Always allow /health endpoint (for load balancer liveness)
+      5. Block /readiness during maintenance (signals unavailable)
+
+      Response format:
+      ```json
+      {
+        "status": "maintenance",
+        "message": "Ketchup is undergoing maintenance...",
+        "retry_after": 300
+      }
+      ```
+
+      Add Retry-After header (5 minutes).
+    activeForm: Creating maintenance mode middleware
+    agent: python-pro
+    depends_on: ["1"]
+    validation:
+      - Middleware intercepts all routes except /health
+      - Returns 503 with JSON body
+      - Retry-After header present
+      - /health still returns 200
+
+  - id: "3"
+    subject: Add maintenance mode to docker-compose
+    description: |
+      Update infrastructure/docker-compose.yml to include maintenance mode env vars.
+
+      Add to ketchup-app service environment:
+      ```yaml
+      - KETCHUP_MAINTENANCE_MODE=${KETCHUP_MAINTENANCE_MODE:-false}
+      - KETCHUP_MAINTENANCE_MESSAGE=${KETCHUP_MAINTENANCE_MESSAGE:-}
+      ```
+
+      This allows deployment script to control maintenance mode.
+    activeForm: Updating docker-compose configuration
+    agent: python-pro
+    depends_on: ["1"]
+    validation:
+      - Environment variables added to ketchup-app service
+      - Defaults to false when not set
+
+  - id: "4"
+    subject: Add maintenance mode control to deploy script
+    description: |
+      Update deploy script to enable maintenance mode before deployment and disable after.
+
+      Implementation in ./deploy:
+      1. Add function `set_maintenance_mode(server, enabled)`
+      2. Before deploy_to_server: enable maintenance on target server
+      3. After successful deploy: disable maintenance
+      4. On rollback: ensure maintenance disabled
+
+      Method: SSH to server, update env var in docker-compose, recreate ketchup-app
+
+      Flow:
+      ```bash
+      # Before deploy
+      set_maintenance_mode "$PROD1_SERVER" true
+      deploy_to_server "$PROD1_SERVER" "$VERSION"
+      set_maintenance_mode "$PROD1_SERVER" false
+      ```
+
+      Consider: Rolling deploy already handles this via --prod1-only/--prod2-only
+      (one server always available). This feature is for FULL deploys.
+    activeForm: Updating deployment script
+    agent: python-pro
+    depends_on: ["2", "3"]
+    validation:
+      - Maintenance enabled before deploy starts
+      - Maintenance disabled after successful deploy
+      - Maintenance disabled on failure/rollback
+
+  - id: "5"
+    subject: Add manual maintenance mode control script
+    description: |
+      Create scripts/maintenance.sh for manual maintenance mode control.
+
+      Usage:
+      ```bash
+      ./scripts/maintenance.sh on [server]   # Enable maintenance
+      ./scripts/maintenance.sh off [server]  # Disable maintenance
+      ./scripts/maintenance.sh status        # Check current status
+      ```
+
+      Features:
+      - Works on prod1, prod2, or both (default)
+      - Shows current status after change
+      - Confirms before enabling
+    activeForm: Creating maintenance control script
+    agent: python-pro
+    depends_on: ["3"]
+    validation:
+      - Script enables/disables maintenance mode
+      - Status command shows current state
+      - Works for both servers
+
+  - id: "6"
+    subject: Write unit tests for maintenance middleware
+    description: |
+      Create tests for maintenance mode middleware.
+
+      Test file: tests/unit/test_maintenance_middleware.py
+
+      Test cases:
+      1. test_maintenance_mode_disabled_allows_requests
+      2. test_maintenance_mode_enabled_returns_503
+      3. test_maintenance_mode_health_endpoint_always_allowed
+      4. test_maintenance_mode_readiness_blocked
+      5. test_maintenance_mode_custom_message
+      6. test_maintenance_mode_retry_after_header
+
+      Use pytest with FastAPI TestClient.
+    activeForm: Writing unit tests
+    agent: test-automator
+    depends_on: ["2"]
+    validation:
+      - All test cases pass
+      - Tests cover happy path and edge cases
+      - No external dependencies (mocked)
+
+  - id: "7"
+    subject: Run strictcode enforcement
+    description: |
+      Run /strictcode skill on all modified files to enforce:
+      - YAGNI, KISS, DRY, Fail Fast, SSOT, Law of Demeter
+      - PEP 8 naming conventions
+      - Full type hints (Pyright strict mode)
+      - No lazy imports
+
+      Files to check:
+      - ketchup-app/main.py
+      - Any new config files
+      - tests/unit/test_maintenance_middleware.py
+    activeForm: Running strictcode enforcement
+    agent: code-reviewer
+    depends_on: ["6"]
+    validation:
+      - No strictcode violations
+      - Type hints complete
+      - Code follows KISS principle
+
+  - id: "8"
+    subject: Run slimcode optimization
+    description: |
+      Run /slimcode skill to reduce LOC without changing behavior:
+      - Remove any dead code
+      - Consolidate duplicates
+      - Simplify implementations
+
+      Focus areas:
+      - Middleware implementation
+      - Deploy script functions
+      - Test code DRY-ness
+    activeForm: Running slimcode optimization
+    agent: code-reviewer
+    depends_on: ["7"]
+    validation:
+      - No dead code remains
+      - Implementation is minimal
+      - All tests still pass
+
+testing_strategy:
+  unit_tests:
+    - Middleware behavior with maintenance on/off
+    - Config loading and defaults
+    - Response format validation
+
+  integration_tests:
+    - Deploy script maintenance mode flow
+    - Manual script functionality
+
+  manual_tests:
+    - Deploy with maintenance mode (staging first)
+    - Verify load balancer behavior
+    - Check Slack receives maintenance response
+
+commit_points:
+  - after_task: "2"
+    message: "feat(ketchup): add maintenance mode middleware"
+  - after_task: "4"
+    message: "feat(deploy): integrate maintenance mode into deployment"
+  - after_task: "6"
+    message: "test(ketchup): add maintenance mode tests"
+  - after_task: "8"
+    message: "refactor(ketchup): slimcode optimization"
+
+documentation_targets: []
+
+risks:
+  - risk: "Load balancer may not respect 503 responses correctly"
+    mitigation: "Test in staging; verify LB health check config"
+  - risk: "Maintenance mode stuck on after failed deploy"
+    mitigation: "Add safety timeout; manual override script"
+  - risk: "Slack retries during maintenance may overwhelm after recovery"
+    mitigation: "Retry-After header tells Slack when to retry"
+
+notes: |
+  This feature adds a maintenance mode for full deployments. For rolling
+  deploys (one server at a time), the existing pattern works fine since
+  traffic routes to the healthy server.
+
+  The maintenance mode is most useful for:
+  1. Database migrations requiring both servers offline
+  2. Breaking changes requiring coordinated deploys
+  3. Emergency maintenance windows
