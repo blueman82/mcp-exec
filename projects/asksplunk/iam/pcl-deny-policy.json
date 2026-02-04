@@ -1,0 +1,44 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyAdminLikeActions",
+      "Effect": "Deny",
+      "Action": [
+        "iam:*",
+        "organizations:*",
+        "account:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyBillingActions",
+      "Effect": "Deny",
+      "Action": [
+        "aws-portal:*",
+        "budgets:*",
+        "ce:*",
+        "cur:*",
+        "purchase-orders:*",
+        "pricing:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenySecurityServicesModification",
+      "Effect": "Deny",
+      "Action": [
+        "access-analyzer:Delete*",
+        "cloudtrail:Delete*",
+        "cloudtrail:Stop*",
+        "cloudtrail:Update*",
+        "config:Delete*",
+        "config:Stop*",
+        "guardduty:Delete*",
+        "securityhub:Delete*",
+        "securityhub:Disable*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

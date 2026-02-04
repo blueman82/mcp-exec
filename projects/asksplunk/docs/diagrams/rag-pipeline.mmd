@@ -1,0 +1,24 @@
+flowchart LR
+    subgraph Offline["📚 Indexing (once)"]
+        JSON[Schema JSON]
+        CHUNK[Chunks]
+        EMB[Embeddings]
+        CHROMA[(ChromaDB)]
+    end
+
+    subgraph Runtime["⚡ Query (each request)"]
+        Q[User Question]
+        QEMB[Query Embedding]
+        SEARCH[Semantic Search]
+        DOCS[Top-K Docs]
+        GPT[GPT-5]
+        SPL[SPL Query]
+    end
+
+    JSON --> CHUNK --> EMB --> CHROMA
+    Q --> QEMB --> SEARCH
+    CHROMA --> SEARCH
+    SEARCH --> DOCS --> GPT --> SPL
+
+    style Offline fill:#E8F5E9,stroke:#388E3C
+    style Runtime fill:#E3F2FD,stroke:#1976D2

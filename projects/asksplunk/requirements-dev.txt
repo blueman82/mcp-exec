@@ -1,0 +1,20 @@
+# Include production requirements
+-r requirements.txt
+
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
+
+# AWS Mocking
+moto[dynamodb]
+
+# Code Quality
+black
+ruff
+mypy
+
+# Type Stubs
+types-aioboto3
+boto3-stubs[dynamodb]

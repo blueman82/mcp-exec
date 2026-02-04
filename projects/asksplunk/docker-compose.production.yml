@@ -1,0 +1,58 @@
+# Docker Compose for AskSplunk - Production (AMD64)
+# For EC2 deployment on x86_64 architecture
+
+services:
+  # ChromaDB Vector Database
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: asksplunk-chromadb-prod
+    platform: linux/amd64
+    ports:
+      - "8000:8000"
+    volumes:
+      - /opt/asksplunk/data/chromadb:/data
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_PORT=8000
+      - ALLOW_RESET=false  # Disable reset in production
+      - CHROMA_SERVER_CORS_ALLOW_ORIGINS=["http://localhost"]
+    networks:
+      - asksplunk-network
+    # Note: ChromaDB container has minimal tools, using service_started instead of service_healthy
+    restart: always
+
+  # AskSplunk Slack Bot (production)
+  asksplunk:
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/asksplunk:latest
+    container_name: asksplunk-bot-prod
+    platform: linux/amd64
+    network_mode: host  # Required for IMDSv2 IAM credential access
+    depends_on:
+      chromadb:
+        condition: service_started
+    environment:
+      # AWS Configuration
+      - AWS_REGION=eu-west-1
+      - AWS_DEFAULT_REGION=eu-west-1
+
+      # ChromaDB Configuration (use localhost since we're on host network)
+      - CHROMADB_HOST=localhost
+      - CHROMADB_PORT=8000
+
+      # Application Configuration
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+
+      # Use IAM role credentials (no explicit keys needed)
+      # EC2 instance profile provides credentials automatically
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+networks:
+  asksplunk-network:
+    driver: bridge

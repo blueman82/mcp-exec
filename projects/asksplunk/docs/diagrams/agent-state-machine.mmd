@@ -1,0 +1,30 @@
+flowchart LR
+    subgraph Input["📥 Input"]
+        Q[User Question]
+    end
+
+    subgraph Agent["🤖 Agent States"]
+        INIT[INITIALIZE<br/>Create session]
+        EVAL[EVALUATE<br/>Check confidence]
+        CLAR[CLARIFY<br/>Ask question]
+        WAIT[WAIT<br/>User reply]
+        GEN[GENERATE<br/>Create SPL]
+    end
+
+    subgraph Output["📤 Output"]
+        DONE[COMPLETE<br/>Delete session]
+        UNC[UNCERTAIN<br/>Can't help]
+    end
+
+    Q --> INIT
+    INIT --> EVAL
+    EVAL -->|"≥70%"| GEN
+    EVAL -->|"50-69%"| CLAR
+    EVAL -->|"<50%"| UNC
+    CLAR --> WAIT
+    WAIT --> EVAL
+    GEN --> DONE
+
+    style Input fill:#E3F2FD,stroke:#1976D2
+    style Agent fill:#E8F5E9,stroke:#388E3C
+    style Output fill:#FFF3E0,stroke:#F57C00

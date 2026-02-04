@@ -1,0 +1,1999 @@
+{
+  "index_name": "campaign_prod",
+  "display_name": "Adobe Campaign Production",
+  "description": "Production logs for Adobe Campaign including email deliveries, bounces, tracking, and workflows. Primary data comes from Momentum MTA (eventlog_momentum) and Campaign application logs.",
+  "sourcetypes": [
+    {
+      "name": "eventlog_momentum",
+      "source": "/var/log/ecelerity/eventlog.ec",
+      "description": "Momentum MTA event logs - primary source for delivery, bounce, and failure data",
+      "volume": "high",
+      "key_fields": ["msys.message_event.*", "cust.*"]
+    },
+    {
+      "name": "mta_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/mta.log",
+      "description": "Campaign MTA process logs - delivery scheduling and SMTP operations",
+      "volume": "high",
+      "key_fields": ["message", "deliveryID", "iDeliveryId"]
+    },
+    {
+      "name": "runwf_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/runwf.log",
+      "description": "Workflow execution logs - workflow state, errors, and processing",
+      "volume": "very_high",
+      "key_fields": ["message", "internalName", "state", "failed"]
+    },
+    {
+      "name": "inmail_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/inMail.log",
+      "description": "Incoming mail processing - bounce rule matching and quarantine",
+      "volume": "medium",
+      "key_fields": ["iQuarantineReason", "mQuarantineText"]
+    },
+    {
+      "name": "webmdl_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/webmdl.log",
+      "description": "Web module logs - tracking, redirects, mirror pages",
+      "volume": "very_high",
+      "key_fields": ["message", "uri", "iRc"]
+    },
+    {
+      "name": "pipelined_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/pipelined.log",
+      "description": "Pipeline processing logs - data imports and exports",
+      "volume": "high",
+      "key_fields": ["message"]
+    },
+    {
+      "name": "mtachild_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/mtachild.log",
+      "description": "MTA child process logs - individual delivery threads",
+      "volume": "high",
+      "key_fields": ["message", "iDeliveryId"]
+    },
+    {
+      "name": "sms_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/sms.log",
+      "description": "SMS delivery logs - SMPP protocol status receipts and delivery tracking",
+      "volume": "high",
+      "key_fields": ["SR", "command_status", "dest_addr", "source_addr"]
+    },
+    {
+      "name": "tracking_log",
+      "source": "/usr/local/neolane/nl7/log/{instance}/trackinglogd.log",
+      "description": "Tracking and pipeline logs - data pipeline status and file operations",
+      "volume": "medium",
+      "key_fields": ["message", "message_type", "iRc"]
+    },
+    {
+      "name": "messagecenterd_log",
+      "source": "/usr/local/neolane/nl7/log/{instance}/messagecenterd.log",
+      "description": "Message Center daemon logs - transactional delivery preparation, typology rules, recipient segmentation",
+      "volume": "very_high",
+      "key_fields": ["message", "message_type", "iRc", "deliveryName"]
+    },
+    {
+      "name": "web_log",
+      "source": "/usr/local/neolane/nl7/log/{instance}/web.log",
+      "description": "Web module HTTP request logs - landing pages, forms, API calls, profile operations",
+      "volume": "very_high",
+      "key_fields": ["iRc", "iStatus", "login", "email", "sToken"]
+    },
+    {
+      "name": "logins_log",
+      "source": "/usr/local/neolane/nl7/log/{instance}/logins.log",
+      "description": "Authentication logs - Campaign console and API login attempts with success/failure status",
+      "volume": "high",
+      "key_fields": ["login", "status"]
+    },
+    {
+      "name": "wfserver_log",
+      "source": "/usr/local/neolane/nl7/log/{instance}/wfserver.log",
+      "description": "Workflow server process logs - workflow instance management, database operations, process creation",
+      "volume": "medium",
+      "key_fields": ["message", "message_type", "internalName"]
+    },
+    {
+      "name": "javascript_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/javascript.log",
+      "description": "JavaScript engine logs - application server initialization, version info, monitoring hooks",
+      "volume": "medium",
+      "key_fields": ["message", "message_type"]
+    },
+    {
+      "name": "interactiond_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/interactiond.log",
+      "description": "Interaction server logs - offer proposition management, status updates, personalization engine",
+      "volume": "low",
+      "key_fields": ["message", "message_type", "iRc"]
+    },
+    {
+      "name": "nlserver_log",
+      "source": "/usr/local/neolane/nl6/var/default/log/nlserver.log",
+      "description": "Core nlserver process logs - application server startup, version info, syntax errors (BAS-010058), parameter validation",
+      "volume": "high",
+      "key_fields": ["message", "message_type", "iRc", "log_type"]
+    },
+    {
+      "name": "jobworker_log",
+      "source": "/usr/local/neolane/nl7/log/{instance}/jobworker.log",
+      "description": "Job worker process logs - delivery job execution, cache management, database connection pool status",
+      "volume": "very_high",
+      "key_fields": ["message", "message_type", "iDeliveryId", "login", "server"]
+    },
+    {
+      "name": "mainlog.ec",
+      "source": "/var/log/ecelerity/mainlog.ec",
+      "description": "ESP/Momentum main delivery log - primary email transmission records with delivery/tempfail/bounce status",
+      "volume": "very_high",
+      "key_fields": ["host", "p"]
+    },
+    {
+      "name": "bouncelog",
+      "source": "/var/log/ecelerity/bouncelog.ec",
+      "description": "ESP/Momentum bounce log - bounce classification with delivery failure reasons (OverQuotaTemp, NoMX, NoSuchUser)",
+      "volume": "very_high",
+      "key_fields": ["host", "p"]
+    },
+    {
+      "name": "access_combined",
+      "source": "/var/log/apache2/access.log",
+      "description": "Apache combined access logs - HTTP requests to Campaign web tier (ELB health checks, API calls, tracking pixels)",
+      "volume": "very_high",
+      "key_fields": ["clientip", "request", "status", "bytes"]
+    },
+    {
+      "name": "access_combined_wcookie",
+      "source": "/var/log/apache2/ssl_access.log",
+      "description": "Apache access logs with TLS/cookie details - includes SSL version, cipher suite, and session info",
+      "volume": "very_high",
+      "key_fields": ["clientip", "request", "status", "ssl_protocol", "ssl_cipher"]
+    },
+    {
+      "name": "monitor_log",
+      "source": "/usr/local/neolane/nl6/var/default/log/monitor.log",
+      "description": "Campaign monitor process logs - application server health monitoring and version info",
+      "volume": "high",
+      "key_fields": ["message", "message_type"]
+    },
+    {
+      "name": "pdump_log",
+      "source": "/usr/local/neolane/nl7/log/default/pdump.log",
+      "description": "Process dump logs - diagnostic dumps, application version info, and memory diagnostics",
+      "volume": "medium",
+      "key_fields": ["message", "message_type"]
+    },
+    {
+      "name": "watchdog_log",
+      "source": "/usr/local/neolane/nl7/log/default/watchdog.log",
+      "description": "Watchdog service logs - process launching/monitoring, task spawning (pipelined, mta, wfserver)",
+      "volume": "high",
+      "key_fields": ["message", "message_type"]
+    },
+    {
+      "name": "archiving_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/archiving.log",
+      "description": "Email archiving logs - sent email archival to SFTP with ARC-NNNNNN status codes",
+      "volume": "high",
+      "key_fields": ["message", "message_type"]
+    },
+    {
+      "name": "esp_historical",
+      "source": "/var/log/druid/historical.log",
+      "description": "ESP/Druid historical node logs - data segment management, ZooKeeper coordination for reporting",
+      "volume": "medium",
+      "key_fields": ["message"]
+    },
+    {
+      "name": "apache_error",
+      "source": "/var/log/apache2/error.log",
+      "description": "Apache error logs - HTTP errors, invalid URIs (AH10244), module failures",
+      "volume": "medium",
+      "key_fields": ["level", "pid", "client", "message"]
+    },
+    {
+      "name": "paniclog",
+      "source": "/var/log/ecelerity/paniclog.ec",
+      "description": "ESP/Momentum panic logs - binding group errors, configuration issues, crash diagnostics",
+      "volume": "low",
+      "key_fields": ["function", "message"]
+    },
+    {
+      "name": "weblog",
+      "source": "/usr/local/neolane/nl6/var/default/log/web.log",
+      "description": "Campaign web server logs (alternative to web_log) - data source errors (XSV-350063), DNS alias issues",
+      "volume": "high",
+      "key_fields": ["message", "message_type", "iRc"]
+    },
+    {
+      "name": "nssproxy_log",
+      "source": "/var/log/nssproxy/nssproxy.log",
+      "description": "NSS proxy logs - TLS handshake errors, certificate validation, proxy authentication",
+      "volume": "medium",
+      "key_fields": ["message"]
+    },
+    {
+      "name": "stat_log",
+      "source": "/usr/local/neolane/nl6/var/default/log/stat.log",
+      "description": "Campaign statistics server logs - inter-server ping monitoring, version info, stat server health checks",
+      "volume": "medium",
+      "key_fields": ["message", "message_type", "host"]
+    },
+    {
+      "name": "job_log",
+      "source": "/usr/local/neolane/nl6/var/{instance}/log/job.log",
+      "description": "Job execution logs - schema replication, external account sync, data transfer operations",
+      "volume": "medium",
+      "key_fields": ["message", "message_type", "schema"]
+    },
+    {
+      "name": "zerocrash",
+      "source": "/usr/local/neolane/zerocrash/log",
+      "description": "Crash diagnostics - GDB stack traces, memory dumps, thread debugging for nlserver crashes",
+      "volume": "low",
+      "key_fields": ["message"]
+    },
+    {
+      "name": "rejectlog",
+      "source": "/var/log/ecelerity/rejectlog.ec",
+      "description": "ESP/Momentum reject log - messages rejected during SMTP transaction, policy violations",
+      "volume": "medium",
+      "key_fields": ["host"]
+    }
+  ],
+  "field_categories": [
+    {
+      "category_name": "Momentum Message Events (msys.message_event.*)",
+      "description": "Core delivery and bounce data from Momentum MTA. These are the PRIMARY fields for analyzing email delivery success/failure.",
+      "fields": [
+        {
+          "name": "msys.message_event.type",
+          "type": "string",
+          "description": "Event type indicating delivery outcome. Primary values are delivery, reception, inband, tempfail.",
+          "examples": ["delivery", "reception", "inband", "tempfail"],
+          "values": {
+            "delivery": "Message successfully delivered to recipient",
+            "reception": "Message received by Momentum for processing",
+            "inband": "Permanent bounce - hard failure during SMTP conversation (hard bounce)",
+            "tempfail": "Temporary failure - will be retried (soft bounce)",
+            "rejection": "Message rejected by receiving server (rare)"
+          },
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.bounce_class",
+          "type": "string",
+          "description": "Bounce classification code indicating failure type",
+          "examples": ["10", "21", "22", "24", "70"],
+          "values": {
+            "1": "Undetermined - bounce reason unknown",
+            "10": "Invalid Recipient - user does not exist",
+            "21": "Bad Domain - no MX or A record for domain",
+            "22": "Bad Mailbox - mailbox does not exist",
+            "23": "Bad Mailbox - mailbox inactive/disabled",
+            "24": "Protocol Timeout - connection timed out",
+            "25": "DNS Failure - temporary DNS issue",
+            "40": "Generic Bounce - unclassified bounce",
+            "50": "Mail Block - blocked by receiving server",
+            "51": "Spam Related - blocked as spam",
+            "52": "Spam Content - content flagged as spam",
+            "54": "Relaying Denied - relay not permitted",
+            "70": "Transient Failure - temporary server issue"
+          },
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.error_code",
+          "type": "string",
+          "description": "SMTP error code from receiving server",
+          "examples": ["550", "454", "421", "452"],
+          "values": {
+            "421": "Service not available - try again later",
+            "450": "Mailbox unavailable - temporary",
+            "451": "Local error in processing",
+            "452": "Insufficient storage",
+            "454": "TLS not available / No MX for domain",
+            "550": "Mailbox unavailable - permanent",
+            "551": "User not local",
+            "552": "Message size exceeded",
+            "553": "Mailbox name not allowed",
+            "554": "Transaction failed"
+          },
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.reason",
+          "type": "string",
+          "description": "Sanitized bounce reason (email addresses masked)",
+          "examples": [
+            "550 5.1.1 ...@... Recipient address rejected: ... in virtual alias table",
+            "454 4.4.4 [internal] no MX or A for domain"
+          ],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.raw_reason",
+          "type": "string",
+          "description": "Full original bounce message from receiving server",
+          "examples": [
+            "550 5.1.1 <user@example.com>: Recipient address rejected: User unknown",
+            "454 4.4.4 [internal] no MX or A for domain"
+          ],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.rcpt_to",
+          "type": "string",
+          "description": "Recipient email address",
+          "examples": ["user@example.com", "customer@gmail.com"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.msg_from",
+          "type": "string",
+          "description": "Sender email address (envelope from)",
+          "examples": ["noreply@company.com", "marketing@brand.com"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.routing_domain",
+          "type": "string",
+          "description": "Destination domain for the message",
+          "examples": ["gmail.com", "outlook.com", "yahoo.com"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.binding",
+          "type": "string",
+          "description": "Sending IP binding used for delivery",
+          "examples": ["aws_customer_prod_default_momentum01_mta001_1.2.3.4"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.binding_group",
+          "type": "string",
+          "description": "Binding group for IP pool management",
+          "examples": ["prod.default_b28ca660-c1b6-457a-b3bc-ce60ff69bc59"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.ip_address",
+          "type": "string",
+          "description": "IP address of receiving mail server",
+          "examples": ["203.42.40.138", "74.125.24.27"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.node_name",
+          "type": "string",
+          "description": "Momentum MTA node that processed the message",
+          "examples": ["momentum08.sin2.cpt.adobe.net", "momentum17.or1.cpt.adobe.net"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.num_retries",
+          "type": "string",
+          "description": "Number of delivery retry attempts",
+          "examples": ["0", "1", "2", "5"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.queue_time",
+          "type": "string",
+          "description": "Time message spent in queue (milliseconds)",
+          "examples": ["1635", "5000", "120000"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.msg_size",
+          "type": "string",
+          "description": "Message size in bytes",
+          "examples": ["15109", "3444", "50000"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.subject",
+          "type": "string",
+          "description": "Email subject line",
+          "examples": ["Welcome to our service", "Your order confirmation"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.event_id",
+          "type": "string",
+          "description": "Unique event identifier",
+          "examples": ["14794045013959891"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.customer_id",
+          "type": "string",
+          "description": "Momentum customer identifier (usually 1)",
+          "examples": ["1"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.delv_method",
+          "type": "string",
+          "description": "Delivery method used",
+          "examples": ["esmtp"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.recv_method",
+          "type": "string",
+          "description": "Reception method",
+          "examples": ["esmtp", "internal"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.conn_name",
+          "type": "string",
+          "description": "Connection identifier",
+          "examples": ["DC/5F-03079-B8AD1396"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.conn_stage",
+          "type": "string",
+          "description": "SMTP connection stage when event occurred",
+          "examples": ["1", "5", "22"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.msg_spoolname",
+          "type": "string",
+          "description": "Message spool file name",
+          "examples": ["CC/4D-03079-B8AD1396"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.msg_batchname",
+          "type": "string",
+          "description": "Message batch identifier",
+          "examples": ["CC/4D-03079-B8AD1396"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.next_attempt",
+          "type": "string",
+          "description": "Unix timestamp of next delivery retry",
+          "examples": ["1764879692"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.pathway",
+          "type": "string",
+          "description": "Message routing pathway",
+          "examples": ["default"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.pathway_group",
+          "type": "string",
+          "description": "Pathway group for routing",
+          "examples": ["default"],
+          "common_in": ["eventlog_momentum"]
+        }
+      ]
+    },
+    {
+      "category_name": "Momentum Recipient Metadata (msys.message_event.rcpt_meta.*)",
+      "description": "Custom metadata attached to messages by Campaign",
+      "fields": [
+        {
+          "name": "msys.message_event.rcpt_meta.d",
+          "type": "string",
+          "description": "Delivery ID from Campaign",
+          "examples": ["33069331", "12345678"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.rcpt_meta.m",
+          "type": "string",
+          "description": "Message ID from Campaign",
+          "examples": ["2124319614"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.rcpt_meta.in",
+          "type": "string",
+          "description": "Instance name",
+          "examples": ["singapo_mid_prod2", "customer_mkt_prod1"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.rcpt_meta.r",
+          "type": "string",
+          "description": "Recipient address",
+          "examples": ["user@example.com"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "msys.message_event.rcpt_meta.i",
+          "type": "string",
+          "description": "Additional identifier",
+          "examples": [""],
+          "common_in": ["eventlog_momentum"]
+        }
+      ]
+    },
+    {
+      "category_name": "Campaign Custom Fields (cust.*)",
+      "description": "Custom Campaign metadata added to Momentum events",
+      "fields": [
+        {
+          "name": "cust.DeliveryID",
+          "type": "string",
+          "description": "Campaign delivery ID",
+          "examples": ["33069331", "12345678"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.DeliveryInternalName",
+          "type": "string",
+          "description": "Internal name of the delivery",
+          "examples": ["Mid_33069331", "DM_Welcome_Email"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.InstanceName",
+          "type": "string",
+          "description": "Campaign instance name - THE PRIMARY FIELD for filtering eventlog_momentum by customer/instance. Uses UNDERSCORES as separator (e.g., southwest_airlines_mkt_prod18, NOT southwest-airlines-mkt-prod18). When user mentions an instance with dashes, convert to underscores. This is the ONLY way to filter deliveries/bounces by Campaign instance in eventlog_momentum. DO NOT use host for instance filtering - host is the Momentum MTA server.",
+          "examples": ["southwest_airlines_mkt_prod18", "singapo_mid_prod2", "malaysiaairlines_mid_prod5", "virginatlantic_mkt_prod1"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.MessageID",
+          "type": "string",
+          "description": "Unique message identifier",
+          "examples": ["2124319614"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.CUID",
+          "type": "string",
+          "description": "Customer unique identifier (UUID)",
+          "examples": ["b28ca660-c1b6-457a-b3bc-ce60ff69bc59"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.customerID",
+          "type": "string",
+          "description": "Human-readable customer identifier",
+          "examples": ["Singapore Airlines [hosted, mid, prod2]", "Customer Corp [hosted, mkt, prod1]"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.BindingGroup",
+          "type": "string",
+          "description": "Binding group for IP management",
+          "examples": ["prod.default_b28ca660-c1b6-457a-b3bc-ce60ff69bc59"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.CampaignServerType",
+          "type": "string",
+          "description": "Campaign server type",
+          "examples": ["Classic", "Standard"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.SMTP-Message-ID",
+          "type": "string",
+          "description": "SMTP Message-ID header value",
+          "examples": ["<NM66C91809801F89913singapo_mid_prod2@email.company.com>"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.dkim_domain",
+          "type": "string",
+          "description": "DKIM signing domain",
+          "examples": ["email.singaporeair.com", "email.company.com"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.camp_ttl",
+          "type": "string",
+          "description": "Campaign TTL in seconds",
+          "examples": ["432000"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.expire_time",
+          "type": "string",
+          "description": "Message expiration timestamp",
+          "examples": ["1765306892"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.IMSOrgID",
+          "type": "string",
+          "description": "Adobe IMS Organization ID",
+          "examples": ["ABC123@AdobeOrg"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "cust.feedbackServiceType",
+          "type": "string",
+          "description": "Feedback service type",
+          "examples": ["fbl"],
+          "common_in": ["eventlog_momentum"]
+        }
+      ]
+    },
+    {
+      "category_name": "Campaign MTA Fields",
+      "description": "Fields from Campaign MTA logs (mta_log sourcetype)",
+      "fields": [
+        {
+          "name": "message",
+          "type": "string",
+          "description": "Log message content",
+          "examples": ["Starting scheduled delivery...", "New attempt to establish SMPP connection"],
+          "common_in": ["mta_log", "runwf_log", "inmail_log"]
+        },
+        {
+          "name": "message_type",
+          "type": "string",
+          "description": "Log level of the message",
+          "examples": ["info", "warning", "error"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "log_type",
+          "type": "string",
+          "description": "Type of log entry",
+          "examples": ["log"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "deliveryID",
+          "type": "string",
+          "description": "Delivery ID (Campaign format)",
+          "examples": ["123456"],
+          "common_in": ["mta_log"]
+        },
+        {
+          "name": "iDeliveryId",
+          "type": "string",
+          "description": "Internal delivery ID (integer)",
+          "examples": ["12345678"],
+          "common_in": ["mta_log", "mtachild_log"]
+        },
+        {
+          "name": "iMsgId",
+          "type": "string",
+          "description": "Internal message ID",
+          "examples": ["987654321"],
+          "common_in": ["mta_log"]
+        },
+        {
+          "name": "iStatus",
+          "type": "string",
+          "description": "Internal status code",
+          "examples": ["0", "1", "5"],
+          "common_in": ["mta_log", "inmail_log"]
+        },
+        {
+          "name": "iError",
+          "type": "string",
+          "description": "Error count",
+          "examples": ["0", "1"],
+          "common_in": ["mta_log"]
+        },
+        {
+          "name": "iSuccess",
+          "type": "string",
+          "description": "Success count",
+          "examples": ["0", "1", "100"],
+          "common_in": ["mta_log"]
+        },
+        {
+          "name": "iRc",
+          "type": "string",
+          "description": "Return code (negative values indicate errors)",
+          "examples": ["-61", "0", "16384"],
+          "common_in": ["mta_log", "webmdl_log", "inmail_log"]
+        },
+        {
+          "name": "Hexfield1",
+          "type": "string",
+          "description": "Process/thread identifier (hex)",
+          "examples": ["001A790C", "003ACA5E"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "Hexfield2",
+          "type": "string",
+          "description": "Secondary process/thread identifier (hex)",
+          "examples": ["001A790C", "003ACD34"],
+          "common_in": ["mta_log", "runwf_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Workflow Fields",
+      "description": "Fields from workflow execution logs (runwf_log sourcetype)",
+      "fields": [
+        {
+          "name": "internalName",
+          "type": "string",
+          "description": "Workflow internal name",
+          "examples": ["batchReportingIos_v13", "dailyExportWorkflow"],
+          "common_in": ["runwf_log"]
+        },
+        {
+          "name": "state",
+          "type": "string",
+          "description": "Workflow state code",
+          "examples": ["20", "0", "11"],
+          "common_in": ["runwf_log"]
+        },
+        {
+          "name": "stateLabel",
+          "type": "string",
+          "description": "Human-readable workflow state",
+          "examples": ["Terminé", "Started", "Paused"],
+          "common_in": ["runwf_log"]
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Workflow status code",
+          "examples": ["5", "0", "2"],
+          "common_in": ["runwf_log"]
+        },
+        {
+          "name": "statusLabel",
+          "type": "string",
+          "description": "Human-readable workflow status",
+          "examples": ["Terminé", "Running", "Error"],
+          "common_in": ["runwf_log"]
+        },
+        {
+          "name": "failed",
+          "type": "string",
+          "description": "Failure indicator (0 or 1)",
+          "examples": ["0", "1"],
+          "common_in": ["runwf_log"]
+        },
+        {
+          "name": "nextWorkflowInfo",
+          "type": "string",
+          "description": "JSON with next workflow execution details",
+          "examples": ["{\"error\":0,\"id\":\"845237620\",\"internalName\":\"batchReportingIos_v13\"}"],
+          "common_in": ["runwf_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Incoming Mail / Bounce Processing Fields",
+      "description": "Fields from bounce processing logs (inmail_log sourcetype)",
+      "fields": [
+        {
+          "name": "iQuarantineReason",
+          "type": "string",
+          "description": "Quarantine reason code",
+          "examples": ["0", "1", "2"],
+          "common_in": ["inmail_log"]
+        },
+        {
+          "name": "mQuarantineText",
+          "type": "string",
+          "description": "Quarantine reason text",
+          "examples": ["User unknown", "Mailbox full"],
+          "common_in": ["inmail_log"]
+        },
+        {
+          "name": "iBroadLogId",
+          "type": "string",
+          "description": "Broadlog ID for tracking",
+          "examples": ["123456789"],
+          "common_in": ["inmail_log"]
+        },
+        {
+          "name": "iAddressId",
+          "type": "string",
+          "description": "Address ID for quarantine",
+          "examples": ["987654321"],
+          "common_in": ["inmail_log"]
+        },
+        {
+          "name": "sAddress",
+          "type": "string",
+          "description": "Email address being processed",
+          "examples": ["user@example.com"],
+          "common_in": ["inmail_log", "mta_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Common Infrastructure Fields",
+      "description": "Standard fields present across all sourcetypes",
+      "fields": [
+        {
+          "name": "host",
+          "type": "string",
+          "description": "Hostname of the server generating the log. IMPORTANT: For eventlog_momentum, host is the Momentum MTA server (e.g., momentum08.sin2.cpt.adobe.net), NOT the Campaign instance! To filter eventlog_momentum by Campaign instance (like 'southwest_airlines_mkt_prod18'), you MUST use cust.InstanceName instead of host. For Campaign application logs (mta_log, runwf_log, etc.), host IS the Campaign server (e.g., singapo-mkt-prod2-1).",
+          "examples": ["momentum08.sin2.cpt.adobe.net", "momentum05.sin2.cpt.adobe.net", "singapo-mkt-prod2-1"],
+          "common_in": ["all"]
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "description": "Log file path",
+          "examples": ["/usr/local/neolane/nl6/var/instance/log/mta.log", "/var/log/ecelerity/eventlog.ec"],
+          "common_in": ["all"]
+        },
+        {
+          "name": "sourcetype",
+          "type": "string",
+          "description": "Splunk sourcetype classification",
+          "examples": ["eventlog_momentum", "mta_log", "runwf_log", "inmail_log"],
+          "common_in": ["all"]
+        },
+        {
+          "name": "index",
+          "type": "string",
+          "description": "Splunk index name",
+          "examples": ["campaign_prod"],
+          "common_in": ["all"]
+        },
+        {
+          "name": "_time",
+          "type": "timestamp",
+          "description": "Event timestamp",
+          "examples": ["2025-12-04T10:06:57.763-08:00"],
+          "common_in": ["all"]
+        },
+        {
+          "name": "ts",
+          "type": "string",
+          "description": "Original timestamp from log",
+          "examples": ["2025-12-04 18:06:57.763+01"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "timestamp",
+          "type": "string",
+          "description": "Unix timestamp",
+          "examples": ["1764874893"],
+          "common_in": ["eventlog_momentum"]
+        },
+        {
+          "name": "logdelay",
+          "type": "string",
+          "description": "Log delay in seconds",
+          "examples": ["0", "1"],
+          "common_in": ["eventlog_momentum"]
+        }
+      ]
+    },
+    {
+      "category_name": "SMS Delivery Fields",
+      "description": "Fields for SMS delivery tracking via SMPP protocol (sms_log and mta_log sourcetypes)",
+      "fields": [
+        {
+          "name": "SR",
+          "type": "string",
+          "description": "Status Receipt from SMPP provider. Contains delivery status in format: id:xxx sub:xxx dlvrd:xxx submit date:xxx done date:xxx stat:xxx err:xxx. stat values: DELIVRD (delivered), UNDELIV (undeliverable), EXPIRED, REJECTED",
+          "examples": [
+            "id:1740812925256376 sub:000 dlvrd:001 submit date:2512092048 done date:2512092048 stat:DELIVRD err:000",
+            "id:19b031ae6fa00008 sub:001 dlvrd:000 stat:UNDELIV err:001"
+          ],
+          "common_in": ["sms_log", "mta_log"]
+        },
+        {
+          "name": "command_status",
+          "type": "string",
+          "description": "SMPP command status code. 0x00000000 = success, other values indicate errors",
+          "examples": ["0x00000000", "0x0000000D", "0x00000004"],
+          "values": {
+            "0x00000000": "ESME_ROK - Success",
+            "0x00000001": "ESME_RINVMSGLEN - Invalid message length",
+            "0x00000004": "ESME_RINVBNDSTS - Invalid bind status",
+            "0x0000000D": "ESME_RINVSRCADR - Invalid source address"
+          },
+          "common_in": ["sms_log", "mta_log"]
+        },
+        {
+          "name": "dest_addr",
+          "type": "string",
+          "description": "Destination address/phone number or short code name",
+          "examples": ["Sky", "HDFCLE", "+1234567890"],
+          "common_in": ["sms_log", "mta_log"]
+        },
+        {
+          "name": "source_addr",
+          "type": "string",
+          "description": "Source address/sender ID for SMS",
+          "examples": ["BRAND", "12345"],
+          "common_in": ["sms_log", "mta_log"]
+        },
+        {
+          "name": "dest_npi",
+          "type": "string",
+          "description": "Destination Numbering Plan Indicator (0=unknown, 1=ISDN/E.164)",
+          "examples": ["0", "1"],
+          "common_in": ["sms_log", "mta_log"]
+        },
+        {
+          "name": "dest_ton",
+          "type": "string",
+          "description": "Destination Type of Number (1=international, 5=alphanumeric, 6=abbreviated)",
+          "examples": ["1", "5", "6"],
+          "common_in": ["sms_log", "mta_log"]
+        },
+        {
+          "name": "data_coding",
+          "type": "string",
+          "description": "SMS data coding scheme (0x00=default GSM, 0x08=UCS2)",
+          "examples": ["0x00", "0x08"],
+          "common_in": ["sms_log", "mta_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Web Module Fields",
+      "description": "Fields from web module logs for tracking pixels, redirects, and mirror pages (webmdl_log sourcetype)",
+      "fields": [
+        {
+          "name": "code",
+          "type": "string",
+          "description": "HTTP status code returned by web module",
+          "examples": ["200", "400", "404", "500"],
+          "common_in": ["webmdl_log"]
+        },
+        {
+          "name": "uri",
+          "type": "string",
+          "description": "Request URI path",
+          "examples": ["/nl/jsp/m.jsp", "/r/?id=xxx", "/res/tracking/xxx"],
+          "common_in": ["webmdl_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Tracking/Pipeline Fields",
+      "description": "Fields from tracking and pipeline logs (tracking_log sourcetype)",
+      "fields": [
+        {
+          "name": "login",
+          "type": "string",
+          "description": "User login associated with the operation",
+          "examples": ["admin", "workflow"],
+          "common_in": ["tracking_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "AWS/Cloud Metadata Fields",
+      "description": "AWS instance metadata (present on cloud-hosted instances)",
+      "fields": [
+        {
+          "name": "meta_cloud_id",
+          "type": "string",
+          "description": "AWS account ID",
+          "examples": ["483013340174"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "meta_instance_id",
+          "type": "string",
+          "description": "EC2 instance ID",
+          "examples": ["i-00fd9e7f19fa8fc62"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "meta_location",
+          "type": "string",
+          "description": "AWS region",
+          "examples": ["us-west-2", "eu-west-1", "ap-southeast-2"],
+          "common_in": ["mta_log", "runwf_log"]
+        },
+        {
+          "name": "meta_location_cat",
+          "type": "string",
+          "description": "Location category",
+          "examples": ["cloud"],
+          "common_in": ["mta_log", "runwf_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Message Center Fields",
+      "description": "Fields from Message Center daemon logs (messagecenterd_log sourcetype) - transactional email processing",
+      "fields": [
+        {
+          "name": "utm_campaign",
+          "type": "string",
+          "description": "UTM campaign parameter from tracking URLs",
+          "examples": ["welcome_email", "order_confirmation"],
+          "common_in": ["messagecenterd_log", "web_log"]
+        },
+        {
+          "name": "utm_source",
+          "type": "string",
+          "description": "UTM source parameter",
+          "examples": ["campaign", "email"],
+          "common_in": ["messagecenterd_log", "web_log"]
+        },
+        {
+          "name": "utm_medium",
+          "type": "string",
+          "description": "UTM medium parameter",
+          "examples": ["email", "push"],
+          "common_in": ["messagecenterd_log", "web_log"]
+        },
+        {
+          "name": "utm_content",
+          "type": "string",
+          "description": "UTM content parameter for A/B testing",
+          "examples": ["button_red", "header_v2"],
+          "common_in": ["messagecenterd_log", "web_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Authentication Fields",
+      "description": "Fields from login/authentication logs (logins_log sourcetype)",
+      "fields": [
+        {
+          "name": "login",
+          "type": "string",
+          "description": "Username or service account attempting authentication",
+          "examples": ["campaign-loginmonitor", "admin", "workflow_user"],
+          "common_in": ["logins_log", "web_log", "wfserver_log"]
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Authentication result",
+          "examples": ["FAILED", "SUCCESS"],
+          "values": {
+            "FAILED": "Authentication failed - invalid credentials or permission denied",
+            "SUCCESS": "Authentication successful"
+          },
+          "common_in": ["logins_log"]
+        },
+        {
+          "name": "server",
+          "type": "string",
+          "description": "Server or service name for authentication context",
+          "examples": ["campaign-loginmonitor", "api-gateway"],
+          "common_in": ["logins_log", "web_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Workflow Server Fields",
+      "description": "Fields from workflow server logs (wfserver_log sourcetype) - process management",
+      "fields": [
+        {
+          "name": "pid",
+          "type": "string",
+          "description": "Process ID of the workflow execution",
+          "examples": ["255443", "1576719"],
+          "common_in": ["wfserver_log"]
+        },
+        {
+          "name": "wdbc",
+          "type": "string",
+          "description": "Database connection log type for SQL operations",
+          "examples": ["wdbc"],
+          "common_in": ["wfserver_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Interaction Server Fields",
+      "description": "Fields from interaction/offer engine logs (interactiond_log sourcetype)",
+      "fields": [
+        {
+          "name": "propositionId",
+          "type": "string",
+          "description": "ID of the offer proposition being processed",
+          "examples": ["0", "12345678"],
+          "common_in": ["interactiond_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "NLServer Process Fields",
+      "description": "Fields from core nlserver process logs (nlserver_log sourcetype)",
+      "fields": [
+        {
+          "name": "field3",
+          "type": "string",
+          "description": "Numeric field in nlserver log format (usually 1)",
+          "examples": ["1"],
+          "common_in": ["nlserver_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Job Worker Fields",
+      "description": "Fields from job worker logs (jobworker_log sourcetype) - delivery job execution",
+      "fields": [
+        {
+          "name": "IPAffinity",
+          "type": "string",
+          "description": "IP affinity group for delivery routing",
+          "examples": ["default", "marketing"],
+          "common_in": ["jobworker_log"]
+        },
+        {
+          "name": "deliveryId",
+          "type": "string",
+          "description": "Delivery ID being processed by job worker",
+          "examples": ["522980561", "113235200"],
+          "common_in": ["jobworker_log"]
+        },
+        {
+          "name": "iWorkflowId",
+          "type": "string",
+          "description": "Workflow ID triggering the job",
+          "examples": ["115847263"],
+          "common_in": ["jobworker_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Apache Access Log Fields",
+      "description": "Fields from Apache access logs (access_combined, access_combined_wcookie) - HTTP request tracking",
+      "fields": [
+        {
+          "name": "clientip",
+          "type": "string",
+          "description": "Client IP address making the request (may be load balancer IP)",
+          "examples": ["10.129.162.99", "69.162.1.40"],
+          "common_in": ["access_combined", "access_combined_wcookie"]
+        },
+        {
+          "name": "request",
+          "type": "string",
+          "description": "HTTP request method and URI",
+          "examples": ["GET /r/test HTTP/1.1", "POST /nl/jsp/soaprouter.jsp HTTP/1.1"],
+          "common_in": ["access_combined", "access_combined_wcookie"]
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "HTTP response status code",
+          "examples": ["200", "302", "404", "500"],
+          "common_in": ["access_combined", "access_combined_wcookie"]
+        },
+        {
+          "name": "bytes",
+          "type": "string",
+          "description": "Response size in bytes",
+          "examples": ["415", "5025", "0"],
+          "common_in": ["access_combined", "access_combined_wcookie"]
+        },
+        {
+          "name": "useragent",
+          "type": "string",
+          "description": "Client user agent string",
+          "examples": ["ELB-HealthChecker/2.0", "Mozilla/5.0", "Campaign/8.6"],
+          "common_in": ["access_combined", "access_combined_wcookie"]
+        },
+        {
+          "name": "ssl_protocol",
+          "type": "string",
+          "description": "SSL/TLS protocol version used",
+          "examples": ["TLSv1.2", "TLSv1.3"],
+          "common_in": ["access_combined_wcookie"]
+        },
+        {
+          "name": "ssl_cipher",
+          "type": "string",
+          "description": "SSL cipher suite negotiated",
+          "examples": ["ECDHE-RSA-AES256-GCM-SHA384", "AES256-SHA"],
+          "common_in": ["access_combined_wcookie"]
+        }
+      ]
+    },
+    {
+      "category_name": "Watchdog/Monitor Fields",
+      "description": "Fields from watchdog_log and monitor_log - process management and health monitoring",
+      "fields": [
+        {
+          "name": "task",
+          "type": "string",
+          "description": "Task name being launched or monitored",
+          "examples": ["pipelined@instance", "mta@instance", "wfserver@instance"],
+          "common_in": ["watchdog_log"]
+        },
+        {
+          "name": "command",
+          "type": "string",
+          "description": "Full command line for task execution",
+          "examples": ["nlserver pipelined -noconsole -tracefile:pipelined@instance -instance:instance -detach"],
+          "common_in": ["watchdog_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Archiving Fields",
+      "description": "Fields from archiving_log - email archival operations",
+      "fields": [
+        {
+          "name": "archive_path",
+          "type": "string",
+          "description": "SFTP path for archived email",
+          "examples": ["/sftp/emails/2025-12-09/23h/227C967E-ca9de8c6-sent.eml"],
+          "common_in": ["archiving_log"]
+        },
+        {
+          "name": "archive_recipient",
+          "type": "string",
+          "description": "Email address for archive notification",
+          "examples": ["archive@company.com"],
+          "common_in": ["archiving_log"]
+        }
+      ]
+    },
+    {
+      "category_name": "Apache Error Fields",
+      "description": "Fields from apache_error logs - HTTP server errors",
+      "fields": [
+        {
+          "name": "level",
+          "type": "string",
+          "description": "Apache log level",
+          "examples": ["error", "warn", "notice"],
+          "common_in": ["apache_error"]
+        },
+        {
+          "name": "pid",
+          "type": "string",
+          "description": "Apache process ID",
+          "examples": ["3284288"],
+          "common_in": ["apache_error"]
+        },
+        {
+          "name": "tid",
+          "type": "string",
+          "description": "Apache thread ID",
+          "examples": ["3284313"],
+          "common_in": ["apache_error"]
+        },
+        {
+          "name": "client",
+          "type": "string",
+          "description": "Client IP and port causing the error",
+          "examples": ["69.162.1.40:19913"],
+          "common_in": ["apache_error"]
+        },
+        {
+          "name": "error_code",
+          "type": "string",
+          "description": "Apache error code (AH prefix)",
+          "examples": ["AH10244", "AH00126"],
+          "values": {
+            "AH10244": "Invalid URI path - malformed URL",
+            "AH00126": "Invalid URI in request"
+          },
+          "common_in": ["apache_error"]
+        }
+      ]
+    },
+    {
+      "category_name": "ESP/Momentum Log Fields",
+      "description": "Fields from ESP/Momentum mainlog.ec and bouncelog sourcetypes - raw MTA delivery records",
+      "fields": [
+        {
+          "name": "p",
+          "type": "string",
+          "description": "Bounce/delivery policy classification in Momentum logs",
+          "examples": ["OverQuotaTemp", "OverQuotaPerm", "NoSuchUser", "ReceivingRate"],
+          "values": {
+            "OverQuotaTemp": "Temporary over-quota bounce - mailbox full, will retry",
+            "OverQuotaPerm": "Permanent over-quota bounce - mailbox full, no retry",
+            "NoSuchUser": "User does not exist at destination",
+            "ReceivingRate": "Rate limiting by receiving server"
+          },
+          "common_in": ["mainlog.ec", "bouncelog"]
+        },
+        {
+          "name": "ID",
+          "type": "string",
+          "description": "Unique message/transaction ID in Momentum format (hex)",
+          "examples": ["03760006", "2dc82885", "46c1ae75"],
+          "common_in": ["mainlog.ec", "bouncelog"]
+        },
+        {
+          "name": "legacyId",
+          "type": "string",
+          "description": "Legacy ticket/tracking ID reference",
+          "examples": ["TECH246726"],
+          "common_in": ["mainlog.ec", "bouncelog"]
+        },
+        {
+          "name": "linkid",
+          "type": "string",
+          "description": "Link ID for tracking click-through",
+          "examples": ["865268"],
+          "common_in": ["mainlog.ec", "bouncelog"]
+        }
+      ]
+    }
+  ],
+  "query_patterns": [
+    {
+      "pattern_name": "delivery_success_rate",
+      "use_case": "Calculate delivery success rate for a time period",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum earliest={time_range} | stats count by msys.message_event.type | eventstats sum(count) as total | eval percentage=round(count/total*100,2) | table msys.message_event.type count percentage"
+    },
+    {
+      "pattern_name": "bounce_analysis",
+      "use_case": "Analyze bounces by bounce class",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.bounce_class=* earliest={time_range} | stats count by msys.message_event.bounce_class msys.message_event.type | sort -count"
+    },
+    {
+      "pattern_name": "bounces_by_domain",
+      "use_case": "Find which domains have the most bounces",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.type IN (\"inband\", \"tempfail\") earliest={time_range} | stats count by msys.message_event.routing_domain | sort -count | head 20"
+    },
+    {
+      "pattern_name": "bounce_reasons",
+      "use_case": "Get detailed bounce reasons",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.bounce_class=* earliest={time_range} | stats count by msys.message_event.reason | sort -count | head 20"
+    },
+    {
+      "pattern_name": "delivery_by_customer",
+      "use_case": "Delivery statistics by customer",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum earliest={time_range} | stats count by cust.customerID msys.message_event.type | sort -count"
+    },
+    {
+      "pattern_name": "delivery_by_instance",
+      "use_case": "Delivery statistics by Campaign instance",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum earliest={time_range} | stats count by cust.InstanceName msys.message_event.type | sort -count"
+    },
+    {
+      "pattern_name": "hard_bounces",
+      "use_case": "Find permanent/hard bounces",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.type=\"inband\" earliest={time_range} | stats count by msys.message_event.bounce_class msys.message_event.reason | sort -count"
+    },
+    {
+      "pattern_name": "soft_bounces",
+      "use_case": "Find temporary/soft bounces",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.type=\"tempfail\" earliest={time_range} | stats count by msys.message_event.bounce_class msys.message_event.reason | sort -count"
+    },
+    {
+      "pattern_name": "bounces_by_instance",
+      "use_case": "Find bounces for a specific Campaign instance. Use cust.InstanceName with UNDERSCORES (e.g., virginatlantic_mkt_prod1, NOT virginatlantic-mkt-prod1). Supports wildcards like virginatlantic_mkt_prod*",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum cust.InstanceName={instance_pattern} msys.message_event.type IN (\"inband\", \"tempfail\") earliest={time_range} | stats count by msys.message_event.bounce_class msys.message_event.type msys.message_event.reason | sort -count"
+    },
+    {
+      "pattern_name": "deliveries_by_instance",
+      "use_case": "Find deliveries for a specific Campaign instance. Use cust.InstanceName with UNDERSCORES (e.g., virginatlantic_mkt_prod1). Supports wildcards.",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum cust.InstanceName={instance_pattern} msys.message_event.type=\"delivery\" earliest={time_range} | stats count by cust.DeliveryInternalName | sort -count"
+    },
+    {
+      "pattern_name": "invalid_recipients",
+      "use_case": "Find invalid recipient bounces (bounce_class 10)",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.bounce_class=\"10\" earliest={time_range} | stats count by msys.message_event.routing_domain | sort -count"
+    },
+    {
+      "pattern_name": "deliveries_by_hour",
+      "use_case": "Delivery volume over time",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.type=\"delivery\" earliest={time_range} | timechart span=1h count"
+    },
+    {
+      "pattern_name": "workflow_errors",
+      "use_case": "Find workflow execution errors",
+      "spl_template": "index=campaign_prod sourcetype=runwf_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "workflow_failures",
+      "use_case": "Find failed workflow executions (locale-independent)",
+      "spl_template": "index=campaign_prod sourcetype=runwf_log failed=1 earliest={time_range} | stats count by host internalName | sort -count | head 20"
+    },
+    {
+      "pattern_name": "mta_errors",
+      "use_case": "MTA process errors",
+      "spl_template": "index=campaign_prod sourcetype=mta_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "quarantine_reasons",
+      "use_case": "Analyze quarantine reasons from inmail processing",
+      "spl_template": "index=campaign_prod sourcetype=inmail_log iQuarantineReason=* earliest={time_range} | stats count by mQuarantineText | sort -count"
+    },
+    {
+      "pattern_name": "delivery_for_specific_customer",
+      "use_case": "Find deliveries for a specific customer",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum cust.customerID=\"*{customer_name}*\" earliest={time_range} | stats count by msys.message_event.type cust.DeliveryInternalName | sort -count"
+    },
+    {
+      "pattern_name": "smtp_error_codes",
+      "use_case": "Analyze SMTP error codes",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.error_code=* earliest={time_range} | stats count by msys.message_event.error_code | sort -count"
+    },
+    {
+      "pattern_name": "momentum_node_stats",
+      "use_case": "Statistics by Momentum MTA node",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum earliest={time_range} | stats count by msys.message_event.node_name msys.message_event.type | sort -count"
+    },
+    {
+      "pattern_name": "delivery_latency",
+      "use_case": "Analyze message queue times",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.type=\"delivery\" earliest={time_range} | stats avg(msys.message_event.queue_time) as avg_queue_ms by cust.InstanceName | eval avg_queue_sec=round(avg_queue_ms/1000,2) | sort -avg_queue_sec"
+    },
+    {
+      "pattern_name": "retries_analysis",
+      "use_case": "Messages requiring multiple retry attempts",
+      "spl_template": "index=momentum_prod sourcetype=eventlog_momentum msys.message_event.num_retries>0 earliest={time_range} | stats count avg(msys.message_event.num_retries) as avg_retries by msys.message_event.type | sort -count"
+    },
+    {
+      "pattern_name": "instance_search",
+      "use_case": "Find all events for a specific Campaign instance",
+      "spl_template": "index=campaign_prod cust.InstanceName=\"{instance_name}\" earliest={time_range} | stats count by sourcetype msys.message_event.type | sort -count"
+    },
+    {
+      "pattern_name": "http_errors",
+      "use_case": "Find HTTP errors (404, 500, etc.) from web tracking, redirects, or mirror pages",
+      "spl_template": "index=campaign_prod sourcetype=webmdl_log host={host_pattern} earliest={time_range} | search message=\"*404*\" OR message=\"*500*\" OR iRc<0 | stats count by iRc message | sort -count"
+    },
+    {
+      "pattern_name": "web_tracking_errors",
+      "use_case": "Find web module errors for tracking pixels, redirects, mirror pages",
+      "spl_template": "index=campaign_prod sourcetype=webmdl_log iRc<0 earliest={time_range} | stats count by host uri iRc | sort -count | head 20"
+    },
+    {
+      "pattern_name": "sms_delivery_status",
+      "use_case": "Check SMS delivery status receipts",
+      "spl_template": "index=campaign_prod sourcetype=sms_log SR=* earliest={time_range} | rex field=SR \"stat:(?<sms_status>\\w+)\" | stats count by host sms_status | sort -count"
+    },
+    {
+      "pattern_name": "sms_delivery_errors",
+      "use_case": "Find SMS delivery failures",
+      "spl_template": "index=campaign_prod sourcetype=sms_log SR=*UNDELIV* OR SR=*EXPIRED* OR SR=*REJECTED* earliest={time_range} | stats count by host SR | sort -count | head 20"
+    },
+    {
+      "pattern_name": "sms_by_destination",
+      "use_case": "SMS volume by destination/short code",
+      "spl_template": "index=campaign_prod sourcetype=sms_log dest_addr=* earliest={time_range} | stats count by dest_addr | sort -count | head 20"
+    },
+    {
+      "pattern_name": "tracking_pipeline_errors",
+      "use_case": "Find tracking/pipeline errors",
+      "spl_template": "index=campaign_prod sourcetype=tracking_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "tracking_file_errors",
+      "use_case": "Find file operation errors in tracking (iRc=-52 is common)",
+      "spl_template": "index=campaign_prod sourcetype=tracking_log iRc<0 earliest={time_range} | stats count by host iRc message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "mtachild_status",
+      "use_case": "MTA child process status and errors",
+      "spl_template": "index=campaign_prod sourcetype=mtachild_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "mtachild_errors",
+      "use_case": "Find MTA child process errors",
+      "spl_template": "index=campaign_prod sourcetype=mtachild_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "pipelined_status",
+      "use_case": "Pipeline processing status",
+      "spl_template": "index=campaign_prod sourcetype=pipelined_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "messagecenterd_errors",
+      "use_case": "Find Message Center transactional delivery errors",
+      "spl_template": "index=campaign_prod sourcetype=messagecenterd_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "messagecenterd_typology",
+      "use_case": "Monitor typology rule processing for transactional messages",
+      "spl_template": "index=campaign_prod sourcetype=messagecenterd_log \"typology\" earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "login_failures",
+      "use_case": "Find failed login attempts",
+      "spl_template": "index=campaign_prod sourcetype=logins_log FAILED earliest={time_range} | stats count by host | sort -count | head 20"
+    },
+    {
+      "pattern_name": "login_success_rate",
+      "use_case": "Calculate login success vs failure rate",
+      "spl_template": "index=campaign_prod sourcetype=logins_log earliest={time_range} | rex field=_raw \"(?<auth_status>FAILED|SUCCESS)\" | stats count by auth_status | eventstats sum(count) as total | eval pct=round(count/total*100,2)"
+    },
+    {
+      "pattern_name": "web_log_errors",
+      "use_case": "Find web module/landing page errors",
+      "spl_template": "index=campaign_prod sourcetype=web_log message_type=error earliest={time_range} | stats count by host iRc message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "web_profile_operations",
+      "use_case": "Track profile operations (subscriptions, updates) via web forms",
+      "spl_template": "index=campaign_prod sourcetype=web_log iStatus=* earliest={time_range} | stats count by host iStatus | sort -count"
+    },
+    {
+      "pattern_name": "wfserver_process_creation",
+      "use_case": "Monitor workflow process creation",
+      "spl_template": "index=campaign_prod sourcetype=wfserver_log \"Created process\" earliest={time_range} | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "wfserver_errors",
+      "use_case": "Find workflow server errors",
+      "spl_template": "index=campaign_prod sourcetype=wfserver_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "javascript_version_info",
+      "use_case": "Check Campaign application server versions",
+      "spl_template": "index=campaign_prod sourcetype=javascript_log \"Application server for Adobe Campaign\" earliest={time_range} | stats count by host message | sort -count"
+    },
+    {
+      "pattern_name": "interactiond_errors",
+      "use_case": "Find interaction/offer engine errors",
+      "spl_template": "index=campaign_prod sourcetype=interactiond_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "interactiond_proposition_errors",
+      "use_case": "Find offer proposition status update failures",
+      "spl_template": "index=campaign_prod sourcetype=interactiond_log \"proposition\" message_type=warning OR message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "nlserver_syntax_errors",
+      "use_case": "Find nlserver syntax/parameter errors (BAS-010058)",
+      "spl_template": "index=campaign_prod sourcetype=nlserver_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "nlserver_version_info",
+      "use_case": "Check Adobe Campaign application server versions from nlserver",
+      "spl_template": "index=campaign_prod sourcetype=nlserver_log \"Application server for Adobe Campaign\" earliest={time_range} | dedup host | table host message"
+    },
+    {
+      "pattern_name": "jobworker_status",
+      "use_case": "Monitor job worker activity and status",
+      "spl_template": "index=campaign_prod sourcetype=jobworker_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "jobworker_errors",
+      "use_case": "Find job worker errors",
+      "spl_template": "index=campaign_prod sourcetype=jobworker_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "jobworker_cache_purge",
+      "use_case": "Monitor job worker cache purging (WEB-530037)",
+      "spl_template": "index=campaign_prod sourcetype=jobworker_log WEB-530037 earliest={time_range} | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "esp_mainlog_delivery",
+      "use_case": "ESP/Momentum main delivery log analysis",
+      "spl_template": "index=campaign_prod sourcetype=mainlog.ec earliest={time_range} | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "esp_mainlog_tempfail",
+      "use_case": "Find ESP/Momentum temporary delivery failures (quota, rate limiting)",
+      "spl_template": "index=campaign_prod sourcetype=mainlog.ec p=OverQuotaTemp OR p=ReceivingRate earliest={time_range} | stats count by host p | sort -count"
+    },
+    {
+      "pattern_name": "esp_bouncelog_analysis",
+      "use_case": "Analyze ESP/Momentum bounce classifications",
+      "spl_template": "index=campaign_prod sourcetype=bouncelog earliest={time_range} | stats count by host p | sort -count"
+    },
+    {
+      "pattern_name": "esp_bouncelog_permanent",
+      "use_case": "Find permanent bounces in ESP/Momentum",
+      "spl_template": "index=campaign_prod sourcetype=bouncelog p=OverQuotaPerm OR p=NoSuchUser earliest={time_range} | stats count by host p | sort -count"
+    },
+    {
+      "pattern_name": "esp_bouncelog_by_domain",
+      "use_case": "ESP bounce analysis by receiving domain (extract from raw)",
+      "spl_template": "index=campaign_prod sourcetype=bouncelog earliest={time_range} | rex field=_raw \"@(?<recipient_domain>[^@]+)@\" | stats count by recipient_domain | sort -count | head 20"
+    },
+    {
+      "pattern_name": "apache_access_status",
+      "use_case": "HTTP response status distribution from Apache access logs",
+      "spl_template": "index=campaign_prod sourcetype=access_combined OR sourcetype=access_combined_wcookie earliest={time_range} | stats count by status | sort -count"
+    },
+    {
+      "pattern_name": "apache_access_errors",
+      "use_case": "Find HTTP 4xx and 5xx errors in Apache access logs",
+      "spl_template": "index=campaign_prod sourcetype=access_combined OR sourcetype=access_combined_wcookie status>=400 earliest={time_range} | stats count by host status request | sort -count | head 20"
+    },
+    {
+      "pattern_name": "apache_access_by_uri",
+      "use_case": "Request volume by URI pattern",
+      "spl_template": "index=campaign_prod sourcetype=access_combined OR sourcetype=access_combined_wcookie earliest={time_range} | rex field=request \"\\w+ (?<uri>[^ ]+)\" | stats count by uri | sort -count | head 20"
+    },
+    {
+      "pattern_name": "apache_error_analysis",
+      "use_case": "Analyze Apache error log entries",
+      "spl_template": "index=campaign_prod sourcetype=apache_error earliest={time_range} | rex field=_raw \"\\[(?<error_code>AH\\d+)\\]\" | stats count by host error_code | sort -count | head 20"
+    },
+    {
+      "pattern_name": "apache_invalid_uri",
+      "use_case": "Find invalid URI errors (AH10244) in Apache",
+      "spl_template": "index=campaign_prod sourcetype=apache_error AH10244 earliest={time_range} | stats count by host client | sort -count | head 20"
+    },
+    {
+      "pattern_name": "monitor_log_status",
+      "use_case": "Campaign monitor process status and version info",
+      "spl_template": "index=campaign_prod sourcetype=monitor_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "watchdog_process_launches",
+      "use_case": "Track process launches by watchdog service",
+      "spl_template": "index=campaign_prod sourcetype=watchdog_log \"Launching task\" earliest={time_range} | rex field=_raw \"Launching task '(?<task>[^']+)'\" | stats count by host task | sort -count"
+    },
+    {
+      "pattern_name": "archiving_status",
+      "use_case": "Email archiving success/failure status",
+      "spl_template": "index=campaign_prod sourcetype=archiving_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "archiving_errors",
+      "use_case": "Find email archiving failures",
+      "spl_template": "index=campaign_prod sourcetype=archiving_log message_type=error earliest={time_range} | stats count by host message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "paniclog_errors",
+      "use_case": "ESP/Momentum panic log errors (binding group issues)",
+      "spl_template": "index=campaign_prod sourcetype=paniclog earliest={time_range} | rex field=_raw \"(?<function>[^:]+):\" | stats count by host function | sort -count | head 20"
+    },
+    {
+      "pattern_name": "weblog_errors",
+      "use_case": "Campaign weblog errors (data source, DNS alias issues)",
+      "spl_template": "index=campaign_prod sourcetype=weblog message_type=error earliest={time_range} | stats count by host iRc message | sort -count | head 20"
+    },
+    {
+      "pattern_name": "nssproxy_tls_errors",
+      "use_case": "NSS proxy TLS/certificate errors",
+      "spl_template": "index=campaign_prod sourcetype=nssproxy_log earliest={time_range} | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "ssl_protocol_distribution",
+      "use_case": "TLS protocol version distribution from HTTPS requests",
+      "spl_template": "index=campaign_prod sourcetype=access_combined_wcookie ssl_protocol=* earliest={time_range} | stats count by ssl_protocol | sort -count"
+    },
+    {
+      "pattern_name": "pdump_log_diagnostics",
+      "use_case": "Process dump diagnostics and version info",
+      "spl_template": "index=campaign_prod sourcetype=pdump_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "esp_historical_segments",
+      "use_case": "ESP/Druid historical segment management and ZooKeeper coordination",
+      "spl_template": "index=campaign_prod sourcetype=esp_historical earliest={time_range} | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "stat_server_health",
+      "use_case": "Statistics server ping monitoring and inter-server health checks",
+      "spl_template": "index=campaign_prod sourcetype=stat_log earliest={time_range} | search \"Pinging stat server\" | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "job_replication_status",
+      "use_case": "Schema replication and external account sync job monitoring",
+      "spl_template": "index=campaign_prod sourcetype=job_log earliest={time_range} | stats count by host message_type | sort -count"
+    },
+    {
+      "pattern_name": "crash_diagnostics",
+      "use_case": "Application crash analysis with GDB stack traces",
+      "spl_template": "index=campaign_prod sourcetype=zerocrash earliest={time_range} | stats count by host | sort -count"
+    },
+    {
+      "pattern_name": "esp_rejected_messages",
+      "use_case": "ESP/Momentum rejected messages during SMTP transaction",
+      "spl_template": "index=campaign_prod sourcetype=rejectlog earliest={time_range} | stats count by host | sort -count"
+    }
+  ],
+  "bounce_class_reference": {
+    "description": "Momentum bounce classification codes",
+    "classes": {
+      "1": {"name": "Undetermined", "type": "unknown", "description": "Bounce reason could not be determined"},
+      "10": {"name": "Invalid Recipient", "type": "hard", "description": "User does not exist"},
+      "21": {"name": "Bad Domain", "type": "soft", "description": "No MX or A record for domain"},
+      "22": {"name": "Bad Mailbox", "type": "hard", "description": "Mailbox does not exist"},
+      "23": {"name": "Inactive Mailbox", "type": "hard", "description": "Mailbox is inactive or disabled"},
+      "24": {"name": "Protocol Timeout", "type": "soft", "description": "Connection timed out"},
+      "25": {"name": "DNS Failure", "type": "soft", "description": "Temporary DNS resolution failure"},
+      "40": {"name": "Generic Bounce", "type": "unknown", "description": "Unclassified bounce"},
+      "50": {"name": "Mail Block", "type": "soft", "description": "Message blocked by receiving server"},
+      "51": {"name": "Spam Related", "type": "soft", "description": "Blocked as spam by receiving server"},
+      "52": {"name": "Spam Content", "type": "soft", "description": "Content flagged as spam"},
+      "54": {"name": "Relaying Denied", "type": "hard", "description": "Relay not permitted"},
+      "70": {"name": "Transient Failure", "type": "soft", "description": "Temporary server issue"}
+    }
+  },
+  "event_type_reference": {
+    "description": "Momentum message event types",
+    "types": {
+      "delivery": {"description": "Message successfully delivered to recipient MTA", "is_success": true},
+      "reception": {"description": "Message received by Momentum for processing", "is_success": true},
+      "inband": {"description": "Permanent bounce during SMTP conversation (hard bounce)", "is_success": false},
+      "tempfail": {"description": "Temporary failure, message will be retried (soft bounce)", "is_success": false},
+      "rejection": {"description": "Message rejected by receiving server", "is_success": false}
+    }
+  },
+  "irc_code_reference": {
+    "description": "Common iRc (internal return code) values across Campaign logs. Negative values indicate errors.",
+    "codes": {
+      "-53": {"name": "General Error", "description": "Generic error condition, check message for details", "frequency": "very_high"},
+      "16384": {"name": "Invalid/Not Found", "description": "Resource not found or invalid parameter", "frequency": "very_high"},
+      "-52": {"name": "File/Permission Error", "description": "Cannot read/write file or create directory", "frequency": "high"},
+      "-61": {"name": "Connection Error", "description": "Network connection failed", "frequency": "high"},
+      "-57": {"name": "Timeout", "description": "Operation timed out", "frequency": "high"},
+      "-69": {"name": "SSL/TLS Error", "description": "SSL certificate or encryption error", "frequency": "high"},
+      "-60": {"name": "DNS Error", "description": "DNS resolution failed", "frequency": "medium"},
+      "-2013": {"name": "Database Error", "description": "Database operation failed", "frequency": "high"},
+      "-2010": {"name": "Query Error", "description": "SQL query error", "frequency": "medium"},
+      "-2003": {"name": "Connection Pool Error", "description": "Database connection pool exhausted", "frequency": "medium"}
+    }
+  },
+  "error_code_reference": {
+    "description": "Common Campaign error codes (format: XXX-NNNNNN). Search with: message_type=error | rex field=_raw \"(?<error_code>[A-Z]{2,4}-\\d{6})\"",
+    "codes": {
+      "JST-310000": {"category": "JavaScript", "description": "JavaScript execution error in delivery/workflow", "frequency": "very_high"},
+      "SCR-160012": {"category": "Script", "description": "Script execution error", "frequency": "very_high"},
+      "XTK-170036": {"category": "XTK", "description": "Unable to parse expression - invalid schema path or attribute", "frequency": "very_high"},
+      "WKF-560007": {"category": "Workflow", "description": "Workflow execution error", "frequency": "high"},
+      "INT-150006": {"category": "Integration", "description": "HTTP request failure", "frequency": "high"},
+      "INT-150012": {"category": "Integration", "description": "Integration/relay error", "frequency": "high"},
+      "RED-520000": {"category": "Redirect", "description": "Redirect/tracking URL error", "frequency": "high"},
+      "RED-520009": {"category": "Redirect", "description": "Redirect processing error", "frequency": "medium"},
+      "RED-520012": {"category": "Redirect", "description": "Redirect URL not found", "frequency": "medium"},
+      "BAS-010001": {"category": "Base", "description": "File error - cannot read/write", "frequency": "high"},
+      "BAS-010018": {"category": "Base", "description": "Cannot create folder", "frequency": "high"},
+      "TRL-660001": {"category": "Tracking", "description": "Cannot write tracking log", "frequency": "medium"},
+      "WEB-530013": {"category": "Web", "description": "No relay rule matched URL", "frequency": "medium"},
+      "URL-140002": {"category": "URL", "description": "Missing URL parameter", "frequency": "medium"},
+      "SMP-540004": {"category": "SMPP", "description": "SMPP BIND operation failed", "frequency": "medium"},
+      "IOB-090020": {"category": "IO", "description": "SSL library error", "frequency": "medium"},
+      "WDB-200001": {"category": "Database", "description": "Database write error", "frequency": "medium"},
+      "SOP-330011": {"category": "SOAP", "description": "SOAP call error", "frequency": "medium"}
+    }
+  },
+  "use_cases": [
+    {
+      "question": "What are the bounces for a specific instance like virginatlantic?",
+      "description": "Find hard and soft bounces for a specific Campaign instance. Use cust.InstanceName with UNDERSCORES (e.g., virginatlantic_mkt_prod* not virginatlantic-mkt-prod*). The host field is NOT the instance - it's the Momentum server.",
+      "fields_involved": ["cust.InstanceName", "msys.message_event.type", "msys.message_event.bounce_class"],
+      "pattern_reference": "bounces_by_instance",
+      "spl_example": "index=momentum_prod sourcetype=eventlog_momentum cust.InstanceName=virginatlantic_mkt_prod* msys.message_event.type IN (\"inband\", \"tempfail\") earliest=-1h | stats count by msys.message_event.bounce_class msys.message_event.type msys.message_event.reason | sort -count"
+    },
+    {
+      "question": "How many emails were delivered for southwest-airlines or any specific customer instance?",
+      "description": "Count deliveries for a Campaign instance. CRITICAL: Use cust.InstanceName NOT host! Convert dashes to underscores (southwest-airlines-mkt-prod18 becomes southwest_airlines_mkt_prod18). host field contains Momentum MTA servers, not Campaign instances.",
+      "fields_involved": ["cust.InstanceName", "msys.message_event.type"],
+      "pattern_reference": "deliveries_by_instance",
+      "spl_example": "index=momentum_prod sourcetype=eventlog_momentum cust.InstanceName=southwest_airlines_mkt_prod* msys.message_event.type=\"delivery\" earliest=-1d | stats count as delivered_emails"
+    },
+    {
+      "question": "What SMPP/SMS errors are happening?",
+      "description": "Find SMS delivery failures via SMPP protocol",
+      "fields_involved": ["sourcetype", "message_type", "command_status", "SR"],
+      "pattern_reference": "sms_delivery_errors",
+      "spl_example": "index=campaign_prod sourcetype=mta_log OR sourcetype=sms_log message_type=error SMP-* earliest=-1h | stats count by host message | head 20"
+    },
+    {
+      "question": "Why are workflows failing?",
+      "description": "Find workflow execution errors (XTK, WKF errors)",
+      "fields_involved": ["sourcetype", "message_type", "message"],
+      "pattern_reference": "workflow_errors",
+      "spl_example": "index=campaign_prod sourcetype=runwf_log message_type=error earliest=-1h | rex field=_raw \"(?<error_code>[A-Z]{2,4}-\\d{6})\" | stats count by host error_code | sort -count"
+    },
+    {
+      "question": "What HTTP errors are occurring on tracking/redirects?",
+      "description": "Find web module HTTP errors (404, 500, redirect failures)",
+      "fields_involved": ["sourcetype", "message_type", "iRc", "code", "uri"],
+      "pattern_reference": "http_errors",
+      "spl_example": "index=campaign_prod sourcetype=webmdl_log message_type=error earliest=-1h | stats count by host iRc message | sort -count | head 20"
+    },
+    {
+      "question": "Are there file/disk errors?",
+      "description": "Find file system errors (BAS-010001, BAS-010018, iRc=-52)",
+      "fields_involved": ["sourcetype", "message_type", "iRc"],
+      "pattern_reference": "tracking_file_errors",
+      "spl_example": "index=campaign_prod iRc=-52 earliest=-1h | stats count by host sourcetype message | sort -count | head 20"
+    },
+    {
+      "question": "What JavaScript errors are happening in deliveries?",
+      "description": "Find JavaScript execution errors in delivery content",
+      "fields_involved": ["sourcetype", "message_type", "message"],
+      "pattern_reference": "workflow_errors",
+      "spl_example": "index=campaign_prod message_type=error JST-310000 earliest=-1h | stats count by host | sort -count"
+    },
+    {
+      "question": "Show me SSL/certificate errors",
+      "description": "Find SSL/TLS certificate verification failures",
+      "fields_involved": ["sourcetype", "message_type", "iRc"],
+      "pattern_reference": "mta_errors",
+      "spl_example": "index=campaign_prod message_type=error (IOB-090020 OR iRc=-69) earliest=-1h | stats count by host message | sort -count | head 20"
+    },
+    {
+      "question": "What are the most common errors right now?",
+      "description": "Top error codes across all Campaign logs",
+      "fields_involved": ["message_type"],
+      "pattern_reference": null,
+      "spl_example": "index=campaign_prod message_type=error earliest=-1h | rex field=_raw \"(?<error_code>[A-Z]{2,4}-\\d{6})\" | stats count by error_code | sort -count | head 20"
+    },
+    {
+      "question": "Which hosts have the most errors?",
+      "description": "Find hosts with highest error rates",
+      "fields_involved": ["host", "message_type"],
+      "pattern_reference": null,
+      "spl_example": "index=campaign_prod message_type=error earliest=-1h | stats count by host | sort -count | head 20"
+    },
+    {
+      "question": "Are there login failures?",
+      "description": "Find failed authentication attempts to Campaign console or API",
+      "fields_involved": ["sourcetype", "login", "status"],
+      "pattern_reference": "login_failures",
+      "spl_example": "index=campaign_prod sourcetype=logins_log FAILED earliest=-1h | stats count by host | sort -count | head 20"
+    },
+    {
+      "question": "What's happening with transactional emails?",
+      "description": "Check Message Center daemon for transactional delivery processing",
+      "fields_involved": ["sourcetype", "message_type", "deliveryName"],
+      "pattern_reference": "messagecenterd_errors",
+      "spl_example": "index=campaign_prod sourcetype=messagecenterd_log earliest=-1h | stats count by host message_type | sort -count"
+    },
+    {
+      "question": "Are web forms/landing pages working?",
+      "description": "Check web module for landing page and form errors",
+      "fields_involved": ["sourcetype", "message_type", "iRc", "iStatus"],
+      "pattern_reference": "web_log_errors",
+      "spl_example": "index=campaign_prod sourcetype=web_log message_type=error earliest=-1h | stats count by host iRc | sort -count | head 20"
+    },
+    {
+      "question": "What Campaign versions are running?",
+      "description": "Check application server versions across instances",
+      "fields_involved": ["sourcetype", "host", "message"],
+      "pattern_reference": "javascript_version_info",
+      "spl_example": "index=campaign_prod sourcetype=javascript_log \"Application server for Adobe Campaign\" earliest=-24h | dedup host | table host message"
+    },
+    {
+      "question": "Are offers/interactions working?",
+      "description": "Check interaction server for offer proposition errors",
+      "fields_involved": ["sourcetype", "message_type", "propositionId"],
+      "pattern_reference": "interactiond_errors",
+      "spl_example": "index=campaign_prod sourcetype=interactiond_log message_type=error earliest=-1h | stats count by host message | sort -count | head 20"
+    },
+    {
+      "question": "What nlserver errors are happening?",
+      "description": "Find core nlserver process errors (syntax errors, parameter validation)",
+      "fields_involved": ["sourcetype", "message_type", "iRc"],
+      "pattern_reference": "nlserver_syntax_errors",
+      "spl_example": "index=campaign_prod sourcetype=nlserver_log message_type=error earliest=-1h | stats count by host message | sort -count | head 20"
+    },
+    {
+      "question": "Are job workers running properly?",
+      "description": "Check job worker status, cache purging, and delivery job execution",
+      "fields_involved": ["sourcetype", "message_type", "deliveryId"],
+      "pattern_reference": "jobworker_status",
+      "spl_example": "index=campaign_prod sourcetype=jobworker_log earliest=-1h | stats count by host message_type | sort -count"
+    },
+    {
+      "question": "What's happening with ESP/Momentum deliveries?",
+      "description": "Check mainlog.ec for ESP delivery status and temporary failures",
+      "fields_involved": ["sourcetype", "host", "p"],
+      "pattern_reference": "esp_mainlog_delivery",
+      "spl_example": "index=campaign_prod sourcetype=mainlog.ec earliest=-1h | stats count by host | sort -count"
+    },
+    {
+      "question": "What ESP bounces are occurring?",
+      "description": "Analyze ESP/Momentum bounces by classification (OverQuotaTemp, NoSuchUser, etc.)",
+      "fields_involved": ["sourcetype", "host", "p"],
+      "pattern_reference": "esp_bouncelog_analysis",
+      "spl_example": "index=campaign_prod sourcetype=bouncelog earliest=-1h | stats count by host p | sort -count"
+    },
+    {
+      "question": "Which domains have the most ESP bounces?",
+      "description": "Find receiving domains with highest bounce rates in ESP/Momentum logs",
+      "fields_involved": ["sourcetype", "host"],
+      "pattern_reference": "esp_bouncelog_by_domain",
+      "spl_example": "index=campaign_prod sourcetype=bouncelog earliest=-1h | rex field=_raw \"@(?<recipient_domain>[^@]+)@\" | stats count by recipient_domain | sort -count | head 20"
+    },
+    {
+      "question": "What HTTP errors are happening in Apache?",
+      "description": "Find 4xx and 5xx HTTP errors from Apache access logs",
+      "fields_involved": ["sourcetype", "status", "request"],
+      "pattern_reference": "apache_access_errors",
+      "spl_example": "index=campaign_prod sourcetype=access_combined OR sourcetype=access_combined_wcookie status>=400 earliest=-1h | stats count by host status | sort -count | head 20"
+    },
+    {
+      "question": "Are there invalid URL errors?",
+      "description": "Find Apache AH10244 invalid URI path errors",
+      "fields_involved": ["sourcetype", "error_code", "client"],
+      "pattern_reference": "apache_invalid_uri",
+      "spl_example": "index=campaign_prod sourcetype=apache_error AH10244 earliest=-1h | stats count by host client | sort -count | head 20"
+    },
+    {
+      "question": "What TLS versions are clients using?",
+      "description": "Check SSL/TLS protocol distribution from HTTPS requests",
+      "fields_involved": ["sourcetype", "ssl_protocol"],
+      "pattern_reference": "ssl_protocol_distribution",
+      "spl_example": "index=campaign_prod sourcetype=access_combined_wcookie ssl_protocol=* earliest=-1h | stats count by ssl_protocol | sort -count"
+    },
+    {
+      "question": "Are processes being launched correctly?",
+      "description": "Check watchdog service for process launches (pipelined, mta, wfserver)",
+      "fields_involved": ["sourcetype", "task"],
+      "pattern_reference": "watchdog_process_launches",
+      "spl_example": "index=campaign_prod sourcetype=watchdog_log \"Launching task\" earliest=-1h | rex field=_raw \"Launching task '(?<task>[^']+)'\" | stats count by host task | sort -count"
+    },
+    {
+      "question": "Is email archiving working?",
+      "description": "Check archiving_log for email archival success/failure",
+      "fields_involved": ["sourcetype", "message_type"],
+      "pattern_reference": "archiving_status",
+      "spl_example": "index=campaign_prod sourcetype=archiving_log earliest=-1h | stats count by host message_type | sort -count"
+    },
+    {
+      "question": "Are there ESP panic/crash errors?",
+      "description": "Check paniclog for ESP/Momentum binding group errors and crashes",
+      "fields_involved": ["sourcetype", "function"],
+      "pattern_reference": "paniclog_errors",
+      "spl_example": "index=campaign_prod sourcetype=paniclog earliest=-1h | rex field=_raw \"(?<function>[^:]+):\" | stats count by host function | sort -count | head 20"
+    },
+    {
+      "question": "What data source errors are happening?",
+      "description": "Find XSV-350063 data source/DNS alias errors from weblog",
+      "fields_involved": ["sourcetype", "iRc", "message"],
+      "pattern_reference": "weblog_errors",
+      "spl_example": "index=campaign_prod sourcetype=weblog message_type=error earliest=-1h | stats count by host iRc message | sort -count | head 20"
+    },
+    {
+      "question": "Are there TLS certificate errors?",
+      "description": "Check nssproxy_log for TLS handshake and certificate validation errors",
+      "fields_involved": ["sourcetype"],
+      "pattern_reference": "nssproxy_tls_errors",
+      "spl_example": "index=campaign_prod sourcetype=nssproxy_log earliest=-1h | stats count by host | sort -count"
+    },
+    {
+      "question": "Is the monitor process healthy?",
+      "description": "Check Campaign monitor process for health status and version info",
+      "fields_involved": ["sourcetype", "message_type"],
+      "pattern_reference": "monitor_log_status",
+      "spl_example": "index=campaign_prod sourcetype=monitor_log earliest=-1h | stats count by host message_type | sort -count"
+    },
+    {
+      "question": "Are there process dumps or diagnostics?",
+      "description": "Check pdump_log for process dump diagnostics, version info, and memory diagnostics",
+      "fields_involved": ["sourcetype", "message_type"],
+      "pattern_reference": "pdump_log_diagnostics",
+      "spl_example": "index=campaign_prod sourcetype=pdump_log earliest=-1h | stats count by host message_type | sort -count"
+    },
+    {
+      "question": "What's happening with ESP/Druid historical data?",
+      "description": "Check esp_historical for Druid segment management and ZooKeeper coordination status",
+      "fields_involved": ["sourcetype"],
+      "pattern_reference": "esp_historical_segments",
+      "spl_example": "index=campaign_prod sourcetype=esp_historical earliest=-1h | stats count by host | sort -count"
+    },
+    {
+      "question": "Are the stat servers communicating properly?",
+      "description": "Check stat_log for inter-server ping monitoring and health checks between Campaign servers",
+      "fields_involved": ["sourcetype", "host"],
+      "pattern_reference": "stat_server_health",
+      "spl_example": "index=campaign_prod sourcetype=stat_log earliest=-1h | search \"Pinging stat server\" | stats count by host | sort -count"
+    },
+    {
+      "question": "What replication jobs are running?",
+      "description": "Check job_log for schema replication, external account sync, and data transfer operations",
+      "fields_involved": ["sourcetype", "message_type", "schema"],
+      "pattern_reference": "job_replication_status",
+      "spl_example": "index=campaign_prod sourcetype=job_log earliest=-1h | stats count by host message_type | sort -count"
+    },
+    {
+      "question": "Did any Campaign processes crash?",
+      "description": "Check zerocrash for GDB stack traces and crash diagnostics from nlserver crashes",
+      "fields_involved": ["sourcetype", "host"],
+      "pattern_reference": "crash_diagnostics",
+      "spl_example": "index=campaign_prod sourcetype=zerocrash earliest=-24h | stats count by host | sort -count"
+    },
+    {
+      "question": "Are any messages being rejected by ESP?",
+      "description": "Check rejectlog for messages rejected during SMTP transaction by Momentum/ESP",
+      "fields_involved": ["sourcetype", "host"],
+      "pattern_reference": "esp_rejected_messages",
+      "spl_example": "index=campaign_prod sourcetype=rejectlog earliest=-1h | stats count by host | sort -count"
+    }
+  ]
+}

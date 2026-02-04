@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph Lifecycle["🔌 Socket Mode"]
+        START[Start]
+        CONNECT[Connect WebSocket]
+        LISTEN[Listen for Events]
+        STOP[Shutdown]
+    end
+
+    START --> CONNECT
+    CONNECT --> LISTEN
+    LISTEN -->|"auto-reconnect"| LISTEN
+    LISTEN --> STOP
+
+    style Lifecycle fill:#E3F2FD,stroke:#1976D2
