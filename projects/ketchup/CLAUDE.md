@@ -137,6 +137,15 @@ Full deployments (`./deploy`) use ALB target deregistration for true zero-downti
 
 **Dynamic Resource Discovery**: Script auto-discovers ALB target group ARN and instance IDs at runtime - no hardcoded AWS resource IDs.
 
+#### Health Check Endpoint
+
+The `/health` endpoint in `ketchup-app/main.py` supports ALB health check draining:
+
+- **Normal**: Returns `200 OK` with `{"status": "healthy"}`
+- **Maintenance Mode**: When `KETCHUP_MAINTENANCE_MODE=true`, returns `503 Service Unavailable`
+
+This allows ALB to drain traffic via health check failure (used internally during deployment). The deploy script uses direct ALB deregister-targets for faster draining, but the health check mechanism remains as a fallback.
+
 ### Local Development
 ```bash
 cd infrastructure
