@@ -347,8 +347,21 @@ set_alb_deregistration_delay() {
     fi
 }
 
+INTERRUPTED=false
+
+handle_interrupt() {
+    INTERRUPTED=true
+    # Clear current line and print clean message
+    echo -e "\n${YELLOW}[INTERRUPTED]${NC} Ctrl+C received - cleaning up..." >&2
+    # Kill any background jobs silently
+    jobs -p 2>/dev/null | xargs -r kill 2>/dev/null || true
+}
+
 cleanup_on_exit() {
     local exit_code=$?
+
+    # Suppress further interrupt output during cleanup
+    exec 2>/dev/null
 
     # Re-register any deregistered instances
     if [[ ${#DEREGISTERED_INSTANCES[@]} -gt 0 ]]; then
@@ -357,10 +370,15 @@ cleanup_on_exit() {
             [[ -n "$instance_id" ]] && needs_reregister=true && break
         done
         if [[ "$needs_reregister" = true ]]; then
+            # Restore stderr for our messages
+            exec 2>&1
             log_warning "Cleanup: Re-registering deregistered instances..."
+            exec 2>/dev/null
             for instance_id in "${DEREGISTERED_INSTANCES[@]}"; do
                 [[ -z "$instance_id" ]] && continue
+                exec 2>&1
                 log_info "Re-registering $instance_id..."
+                exec 2>/dev/null
                 aws elbv2 register-targets \
                     --target-group-arn "$ALB_TARGET_GROUP_ARN" \
                     --targets "Id=$instance_id" \
@@ -374,15 +392,21 @@ cleanup_on_exit() {
 
     # Restore deregistration delay
     if [[ "$ALB_DEREG_MODIFIED" = true ]]; then
+        exec 2>&1
         log_warning "Cleanup: Restoring ALB deregistration delay to ${ALB_DEREG_DELAY_NORMAL}s..."
-        set_alb_deregistration_delay "$ALB_DEREG_DELAY_NORMAL" || true
+        exec 2>/dev/null
+        set_alb_deregistration_delay "$ALB_DEREG_DELAY_NORMAL" 2>/dev/null || true
         ALB_DEREG_MODIFIED=false
     fi
 
+    exec 2>&1
+    [[ "$INTERRUPTED" = true ]] && echo -e "${GREEN}[SUCCESS]${NC} Cleanup complete - safe to retry" && exit 130
     exit $exit_code
 }
 
-trap cleanup_on_exit EXIT INT TERM
+# INT handled separately for clean message, then EXIT does cleanup
+trap handle_interrupt INT
+trap cleanup_on_exit EXIT TERM
 
 # ========== ROLLING DEPLOY WITH ALB DRAINING ==========
 # Deploys to each server sequentially, deregistering from ALB before each deployment.
