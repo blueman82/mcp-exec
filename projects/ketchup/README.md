@@ -150,7 +150,7 @@ make test-integration # AWS tests (requires AWS_PROFILE)
 From the project root:
 
 ```bash
-./deploy                         # Deploy to both servers
+./deploy                         # Deploy to both servers (zero-downtime)
 ./deploy --prod1-only            # Deploy to prod1 only
 ./deploy --prod2-only            # Deploy to prod2 only
 ./deploy --verify                # Verify deployment status
@@ -162,7 +162,9 @@ The deployment script:
 2. Auto-increments version from latest in ECR
 3. Builds Docker images locally
 4. Pushes to ECR
-5. Deploys with zero-downtime sequential rollout
+5. Deploys with zero-downtime ALB draining (deregister → deploy → register)
+
+**Zero-Downtime**: Full deployments use ALB target deregistration - traffic stops immediately, in-flight requests drain (~30s), then containers restart. Safe to Ctrl+C (cleanup trap re-registers targets).
 
 ### Production Environment
 

@@ -54,10 +54,10 @@ else
     echo -e "${RED}[WARN]${NC} No .venv found in main repo - you may need to create it"
 fi
 
-# Symlink corp_jira_mcp/dist
+# Copy corp_jira_mcp/dist (not symlink - Docker can't follow symlinks outside build context)
 if [ -d "$MAIN_REPO/corp_jira_mcp/dist" ]; then
-    ln -sf "$MAIN_REPO/corp_jira_mcp/dist" "$WORKTREE_KETCHUP/corp_jira_mcp/dist"
-    echo -e "${GREEN}[SUCCESS]${NC} Symlinked corp_jira_mcp/dist"
+    cp -r "$MAIN_REPO/corp_jira_mcp/dist" "$WORKTREE_KETCHUP/corp_jira_mcp/dist"
+    echo -e "${GREEN}[SUCCESS]${NC} Copied corp_jira_mcp/dist"
 else
     echo -e "${RED}[WARN]${NC} No corp_jira_mcp/dist found - run 'npm run build' in main repo first"
 fi

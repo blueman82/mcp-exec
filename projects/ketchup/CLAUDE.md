@@ -107,7 +107,7 @@ make test-integration # AWS tests (requires AWS_PROFILE)
 ### Deployment
 
 ```bash
-./deploy                         # Deploy to both servers
+./deploy                         # Deploy to both servers (zero-downtime)
 ./deploy --prod1-only            # Deploy to prod1 only
 ./deploy --prod2-only            # Deploy to prod2 only
 ./deploy --verify                # Verify deployment status
@@ -119,7 +119,32 @@ The deployment script:
 2. Auto-increments version from latest in ECR
 3. Builds Docker images locally
 4. Pushes to ECR
-5. Deploys with zero-downtime sequential rollout
+5. Deploys with zero-downtime ALB draining
+
+#### Zero-Downtime Deployment (Default)
+
+Full deployments (`./deploy`) use ALB target deregistration for true zero-downtime:
+
+1. **Deregister** PROD1 from ALB (traffic stops immediately)
+2. **Wait** for in-flight requests to drain (~30s)
+3. **Deploy** containers on PROD1
+4. **Register** PROD1 back to ALB, wait for healthy
+5. **Repeat** for PROD2
+
+**Cancellation Safety**: Ctrl+C triggers cleanup trap that re-registers any deregistered targets and restores ALB settings. Safe to cancel mid-deploy.
+
+**Single-Server Deploys** (`--prod1-only`, `--prod2-only`): Standard deployment without ALB drain since the other server handles traffic.
+
+**Dynamic Resource Discovery**: Script auto-discovers ALB target group ARN and instance IDs at runtime - no hardcoded AWS resource IDs.
+
+#### Health Check Endpoint
+
+The `/health` endpoint in `ketchup-app/main.py` supports ALB health check draining:
+
+- **Normal**: Returns `200 OK` with `{"status": "healthy"}`
+- **Maintenance Mode**: When `KETCHUP_MAINTENANCE_MODE=true`, returns `503 Service Unavailable`
+
+This allows ALB to drain traffic via health check failure (used internally during deployment). The deploy script uses direct ALB deregister-targets for faster draining, but the health check mechanism remains as a fallback.
 
 ### Local Development
 ```bash

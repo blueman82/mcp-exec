@@ -20,7 +20,8 @@ import json
 import os
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict, Optional
+from typing import Any, Optional
+from urllib.parse import parse_qs
 
 import aioboto3
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
@@ -49,8 +50,22 @@ AWS_SECRET_NAME = os.getenv("AWS_SECRET_NAME", "Ketchup_Token_Secrets")
 
 # Global variables
 SLACK_SIGNING_SECRET: Optional[str] = None
-container: Optional[Dict[str, Any]] = None
+container: Optional[dict[str, Any]] = None
 startup_complete = False
+
+MAINTENANCE_MODE: str = os.getenv("KETCHUP_MAINTENANCE_MODE", "false")
+
+
+def is_maintenance_mode() -> bool:
+    """Check if maintenance mode is enabled for ALB health check draining.
+
+    When maintenance mode is enabled, the /health endpoint returns 503,
+    causing the ALB to drain traffic from this server before deployment.
+
+    Returns:
+        True if KETCHUP_MAINTENANCE_MODE env var is set to "true" (case-insensitive).
+    """
+    return MAINTENANCE_MODE.lower() == "true"
 
 
 @asynccontextmanager
@@ -138,19 +153,18 @@ def verify_slack_headers(request: Request) -> tuple[str, str]:
         signature = request.headers.get("x-slack-signature", "")
 
     if not timestamp or not signature:
-        logger.warning(f"Missing required Slack headers. Headers: {list(request.headers.keys())}")
+        logger.warning("Missing required Slack headers. Headers: %s", list(request.headers.keys()))
         raise HTTPException(status_code=401, detail="Missing required Slack authorization headers")
 
     return timestamp, signature
 
 
-def convert_headers_to_lambda_format(headers: dict) -> dict:
-    """Convert FastAPI headers to Lambda event format"""
-    # Lambda expects lowercase header names
+def convert_headers_to_lambda_format(headers: dict[str, str]) -> dict[str, str]:
+    """Convert FastAPI headers to Lambda event format."""
     return {k.lower(): v for k, v in headers.items()}
 
 
-def create_lambda_event(body: bytes, headers: dict, path: str) -> dict:
+def create_lambda_event(body: bytes, headers: dict[str, str], path: str) -> dict[str, Any]:
     """Create Lambda-compatible event structure"""
     # Determine if body is base64 encoded
     try:
@@ -181,8 +195,8 @@ def create_lambda_event(body: bytes, headers: dict, path: str) -> dict:
     }
 
 
-async def process_slack_request(body: bytes, headers: dict, path: str):
-    """Process Slack request asynchronously using existing Ketchup logic"""
+async def process_slack_request(body: bytes, headers: dict[str, str], path: str) -> None:
+    """Process Slack request asynchronously using existing Ketchup logic."""
     try:
         # Create Lambda-compatible event
         lambda_event = create_lambda_event(body, headers, path)
@@ -200,7 +214,9 @@ async def process_slack_request(body: bytes, headers: dict, path: str):
         logger.error(f"Error processing request: {e}", exc_info=True)
 
 
-async def process_slack_request_sync(body: bytes, headers: dict, path: str):
+async def process_slack_request_sync(
+    body: bytes, headers: dict[str, str], path: str
+) -> dict[str, Any] | None:
     """Process Slack request synchronously and return result for modal responses."""
     try:
         lambda_event = create_lambda_event(body, headers, path)
@@ -298,8 +314,6 @@ async def handle_slack_interaction(request: Request, background_tasks: Backgroun
 
     # Parse payload to check if it's a view_submission that needs synchronous response
     try:
-        from urllib.parse import parse_qs
-
         parsed = parse_qs(body.decode("utf-8"))
         payload_str = parsed.get("payload", ["{}"])[0]
         payload = json.loads(payload_str)
@@ -328,9 +342,21 @@ async def handle_slack_interaction(request: Request, background_tasks: Backgroun
 
 
 @app.get("/health")
-async def health_check():
-    """Simple health check endpoint - no DI factory needed"""
-    # Basic health check - just verify the app is running
+async def health_check() -> JSONResponse:
+    """Health check endpoint for ALB target group health monitoring.
+
+    Returns 503 during maintenance mode to trigger ALB draining. The ALB
+    health check interval is 30s with 2 consecutive failures required,
+    so traffic drains within ~60s of enabling maintenance mode.
+
+    Returns:
+        JSONResponse with status 200 when healthy, 503 during maintenance.
+    """
+    if is_maintenance_mode():
+        return JSONResponse(
+            status_code=503,
+            content={"status": "maintenance", "service": "ketchup-app"},
+        )
     return JSONResponse(
         content={"status": "healthy", "service": "ketchup-app", "ready": startup_complete}
     )
