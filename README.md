@@ -10,6 +10,7 @@ Internal tools and Slack applications for Adobe Campaign Operations EMEA teams.
 | [Ketchup](./projects/ketchup) | Multi-service Slack app for CSO warroom summarization, JIRA integration, and channel management | Production | [README](./projects/ketchup/README.md) |
 | [Maptimize](./projects/maptimize) | Slack bot for task mapping, process optimization, and team collaboration | Alpha | [README](./projects/maptimize/README.md) |
 | [Meta-MCP](./projects/meta-mcp-server) | MCP server wrapper for token-efficient tool discovery via lazy loading | Production | [README](./projects/meta-mcp-server/README.md) |
+| [AskSplunk](./projects/asksplunk) | Slack bot translating natural language to Splunk SPL queries using RAG | Production | [README](./projects/asksplunk/README.md) |
 
 ## Getting Started
 
