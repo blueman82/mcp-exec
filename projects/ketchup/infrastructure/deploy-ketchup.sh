@@ -719,6 +719,13 @@ check_preflight
 
 # Handle manual maintenance mode (set and exit)
 if [ -n "$MAINTENANCE_MODE" ]; then
+    # Sync docker-compose first (ensures passthrough line exists on first run)
+    if [ "$PROD2_ONLY" = false ]; then
+        sync_docker_compose_if_changed "$PROD1_SERVER"
+    fi
+    if [ "$PROD1_ONLY" = false ]; then
+        sync_docker_compose_if_changed "$PROD2_SERVER"
+    fi
     set_maintenance_all "$MAINTENANCE_MODE"
     log_success "Maintenance mode set to $MAINTENANCE_MODE"
     exit 0
