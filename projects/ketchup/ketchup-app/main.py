@@ -66,10 +66,19 @@ def is_maintenance_mode() -> bool:
 
 
 class MaintenanceMiddleware(BaseHTTPMiddleware):
-    """Return 503 during maintenance mode, except for /health."""
+    """Return maintenance response during maintenance mode, except for /health."""
+
+    SLACK_ROUTES = {"/slack/events", "/slack/commands", "/slack/interactions"}
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         if is_maintenance_mode() and request.url.path != "/health":
+            # Slack requires 200 response to show message to user
+            if request.url.path in self.SLACK_ROUTES:
+                return JSONResponse(
+                    status_code=200,
+                    content={"text": f":construction: {MAINTENANCE_MESSAGE}"},
+                )
+            # Non-Slack routes get standard 503
             return JSONResponse(
                 status_code=503,
                 content={
