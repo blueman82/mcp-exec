@@ -18,10 +18,20 @@ ECR_REPO="483013340174.dkr.ecr.eu-west-1.amazonaws.com"
 AWS_REGION="eu-west-1"
 AWS_PROFILE="campaign_prod_v7"
 
+# ALB target group (populated dynamically during pre-flight)
+ALB_TARGET_GROUP_NAME="ketchup-tg-prod"
+ALB_TARGET_GROUP_ARN=""
+ALB_DEREG_DELAY_DEPLOY=30    # Fast drain during deployment
+ALB_DEREG_DELAY_NORMAL=300   # Normal operation
+
 # Production servers
 PROD1_SERVER="ketchup-prod1.campaign.adobe.com"
 PROD2_SERVER="ketchup-prod2.campaign.adobe.com"
 PROD_DIR="/opt/ketchup"
+
+# Instance IDs (populated dynamically during pre-flight)
+PROD1_INSTANCE_ID=""
+PROD2_INSTANCE_ID=""
 
 # Docker files (post-December 2025 unified scheduler migration)
 DOCKERFILE_APP="infrastructure/Dockerfile.app-multistage"
@@ -50,15 +60,99 @@ VERIFY_ONLY=false
 CHECK_VERSION=false
 SKIP_COMPOSE_SYNC=false
 NO_CACHE=false
-MAINTENANCE_MODE=""
-WITH_MAINTENANCE=false
-
 # Script directory for validate.sh
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 VALIDATE_SCRIPT="${SCRIPT_DIR}/infrastructure/validate.sh"
 
-# Remote paths
-PROD_DIR="/opt/ketchup"
+# ========== ALB TARGET GROUP LOOKUP ==========
+fetch_alb_target_group_arn() {
+    echo -e "${BLUE}[INFO]${NC} Fetching ALB target group ARN for $ALB_TARGET_GROUP_NAME..." >&2
+
+    local arn
+    arn=$(aws elbv2 describe-target-groups \
+        --names "$ALB_TARGET_GROUP_NAME" \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --query 'TargetGroups[0].TargetGroupArn' \
+        --output text 2>&1)
+
+    if [[ $? -ne 0 ]] || [[ -z "$arn" ]] || [[ "$arn" == "None" ]]; then
+        log_error "Failed to fetch ALB target group ARN: $arn"
+        return 1
+    fi
+
+    echo "$arn"
+}
+
+# ========== ALB TARGET INSTANCE LOOKUP ==========
+fetch_alb_target_instance_ids() {
+    # Log to stderr so it doesn't pollute stdout (which is captured by caller)
+    echo -e "${BLUE}[INFO]${NC} Fetching instance IDs from ALB target group..." >&2
+
+    local instance_ids
+    instance_ids=$(aws elbv2 describe-target-health \
+        --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --query 'TargetHealthDescriptions[*].Target.Id' \
+        --output text 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log_error "Failed to fetch ALB targets: $instance_ids"
+        return 1
+    fi
+
+    if [[ -z "$instance_ids" ]]; then
+        log_error "No instances found in ALB target group"
+        return 1
+    fi
+
+    echo "$instance_ids"
+}
+
+map_instance_ids_to_servers() {
+    local raw_ids="$1"
+    log_info "Mapping instance IDs to server names..."
+
+    # Convert tabs/newlines to spaces and trim
+    local instance_ids
+    instance_ids=$(echo "$raw_ids" | tr '\t\n' ' ' | xargs)
+
+    local instance_data
+    instance_data=$(aws ec2 describe-instances \
+        --instance-ids $instance_ids \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0]]' \
+        --output text 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+        log_error "Failed to fetch instance details: $instance_data"
+        return 1
+    fi
+
+    while read -r instance_id name_tag; do
+        if [[ "$name_tag" == *"prod1"* ]] || [[ "$name_tag" == *"ketchup-prod1"* ]]; then
+            PROD1_INSTANCE_ID="$instance_id"
+            log_info "PROD1 ($PROD1_SERVER) -> $instance_id"
+        elif [[ "$name_tag" == *"prod2"* ]] || [[ "$name_tag" == *"ketchup-prod2"* ]]; then
+            PROD2_INSTANCE_ID="$instance_id"
+            log_info "PROD2 ($PROD2_SERVER) -> $instance_id"
+        fi
+    done <<< "$instance_data"
+
+    if [[ -z "$PROD1_INSTANCE_ID" ]]; then
+        log_error "Could not find PROD1 instance ID"
+        return 1
+    fi
+
+    if [[ -z "$PROD2_INSTANCE_ID" ]]; then
+        log_error "Could not find PROD2 instance ID"
+        return 1
+    fi
+
+    log_success "Instance IDs mapped: PROD1=$PROD1_INSTANCE_ID, PROD2=$PROD2_INSTANCE_ID"
+}
 
 # ========== ENV FILE SYNC (PER-SERVER) ==========
 # Sync env files (common.env, performance.env) to production servers.
@@ -72,7 +166,7 @@ sync_env_files_if_changed() {
     for env_file in "${env_files[@]}"; do
         local local_file="infrastructure/${env_file}"
 
-        if [ ! -f "$local_file" ]; then
+        if [[ ! -f "$local_file" ]]; then
             log_warning "${env_file} not found locally, skipping"
             continue
         fi
@@ -118,23 +212,218 @@ sync_docker_compose_if_changed() {
     fi
 }
 
-# ========== MAINTENANCE MODE ==========
-set_maintenance_mode() {
-    local server=$1
-    local mode=$2
-    log_info "Setting maintenance mode to $mode on $server..."
-    ssh "$server" "cd ${PROD_DIR} && sudo KETCHUP_MAINTENANCE_MODE=$mode docker-compose up -d ketchup-app"
-    log_success "Maintenance mode set to $mode on $server"
+# ========== ALB TARGET REGISTRATION ==========
+deregister_from_alb() {
+    local instance_id="$1"
+    log_info "Deregistering $instance_id from ALB..."
+
+    if aws elbv2 deregister-targets \
+        --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+        --targets "Id=$instance_id" \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --output text >/dev/null; then
+        DEREGISTERED_INSTANCES+=("$instance_id")
+        log_success "Deregistered $instance_id from ALB (traffic stopped immediately)"
+        return 0
+    else
+        log_error "Failed to deregister $instance_id from ALB"
+        return 1
+    fi
 }
 
-set_maintenance_all() {
-    local mode=$1
-    if [ "$PROD2_ONLY" = false ]; then
-        set_maintenance_mode "$PROD1_SERVER" "$mode"
+register_to_alb() {
+    local instance_id="$1"
+    log_info "Registering $instance_id to ALB..."
+
+    if aws elbv2 register-targets \
+        --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+        --targets "Id=$instance_id" \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --output text >/dev/null; then
+        # Remove from deregistered list (filter out matching element)
+        if [[ ${#DEREGISTERED_INSTANCES[@]} -gt 0 ]]; then
+            local new_array=()
+            for elem in "${DEREGISTERED_INSTANCES[@]}"; do
+                [[ "$elem" != "$instance_id" ]] && new_array+=("$elem")
+            done
+            if [[ ${#new_array[@]} -gt 0 ]]; then
+                DEREGISTERED_INSTANCES=("${new_array[@]}")
+            else
+                DEREGISTERED_INSTANCES=()
+            fi
+        fi
+        log_success "Registered $instance_id to ALB"
+        return 0
+    else
+        log_error "Failed to register $instance_id to ALB"
+        return 1
     fi
-    if [ "$PROD1_ONLY" = false ]; then
-        set_maintenance_mode "$PROD2_SERVER" "$mode"
+}
+
+wait_for_target_healthy() {
+    local instance_id="$1"
+    local max_attempts=20
+    local attempt=0
+    local sleep_interval=10
+
+    log_info "Waiting for $instance_id to become healthy in ALB..."
+
+    while [[ $attempt -lt $max_attempts ]]; do
+        local health_state
+        health_state=$(aws elbv2 describe-target-health \
+            --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+            --targets "Id=$instance_id" \
+            --profile "$AWS_PROFILE" \
+            --region "$AWS_REGION" \
+            --query 'TargetHealthDescriptions[0].TargetHealth.State' \
+            --output text 2>/dev/null)
+
+        if [[ "$health_state" == "healthy" ]]; then
+            log_success "$instance_id is healthy in ALB"
+            return 0
+        fi
+
+        attempt=$((attempt + 1))
+        log_info "Health state: $health_state (attempt $attempt/$max_attempts)"
+        sleep "$sleep_interval"
+    done
+
+    log_error "$instance_id did not become healthy within $((max_attempts * sleep_interval))s"
+    return 1
+}
+
+wait_for_drain_complete() {
+    local instance_id="$1"
+    local max_attempts=60
+    local attempt=0
+
+    log_info "Waiting for $instance_id to finish draining..."
+
+    while [[ $attempt -lt $max_attempts ]]; do
+        local state
+        state=$(aws elbv2 describe-target-health \
+            --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+            --targets "Id=$instance_id" \
+            --profile "$AWS_PROFILE" \
+            --region "$AWS_REGION" \
+            --query 'TargetHealthDescriptions[0].TargetHealth.State' \
+            --output text 2>/dev/null)
+
+        if [[ "$state" != "draining" ]]; then
+            log_success "$instance_id drained (state: $state)"
+            return 0
+        fi
+
+        attempt=$((attempt + 1))
+        log_info "State: draining (attempt $attempt/$max_attempts)"
+        sleep 5
+    done
+
+    log_warning "Drain timeout after $((max_attempts * 5))s - proceeding anyway"
+    return 0
+}
+
+# ========== ALB CLEANUP ON EXIT ==========
+# Track state for cleanup on Ctrl+C/error
+ALB_DEREG_MODIFIED=false
+DEREGISTERED_INSTANCES=()
+
+set_alb_deregistration_delay() {
+    local delay_seconds="$1"
+    log_info "Setting ALB deregistration delay to ${delay_seconds}s..."
+    if aws elbv2 modify-target-group-attributes \
+        --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+        --attributes "Key=deregistration_delay.timeout_seconds,Value=${delay_seconds}" \
+        --profile "$AWS_PROFILE" \
+        --region "$AWS_REGION" \
+        --output text >/dev/null; then
+        log_success "ALB deregistration delay set to ${delay_seconds}s"
+        return 0
+    else
+        log_error "Failed to set ALB deregistration delay"
+        return 1
     fi
+}
+
+cleanup_on_exit() {
+    local exit_code=$?
+
+    # Re-register any deregistered instances
+    if [[ ${#DEREGISTERED_INSTANCES[@]} -gt 0 ]]; then
+        local needs_reregister=false
+        for instance_id in "${DEREGISTERED_INSTANCES[@]}"; do
+            [[ -n "$instance_id" ]] && needs_reregister=true && break
+        done
+        if [[ "$needs_reregister" = true ]]; then
+            log_warning "Cleanup: Re-registering deregistered instances..."
+            for instance_id in "${DEREGISTERED_INSTANCES[@]}"; do
+                [[ -z "$instance_id" ]] && continue
+                log_info "Re-registering $instance_id..."
+                aws elbv2 register-targets \
+                    --target-group-arn "$ALB_TARGET_GROUP_ARN" \
+                    --targets "Id=$instance_id" \
+                    --profile "$AWS_PROFILE" \
+                    --region "$AWS_REGION" \
+                    --output text >/dev/null 2>&1 || true
+            done
+            DEREGISTERED_INSTANCES=()
+        fi
+    fi
+
+    # Restore deregistration delay
+    if [[ "$ALB_DEREG_MODIFIED" = true ]]; then
+        log_warning "Cleanup: Restoring ALB deregistration delay to ${ALB_DEREG_DELAY_NORMAL}s..."
+        set_alb_deregistration_delay "$ALB_DEREG_DELAY_NORMAL" || true
+        ALB_DEREG_MODIFIED=false
+    fi
+
+    exit $exit_code
+}
+
+trap cleanup_on_exit EXIT INT TERM
+
+# ========== ROLLING DEPLOY WITH ALB DRAINING ==========
+# Deploys to each server sequentially, deregistering from ALB before each deployment.
+# Uses deregister-targets for IMMEDIATE traffic stop (no health check wait).
+# This prevents "dispatch_failed" errors by ensuring no traffic hits a server during container recreation.
+rolling_deploy_with_drain() {
+    local version="$1"
+
+    # Set fast deregistration delay for deployment
+    log_section "Configuring ALB for Zero-Downtime Deploy"
+    set_alb_deregistration_delay "$ALB_DEREG_DELAY_DEPLOY"
+    ALB_DEREG_MODIFIED=true
+
+    # Deploy to PROD1 first
+    log_section "Rolling Deploy: PROD1"
+    deregister_from_alb "$PROD1_INSTANCE_ID"
+    wait_for_drain_complete "$PROD1_INSTANCE_ID"
+
+    sync_env_files_if_changed "$PROD1_SERVER"
+    sync_docker_compose_if_changed "$PROD1_SERVER"
+    deploy_to_server "$PROD1_SERVER" "$version"
+
+    register_to_alb "$PROD1_INSTANCE_ID"
+    wait_for_target_healthy "$PROD1_INSTANCE_ID"
+
+    # Deploy to PROD2 second
+    log_section "Rolling Deploy: PROD2"
+    deregister_from_alb "$PROD2_INSTANCE_ID"
+    wait_for_drain_complete "$PROD2_INSTANCE_ID"
+
+    sync_env_files_if_changed "$PROD2_SERVER"
+    sync_docker_compose_if_changed "$PROD2_SERVER"
+    deploy_to_server "$PROD2_SERVER" "$version"
+
+    register_to_alb "$PROD2_INSTANCE_ID"
+    wait_for_target_healthy "$PROD2_INSTANCE_ID"
+
+    # Restore normal deregistration delay
+    log_section "Restoring ALB Configuration"
+    set_alb_deregistration_delay "$ALB_DEREG_DELAY_NORMAL"
+    ALB_DEREG_MODIFIED=false
 }
 
 # ========== COLOR DEFINITIONS ==========
@@ -170,7 +459,7 @@ log_section() {
 }
 
 confirm() {
-    if [ "$FORCE" = true ]; then
+    if [[ "$FORCE" = true ]]; then
         return 0
     fi
     
@@ -208,18 +497,13 @@ show_help() {
     echo -e "  --check-version           Check current versions in ECR and exit"
     echo -e "  --skip-compose-sync       Skip docker-compose.yml sync (useful when called by wrapper scripts)"
     echo -e "  --no-cache                Build Docker images without cache"
-    echo -e "      --maintenance on|off  Set maintenance mode on target servers"
-    echo -e "      --with-maintenance    Auto: enable before deploy, disable after"
     echo
     echo -e "${BOLD}Examples:${NC}"
-    echo -e "  ./deploy-ketchup.sh                      # Auto-increment version and deploy"
+    echo -e "  ./deploy-ketchup.sh                      # Auto-increment version and deploy (zero-downtime)"
     echo -e "  ./deploy-ketchup.sh --version v2.0.34    # Deploy specific version"
     echo -e "  ./deploy-ketchup.sh --rollback v2.0.33   # Rollback to v2.0.33"
     echo -e "  ./deploy-ketchup.sh --verify             # Verify deployment status"
     echo -e "  ./deploy-ketchup.sh --check-version      # Check current versions"
-    echo -e "  ./deploy-ketchup.sh --maintenance on     # Enable maintenance mode"
-    echo -e "  ./deploy-ketchup.sh --maintenance off    # Disable maintenance mode"
-    echo -e "  ./deploy-ketchup.sh --force --with-maintenance  # Deploy with auto maintenance"
     echo
 }
 
@@ -265,9 +549,19 @@ check_preflight() {
     fi
     log_success "AWS credentials are valid"
 
+    # Fetch ALB info for zero-downtime deployment (full deployments only)
+    if [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]]; then
+        ALB_TARGET_GROUP_ARN=$(fetch_alb_target_group_arn) || exit 1
+        log_success "ALB target group: $ALB_TARGET_GROUP_ARN"
+
+        local instance_ids
+        instance_ids=$(fetch_alb_target_instance_ids) || exit 1
+        map_instance_ids_to_servers "$instance_ids" || exit 1
+    fi
+
     # Check SSH access to production servers if not skipping deployment
-    if [ "$VERIFY_ONLY" = false ] && [ "$CHECK_VERSION" = false ]; then
-        if [ "$PROD2_ONLY" = false ]; then  # Deploy to prod1 unless --prod2-only
+    if [[ "$VERIFY_ONLY" = false ]] && [[ "$CHECK_VERSION" = false ]]; then
+        if [[ "$PROD2_ONLY" = false ]]; then  # Deploy to prod1 unless --prod2-only
             log_info "Checking SSH access to $PROD1_SERVER..."
             if ! ssh -q -o BatchMode=yes -o ConnectTimeout=5 "$PROD1_SERVER" exit &>/dev/null; then
                 log_error "Cannot SSH to $PROD1_SERVER. Check your SSH configuration."
@@ -276,7 +570,7 @@ check_preflight() {
             log_success "SSH access to $PROD1_SERVER confirmed"
         fi
         
-        if [ "$PROD1_ONLY" = false ]; then  # Deploy to prod2 unless --prod1-only
+        if [[ "$PROD1_ONLY" = false ]]; then  # Deploy to prod2 unless --prod1-only
             log_info "Checking SSH access to $PROD2_SERVER..."
             if ! ssh -q -o BatchMode=yes -o ConnectTimeout=5 "$PROD2_SERVER" exit &>/dev/null; then
                 log_error "Cannot SSH to $PROD2_SERVER. Check your SSH configuration."
@@ -308,7 +602,7 @@ check_current_versions() {
         ecr_exit_code=$?
 
         # Handle credential/auth errors explicitly
-        if [ $ecr_exit_code -ne 0 ]; then
+        if [[ $ecr_exit_code -ne 0 ]]; then
             if echo "$ecr_output" | grep -q "ExpiredToken\|InvalidClientTokenId"; then
                 log_error "AWS credentials expired or invalid. Run: aws sso login --profile $AWS_PROFILE"
                 exit 1
@@ -323,7 +617,7 @@ check_current_versions() {
 
         local image_count="$ecr_output"
 
-        if [ "$image_count" = "0" ] || [ "$image_count" = "None" ] || [ -z "$image_count" ]; then
+        if [[ "$image_count" = "0" ]] || [[ "$image_count" = "None" ]] || [[ -z "$image_count" ]]; then
             echo -e "${YELLOW}(no versions - first build)${NC}"
         else
             # Repository has images, list the versions
@@ -338,7 +632,7 @@ check_current_versions() {
         echo
     done
     
-    if [ "$CHECK_VERSION" = true ]; then
+    if [[ "$CHECK_VERSION" = true ]]; then
         exit 0
     fi
 }
@@ -353,12 +647,12 @@ check_running_versions() {
 build_images() {
     log_section "Building Docker Images"
 
-    if [ "$SKIP_BUILD" = true ]; then
+    if [[ "$SKIP_BUILD" = true ]]; then
         log_warning "Skipping build phase as requested"
         return
     fi
 
-    if [ -z "$VERSION" ]; then
+    if [[ -z "$VERSION" ]]; then
         log_error "Version is required for building images"
         exit 1
     fi
@@ -366,7 +660,7 @@ build_images() {
     # Build ketchup-app
     log_info "Building ketchup-app:$VERSION..."
     BUILD_ARGS="-t ketchup-app:$VERSION -f $DOCKERFILE_APP --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
+    if [[ "$NO_CACHE" = true ]]; then
         log_info "Building without cache..."
         BUILD_ARGS="$BUILD_ARGS --no-cache"
     fi
@@ -379,7 +673,7 @@ build_images() {
     # Build mcp-jira
     log_info "Building mcp-jira:$VERSION..."
     BUILD_ARGS="-t mcp-jira:$VERSION -f $DOCKERFILE_MCP --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
+    if [[ "$NO_CACHE" = true ]]; then
         BUILD_ARGS="$BUILD_ARGS --no-cache"
     fi
     docker build $BUILD_ARGS . || {
@@ -391,7 +685,7 @@ build_images() {
     # Build ketchup-access-monitor
     log_info "Building ketchup-access-monitor:$VERSION..."
     BUILD_ARGS="-t ketchup-access-monitor:$VERSION -f $DOCKERFILE_ACCESS_MONITOR --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
+    if [[ "$NO_CACHE" = true ]]; then
         BUILD_ARGS="$BUILD_ARGS --no-cache"
     fi
     docker build $BUILD_ARGS . || {
@@ -403,7 +697,7 @@ build_images() {
     # Build ketchup-unified-scheduler (consolidates 5 legacy scheduler services)
     log_info "Building ketchup-unified-scheduler:$VERSION..."
     BUILD_ARGS="-t ketchup-unified-scheduler:$VERSION -f $DOCKERFILE_UNIFIED_SCHEDULER --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
+    if [[ "$NO_CACHE" = true ]]; then
         BUILD_ARGS="$BUILD_ARGS --no-cache"
     fi
     docker build $BUILD_ARGS . || {
@@ -415,7 +709,7 @@ build_images() {
     # Build ketchup-csopm-notifier (standalone CSOPM notification service)
     log_info "Building ketchup-csopm-notifier:$VERSION..."
     BUILD_ARGS="-t ketchup-csopm-notifier:$VERSION -f $DOCKERFILE_CSOPM_NOTIFIER --platform linux/amd64"
-    if [ "$NO_CACHE" = true ]; then
+    if [[ "$NO_CACHE" = true ]]; then
         BUILD_ARGS="$BUILD_ARGS --no-cache"
     fi
     docker build $BUILD_ARGS . || {
@@ -429,7 +723,7 @@ build_images() {
 tag_images() {
     log_section "Tagging Images for ECR"
     
-    if [ "$SKIP_BUILD" = true ] && [ "$SKIP_PUSH" = false ]; then
+    if [[ "$SKIP_BUILD" = true ]] && [[ "$SKIP_PUSH" = false ]]; then
         log_warning "Build was skipped, but tagging is required for push. Checking if images exist locally..."
         
         for service in "${SERVICES[@]}"; do
@@ -440,7 +734,7 @@ tag_images() {
         done
     fi
     
-    if [ "$SKIP_PUSH" = true ]; then
+    if [[ "$SKIP_PUSH" = true ]]; then
         log_warning "Skipping tagging as push is also skipped"
         return
     fi
@@ -459,7 +753,7 @@ tag_images() {
 authenticate_ecr() {
     log_section "Authenticating with ECR"
     
-    if [ "$SKIP_PUSH" = true ]; then
+    if [[ "$SKIP_PUSH" = true ]]; then
         log_warning "Skipping ECR authentication as push is skipped"
         return
     fi
@@ -480,7 +774,7 @@ authenticate_ecr() {
 ensure_ecr_repositories() {
     log_section "Ensuring ECR Repositories Exist"
     
-    if [ "$SKIP_PUSH" = true ]; then
+    if [[ "$SKIP_PUSH" = true ]]; then
         log_warning "Skipping ECR repository check as push is skipped"
         return
     fi
@@ -517,7 +811,7 @@ ensure_ecr_repositories() {
 push_images() {
     log_section "Pushing Images to ECR"
     
-    if [ "$SKIP_PUSH" = true ]; then
+    if [[ "$SKIP_PUSH" = true ]]; then
         log_warning "Skipping push phase as requested"
         return
     fi
@@ -582,12 +876,12 @@ deploy_to_server() {
 verify_deployment() {
     log_section "Verifying Deployment"
     
-    if [ "$PROD2_ONLY" = false ]; then  # Verify prod1 unless --prod2-only
+    if [[ "$PROD2_ONLY" = false ]]; then  # Verify prod1 unless --prod2-only
         log_info "Verifying deployment on $PROD1_SERVER..."
         check_running_versions "$PROD1_SERVER"
     fi
     
-    if [ "$PROD1_ONLY" = false ]; then  # Verify prod2 unless --prod1-only
+    if [[ "$PROD1_ONLY" = false ]]; then  # Verify prod2 unless --prod1-only
         log_info "Verifying deployment on $PROD2_SERVER..."
         check_running_versions "$PROD2_SERVER"
     fi
@@ -600,7 +894,7 @@ rollback_deployment() {
     
     log_section "Rolling Back to Version $version"
     
-    if [ -z "$version" ]; then
+    if [[ -z "$version" ]]; then
         log_error "Version is required for rollback"
         exit 1
     fi
@@ -611,7 +905,7 @@ rollback_deployment() {
         exit 0
     fi
     
-    if [ "$PROD2_ONLY" = false ]; then  # Rollback prod1 unless --prod2-only
+    if [[ "$PROD2_ONLY" = false ]]; then  # Rollback prod1 unless --prod2-only
         log_info "Rolling back $PROD1_SERVER to version $version..."
         deploy_to_server "$PROD1_SERVER" "$version" || {
             log_error "Failed to roll back $PROD1_SERVER"
@@ -619,7 +913,7 @@ rollback_deployment() {
         }
     fi
     
-    if [ "$PROD1_ONLY" = false ]; then  # Rollback prod2 unless --prod1-only
+    if [[ "$PROD1_ONLY" = false ]]; then  # Rollback prod2 unless --prod1-only
         log_info "Rolling back $PROD2_SERVER to version $version..."
         deploy_to_server "$PROD2_SERVER" "$version" || {
             log_error "Failed to roll back $PROD2_SERVER"
@@ -690,14 +984,6 @@ while [[ $# -gt 0 ]]; do
             NO_CACHE=true
             shift
             ;;
-        --maintenance)
-            MAINTENANCE_MODE="$2"
-            shift 2
-            ;;
-        --with-maintenance)
-            WITH_MAINTENANCE=true
-            shift
-            ;;
         *)
             log_error "Unknown option: $1"
             show_help
@@ -717,38 +1003,24 @@ echo -e "${NC}"
 # Run pre-flight checks
 check_preflight
 
-# Handle manual maintenance mode (set and exit)
-if [ -n "$MAINTENANCE_MODE" ]; then
-    # Sync docker-compose first (ensures passthrough line exists on first run)
-    if [ "$PROD2_ONLY" = false ]; then
-        sync_docker_compose_if_changed "$PROD1_SERVER"
-    fi
-    if [ "$PROD1_ONLY" = false ]; then
-        sync_docker_compose_if_changed "$PROD2_SERVER"
-    fi
-    set_maintenance_all "$MAINTENANCE_MODE"
-    log_success "Maintenance mode set to $MAINTENANCE_MODE"
-    exit 0
-fi
-
 # Check current versions in ECR
 check_current_versions
 
 # If only verifying deployment
-if [ "$VERIFY_ONLY" = true ]; then
+if [[ "$VERIFY_ONLY" = true ]]; then
     verify_deployment
     exit 0
 fi
 
 # If rolling back
-if [ -n "$ROLLBACK" ]; then
+if [[ -n "$ROLLBACK" ]]; then
     rollback_deployment "$ROLLBACK"
     verify_deployment
     exit 0
 fi
 
 # Validate version if not rolling back or just verifying
-if [ -z "$VERSION" ]; then
+if [[ -z "$VERSION" ]]; then
     # Auto-increment version from the latest in ECR
     log_section "Auto-incrementing Version"
     
@@ -761,7 +1033,7 @@ if [ -z "$VERSION" ]; then
         --query 'imageDetails[*].imageTags[]' \
         --output text 2>/dev/null | tr '\t' '\n' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
     
-    if [ -z "$latest_version" ]; then
+    if [[ -z "$latest_version" ]]; then
         # No version found, start with v2.1.0
         VERSION="v2.1.0"
         log_warning "No existing versions found. Starting with $VERSION"
@@ -809,7 +1081,7 @@ update_local_docker_compose() {
     # Clean up backup files
     rm -f infrastructure/docker-compose.yml.bak
     
-    if [ "$NO_GIT_COMMIT" = true ]; then
+    if [[ "$NO_GIT_COMMIT" = true ]]; then
         log_warning "Skipping git commit for docker-compose.yml (per --no-git-commit)"
     else
         # Commit the changes to git
@@ -835,22 +1107,17 @@ if ! confirm "Are you sure you want to deploy version $VERSION to production?"; 
     exit 0
 fi
 
-# Enable maintenance if --with-maintenance
-if [ "$WITH_MAINTENANCE" = true ]; then
-    set_maintenance_all "true"
-fi
-
 # Update local docker-compose.yml first
 update_local_docker_compose
 
 # ========== VALIDATION GATE ==========
 # Run pre-deployment validation (lint only, tests via CI/CD)
-if [ "$SKIP_VALIDATION" = true ]; then
+if [[ "$SKIP_VALIDATION" = true ]]; then
     log_warning "Skipping pre-deployment validation (--skip-validation)"
 else
     log_section "Pre-deployment Validation"
     
-    if [ -f "$VALIDATE_SCRIPT" ] && [ -x "$VALIDATE_SCRIPT" ]; then
+    if [[ -f "$VALIDATE_SCRIPT" ]] && [[ -x "$VALIDATE_SCRIPT" ]]; then
         log_info "Running lint checks (ruff, black, isort)..."
         if ! "$VALIDATE_SCRIPT"; then
             log_error "Validation failed. Deployment aborted."
@@ -881,31 +1148,30 @@ ensure_ecr_repositories
 push_images
 
 # Deploy to production servers
-if [ "$PROD2_ONLY" = false ]; then  # Deploy to prod1 unless --prod2-only
-    # Ensure env files and docker-compose.yml are in sync on prod1 (so flags are respected)
-    if [ "$SKIP_COMPOSE_SYNC" = false ]; then
-        sync_env_files_if_changed "$PROD1_SERVER"
-        sync_docker_compose_if_changed "$PROD1_SERVER"
+if [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]]; then
+    # Full deployment: use zero-downtime rolling deploy with ALB draining
+    rolling_deploy_with_drain "$VERSION"
+else
+    # Single-server deployment: other server handles traffic, no ALB drain needed
+    if [[ "$PROD2_ONLY" = false ]]; then
+        if [[ "$SKIP_COMPOSE_SYNC" = false ]]; then
+            sync_env_files_if_changed "$PROD1_SERVER"
+            sync_docker_compose_if_changed "$PROD1_SERVER"
+        fi
+        deploy_to_server "$PROD1_SERVER" "$VERSION"
     fi
-    deploy_to_server "$PROD1_SERVER" "$VERSION"
-fi
 
-if [ "$PROD1_ONLY" = false ]; then  # Deploy to prod2 unless --prod1-only
-    # Ensure env files and docker-compose.yml are in sync on prod2 (so flags are respected)
-    if [ "$SKIP_COMPOSE_SYNC" = false ]; then
-        sync_env_files_if_changed "$PROD2_SERVER"
-        sync_docker_compose_if_changed "$PROD2_SERVER"
+    if [[ "$PROD1_ONLY" = false ]]; then
+        if [[ "$SKIP_COMPOSE_SYNC" = false ]]; then
+            sync_env_files_if_changed "$PROD2_SERVER"
+            sync_docker_compose_if_changed "$PROD2_SERVER"
+        fi
+        deploy_to_server "$PROD2_SERVER" "$VERSION"
     fi
-    deploy_to_server "$PROD2_SERVER" "$VERSION"
 fi
 
 # Verify deployment
 verify_deployment
-
-# Disable maintenance if --with-maintenance
-if [ "$WITH_MAINTENANCE" = true ]; then
-    set_maintenance_all "false"
-fi
 
 log_section "Deployment Summary"
 echo -e "${GREEN}${BOLD}Deployment of version $VERSION completed successfully!${NC}"
