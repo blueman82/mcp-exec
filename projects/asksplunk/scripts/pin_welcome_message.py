@@ -88,7 +88,7 @@ async def pin_welcome_message(bot_token: str, dry_run: bool = False) -> None:
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Pin welcome message to #asksplunk")
     parser.add_argument("--from-aws", action="store_true", help="Fetch bot token from AWS Secrets Manager")
-    parser.add_argument("--aws-profile", default="campaign_prod_v7", help="AWS profile name")
+    parser.add_argument("--aws-profile", default=None, help="AWS profile name (uses AWS_PROFILE env var if not set)")
     parser.add_argument("--dry-run", action="store_true", help="Print what would happen without doing it")
     args = parser.parse_args()
 

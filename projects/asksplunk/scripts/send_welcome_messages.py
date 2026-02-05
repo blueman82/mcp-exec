@@ -203,7 +203,7 @@ async def send_welcome_messages(bot_token: str, dry_run: bool = False, users: li
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Send welcome messages to authorized AskSplunk users")
     parser.add_argument("--from-aws", action="store_true", help="Fetch bot token from AWS Secrets Manager")
-    parser.add_argument("--aws-profile", default="campaign_prod_v7", help="AWS profile name (default: campaign_prod_v7)")
+    parser.add_argument("--aws-profile", default=None, help="AWS profile name (uses AWS_PROFILE env var if not set)")
     parser.add_argument("--dry-run", action="store_true", help="Print what would happen without actually doing it")
     parser.add_argument("--skip-invite", action="store_true", help="Skip channel invitation, only send DMs")
     parser.add_argument("--invite-only", action="store_true", help="Only invite to channel, skip welcome DMs")
