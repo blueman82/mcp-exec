@@ -21,7 +21,7 @@ import sys
 import chromadb
 from openai import AsyncAzureOpenAI
 
-from src.asksplunk.retriever.retriever import DocumentRetriever
+from asksplunk.retriever.retriever import DocumentRetriever
 
 
 async def main():  # noqa: C901
