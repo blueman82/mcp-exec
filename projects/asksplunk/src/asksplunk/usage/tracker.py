@@ -10,7 +10,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-ADMIN_USER_IDS = frozenset(["W7MGASQ2K", "WDGLSLQRK"])
+ADMIN_USER_IDS = frozenset(["W7MGASQ2K"])
 
 
 class UsageTracker:
