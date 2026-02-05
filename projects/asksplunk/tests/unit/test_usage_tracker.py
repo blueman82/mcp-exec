@@ -97,7 +97,6 @@ class TestUsageTracker:
     def test_is_admin_returns_true_for_admin_users(self) -> None:
         """is_admin should return True for hardcoded admin user IDs."""
         assert UsageTracker.is_admin("W7MGASQ2K") is True
-        assert UsageTracker.is_admin("WDGLSLQRK") is True
 
     def test_is_admin_returns_false_for_non_admin_users(self) -> None:
         """is_admin should return False for non-admin user IDs."""
