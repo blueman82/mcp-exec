@@ -71,10 +71,12 @@ tests/
 │   ├── test_content_filter.py
 │   ├── test_indexer.py
 │   ├── test_retriever.py
-│   └── test_schema_validation.py
+│   ├── test_schema_validation.py
+│   └── test_usage_tracker.py
 └── integration/
     ├── test_azure_openai_integration.py
-    └── test_secrets_integration.py
+    ├── test_secrets_integration.py
+    └── test_usage_tracking.py
 
 scripts/
 ├── send_welcome_messages.py  # Invite users + send welcome DMs
