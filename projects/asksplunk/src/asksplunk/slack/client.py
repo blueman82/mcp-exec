@@ -18,6 +18,7 @@ from asksplunk.slack.formatter import (
     format_final_query,
     format_uncertainty_message,
 )
+from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
 
@@ -45,13 +46,16 @@ class SlackClient:
         "If you believe you should have access, please contact ORG-OMEARA-ALL@adobe.com."
     )
 
-    def __init__(self, bot_token: str, app_token: str, agent=None) -> None:
+    def __init__(
+        self, bot_token: str, app_token: str, agent=None, usage_tracker: UsageTracker | None = None
+    ) -> None:
         """Initialize Slack client with Socket Mode.
 
         Args:
             bot_token: Slack bot token (xoxb-*)
             app_token: Slack app-level token (xapp-*)
             agent: Agent instance for query processing (optional)
+            usage_tracker: UsageTracker instance for DM event recording (optional)
 
         Example:
             client = SlackClient(
@@ -70,6 +74,8 @@ class SlackClient:
         self._secrets_manager_context: SecretsManager | None = None  # Store context manager itself
         self.bot_user_id: str | None = None  # Will be set when needed
         self.agent = agent  # Agent for query generation
+        self.usage_tracker: UsageTracker | None = usage_tracker  # Can be passed in
+        self._usage_tracker_context: UsageTracker | None = None  # Only set if we create it
         self._register_handlers()
 
     def _register_handlers(self) -> None:
@@ -184,6 +190,13 @@ class SlackClient:
                 return
 
             await ack()
+
+            # Record usage event (timestamp only - no user ID for privacy)
+            if self.usage_tracker:
+                try:
+                    await self.usage_tracker.record_event()
+                except Exception:
+                    logger.warning("usage_tracking_failed", exc_info=True)
 
             thread_ts = event.get("thread_ts") or event.get("ts")
 
@@ -343,6 +356,11 @@ class SlackClient:
         self._session_manager_context = SessionManager()
         self.session_manager = await self._session_manager_context.__aenter__()
 
+        # Initialize UsageTracker if not provided via __init__
+        if not self.usage_tracker:
+            self._usage_tracker_context = UsageTracker()
+            self.usage_tracker = await self._usage_tracker_context.__aenter__()
+
         # Initialize bot_user_id via auth_test API call
         auth_response = await self.app.client.auth_test()
         self.bot_user_id = auth_response["user_id"]
@@ -376,6 +394,12 @@ class SlackClient:
             await self._secrets_manager_context.__aexit__(None, None, None)
             self._secrets_manager_context = None
             self.access_validator = None
+
+        # Close usage tracker only if we created it (not passed in)
+        if hasattr(self, "_usage_tracker_context") and self._usage_tracker_context:
+            await self._usage_tracker_context.__aexit__(None, None, None)
+            self._usage_tracker_context = None
+            self.usage_tracker = None
 
         # Then close socket handler
         if self.handler:

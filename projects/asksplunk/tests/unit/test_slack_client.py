@@ -9,6 +9,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from asksplunk.slack.client import SlackClient
+from asksplunk.usage import UsageTracker
 
 
 class TestSlackClient:
@@ -817,3 +818,256 @@ class TestSlackClient:
 
             mock_say.assert_called_once()
             assert "not ready" in mock_say.call_args[1]["text"]
+
+    @pytest.mark.asyncio
+    async def test_dm_handler_records_usage_event(self, mock_tokens):
+        """handle_dm should call usage_tracker.record_event when receiving a DM."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            registered_handlers = {}
+
+            def capture_handler(event_type):
+                def decorator(func):
+                    registered_handlers[event_type] = func
+                    return func
+
+                return decorator
+
+            mock_app.event = capture_handler
+
+            # Create mock usage tracker
+            mock_usage_tracker = AsyncMock(spec=UsageTracker)
+            mock_usage_tracker.record_event = AsyncMock()
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"],
+                app_token=mock_tokens["app_token"],
+                usage_tracker=mock_usage_tracker,
+            )
+
+            mock_session_manager = AsyncMock()
+            mock_session_manager.get_session = AsyncMock(return_value=None)
+            mock_session_manager.create_session = AsyncMock()
+            client.session_manager = mock_session_manager
+
+            # DM event
+            event = {
+                "user": "U123ABC",
+                "channel": "D789XYZ",
+                "channel_type": "im",
+                "ts": "1234567890.123456",
+                "text": "help me",
+            }
+            mock_ack = AsyncMock()
+            mock_say = AsyncMock()
+
+            message_handler = registered_handlers["message"]
+            await message_handler(event, mock_say, mock_ack)
+
+            # Verify record_event was called
+            mock_usage_tracker.record_event.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_dm_handler_continues_when_usage_tracking_fails(self, mock_tokens):
+        """handle_dm should continue processing even if usage_tracker.record_event fails."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            registered_handlers = {}
+
+            def capture_handler(event_type):
+                def decorator(func):
+                    registered_handlers[event_type] = func
+                    return func
+
+                return decorator
+
+            mock_app.event = capture_handler
+
+            # Create mock usage tracker that fails
+            mock_usage_tracker = AsyncMock(spec=UsageTracker)
+            mock_usage_tracker.record_event = AsyncMock(side_effect=Exception("DynamoDB error"))
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"],
+                app_token=mock_tokens["app_token"],
+                usage_tracker=mock_usage_tracker,
+            )
+
+            mock_session_manager = AsyncMock()
+            mock_session_manager.get_session = AsyncMock(return_value=None)
+            mock_session_manager.create_session = AsyncMock()
+            client.session_manager = mock_session_manager
+
+            # DM event
+            event = {
+                "user": "U123ABC",
+                "channel": "D789XYZ",
+                "channel_type": "im",
+                "ts": "1234567890.123456",
+                "text": "help me",
+            }
+            mock_ack = AsyncMock()
+            mock_say = AsyncMock()
+
+            message_handler = registered_handlers["message"]
+            await message_handler(event, mock_say, mock_ack)
+
+            # Verify DM was still processed despite usage tracking failure
+            mock_say.assert_called_once()
+            assert "Starting" in mock_say.call_args[1]["text"]
+
+    @pytest.mark.asyncio
+    async def test_usage_tracker_initialized_in_start(self, mock_tokens):
+        """start() should initialize UsageTracker when not provided."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.UsageTracker") as MockUsageTracker,
+        ):
+
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            mock_usage_tracker = AsyncMock()
+            mock_usage_tracker.__aenter__ = AsyncMock(return_value=mock_usage_tracker)
+            mock_usage_tracker.__aexit__ = AsyncMock(return_value=None)
+            MockUsageTracker.return_value = mock_usage_tracker
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            await client.start()
+
+            # Verify UsageTracker was created and entered
+            MockUsageTracker.assert_called_once()
+            mock_usage_tracker.__aenter__.assert_called_once()
+            assert client.usage_tracker is mock_usage_tracker
+
+    @pytest.mark.asyncio
+    async def test_usage_tracker_not_created_when_provided(self, mock_tokens):
+        """start() should not create UsageTracker when one is provided."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.UsageTracker") as MockUsageTracker,
+        ):
+
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            # Provide a pre-configured usage tracker
+            provided_tracker = AsyncMock(spec=UsageTracker)
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"],
+                app_token=mock_tokens["app_token"],
+                usage_tracker=provided_tracker,
+            )
+
+            await client.start()
+
+            # Verify UsageTracker was NOT created (we provided one)
+            MockUsageTracker.assert_not_called()
+            assert client.usage_tracker is provided_tracker
+
+    @pytest.mark.asyncio
+    async def test_shutdown_closes_usage_tracker_when_created_internally(self, mock_tokens):
+        """shutdown() should close UsageTracker only if created internally."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.UsageTracker") as MockUsageTracker,
+        ):
+
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            mock_usage_tracker = AsyncMock()
+            mock_usage_tracker.__aenter__ = AsyncMock(return_value=mock_usage_tracker)
+            mock_usage_tracker.__aexit__ = AsyncMock(return_value=None)
+            MockUsageTracker.return_value = mock_usage_tracker
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            await client.start()
+            await client.shutdown()
+
+            # Verify UsageTracker was closed
+            mock_usage_tracker.__aexit__.assert_called_once_with(None, None, None)
+            assert client.usage_tracker is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_does_not_close_provided_usage_tracker(self, mock_tokens):
+        """shutdown() should NOT close UsageTracker when it was provided externally."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+        ):
+
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            # Provide a pre-configured usage tracker
+            provided_tracker = AsyncMock(spec=UsageTracker)
+            provided_tracker.__aexit__ = AsyncMock(return_value=None)
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"],
+                app_token=mock_tokens["app_token"],
+                usage_tracker=provided_tracker,
+            )
+
+            await client.start()
+            await client.shutdown()
+
+            # Verify provided tracker was NOT closed (caller's responsibility)
+            provided_tracker.__aexit__.assert_not_called()
+            # usage_tracker should still be set (we didn't clear it)
+            assert client.usage_tracker is provided_tracker

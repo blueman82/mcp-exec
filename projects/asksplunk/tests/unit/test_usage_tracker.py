@@ -24,9 +24,7 @@ class TestUsageTracker:
         return table
 
     @pytest.mark.asyncio
-    async def test_record_event_stores_timestamp_only(
-        self, mock_dynamodb_table: AsyncMock
-    ) -> None:
+    async def test_record_event_stores_timestamp_only(self, mock_dynamodb_table: AsyncMock) -> None:
         """record_event should store timestamp but NOT user_id (privacy)."""
         tracker = UsageTracker(table=mock_dynamodb_table)
 
@@ -45,9 +43,7 @@ class TestUsageTracker:
         assert item["thread_id"].startswith("USAGE#")
 
     @pytest.mark.asyncio
-    async def test_record_event_uses_iso_timestamp(
-        self, mock_dynamodb_table: AsyncMock
-    ) -> None:
+    async def test_record_event_uses_iso_timestamp(self, mock_dynamodb_table: AsyncMock) -> None:
         """record_event should use ISO format timestamp with Z suffix."""
         tracker = UsageTracker(table=mock_dynamodb_table)
 
@@ -137,9 +133,7 @@ class TestUsageTracker:
         mock_dynamodb_table.put_item.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_record_event_privacy_no_pii_fields(
-        self, mock_dynamodb_table: AsyncMock
-    ) -> None:
+    async def test_record_event_privacy_no_pii_fields(self, mock_dynamodb_table: AsyncMock) -> None:
         """record_event must not store any PII fields."""
         tracker = UsageTracker(table=mock_dynamodb_table)
 
