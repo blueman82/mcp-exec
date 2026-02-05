@@ -367,7 +367,11 @@ class Agent:
                     },
                 )
                 # Refresh session with updated data
-                session = await self.session_manager.get_session(session["thread_id"])
+                refreshed = await self.session_manager.get_session(session["thread_id"])
+                if refreshed is None:
+                    logger.error("session_lost_during_refresh", thread_id=session["thread_id"])
+                    return session
+                session = refreshed
             return await self._handle_evaluate(session)
         elif state == AgentState.WAIT:
             return await self._handle_wait(session, question)
@@ -433,7 +437,10 @@ class Agent:
             docs_retrieved=len(docs),
         )
 
-        return await self.session_manager.get_session(thread_id)
+        result = await self.session_manager.get_session(thread_id)
+        if result is None:
+            raise RuntimeError(f"Session lost after initialization: {thread_id}")
+        return result
 
     async def _handle_initialize(self, session: dict[str, Any]) -> dict[str, Any]:
         """Handle INITIALIZE state.
@@ -1040,6 +1047,8 @@ Use ONLY fields from the documentation."""
 
         # Re-evaluate with more specific context
         updated_session = await self.session_manager.get_session(session["thread_id"])
+        if updated_session is None:
+            raise RuntimeError(f"Session lost during wait handling: {session['thread_id']}")
         return await self._handle_evaluate(updated_session)
 
     async def _handle_refine(self, session: dict[str, Any], _user_answer: str) -> dict[str, Any]:
@@ -1074,6 +1083,8 @@ Use ONLY fields from the documentation."""
 
             # Get updated session and evaluate
             updated_session = await self.session_manager.get_session(session["thread_id"])
+            if updated_session is None:
+                raise RuntimeError(f"Session lost during refine handling: {session['thread_id']}")
             return await self._handle_evaluate(updated_session)
 
         # Fallback: shouldn't reach here in normal flow
