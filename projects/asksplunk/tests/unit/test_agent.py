@@ -1620,10 +1620,20 @@ class TestUsageIntentDetection:
         usage_tracker = MagicMock()
         usage_tracker.get_usage = AsyncMock(return_value=42)
 
-        agent = Agent(retriever, session_manager, openai_client, usage_tracker=usage_tracker)
+        # Create a mock secrets manager that returns admin list
+        secrets_manager = MagicMock()
+        secrets_manager.get_admin_user_ids = AsyncMock(return_value=["W7MGASQ2K"])
+
+        agent = Agent(
+            retriever,
+            session_manager,
+            openai_client,
+            usage_tracker=usage_tracker,
+            secrets_manager=secrets_manager,
+        )
 
         # Use an admin user ID
-        admin_user = list(ADMIN_USER_IDS)[0]
+        admin_user = "W7MGASQ2K"
         result = await agent.process_question(
             "how many queries today",
             "thread-123",
@@ -1643,10 +1653,20 @@ class TestUsageIntentDetection:
         session_manager = MagicMock()
         openai_client = MagicMock()
 
-        # No usage tracker
-        agent = Agent(retriever, session_manager, openai_client, usage_tracker=None)
+        # Create a mock secrets manager that returns admin list
+        secrets_manager = MagicMock()
+        secrets_manager.get_admin_user_ids = AsyncMock(return_value=["W7MGASQ2K"])
 
-        admin_user = list(ADMIN_USER_IDS)[0]
+        # No usage tracker
+        agent = Agent(
+            retriever,
+            session_manager,
+            openai_client,
+            usage_tracker=None,
+            secrets_manager=secrets_manager,
+        )
+
+        admin_user = "W7MGASQ2K"
         result = await agent.process_question(
             "how many queries today",
             "thread-123",
