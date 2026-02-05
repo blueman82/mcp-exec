@@ -12,6 +12,7 @@ Guidance for Claude Code when working with this repository.
 - **Session Management** (`src/asksplunk/session/`): DynamoDB CRUD with 30-min TTL, verified deletion
 - **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching, authorized user list
 - **Access Control** (`src/asksplunk/auth/`): Whitelist-based authorization via Secrets Manager
+- **Usage Tracking** (`src/asksplunk/usage/`): Privacy-first DM event tracking (timestamp only, no user IDs)
 - **Agent Orchestrator** (`src/asksplunk/agent/`): 7-state GPT-5 agent with confidence evaluation
 - **Indexer** (`src/asksplunk/indexer/`): Document embedding, ChromaDB indexing (130 chunks)
 - **Retriever** (`src/asksplunk/retriever/`): Semantic search over Adobe Campaign schema docs
@@ -156,6 +157,13 @@ signal.signal(signal.SIGINT, create_signal_handler(client, loop))
 1. Write test FIRST
 2. Write minimal code to pass
 3. Refactor while green
+
+### Usage Tracking
+- **Privacy**: Records timestamp only - NO user IDs stored
+- **Storage**: DynamoDB GSI `usage-by-timestamp` on splunk-bot-sessions table
+- **Admin Access**: Only W7MGASQ2K and WDGLSLQRK can retrieve usage data
+- **Retrieval**: Natural language queries like "show usage for last 7 days"
+- **Supported timeframes**: hours, days, weeks, minutes, yesterday, today
 
 ## Commit Convention
 
