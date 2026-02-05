@@ -10,8 +10,6 @@ import structlog
 
 logger = structlog.get_logger()
 
-ADMIN_USER_IDS = frozenset(["W7MGASQ2K"])
-
 
 class UsageTracker:
     """Tracks usage events with timestamp-only privacy design.
