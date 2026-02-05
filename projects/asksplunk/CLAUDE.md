@@ -13,7 +13,7 @@ Guidance for Claude Code when working with this repository.
 - **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching, authorized user list
 - **Access Control** (`src/asksplunk/auth/`): Whitelist-based authorization via Secrets Manager
 - **Agent Orchestrator** (`src/asksplunk/agent/`): 7-state GPT-5 agent with confidence evaluation
-- **Indexer** (`src/asksplunk/indexer/`): Document embedding, ChromaDB indexing (155 chunks)
+- **Indexer** (`src/asksplunk/indexer/`): Document embedding, ChromaDB indexing (130 chunks)
 - **Retriever** (`src/asksplunk/retriever/`): Semantic search over Adobe Campaign schema docs
 - **Content Filter** (`src/asksplunk/agent/content_filter.py`): OWASP prompt injection prevention
 - **Docker**: Multi-stage builds, ChromaDB service configured

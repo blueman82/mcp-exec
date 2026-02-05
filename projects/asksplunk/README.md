@@ -10,7 +10,7 @@ The bot is deployed and operational:
 
 - Slack Socket Mode client (DMs + channel mentions)
 - 7-state agent orchestrator with confidence evaluation
-- ChromaDB vector store with 155 indexed chunks from schema
+- ChromaDB vector store with 130 indexed chunks from schema
 - Azure OpenAI (GPT-5) for query generation
 - DynamoDB session management (30-min TTL)
 - Real-time status callbacks during processing
@@ -81,7 +81,7 @@ User Question
 └────────┬────────┘
          ↓
 ┌─────────────────┐
-│   ChromaDB      │  155 indexed chunks from schema
+│   ChromaDB      │  130 indexed chunks from schema
 └─────────────────┘
 ```
 
