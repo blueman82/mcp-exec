@@ -18,6 +18,7 @@ from asksplunk.agent.content_filter import (
     check_output_safety,
 )
 from asksplunk.retriever.retriever import DocumentRetriever
+from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
 from asksplunk.usage import UsageTracker
 
