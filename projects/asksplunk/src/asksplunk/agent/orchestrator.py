@@ -150,6 +150,7 @@ class Agent:
         openai_client: Any,  # AsyncAzureOpenAI
         chat_model: str = "gpt-5",
         usage_tracker: UsageTracker | None = None,
+        secrets_manager: SecretsManager | None = None,
     ):
         """Initialize agent with dependencies.
 
@@ -159,12 +160,14 @@ class Agent:
             openai_client: Configured AsyncAzureOpenAI client
             chat_model: Azure OpenAI deployment name for chat completions
             usage_tracker: Optional UsageTracker for admin usage reporting
+            secrets_manager: Optional SecretsManager for dynamic config lookup
         """
         self.retriever = retriever
         self.chat_model = chat_model
         self.session_manager = session_manager
         self.openai_client = openai_client
         self.usage_tracker = usage_tracker
+        self.secrets_manager = secrets_manager
         # Store callbacks per thread_id to handle concurrent requests
         self._status_callbacks: dict[str, Any] = {}
 
