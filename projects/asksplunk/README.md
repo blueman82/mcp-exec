@@ -14,7 +14,7 @@ The bot is deployed and operational:
 - Azure OpenAI (GPT-5) for query generation
 - DynamoDB session management (30-min TTL)
 - Real-time status callbacks during processing
-- 128 unit tests passing
+- 204 unit tests passing
 
 ## Quick Start
 
@@ -29,7 +29,7 @@ The bot is deployed and operational:
 
 ```bash
 # Clone monorepo and navigate to project
-git clone git@github.com:AdobeDocs/camp-ops-emea.git
+git clone git@github.com:OneAdobe/camp-ops-emea.git
 cd camp-ops-emea/projects/asksplunk
 uv venv && source .venv/bin/activate
 uv pip install -r requirements-dev.txt
@@ -92,7 +92,12 @@ src/asksplunk/
 ├── main.py              # Entry point, wires everything together
 ├── secrets.py           # AWS Secrets Manager (60-min cache)
 ├── agent/
-│   └── orchestrator.py  # 7-state agent with GPT calls
+│   ├── orchestrator.py  # 7-state agent with GPT calls
+│   └── content_filter.py # OWASP prompt injection prevention
+├── auth/
+│   └── validator.py     # Whitelist-based access control
+├── cli/
+│   └── test_retrieval.py # Manual retrieval testing
 ├── indexer/
 │   └── indexer.py       # Schema → ChromaDB embeddings
 ├── retriever/
@@ -103,6 +108,10 @@ src/asksplunk/
     ├── client.py        # Socket Mode, event handlers
     └── formatter.py     # Block Kit message builders
 
+scripts/
+├── send_welcome_messages.py  # Invite users + send welcome DMs
+└── pin_welcome_message.py    # Pin welcome message to channel
+
 infrastructure/
 ├── validate.sh          # Lint (black, ruff) + tests
 ├── deploy-build-push.sh # Build → ECR → EC2 deploy
@@ -110,7 +119,7 @@ infrastructure/
 
 docs/
 ├── schema/              # Adobe Campaign field definitions
-├── infrastructure/      # AWS/EC2/LDAP setup guides
+├── security/            # Security audit report
 └── diagrams/            # Mermaid architecture diagrams
 ```
 
@@ -139,7 +148,11 @@ CHROMA_PORT=8000                  # ChromaDB port
 
 **splunk-bot/slack-tokens:**
 ```json
-{"bot_token": "xoxb-...", "app_token": "xapp-..."}
+{
+  "bot_token": "xoxb-...",
+  "app_token": "xapp-...",
+  "authorised_slack_user_ids": "[\"W7MGASQ2K\", \"W5H6R82Q6\", ...]"
+}
 ```
 
 **splunk-bot/azure-openai:**
@@ -221,6 +234,17 @@ earliest=-1h | stats count
 [Technical: Searches eventlog_momentum for inband (hard bounce) 
 events filtered by host pattern and 1-hour time range]
 ```
+
+## Access Control
+
+Bot access is restricted to an authorized whitelist stored in AWS Secrets Manager:
+
+- Whitelist stored in `splunk-bot/slack-tokens` → `authorised_slack_user_ids`
+- Checked on every message (DM or mention)
+- Unauthorized users receive friendly rejection message
+- Whitelist fetched fresh from AWS (bypasses cache for security)
+
+To add/remove users, update the `authorised_slack_user_ids` JSON array in Secrets Manager.
 
 ## Privacy
 

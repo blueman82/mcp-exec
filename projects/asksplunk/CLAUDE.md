@@ -29,7 +29,7 @@ Guidance for Claude Code when working with this repository.
 **Tech Stack**:
 - Python 3.11+, slack-bolt (async), aioboto3, structlog
 - AWS: DynamoDB, Secrets Manager, ECR, EC2
-- Planned: Azure OpenAI (GPT-5), ChromaDB
+- Azure OpenAI (GPT-5), ChromaDB
 
 ## Repository Structure
 
@@ -37,27 +37,51 @@ Guidance for Claude Code when working with this repository.
 src/asksplunk/
 ├── main.py              # Entry point with graceful shutdown
 ├── secrets.py           # AWS Secrets Manager client
-├── slack/
-│   ├── client.py        # Socket Mode client, app_mention handler
-│   └── formatter.py     # Block Kit message builders
+├── agent/
+│   ├── orchestrator.py  # 7-state GPT-5 agent
+│   └── content_filter.py # OWASP prompt injection prevention
+├── auth/
+│   └── validator.py     # Whitelist-based access control
+├── cli/
+│   └── test_retrieval.py # Manual retrieval testing
+├── indexer/
+│   └── indexer.py       # Schema → ChromaDB embeddings
+├── retriever/
+│   └── retriever.py     # Semantic search over indexed docs
 ├── session/
 │   └── manager.py       # DynamoDB CRUD with verified deletion
-├── agent/               # Planned: GPT-5 orchestrator
-├── indexer/             # Planned: Document embedding
-└── retriever/           # Planned: Semantic search
+└── slack/
+    ├── client.py        # Socket Mode client, event handlers
+    └── formatter.py     # Block Kit message builders
 
-tests/unit/
-├── test_main.py
-├── test_secrets.py
-├── test_session_manager.py
-├── test_slack_client.py
-├── test_slack_formatter.py
-└── test_slack_thread_handling.py
+tests/
+├── unit/
+│   ├── test_main.py
+│   ├── test_secrets.py
+│   ├── test_session_manager.py
+│   ├── test_slack_client.py
+│   ├── test_slack_formatter.py
+│   ├── test_slack_thread_handling.py
+│   ├── test_slack_session_integration.py
+│   ├── test_auth_validator.py
+│   ├── test_agent.py
+│   ├── test_content_filter.py
+│   ├── test_indexer.py
+│   ├── test_retriever.py
+│   └── test_schema_validation.py
+└── integration/
+    ├── test_azure_openai_integration.py
+    └── test_secrets_integration.py
+
+scripts/
+├── send_welcome_messages.py  # Invite users + send welcome DMs
+└── pin_welcome_message.py    # Pin welcome message to channel
 
 docs/
-├── plans/               # Implementation plan (26 tasks)
-├── infrastructure/      # EC2, DynamoDB, LDAP setup
-└── diagrams/            # 9 Mermaid architecture diagrams
+├── plans/               # Implementation plan
+├── schema/              # Adobe Campaign field definitions
+├── security/            # Security audit report
+└── diagrams/            # 6 Mermaid architecture diagrams
 ```
 
 ## Development Commands
@@ -145,6 +169,6 @@ Scopes: agent, indexer, retriever, session, slack, secrets, main, docker, ci
 ## References
 
 - **Implementation Plan**: `docs/plans/asksplunk-slack-bot.md`
-- **Infrastructure Guides**: `docs/infrastructure/`
-- **Architecture Diagrams**: `docs/diagrams/` (9 Mermaid files)
-- **Documentation Index**: `docs/INDEX.md`
+- **Infrastructure Scripts**: `infrastructure/` (validate.sh, deploy-build-push.sh)
+- **Architecture Diagrams**: `docs/diagrams/`
+- **Security Audit**: `docs/security/security-audit-report.md`
