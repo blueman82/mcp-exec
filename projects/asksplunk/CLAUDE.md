@@ -4,23 +4,23 @@ Guidance for Claude Code when working with this repository.
 
 ## Implementation Status
 
-**Current State**: Foundation components complete, RAG pipeline planned but not implemented.
+**Current State**: Fully operational. Bot deployed and handling queries.
 
-### Implemented (~950 lines production code, 67 tests)
+### Implemented
 - **Entry Point** (`src/asksplunk/main.py`): Async main with signal handlers (SIGTERM/SIGINT)
 - **Slack Integration** (`src/asksplunk/slack/`): Socket Mode client, event handlers, Block Kit formatters
 - **Session Management** (`src/asksplunk/session/`): DynamoDB CRUD with 30-min TTL, verified deletion
-- **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching
-- **Thread Handling**: Conversation continuity via Slack thread timestamps
+- **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching, authorized user list
+- **Access Control** (`src/asksplunk/auth/`): Whitelist-based authorization via Secrets Manager
+- **Agent Orchestrator** (`src/asksplunk/agent/`): 7-state GPT-5 agent with confidence evaluation
+- **Indexer** (`src/asksplunk/indexer/`): Document embedding, ChromaDB indexing (234 chunks)
+- **Retriever** (`src/asksplunk/retriever/`): Semantic search over Adobe Campaign schema docs
+- **Content Filter** (`src/asksplunk/agent/content_filter.py`): OWASP prompt injection prevention
 - **Docker**: Multi-stage builds, ChromaDB service configured
 
-### Planned (Not Yet Implemented)
-- **Agent Orchestrator** (`src/asksplunk/agent/`): 7-state GPT-5 agent
-- **Indexer** (`src/asksplunk/indexer/`): Document embedding, ChromaDB indexing
-- **Retriever** (`src/asksplunk/retriever/`): Semantic search over Adobe Campaign docs
-- **RAG Pipeline**: Question → retrieval → SPL generation
-
-See `docs/plans/asksplunk-slack-bot.md` for full implementation plan.
+### Scripts
+- `scripts/send_welcome_messages.py`: Invite users to #asksplunk + send welcome DMs
+- `scripts/pin_welcome_message.py`: Pin welcome message to #asksplunk channel
 
 ## Project Overview
 

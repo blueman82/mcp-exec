@@ -10,6 +10,8 @@ import structlog
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
 
+from asksplunk.auth.validator import AccessValidator
+from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
 from asksplunk.slack.formatter import (
     format_clarifying_question,
@@ -32,9 +34,16 @@ class SlackClient:
         handler: AsyncSocketModeHandler instance
         is_running: Connection status flag
         session_manager: SessionManager instance for conversation tracking
+        access_validator: AccessValidator instance for authorization checks
         bot_user_id: Bot's Slack user ID (for mention stripping)
         agent: Agent instance for query generation (optional)
     """
+
+    UNAUTHORIZED_MESSAGE = (
+        "You don't currently have access to AskSplunk. "
+        "This bot is in limited beta for the Adobe Campaign Operations team. "
+        "If you believe you should have access, please contact ORG-OMEARA-ALL@adobe.com."
+    )
 
     def __init__(self, bot_token: str, app_token: str, agent=None) -> None:
         """Initialize Slack client with Socket Mode.
@@ -57,6 +66,8 @@ class SlackClient:
         self.is_running = False
         self.session_manager: SessionManager | None = None  # Will be initialized in start()
         self._session_manager_context: SessionManager | None = None  # Store context manager itself
+        self.access_validator: AccessValidator | None = None  # Will be initialized in start()
+        self._secrets_manager_context: SecretsManager | None = None  # Store context manager itself
         self.bot_user_id: str | None = None  # Will be set when needed
         self.agent = agent  # Agent for query generation
         self._register_handlers()
@@ -110,6 +121,12 @@ class SlackClient:
                         text="Bot is not ready yet. Please try again in a moment.",
                         thread_ts=thread_ts,
                     )
+                    return
+
+                # Access control check
+                if self.access_validator and not await self.access_validator.is_authorized(user_id):
+                    logger.info("unauthorized_access_attempt", user=user_id, channel=channel_id)
+                    await say(text=self.UNAUTHORIZED_MESSAGE, thread_ts=thread_ts)
                     return
 
                 # Check for existing session to determine if this is a new or continuing conversation
@@ -189,6 +206,12 @@ class SlackClient:
                         text="Bot is not ready yet. Please try again in a moment.",
                         thread_ts=thread_ts,
                     )
+                    return
+
+                # Access control check
+                if self.access_validator and not await self.access_validator.is_authorized(user_id):
+                    logger.info("unauthorized_access_attempt", user=user_id, channel=channel_id)
+                    await say(text=self.UNAUTHORIZED_MESSAGE, thread_ts=thread_ts)
                     return
 
                 # Process with agent if available
@@ -311,6 +334,11 @@ class SlackClient:
         """
         logger.info("starting_socket_mode_connection")
 
+        # Initialize SecretsManager and AccessValidator
+        self._secrets_manager_context = SecretsManager()
+        secrets_manager = await self._secrets_manager_context.__aenter__()
+        self.access_validator = AccessValidator(secrets_manager)
+
         # Store context manager, not just the entered value
         self._session_manager_context = SessionManager()
         self.session_manager = await self._session_manager_context.__aenter__()
@@ -342,6 +370,12 @@ class SlackClient:
             await self._session_manager_context.__aexit__(None, None, None)
             self._session_manager_context = None
             self.session_manager = None
+
+        # Close secrets manager
+        if hasattr(self, "_secrets_manager_context") and self._secrets_manager_context:
+            await self._secrets_manager_context.__aexit__(None, None, None)
+            self._secrets_manager_context = None
+            self.access_validator = None
 
         # Then close socket handler
         if self.handler:

@@ -206,3 +206,51 @@ class SecretsManager:
                 api_key = config["api_key"]
         """
         return await self._get_secret("splunk-bot/azure-openai")
+
+    async def _get_secret_fresh(self, secret_name: str) -> dict[str, Any]:
+        """Retrieve secret from AWS Secrets Manager bypassing cache.
+
+        Used for authorization checks where freshness is critical.
+
+        Args:
+            secret_name: Name of the secret in AWS Secrets Manager
+
+        Returns:
+            Dict containing secret data parsed from JSON
+
+        Raises:
+            ClientError: If secret retrieval fails
+            json.JSONDecodeError: If secret contains malformed JSON
+            RuntimeError: If called outside async context manager
+        """
+        client = await self._get_client()
+        response = await client.get_secret_value(SecretId=secret_name)
+        return json.loads(response["SecretString"])
+
+    async def get_authorised_slack_user_ids(self) -> list[str]:
+        """Get authorized Slack user IDs, bypassing cache for freshness.
+
+        Authorization checks should always use current data from AWS Secrets
+        Manager rather than cached values.
+
+        Returns:
+            List of authorized Slack user IDs
+
+        Raises:
+            RuntimeError: If called outside async context manager
+
+        Example:
+            async with SecretsManager() as manager:
+                authorized = await manager.get_authorised_slack_user_ids()
+                if user_id in authorized:
+                    # proceed
+        """
+        try:
+            secret = await self._get_secret_fresh("splunk-bot/slack-tokens")
+            ids_json = secret.get("authorised_slack_user_ids", "[]")
+            if isinstance(ids_json, str):
+                return json.loads(ids_json)
+            return ids_json
+        except Exception:
+            # Fail secure - return empty list on error
+            return []

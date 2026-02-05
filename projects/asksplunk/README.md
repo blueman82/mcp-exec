@@ -28,9 +28,9 @@ The bot is deployed and operational:
 ### Setup
 
 ```bash
-# Clone and setup
-git clone git@github.com:harrison_adobe/asksplunk.git
-cd asksplunk
+# Clone monorepo and navigate to project
+git clone git@github.com:AdobeDocs/camp-ops-emea.git
+cd camp-ops-emea/projects/asksplunk
 uv venv && source .venv/bin/activate
 uv pip install -r requirements-dev.txt
 

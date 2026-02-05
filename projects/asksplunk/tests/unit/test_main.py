@@ -11,12 +11,14 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-# Mock slack_bolt before importing main module to avoid import errors
+# Mock external dependencies before importing main module to avoid import errors
 sys.modules["slack_bolt"] = MagicMock()
 sys.modules["slack_bolt.async_app"] = MagicMock()
 sys.modules["slack_bolt.adapter"] = MagicMock()
 sys.modules["slack_bolt.adapter.socket_mode"] = MagicMock()
 sys.modules["slack_bolt.adapter.socket_mode.async_handler"] = MagicMock()
+sys.modules["chromadb"] = MagicMock()
+sys.modules["openai"] = MagicMock()
 
 from asksplunk.main import create_signal_handler, main, shutdown
 
