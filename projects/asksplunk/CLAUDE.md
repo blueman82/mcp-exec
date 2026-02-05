@@ -51,6 +51,8 @@ src/asksplunk/
 │   └── retriever.py     # Semantic search over indexed docs
 ├── session/
 │   └── manager.py       # DynamoDB CRUD with verified deletion
+├── usage/
+│   └── tracker.py       # Privacy-first usage tracking (timestamp only)
 └── slack/
     ├── client.py        # Socket Mode client, event handlers
     └── formatter.py     # Block Kit message builders
