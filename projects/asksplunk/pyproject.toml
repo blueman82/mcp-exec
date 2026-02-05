@@ -176,6 +176,7 @@ module = [
     "slack_sdk.*",
     "moto.*",
     "structlog.*",
+    "openai.*",
 ]
 ignore_missing_imports = true
 
