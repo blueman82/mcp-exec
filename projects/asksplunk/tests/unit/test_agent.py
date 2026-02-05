@@ -1,10 +1,12 @@
 """Unit tests for Agent Orchestrator."""
 
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from src.asksplunk.agent.orchestrator import Agent
+from asksplunk.usage.tracker import ADMIN_USER_IDS
 
 
 class TestAgentInitialization:
@@ -1486,3 +1488,173 @@ class TestContentFiltering:
 
         result = check_content_safety("workflow runs for last 24 hours")
         assert result.is_safe
+
+
+class TestUsageIntentDetection:
+    """Test usage query detection and admin-only retrieval."""
+
+    def test_is_usage_query_detects_usage_patterns(self):
+        """_is_usage_query should detect questions about usage."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        # Should detect usage queries
+        assert agent._is_usage_query("show me usage for the last 7 days") is True
+        assert agent._is_usage_query("how many requests today") is True
+        assert agent._is_usage_query("how many queries yesterday") is True
+        assert agent._is_usage_query("usage report for last hour") is True
+        assert agent._is_usage_query("show requests for the past week") is True
+
+    def test_is_usage_query_ignores_non_usage(self):
+        """_is_usage_query should not detect non-usage queries."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        # Should NOT detect as usage queries (no time keyword or no usage keyword)
+        assert agent._is_usage_query("show me bounces for virginatlantic") is False
+        assert agent._is_usage_query("usage patterns in email") is False  # no time keyword
+        assert agent._is_usage_query("show me errors for last hour") is False  # no usage keyword
+        assert agent._is_usage_query("how many deliveries") is False  # no time keyword
+
+    def test_parse_time_range_days(self):
+        """_parse_time_range should parse 'X days' patterns."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        before = datetime.utcnow()
+        start, end = agent._parse_time_range("show usage for last 7 days")
+        after = datetime.utcnow()
+
+        # End should be close to now
+        assert before <= end <= after
+        # Start should be 7 days before end
+        delta = end - start
+        assert 6.9 < delta.days < 7.1  # Allow small timing variance
+
+    def test_parse_time_range_hours(self):
+        """_parse_time_range should parse 'X hours' patterns."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        start, end = agent._parse_time_range("how many requests in last 24 hours")
+
+        delta = end - start
+        # 24 hours = 1 day
+        assert 0.9 < delta.days < 1.1
+
+    def test_parse_time_range_weeks(self):
+        """_parse_time_range should parse 'X weeks' patterns."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        start, end = agent._parse_time_range("usage for 2 weeks")
+
+        delta = end - start
+        # 2 weeks = 14 days
+        assert 13.9 < delta.days < 14.1
+
+    def test_parse_time_range_yesterday(self):
+        """_parse_time_range should parse 'yesterday' correctly."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        start, end = agent._parse_time_range("how many queries yesterday")
+
+        # Start should be beginning of yesterday
+        assert start.hour == 0
+        assert start.minute == 0
+        assert start.second == 0
+        # End should be end of yesterday
+        assert end.hour == 23
+        assert end.minute == 59
+        assert end.second == 59
+
+    def test_parse_time_range_today(self):
+        """_parse_time_range should parse 'today' correctly."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        before = datetime.utcnow()
+        start, end = agent._parse_time_range("show usage today")
+        after = datetime.utcnow()
+
+        # Start should be beginning of today
+        assert start.hour == 0
+        assert start.minute == 0
+        assert start.second == 0
+        # End should be close to now
+        assert before <= end <= after
+
+    def test_parse_time_range_default(self):
+        """_parse_time_range should default to 7 days if no pattern matched."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        start, end = agent._parse_time_range("show me usage")
+
+        delta = end - start
+        # Default is 7 days
+        assert 6.9 < delta.days < 7.1
+
+    @pytest.mark.asyncio
+    async def test_non_admin_cannot_access_usage(self):
+        """Non-admin users should be blocked from usage queries."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        openai_client = MagicMock()
+        usage_tracker = MagicMock()
+
+        agent = Agent(retriever, session_manager, openai_client, usage_tracker=usage_tracker)
+
+        # Use a non-admin user ID
+        result = await agent.process_question(
+            "how many queries today",
+            "thread-123",
+            "U_NON_ADMIN_USER",
+            "C456",
+        )
+
+        assert result["action"] == "blocked"
+        assert result["state"] == "COMPLETE"
+        assert "administrators" in result["content"]["message"]
+
+    @pytest.mark.asyncio
+    async def test_admin_can_access_usage(self):
+        """Admin users should receive usage reports."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        openai_client = MagicMock()
+
+        # Create a mock usage tracker
+        usage_tracker = MagicMock()
+        usage_tracker.get_usage = AsyncMock(return_value=42)
+
+        agent = Agent(retriever, session_manager, openai_client, usage_tracker=usage_tracker)
+
+        # Use an admin user ID
+        admin_user = list(ADMIN_USER_IDS)[0]
+        result = await agent.process_question(
+            "how many queries today",
+            "thread-123",
+            admin_user,
+            "C456",
+        )
+
+        assert result["action"] == "usage_report"
+        assert result["state"] == "COMPLETE"
+        assert "42" in result["content"]["message"]
+        assert "Usage report" in result["content"]["message"]
+
+    @pytest.mark.asyncio
+    async def test_admin_usage_query_no_tracker_configured(self):
+        """Admin usage query should return error if no tracker configured."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        openai_client = MagicMock()
+
+        # No usage tracker
+        agent = Agent(retriever, session_manager, openai_client, usage_tracker=None)
+
+        admin_user = list(ADMIN_USER_IDS)[0]
+        result = await agent.process_question(
+            "how many queries today",
+            "thread-123",
+            admin_user,
+            "C456",
+        )
+
+        assert result["action"] == "blocked"
+        assert result["state"] == "COMPLETE"
+        assert "not configured" in result["content"]["message"]
