@@ -62,5 +62,5 @@ class TestUsageTrackingIntegration:
     def test_admin_check(self) -> None:
         """Test admin user detection."""
         assert UsageTracker.is_admin("W7MGASQ2K") is True
-        assert UsageTracker.is_admin("WDGLSLQRK") is True
+        assert UsageTracker.is_admin("WDGLSLQRK") is False  # Removed from admin list
         assert UsageTracker.is_admin("U12345678") is False
