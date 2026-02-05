@@ -276,7 +276,8 @@ class Agent:
 
         # Check for usage query (admin only)
         if self._is_usage_query(question):
-            if not UsageTracker.is_admin(user_id):
+            admin_ids = await self.secrets_manager.get_admin_user_ids() if self.secrets_manager else []
+            if not UsageTracker.is_admin(user_id, admin_ids):
                 logger.info("non_admin_usage_query_rejected", user=user_id)
                 return {
                     "action": "blocked",
