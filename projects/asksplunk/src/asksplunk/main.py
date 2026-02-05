@@ -18,6 +18,7 @@ from asksplunk.retriever.retriever import DocumentRetriever
 from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
 from asksplunk.slack.client import SlackClient
+from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
 
@@ -98,19 +99,20 @@ async def main() -> None:
     logger.info("application_starting")
 
     client: SlackClient | None = None
-    secrets_manager: SecretsManager | None = None
+    secrets_manager_ctx: SecretsManager | None = None
     session_manager_ctx: SessionManager | None = None
+    usage_tracker_ctx: UsageTracker | None = None
 
     try:
-        # Fetch secrets from AWS Secrets Manager
+        # Create SecretsManager (kept open for dynamic admin lookups)
         logger.info("fetching_secrets")
-        secrets_manager = SecretsManager()
-        async with secrets_manager as manager:
-            tokens = await manager.get_slack_tokens()
-            bot_token = tokens["bot_token"]
-            app_token = tokens["app_token"]
+        secrets_manager_ctx = SecretsManager()
+        secrets_manager = await secrets_manager_ctx.__aenter__()
 
-            openai_config = await manager.get_azure_openai_config()
+        tokens = await secrets_manager.get_slack_tokens()
+        bot_token = tokens["bot_token"]
+        app_token = tokens["app_token"]
+        openai_config = await secrets_manager.get_azure_openai_config()
 
         logger.info("secrets_retrieved")
 
@@ -137,6 +139,11 @@ async def main() -> None:
         session_manager = await session_manager_ctx.__aenter__()
         logger.info("session_manager_created")
 
+        # Create UsageTracker
+        usage_tracker_ctx = UsageTracker()
+        usage_tracker = await usage_tracker_ctx.__aenter__()
+        logger.info("usage_tracker_created")
+
         # Create Agent
         chat_model = openai_config.get("chat_deployment", "gpt-5")
         agent = Agent(
@@ -144,11 +151,18 @@ async def main() -> None:
             session_manager=session_manager,
             openai_client=openai_client,
             chat_model=chat_model,
+            usage_tracker=usage_tracker,
+            secrets_manager=secrets_manager,
         )
         logger.info("agent_created")
 
-        # Create Slack client with agent
-        client = SlackClient(bot_token=bot_token, app_token=app_token, agent=agent)
+        # Create Slack client with agent and usage tracker
+        client = SlackClient(
+            bot_token=bot_token,
+            app_token=app_token,
+            agent=agent,
+            usage_tracker=usage_tracker,
+        )
         logger.info("slack_client_created")
 
         # Register signal handlers for graceful shutdown
@@ -177,6 +191,20 @@ async def main() -> None:
                 await client.shutdown()
             except Exception as shutdown_error:
                 logger.error("cleanup_error", error=str(shutdown_error), exc_info=True)
+        # Clean up usage tracker if created (client.shutdown won't close it since we passed it in)
+        if usage_tracker_ctx:
+            try:
+                await usage_tracker_ctx.__aexit__(None, None, None)
+            except Exception as tracker_error:
+                logger.error("usage_tracker_cleanup_error", error=str(tracker_error), exc_info=True)
+        # Clean up secrets manager if created
+        if secrets_manager_ctx:
+            try:
+                await secrets_manager_ctx.__aexit__(None, None, None)
+            except Exception as secrets_error:
+                logger.error(
+                    "secrets_manager_cleanup_error", error=str(secrets_error), exc_info=True
+                )
         sys.exit(1)
 
 

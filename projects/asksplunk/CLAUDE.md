@@ -12,6 +12,7 @@ Guidance for Claude Code when working with this repository.
 - **Session Management** (`src/asksplunk/session/`): DynamoDB CRUD with 30-min TTL, verified deletion
 - **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching, authorized user list
 - **Access Control** (`src/asksplunk/auth/`): Whitelist-based authorization via Secrets Manager
+- **Usage Tracking** (`src/asksplunk/usage/`): Privacy-first DM event tracking (timestamp only, no user IDs)
 - **Agent Orchestrator** (`src/asksplunk/agent/`): 7-state GPT-5 agent with confidence evaluation
 - **Indexer** (`src/asksplunk/indexer/`): Document embedding, ChromaDB indexing (130 chunks)
 - **Retriever** (`src/asksplunk/retriever/`): Semantic search over Adobe Campaign schema docs
@@ -50,6 +51,8 @@ src/asksplunk/
 │   └── retriever.py     # Semantic search over indexed docs
 ├── session/
 │   └── manager.py       # DynamoDB CRUD with verified deletion
+├── usage/
+│   └── tracker.py       # Privacy-first usage tracking (timestamp only)
 └── slack/
     ├── client.py        # Socket Mode client, event handlers
     └── formatter.py     # Block Kit message builders
@@ -68,10 +71,12 @@ tests/
 │   ├── test_content_filter.py
 │   ├── test_indexer.py
 │   ├── test_retriever.py
-│   └── test_schema_validation.py
+│   ├── test_schema_validation.py
+│   └── test_usage_tracker.py
 └── integration/
     ├── test_azure_openai_integration.py
-    └── test_secrets_integration.py
+    ├── test_secrets_integration.py
+    └── test_usage_tracking.py
 
 scripts/
 ├── send_welcome_messages.py  # Invite users + send welcome DMs
@@ -156,6 +161,13 @@ signal.signal(signal.SIGINT, create_signal_handler(client, loop))
 1. Write test FIRST
 2. Write minimal code to pass
 3. Refactor while green
+
+### Usage Tracking
+- **Privacy**: Records timestamp only - NO user IDs stored
+- **Storage**: DynamoDB GSI `usage-by-timestamp` on splunk-bot-sessions table
+- **Admin Access**: Dynamic list from `admin_user_ids` in `splunk-bot/slack-tokens` secret
+- **Retrieval**: Natural language queries like "show usage for last 7 days"
+- **Supported timeframes**: hours, days, weeks, minutes, yesterday, today
 
 ## Commit Convention
 

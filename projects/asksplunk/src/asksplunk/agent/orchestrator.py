@@ -6,6 +6,7 @@ SessionManager, and OpenAI to process natural language questions into SPL querie
 
 import json
 import re
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -17,7 +18,9 @@ from asksplunk.agent.content_filter import (
     check_output_safety,
 )
 from asksplunk.retriever.retriever import DocumentRetriever
+from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
+from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
 
@@ -146,6 +149,8 @@ class Agent:
         session_manager: SessionManager,
         openai_client: Any,  # AsyncAzureOpenAI
         chat_model: str = "gpt-5",
+        usage_tracker: UsageTracker | None = None,
+        secrets_manager: SecretsManager | None = None,
     ):
         """Initialize agent with dependencies.
 
@@ -154,11 +159,15 @@ class Agent:
             session_manager: SessionManager for session state
             openai_client: Configured AsyncAzureOpenAI client
             chat_model: Azure OpenAI deployment name for chat completions
+            usage_tracker: Optional UsageTracker for admin usage reporting
+            secrets_manager: Optional SecretsManager for dynamic config lookup
         """
         self.retriever = retriever
         self.chat_model = chat_model
         self.session_manager = session_manager
         self.openai_client = openai_client
+        self.usage_tracker = usage_tracker
+        self.secrets_manager = secrets_manager
         # Store callbacks per thread_id to handle concurrent requests
         self._status_callbacks: dict[str, Any] = {}
 
@@ -170,6 +179,56 @@ class Agent:
                 await callback(message)
             except Exception as e:
                 logger.warning("status_callback_failed", error=str(e), thread_id=thread_id)
+
+    def _is_usage_query(self, question: str) -> bool:
+        """Detect if question is asking for usage data."""
+        question_lower = question.lower()
+        usage_keywords = ["usage", "how many", "requests", "queries"]
+        time_keywords = ["day", "hour", "week", "minute", "yesterday", "today"]
+        return any(uk in question_lower for uk in usage_keywords) and any(
+            tk in question_lower for tk in time_keywords
+        )
+
+    def _parse_time_range(self, question: str) -> tuple[datetime, datetime]:
+        """Parse time range from natural language question.
+
+        Supports: X days, X hours, X weeks, X minutes, yesterday, today
+        Returns (start, end) datetime tuple.
+        """
+        now = datetime.utcnow()
+        question_lower = question.lower()
+
+        # Match patterns like "7 days", "24 hours", "2 weeks", "30 minutes"
+        match = re.search(r"(\d+)\s*(day|hour|week|minute)s?", question_lower)
+        if match:
+            amount = int(match.group(1))
+            unit = match.group(2)
+            if unit == "day":
+                delta = timedelta(days=amount)
+            elif unit == "hour":
+                delta = timedelta(hours=amount)
+            elif unit == "week":
+                delta = timedelta(weeks=amount)
+            elif unit == "minute":
+                delta = timedelta(minutes=amount)
+            else:
+                delta = timedelta(days=7)  # default
+            return (now - delta, now)
+
+        # Handle "yesterday"
+        if "yesterday" in question_lower:
+            yesterday = now - timedelta(days=1)
+            start = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+            end = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
+            return (start, end)
+
+        # Handle "today"
+        if "today" in question_lower:
+            start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            return (start, now)
+
+        # Default: last 7 days
+        return (now - timedelta(days=7), now)
 
     async def process_question(
         self,
@@ -214,6 +273,36 @@ class Agent:
         # Store callback per thread_id for concurrent request safety
         if status_callback:
             self._status_callbacks[thread_id] = status_callback
+
+        # Check for usage query (admin only)
+        if self._is_usage_query(question):
+            admin_ids = (
+                await self.secrets_manager.get_admin_user_ids() if self.secrets_manager else []
+            )
+            if not UsageTracker.is_admin(user_id, admin_ids):
+                logger.info("non_admin_usage_query_rejected", user=user_id)
+                return {
+                    "action": "blocked",
+                    "state": AgentState.COMPLETE.value,
+                    "content": {"message": "Usage data is only available to administrators."},
+                }
+
+            if self.usage_tracker:
+                start, end = self._parse_time_range(question)
+                count = await self.usage_tracker.get_usage(start, end)
+                return {
+                    "action": "usage_report",
+                    "state": AgentState.COMPLETE.value,
+                    "content": {
+                        "message": f"Usage report: {count} queries from {start.strftime('%Y-%m-%d %H:%M')} to {end.strftime('%Y-%m-%d %H:%M')} UTC"
+                    },
+                }
+            else:
+                return {
+                    "action": "blocked",
+                    "state": AgentState.COMPLETE.value,
+                    "content": {"message": "Usage tracking is not configured."},
+                }
 
         # Check for harmful content / prompt injection before processing
         safety_check = check_content_safety(question)
@@ -285,7 +374,11 @@ class Agent:
                     },
                 )
                 # Refresh session with updated data
-                session = await self.session_manager.get_session(session["thread_id"])
+                refreshed = await self.session_manager.get_session(session["thread_id"])
+                if refreshed is None:
+                    logger.error("session_lost_during_refresh", thread_id=session["thread_id"])
+                    return session
+                session = refreshed
             return await self._handle_evaluate(session)
         elif state == AgentState.WAIT:
             return await self._handle_wait(session, question)
@@ -351,7 +444,10 @@ class Agent:
             docs_retrieved=len(docs),
         )
 
-        return await self.session_manager.get_session(thread_id)
+        result = await self.session_manager.get_session(thread_id)
+        if result is None:
+            raise RuntimeError(f"Session lost after initialization: {thread_id}")
+        return result
 
     async def _handle_initialize(self, session: dict[str, Any]) -> dict[str, Any]:
         """Handle INITIALIZE state.
@@ -958,6 +1054,8 @@ Use ONLY fields from the documentation."""
 
         # Re-evaluate with more specific context
         updated_session = await self.session_manager.get_session(session["thread_id"])
+        if updated_session is None:
+            raise RuntimeError(f"Session lost during wait handling: {session['thread_id']}")
         return await self._handle_evaluate(updated_session)
 
     async def _handle_refine(self, session: dict[str, Any], _user_answer: str) -> dict[str, Any]:
@@ -992,6 +1090,8 @@ Use ONLY fields from the documentation."""
 
             # Get updated session and evaluate
             updated_session = await self.session_manager.get_session(session["thread_id"])
+            if updated_session is None:
+                raise RuntimeError(f"Session lost during refine handling: {session['thread_id']}")
             return await self._handle_evaluate(updated_session)
 
         # Fallback: shouldn't reach here in normal flow

@@ -81,7 +81,7 @@ class DocumentRetriever:
             input=query, model="text-embedding-ada-002"
         )
 
-        embedding = response.data[0].embedding
+        embedding: list[float] = list(response.data[0].embedding)
 
         logger.info("query_embedding_generated", embedding_dim=len(embedding))
 

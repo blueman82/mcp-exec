@@ -225,7 +225,8 @@ class SecretsManager:
         """
         client = await self._get_client()
         response = await client.get_secret_value(SecretId=secret_name)
-        return json.loads(response["SecretString"])
+        result: dict[str, Any] = json.loads(response["SecretString"])
+        return result
 
     async def get_authorised_slack_user_ids(self) -> list[str]:
         """Get authorized Slack user IDs, bypassing cache for freshness.
@@ -249,8 +250,39 @@ class SecretsManager:
             secret = await self._get_secret_fresh("splunk-bot/slack-tokens")
             ids_json = secret.get("authorised_slack_user_ids", "[]")
             if isinstance(ids_json, str):
-                return json.loads(ids_json)
-            return ids_json
+                parsed: list[str] = json.loads(ids_json)
+                return parsed
+            result: list[str] = ids_json
+            return result
+        except Exception:
+            # Fail secure - return empty list on error
+            return []
+
+    async def get_admin_user_ids(self) -> list[str]:
+        """Get admin user IDs for usage reporting, bypassing cache for freshness.
+
+        Admin checks should always use current data from AWS Secrets Manager.
+
+        Returns:
+            List of admin Slack user IDs
+
+        Raises:
+            RuntimeError: If called outside async context manager
+
+        Example:
+            async with SecretsManager() as manager:
+                admins = await manager.get_admin_user_ids()
+                if user_id in admins:
+                    # allow usage retrieval
+        """
+        try:
+            secret = await self._get_secret_fresh("splunk-bot/slack-tokens")
+            ids_json = secret.get("admin_user_ids", "[]")
+            if isinstance(ids_json, str):
+                parsed: list[str] = json.loads(ids_json)
+                return parsed
+            result: list[str] = ids_json
+            return result
         except Exception:
             # Fail secure - return empty list on error
             return []

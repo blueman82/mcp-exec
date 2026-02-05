@@ -107,6 +107,7 @@ class TestMain:
             patch("asksplunk.main.chromadb.HttpClient") as MockChromaClient,
             patch("asksplunk.main.DocumentRetriever") as MockRetriever,
             patch("asksplunk.main.SessionManager") as MockSessionManager,
+            patch("asksplunk.main.UsageTracker") as MockUsageTracker,
             patch("asksplunk.main.Agent") as MockAgent,
             patch("asksplunk.main.signal.signal") as mock_signal,
             patch("asksplunk.main.asyncio.get_event_loop") as mock_get_loop,
@@ -128,6 +129,13 @@ class TestMain:
             mock_session_instance.__aexit__ = AsyncMock(return_value=None)
             MockSessionManager.return_value = mock_session_instance
 
+            # Mock UsageTracker as async context manager
+            mock_usage_tracker = AsyncMock()
+            mock_usage_tracker_instance = AsyncMock()
+            mock_usage_tracker_instance.__aenter__ = AsyncMock(return_value=mock_usage_tracker)
+            mock_usage_tracker_instance.__aexit__ = AsyncMock(return_value=None)
+            MockUsageTracker.return_value = mock_usage_tracker_instance
+
             # Mock Agent
             mock_agent = AsyncMock()
             MockAgent.return_value = mock_agent
@@ -144,11 +152,12 @@ class TestMain:
             # Run main
             await main()
 
-            # Verify SlackClient was created with correct tokens and agent
+            # Verify SlackClient was created with correct tokens, agent, and usage_tracker
             MockSlackClient.assert_called_once_with(
                 bot_token=mock_slack_tokens["bot_token"],
                 app_token=mock_slack_tokens["app_token"],
                 agent=mock_agent,
+                usage_tracker=mock_usage_tracker,
             )
 
     @pytest.mark.asyncio
