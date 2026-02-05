@@ -107,7 +107,7 @@ class TestUsageTracker:
     def test_admin_user_ids_constant_is_frozen(self) -> None:
         """ADMIN_USER_IDS should be a frozenset (immutable)."""
         assert isinstance(ADMIN_USER_IDS, frozenset)
-        assert len(ADMIN_USER_IDS) == 2
+        assert len(ADMIN_USER_IDS) == 1
 
     @pytest.mark.asyncio
     async def test_context_manager_raises_error_if_used_outside_context(self) -> None:
