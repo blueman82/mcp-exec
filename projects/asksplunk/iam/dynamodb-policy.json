@@ -11,7 +11,10 @@
         "dynamodb:DeleteItem",
         "dynamodb:Query"
       ],
-      "Resource": "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions"
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions",
+        "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions/index/usage-by-timestamp"
+      ]
     }
   ]
 }
