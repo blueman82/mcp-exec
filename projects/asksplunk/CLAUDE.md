@@ -161,7 +161,7 @@ signal.signal(signal.SIGINT, create_signal_handler(client, loop))
 ### Usage Tracking
 - **Privacy**: Records timestamp only - NO user IDs stored
 - **Storage**: DynamoDB GSI `usage-by-timestamp` on splunk-bot-sessions table
-- **Admin Access**: Only W7MGASQ2K and WDGLSLQRK can retrieve usage data
+- **Admin Access**: Only W7MGASQ2K can retrieve usage data
 - **Retrieval**: Natural language queries like "show usage for last 7 days"
 - **Supported timeframes**: hours, days, weeks, minutes, yesterday, today
 
