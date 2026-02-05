@@ -202,7 +202,9 @@ async def main() -> None:
             try:
                 await secrets_manager_ctx.__aexit__(None, None, None)
             except Exception as secrets_error:
-                logger.error("secrets_manager_cleanup_error", error=str(secrets_error), exc_info=True)
+                logger.error(
+                    "secrets_manager_cleanup_error", error=str(secrets_error), exc_info=True
+                )
         sys.exit(1)
 
 
