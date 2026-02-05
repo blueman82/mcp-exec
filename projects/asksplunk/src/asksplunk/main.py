@@ -18,6 +18,7 @@ from asksplunk.retriever.retriever import DocumentRetriever
 from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
 from asksplunk.slack.client import SlackClient
+from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
 
@@ -100,6 +101,7 @@ async def main() -> None:
     client: SlackClient | None = None
     secrets_manager: SecretsManager | None = None
     session_manager_ctx: SessionManager | None = None
+    usage_tracker_ctx: UsageTracker | None = None
 
     try:
         # Fetch secrets from AWS Secrets Manager
@@ -137,6 +139,11 @@ async def main() -> None:
         session_manager = await session_manager_ctx.__aenter__()
         logger.info("session_manager_created")
 
+        # Create UsageTracker
+        usage_tracker_ctx = UsageTracker()
+        usage_tracker = await usage_tracker_ctx.__aenter__()
+        logger.info("usage_tracker_created")
+
         # Create Agent
         chat_model = openai_config.get("chat_deployment", "gpt-5")
         agent = Agent(
@@ -144,11 +151,17 @@ async def main() -> None:
             session_manager=session_manager,
             openai_client=openai_client,
             chat_model=chat_model,
+            usage_tracker=usage_tracker,
         )
         logger.info("agent_created")
 
-        # Create Slack client with agent
-        client = SlackClient(bot_token=bot_token, app_token=app_token, agent=agent)
+        # Create Slack client with agent and usage tracker
+        client = SlackClient(
+            bot_token=bot_token,
+            app_token=app_token,
+            agent=agent,
+            usage_tracker=usage_tracker,
+        )
         logger.info("slack_client_created")
 
         # Register signal handlers for graceful shutdown
@@ -177,6 +190,12 @@ async def main() -> None:
                 await client.shutdown()
             except Exception as shutdown_error:
                 logger.error("cleanup_error", error=str(shutdown_error), exc_info=True)
+        # Clean up usage tracker if created (client.shutdown won't close it since we passed it in)
+        if usage_tracker_ctx:
+            try:
+                await usage_tracker_ctx.__aexit__(None, None, None)
+            except Exception as tracker_error:
+                logger.error("usage_tracker_cleanup_error", error=str(tracker_error), exc_info=True)
         sys.exit(1)
 
 

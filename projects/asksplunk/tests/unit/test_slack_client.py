@@ -1071,3 +1071,69 @@ class TestSlackClient:
             provided_tracker.__aexit__.assert_not_called()
             # usage_tracker should still be set (we didn't clear it)
             assert client.usage_tracker is provided_tracker
+
+    @pytest.mark.asyncio
+    async def test_send_agent_response_handles_usage_report(self, mock_tokens):
+        """_send_agent_response should handle usage_report action with bar_chart emoji."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            mock_say = AsyncMock()
+            result = {
+                "action": "usage_report",
+                "content": {
+                    "message": "Usage report: 42 queries from 2024-01-01 00:00 to 2024-01-07 23:59 UTC",
+                },
+            }
+
+            await client._send_agent_response(mock_say, result, "1234.5678")
+
+            mock_say.assert_called_once()
+            assert ":bar_chart:" in mock_say.call_args[1]["text"]
+            assert "42 queries" in mock_say.call_args[1]["text"]
+            assert mock_say.call_args[1]["thread_ts"] == "1234.5678"
+
+    @pytest.mark.asyncio
+    async def test_send_agent_response_usage_report_default_message(self, mock_tokens):
+        """_send_agent_response should use default message when content is empty."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            mock_say = AsyncMock()
+            result = {
+                "action": "usage_report",
+                "content": {},
+            }
+
+            await client._send_agent_response(mock_say, result, "1234.5678")
+
+            mock_say.assert_called_once()
+            assert ":bar_chart:" in mock_say.call_args[1]["text"]
+            assert "No usage data available" in mock_say.call_args[1]["text"]
+
+    @pytest.mark.asyncio
+    async def test_init_accepts_usage_tracker_parameter(self, mock_tokens):
+        """SlackClient should accept usage_tracker parameter in __init__."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            mock_tracker = AsyncMock(spec=UsageTracker)
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"],
+                app_token=mock_tokens["app_token"],
+                usage_tracker=mock_tracker,
+            )
+
+            assert client.usage_tracker is mock_tracker

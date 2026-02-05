@@ -322,6 +322,12 @@ class SlackClient:
             message = content.get("message", "I cannot process that request.")
             await say(text=message, thread_ts=thread_ts)
 
+        elif action == "usage_report":
+            # Admin usage report
+            content = result.get("content", {})
+            message = content.get("message", "No usage data available.")
+            await say(text=f":bar_chart: {message}", thread_ts=thread_ts)
+
         else:
             # Unknown action or processing state
             logger.warning("unknown_agent_action", action=action, thread_ts=thread_ts)
