@@ -5,8 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from asksplunk.usage.tracker import ADMIN_USER_IDS
-from src.asksplunk.agent.orchestrator import Agent
+from asksplunk.agent.orchestrator import Agent
 
 
 class TestAgentInitialization:
