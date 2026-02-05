@@ -190,7 +190,7 @@ if __name__ == "__main__":
     import sys
 
     import chromadb
-    from openai import AsyncAzureOpenAI  # type: ignore[import-not-found]
+    from openai import AsyncAzureOpenAI
 
     async def main():
         """CLI entry point for testing document retrieval.
