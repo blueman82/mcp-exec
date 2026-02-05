@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from asksplunk.usage.tracker import ADMIN_USER_IDS, UsageTracker
+from asksplunk.usage.tracker import UsageTracker
 
 
 class TestUsageTracker:
