@@ -99,20 +99,20 @@ async def main() -> None:
     logger.info("application_starting")
 
     client: SlackClient | None = None
-    secrets_manager: SecretsManager | None = None
+    secrets_manager_ctx: SecretsManager | None = None
     session_manager_ctx: SessionManager | None = None
     usage_tracker_ctx: UsageTracker | None = None
 
     try:
-        # Fetch secrets from AWS Secrets Manager
+        # Create SecretsManager (kept open for dynamic admin lookups)
         logger.info("fetching_secrets")
-        secrets_manager = SecretsManager()
-        async with secrets_manager as manager:
-            tokens = await manager.get_slack_tokens()
-            bot_token = tokens["bot_token"]
-            app_token = tokens["app_token"]
+        secrets_manager_ctx = SecretsManager()
+        secrets_manager = await secrets_manager_ctx.__aenter__()
 
-            openai_config = await manager.get_azure_openai_config()
+        tokens = await secrets_manager.get_slack_tokens()
+        bot_token = tokens["bot_token"]
+        app_token = tokens["app_token"]
+        openai_config = await secrets_manager.get_azure_openai_config()
 
         logger.info("secrets_retrieved")
 
