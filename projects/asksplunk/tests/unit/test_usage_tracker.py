@@ -95,19 +95,21 @@ class TestUsageTracker:
         assert count == 0
 
     def test_is_admin_returns_true_for_admin_users(self) -> None:
-        """is_admin should return True for hardcoded admin user IDs."""
-        assert UsageTracker.is_admin("W7MGASQ2K") is True
+        """is_admin should return True when user_id is in admin_ids list."""
+        admin_ids = ["W7MGASQ2K", "WDGLSLQRK"]
+        assert UsageTracker.is_admin("W7MGASQ2K", admin_ids) is True
+        assert UsageTracker.is_admin("WDGLSLQRK", admin_ids) is True
 
     def test_is_admin_returns_false_for_non_admin_users(self) -> None:
-        """is_admin should return False for non-admin user IDs."""
-        assert UsageTracker.is_admin("UXYZ12345") is False
-        assert UsageTracker.is_admin("") is False
-        assert UsageTracker.is_admin("random-id") is False
+        """is_admin should return False when user_id is not in admin_ids list."""
+        admin_ids = ["W7MGASQ2K"]
+        assert UsageTracker.is_admin("UXYZ12345", admin_ids) is False
+        assert UsageTracker.is_admin("", admin_ids) is False
+        assert UsageTracker.is_admin("random-id", admin_ids) is False
 
-    def test_admin_user_ids_constant_is_frozen(self) -> None:
-        """ADMIN_USER_IDS should be a frozenset (immutable)."""
-        assert isinstance(ADMIN_USER_IDS, frozenset)
-        assert len(ADMIN_USER_IDS) == 1
+    def test_is_admin_returns_false_for_empty_admin_list(self) -> None:
+        """is_admin should return False when admin_ids list is empty."""
+        assert UsageTracker.is_admin("W7MGASQ2K", []) is False
 
     @pytest.mark.asyncio
     async def test_context_manager_raises_error_if_used_outside_context(self) -> None:
