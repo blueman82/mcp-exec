@@ -60,7 +60,8 @@ class TestUsageTrackingIntegration:
             assert call_kwargs["IndexName"] == "usage-by-timestamp"
 
     def test_admin_check(self) -> None:
-        """Test admin user detection."""
-        assert UsageTracker.is_admin("W7MGASQ2K") is True
-        assert UsageTracker.is_admin("WDGLSLQRK") is False  # Removed from admin list
-        assert UsageTracker.is_admin("U12345678") is False
+        """Test admin user detection with dynamic admin list."""
+        admin_ids = ["W7MGASQ2K", "WDGLSLQRK"]
+        assert UsageTracker.is_admin("W7MGASQ2K", admin_ids) is True
+        assert UsageTracker.is_admin("WDGLSLQRK", admin_ids) is True
+        assert UsageTracker.is_admin("U12345678", admin_ids) is False
