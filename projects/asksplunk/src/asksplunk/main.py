@@ -11,7 +11,7 @@ import sys
 
 import chromadb
 import structlog
-from openai import AsyncAzureOpenAI
+from openai import AsyncAzureOpenAI  # type: ignore[import-not-found]
 
 from asksplunk.agent.orchestrator import Agent
 from asksplunk.retriever.retriever import DocumentRetriever
