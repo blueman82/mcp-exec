@@ -60,9 +60,9 @@ class UsageTracker:
         return self._table
 
     @staticmethod
-    def is_admin(user_id: str) -> bool:
+    def is_admin(user_id: str, admin_ids: list[str]) -> bool:
         """Check if user is an admin who can retrieve usage data."""
-        return user_id in ADMIN_USER_IDS
+        return user_id in admin_ids
 
     async def record_event(self) -> None:
         """Record a usage event (timestamp only - no user ID for privacy)."""
