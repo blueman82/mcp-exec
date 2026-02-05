@@ -152,6 +152,7 @@ async def main() -> None:
             openai_client=openai_client,
             chat_model=chat_model,
             usage_tracker=usage_tracker,
+            secrets_manager=secrets_manager,
         )
         logger.info("agent_created")
 
