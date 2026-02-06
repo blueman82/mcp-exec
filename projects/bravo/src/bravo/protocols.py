@@ -77,6 +77,7 @@ class LLMServiceProto(Protocol):
 
     def build_prompt(self, summary: str, comments: list[str]) -> str: ...
 
+    async def close(self) -> None: ...
 
 @runtime_checkable
 class PollerServiceProto(Protocol):

@@ -54,9 +54,12 @@ class LLMSettings(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="LLM_")
 
-    model: str = "gpt-4"
+    model: str = ""
     api_key: str = ""
+    endpoint: str = ""
+    api_version: str = ""
     threshold: float = 3.0
+    reasoning_effort: str = "low"
 
 
 class GateSettings(BaseSettings):

@@ -4,9 +4,11 @@ This module provides LLM-based ticket documentation quality scoring,
 evaluating clarity, completeness, root cause analysis, and actionability.
 """
 
+import json
 from dataclasses import dataclass
 
 import structlog
+from openai import AsyncAzureOpenAI
 
 from bravo.config import LLMSettings
 
@@ -67,6 +69,17 @@ class LLMService:
             settings: LLM configuration including model and threshold.
         """
         self.settings = settings
+        self._client: AsyncAzureOpenAI | None = None
+
+    def _get_client(self) -> AsyncAzureOpenAI:
+        """Get or create the Azure OpenAI client."""
+        if self._client is None:
+            self._client = AsyncAzureOpenAI(
+                api_key=self.settings.api_key,
+                api_version=self.settings.api_version,
+                azure_endpoint=self.settings.endpoint,
+            )
+        return self._client
 
     async def score_ticket(
         self,
@@ -85,15 +98,32 @@ class LLMService:
             LLMScore with scores for each dimension.
         """
         logger.info("scoring_ticket", ticket_key=ticket_key, model=self.settings.model)
+        prompt = self.build_prompt(summary, comments)
+        client = self._get_client()
 
-        # TODO: Implement actual LLM call using self.build_prompt(summary, comments)
-        _ = summary, comments  # Will be used when LLM integration is added
-        score = LLMScore(
-            clarity=3.0,
-            completeness=3.0,
-            root_cause=3.0,
-            actionability=3.0,
-        )
+        try:
+            response = await client.chat.completions.create(
+                model=self.settings.model,
+                messages=[{"role": "user", "content": prompt}],
+                reasoning_effort=self.settings.reasoning_effort,
+                response_format={"type": "json_object"},
+                max_completion_tokens=500,
+            )
+        except Exception:
+            logger.exception("llm_api_error", ticket_key=ticket_key)
+            return LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
+
+        try:
+            data = json.loads(response.choices[0].message.content or "{}")
+            score = LLMScore(
+                clarity=float(data["clarity"]),
+                completeness=float(data["completeness"]),
+                root_cause=float(data["root_cause"]),
+                actionability=float(data["actionability"]),
+            )
+        except (KeyError, ValueError, IndexError):
+            logger.exception("llm_parse_error", ticket_key=ticket_key)
+            return LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
 
         logger.info(
             "ticket_scored",
@@ -101,7 +131,6 @@ class LLMService:
             average=score.average,
             below_threshold=score.below_threshold(self.settings.threshold),
         )
-
         return score
 
     def build_prompt(self, summary: str, comments: list[str]) -> str:
@@ -131,3 +160,9 @@ Score each dimension from 1-5:
 
 Respond in JSON format:
 {{"clarity": X, "completeness": X, "root_cause": X, "actionability": X}}"""
+
+    async def close(self) -> None:
+        """Close the Azure OpenAI client."""
+        if self._client is not None:
+            await self._client.aclose()
+            self._client = None
