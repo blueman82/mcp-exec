@@ -6,6 +6,7 @@ receiving events and the Web API for sending messages.
 
 import asyncio
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 
 import structlog
 from slack_sdk.socket_mode.aiohttp import SocketModeClient
@@ -14,6 +15,13 @@ from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_sdk.web.async_client import AsyncWebClient
 
 from bravo.config import SlackSettings
+from bravo.db import queries
+from bravo.services.blocks import (
+    build_acknowledged_blocks,
+    build_snoozed_blocks,
+    build_unsnoozed_blocks,
+    build_yes_updates_blocks,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -67,7 +75,7 @@ class SlackService:
         self,
         user_id: str,
         text: str,
-        blocks: list | None = None,
+        blocks: list[dict] | None = None,
     ) -> str | None:
         """Send a direct message to a user.
 
@@ -96,6 +104,37 @@ class SlackService:
 
         logger.error("slack_dm_failed", user_id=user_id, error=response.get("error"))
         return None
+
+    async def update_message(
+        self,
+        channel: str,
+        ts: str,
+        text: str,
+        blocks: list[dict] | None = None,
+    ) -> bool:
+        """Update an existing Slack message in-place.
+
+        Args:
+            channel: The channel containing the message.
+            ts: The message timestamp to update.
+            text: Updated fallback text.
+            blocks: Optional updated Block Kit blocks.
+
+        Returns:
+            True if the update succeeded, False otherwise.
+        """
+        client = self._get_web_client()
+        try:
+            response = await client.chat_update(
+                channel=channel,
+                ts=ts,
+                text=text,
+                blocks=blocks,
+            )
+            return response["ok"]
+        except Exception:
+            logger.exception("slack_message_update_failed", channel=channel, ts=ts)
+            return False
 
     async def lookup_user_by_email(self, email: str) -> SlackUser | None:
         """Look up a Slack user by email.
@@ -192,13 +231,143 @@ class SlackService:
             client: The Socket Mode client for acknowledgement.
             req: The original Socket Mode request.
         """
-        actions = payload.get("actions", [])
-        for action in actions:
-            action_id = action.get("action_id", "unknown")
-            logger.info("block_action_received", action_id=action_id)
-
+        # ACK immediately to satisfy Slack's 3-second deadline
         await client.send_socket_mode_response(
             SocketModeResponse(envelope_id=req.envelope_id),
+        )
+
+        actions = payload.get("actions", [])
+        for action in actions:
+            action_id = action.get("action_id", "")
+            logger.info("block_action_received", action_id=action_id)
+
+            try:
+                if action_id == "nudge_yes_updates":
+                    await self._handle_nudge_yes_updates(payload, action)
+                elif action_id == "nudge_no_updates":
+                    await self._handle_nudge_no_updates(payload, action)
+                elif action_id == "nudge_snooze":
+                    await self._handle_nudge_snooze(payload, action)
+                elif action_id == "nudge_unsnooze":
+                    await self._handle_nudge_unsnooze(payload, action)
+                else:
+                    logger.warning("unhandled_action_id", action_id=action_id)
+            except Exception:
+                logger.exception("block_action_handler_error", action_id=action_id)
+
+    @staticmethod
+    def _msg_context(payload: dict) -> tuple[str, str, list[dict]]:
+        """Extract channel, ts, and blocks from an interaction payload."""
+        return (
+            payload["channel"]["id"],
+            payload["message"]["ts"],
+            payload["message"].get("blocks", []),
+        )
+
+    async def _handle_nudge_yes_updates(self, payload: dict, action: dict) -> None:
+        """Handle 'Yes, updates coming' button click.
+
+        Args:
+            payload: The interaction payload from Slack.
+            action: The specific action that was triggered.
+        """
+        channel_id, message_ts, original_blocks = self._msg_context(payload)
+
+        nudge = await queries.get_nudge_by_slack_ts(message_ts)
+        if not nudge:
+            logger.warning("nudge_not_found_for_ts", ts=message_ts)
+            return
+
+        await queries.update_nudge_status(nudge["id"], "RESPONDED")
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text="Updates incoming",
+            blocks=build_yes_updates_blocks(original_blocks=original_blocks),
+        )
+
+    async def _handle_nudge_no_updates(self, payload: dict, action: dict) -> None:
+        """Handle 'No updates needed' button click.
+
+        Args:
+            payload: The interaction payload from Slack.
+            action: The specific action that was triggered.
+        """
+        channel_id, message_ts, original_blocks = self._msg_context(payload)
+
+        nudge = await queries.get_nudge_by_slack_ts(message_ts)
+        if not nudge:
+            logger.warning("nudge_not_found_for_ts", ts=message_ts)
+            return
+
+        await queries.update_nudge_status(nudge["id"], "ACKNOWLEDGED")
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text="Acknowledged",
+            blocks=build_acknowledged_blocks(original_blocks=original_blocks),
+        )
+
+    async def _handle_nudge_snooze(self, payload: dict, action: dict) -> None:
+        """Handle snooze button click (1h or 4h).
+
+        Args:
+            payload: The interaction payload from Slack.
+            action: The specific action that was triggered.
+        """
+        channel_id, message_ts, original_blocks = self._msg_context(payload)
+
+        # Parse ticket_key and duration from value (e.g. "BRAVO-123|1h")
+        value = action.get("value", "")
+        parts = value.split("|", 1)
+        ticket_key = parts[0]
+        duration = parts[1] if len(parts) > 1 else "1h"
+
+        nudge = await queries.get_nudge_by_slack_ts(message_ts)
+        if not nudge:
+            logger.warning("nudge_not_found_for_ts", ts=message_ts)
+            return
+
+        snoozed_until = datetime.now(timezone.utc) + timedelta(hours=4 if duration == "4h" else 1)
+        snoozed_until_text = snoozed_until.strftime("%H:%M UTC")
+
+        await queries.update_nudge_snooze(nudge["id"], snoozed_until)
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text=f"Snoozed until {snoozed_until_text}",
+            blocks=build_snoozed_blocks(
+                original_blocks=original_blocks,
+                snoozed_until_text=snoozed_until_text,
+                ticket_key=ticket_key,
+            ),
+        )
+
+    async def _handle_nudge_unsnooze(self, payload: dict, action: dict) -> None:
+        """Handle unsnooze button click.
+
+        Args:
+            payload: The interaction payload from Slack.
+            action: The specific action that was triggered.
+        """
+        channel_id, message_ts, original_blocks = self._msg_context(payload)
+        ticket_key = action.get("value", "")
+
+        # Snoozed nudges have status='SNOOZED', not 'SENT'
+        nudge = await queries.get_snoozed_nudge_by_slack_ts(message_ts)
+        if not nudge:
+            logger.warning("nudge_not_found_for_unsnooze", ts=message_ts)
+            return
+
+        await queries.clear_nudge_snooze(nudge["id"])
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text="Nudge restored",
+            blocks=build_unsnoozed_blocks(
+                original_blocks=original_blocks,
+                ticket_key=ticket_key,
+            ),
         )
 
     async def _handle_view_submission(

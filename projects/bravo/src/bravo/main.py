@@ -4,8 +4,8 @@ This module defines the FastAPI application factory, lifespan management,
 and the main entry point for running the API server.
 """
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 import structlog
 import uvicorn
@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from bravo import __version__
 from bravo.api import admin, assignees, health, nudge, polling, tickets
 from bravo.config import get_settings
+from bravo.container import create_container
 from bravo.db import close_pool, init_pool
 
 logger = structlog.get_logger(__name__)
@@ -35,8 +36,13 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
     await init_pool(settings.database)
 
+    container = create_container(settings)
+    await container.initialize_all()
+    _app.state.container = container
+
     yield
 
+    await _app.state.container.shutdown_all()
     await close_pool()
     logger.info("bravo_shutdown_complete")
 

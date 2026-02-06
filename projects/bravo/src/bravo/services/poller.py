@@ -10,7 +10,7 @@ import structlog
 
 from bravo.config import Settings
 from bravo.db import queries
-from bravo.services.jira import JiraClient
+from bravo.protocols import JiraClientProto
 
 logger = structlog.get_logger(__name__)
 
@@ -26,7 +26,7 @@ class PollerService:
         jira: Jira API client.
     """
 
-    def __init__(self, settings: Settings, jira_client: JiraClient) -> None:
+    def __init__(self, settings: Settings, jira_client: JiraClientProto) -> None:
         """Initialize the poller service.
 
         Args:

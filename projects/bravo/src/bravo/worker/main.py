@@ -11,13 +11,8 @@ import structlog
 
 from bravo import __version__
 from bravo.config import get_settings
+from bravo.container import create_container
 from bravo.db import close_pool, init_pool
-from bravo.services.gates import GateService
-from bravo.services.jira import JiraClient
-from bravo.services.llm import LLMService
-from bravo.services.nudge import NudgeService
-from bravo.services.poller import PollerService
-from bravo.services.slack import SlackService
 
 logger = structlog.get_logger(__name__)
 
@@ -31,34 +26,14 @@ class Worker:
     Attributes:
         settings: Application configuration.
         running: Whether the worker is currently running.
-        jira: Jira API client.
-        slack: Slack service.
-        gates: Gate evaluation service.
-        llm: LLM scoring service.
-        nudge: Nudge orchestration service.
-        poller: Polling service.
+        container: Service registry managing all service lifecycles.
     """
 
     def __init__(self) -> None:
         """Initialize the worker with all required services."""
         self.settings = get_settings()
         self.running = False
-
-        self.jira = JiraClient(self.settings.jira)
-        self.slack = SlackService(self.settings.slack)
-        self.gates = GateService(self.settings.gates)
-        self.llm = LLMService(self.settings.llm)
-        self.nudge = NudgeService(
-            settings=self.settings,
-            jira=self.jira,
-            slack=self.slack,
-            gates=self.gates,
-            llm=self.llm,
-        )
-        self.poller = PollerService(
-            settings=self.settings,
-            jira_client=self.jira,
-        )
+        self.container = create_container(self.settings)
 
     async def start(self) -> None:
         """Start the worker.
@@ -69,6 +44,7 @@ class Worker:
         logger.info("worker_starting", version=__version__)
 
         await init_pool(self.settings.database)
+        await self.container.initialize_all()
 
         self.running = True
 
@@ -85,8 +61,7 @@ class Worker:
         logger.info("worker_stopping")
         self.running = False
 
-        await self.jira.close()
-        await self.slack.close()
+        await self.container.shutdown_all()
         await close_pool()
 
         logger.info("worker_stopped")
@@ -98,7 +73,7 @@ class Worker:
         """
         while self.running:
             try:
-                result = await self.poller.run_poll()
+                result = await self.container.get("poller_service").run_poll()
                 logger.info("poll_complete", **result)
             except Exception as e:
                 logger.error("poll_error", error=str(e))
@@ -110,7 +85,7 @@ class Worker:
 
         Starts the Slack Socket Mode client for receiving interactive events.
         """
-        await self.slack.start_socket_mode()
+        await self.container.get("slack_service").start_socket_mode()
 
 
 async def run_worker() -> None:

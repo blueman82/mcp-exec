@@ -1,0 +1,92 @@
+# Bravo - Jira Hygiene Nudge System
+
+Bravo monitors Jira tickets across EMEA Campaign Operations teams and nudges engineers via Slack DM when tickets need attention. Hybrid approach: heuristic gates (pass/fail) + LLM scoring (quality dimensions).
+
+## Architecture
+
+```
+src/bravo/
+  main.py              # FastAPI app + lifespan (creates DI container)
+  config.py            # pydantic-settings (nested: database/jira/slack/llm/gates)
+  container.py         # create_container() — wires all services via DI
+  protocols.py         # @runtime_checkable Protocol per service
+  di/                  # Lightweight TypedDI framework
+    types.py           #   DependencySpec, ServiceRegistration
+    resolver.py        #   Kahn's topological sort + CircularDependencyError
+    registry.py        #   ServiceRegistry: register, initialize_all, get, shutdown_all
+  services/
+    gates.py           # G1-G4 heuristic evaluation (GateEvaluation dataclass)
+    llm.py             # LLM ticket scoring (LLMScore dataclass)
+    jira.py            # Async Jira REST client (aiohttp)
+    slack.py           # Socket Mode + Web API (slack-sdk)
+    nudge.py           # Orchestrates gates -> LLM -> Slack DM
+    poller.py          # Periodic Jira polling via JQL
+    blocks.py          # Block Kit message builders (pure functions)
+  db/
+    pool.py            # asyncpg connection pool singleton
+    queries.py         # Raw SQL with $1/$2 parameterized queries
+    init.sql           # Schema DDL
+  api/                 # FastAPI routers (health, admin, polling, tickets, nudge, assignees)
+  worker/main.py       # Background worker (poll loop + Socket Mode)
+  models/schemas.py    # Pydantic response models
+```
+
+## Dependency Injection
+
+Services depend on Protocol interfaces, not concrete classes. Import direction:
+- `container.py` -> concrete services + `di/`
+- `nudge.py`, `poller.py` -> `protocols.py` (not concrete classes)
+- `protocols.py` -> data classes only (`GateEvaluation`, `LLMScore`)
+- `di/` -> nothing from services or protocols
+
+Adding a new service: 1 Protocol in `protocols.py` + 1 class in `services/` + 1 `DependencySpec` in `container.py`.
+
+## Code Standards
+
+- Python 3.13+, use builtins: `list[dict]`, `str | None` (never `typing.List`, `Optional`)
+- `collections.abc` for `Callable`, `AsyncIterator` etc. (not `typing`)
+- No `TYPE_CHECKING` blocks — fix architecture if circular imports exist
+- f-strings only, Google-style docstrings, EAFP pattern
+- asyncpg with parameterized SQL (`$1`, `$2`), `get_pool()` pattern
+- structlog for all logging
+
+## Heuristic Gates
+
+| Gate | Rule | Threshold |
+|------|------|-----------|
+| G1 | Assignee has commented (excl. bots) | Boolean |
+| G2 | Last comment not stale | 4 hours |
+| G3 | Response within deadline | 24 hours |
+| G4 | Resolution within deadline | 24 hours |
+
+Engineers never see gate codes (G1/G2/G3/G4). Slack messages use human-readable reasons: "No assignee comment found", "Last comment is stale", etc.
+
+## Testing
+
+```bash
+uv run python -m pytest tests/ -v     # All tests
+```
+
+- `tests/test_blocks.py` — 21 tests for Block Kit message builders
+- `tests/test_di.py` — 12 tests for DI framework (resolver, registry, container)
+- `asyncio_mode = "auto"` in pyproject.toml — async tests just work
+
+## Docker (Local Dev)
+
+```bash
+docker compose -f infrastructure/docker-compose.local.yml up --build -d
+```
+
+Three services: `postgres:16-alpine` (:5432), `bravo-api` (:8000), `bravo-worker`.
+
+## Git Workflow
+
+- Stacked PRs: `main` <- `feature/bravo-scaffolding` <- `feature/bravo-block-kit` <- `feature/bravo-protocol-di`
+- Squash agent auto-commits into clean atomic commits before PR
+- Branch naming: `feature/bravo-{feature-name}`
+
+## Jira
+
+- Epic: CPGNCX-63253
+- Key tickets: 63864 (Slack foundation), 63865 (Jira integration), 63878 (Nudge workflow)
+- Projects watched: CPGNCX, AMSE, CPGNREQ, CPGNPROV, CAMP, NEO, PLATIR, CPGNTT

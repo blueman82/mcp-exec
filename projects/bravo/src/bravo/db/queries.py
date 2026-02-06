@@ -414,6 +414,85 @@ async def update_nudge_response(
     )
 
 
+async def get_nudge_by_slack_ts(slack_ts: str) -> asyncpg.Record | None:
+    """Get an active nudge event by Slack message timestamp.
+
+    Args:
+        slack_ts: The Slack message timestamp identifier.
+
+    Returns:
+        The nudge record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        "SELECT * FROM nudge_events WHERE slack_ts = $1 AND status = 'SENT'",
+        slack_ts,
+    )
+
+
+async def get_snoozed_nudge_by_slack_ts(slack_ts: str) -> asyncpg.Record | None:
+    """Get a snoozed nudge event by Slack message timestamp.
+
+    Args:
+        slack_ts: The Slack message timestamp identifier.
+
+    Returns:
+        The nudge record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        "SELECT * FROM nudge_events WHERE slack_ts = $1 AND status = 'SNOOZED'",
+        slack_ts,
+    )
+
+
+async def update_nudge_snooze(
+    nudge_id: UUID,
+    snoozed_until: datetime,
+) -> asyncpg.Record | None:
+    """Set a nudge to snoozed status with expiry time.
+
+    Args:
+        nudge_id: The nudge event UUID.
+        snoozed_until: When the snooze expires.
+
+    Returns:
+        The updated nudge record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE nudge_events
+        SET status = 'SNOOZED', snoozed_until = $2
+        WHERE id = $1
+        RETURNING *
+        """,
+        nudge_id,
+        snoozed_until,
+    )
+
+
+async def clear_nudge_snooze(nudge_id: UUID) -> asyncpg.Record | None:
+    """Clear snooze and restore nudge to sent status.
+
+    Args:
+        nudge_id: The nudge event UUID.
+
+    Returns:
+        The updated nudge record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE nudge_events
+        SET status = 'SENT', snoozed_until = NULL
+        WHERE id = $1
+        RETURNING *
+        """,
+        nudge_id,
+    )
+
+
 # ============ ASSIGNEES ============
 
 
