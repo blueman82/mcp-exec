@@ -1,13 +1,14 @@
 """Tests for the Jira MCP client service."""
 
+import asyncio
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 
 from bravo.config import JiraSettings
-from bravo.services.jira import JiraMCPClient, JiraTicket
+from bravo.services.jira import JiraMCPClient, JiraMCPError, JiraTicket
 
 
 def _make_settings(**overrides) -> JiraSettings:
@@ -16,11 +17,12 @@ def _make_settings(**overrides) -> JiraSettings:
     return JiraSettings(**(defaults | overrides))
 
 
-def _mock_response(data: dict) -> MagicMock:
+def _mock_response(data: dict, status_code: int = 200) -> MagicMock:
     """Create a MagicMock httpx response (sync .json() and .raise_for_status())."""
     resp = MagicMock()
     resp.json.return_value = data
     resp.raise_for_status.return_value = None
+    resp.status_code = status_code
     return resp
 
 
@@ -56,27 +58,34 @@ class TestSearchTickets:
     """Tests for JiraMCPClient.search_tickets()."""
 
     async def test_search_returns_tickets(self):
-        client, _ = _make_client_with_mock(_jsonrpc_ok({
-            "data": {
-                "issues": [
-                    {
-                        "key": "CPGNCX-100",
-                        "id": "12345",
-                        "fields": {
-                            "summary": "Test ticket",
-                            "assignee": {"name": "jdoe", "displayName": "Jane Doe"},
-                            "status": {"name": "Open"},
-                            "updated": "2026-01-15T10:00:00+00:00",
-                            "comment": {
-                                "comments": [
-                                    {"updated": "2026-01-15T12:00:00+00:00"}
-                                ]
-                            },
-                        },
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "CPGNCX-100",
+                                "id": "12345",
+                                "fields": {
+                                    "summary": "Test ticket",
+                                    "assignee": {
+                                        "name": "jdoe",
+                                        "displayName": "Jane Doe",
+                                    },
+                                    "status": {"name": "Open"},
+                                    "updated": "2026-01-15T10:00:00+00:00",
+                                    "comment": {
+                                        "comments": [
+                                            {"updated": "2026-01-15T12:00:00+00:00"}
+                                        ]
+                                    },
+                                },
+                            }
+                        ]
                     }
-                ]
-            }
-        }))
+                }
+            )
+        )
 
         tickets = await client.search_tickets("project = CPGNCX")
 
@@ -95,44 +104,52 @@ class TestSearchTickets:
 
     async def test_search_string_assignee(self):
         """When minimizeOutput is true, assignee may be a plain string."""
-        client, _ = _make_client_with_mock(_jsonrpc_ok({
-            "data": {
-                "issues": [
-                    {
-                        "key": "TEST-1",
-                        "id": "1",
-                        "fields": {
-                            "summary": "Ticket",
-                            "assignee": "Jane Doe",
-                            "status": {"name": "Open"},
-                            "updated": "2026-01-15T10:00:00Z",
-                        },
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "id": "1",
+                                "fields": {
+                                    "summary": "Ticket",
+                                    "assignee": "Jane Doe",
+                                    "status": {"name": "Open"},
+                                    "updated": "2026-01-15T10:00:00Z",
+                                },
+                            }
+                        ]
                     }
-                ]
-            }
-        }))
+                }
+            )
+        )
 
         tickets = await client.search_tickets("key = TEST-1")
         assert tickets[0].assignee_id is None
         assert tickets[0].assignee_name == "Jane Doe"
 
     async def test_search_null_assignee(self):
-        client, _ = _make_client_with_mock(_jsonrpc_ok({
-            "data": {
-                "issues": [
-                    {
-                        "key": "TEST-2",
-                        "id": "2",
-                        "fields": {
-                            "summary": "Unassigned",
-                            "assignee": None,
-                            "status": "Open",
-                            "updated": "2026-01-15T10:00:00Z",
-                        },
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-2",
+                                "id": "2",
+                                "fields": {
+                                    "summary": "Unassigned",
+                                    "assignee": None,
+                                    "status": "Open",
+                                    "updated": "2026-01-15T10:00:00Z",
+                                },
+                            }
+                        ]
                     }
-                ]
-            }
-        }))
+                }
+            )
+        )
 
         tickets = await client.search_tickets("key = TEST-2")
         assert tickets[0].assignee_id is None
@@ -165,20 +182,22 @@ class TestJsonRpcFormatting:
 class TestErrorHandling:
     """Tests for MCP error responses."""
 
-    async def test_mcp_error_raises_runtime_error(self):
+    async def test_mcp_error_raises_jira_mcp_error(self):
         client, _ = _make_client_with_mock(_jsonrpc_error("Permission denied"))
 
-        with pytest.raises(RuntimeError, match="Permission denied"):
+        with pytest.raises(JiraMCPError, match="Permission denied"):
             await client._call_tool("forbidden_tool", {})
 
-    async def test_invalid_json_in_content_raises(self):
-        client, _ = _make_client_with_mock({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "result": {"content": [{"type": "text", "text": "not valid json!"}]},
-        })
+    async def test_invalid_json_in_content_raises_jira_mcp_error(self):
+        client, _ = _make_client_with_mock(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {"content": [{"type": "text", "text": "not valid json!"}]},
+            }
+        )
 
-        with pytest.raises(RuntimeError, match="Invalid MCP response"):
+        with pytest.raises(JiraMCPError, match="Invalid MCP response"):
             await client._call_tool("bad_tool", {})
 
 
@@ -225,7 +244,9 @@ class TestTransitions:
             {"id": "2", "name": "Close Issue", "to": {"name": "Closed"}},
             {"id": "991", "name": "Resolved", "to": {"name": "Resolved"}},
         ]
-        client, _ = _make_client_with_mock(_jsonrpc_ok({"data": {"transitions": transitions}}))
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok({"data": {"transitions": transitions}})
+        )
 
         result = await client.get_transitions("TEST-1")
         assert len(result) == 2
@@ -297,3 +318,90 @@ class TestClientLifecycle:
         client = JiraMCPClient(_make_settings())
         await client.close()  # Should not raise
         assert client._client is None
+
+
+class TestResilience:
+    """Tests for retry, semaphore, and error resilience in JiraMCPClient."""
+
+    async def test_retries_on_transport_error(self):
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+        mock_http.post.side_effect = [
+            httpx.ConnectError("conn refused"),
+            _mock_response(_jsonrpc_ok({"ok": True})),
+        ]
+
+        with patch("bravo.services.resilience.asyncio.sleep", new_callable=AsyncMock):
+            result = await client._call_tool("test_tool", {})
+
+        assert result == {"ok": True}
+        assert mock_http.post.await_count == 2
+
+    async def test_mcp_error_not_retried(self):
+        client, mock_http = _make_client_with_mock(_jsonrpc_error("Bad request"))
+
+        with pytest.raises(JiraMCPError, match="Bad request"):
+            await client._call_tool("bad_tool", {})
+
+        mock_http.post.assert_awaited_once()
+
+    async def test_semaphore_limits_concurrency(self):
+        settings = _make_settings(max_concurrent_requests=2)
+        client = JiraMCPClient(settings)
+
+        max_concurrent = 0
+        current = 0
+        lock = asyncio.Lock()
+        gate = asyncio.Event()
+
+        async def _slow_post(*args, **kwargs):
+            nonlocal max_concurrent, current
+            async with lock:
+                current += 1
+                max_concurrent = max(max_concurrent, current)
+            await gate.wait()
+            async with lock:
+                current -= 1
+            return _mock_response(_jsonrpc_ok({"ok": True}))
+
+        mock_http = AsyncMock(spec=httpx.AsyncClient)
+        mock_http.is_closed = False
+        mock_http.post = _slow_post
+        client._client = mock_http
+
+        tasks = [asyncio.create_task(client._call_tool(f"t{i}", {})) for i in range(5)]
+        await asyncio.sleep(0.05)
+
+        assert max_concurrent == 2
+
+        gate.set()
+        await asyncio.gather(*tasks)
+
+    async def test_jira_mcp_error_attributes(self):
+        client, _ = _make_client_with_mock(_jsonrpc_error("Not found"))
+
+        with pytest.raises(JiraMCPError) as exc_info:
+            await client._call_tool("missing_tool", {})
+
+        assert exc_info.value.tool_name == "missing_tool"
+        assert exc_info.value.status_code is None
+
+    async def test_settings_timeout_used(self):
+        client = JiraMCPClient(_make_settings(request_timeout=42.0))
+        http = await client._get_client()
+
+        assert http.timeout == httpx.Timeout(42.0)
+        await client.close()
+
+    async def test_exhausted_retries_propagates(self):
+        settings = _make_settings(max_retries=2)
+        client = JiraMCPClient(settings)
+        mock_http = AsyncMock(spec=httpx.AsyncClient)
+        mock_http.is_closed = False
+        mock_http.post.side_effect = httpx.ConnectError("down")
+        client._client = mock_http
+
+        with patch("bravo.services.resilience.asyncio.sleep", new_callable=AsyncMock):
+            with pytest.raises(httpx.ConnectError, match="down"):
+                await client._call_tool("test_tool", {})
+
+        assert mock_http.post.await_count == 2

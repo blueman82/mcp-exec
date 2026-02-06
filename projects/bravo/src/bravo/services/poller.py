@@ -4,7 +4,8 @@ This module provides the polling service that periodically fetches
 tickets from Jira based on configured projects and org groups.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import structlog
 
@@ -47,8 +48,7 @@ class PollerService:
         """
         projects = ", ".join(self.settings.jira.projects)
         groups = " OR ".join(
-            f'assignee in membersOf("{g}")'
-            for g in self.settings.jira.org_groups
+            f'assignee in membersOf("{g}")' for g in self.settings.jira.org_groups
         )
 
         jql = f"project IN ({projects}) AND ({groups}) AND status != Closed"
@@ -60,7 +60,7 @@ class PollerService:
         jql += " ORDER BY updated DESC"
         return jql
 
-    async def run_poll(self) -> dict:
+    async def run_poll(self) -> dict[str, Any]:
         """Execute a poll cycle.
 
         Fetches tickets from Jira, upserts them to the database,
@@ -107,12 +107,12 @@ class PollerService:
                 else:
                     tickets_new += 1
 
-            next_poll = datetime.now(timezone.utc) + timedelta(
+            next_poll = datetime.now(UTC) + timedelta(
                 minutes=self.settings.poll_interval_minutes
             )
 
             await queries.update_poll_state(
-                last_cursor=datetime.now(timezone.utc),
+                last_cursor=datetime.now(UTC),
                 tickets_fetched=tickets_fetched,
                 next_poll_at=next_poll,
             )

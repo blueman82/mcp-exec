@@ -1,11 +1,11 @@
 """Pydantic schemas matching OpenAPI specification."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
 
 # ============ ENUMS ============
 
@@ -73,7 +73,7 @@ class HealthResponse(BaseModel):
 
     status: HealthStatus
     version: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class DetailedHealthResponse(HealthResponse):
@@ -329,7 +329,7 @@ class LogEntry(BaseModel):
     timestamp: datetime
     level: str
     message: str
-    context: dict | None = None
+    context: dict[str, Any] | None = None
 
 
 class LogsResponse(BaseModel):

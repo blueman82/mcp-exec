@@ -3,6 +3,8 @@
 This module provides endpoints for listing and managing watched assignees.
 """
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, HTTPException
 
@@ -17,7 +19,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-def _row_to_assignee(row: dict) -> AssigneeResponse:
+def _row_to_assignee(row: dict[str, Any]) -> AssigneeResponse:
     """Convert database row to AssigneeResponse.
 
     Args:
@@ -31,7 +33,9 @@ def _row_to_assignee(row: dict) -> AssigneeResponse:
         jira_display_name=row["jira_display_name"],
         slack_user_id=row["slack_user_id"],
         email=row["email"],
-        quiet_hours_start=str(row["quiet_hours_start"]) if row["quiet_hours_start"] else None,
+        quiet_hours_start=(
+            str(row["quiet_hours_start"]) if row["quiet_hours_start"] else None
+        ),
         quiet_hours_end=str(row["quiet_hours_end"]) if row["quiet_hours_end"] else None,
         default_snooze_minutes=row["default_snooze_minutes"],
         timezone=row["timezone"],

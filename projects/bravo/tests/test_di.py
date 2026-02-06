@@ -5,7 +5,6 @@ import pytest
 from bravo.di import CircularDependencyError, DependencySpec, ServiceRegistry
 from bravo.di.resolver import topological_sort
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -166,8 +165,12 @@ async def test_registry_initialization_order() -> None:
         return "api_instance"
 
     registry = ServiceRegistry()
-    registry.register(DependencySpec(name="api", factory=make_api, depends_on=["db", "cache"]))
-    registry.register(DependencySpec(name="cache", factory=make_cache, depends_on=["db"]))
+    registry.register(
+        DependencySpec(name="api", factory=make_api, depends_on=["db", "cache"])
+    )
+    registry.register(
+        DependencySpec(name="cache", factory=make_cache, depends_on=["db"])
+    )
     registry.register(DependencySpec(name="db", factory=make_db))
     await registry.initialize_all()
 
@@ -190,8 +193,12 @@ async def test_container_creates_all_services() -> None:
     await container.initialize_all()
 
     expected = [
-        "gate_service", "jira_client", "slack_service",
-        "llm_service", "poller_service", "nudge_service",
+        "gate_service",
+        "jira_client",
+        "slack_service",
+        "llm_service",
+        "poller_service",
+        "nudge_service",
     ]
     for name in expected:
         assert container.get(name) is not None

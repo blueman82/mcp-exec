@@ -6,7 +6,8 @@ receiving events and the Web API for sending messages.
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import structlog
 from slack_sdk.socket_mode.aiohttp import SocketModeClient
@@ -75,7 +76,7 @@ class SlackService:
         self,
         user_id: str,
         text: str,
-        blocks: list[dict] | None = None,
+        blocks: list[dict[str, Any]] | None = None,
     ) -> str | None:
         """Send a direct message to a user.
 
@@ -98,7 +99,7 @@ class SlackService:
         )
 
         if response["ok"]:
-            ts = response["ts"]
+            ts: str = response["ts"]
             logger.info("slack_dm_sent", user_id=user_id, ts=ts)
             return ts
 
@@ -110,7 +111,7 @@ class SlackService:
         channel: str,
         ts: str,
         text: str,
-        blocks: list[dict] | None = None,
+        blocks: list[dict[str, Any]] | None = None,
     ) -> bool:
         """Update an existing Slack message in-place.
 
@@ -131,7 +132,7 @@ class SlackService:
                 text=text,
                 blocks=blocks,
             )
-            return response["ok"]
+            return bool(response["ok"])
         except Exception:
             logger.exception("slack_message_update_failed", channel=channel, ts=ts)
             return False
@@ -210,9 +211,9 @@ class SlackService:
                     SocketModeResponse(envelope_id=req.envelope_id),
                 )
 
-        self._socket_client.socket_mode_request_listeners.append(_listener)
+        self._socket_client.socket_mode_request_listeners.append(_listener)  # type: ignore[arg-type]
 
-        await self._socket_client.connect()
+        await self._socket_client.connect()  # type: ignore[no-untyped-call]
         logger.info("socket_mode_connected")
 
         while True:
@@ -220,7 +221,7 @@ class SlackService:
 
     async def _handle_block_action(
         self,
-        payload: dict,
+        payload: dict[str, Any],
         client: SocketModeClient,
         req: SocketModeRequest,
     ) -> None:
@@ -256,7 +257,7 @@ class SlackService:
                 logger.exception("block_action_handler_error", action_id=action_id)
 
     @staticmethod
-    def _msg_context(payload: dict) -> tuple[str, str, list[dict]]:
+    def _msg_context(payload: dict[str, Any]) -> tuple[str, str, list[dict[str, Any]]]:
         """Extract channel, ts, and blocks from an interaction payload."""
         return (
             payload["channel"]["id"],
@@ -264,7 +265,9 @@ class SlackService:
             payload["message"].get("blocks", []),
         )
 
-    async def _handle_nudge_yes_updates(self, payload: dict, action: dict) -> None:
+    async def _handle_nudge_yes_updates(
+        self, payload: dict[str, Any], action: dict[str, Any]
+    ) -> None:
         """Handle 'Yes, updates coming' button click.
 
         Args:
@@ -286,7 +289,9 @@ class SlackService:
             blocks=build_yes_updates_blocks(original_blocks=original_blocks),
         )
 
-    async def _handle_nudge_no_updates(self, payload: dict, action: dict) -> None:
+    async def _handle_nudge_no_updates(
+        self, payload: dict[str, Any], action: dict[str, Any]
+    ) -> None:
         """Handle 'No updates needed' button click.
 
         Args:
@@ -308,7 +313,9 @@ class SlackService:
             blocks=build_acknowledged_blocks(original_blocks=original_blocks),
         )
 
-    async def _handle_nudge_snooze(self, payload: dict, action: dict) -> None:
+    async def _handle_nudge_snooze(
+        self, payload: dict[str, Any], action: dict[str, Any]
+    ) -> None:
         """Handle snooze button click (1h or 4h).
 
         Args:
@@ -328,7 +335,9 @@ class SlackService:
             logger.warning("nudge_not_found_for_ts", ts=message_ts)
             return
 
-        snoozed_until = datetime.now(timezone.utc) + timedelta(hours=4 if duration == "4h" else 1)
+        snoozed_until = datetime.now(UTC) + timedelta(
+            hours=4 if duration == "4h" else 1
+        )
         snoozed_until_text = snoozed_until.strftime("%H:%M UTC")
 
         await queries.update_nudge_snooze(nudge["id"], snoozed_until)
@@ -343,7 +352,9 @@ class SlackService:
             ),
         )
 
-    async def _handle_nudge_unsnooze(self, payload: dict, action: dict) -> None:
+    async def _handle_nudge_unsnooze(
+        self, payload: dict[str, Any], action: dict[str, Any]
+    ) -> None:
         """Handle unsnooze button click.
 
         Args:
@@ -372,7 +383,7 @@ class SlackService:
 
     async def _handle_view_submission(
         self,
-        payload: dict,
+        payload: dict[str, Any],
         client: SocketModeClient,
         req: SocketModeRequest,
     ) -> None:
@@ -392,7 +403,7 @@ class SlackService:
 
     async def _handle_slash_command(
         self,
-        payload: dict,
+        payload: dict[str, Any],
         client: SocketModeClient,
         req: SocketModeRequest,
     ) -> None:
@@ -415,7 +426,7 @@ class SlackService:
 
     async def _handle_event(
         self,
-        event: dict,
+        event: dict[str, Any],
         client: SocketModeClient,
         req: SocketModeRequest,
     ) -> None:
@@ -439,6 +450,6 @@ class SlackService:
         Closes any open Socket Mode connections.
         """
         if self._socket_client:
-            await self._socket_client.close()
+            await self._socket_client.close()  # type: ignore[no-untyped-call]
             self._socket_client = None
         logger.info("slack_service_closed")

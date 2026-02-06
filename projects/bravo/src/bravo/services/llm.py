@@ -8,7 +8,7 @@ import json
 from dataclasses import dataclass
 
 import structlog
-from openai import AsyncAzureOpenAI
+from openai import AsyncAzureOpenAI  # type: ignore[import-not-found]
 
 from bravo.config import LLMSettings
 
@@ -38,7 +38,9 @@ class LLMScore:
         Returns:
             The mean of all four scoring dimensions.
         """
-        return (self.clarity + self.completeness + self.root_cause + self.actionability) / 4
+        return (
+            self.clarity + self.completeness + self.root_cause + self.actionability
+        ) / 4
 
     def below_threshold(self, threshold: float) -> bool:
         """Check if average is below threshold.
@@ -111,7 +113,9 @@ class LLMService:
             )
         except Exception:
             logger.exception("llm_api_error", ticket_key=ticket_key)
-            return LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
+            return LLMScore(
+                clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0
+            )
 
         try:
             data = json.loads(response.choices[0].message.content or "{}")
@@ -123,7 +127,9 @@ class LLMService:
             )
         except (KeyError, ValueError, IndexError):
             logger.exception("llm_parse_error", ticket_key=ticket_key)
-            return LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
+            return LLMScore(
+                clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0
+            )
 
         logger.info(
             "ticket_scored",

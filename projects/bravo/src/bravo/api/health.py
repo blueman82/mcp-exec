@@ -4,7 +4,7 @@ This module provides health check endpoints for monitoring the
 Bravo API service and its dependencies.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 from fastapi import APIRouter
@@ -32,7 +32,7 @@ async def health_check() -> HealthResponse:
     return HealthResponse(
         status=HealthStatus.HEALTHY,
         version=__version__,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
     )
 
 
@@ -51,9 +51,9 @@ async def detailed_health_check() -> DetailedHealthResponse:
     db_latency: int | None = None
     try:
         pool = get_pool()
-        start = datetime.now(timezone.utc)
+        start = datetime.now(UTC)
         await pool.fetchval("SELECT 1")
-        db_latency = int((datetime.now(timezone.utc) - start).total_seconds() * 1000)
+        db_latency = int((datetime.now(UTC) - start).total_seconds() * 1000)
     except RuntimeError:
         db_status = HealthStatus.UNHEALTHY
     except Exception as e:
@@ -63,22 +63,22 @@ async def detailed_health_check() -> DetailedHealthResponse:
     components["database"] = ComponentHealth(
         status=db_status,
         latency_ms=db_latency,
-        last_check=datetime.now(timezone.utc),
+        last_check=datetime.now(UTC),
     )
 
     components["jira"] = ComponentHealth(
         status=HealthStatus.HEALTHY,
-        last_check=datetime.now(timezone.utc),
+        last_check=datetime.now(UTC),
     )
 
     components["slack"] = ComponentHealth(
         status=HealthStatus.HEALTHY,
-        last_check=datetime.now(timezone.utc),
+        last_check=datetime.now(UTC),
     )
 
     components["llm"] = ComponentHealth(
         status=HealthStatus.HEALTHY,
-        last_check=datetime.now(timezone.utc),
+        last_check=datetime.now(UTC),
     )
 
     overall = HealthStatus.HEALTHY
@@ -90,6 +90,6 @@ async def detailed_health_check() -> DetailedHealthResponse:
     return DetailedHealthResponse(
         status=overall,
         version=__version__,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         components=components,
     )

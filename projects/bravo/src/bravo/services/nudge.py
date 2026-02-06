@@ -4,12 +4,23 @@ This module orchestrates the nudge flow: evaluating tickets against
 gates and LLM scoring, then sending Slack nudges to assignees.
 """
 
+from typing import Any
+
 import structlog
 
 from bravo.config import Settings
 from bravo.db import queries
-from bravo.protocols import GateServiceProto, JiraClientProto, LLMServiceProto, SlackServiceProto
-from bravo.services.blocks import build_nudge_blocks, build_nudge_fallback_text, format_trigger_reasons
+from bravo.protocols import (
+    GateServiceProto,
+    JiraClientProto,
+    LLMServiceProto,
+    SlackServiceProto,
+)
+from bravo.services.blocks import (
+    build_nudge_blocks,
+    build_nudge_fallback_text,
+    format_trigger_reasons,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -51,7 +62,7 @@ class NudgeService:
         self.gates = gates
         self.llm = llm
 
-    async def evaluate_ticket(self, ticket_key: str) -> dict:
+    async def evaluate_ticket(self, ticket_key: str) -> dict[str, Any]:
         """Evaluate a ticket and potentially trigger a nudge.
 
         Args:
@@ -86,12 +97,21 @@ class NudgeService:
         nudge_reason = None
         failed_gate_codes: list[str] = []
 
-        _gate_labels = {"G1": "no comment", "G2": "stale", "G3": "slow response", "G4": "unresolved"}
+        _gate_labels = {
+            "G1": "no comment",
+            "G2": "stale",
+            "G3": "slow response",
+            "G4": "unresolved",
+        }
 
         if gate_result.any_failed:
             should_nudge = True
-            for code, passed in [("G1", gate_result.g1_passed), ("G2", gate_result.g2_passed),
-                                 ("G3", gate_result.g3_passed), ("G4", gate_result.g4_passed)]:
+            for code, passed in [
+                ("G1", gate_result.g1_passed),
+                ("G2", gate_result.g2_passed),
+                ("G3", gate_result.g3_passed),
+                ("G4", gate_result.g4_passed),
+            ]:
                 if not passed:
                     failed_gate_codes.append(code)
             nudge_reason = "Failed gates: " + ", ".join(
@@ -133,7 +153,7 @@ class NudgeService:
 
     async def _send_nudge(
         self,
-        ticket: dict,
+        ticket: dict[str, Any],
         reason: str,
         *,
         failed_gate_codes: list[str] | None = None,
@@ -158,8 +178,10 @@ class NudgeService:
             )
             return
 
-        trigger_reason = format_trigger_reasons(failed_gate_codes) if failed_gate_codes else reason
-        ticket_url = f"{self.settings.jira.base_url}/browse/{ticket['ticket_key']}"
+        trigger_reason = (
+            format_trigger_reasons(failed_gate_codes) if failed_gate_codes else reason
+        )
+        ticket_url = f"https://jira.corp.adobe.com/browse/{ticket['ticket_key']}"
 
         blocks = build_nudge_blocks(
             ticket_key=ticket["ticket_key"],

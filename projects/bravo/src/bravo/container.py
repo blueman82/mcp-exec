@@ -38,35 +38,49 @@ def create_container(settings: Settings) -> ServiceRegistry:
     registry = ServiceRegistry()
 
     # Leaf services (no cross-service deps)
-    registry.register(DependencySpec(
-        name="gate_service",
-        factory=lambda: _async(GateService(settings.gates)),
-    ))
-    registry.register(DependencySpec(
-        name="jira_client",
-        factory=lambda: _async(JiraMCPClient(settings.jira)),
-    ))
-    registry.register(DependencySpec(
-        name="slack_service",
-        factory=lambda: _async(SlackService(settings.slack)),
-    ))
-    registry.register(DependencySpec(
-        name="llm_service",
-        factory=lambda: _async(LLMService(settings.llm)),
-    ))
+    registry.register(
+        DependencySpec(
+            name="gate_service",
+            factory=lambda: _async(GateService(settings.gates)),
+        )
+    )
+    registry.register(
+        DependencySpec(
+            name="jira_client",
+            factory=lambda: _async(JiraMCPClient(settings.jira)),
+        )
+    )
+    registry.register(
+        DependencySpec(
+            name="slack_service",
+            factory=lambda: _async(SlackService(settings.slack)),
+        )
+    )
+    registry.register(
+        DependencySpec(
+            name="llm_service",
+            factory=lambda: _async(LLMService(settings.llm)),
+        )
+    )
 
     # Composite services
-    registry.register(DependencySpec(
-        name="poller_service",
-        factory=lambda jira_client: _async(PollerService(settings, jira_client)),
-        depends_on=["jira_client"],
-    ))
-    registry.register(DependencySpec(
-        name="nudge_service",
-        factory=lambda jira_client, slack_service, gate_service, llm_service: _async(
-            NudgeService(settings, jira_client, slack_service, gate_service, llm_service)
-        ),
-        depends_on=["jira_client", "slack_service", "gate_service", "llm_service"],
-    ))
+    registry.register(
+        DependencySpec(
+            name="poller_service",
+            factory=lambda jira_client: _async(PollerService(settings, jira_client)),
+            depends_on=["jira_client"],
+        )
+    )
+    registry.register(
+        DependencySpec(
+            name="nudge_service",
+            factory=lambda jira_client, slack_service, gate_service, llm_service: _async(
+                NudgeService(
+                    settings, jira_client, slack_service, gate_service, llm_service
+                )
+            ),
+            depends_on=["jira_client", "slack_service", "gate_service", "llm_service"],
+        )
+    )
 
     return registry

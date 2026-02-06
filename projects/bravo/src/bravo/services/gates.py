@@ -9,7 +9,7 @@ whether a ticket needs attention:
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import structlog
 
@@ -89,7 +89,7 @@ class GateService:
         Returns:
             GateEvaluation with results for all four gates.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         g1 = self._evaluate_g1(has_assignee_comment)
         g2 = self._evaluate_g2(last_assignee_comment_at, now)

@@ -37,9 +37,7 @@ class ServiceRegistry:
             ValueError: If a service with the same name is already registered.
         """
         if self._initialized:
-            raise RuntimeError(
-                "Cannot register services after initialization"
-            )
+            raise RuntimeError("Cannot register services after initialization")
         if spec.name in self._services:
             raise ValueError(f"Service {spec.name!r} is already registered")
 
@@ -82,10 +80,7 @@ class ServiceRegistry:
 
         for name in order:
             reg = self._services[name]
-            deps = {
-                dep: self._services[dep].instance
-                for dep in reg.spec.depends_on
-            }
+            deps = {dep: self._services[dep].instance for dep in reg.spec.depends_on}
             logger.debug("initializing_service", service=name, deps=list(deps))
             reg.instance = await reg.spec.factory(**deps)
 

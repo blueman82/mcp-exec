@@ -3,6 +3,8 @@
 This module provides CRUD endpoints for watched tickets.
 """
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, HTTPException, Response
 
@@ -20,7 +22,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-def _row_to_ticket(row: dict) -> TicketResponse:
+def _row_to_ticket(row: dict[str, Any]) -> TicketResponse:
     """Convert database row to TicketResponse.
 
     Args:
@@ -48,13 +50,17 @@ def _row_to_ticket(row: dict) -> TicketResponse:
             g3_passed=row["g3_passed"],
             g4_passed=row["g4_passed"],
         ),
-        llm_scores=LLMScores(
-            clarity=row["llm_clarity"],
-            completeness=row["llm_completeness"],
-            root_cause=row["llm_root_cause"],
-            actionability=row["llm_actionability"],
-            average=row["llm_average"],
-        ) if row["llm_average"] else None,
+        llm_scores=(
+            LLMScores(
+                clarity=row["llm_clarity"],
+                completeness=row["llm_completeness"],
+                root_cause=row["llm_root_cause"],
+                actionability=row["llm_actionability"],
+                average=row["llm_average"],
+            )
+            if row["llm_average"]
+            else None
+        ),
     )
 
 
@@ -160,13 +166,17 @@ async def evaluate_ticket(ticket_key: str) -> EvaluationResponse:
             g3_passed=row["g3_passed"],
             g4_passed=row["g4_passed"],
         ),
-        llm_scores=LLMScores(
-            clarity=row["llm_clarity"],
-            completeness=row["llm_completeness"],
-            root_cause=row["llm_root_cause"],
-            actionability=row["llm_actionability"],
-            average=row["llm_average"],
-        ) if row["llm_average"] else None,
+        llm_scores=(
+            LLMScores(
+                clarity=row["llm_clarity"],
+                completeness=row["llm_completeness"],
+                root_cause=row["llm_root_cause"],
+                actionability=row["llm_actionability"],
+                average=row["llm_average"],
+            )
+            if row["llm_average"]
+            else None
+        ),
         nudge_triggered=False,
         nudge_reason=None,
     )

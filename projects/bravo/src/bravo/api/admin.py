@@ -76,7 +76,9 @@ async def update_config(request: ConfigUpdateRequest) -> ConfigResponse:
         HTTPException: 501 if not yet implemented.
     """
     # TODO: Implement runtime config updates
-    logger.info("config_update_requested", updates=request.model_dump(exclude_none=True))
+    logger.info(
+        "config_update_requested", updates=request.model_dump(exclude_none=True)
+    )
     raise HTTPException(
         status_code=501,
         detail="Runtime config updates not yet implemented",

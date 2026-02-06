@@ -73,7 +73,7 @@ class Worker:
         """
         while self.running:
             try:
-                result = await self.container.get("poller_service").run_poll()
+                result = await self.container.get("poller_service").run_poll()  # type: ignore[attr-defined]
                 logger.info("poll_complete", **result)
             except Exception as e:
                 logger.error("poll_error", error=str(e))
@@ -85,7 +85,7 @@ class Worker:
 
         Starts the Slack Socket Mode client for receiving interactive events.
         """
-        await self.container.get("slack_service").start_socket_mode()
+        await self.container.get("slack_service").start_socket_mode()  # type: ignore[attr-defined]
 
 
 async def run_worker() -> None:

@@ -5,9 +5,10 @@ All queries use parameterized SQL to prevent injection.
 """
 
 from datetime import datetime
+from typing import Any, cast
 from uuid import UUID
 
-import asyncpg
+import asyncpg  # type: ignore[import-untyped]
 import structlog
 
 from bravo.db.pool import get_pool
@@ -56,7 +57,7 @@ async def list_tickets(
     pool = get_pool()
 
     conditions = []
-    params: list = []
+    params: list[Any] = []
     param_idx = 1
 
     if status:
@@ -244,7 +245,7 @@ async def delete_ticket(ticket_key: str) -> bool:
         "DELETE FROM watched_tickets WHERE ticket_key = $1",
         ticket_key,
     )
-    return result == "DELETE 1"
+    return cast(str, result) == "DELETE 1"
 
 
 # ============ NUDGE EVENTS ============
@@ -322,7 +323,7 @@ async def list_nudges(
     pool = get_pool()
 
     conditions = []
-    params: list = []
+    params: list[Any] = []
     param_idx = 1
 
     if ticket_key:
@@ -519,7 +520,9 @@ async def list_assignees() -> tuple[list[asyncpg.Record], int]:
         Tuple of (list of assignee records, total count).
     """
     pool = get_pool()
-    rows = await pool.fetch("SELECT * FROM watched_assignees ORDER BY jira_display_name")
+    rows = await pool.fetch(
+        "SELECT * FROM watched_assignees ORDER BY jira_display_name"
+    )
     return rows, len(rows)
 
 
@@ -580,7 +583,7 @@ async def update_assignee_preferences(
     pool = get_pool()
 
     updates = []
-    params: list = [jira_id]
+    params: list[Any] = [jira_id]
     param_idx = 2
 
     if quiet_hours_start is not None:
@@ -686,9 +689,7 @@ async def create_poll_history() -> asyncpg.Record:
         The created poll history record with generated ID.
     """
     pool = get_pool()
-    return await pool.fetchrow(
-        "INSERT INTO poll_history DEFAULT VALUES RETURNING *"
-    )
+    return await pool.fetchrow("INSERT INTO poll_history DEFAULT VALUES RETURNING *")
 
 
 async def complete_poll_history(
@@ -743,7 +744,8 @@ async def get_poll_history(limit: int = 10) -> list[asyncpg.Record]:
         List of poll history records, most recent first.
     """
     pool = get_pool()
-    return await pool.fetch(
+    rows: list[Any] = await pool.fetch(
         "SELECT * FROM poll_history ORDER BY started_at DESC LIMIT $1",
         limit,
     )
+    return rows

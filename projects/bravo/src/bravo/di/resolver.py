@@ -37,20 +37,16 @@ def topological_sort(specs: dict[str, DependencySpec]) -> list[str]:
     for name, spec in specs.items():
         for dep in spec.depends_on:
             if dep not in specs:
-                raise ValueError(
-                    f"Service {name!r} depends on unknown service {dep!r}"
-                )
+                raise ValueError(f"Service {name!r} depends on unknown service {dep!r}")
 
     # Build in-degree map.
-    in_degree: dict[str, int] = {name: 0 for name in specs}
+    in_degree: dict[str, int] = dict.fromkeys(specs, 0)
     for name, spec in specs.items():
-        for dep in spec.depends_on:
+        for _dep in spec.depends_on:
             in_degree[name] += 1
 
     # Seed queue with zero-dependency services.
-    queue: deque[str] = deque(
-        name for name, degree in in_degree.items() if degree == 0
-    )
+    queue: deque[str] = deque(name for name, degree in in_degree.items() if degree == 0)
 
     order: list[str] = []
     while queue:

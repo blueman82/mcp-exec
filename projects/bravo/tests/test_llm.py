@@ -66,7 +66,9 @@ class TestScoreTicket:
 
         score = await service.score_ticket("TEST-1", "summary", ["comment"])
 
-        assert score == LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
+        assert score == LLMScore(
+            clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0
+        )
 
     async def test_score_ticket_bad_json_returns_fallback(self):
         service = LLMService(_make_settings())
@@ -76,7 +78,9 @@ class TestScoreTicket:
 
         score = await service.score_ticket("TEST-1", "summary", ["comment"])
 
-        assert score == LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
+        assert score == LLMScore(
+            clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0
+        )
 
     async def test_score_ticket_missing_keys_returns_fallback(self):
         service = LLMService(_make_settings())
@@ -88,7 +92,9 @@ class TestScoreTicket:
 
         score = await service.score_ticket("TEST-1", "summary", ["comment"])
 
-        assert score == LLMScore(clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0)
+        assert score == LLMScore(
+            clarity=3.0, completeness=3.0, root_cause=3.0, actionability=3.0
+        )
 
 
 class TestClientLifecycle:

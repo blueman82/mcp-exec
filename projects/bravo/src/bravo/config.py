@@ -30,11 +30,28 @@ class JiraSettings(BaseSettings):
 
     mcp_url: str = "http://mcp-jira:8081"
     projects: list[str] = Field(
-        default=["CPGNCX", "AMSE", "CPGNREQ", "CPGNPROV", "CAMP", "NEO", "PLATIR", "CPGNTT"]
+        default=[
+            "CPGNCX",
+            "AMSE",
+            "CPGNREQ",
+            "CPGNPROV",
+            "CAMP",
+            "NEO",
+            "PLATIR",
+            "CPGNTT",
+        ]
     )
     org_groups: list[str] = Field(
-        default=["ORG-VALLET-ALL", "ORG-BRONSHTE-ALL", "ORG-OMEARA-ALL", "ORG-ADCAIN-ALL"]
+        default=[
+            "ORG-VALLET-ALL",
+            "ORG-BRONSHTE-ALL",
+            "ORG-OMEARA-ALL",
+            "ORG-ADCAIN-ALL",
+        ]
     )
+    max_concurrent_requests: int = 10
+    request_timeout: float = 30.0
+    max_retries: int = 3
 
 
 class SlackSettings(BaseSettings):

@@ -1,7 +1,7 @@
 """Block Kit payload builders for Bravo nudge messages."""
 
 import copy
-
+from typing import Any
 
 GATE_REASON_MAP: dict[str, str] = {
     "G1": "No assignee comment yet",
@@ -20,9 +20,7 @@ def format_trigger_reasons(failed_gates: list[str]) -> str:
     Returns:
         Human-readable string with reasons joined by " · ".
     """
-    return " · ".join(
-        GATE_REASON_MAP.get(code, code) for code in failed_gates
-    )
+    return " · ".join(GATE_REASON_MAP.get(code, code) for code in failed_gates)
 
 
 # ---------------------------------------------------------------------------
@@ -30,7 +28,7 @@ def format_trigger_reasons(failed_gates: list[str]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _header_block(ticket_key: str) -> dict:
+def _header_block(ticket_key: str) -> dict[str, Any]:
     """Header block with ticket key."""
     return {
         "type": "header",
@@ -48,7 +46,7 @@ def _ticket_info_section(
     ticket_url: str,
     jira_status: str,
     summary: str,
-) -> dict:
+) -> dict[str, Any]:
     """Ticket info section with link and status."""
     return {
         "type": "section",
@@ -60,12 +58,12 @@ def _ticket_info_section(
     }
 
 
-def _divider_block() -> dict:
+def _divider_block() -> dict[str, Any]:
     """Divider block."""
     return {"type": "divider"}
 
 
-def _llm_summary_section(llm_summary: str) -> dict:
+def _llm_summary_section(llm_summary: str) -> dict[str, Any]:
     """Section for LLM-generated summary."""
     return {
         "type": "section",
@@ -73,7 +71,7 @@ def _llm_summary_section(llm_summary: str) -> dict:
     }
 
 
-def _recent_activity_section(recent_activity: str) -> dict:
+def _recent_activity_section(recent_activity: str) -> dict[str, Any]:
     """Section for recent activity."""
     return {
         "type": "section",
@@ -81,7 +79,7 @@ def _recent_activity_section(recent_activity: str) -> dict:
     }
 
 
-def _trigger_context(trigger_reason: str) -> dict:
+def _trigger_context(trigger_reason: str) -> dict[str, Any]:
     """Context block showing why the nudge was triggered."""
     return {
         "type": "context",
@@ -91,7 +89,7 @@ def _trigger_context(trigger_reason: str) -> dict:
     }
 
 
-def _actions_block(ticket_key: str) -> dict:
+def _actions_block(ticket_key: str) -> dict[str, Any]:
     """Action buttons block."""
     return {
         "type": "actions",
@@ -142,9 +140,11 @@ def _actions_block(ticket_key: str) -> dict:
     }
 
 
-def _replace_actions(original_blocks: list[dict], *replacements: dict) -> list[dict]:
+def _replace_actions(
+    original_blocks: list[dict[str, Any]], *replacements: dict[str, Any]
+) -> list[dict[str, Any]]:
     """Replace actions block(s) with one or more replacement blocks."""
-    new_blocks: list[dict] = []
+    new_blocks: list[dict[str, Any]] = []
     for block in copy.deepcopy(original_blocks):
         if block.get("type") == "actions":
             new_blocks.extend(replacements)
@@ -167,7 +167,7 @@ def build_nudge_blocks(
     llm_summary: str | None = None,
     recent_activity: str | None = None,
     trigger_reason: str,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Build the full Block Kit payload for a nudge message.
 
     Args:
@@ -182,7 +182,7 @@ def build_nudge_blocks(
     Returns:
         List of Slack Block Kit block dicts.
     """
-    blocks: list[dict] = [
+    blocks: list[dict[str, Any]] = [
         _header_block(ticket_key),
         _ticket_info_section(
             ticket_key=ticket_key,
@@ -227,10 +227,10 @@ def build_nudge_fallback_text(
 
 def build_snoozed_blocks(
     *,
-    original_blocks: list[dict],
+    original_blocks: list[dict[str, Any]],
     snoozed_until_text: str,
     ticket_key: str,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Replace the actions block with a snooze notice and unsnooze button.
 
     Args:
@@ -241,13 +241,16 @@ def build_snoozed_blocks(
     Returns:
         New list of blocks with the actions block replaced.
     """
-    snooze_context: dict = {
+    snooze_context: dict[str, Any] = {
         "type": "context",
         "elements": [
-            {"type": "mrkdwn", "text": f"\u23f8\ufe0f Snoozed until {snoozed_until_text}"},
+            {
+                "type": "mrkdwn",
+                "text": f"\u23f8\ufe0f Snoozed until {snoozed_until_text}",
+            },
         ],
     }
-    unsnooze_actions: dict = {
+    unsnooze_actions: dict[str, Any] = {
         "type": "actions",
         "block_id": f"nudge_actions_{ticket_key}",
         "elements": [
@@ -266,7 +269,9 @@ def build_snoozed_blocks(
     return _replace_actions(original_blocks, snooze_context, unsnooze_actions)
 
 
-def build_acknowledged_blocks(*, original_blocks: list[dict]) -> list[dict]:
+def build_acknowledged_blocks(
+    *, original_blocks: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """Replace the actions block with an acknowledgement notice.
 
     Args:
@@ -275,16 +280,21 @@ def build_acknowledged_blocks(*, original_blocks: list[dict]) -> list[dict]:
     Returns:
         New list of blocks with the actions block replaced.
     """
-    ack_context: dict = {
+    ack_context: dict[str, Any] = {
         "type": "context",
         "elements": [
-            {"type": "mrkdwn", "text": "\U0001f44d Got it \u2014 will check back in 4 hours"},
+            {
+                "type": "mrkdwn",
+                "text": "\U0001f44d Got it \u2014 will check back in 4 hours",
+            },
         ],
     }
     return _replace_actions(original_blocks, ack_context)
 
 
-def build_yes_updates_blocks(*, original_blocks: list[dict]) -> list[dict]:
+def build_yes_updates_blocks(
+    *, original_blocks: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     """Replace the actions block with a prompt to reply in thread.
 
     Args:
@@ -293,7 +303,7 @@ def build_yes_updates_blocks(*, original_blocks: list[dict]) -> list[dict]:
     Returns:
         New list of blocks with the actions block replaced.
     """
-    reply_context: dict = {
+    reply_context: dict[str, Any] = {
         "type": "context",
         "elements": [
             {"type": "mrkdwn", "text": "\u2705 Reply in this thread with your update"},
@@ -304,9 +314,9 @@ def build_yes_updates_blocks(*, original_blocks: list[dict]) -> list[dict]:
 
 def build_unsnoozed_blocks(
     *,
-    original_blocks: list[dict],
+    original_blocks: list[dict[str, Any]],
     ticket_key: str,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Replace snoozed context and unsnooze actions with the original actions block.
 
     Args:
@@ -318,7 +328,7 @@ def build_unsnoozed_blocks(
     """
     restored_actions = _actions_block(ticket_key)
 
-    new_blocks: list[dict] = []
+    new_blocks: list[dict[str, Any]] = []
     skip_next_actions = False
     for block in copy.deepcopy(original_blocks):
         # The snoozed state has a context block (snooze notice) immediately

@@ -4,7 +4,7 @@ This module provides functions for managing the asyncpg database connection pool
 used throughout the Bravo application.
 """
 
-import asyncpg
+import asyncpg  # type: ignore[import-untyped]
 import structlog
 
 from bravo.config import DatabaseSettings

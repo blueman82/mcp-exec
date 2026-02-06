@@ -3,6 +3,7 @@
 This module provides endpoints for listing, viewing, and sending nudges.
 """
 
+from typing import Any
 from uuid import UUID
 
 import structlog
@@ -20,7 +21,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter()
 
 
-def _row_to_nudge(row: dict) -> NudgeResponse:
+def _row_to_nudge(row: dict[str, Any]) -> NudgeResponse:
     """Convert database row to NudgeResponse.
 
     Args:

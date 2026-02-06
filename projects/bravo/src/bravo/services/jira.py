@@ -5,17 +5,30 @@ over HTTP. All Jira operations go through the iPaaS gateway — no direct
 Jira REST calls.
 """
 
+import asyncio
+import json
 from dataclasses import dataclass
 from datetime import datetime
-
-import json
+from typing import Any, cast
 
 import httpx
 import structlog
 
 from bravo.config import JiraSettings
+from bravo.services.resilience import retry_with_backoff
 
 logger = structlog.get_logger(__name__)
+
+
+class JiraMCPError(Exception):
+    """Non-retryable MCP tool error (logic errors, not transport)."""
+
+    def __init__(
+        self, message: str, tool_name: str, status_code: int | None = None
+    ) -> None:
+        super().__init__(message)
+        self.tool_name = tool_name
+        self.status_code = status_code
 
 
 @dataclass
@@ -57,6 +70,7 @@ class JiraMCPClient:
         self.settings = settings
         self._client: httpx.AsyncClient | None = None
         self._request_id = 0
+        self._semaphore = asyncio.Semaphore(settings.max_concurrent_requests)
 
     def _next_id(self) -> int:
         self._request_id += 1
@@ -66,43 +80,61 @@ class JiraMCPClient:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
                 base_url=self.settings.mcp_url,
-                timeout=httpx.Timeout(30.0),
+                timeout=httpx.Timeout(self.settings.request_timeout),
             )
         return self._client
 
-    async def _call_tool(self, tool_name: str, arguments: dict) -> dict:
+    async def _call_tool(
+        self, tool_name: str, arguments: dict[str, Any]
+    ) -> dict[str, Any]:
         """Call an MCP tool via JSON-RPC 2.0 POST to /message."""
         client = await self._get_client()
-
         payload = {
             "jsonrpc": "2.0",
             "id": self._next_id(),
             "method": "tools/call",
             "params": {"name": tool_name, "arguments": arguments},
         }
-
         logger.debug("mcp_call", tool=tool_name, arguments=arguments)
-        resp = await client.post("/message", json=payload)
-        resp.raise_for_status()
+
+        async def _do_request() -> httpx.Response:
+            async with self._semaphore:
+                return await client.post("/message", json=payload)
+
+        resp = await retry_with_backoff(
+            _do_request,
+            max_retries=self.settings.max_retries,
+            operation=f"mcp:{tool_name}",
+        )
 
         result = resp.json()
 
         if "error" in result:
             error = result["error"]
-            msg = error.get("message", "Unknown MCP error") if isinstance(error, dict) else str(error)
+            msg = (
+                error.get("message", "Unknown MCP error")
+                if isinstance(error, dict)
+                else str(error)
+            )
             logger.error("mcp_tool_error", tool=tool_name, error=msg)
-            raise RuntimeError(f"MCP tool {tool_name} failed: {msg}")
+            raise JiraMCPError(
+                f"MCP tool {tool_name} failed: {msg}", tool_name=tool_name
+            )
 
         content = result.get("result", {}).get("content", [])
         if content:
             text = content[0].get("text", "{}")
             try:
-                return json.loads(text)
+                parsed_result: dict[str, Any] = json.loads(text)
+                return parsed_result
             except json.JSONDecodeError as exc:
                 logger.error("mcp_response_parse_error", tool=tool_name, error=str(exc))
-                raise RuntimeError(f"Invalid MCP response from {tool_name}") from exc
+                raise JiraMCPError(
+                    f"Invalid MCP response from {tool_name}",
+                    tool_name=tool_name,
+                ) from exc
 
-        return result
+        return cast(dict[str, Any], result)
 
     async def close(self) -> None:
         """Close the HTTP client."""
@@ -128,13 +160,16 @@ class JiraMCPClient:
         """
         logger.debug("jira_search", jql=jql, start_at=start_at)
 
-        data = await self._call_tool("search_jira_issues", {
-            "jql": jql,
-            "startAt": start_at,
-            "maxResults": max_results,
-            "fields": ["summary", "assignee", "status", "updated", "comment"],
-            "minimizeOutput": True,
-        })
+        data = await self._call_tool(
+            "search_jira_issues",
+            {
+                "jql": jql,
+                "startAt": start_at,
+                "maxResults": max_results,
+                "fields": ["summary", "assignee", "status", "updated", "comment"],
+                "minimizeOutput": True,
+            },
+        )
 
         tickets: list[JiraTicket] = []
         for issue in data.get("data", {}).get("issues", []):
@@ -149,6 +184,8 @@ class JiraMCPClient:
                 )
 
             # With minimizeOutput, assignee may be a string (displayName)
+            assignee_id: str | None
+            assignee_name: str | None
             if isinstance(assignee, str):
                 assignee_id = None
                 assignee_name = assignee
@@ -160,24 +197,30 @@ class JiraMCPClient:
                 assignee_name = None
 
             status = fields.get("status", {})
-            status_name = status.get("name", "") if isinstance(status, dict) else str(status)
+            status_name = (
+                status.get("name", "") if isinstance(status, dict) else str(status)
+            )
 
             updated_raw = fields.get("updated", "")
-            updated = datetime.fromisoformat(
-                updated_raw.replace("Z", "+00:00")
-            ) if updated_raw else datetime.now()
+            updated = (
+                datetime.fromisoformat(updated_raw.replace("Z", "+00:00"))
+                if updated_raw
+                else datetime.now()
+            )
 
-            tickets.append(JiraTicket(
-                key=issue["key"],
-                id=issue.get("id", ""),
-                project=issue["key"].split("-")[0],
-                summary=fields.get("summary", ""),
-                assignee_id=assignee_id,
-                assignee_name=assignee_name,
-                status=status_name,
-                updated=updated,
-                last_comment_at=last_comment_at,
-            ))
+            tickets.append(
+                JiraTicket(
+                    key=issue["key"],
+                    id=issue.get("id", ""),
+                    project=issue["key"].split("-")[0],
+                    summary=fields.get("summary", ""),
+                    assignee_id=assignee_id,
+                    assignee_name=assignee_name,
+                    status=status_name,
+                    updated=updated,
+                    last_comment_at=last_comment_at,
+                )
+            )
 
         logger.info("jira_search_complete", count=len(tickets))
         return tickets
@@ -191,10 +234,13 @@ class JiraMCPClient:
         """
         logger.info("adding_jira_comment", ticket_key=ticket_key)
 
-        await self._call_tool("add_jira_comment", {
-            "issueIdOrKey": ticket_key,
-            "comment": {"body": body},
-        })
+        await self._call_tool(
+            "add_jira_comment",
+            {
+                "issueIdOrKey": ticket_key,
+                "comment": {"body": body},
+            },
+        )
 
         logger.info("jira_comment_added", ticket_key=ticket_key)
 
@@ -202,7 +248,7 @@ class JiraMCPClient:
         self,
         ticket_key: str,
         transition_id: str,
-        resolution: dict | None = None,
+        resolution: dict[str, Any] | None = None,
     ) -> None:
         """Transition a ticket's status via MCP.
 
@@ -211,9 +257,11 @@ class JiraMCPClient:
             transition_id: The transition ID (from get_transitions).
             resolution: Optional resolution dict, e.g. {"name": "Done"}.
         """
-        logger.info("transitioning_ticket", ticket_key=ticket_key, transition_id=transition_id)
+        logger.info(
+            "transitioning_ticket", ticket_key=ticket_key, transition_id=transition_id
+        )
 
-        args: dict = {
+        args: dict[str, Any] = {
             "issueIdOrKey": ticket_key,
             "transitionId": transition_id,
         }
@@ -223,7 +271,7 @@ class JiraMCPClient:
         await self._call_tool("transition_jira_status", args)
         logger.info("ticket_transitioned", ticket_key=ticket_key)
 
-    async def get_transitions(self, ticket_key: str) -> list[dict]:
+    async def get_transitions(self, ticket_key: str) -> list[dict[str, Any]]:
         """Get available transitions for a ticket.
 
         Args:
@@ -232,12 +280,16 @@ class JiraMCPClient:
         Returns:
             List of transition dicts with id, name, and to fields.
         """
-        data = await self._call_tool("get_jira_transitions", {
-            "issueIdOrKey": ticket_key,
-        })
-        return data.get("data", {}).get("transitions", [])
+        data = await self._call_tool(
+            "get_jira_transitions",
+            {
+                "issueIdOrKey": ticket_key,
+            },
+        )
+        transitions: list[dict[str, Any]] = data.get("data", {}).get("transitions", [])
+        return transitions
 
-    async def create_issue(self, fields: dict) -> dict:
+    async def create_issue(self, fields: dict[str, Any]) -> dict[str, Any]:
         """Create a new Jira issue via MCP.
 
         Args:
@@ -250,7 +302,7 @@ class JiraMCPClient:
 
         return await self._call_tool("create_jira_issue", {"fields": fields})
 
-    async def update_issue(self, ticket_key: str, fields: dict) -> None:
+    async def update_issue(self, ticket_key: str, fields: dict[str, Any]) -> None:
         """Update an existing Jira issue via MCP.
 
         Args:
@@ -259,17 +311,20 @@ class JiraMCPClient:
         """
         logger.info("updating_jira_issue", ticket_key=ticket_key)
 
-        await self._call_tool("update_jira_issue", {
-            "issueIdOrKey": ticket_key,
-            "fields": fields,
-        })
+        await self._call_tool(
+            "update_jira_issue",
+            {
+                "issueIdOrKey": ticket_key,
+                "fields": fields,
+            },
+        )
 
     async def download_attachment(
         self,
         ticket_key: str,
         attachment_id: str,
         destination_path: str,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Download an attachment from a Jira issue via MCP.
 
         Args:
@@ -286,8 +341,11 @@ class JiraMCPClient:
             attachment_id=attachment_id,
         )
 
-        return await self._call_tool("download_attachment", {
-            "issueIdOrKey": ticket_key,
-            "attachmentId": attachment_id,
-            "destinationPath": destination_path,
-        })
+        return await self._call_tool(
+            "download_attachment",
+            {
+                "issueIdOrKey": ticket_key,
+                "attachmentId": attachment_id,
+                "destinationPath": destination_path,
+            },
+        )
