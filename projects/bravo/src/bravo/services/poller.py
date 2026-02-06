@@ -1,0 +1,155 @@
+"""Jira polling service.
+
+This module provides the polling service that periodically fetches
+tickets from Jira based on configured projects and org groups.
+"""
+
+from datetime import datetime, timedelta, timezone
+
+import structlog
+
+from bravo.config import Settings
+from bravo.db import queries
+from bravo.services.jira import JiraClient
+
+logger = structlog.get_logger(__name__)
+
+
+class PollerService:
+    """Service for polling Jira tickets.
+
+    Periodically queries Jira for tickets matching configured criteria
+    and upserts them into the local database for tracking.
+
+    Attributes:
+        settings: Application configuration.
+        jira: Jira API client.
+    """
+
+    def __init__(self, settings: Settings, jira_client: JiraClient) -> None:
+        """Initialize the poller service.
+
+        Args:
+            settings: Application configuration.
+            jira_client: Jira API client instance.
+        """
+        self.settings = settings
+        self.jira = jira_client
+
+    def _build_jql(self, since: datetime | None = None) -> str:
+        """Build JQL query for polling.
+
+        Args:
+            since: Only fetch tickets updated since this time.
+
+        Returns:
+            The JQL query string.
+        """
+        projects = ", ".join(self.settings.jira.projects)
+        groups = " OR ".join(
+            f'assignee in membersOf("{g}")'
+            for g in self.settings.jira.org_groups
+        )
+
+        jql = f"project IN ({projects}) AND ({groups}) AND status != Closed"
+
+        if since:
+            since_str = since.strftime("%Y-%m-%d %H:%M")
+            jql += f' AND updated >= "{since_str}"'
+
+        jql += " ORDER BY updated DESC"
+        return jql
+
+    async def run_poll(self) -> dict:
+        """Execute a poll cycle.
+
+        Fetches tickets from Jira, upserts them to the database,
+        and records the poll in history.
+
+        Returns:
+            Dict with poll_id, tickets_fetched, tickets_new, tickets_updated.
+
+        Raises:
+            Exception: If the poll fails, after recording the failure.
+        """
+        poll_record = await queries.create_poll_history()
+        poll_id = poll_record["id"]
+
+        logger.info("poll_cycle_started", poll_id=str(poll_id))
+
+        state = await queries.get_poll_state()
+        last_cursor = state["last_cursor"] if state else None
+
+        jql = self._build_jql(since=last_cursor)
+        tickets_new = 0
+        tickets_updated = 0
+        tickets_fetched = 0
+
+        try:
+            tickets = await self.jira.search_tickets(jql)
+            tickets_fetched = len(tickets)
+
+            for ticket in tickets:
+                existing = await queries.get_ticket(ticket.key)
+
+                await queries.upsert_ticket(
+                    ticket_key=ticket.key,
+                    jira_id=ticket.id,
+                    project=ticket.project,
+                    summary=ticket.summary,
+                    assignee_jira_id=ticket.assignee_id,
+                    assignee_name=ticket.assignee_name,
+                    jira_status=ticket.status,
+                )
+
+                if existing:
+                    tickets_updated += 1
+                else:
+                    tickets_new += 1
+
+            next_poll = datetime.now(timezone.utc) + timedelta(
+                minutes=self.settings.poll_interval_minutes
+            )
+
+            await queries.update_poll_state(
+                last_cursor=datetime.now(timezone.utc),
+                tickets_fetched=tickets_fetched,
+                next_poll_at=next_poll,
+            )
+
+            await queries.complete_poll_history(
+                poll_id=poll_id,
+                tickets_fetched=tickets_fetched,
+                tickets_new=tickets_new,
+                tickets_updated=tickets_updated,
+                nudges_triggered=0,
+                status="completed",
+            )
+
+            logger.info(
+                "poll_cycle_complete",
+                poll_id=str(poll_id),
+                fetched=tickets_fetched,
+                new=tickets_new,
+                updated=tickets_updated,
+            )
+
+        except Exception as e:
+            logger.error("poll_cycle_failed", poll_id=str(poll_id), error=str(e))
+            await queries.complete_poll_history(
+                poll_id=poll_id,
+                tickets_fetched=tickets_fetched,
+                tickets_new=tickets_new,
+                tickets_updated=tickets_updated,
+                nudges_triggered=0,
+                status="failed",
+                error_message=str(e),
+            )
+            raise
+
+        return {
+            "poll_id": poll_id,
+            "tickets_fetched": tickets_fetched,
+            "tickets_new": tickets_new,
+            "tickets_updated": tickets_updated,
+        }

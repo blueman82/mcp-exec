@@ -1,0 +1,72 @@
+# Bravo local development docker-compose
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bravo-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=bravo
+      - POSTGRES_USER=bravo
+      - POSTGRES_PASSWORD=bravo
+    volumes:
+      - bravo-pgdata:/var/lib/postgresql/data
+      - ../src/bravo/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bravo -d bravo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  bravo-api:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.app
+    image: bravo-api:local-dev
+    command: ["bravo-api"]
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=bravo
+      - DB_USER=bravo
+      - DB_PASSWORD=bravo
+      - PYTHONPATH=/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  bravo-worker:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.app
+    image: bravo-worker:local-dev
+    command: ["bravo-worker"]
+    env_file:
+      - ../.env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=bravo
+      - DB_USER=bravo
+      - DB_PASSWORD=bravo
+      - PYTHONPATH=/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  bravo-pgdata:

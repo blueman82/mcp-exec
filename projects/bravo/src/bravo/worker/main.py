@@ -1,0 +1,143 @@
+"""Worker entry point for background tasks.
+
+This module provides the background worker that runs the polling loop
+and Socket Mode event handling independently of the API server.
+"""
+
+import asyncio
+import signal
+
+import structlog
+
+from bravo import __version__
+from bravo.config import get_settings
+from bravo.db import close_pool, init_pool
+from bravo.services.gates import GateService
+from bravo.services.jira import JiraClient
+from bravo.services.llm import LLMService
+from bravo.services.nudge import NudgeService
+from bravo.services.poller import PollerService
+from bravo.services.slack import SlackService
+
+logger = structlog.get_logger(__name__)
+
+
+class Worker:
+    """Background worker for polling and processing.
+
+    Runs concurrent tasks for Jira polling and Slack Socket Mode
+    event handling.
+
+    Attributes:
+        settings: Application configuration.
+        running: Whether the worker is currently running.
+        jira: Jira API client.
+        slack: Slack service.
+        gates: Gate evaluation service.
+        llm: LLM scoring service.
+        nudge: Nudge orchestration service.
+        poller: Polling service.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the worker with all required services."""
+        self.settings = get_settings()
+        self.running = False
+
+        self.jira = JiraClient(self.settings.jira)
+        self.slack = SlackService(self.settings.slack)
+        self.gates = GateService(self.settings.gates)
+        self.llm = LLMService(self.settings.llm)
+        self.nudge = NudgeService(
+            settings=self.settings,
+            jira=self.jira,
+            slack=self.slack,
+            gates=self.gates,
+            llm=self.llm,
+        )
+        self.poller = PollerService(
+            settings=self.settings,
+            jira_client=self.jira,
+        )
+
+    async def start(self) -> None:
+        """Start the worker.
+
+        Initializes the database pool and starts concurrent tasks for
+        polling and Socket Mode event handling.
+        """
+        logger.info("worker_starting", version=__version__)
+
+        await init_pool(self.settings.database)
+
+        self.running = True
+
+        poll_task = asyncio.create_task(self._poll_loop())
+        socket_task = asyncio.create_task(self._socket_mode_loop())
+
+        await asyncio.gather(poll_task, socket_task)
+
+    async def stop(self) -> None:
+        """Stop the worker gracefully.
+
+        Closes all service connections and the database pool.
+        """
+        logger.info("worker_stopping")
+        self.running = False
+
+        await self.jira.close()
+        await self.slack.close()
+        await close_pool()
+
+        logger.info("worker_stopped")
+
+    async def _poll_loop(self) -> None:
+        """Main polling loop.
+
+        Continuously polls Jira at the configured interval until stopped.
+        """
+        while self.running:
+            try:
+                result = await self.poller.run_poll()
+                logger.info("poll_complete", **result)
+            except Exception as e:
+                logger.error("poll_error", error=str(e))
+
+            await asyncio.sleep(self.settings.poll_interval_minutes * 60)
+
+    async def _socket_mode_loop(self) -> None:
+        """Socket Mode event handling loop.
+
+        Starts the Slack Socket Mode client for receiving interactive events.
+        """
+        await self.slack.start_socket_mode()
+
+
+async def run_worker() -> None:
+    """Run the worker with signal handling.
+
+    Sets up SIGTERM and SIGINT handlers for graceful shutdown.
+    """
+    worker = Worker()
+
+    loop = asyncio.get_event_loop()
+
+    def handle_signal() -> None:
+        asyncio.create_task(worker.stop())
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, handle_signal)
+
+    await worker.start()
+
+
+def main() -> None:
+    """Worker entry point.
+
+    Runs the async worker using asyncio.run().
+    """
+    asyncio.run(run_worker())
+
+
+if __name__ == "__main__":
+    main()
