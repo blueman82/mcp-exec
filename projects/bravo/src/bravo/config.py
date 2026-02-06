@@ -24,13 +24,11 @@ class DatabaseSettings(BaseSettings):
 
 
 class JiraSettings(BaseSettings):
-    """Jira API settings."""
+    """Jira MCP client settings."""
 
     model_config = SettingsConfigDict(env_prefix="JIRA_")
 
-    base_url: str = "https://jira.corp.adobe.com"
-    api_token: str = ""
-    username: str = ""
+    mcp_url: str = "http://mcp-jira:8081"
     projects: list[str] = Field(
         default=["CPGNCX", "AMSE", "CPGNREQ", "CPGNPROV", "CAMP", "NEO", "PLATIR", "CPGNTT"]
     )

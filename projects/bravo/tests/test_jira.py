@@ -1,0 +1,299 @@
+"""Tests for the Jira MCP client service."""
+
+import json
+from unittest.mock import AsyncMock, MagicMock
+
+import httpx
+import pytest
+
+from bravo.config import JiraSettings
+from bravo.services.jira import JiraMCPClient, JiraTicket
+
+
+def _make_settings(**overrides) -> JiraSettings:
+    """Create JiraSettings with test defaults."""
+    defaults = {"mcp_url": "http://localhost:8081"}
+    return JiraSettings(**(defaults | overrides))
+
+
+def _mock_response(data: dict) -> MagicMock:
+    """Create a MagicMock httpx response (sync .json() and .raise_for_status())."""
+    resp = MagicMock()
+    resp.json.return_value = data
+    resp.raise_for_status.return_value = None
+    return resp
+
+
+def _jsonrpc_ok(data: dict) -> dict:
+    """Wrap data as a successful JSON-RPC 2.0 response."""
+    return {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {"content": [{"type": "text", "text": json.dumps(data)}]},
+    }
+
+
+def _jsonrpc_error(message: str, code: int = -32000) -> dict:
+    """Wrap an error as a JSON-RPC 2.0 response."""
+    return {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "error": {"code": code, "message": message},
+    }
+
+
+def _make_client_with_mock(response_data: dict) -> tuple[JiraMCPClient, AsyncMock]:
+    """Create a JiraMCPClient with a mocked httpx client returning response_data."""
+    client = JiraMCPClient(_make_settings())
+    mock_http = AsyncMock(spec=httpx.AsyncClient)
+    mock_http.is_closed = False
+    mock_http.post.return_value = _mock_response(response_data)
+    client._client = mock_http
+    return client, mock_http
+
+
+class TestSearchTickets:
+    """Tests for JiraMCPClient.search_tickets()."""
+
+    async def test_search_returns_tickets(self):
+        client, _ = _make_client_with_mock(_jsonrpc_ok({
+            "data": {
+                "issues": [
+                    {
+                        "key": "CPGNCX-100",
+                        "id": "12345",
+                        "fields": {
+                            "summary": "Test ticket",
+                            "assignee": {"name": "jdoe", "displayName": "Jane Doe"},
+                            "status": {"name": "Open"},
+                            "updated": "2026-01-15T10:00:00+00:00",
+                            "comment": {
+                                "comments": [
+                                    {"updated": "2026-01-15T12:00:00+00:00"}
+                                ]
+                            },
+                        },
+                    }
+                ]
+            }
+        }))
+
+        tickets = await client.search_tickets("project = CPGNCX")
+
+        assert len(tickets) == 1
+        assert tickets[0].key == "CPGNCX-100"
+        assert tickets[0].project == "CPGNCX"
+        assert tickets[0].assignee_id == "jdoe"
+        assert tickets[0].assignee_name == "Jane Doe"
+        assert tickets[0].status == "Open"
+        assert tickets[0].last_comment_at is not None
+
+    async def test_search_empty_results(self):
+        client, _ = _make_client_with_mock(_jsonrpc_ok({"data": {"issues": []}}))
+        tickets = await client.search_tickets("project = NONE")
+        assert tickets == []
+
+    async def test_search_string_assignee(self):
+        """When minimizeOutput is true, assignee may be a plain string."""
+        client, _ = _make_client_with_mock(_jsonrpc_ok({
+            "data": {
+                "issues": [
+                    {
+                        "key": "TEST-1",
+                        "id": "1",
+                        "fields": {
+                            "summary": "Ticket",
+                            "assignee": "Jane Doe",
+                            "status": {"name": "Open"},
+                            "updated": "2026-01-15T10:00:00Z",
+                        },
+                    }
+                ]
+            }
+        }))
+
+        tickets = await client.search_tickets("key = TEST-1")
+        assert tickets[0].assignee_id is None
+        assert tickets[0].assignee_name == "Jane Doe"
+
+    async def test_search_null_assignee(self):
+        client, _ = _make_client_with_mock(_jsonrpc_ok({
+            "data": {
+                "issues": [
+                    {
+                        "key": "TEST-2",
+                        "id": "2",
+                        "fields": {
+                            "summary": "Unassigned",
+                            "assignee": None,
+                            "status": "Open",
+                            "updated": "2026-01-15T10:00:00Z",
+                        },
+                    }
+                ]
+            }
+        }))
+
+        tickets = await client.search_tickets("key = TEST-2")
+        assert tickets[0].assignee_id is None
+        assert tickets[0].assignee_name is None
+        assert tickets[0].status == "Open"
+
+
+class TestJsonRpcFormatting:
+    """Tests for JSON-RPC 2.0 request formatting."""
+
+    async def test_call_tool_sends_correct_payload(self):
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client._call_tool("test_tool", {"arg1": "value1"})
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["jsonrpc"] == "2.0"
+        assert payload["method"] == "tools/call"
+        assert payload["params"]["name"] == "test_tool"
+        assert payload["params"]["arguments"] == {"arg1": "value1"}
+        assert isinstance(payload["id"], int)
+
+    async def test_request_id_increments(self):
+        client = JiraMCPClient(_make_settings())
+        assert client._next_id() == 1
+        assert client._next_id() == 2
+        assert client._next_id() == 3
+
+
+class TestErrorHandling:
+    """Tests for MCP error responses."""
+
+    async def test_mcp_error_raises_runtime_error(self):
+        client, _ = _make_client_with_mock(_jsonrpc_error("Permission denied"))
+
+        with pytest.raises(RuntimeError, match="Permission denied"):
+            await client._call_tool("forbidden_tool", {})
+
+    async def test_invalid_json_in_content_raises(self):
+        client, _ = _make_client_with_mock({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {"content": [{"type": "text", "text": "not valid json!"}]},
+        })
+
+        with pytest.raises(RuntimeError, match="Invalid MCP response"):
+            await client._call_tool("bad_tool", {})
+
+
+class TestAddComment:
+    """Tests for JiraMCPClient.add_comment()."""
+
+    async def test_add_comment_sends_nested_body(self):
+        """Comment body must be nested: {"comment": {"body": "..."}}."""
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client.add_comment("TEST-1", "Hello world")
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        args = payload["params"]["arguments"]
+        assert args["issueIdOrKey"] == "TEST-1"
+        assert args["comment"] == {"body": "Hello world"}
+
+
+class TestTransitions:
+    """Tests for transition and get_transitions methods."""
+
+    async def test_transition_status_with_resolution(self):
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client.transition_status("TEST-1", "991", resolution={"name": "Fixed"})
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        args = payload["params"]["arguments"]
+        assert args["issueIdOrKey"] == "TEST-1"
+        assert args["transitionId"] == "991"
+        assert args["resolution"] == {"name": "Fixed"}
+
+    async def test_transition_status_without_resolution(self):
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client.transition_status("TEST-1", "2")
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        args = payload["params"]["arguments"]
+        assert "resolution" not in args
+
+    async def test_get_transitions_returns_list(self):
+        transitions = [
+            {"id": "2", "name": "Close Issue", "to": {"name": "Closed"}},
+            {"id": "991", "name": "Resolved", "to": {"name": "Resolved"}},
+        ]
+        client, _ = _make_client_with_mock(_jsonrpc_ok({"data": {"transitions": transitions}}))
+
+        result = await client.get_transitions("TEST-1")
+        assert len(result) == 2
+        assert result[0]["id"] == "2"
+        assert result[1]["name"] == "Resolved"
+
+
+class TestCreateUpdateIssue:
+    """Tests for create_issue and update_issue."""
+
+    async def test_create_issue_passes_fields(self):
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok({"key": "TEST-99", "id": "99999"})
+        )
+
+        fields = {
+            "project": {"key": "TEST"},
+            "issuetype": {"name": "Task"},
+            "summary": "New ticket",
+        }
+        result = await client.create_issue(fields)
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["params"]["arguments"]["fields"] == fields
+        assert result["key"] == "TEST-99"
+
+    async def test_update_issue_passes_fields(self):
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client.update_issue("TEST-1", {"summary": "Updated"})
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        args = payload["params"]["arguments"]
+        assert args["issueIdOrKey"] == "TEST-1"
+        assert args["fields"] == {"summary": "Updated"}
+
+
+class TestClientLifecycle:
+    """Tests for httpx client lazy init and close."""
+
+    async def test_get_client_creates_on_first_call(self):
+        client = JiraMCPClient(_make_settings())
+        assert client._client is None
+
+        http = await client._get_client()
+        assert http is not None
+        assert isinstance(http, httpx.AsyncClient)
+        await client.close()
+
+    async def test_get_client_reuses_existing(self):
+        client = JiraMCPClient(_make_settings())
+        http1 = await client._get_client()
+        http2 = await client._get_client()
+        assert http1 is http2
+        await client.close()
+
+    async def test_close_sets_client_none(self):
+        client = JiraMCPClient(_make_settings())
+        mock_http = AsyncMock(spec=httpx.AsyncClient)
+        mock_http.is_closed = False
+        client._client = mock_http
+
+        await client.close()
+
+        mock_http.aclose.assert_awaited_once()
+        assert client._client is None
+
+    async def test_close_noop_when_no_client(self):
+        client = JiraMCPClient(_make_settings())
+        await client.close()  # Should not raise
+        assert client._client is None

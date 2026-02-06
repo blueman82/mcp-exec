@@ -48,6 +48,26 @@ class JiraClientProto(Protocol):
 
     async def add_comment(self, ticket_key: str, body: str) -> None: ...
 
+    async def transition_status(
+        self,
+        ticket_key: str,
+        transition_id: str,
+        resolution: dict | None = None,
+    ) -> None: ...
+
+    async def get_transitions(self, ticket_key: str) -> list[dict]: ...
+
+    async def create_issue(self, fields: dict) -> dict: ...
+
+    async def update_issue(self, ticket_key: str, fields: dict) -> None: ...
+
+    async def download_attachment(
+        self,
+        ticket_key: str,
+        attachment_id: str,
+        destination_path: str,
+    ) -> dict: ...
+
     async def close(self) -> None: ...
 
 

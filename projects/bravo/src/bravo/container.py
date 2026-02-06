@@ -7,7 +7,7 @@ establishing their dependency relationships.
 from bravo.config import Settings
 from bravo.di import DependencySpec, ServiceRegistry
 from bravo.services.gates import GateService
-from bravo.services.jira import JiraClient
+from bravo.services.jira import JiraMCPClient
 from bravo.services.llm import LLMService
 from bravo.services.nudge import NudgeService
 from bravo.services.poller import PollerService
@@ -44,7 +44,7 @@ def create_container(settings: Settings) -> ServiceRegistry:
     ))
     registry.register(DependencySpec(
         name="jira_client",
-        factory=lambda: _async(JiraClient(settings.jira)),
+        factory=lambda: _async(JiraMCPClient(settings.jira)),
     ))
     registry.register(DependencySpec(
         name="slack_service",

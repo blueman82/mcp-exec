@@ -17,7 +17,7 @@ src/bravo/
   services/
     gates.py           # G1-G4 heuristic evaluation (GateEvaluation dataclass)
     llm.py             # LLM ticket scoring (LLMScore dataclass)
-    jira.py            # Async Jira REST client (aiohttp)
+    jira.py            # Async Jira MCP client (httpx JSON-RPC 2.0)
     slack.py           # Socket Mode + Web API (slack-sdk)
     nudge.py           # Orchestrates gates -> LLM -> Slack DM
     poller.py          # Periodic Jira polling via JQL
@@ -69,6 +69,8 @@ uv run python -m pytest tests/ -v     # All tests
 
 - `tests/test_blocks.py` — 21 tests for Block Kit message builders
 - `tests/test_di.py` — 12 tests for DI framework (resolver, registry, container)
+- `tests/test_llm.py` — 8 tests for LLM scoring service
+- `tests/test_jira.py` — 18 tests for Jira MCP client (JSON-RPC, search, transitions, lifecycle)
 - `asyncio_mode = "auto"` in pyproject.toml — async tests just work
 
 ## Docker (Local Dev)
@@ -85,7 +87,16 @@ Three services: `postgres:16-alpine` (:5432), `bravo-api` (:8000), `bravo-worker
 - Squash agent auto-commits into clean atomic commits before PR
 - Branch naming: `feature/bravo-{feature-name}`
 
-## Jira
+## Jira MCP Integration
+
+Bravo talks to Jira via `corp_jira_mcp` (Ketchup iPaaS fork), not direct REST. `JiraMCPClient` in `services/jira.py` is a thin httpx client sending JSON-RPC 2.0 to the MCP server's `/message` endpoint.
+
+- Config: `BRAVO_JIRA__MCP_URL` (default `http://mcp-jira:8081`)
+- Tools used: `search_jira_issues`, `add_jira_comment`, `transition_jira_status`, `get_jira_transitions`, `create_jira_issue`, `update_jira_issue`, `download_attachment`
+- Comment schema: `{"comment": {"body": "..."}}` (nested, not top-level)
+- MCP server handles iPaaS auth, IMS tokens, and PAT rotation
+
+## Jira Project
 
 - Epic: CPGNCX-63253
 - Key tickets: 63864 (Slack foundation), 63865 (Jira integration), 63878 (Nudge workflow)
