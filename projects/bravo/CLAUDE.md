@@ -83,7 +83,7 @@ uv run python -m pytest tests/ -v     # All tests
 - `tests/test_resilience.py` — tests for retry/backoff logic
 - `tests/test_deps.py` — 10 tests for Depends() wiring + admin endpoints
 - `tests/test_poller.py` — 5 tests for poller → nudge wiring
-- `tests/test_nudge.py` — 8 tests for nudge orchestration + cooldown
+- `tests/test_nudge.py` — 10 tests for nudge orchestration + cooldown + snooze
 - `asyncio_mode = "auto"` in pyproject.toml — async tests just work
 
 ## Docker (Local Dev)
