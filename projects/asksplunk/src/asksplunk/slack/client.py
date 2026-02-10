@@ -441,25 +441,40 @@ class SlackClient:
         logger.info("shutting_down_socket_mode")
 
         # Close session manager first with proper context
-        if hasattr(self, "_session_manager_context") and self._session_manager_context:
-            await self._session_manager_context.__aexit__(None, None, None)
-            self._session_manager_context = None
-            self.session_manager = None
+        if self._session_manager_context is not None:
+            try:
+                await self._session_manager_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("session_manager_cleanup_failed", exc_info=True)
+            finally:
+                self._session_manager_context = None
+                self.session_manager = None
 
         # Close secrets manager
-        if hasattr(self, "_secrets_manager_context") and self._secrets_manager_context:
-            await self._secrets_manager_context.__aexit__(None, None, None)
-            self._secrets_manager_context = None
-            self.access_validator = None
+        if self._secrets_manager_context is not None:
+            try:
+                await self._secrets_manager_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("secrets_manager_cleanup_failed", exc_info=True)
+            finally:
+                self._secrets_manager_context = None
+                self.access_validator = None
 
         # Close usage tracker only if we created it (not passed in)
-        if hasattr(self, "_usage_tracker_context") and self._usage_tracker_context:
-            await self._usage_tracker_context.__aexit__(None, None, None)
-            self._usage_tracker_context = None
-            self.usage_tracker = None
+        if self._usage_tracker_context is not None:
+            try:
+                await self._usage_tracker_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("usage_tracker_cleanup_failed", exc_info=True)
+            finally:
+                self._usage_tracker_context = None
+                self.usage_tracker = None
 
         # Then close socket handler
-        if self.handler:
+        if self.handler is not None:
             self.is_running = False
-            await self.handler.close_async()
+            try:
+                await self.handler.close_async()
+            except Exception:
+                logger.warning("handler_close_failed", exc_info=True)
         logger.info("socket_mode_closed")
