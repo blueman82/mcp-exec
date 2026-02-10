@@ -24,6 +24,14 @@ from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
 
+_FATAL_SLACK_ERRORS = frozenset({"invalid_auth", "account_inactive", "token_revoked", "not_authed"})
+
+
+def _is_fatal_slack_error(error: Exception) -> bool:
+    if isinstance(error, SlackApiError):
+        return error.response.get("error", "") in _FATAL_SLACK_ERRORS
+    return False
+
 
 class SlackClient:
     """Slack client using Socket Mode for event-driven communication.
