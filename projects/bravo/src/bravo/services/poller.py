@@ -11,7 +11,7 @@ import structlog
 
 from bravo.config import Settings
 from bravo.db import queries
-from bravo.protocols import JiraClientProto
+from bravo.protocols import JiraClientProto, NudgeServiceProto
 
 logger = structlog.get_logger(__name__)
 
@@ -27,15 +27,22 @@ class PollerService:
         jira: Jira API client.
     """
 
-    def __init__(self, settings: Settings, jira_client: JiraClientProto) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        jira_client: JiraClientProto,
+        nudge: NudgeServiceProto,
+    ) -> None:
         """Initialize the poller service.
 
         Args:
             settings: Application configuration.
             jira_client: Jira API client instance.
+            nudge: Nudge orchestration service.
         """
         self.settings = settings
         self.jira = jira_client
+        self.nudge = nudge
 
     def _build_jql(self, since: datetime | None = None) -> str:
         """Build JQL query for polling.
@@ -85,6 +92,8 @@ class PollerService:
         tickets_updated = 0
         tickets_fetched = 0
 
+        nudges_triggered = 0
+
         try:
             tickets = await self.jira.search_tickets(jql)
             tickets_fetched = len(tickets)
@@ -107,6 +116,18 @@ class PollerService:
                 else:
                     tickets_new += 1
 
+            for ticket in tickets:
+                try:
+                    result = await self.nudge.evaluate_ticket(ticket.key)
+                    if result.get("should_nudge"):
+                        nudges_triggered += 1
+                except Exception as eval_err:
+                    logger.warning(
+                        "ticket_evaluation_failed",
+                        ticket_key=ticket.key,
+                        error=str(eval_err),
+                    )
+
             next_poll = datetime.now(UTC) + timedelta(
                 minutes=self.settings.poll_interval_minutes
             )
@@ -122,7 +143,7 @@ class PollerService:
                 tickets_fetched=tickets_fetched,
                 tickets_new=tickets_new,
                 tickets_updated=tickets_updated,
-                nudges_triggered=0,
+                nudges_triggered=nudges_triggered,
                 status="completed",
             )
 
@@ -132,6 +153,7 @@ class PollerService:
                 fetched=tickets_fetched,
                 new=tickets_new,
                 updated=tickets_updated,
+                nudges=nudges_triggered,
             )
 
         except Exception as e:
@@ -141,7 +163,7 @@ class PollerService:
                 tickets_fetched=tickets_fetched,
                 tickets_new=tickets_new,
                 tickets_updated=tickets_updated,
-                nudges_triggered=0,
+                nudges_triggered=nudges_triggered,
                 status="failed",
                 error_message=str(e),
             )
@@ -152,4 +174,5 @@ class PollerService:
             "tickets_fetched": tickets_fetched,
             "tickets_new": tickets_new,
             "tickets_updated": tickets_updated,
+            "nudges_triggered": nudges_triggered,
         }

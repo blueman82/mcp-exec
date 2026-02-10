@@ -4,6 +4,7 @@ This module orchestrates the nudge flow: evaluating tickets against
 gates and LLM scoring, then sending Slack nudges to assignees.
 """
 
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import structlog
@@ -81,6 +82,23 @@ class NudgeService:
         Raises:
             ValueError: If the ticket is not found.
         """
+        latest_nudge = await queries.get_latest_nudge_for_ticket(ticket_key)
+        if latest_nudge:
+            cooldown = timedelta(hours=self.settings.nudge_cooldown_hours)
+            nudge_age = datetime.now(UTC) - latest_nudge["created_at"]
+            if nudge_age < cooldown:
+                logger.info(
+                    "nudge_cooldown_active",
+                    ticket_key=ticket_key,
+                    hours_remaining=f"{(cooldown - nudge_age).total_seconds() / 3600:.1f}",
+                )
+                return {
+                    "ticket_key": ticket_key,
+                    "gate_result": None,
+                    "should_nudge": False,
+                    "nudge_reason": "cooldown",
+                }
+
         ticket = await queries.get_ticket(ticket_key)
         if not ticket:
             raise ValueError(f"Ticket not found: {ticket_key}")

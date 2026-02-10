@@ -82,6 +82,8 @@ uv run python -m pytest tests/ -v     # All tests
 - `tests/test_jira.py` — 18 tests for Jira MCP client (JSON-RPC, search, transitions, lifecycle)
 - `tests/test_resilience.py` — tests for retry/backoff logic
 - `tests/test_deps.py` — 10 tests for Depends() wiring + admin endpoints
+- `tests/test_poller.py` — 5 tests for poller → nudge wiring
+- `tests/test_nudge.py` — 8 tests for nudge orchestration + cooldown
 - `asyncio_mode = "auto"` in pyproject.toml — async tests just work
 
 ## Docker (Local Dev)

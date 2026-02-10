@@ -104,6 +104,7 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "INFO"
     poll_interval_minutes: int = 60
+    nudge_cooldown_hours: int = 24
 
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     jira: JiraSettings = Field(default_factory=JiraSettings)
