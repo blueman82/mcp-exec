@@ -350,7 +350,7 @@ class SlackClient:
                 thread_ts=thread_ts,
             )
 
-    async def _auth_test_with_retry(self) -> dict:
+    async def _auth_test_with_retry(self) -> AsyncSlackResponse:
         for attempt in range(self.AUTH_TEST_MAX_RETRIES):
             try:
                 return await asyncio.wait_for(
