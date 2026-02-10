@@ -4,7 +4,6 @@ Tests SlackClient initialization, event handler registration,
 and graceful connection lifecycle.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
