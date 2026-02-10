@@ -1,14 +1,21 @@
 flowchart LR
-    subgraph Lifecycle["🔌 Socket Mode"]
+    subgraph Lifecycle["Socket Mode"]
         START[Start]
+        AUTH["Auth Test\n(retry + backoff)"]
         CONNECT[Connect WebSocket]
         LISTEN[Listen for Events]
-        STOP[Shutdown]
+        STOP["Shutdown\n(per-step isolation)"]
     end
 
-    START --> CONNECT
-    CONNECT --> LISTEN
+    START --> AUTH
+    AUTH -->|"fatal error\n(invalid_auth, token_revoked)"| FAIL[Raise]
+    AUTH -->|"transient error"| AUTH
+    AUTH -->|success| CONNECT
+    CONNECT -->|"transient error (408, 429)"| FAIL_CONN[Raise]
+    CONNECT -->|success| LISTEN
     LISTEN -->|"auto-reconnect"| LISTEN
     LISTEN --> STOP
 
     style Lifecycle fill:#E3F2FD,stroke:#1976D2
+    style FAIL fill:#FFCDD2,stroke:#D32F2F
+    style FAIL_CONN fill:#FFCDD2,stroke:#D32F2F

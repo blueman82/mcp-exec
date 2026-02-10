@@ -8,7 +8,7 @@ Guidance for Claude Code when working with this repository.
 
 ### Implemented
 - **Entry Point** (`src/asksplunk/main.py`): Async main with signal handlers (SIGTERM/SIGINT)
-- **Slack Integration** (`src/asksplunk/slack/`): Socket Mode client, event handlers, Block Kit formatters
+- **Slack Integration** (`src/asksplunk/slack/`): Socket Mode client with connection resilience, event handlers, Block Kit formatters
 - **Session Management** (`src/asksplunk/session/`): DynamoDB CRUD with 30-min TTL, verified deletion
 - **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching, authorized user list
 - **Access Control** (`src/asksplunk/auth/`): Whitelist-based authorization via Secrets Manager
@@ -54,7 +54,7 @@ src/asksplunk/
 ├── usage/
 │   └── tracker.py       # Privacy-first usage tracking (timestamp only)
 └── slack/
-    ├── client.py        # Socket Mode client, event handlers
+    ├── client.py        # Socket Mode client, event handlers, auth retry, resilient shutdown
     └── formatter.py     # Block Kit message builders
 
 tests/
@@ -162,6 +162,12 @@ signal.signal(signal.SIGINT, create_signal_handler(client, loop))
 2. Write minimal code to pass
 3. Refactor while green
 
+### Connection Resilience (client.py)
+- **Auth retry**: `_auth_test_with_retry()` with exponential backoff (3 attempts, 10s timeout)
+- **Error classification**: `_is_fatal_slack_error()` separates fatal (invalid_auth, token_revoked) from transient errors
+- **Resilient shutdown**: Each cleanup step in try/except/finally — one failure doesn't skip the rest
+- **Structured logging**: `socket_mode_handler_starting`, `socket_mode_transient_error`, `socket_mode_fatal_error`
+
 ### Usage Tracking
 - **Privacy**: Records timestamp only - NO user IDs stored
 - **Storage**: DynamoDB GSI `usage-by-timestamp` on splunk-bot-sessions table
@@ -181,6 +187,6 @@ Scopes: agent, indexer, retriever, session, slack, secrets, main, docker, ci
 ## References
 
 - **Implementation Plan**: `docs/plans/asksplunk-slack-bot.md`
-- **Infrastructure Scripts**: `infrastructure/` (validate.sh, deploy-build-push.sh)
+- **Infrastructure Scripts**: `infrastructure/` (validate.sh, deploy-build-push.sh, create-usage-gsi.sh, run-indexer.py)
 - **Architecture Diagrams**: `docs/diagrams/`
 - **Security Audit**: `docs/security/security-audit-report.md`
