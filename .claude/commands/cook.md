@@ -81,15 +81,21 @@ Once you understand what the user wants, stop asking questions and present the d
 - **Testing Strategy** (how we'll validate it works)
 - **Success Metrics** (how we'll measure success)
 
-## Phase 4: Generate Implementation Plan
+## Phase 4: Implementation Workflow
 
-After the user approves all sections of the design, **AUTOMATICALLY** invoke the `/doc` command to generate a comprehensive implementation plan:
+After the user approves all sections of the design, transition to implementation:
 
-1. **Summarize the feature** from the validated design into a concise description
-2. **Call `/doc [feature description]`** using the SlashCommand tool
-3. **Let the doc command run** - it will analyze the codebase and generate the detailed plan
+1. **Enter Plan Mode** using the `EnterPlanMode` tool
+2. **Activate Serena MCP** (if available) — `activate_project()`, read activation instructions, use LSP symbol tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`). If Serena is not available, skip this step and proceed without LSP analysis.
+3. **Load quality skills** — invoke `/strictcode`, `/slimcode`, and `/strictcode-python` to load their rules into the planning context
+4. **If in `camp-ops-emea/` repo** — create a git worktree and branch:
+   ```bash
+   git worktree add ../<branch-name> -b <branch-name>
+   ```
+5. **All work MUST happen in the created branch/worktree**
+6. **Plan the implementation** incorporating Serena LSP analysis (if available) and strictcode/slimcode constraints
 
-This creates a complete workflow: Question → Design → Validate → Plan → Implement
+This creates a complete workflow: Question → Design → Validate → Plan (with LSP + quality gates) → Implement
 
 ## Execution Guidelines
 
