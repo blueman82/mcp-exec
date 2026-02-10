@@ -54,7 +54,7 @@ src/asksplunk/
 ├── usage/
 │   └── tracker.py       # Privacy-first usage tracking (timestamp only)
 └── slack/
-    ├── client.py        # Socket Mode client, event handlers
+    ├── client.py        # Socket Mode client, event handlers, auth retry, resilient shutdown
     └── formatter.py     # Block Kit message builders
 
 tests/
