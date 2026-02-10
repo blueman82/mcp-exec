@@ -1,7 +1,12 @@
 """Application configuration using pydantic-settings."""
 
+from functools import lru_cache
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+LOG_FILE = Path("/var/log/bravo.log")
 
 
 class DatabaseSettings(BaseSettings):
@@ -107,6 +112,11 @@ class Settings(BaseSettings):
     gates: GateSettings = Field(default_factory=GateSettings)
 
 
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Get application settings singleton."""
+    """Get application settings singleton.
+
+    Returns the same Settings instance across calls, allowing
+    runtime mutations to persist until process restart.
+    """
     return Settings()

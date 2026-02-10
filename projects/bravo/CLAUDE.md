@@ -7,7 +7,7 @@ Bravo monitors Jira tickets across EMEA Campaign Operations teams and nudges eng
 ```
 src/bravo/
   main.py              # FastAPI app + lifespan (creates DI container)
-  config.py            # pydantic-settings (nested: database/jira/slack/llm/gates)
+  config.py            # pydantic-settings (nested: database/jira/slack/llm/gates) + LOG_FILE
   container.py         # create_container() — wires all services via DI
   protocols.py         # @runtime_checkable Protocol per service
   di/                  # Lightweight TypedDI framework
@@ -22,11 +22,19 @@ src/bravo/
     nudge.py           # Orchestrates gates -> LLM -> Slack DM
     poller.py          # Periodic Jira polling via JQL
     blocks.py          # Block Kit message builders (pure functions)
+    resilience.py      # Async retry with exponential backoff (used by jira.py)
   db/
     pool.py            # asyncpg connection pool singleton
     queries.py         # Raw SQL with $1/$2 parameterized queries
     init.sql           # Schema DDL
-  api/                 # FastAPI routers (health, admin, polling, tickets, nudge, assignees)
+  api/
+    deps.py            # FastAPI Depends() helpers (bridges container -> routes)
+    health.py          # Health check endpoints
+    admin.py           # Stats, config, poll trigger, logs
+    polling.py         # Polling state and history
+    tickets.py         # Ticket CRUD + gate/LLM evaluation
+    nudge.py           # Nudge listing and sending
+    assignees.py       # Assignee management
   worker/main.py       # Background worker (poll loop + Socket Mode)
   models/schemas.py    # Pydantic response models
 ```
@@ -38,6 +46,7 @@ Services depend on Protocol interfaces, not concrete classes. Import direction:
 - `nudge.py`, `poller.py` -> `protocols.py` (not concrete classes)
 - `protocols.py` -> data classes only (`GateEvaluation`, `LLMScore`)
 - `di/` -> nothing from services or protocols
+- `api/deps.py` -> `container` via `request.app.state` (Depends() bridge)
 
 Adding a new service: 1 Protocol in `protocols.py` + 1 class in `services/` + 1 `DependencySpec` in `container.py`.
 
@@ -71,6 +80,8 @@ uv run python -m pytest tests/ -v     # All tests
 - `tests/test_di.py` — 12 tests for DI framework (resolver, registry, container)
 - `tests/test_llm.py` — 8 tests for LLM scoring service
 - `tests/test_jira.py` — 18 tests for Jira MCP client (JSON-RPC, search, transitions, lifecycle)
+- `tests/test_resilience.py` — tests for retry/backoff logic
+- `tests/test_deps.py` — 10 tests for Depends() wiring + admin endpoints
 - `asyncio_mode = "auto"` in pyproject.toml — async tests just work
 
 ## Docker (Local Dev)
@@ -79,11 +90,10 @@ uv run python -m pytest tests/ -v     # All tests
 docker compose -f infrastructure/docker-compose.local.yml up --build -d
 ```
 
-Three services: `postgres:16-alpine` (:5432), `bravo-api` (:8000), `bravo-worker`.
+Three services: `postgres:16-alpine` (:5432), `bravo-api` (:8000), `bravo-worker`. Both app services require `.env` file (see `.env.example`).
 
 ## Git Workflow
 
-- Stacked PRs: `main` <- `feature/bravo-scaffolding` <- `feature/bravo-block-kit` <- `feature/bravo-protocol-di`
 - Squash agent auto-commits into clean atomic commits before PR
 - Branch naming: `feature/bravo-{feature-name}`
 

@@ -37,6 +37,9 @@ services:
       - DB_USER=bravo
       - DB_PASSWORD=bravo
       - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/var/log
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,6 +66,9 @@ services:
       - DB_USER=bravo
       - DB_PASSWORD=bravo
       - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/var/log
     depends_on:
       postgres:
         condition: service_healthy

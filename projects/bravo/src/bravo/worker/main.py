@@ -95,7 +95,7 @@ async def run_worker() -> None:
     """
     worker = Worker()
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     def handle_signal() -> None:
         asyncio.create_task(worker.stop())

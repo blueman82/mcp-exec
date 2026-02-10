@@ -4,11 +4,14 @@ Establishes WebSocket connection to Slack using Socket Mode.
 Receives app_mention events and provides event handlers for bot interactions.
 """
 
+import asyncio
 from functools import partial
 
 import structlog
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
+from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
 from asksplunk.auth.validator import AccessValidator
 from asksplunk.secrets import SecretsManager
@@ -21,6 +24,14 @@ from asksplunk.slack.formatter import (
 from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
+
+_FATAL_SLACK_ERRORS = frozenset({"invalid_auth", "account_inactive", "token_revoked", "not_authed"})
+
+
+def _is_fatal_slack_error(error: Exception) -> bool:
+    if isinstance(error, SlackApiError):
+        return error.response.get("error", "") in _FATAL_SLACK_ERRORS
+    return False
 
 
 class SlackClient:
@@ -45,6 +56,10 @@ class SlackClient:
         "This bot is in limited beta for the Adobe Campaign Operations team. "
         "If you believe you should have access, please contact ORG-OMEARA-ALL@adobe.com."
     )
+
+    AUTH_TEST_TIMEOUT_SECONDS: float = 10.0
+    AUTH_TEST_MAX_RETRIES: int = 3
+    AUTH_TEST_BACKOFF_BASE: float = 1.0
 
     def __init__(
         self, bot_token: str, app_token: str, agent=None, usage_tracker: UsageTracker | None = None
@@ -336,6 +351,34 @@ class SlackClient:
                 thread_ts=thread_ts,
             )
 
+    async def _auth_test_with_retry(self) -> AsyncSlackResponse:
+        for attempt in range(self.AUTH_TEST_MAX_RETRIES):
+            try:
+                return await asyncio.wait_for(
+                    self.app.client.auth_test(),
+                    timeout=self.AUTH_TEST_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                if _is_fatal_slack_error(e):
+                    logger.error("auth_test_fatal_error", error=str(e), attempt=attempt + 1)
+                    raise
+                if attempt + 1 >= self.AUTH_TEST_MAX_RETRIES:
+                    logger.error(
+                        "auth_test_failed_all_retries",
+                        error=str(e),
+                        attempts=self.AUTH_TEST_MAX_RETRIES,
+                    )
+                    raise
+                backoff = self.AUTH_TEST_BACKOFF_BASE * (2**attempt)
+                logger.warning(
+                    "auth_test_retry",
+                    error=str(e),
+                    attempt=attempt + 1,
+                    backoff_seconds=backoff,
+                )
+                await asyncio.sleep(backoff)
+        raise RuntimeError("unreachable")  # pragma: no cover
+
     async def start(self) -> None:
         """Start Socket Mode connection.
 
@@ -367,14 +410,23 @@ class SlackClient:
             self._usage_tracker_context = UsageTracker()
             self.usage_tracker = await self._usage_tracker_context.__aenter__()
 
-        # Initialize bot_user_id via auth_test API call
-        auth_response = await self.app.client.auth_test()
+        # Initialize bot_user_id via auth_test API call (with retry)
+        auth_response = await self._auth_test_with_retry()
         self.bot_user_id = auth_response["user_id"]
         logger.info("bot_user_initialized", bot_user_id=self.bot_user_id)
 
         self.handler = AsyncSocketModeHandler(self.app, self.app_token)
         self.is_running = True
-        await self.handler.start_async()
+        logger.info("socket_mode_handler_starting")
+        try:
+            await self.handler.start_async()
+        except Exception as e:
+            self.is_running = False
+            if _is_fatal_slack_error(e):
+                logger.error("socket_mode_fatal_error", error=str(e), exc_info=True)
+            else:
+                logger.warning("socket_mode_transient_error", error=str(e))
+            raise
         logger.info("socket_mode_connected")
 
     async def shutdown(self) -> None:
@@ -390,25 +442,40 @@ class SlackClient:
         logger.info("shutting_down_socket_mode")
 
         # Close session manager first with proper context
-        if hasattr(self, "_session_manager_context") and self._session_manager_context:
-            await self._session_manager_context.__aexit__(None, None, None)
-            self._session_manager_context = None
-            self.session_manager = None
+        if self._session_manager_context is not None:
+            try:
+                await self._session_manager_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("session_manager_cleanup_failed", exc_info=True)
+            finally:
+                self._session_manager_context = None
+                self.session_manager = None
 
         # Close secrets manager
-        if hasattr(self, "_secrets_manager_context") and self._secrets_manager_context:
-            await self._secrets_manager_context.__aexit__(None, None, None)
-            self._secrets_manager_context = None
-            self.access_validator = None
+        if self._secrets_manager_context is not None:
+            try:
+                await self._secrets_manager_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("secrets_manager_cleanup_failed", exc_info=True)
+            finally:
+                self._secrets_manager_context = None
+                self.access_validator = None
 
         # Close usage tracker only if we created it (not passed in)
-        if hasattr(self, "_usage_tracker_context") and self._usage_tracker_context:
-            await self._usage_tracker_context.__aexit__(None, None, None)
-            self._usage_tracker_context = None
-            self.usage_tracker = None
+        if self._usage_tracker_context is not None:
+            try:
+                await self._usage_tracker_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("usage_tracker_cleanup_failed", exc_info=True)
+            finally:
+                self._usage_tracker_context = None
+                self.usage_tracker = None
 
         # Then close socket handler
-        if self.handler:
+        if self.handler is not None:
             self.is_running = False
-            await self.handler.close_async()
+            try:
+                await self.handler.close_async()
+            except Exception:
+                logger.warning("handler_close_failed", exc_info=True)
         logger.info("socket_mode_closed")

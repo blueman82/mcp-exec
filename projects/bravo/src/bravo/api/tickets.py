@@ -6,8 +6,9 @@ This module provides CRUD endpoints for watched tickets.
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 
+from bravo.api.deps import get_nudge_service
 from bravo.db import queries
 from bravo.models import (
     EvaluationResponse,
@@ -17,9 +18,31 @@ from bravo.models import (
     TicketResponse,
     TicketStatus,
 )
+from bravo.protocols import NudgeServiceProto
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
+
+
+def _gate_results_from_row(row: dict[str, Any]) -> GateResults:
+    return GateResults(
+        g1_passed=row["g1_passed"],
+        g2_passed=row["g2_passed"],
+        g3_passed=row["g3_passed"],
+        g4_passed=row["g4_passed"],
+    )
+
+
+def _llm_scores_from_row(row: dict[str, Any]) -> LLMScores | None:
+    if not row["llm_average"]:
+        return None
+    return LLMScores(
+        clarity=row["llm_clarity"],
+        completeness=row["llm_completeness"],
+        root_cause=row["llm_root_cause"],
+        actionability=row["llm_actionability"],
+        average=row["llm_average"],
+    )
 
 
 def _row_to_ticket(row: dict[str, Any]) -> TicketResponse:
@@ -44,23 +67,8 @@ def _row_to_ticket(row: dict[str, Any]) -> TicketResponse:
         last_polled_at=row["last_polled_at"],
         last_assignee_comment_at=row["last_assignee_comment_at"],
         snoozed_until=row["snoozed_until"],
-        gate_results=GateResults(
-            g1_passed=row["g1_passed"],
-            g2_passed=row["g2_passed"],
-            g3_passed=row["g3_passed"],
-            g4_passed=row["g4_passed"],
-        ),
-        llm_scores=(
-            LLMScores(
-                clarity=row["llm_clarity"],
-                completeness=row["llm_completeness"],
-                root_cause=row["llm_root_cause"],
-                actionability=row["llm_actionability"],
-                average=row["llm_average"],
-            )
-            if row["llm_average"]
-            else None
-        ),
+        gate_results=_gate_results_from_row(row),
+        llm_scores=_llm_scores_from_row(row),
     )
 
 
@@ -139,11 +147,15 @@ async def delete_ticket(ticket_key: str) -> Response:
 
 
 @router.post("/{ticket_key}/evaluate", response_model=EvaluationResponse)
-async def evaluate_ticket(ticket_key: str) -> EvaluationResponse:
-    """Manually evaluate ticket for nudge.
+async def evaluate_ticket(
+    ticket_key: str,
+    nudge_svc: NudgeServiceProto = Depends(get_nudge_service),
+) -> EvaluationResponse:
+    """Evaluate ticket against gates and LLM, potentially triggering a nudge.
 
     Args:
         ticket_key: The Jira ticket key.
+        nudge_svc: Injected nudge orchestration service.
 
     Returns:
         EvaluationResponse with gate and LLM results.
@@ -151,32 +163,26 @@ async def evaluate_ticket(ticket_key: str) -> EvaluationResponse:
     Raises:
         HTTPException: 404 if ticket not found.
     """
+    try:
+        result = await nudge_svc.evaluate_ticket(ticket_key)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    logger.info(
+        "manual_evaluation_complete",
+        ticket_key=ticket_key,
+        should_nudge=result["should_nudge"],
+    )
+
+    # Re-read ticket for fresh gate/LLM values written by evaluate_ticket
     row = await queries.get_ticket(ticket_key)
     if not row:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
-    # TODO: Implement actual gate and LLM evaluation
-    logger.info("manual_evaluation_requested", ticket_key=ticket_key)
-
     return EvaluationResponse(
         ticket_key=ticket_key,
-        gate_results=GateResults(
-            g1_passed=row["g1_passed"],
-            g2_passed=row["g2_passed"],
-            g3_passed=row["g3_passed"],
-            g4_passed=row["g4_passed"],
-        ),
-        llm_scores=(
-            LLMScores(
-                clarity=row["llm_clarity"],
-                completeness=row["llm_completeness"],
-                root_cause=row["llm_root_cause"],
-                actionability=row["llm_actionability"],
-                average=row["llm_average"],
-            )
-            if row["llm_average"]
-            else None
-        ),
-        nudge_triggered=False,
-        nudge_reason=None,
+        gate_results=_gate_results_from_row(row),
+        llm_scores=_llm_scores_from_row(row),
+        nudge_triggered=result["should_nudge"],
+        nudge_reason=result["nudge_reason"],
     )

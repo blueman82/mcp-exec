@@ -17,6 +17,8 @@ from bravo.config import GateSettings
 
 logger = structlog.get_logger(__name__)
 
+_RESOLVED_STATUSES = frozenset({"Resolved", "Closed", "Done", "Complete"})
+
 
 @dataclass
 class GateEvaluation:
@@ -187,9 +189,7 @@ class GateService:
         Returns:
             True if ticket is resolved or within resolution threshold.
         """
-        resolved_statuses = {"Resolved", "Closed", "Done", "Complete"}
-
-        if jira_status in resolved_statuses:
+        if jira_status in _RESOLVED_STATUSES:
             return True
 
         threshold = timedelta(hours=self.settings.g4_resolution_hours)

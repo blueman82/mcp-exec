@@ -24,6 +24,13 @@ from bravo.services.blocks import (
 
 logger = structlog.get_logger(__name__)
 
+_GATE_LABELS: dict[str, str] = {
+    "G1": "no comment",
+    "G2": "stale",
+    "G3": "slow response",
+    "G4": "unresolved",
+}
+
 
 class NudgeService:
     """Service for orchestrating nudge flow.
@@ -97,13 +104,6 @@ class NudgeService:
         nudge_reason = None
         failed_gate_codes: list[str] = []
 
-        _gate_labels = {
-            "G1": "no comment",
-            "G2": "stale",
-            "G3": "slow response",
-            "G4": "unresolved",
-        }
-
         if gate_result.any_failed:
             should_nudge = True
             for code, passed in [
@@ -115,7 +115,7 @@ class NudgeService:
                 if not passed:
                     failed_gate_codes.append(code)
             nudge_reason = "Failed gates: " + ", ".join(
-                f"{c} ({_gate_labels[c]})" for c in failed_gate_codes
+                f"{c} ({_GATE_LABELS[c]})" for c in failed_gate_codes
             )
         else:
             llm_score = await self.llm.score_ticket(
