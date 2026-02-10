@@ -1195,27 +1195,28 @@ class TestShutdownResilience:
                 bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
             )
 
-            # Set up context managers
-            client._session_manager_context = AsyncMock()
-            client._session_manager_context.__aexit__ = AsyncMock(
-                side_effect=RuntimeError("session cleanup boom")
-            )
+            # Set up context managers — keep references before shutdown nulls them
+            session_ctx = AsyncMock()
+            session_ctx.__aexit__ = AsyncMock(side_effect=RuntimeError("session cleanup boom"))
+            client._session_manager_context = session_ctx
             client.session_manager = AsyncMock()
 
-            client._secrets_manager_context = AsyncMock()
-            client._secrets_manager_context.__aexit__ = AsyncMock(return_value=None)
+            secrets_ctx = AsyncMock()
+            secrets_ctx.__aexit__ = AsyncMock(return_value=None)
+            client._secrets_manager_context = secrets_ctx
             client.access_validator = AsyncMock()
 
-            client.handler = AsyncMock()
+            mock_handler = AsyncMock()
+            client.handler = mock_handler
 
             await client.shutdown()
 
             # Secrets manager should still have been cleaned up
-            client._secrets_manager_context.__aexit__.assert_called_once()
+            secrets_ctx.__aexit__.assert_called_once()
             assert client._secrets_manager_context is None
             assert client.access_validator is None
             # Handler should still have been closed
-            client.handler.close_async.assert_called_once()
+            mock_handler.close_async.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_shutdown_continues_when_secrets_manager_cleanup_fails(self, mock_tokens):
