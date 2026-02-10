@@ -4,12 +4,29 @@ Tests SlackClient initialization, event handler registration,
 and graceful connection lifecycle.
 """
 
+import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_slack_response import AsyncSlackResponse
 
-from asksplunk.slack.client import SlackClient
+from asksplunk.slack.client import SlackClient, _is_fatal_slack_error
 from asksplunk.usage import UsageTracker
+
+
+def _make_slack_api_error(error_code: str) -> SlackApiError:
+    """Create a SlackApiError with the given error code for testing."""
+    mock_response = AsyncSlackResponse(
+        client=None,
+        http_verb="POST",
+        api_url="https://slack.com/api/auth.test",
+        req_args={},
+        data={"ok": False, "error": error_code},
+        headers={},
+        status_code=200,
+    )
+    return SlackApiError(message=f"The request to the Slack API failed. (error: {error_code})", response=mock_response)
 
 
 class TestSlackClient:
