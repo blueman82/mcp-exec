@@ -162,6 +162,12 @@ signal.signal(signal.SIGINT, create_signal_handler(client, loop))
 2. Write minimal code to pass
 3. Refactor while green
 
+### Connection Resilience (client.py)
+- **Auth retry**: `_auth_test_with_retry()` with exponential backoff (3 attempts, 10s timeout)
+- **Error classification**: `_is_fatal_slack_error()` separates fatal (invalid_auth, token_revoked) from transient errors
+- **Resilient shutdown**: Each cleanup step in try/except/finally — one failure doesn't skip the rest
+- **Structured logging**: `socket_mode_handler_starting`, `socket_mode_transient_error`, `socket_mode_fatal_error`
+
 ### Usage Tracking
 - **Privacy**: Records timestamp only - NO user IDs stored
 - **Storage**: DynamoDB GSI `usage-by-timestamp` on splunk-bot-sessions table
