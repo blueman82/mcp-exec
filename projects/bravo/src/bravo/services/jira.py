@@ -225,6 +225,40 @@ class JiraMCPClient:
         logger.info("jira_search_complete", count=len(tickets))
         return tickets
 
+    _MAX_COMMENTS = 10
+
+    async def get_ticket_comments(self, ticket_key: str) -> list[str]:
+        """Fetch comment bodies for a ticket via MCP.
+
+        Args:
+            ticket_key: The ticket key (e.g., CPGNCX-12345).
+
+        Returns:
+            List of comment body strings, most recent last,
+            capped at the last 10 comments.
+        """
+        logger.debug("fetching_ticket_comments", ticket_key=ticket_key)
+
+        data = await self._call_tool(
+            "search_jira_issues",
+            {
+                "jql": f"key = {ticket_key}",
+                "maxResults": 1,
+                "fields": ["comment"],
+                "minimizeOutput": False,
+            },
+        )
+
+        issues = data.get("data", {}).get("issues", [])
+        if not issues:
+            return []
+
+        comments = (
+            issues[0].get("fields", {}).get("comment", {}).get("comments", [])
+        )
+        bodies = [c["body"] for c in comments if c.get("body")]
+        return bodies[-self._MAX_COMMENTS :]
+
     async def add_comment(self, ticket_key: str, body: str) -> None:
         """Add a comment to a ticket via MCP.
 

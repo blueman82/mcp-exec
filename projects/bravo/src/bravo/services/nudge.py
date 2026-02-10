@@ -136,10 +136,20 @@ class NudgeService:
                 f"{c} ({_GATE_LABELS[c]})" for c in failed_gate_codes
             )
         else:
+            try:
+                comments = await self.jira.get_ticket_comments(ticket_key)
+            except Exception:
+                logger.warning(
+                    "comment_fetch_failed",
+                    ticket_key=ticket_key,
+                    exc_info=True,
+                )
+                comments = []
+
             llm_score = await self.llm.score_ticket(
                 ticket_key=ticket_key,
                 summary=ticket["summary"] or "",
-                comments=[],
+                comments=comments,
             )
 
             await queries.update_ticket_llm_scores(

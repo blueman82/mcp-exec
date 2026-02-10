@@ -46,6 +46,7 @@ def _make_nudge_service() -> tuple[NudgeService, AsyncMock, AsyncMock, AsyncMock
     """
     settings = _make_settings()
     mock_jira = AsyncMock()
+    mock_jira.get_ticket_comments.return_value = []
     mock_slack = AsyncMock()
     mock_gates = MagicMock()
     mock_llm = AsyncMock()
@@ -158,6 +159,46 @@ class TestEvaluateTicket:
 
         with pytest.raises(ValueError, match="Ticket not found"):
             await service.evaluate_ticket("MISSING-1")
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comments_fetched_and_passed_to_llm(self, _mock_queries):
+        service, mock_jira, _, mock_gates, mock_llm = _make_nudge_service()
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_jira.get_ticket_comments.return_value = ["Fix applied", "Verified"]
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        await service.evaluate_ticket("TEST-1")
+
+        mock_jira.get_ticket_comments.assert_awaited_once_with("TEST-1")
+        mock_llm.score_ticket.assert_awaited_once_with(
+            ticket_key="TEST-1",
+            summary="Test ticket summary",
+            comments=["Fix applied", "Verified"],
+        )
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_fetch_failure_falls_back_to_empty(self, _mock_queries):
+        service, mock_jira, _, mock_gates, mock_llm = _make_nudge_service()
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_jira.get_ticket_comments.side_effect = RuntimeError("MCP down")
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        result = await service.evaluate_ticket("TEST-1")
+
+        mock_llm.score_ticket.assert_awaited_once_with(
+            ticket_key="TEST-1",
+            summary="Test ticket summary",
+            comments=[],
+        )
+        assert result["should_nudge"] is False
 
 
 class TestSendNudge:

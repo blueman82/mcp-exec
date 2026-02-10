@@ -157,6 +157,94 @@ class TestSearchTickets:
         assert tickets[0].status == "Open"
 
 
+class TestGetTicketComments:
+    """Tests for JiraMCPClient.get_ticket_comments()."""
+
+    async def test_get_ticket_comments_returns_bodies(self):
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "comment": {
+                                        "comments": [
+                                            {"body": "First comment"},
+                                            {"body": "Second comment"},
+                                            {"body": "Third comment"},
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_ticket_comments("TEST-1")
+
+        assert result == ["First comment", "Second comment", "Third comment"]
+        payload = mock_http.post.call_args.kwargs["json"]
+        args = payload["params"]["arguments"]
+        assert args["jql"] == "key = TEST-1"
+        assert args["minimizeOutput"] is False
+
+    async def test_get_ticket_comments_empty(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {"comment": {"comments": []}},
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_ticket_comments("TEST-1")
+
+        assert result == []
+
+    async def test_get_ticket_comments_no_issue_found(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok({"data": {"issues": []}})
+        )
+
+        result = await client.get_ticket_comments("MISSING-1")
+
+        assert result == []
+
+    async def test_get_ticket_comments_caps_at_limit(self):
+        bodies = [{"body": f"Comment {i}"} for i in range(15)]
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {"comment": {"comments": bodies}},
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_ticket_comments("TEST-1")
+
+        assert len(result) == 10
+        assert result[0] == "Comment 5"
+        assert result[-1] == "Comment 14"
+
+
 class TestJsonRpcFormatting:
     """Tests for JSON-RPC 2.0 request formatting."""
 
