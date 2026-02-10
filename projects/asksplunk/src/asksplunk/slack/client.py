@@ -409,14 +409,23 @@ class SlackClient:
             self._usage_tracker_context = UsageTracker()
             self.usage_tracker = await self._usage_tracker_context.__aenter__()
 
-        # Initialize bot_user_id via auth_test API call
-        auth_response = await self.app.client.auth_test()
+        # Initialize bot_user_id via auth_test API call (with retry)
+        auth_response = await self._auth_test_with_retry()
         self.bot_user_id = auth_response["user_id"]
         logger.info("bot_user_initialized", bot_user_id=self.bot_user_id)
 
         self.handler = AsyncSocketModeHandler(self.app, self.app_token)
         self.is_running = True
-        await self.handler.start_async()
+        logger.info("socket_mode_handler_starting")
+        try:
+            await self.handler.start_async()
+        except Exception as e:
+            self.is_running = False
+            if _is_fatal_slack_error(e):
+                logger.error("socket_mode_fatal_error", error=str(e), exc_info=True)
+            else:
+                logger.warning("socket_mode_transient_error", error=str(e))
+            raise
         logger.info("socket_mode_connected")
 
     async def shutdown(self) -> None:
