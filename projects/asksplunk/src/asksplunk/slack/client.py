@@ -350,6 +350,34 @@ class SlackClient:
                 thread_ts=thread_ts,
             )
 
+    async def _auth_test_with_retry(self) -> dict:
+        for attempt in range(self.AUTH_TEST_MAX_RETRIES):
+            try:
+                return await asyncio.wait_for(
+                    self.app.client.auth_test(),
+                    timeout=self.AUTH_TEST_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                if _is_fatal_slack_error(e):
+                    logger.error("auth_test_fatal_error", error=str(e), attempt=attempt + 1)
+                    raise
+                if attempt + 1 >= self.AUTH_TEST_MAX_RETRIES:
+                    logger.error(
+                        "auth_test_failed_all_retries",
+                        error=str(e),
+                        attempts=self.AUTH_TEST_MAX_RETRIES,
+                    )
+                    raise
+                backoff = self.AUTH_TEST_BACKOFF_BASE * (2**attempt)
+                logger.warning(
+                    "auth_test_retry",
+                    error=str(e),
+                    attempt=attempt + 1,
+                    backoff_seconds=backoff,
+                )
+                await asyncio.sleep(backoff)
+        raise RuntimeError("unreachable")  # pragma: no cover
+
     async def start(self) -> None:
         """Start Socket Mode connection.
 
