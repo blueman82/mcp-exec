@@ -26,7 +26,10 @@ def _make_slack_api_error(error_code: str) -> SlackApiError:
         headers={},
         status_code=200,
     )
-    return SlackApiError(message=f"The request to the Slack API failed. (error: {error_code})", response=mock_response)
+    return SlackApiError(
+        message=f"The request to the Slack API failed. (error: {error_code})",
+        response=mock_response,
+    )
 
 
 class TestSlackClient:
@@ -1353,9 +1356,7 @@ class TestAuthTestWithRetry:
             patch("asksplunk.slack.client.asyncio.sleep", new_callable=AsyncMock),
         ):
             mock_app = Mock()
-            mock_app.client.auth_test = AsyncMock(
-                side_effect=_make_slack_api_error("ratelimited")
-            )
+            mock_app.client.auth_test = AsyncMock(side_effect=_make_slack_api_error("ratelimited"))
             MockApp.return_value = mock_app
 
             client = SlackClient(
@@ -1374,7 +1375,7 @@ class TestAuthTestWithRetry:
             patch("asksplunk.slack.client.asyncio.sleep", new_callable=AsyncMock),
         ):
             mock_app = Mock()
-            mock_app.client.auth_test = AsyncMock(side_effect=asyncio.TimeoutError())
+            mock_app.client.auth_test = AsyncMock(side_effect=TimeoutError())
             MockApp.return_value = mock_app
 
             client = SlackClient(
@@ -1390,9 +1391,7 @@ class TestAuthTestWithRetry:
         """Should raise immediately on fatal errors without retrying."""
         with patch("asksplunk.slack.client.AsyncApp") as MockApp:
             mock_app = Mock()
-            mock_app.client.auth_test = AsyncMock(
-                side_effect=_make_slack_api_error("invalid_auth")
-            )
+            mock_app.client.auth_test = AsyncMock(side_effect=_make_slack_api_error("invalid_auth"))
             MockApp.return_value = mock_app
 
             client = SlackClient(
