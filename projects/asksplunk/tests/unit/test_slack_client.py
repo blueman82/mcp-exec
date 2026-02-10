@@ -1382,7 +1382,7 @@ class TestAuthTestWithRetry:
                 bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
             )
 
-            with pytest.raises(asyncio.TimeoutError):
+            with pytest.raises(TimeoutError):
                 await client._auth_test_with_retry()
             assert mock_app.client.auth_test.call_count == 3
 
