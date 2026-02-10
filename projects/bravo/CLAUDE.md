@@ -7,7 +7,7 @@ Bravo monitors Jira tickets across EMEA Campaign Operations teams and nudges eng
 ```
 src/bravo/
   main.py              # FastAPI app + lifespan (creates DI container)
-  config.py            # pydantic-settings (nested: database/jira/slack/llm/gates) + LOG_FILE
+  config.py            # pydantic-settings (nested: database/jira/slack/llm/gates) + load_settings()
   container.py         # create_container() — wires all services via DI
   protocols.py         # @runtime_checkable Protocol per service
   di/                  # Lightweight TypedDI framework
@@ -23,6 +23,7 @@ src/bravo/
     poller.py          # Periodic Jira polling via JQL
     blocks.py          # Block Kit message builders (pure functions)
     resilience.py      # Async retry with exponential backoff (used by jira.py)
+    secrets.py         # AWS Secrets Manager client (aioboto3, 60-min cache)
   db/
     pool.py            # asyncpg connection pool singleton
     queries.py         # Raw SQL with $1/$2 parameterized queries
@@ -84,6 +85,7 @@ uv run python -m pytest tests/ -v     # All tests
 - `tests/test_deps.py` — 10 tests for Depends() wiring + admin endpoints
 - `tests/test_poller.py` — 5 tests for poller → nudge wiring
 - `tests/test_nudge.py` — 10 tests for nudge orchestration + cooldown + snooze
+- `tests/test_secrets.py` — 8 tests for AWS Secrets Manager + load_settings() hydration
 - `asyncio_mode = "auto"` in pyproject.toml — async tests just work
 
 ## Docker (Local Dev)
@@ -107,6 +109,17 @@ Bravo talks to Jira via `corp_jira_mcp` (Ketchup iPaaS fork), not direct REST. `
 - Tools used: `search_jira_issues`, `add_jira_comment`, `transition_jira_status`, `get_jira_transitions`, `create_jira_issue`, `update_jira_issue`, `download_attachment`
 - Comment schema: `{"comment": {"body": "..."}}` (nested, not top-level)
 - MCP server handles iPaaS auth, IMS tokens, and PAT rotation
+
+## AWS Secrets Manager
+
+Production secrets are stored in AWS Secrets Manager (`eu-west-1`). Local dev uses `.env` files — AWS is opt-in via `BRAVO_AWS_SECRETS_ENABLED=true`.
+
+- `load_settings()` in `config.py` hydrates settings from AWS when enabled
+- `SecretsManager` in `services/secrets.py` is the async client (aioboto3, 60-min cache)
+- Env vars always take precedence over AWS values (via `or` pattern)
+- `BRAVO_AWS_PROFILE` for local dev (e.g. `campaign_prod_v7`), empty on EC2 (uses IAM role)
+- Three secrets: `bravo/slack`, `bravo/llm`, `bravo/database`
+- IAM: `BravoSecretsManagerAccess` policy on `campaign-role` (Javelin EC2), standalone `bravo-iam` role also available
 
 ## Jira Project
 
