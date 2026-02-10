@@ -153,6 +153,36 @@ class TestEvaluateTicket:
         mock_gates.evaluate.assert_called_once()
 
     @pytest.mark.usefixtures("_mock_queries")
+    async def test_active_snooze_skips_evaluation(self, _mock_queries):
+        service, _, mock_slack, mock_gates, _ = _make_nudge_service()
+        _mock_queries.get_active_snooze_for_ticket.return_value = {
+            "snoozed_until": datetime(2099, 1, 1, tzinfo=UTC),
+            "status": "SNOOZED",
+        }
+
+        result = await service.evaluate_ticket("TEST-1")
+
+        assert result["should_nudge"] is False
+        assert result["nudge_reason"] == "snoozed"
+        mock_gates.evaluate.assert_not_called()
+        mock_slack.send_dm.assert_not_called()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_expired_snooze_allows_evaluation(self, _mock_queries):
+        service, _, mock_slack, mock_gates, mock_llm = _make_nudge_service()
+        _mock_queries.get_active_snooze_for_ticket.return_value = None
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        result = await service.evaluate_ticket("TEST-1")
+
+        mock_gates.evaluate.assert_called_once()
+
+    @pytest.mark.usefixtures("_mock_queries")
     async def test_ticket_not_found_raises(self, _mock_queries):
         service, _, _, _, _ = _make_nudge_service()
         _mock_queries.get_ticket.return_value = None
