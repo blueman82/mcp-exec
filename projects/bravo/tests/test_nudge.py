@@ -58,6 +58,7 @@ def _make_nudge_service() -> tuple[NudgeService, AsyncMock, AsyncMock, AsyncMock
 def _mock_queries():
     """Patch bravo.db.queries used by nudge service."""
     with patch("bravo.services.nudge.queries") as mock_q:
+        mock_q.get_active_snooze_for_ticket = AsyncMock(return_value=None)
         mock_q.get_latest_nudge_for_ticket = AsyncMock(return_value=None)
         mock_q.get_ticket = AsyncMock(return_value=_make_ticket_record())
         mock_q.update_ticket_gates = AsyncMock()
@@ -141,6 +142,36 @@ class TestEvaluateTicket:
             "created_at": datetime.now(UTC) - timedelta(hours=25),
             "status": "SENT",
         }
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        result = await service.evaluate_ticket("TEST-1")
+
+        mock_gates.evaluate.assert_called_once()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_active_snooze_skips_evaluation(self, _mock_queries):
+        service, _, mock_slack, mock_gates, _ = _make_nudge_service()
+        _mock_queries.get_active_snooze_for_ticket.return_value = {
+            "snoozed_until": datetime(2099, 1, 1, tzinfo=UTC),
+            "status": "SNOOZED",
+        }
+
+        result = await service.evaluate_ticket("TEST-1")
+
+        assert result["should_nudge"] is False
+        assert result["nudge_reason"] == "snoozed"
+        mock_gates.evaluate.assert_not_called()
+        mock_slack.send_dm.assert_not_called()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_expired_snooze_allows_evaluation(self, _mock_queries):
+        service, _, mock_slack, mock_gates, mock_llm = _make_nudge_service()
+        _mock_queries.get_active_snooze_for_ticket.return_value = None
         mock_gates.evaluate.return_value = GateEvaluation(
             g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
         )

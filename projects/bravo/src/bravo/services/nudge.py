@@ -82,6 +82,20 @@ class NudgeService:
         Raises:
             ValueError: If the ticket is not found.
         """
+        active_snooze = await queries.get_active_snooze_for_ticket(ticket_key)
+        if active_snooze:
+            logger.info(
+                "nudge_snoozed",
+                ticket_key=ticket_key,
+                snoozed_until=str(active_snooze["snoozed_until"]),
+            )
+            return {
+                "ticket_key": ticket_key,
+                "gate_result": None,
+                "should_nudge": False,
+                "nudge_reason": "snoozed",
+            }
+
         latest_nudge = await queries.get_latest_nudge_for_ticket(ticket_key)
         if latest_nudge:
             cooldown = timedelta(hours=self.settings.nudge_cooldown_hours)
