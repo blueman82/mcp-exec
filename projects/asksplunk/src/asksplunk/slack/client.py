@@ -56,6 +56,10 @@ class SlackClient:
         "If you believe you should have access, please contact ORG-OMEARA-ALL@adobe.com."
     )
 
+    AUTH_TEST_TIMEOUT_SECONDS: float = 10.0
+    AUTH_TEST_MAX_RETRIES: int = 3
+    AUTH_TEST_BACKOFF_BASE: float = 1.0
+
     def __init__(
         self, bot_token: str, app_token: str, agent=None, usage_tracker: UsageTracker | None = None
     ) -> None:
