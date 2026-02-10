@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Bash(git status*), Bash(git log*), Bash(ls*), Glob, Grep, AskUserQuestion, SlashCommand
+allowed-tools: Read, Bash(git status*), Bash(git log*), Bash(git worktree*), Bash(ls*), Glob, Grep, AskUserQuestion, SlashCommand, EnterPlanMode, mcp__mcp-exec__execute_code_with_wrappers
 argument-hint: "feature description for interactive design"
 description: Interactive design session - work with the user through questions to refine and validate the design
 ---
