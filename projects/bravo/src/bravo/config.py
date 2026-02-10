@@ -1,5 +1,6 @@
 """Application configuration using pydantic-settings."""
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -106,6 +107,11 @@ class Settings(BaseSettings):
     poll_interval_minutes: int = 60
     nudge_cooldown_hours: int = 24
 
+    aws_secrets_enabled: bool = False
+    aws_region: str = "eu-west-1"
+    aws_cache_ttl: int = 3600
+    aws_profile: str = ""
+
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     jira: JiraSettings = Field(default_factory=JiraSettings)
     slack: SlackSettings = Field(default_factory=SlackSettings)
@@ -121,3 +127,46 @@ def get_settings() -> Settings:
     runtime mutations to persist until process restart.
     """
     return Settings()
+
+
+async def load_settings() -> Settings:
+    """Load settings, optionally hydrating from AWS Secrets Manager.
+
+    When aws_secrets_enabled=True, fetches secrets from AWS and fills in
+    any settings not already set via env vars. Env vars always take
+    precedence over AWS values.
+
+    Returns:
+        Hydrated Settings instance.
+    """
+    settings = get_settings()
+    if not settings.aws_secrets_enabled:
+        return settings
+
+    from bravo.services.secrets import SecretsManager
+
+    async with SecretsManager(
+        region=settings.aws_region,
+        cache_ttl=settings.aws_cache_ttl,
+        profile=settings.aws_profile or None,
+    ) as sm:
+        slack_secrets = await sm.get_slack_secrets()
+        llm_secrets = await sm.get_llm_secrets()
+        db_secrets = await sm.get_database_secrets()
+
+    settings.slack.bot_token = settings.slack.bot_token or slack_secrets["bot_token"]
+    settings.slack.app_token = settings.slack.app_token or slack_secrets["app_token"]
+    settings.slack.signing_secret = settings.slack.signing_secret or slack_secrets.get("signing_secret", "")
+
+    settings.llm.api_key = settings.llm.api_key or llm_secrets["api_key"]
+    settings.llm.endpoint = settings.llm.endpoint or llm_secrets["endpoint"]
+    settings.llm.api_version = settings.llm.api_version or llm_secrets.get("api_version", "")
+    settings.llm.model = settings.llm.model or llm_secrets.get("model", "")
+
+    settings.database.password = settings.database.password or db_secrets["password"]
+    if "user" in db_secrets and "DB_USER" not in os.environ:
+        settings.database.user = db_secrets["user"]
+    if "host" in db_secrets and "DB_HOST" not in os.environ:
+        settings.database.host = db_secrets["host"]
+
+    return settings

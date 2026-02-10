@@ -14,7 +14,7 @@ from fastapi import FastAPI
 
 from bravo import __version__
 from bravo.api import admin, assignees, health, nudge, polling, tickets
-from bravo.config import LOG_FILE, get_settings
+from bravo.config import LOG_FILE, get_settings, load_settings
 from bravo.container import create_container
 from bravo.db import close_pool, init_pool
 
@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     Yields:
         None during the application's active lifetime.
     """
-    settings = get_settings()
+    settings = await load_settings()
 
     logger.info("starting_bravo", version=__version__)
 

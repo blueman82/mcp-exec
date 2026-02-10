@@ -10,7 +10,7 @@ import signal
 import structlog
 
 from bravo import __version__
-from bravo.config import get_settings
+from bravo.config import get_settings, load_settings
 from bravo.container import create_container
 from bravo.db import close_pool, init_pool
 
@@ -38,9 +38,11 @@ class Worker:
     async def start(self) -> None:
         """Start the worker.
 
-        Initializes the database pool and starts concurrent tasks for
-        polling and Socket Mode event handling.
+        Hydrates settings from AWS (if enabled), initializes the database
+        pool, and starts concurrent tasks for polling and Socket Mode.
         """
+        self.settings = await load_settings()
+        self.container = create_container(self.settings)
         logger.info("worker_starting", version=__version__)
 
         await init_pool(self.settings.database)
