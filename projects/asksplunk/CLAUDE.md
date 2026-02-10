@@ -8,7 +8,7 @@ Guidance for Claude Code when working with this repository.
 
 ### Implemented
 - **Entry Point** (`src/asksplunk/main.py`): Async main with signal handlers (SIGTERM/SIGINT)
-- **Slack Integration** (`src/asksplunk/slack/`): Socket Mode client, event handlers, Block Kit formatters
+- **Slack Integration** (`src/asksplunk/slack/`): Socket Mode client with connection resilience, event handlers, Block Kit formatters
 - **Session Management** (`src/asksplunk/session/`): DynamoDB CRUD with 30-min TTL, verified deletion
 - **Secrets Manager** (`src/asksplunk/secrets.py`): AWS Secrets Manager with 60-min caching, authorized user list
 - **Access Control** (`src/asksplunk/auth/`): Whitelist-based authorization via Secrets Manager
