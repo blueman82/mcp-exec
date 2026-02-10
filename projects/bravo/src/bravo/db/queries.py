@@ -494,6 +494,27 @@ async def clear_nudge_snooze(nudge_id: UUID) -> asyncpg.Record | None:
     )
 
 
+async def get_active_snooze_for_ticket(ticket_key: str) -> asyncpg.Record | None:
+    """Get an actively snoozed nudge for a ticket.
+
+    Args:
+        ticket_key: The Jira ticket key.
+
+    Returns:
+        The snoozed nudge record or None if no active snooze exists.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        SELECT * FROM nudge_events
+        WHERE ticket_key = $1 AND status = 'SNOOZED' AND snoozed_until > NOW()
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        ticket_key,
+    )
+
+
 async def get_latest_nudge_for_ticket(ticket_key: str) -> asyncpg.Record | None:
     """Get the most recent SENT nudge for a ticket.
 
