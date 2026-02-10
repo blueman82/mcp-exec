@@ -1,6 +1,6 @@
 """Nudge API endpoints.
 
-This module provides endpoints for listing, viewing, and sending nudges.
+This module provides endpoints for listing and viewing nudges.
 """
 
 from typing import Any
@@ -14,7 +14,6 @@ from bravo.models import (
     NudgeListResponse,
     NudgeResponse,
     NudgeStatus,
-    SendNudgeRequest,
 )
 
 logger = structlog.get_logger(__name__)
@@ -92,39 +91,3 @@ async def get_nudge(nudge_id: UUID) -> NudgeResponse:
     return _row_to_nudge(row)
 
 
-@router.post("/send", response_model=NudgeResponse)
-async def send_nudge(request: SendNudgeRequest) -> NudgeResponse:
-    """Manually send a nudge.
-
-    Args:
-        request: SendNudgeRequest with ticket key and optional reason.
-
-    Returns:
-        NudgeResponse with created nudge details.
-
-    Raises:
-        HTTPException: 404 if ticket not found, 400 if no assignee.
-    """
-    ticket = await queries.get_ticket(request.ticket_key)
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-
-    if not ticket["assignee_jira_id"]:
-        raise HTTPException(status_code=400, detail="Ticket has no assignee")
-
-    # TODO: Implement actual nudge sending via Slack
-    logger.info(
-        "manual_nudge_requested",
-        ticket_key=request.ticket_key,
-        reason=request.reason,
-    )
-
-    row = await queries.create_nudge(
-        ticket_key=request.ticket_key,
-        assignee_jira_id=ticket["assignee_jira_id"],
-        trigger_reason=request.reason or "Manual nudge",
-        slack_channel="",  # TODO: Look up from assignee
-        message_content="",  # TODO: Generate message
-    )
-
-    return _row_to_nudge(row)

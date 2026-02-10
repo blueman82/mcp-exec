@@ -28,7 +28,6 @@ from bravo.models.schemas import (
     PollStateResponse,
     PollStatus,
     PollTriggerResponse,
-    SendNudgeRequest,
     StatsResponse,
     TicketListResponse,
     TicketResponse,
@@ -71,7 +70,6 @@ __all__ = [
     # Nudge
     "NudgeListResponse",
     "NudgeResponse",
-    "SendNudgeRequest",
     # Assignees
     "AssigneeListResponse",
     "AssigneeResponse",

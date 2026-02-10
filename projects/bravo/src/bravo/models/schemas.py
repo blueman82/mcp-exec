@@ -279,13 +279,6 @@ class NudgeListResponse(BaseModel):
     total: int = 0
 
 
-class SendNudgeRequest(BaseModel):
-    """Manual nudge send request."""
-
-    ticket_key: str
-    reason: str | None = None
-
-
 # ============ ASSIGNEES ============
 
 

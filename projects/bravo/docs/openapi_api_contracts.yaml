@@ -315,25 +315,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/NudgeResponse'
 
-  /nudge/send:
-    post:
-      tags: [Nudge]
-      summary: Manually send a nudge
-      operationId: sendNudge
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendNudgeRequest'
-      responses:
-        '200':
-          description: Nudge sent
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NudgeResponse'
-
   # ============ ASSIGNEES ============
   /assignees:
     get:
@@ -724,16 +705,6 @@ components:
             $ref: '#/components/schemas/NudgeResponse'
         total:
           type: integer
-
-    SendNudgeRequest:
-      type: object
-      required: [ticket_key]
-      properties:
-        ticket_key:
-          type: string
-        reason:
-          type: string
-          description: Manual nudge reason
 
     # ============ ASSIGNEES ============
     AssigneeResponse:
