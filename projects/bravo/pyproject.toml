@@ -18,6 +18,7 @@ dependencies = [
     "slack-sdk",
     "structlog",
     "httpx",
+    "openai",
 ]
 
 [project.optional-dependencies]
