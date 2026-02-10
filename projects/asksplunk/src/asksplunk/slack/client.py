@@ -4,11 +4,13 @@ Establishes WebSocket connection to Slack using Socket Mode.
 Receives app_mention events and provides event handlers for bot interactions.
 """
 
+import asyncio
 from functools import partial
 
 import structlog
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncApp
+from slack_sdk.errors import SlackApiError
 
 from asksplunk.auth.validator import AccessValidator
 from asksplunk.secrets import SecretsManager
