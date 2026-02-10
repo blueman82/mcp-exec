@@ -187,6 +187,6 @@ Scopes: agent, indexer, retriever, session, slack, secrets, main, docker, ci
 ## References
 
 - **Implementation Plan**: `docs/plans/asksplunk-slack-bot.md`
-- **Infrastructure Scripts**: `infrastructure/` (validate.sh, deploy-build-push.sh)
+- **Infrastructure Scripts**: `infrastructure/` (validate.sh, deploy-build-push.sh, create-usage-gsi.sh, run-indexer.py)
 - **Architecture Diagrams**: `docs/diagrams/`
 - **Security Audit**: `docs/security/security-audit-report.md`
