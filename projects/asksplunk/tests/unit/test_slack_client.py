@@ -1154,3 +1154,390 @@ class TestSlackClient:
             )
 
             assert client.usage_tracker is mock_tracker
+
+
+class TestIsFatalSlackError:
+    """Test _is_fatal_slack_error module-level helper."""
+
+    def test_fatal_errors(self):
+        """Should return True for invalid_auth, account_inactive, token_revoked, not_authed."""
+        for code in ("invalid_auth", "account_inactive", "token_revoked", "not_authed"):
+            error = _make_slack_api_error(code)
+            assert _is_fatal_slack_error(error) is True
+
+    def test_transient_errors(self):
+        """Should return False for transient Slack errors."""
+        for code in ("ratelimited", "request_timeout", "service_unavailable"):
+            error = _make_slack_api_error(code)
+            assert _is_fatal_slack_error(error) is False
+
+    def test_unknown_errors(self):
+        """Should return False for non-SlackApiError exceptions."""
+        assert _is_fatal_slack_error(RuntimeError("network")) is False
+        assert _is_fatal_slack_error(TimeoutError()) is False
+
+
+class TestShutdownResilience:
+    """Test shutdown() continues cleanup when individual steps fail."""
+
+    @pytest.fixture
+    def mock_tokens(self):
+        return {"bot_token": "xoxb-fake-test-token", "app_token": "xapp-fake-test-token"}
+
+    @pytest.mark.asyncio
+    async def test_shutdown_continues_when_session_manager_cleanup_fails(self, mock_tokens):
+        """shutdown() should still close secrets manager and handler when session manager __aexit__ fails."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            # Set up context managers
+            client._session_manager_context = AsyncMock()
+            client._session_manager_context.__aexit__ = AsyncMock(
+                side_effect=RuntimeError("session cleanup boom")
+            )
+            client.session_manager = AsyncMock()
+
+            client._secrets_manager_context = AsyncMock()
+            client._secrets_manager_context.__aexit__ = AsyncMock(return_value=None)
+            client.access_validator = AsyncMock()
+
+            client.handler = AsyncMock()
+
+            await client.shutdown()
+
+            # Secrets manager should still have been cleaned up
+            client._secrets_manager_context.__aexit__.assert_called_once()
+            assert client._secrets_manager_context is None
+            assert client.access_validator is None
+            # Handler should still have been closed
+            client.handler.close_async.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_shutdown_continues_when_secrets_manager_cleanup_fails(self, mock_tokens):
+        """shutdown() should still close handler when secrets manager __aexit__ fails."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            client._secrets_manager_context = AsyncMock()
+            client._secrets_manager_context.__aexit__ = AsyncMock(
+                side_effect=RuntimeError("secrets cleanup boom")
+            )
+            client.access_validator = AsyncMock()
+
+            client.handler = AsyncMock()
+
+            await client.shutdown()
+
+            # Handler should still have been closed
+            client.handler.close_async.assert_called_once()
+            assert client._secrets_manager_context is None
+            assert client.access_validator is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_continues_when_handler_close_fails(self, mock_tokens):
+        """shutdown() should complete without raising when handler.close_async() fails."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            client.handler = AsyncMock()
+            client.handler.close_async = AsyncMock(side_effect=RuntimeError("handler boom"))
+            client.is_running = True
+
+            # Should not raise
+            await client.shutdown()
+            assert client.is_running is False
+
+    @pytest.mark.asyncio
+    async def test_shutdown_nulls_references_even_on_error(self, mock_tokens):
+        """shutdown() should null all references even when __aexit__ fails."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            # All three context managers fail
+            client._session_manager_context = AsyncMock()
+            client._session_manager_context.__aexit__ = AsyncMock(side_effect=RuntimeError("boom1"))
+            client.session_manager = AsyncMock()
+
+            client._secrets_manager_context = AsyncMock()
+            client._secrets_manager_context.__aexit__ = AsyncMock(side_effect=RuntimeError("boom2"))
+            client.access_validator = AsyncMock()
+
+            client._usage_tracker_context = AsyncMock()
+            client._usage_tracker_context.__aexit__ = AsyncMock(side_effect=RuntimeError("boom3"))
+            client.usage_tracker = AsyncMock()
+
+            await client.shutdown()
+
+            assert client._session_manager_context is None
+            assert client.session_manager is None
+            assert client._secrets_manager_context is None
+            assert client.access_validator is None
+            assert client._usage_tracker_context is None
+            assert client.usage_tracker is None
+
+
+class TestAuthTestWithRetry:
+    """Test _auth_test_with_retry method."""
+
+    @pytest.fixture
+    def mock_tokens(self):
+        return {"bot_token": "xoxb-fake-test-token", "app_token": "xapp-fake-test-token"}
+
+    @pytest.mark.asyncio
+    async def test_succeeds_first_attempt(self, mock_tokens):
+        """Should return auth response on first successful attempt."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            result = await client._auth_test_with_retry()
+            assert result == {"user_id": "U123BOT"}
+            mock_app.client.auth_test.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_succeeds_after_transient_failure(self, mock_tokens):
+        """Should retry and succeed after transient errors."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(
+                side_effect=[
+                    _make_slack_api_error("ratelimited"),
+                    {"user_id": "U123BOT"},
+                ]
+            )
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            result = await client._auth_test_with_retry()
+            assert result == {"user_id": "U123BOT"}
+            assert mock_app.client.auth_test.call_count == 2
+            mock_sleep.assert_called_once_with(1.0)  # backoff base * 2^0
+
+    @pytest.mark.asyncio
+    async def test_fails_after_max_retries(self, mock_tokens):
+        """Should raise after exhausting all retries."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.asyncio.sleep", new_callable=AsyncMock),
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(
+                side_effect=_make_slack_api_error("ratelimited")
+            )
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            with pytest.raises(SlackApiError):
+                await client._auth_test_with_retry()
+            assert mock_app.client.auth_test.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_timeout(self, mock_tokens):
+        """Should handle asyncio.TimeoutError as transient and retry."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.asyncio.sleep", new_callable=AsyncMock),
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(side_effect=asyncio.TimeoutError())
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            with pytest.raises(asyncio.TimeoutError):
+                await client._auth_test_with_retry()
+            assert mock_app.client.auth_test.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_fatal_error_no_retry(self, mock_tokens):
+        """Should raise immediately on fatal errors without retrying."""
+        with patch("asksplunk.slack.client.AsyncApp") as MockApp:
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(
+                side_effect=_make_slack_api_error("invalid_auth")
+            )
+            MockApp.return_value = mock_app
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            with pytest.raises(SlackApiError):
+                await client._auth_test_with_retry()
+            mock_app.client.auth_test.assert_called_once()
+
+
+class TestStartLifecycle:
+    """Test start() structured logging and error handling."""
+
+    @pytest.fixture
+    def mock_tokens(self):
+        return {"bot_token": "xoxb-fake-test-token", "app_token": "xapp-fake-test-token"}
+
+    @pytest.mark.asyncio
+    async def test_start_logs_lifecycle_events(self, mock_tokens):
+        """start() should emit socket_mode_handler_starting and socket_mode_connected."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.logger") as mock_logger,
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            await client.start()
+
+            log_events = [call[0][0] for call in mock_logger.info.call_args_list]
+            assert "socket_mode_handler_starting" in log_events
+            assert "socket_mode_connected" in log_events
+
+    @pytest.mark.asyncio
+    async def test_start_logs_transient_error_as_warning(self, mock_tokens):
+        """start() should log transient errors at warning level."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.logger") as mock_logger,
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            mock_handler_instance.start_async = AsyncMock(
+                side_effect=ConnectionError("WebSocket 408")
+            )
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            with pytest.raises(ConnectionError):
+                await client.start()
+
+            mock_logger.warning.assert_any_call(
+                "socket_mode_transient_error", error="WebSocket 408"
+            )
+
+    @pytest.mark.asyncio
+    async def test_start_logs_fatal_error(self, mock_tokens):
+        """start() should log fatal Slack errors at error level with exc_info."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.logger") as mock_logger,
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            fatal_error = _make_slack_api_error("invalid_auth")
+            mock_handler_instance = AsyncMock()
+            mock_handler_instance.start_async = AsyncMock(side_effect=fatal_error)
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            with pytest.raises(SlackApiError):
+                await client.start()
+
+            mock_logger.error.assert_any_call(
+                "socket_mode_fatal_error", error=str(fatal_error), exc_info=True
+            )
+
+    @pytest.mark.asyncio
+    async def test_start_sets_is_running_false_on_error(self, mock_tokens):
+        """start() should set is_running to False when start_async() raises."""
+        with (
+            patch("asksplunk.slack.client.AsyncApp") as MockApp,
+            patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
+            patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+        ):
+            mock_app = Mock()
+            mock_app.client.auth_test = AsyncMock(return_value={"user_id": "U123BOT"})
+            MockApp.return_value = mock_app
+
+            mock_handler_instance = AsyncMock()
+            mock_handler_instance.start_async = AsyncMock(
+                side_effect=ConnectionError("connection refused")
+            )
+            MockHandler.return_value = mock_handler_instance
+
+            mock_session_mgr = AsyncMock()
+            mock_session_mgr.__aenter__ = AsyncMock(return_value=mock_session_mgr)
+            mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSessionManager.return_value = mock_session_mgr
+
+            client = SlackClient(
+                bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
+            )
+
+            with pytest.raises(ConnectionError):
+                await client.start()
+
+            assert client.is_running is False
