@@ -33,7 +33,7 @@ src/bravo/
     admin.py           # Stats, config, poll trigger, logs
     polling.py         # Polling state and history
     tickets.py         # Ticket CRUD + gate/LLM evaluation
-    nudge.py           # Nudge listing and sending
+    nudge.py           # Nudge listing and details
     assignees.py       # Assignee management
   worker/main.py       # Background worker (poll loop + Socket Mode)
   models/schemas.py    # Pydantic response models
