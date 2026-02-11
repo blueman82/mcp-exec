@@ -28,8 +28,6 @@ services:
     command: ["bravo-api"]
     ports:
       - "8000:8000"
-    env_file:
-      - ../.env
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -38,8 +36,13 @@ services:
       - DB_PASSWORD=bravo
       - PYTHONPATH=/app
       - LOG_LEVEL=INFO
+      - BRAVO_AWS_SECRETS_ENABLED=true
+      - BRAVO_AWS_PROFILE=campaign_prod_v7
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
     volumes:
       - ./logs:/var/log
+      - ~/.aws:/home/bravo/.aws:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,8 +60,6 @@ services:
       dockerfile: infrastructure/Dockerfile.app
     image: bravo-worker:local-dev
     command: ["bravo-worker"]
-    env_file:
-      - ../.env
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -67,8 +68,13 @@ services:
       - DB_PASSWORD=bravo
       - PYTHONPATH=/app
       - LOG_LEVEL=INFO
+      - BRAVO_AWS_SECRETS_ENABLED=true
+      - BRAVO_AWS_PROFILE=campaign_prod_v7
+      - AWS_PROFILE=campaign_prod_v7
+      - AWS_REGION=eu-west-1
     volumes:
       - ./logs:/var/log
+      - ~/.aws:/home/bravo/.aws:ro
     depends_on:
       postgres:
         condition: service_healthy
