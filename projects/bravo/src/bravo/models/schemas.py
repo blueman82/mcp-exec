@@ -160,7 +160,7 @@ class ConfigUpdateRequest(BaseModel):
 class PollTriggerResponse(BaseModel):
     """Poll trigger response."""
 
-    poll_id: UUID
+    request_id: UUID
     status: PollStatus = PollStatus.QUEUED
     message: str | None = None
 

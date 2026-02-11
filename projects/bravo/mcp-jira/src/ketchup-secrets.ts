@@ -31,7 +31,7 @@ export async function getIpaasAuth(): Promise<IpaasAuth | undefined> {
 
   try {
     client ??= new SecretsManagerClient({
-      region: process.env.AWS_REGION || "eu-west-1",
+      region: process.env.AWS_REGION ?? "eu-west-1",
     });
 
     const response = await client.send(

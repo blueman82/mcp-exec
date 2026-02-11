@@ -18,10 +18,10 @@ export function loadConfig(): JiraConfig {
 
   config = {
     mode,
-    baseUrl: process.env.JIRA_API_BASE_URL || defaultUrl,
-    port: parseInt(process.env.PORT || "8081", 10),
+    baseUrl: process.env.JIRA_API_BASE_URL ?? defaultUrl,
+    port: parseInt(process.env.PORT ?? "8081", 10),
     auth: {
-      pat: process.env.JIRA_PAT || "",
+      pat: process.env.JIRA_PAT ?? "",
     },
   };
 

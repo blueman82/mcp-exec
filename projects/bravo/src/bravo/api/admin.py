@@ -109,11 +109,11 @@ async def trigger_poll(
     Returns:
         PollTriggerResponse with poll ID and queued status.
     """
-    poll_id = uuid4()
-    logger.info("manual_poll_triggered", poll_id=str(poll_id))
+    request_id = uuid4()
+    logger.info("manual_poll_triggered", request_id=str(request_id))
     background_tasks.add_task(poller.run_poll)
     return PollTriggerResponse(
-        poll_id=poll_id,
+        request_id=request_id,
         status=PollStatus.QUEUED,
         message="Poll cycle queued for execution",
     )

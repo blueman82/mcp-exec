@@ -1,6 +1,7 @@
 """Tests for FastAPI Depends() helpers and wired routes."""
 
 import json
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -168,7 +169,7 @@ def test_trigger_poll_returns_202() -> None:
     assert resp.status_code == 202
     data = resp.json()
     assert data["status"] == "queued"
-    assert data["poll_id"] is not None
+    assert data["request_id"] is not None
 
 
 def test_get_logs_empty_when_no_file() -> None:
@@ -181,7 +182,7 @@ def test_get_logs_empty_when_no_file() -> None:
     assert resp.json()["logs"] == []
 
 
-def test_get_logs_reads_json_lines(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
+def test_get_logs_reads_json_lines(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """GET /admin/logs reads and parses JSON log lines."""
     log_file = tmp_path / "bravo.log"
     lines = [
@@ -205,7 +206,7 @@ def test_get_logs_reads_json_lines(monkeypatch: pytest.MonkeyPatch, tmp_path: An
     assert logs[1]["level"] == "INFO"
 
 
-def test_get_logs_filters_by_level(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
+def test_get_logs_filters_by_level(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """GET /admin/logs?level=ERROR filters entries."""
     log_file = tmp_path / "bravo.log"
     lines = [

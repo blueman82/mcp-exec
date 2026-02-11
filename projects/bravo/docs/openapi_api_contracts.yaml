@@ -509,7 +509,7 @@ components:
     PollTriggerResponse:
       type: object
       properties:
-        poll_id:
+        request_id:
           type: string
           format: uuid
         status:

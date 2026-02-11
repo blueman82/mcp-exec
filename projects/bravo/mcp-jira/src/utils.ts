@@ -6,7 +6,6 @@ interface JiraRequestOptions {
   method?: string;
   body?: unknown;
   userPat?: string;
-  headers?: Record<string, string>;
 }
 
 export async function jiraRequest<T = unknown>(

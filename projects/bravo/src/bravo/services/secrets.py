@@ -5,7 +5,7 @@ secrets from AWS Secrets Manager with configurable cache TTL.
 """
 
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Self
 
 import aioboto3
@@ -68,7 +68,7 @@ class SecretsManager:
             RuntimeError: If called outside async context manager.
         """
         if secret_name in self._cache:
-            elapsed = datetime.now() - self._cache_timestamps[secret_name]
+            elapsed = datetime.now(UTC) - self._cache_timestamps[secret_name]
             if elapsed < timedelta(seconds=self.cache_ttl):
                 return self._cache[secret_name]
 
@@ -82,7 +82,7 @@ class SecretsManager:
         secret_data: dict[str, Any] = json.loads(response["SecretString"])
 
         self._cache[secret_name] = secret_data
-        self._cache_timestamps[secret_name] = datetime.now()
+        self._cache_timestamps[secret_name] = datetime.now(UTC)
 
         return secret_data
 

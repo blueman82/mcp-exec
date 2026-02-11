@@ -1,7 +1,7 @@
 """Tests for AWS Secrets Manager integration and load_settings()."""
 
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -97,7 +97,7 @@ async def test_cache_expired() -> None:
     sm._client = client
     async with sm:
         await sm.get_slack_secrets()
-        sm._cache_timestamps["bravo/slack"] = datetime.now() - timedelta(seconds=120)
+        sm._cache_timestamps["bravo/slack"] = datetime.now(UTC) - timedelta(seconds=120)
         await sm.get_slack_secrets()
 
     assert client.get_secret_value.call_count == 2

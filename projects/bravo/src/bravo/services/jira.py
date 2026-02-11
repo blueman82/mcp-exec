@@ -8,7 +8,7 @@ Jira REST calls.
 import asyncio
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, cast
 
 import httpx
@@ -205,7 +205,7 @@ class JiraMCPClient:
             updated = (
                 datetime.fromisoformat(updated_raw.replace("Z", "+00:00"))
                 if updated_raw
-                else datetime.now()
+                else datetime.now(UTC)
             )
 
             tickets.append(

@@ -9,7 +9,7 @@ const SECRET_KEY_MAP: Record<string, string> = {
 };
 
 export async function loadAwsSecrets(): Promise<void> {
-  const region = process.env.AWS_REGION || "eu-west-1";
+  const region = process.env.AWS_REGION ?? "eu-west-1";
   const client = new SecretsManagerClient({ region });
 
   const command = new GetSecretValueCommand({ SecretId: "bravo/jira" });
