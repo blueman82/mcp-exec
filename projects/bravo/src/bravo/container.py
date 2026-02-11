@@ -67,10 +67,10 @@ def create_container(settings: Settings) -> ServiceRegistry:
     registry.register(
         DependencySpec(
             name="poller_service",
-            factory=lambda jira_client, nudge_service: _async(
-                PollerService(settings, jira_client, nudge_service)
+            factory=lambda jira_client, nudge_service, slack_service: _async(
+                PollerService(settings, jira_client, nudge_service, slack_service)
             ),
-            depends_on=["jira_client", "nudge_service"],
+            depends_on=["jira_client", "nudge_service", "slack_service"],
         )
     )
     registry.register(

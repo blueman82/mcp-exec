@@ -11,7 +11,8 @@ import structlog
 
 from bravo.config import Settings
 from bravo.db import queries
-from bravo.protocols import JiraClientProto, NudgeServiceProto
+from bravo.protocols import JiraClientProto, NudgeServiceProto, SlackServiceProto
+from bravo.services.jira import JiraTicket
 
 logger = structlog.get_logger(__name__)
 
@@ -32,6 +33,7 @@ class PollerService:
         settings: Settings,
         jira_client: JiraClientProto,
         nudge: NudgeServiceProto,
+        slack: SlackServiceProto,
     ) -> None:
         """Initialize the poller service.
 
@@ -39,10 +41,42 @@ class PollerService:
             settings: Application configuration.
             jira_client: Jira API client instance.
             nudge: Nudge orchestration service.
+            slack: Slack service for user lookups.
         """
         self.settings = settings
         self.jira = jira_client
         self.nudge = nudge
+        self.slack = slack
+
+    async def _ensure_assignee(self, ticket: JiraTicket) -> None:
+        """Auto-register an assignee from Jira ticket data.
+
+        Upserts the assignee record and looks up their Slack user ID
+        via email if not already mapped.
+
+        Args:
+            ticket: The Jira ticket with assignee info.
+        """
+        if not ticket.assignee_id:
+            return
+
+        email = f"{ticket.assignee_id}@{self.settings.jira.email_domain}"
+        assignee = await queries.upsert_assignee(
+            jira_id=ticket.assignee_id,
+            display_name=ticket.assignee_name,
+            slack_user_id=None,
+            email=email,
+        )
+
+        if not assignee["slack_user_id"]:
+            slack_user = await self.slack.lookup_user_by_email(email)
+            if slack_user:
+                await queries.upsert_assignee(
+                    jira_id=ticket.assignee_id,
+                    display_name=ticket.assignee_name,
+                    slack_user_id=slack_user.user_id,
+                    email=email,
+                )
 
     def _build_jql(self, since: datetime | None = None) -> str:
         """Build JQL query for polling.
@@ -110,6 +144,16 @@ class PollerService:
                     assignee_name=ticket.assignee_name,
                     jira_status=ticket.status,
                 )
+
+                try:
+                    await self._ensure_assignee(ticket)
+                except Exception:
+                    logger.warning(
+                        "assignee_registration_failed",
+                        ticket_key=ticket.key,
+                        assignee_id=ticket.assignee_id,
+                        exc_info=True,
+                    )
 
                 if existing:
                     tickets_updated += 1

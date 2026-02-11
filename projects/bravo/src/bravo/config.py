@@ -58,6 +58,7 @@ class JiraSettings(BaseSettings):
     max_concurrent_requests: int = 10
     request_timeout: float = 30.0
     max_retries: int = 3
+    email_domain: str = "adobe.com"
 
 
 class SlackSettings(BaseSettings):
