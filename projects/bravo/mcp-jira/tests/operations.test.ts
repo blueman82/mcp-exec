@@ -4,7 +4,10 @@ const mockWriteFile = vi.fn();
 
 vi.mock("../src/utils.js", () => ({
   jiraRequest: vi.fn(),
-  setCurrentAuthToken: vi.fn(),
+}));
+
+vi.mock("../src/ketchup-secrets.js", () => ({
+  getIpaasAuth: vi.fn().mockResolvedValue({ imsToken: "test-ims", apiKey: "test-key" }),
 }));
 
 vi.mock("../src/config.js", () => ({
@@ -12,13 +15,13 @@ vi.mock("../src/config.js", () => ({
     mode: "ipaas",
     baseUrl: "https://test.example.com/api",
     port: 8081,
-    auth: { apiKey: "test-key", imsToken: "test-ims", pat: "test-pat" },
+    auth: { pat: "test-pat" },
   },
   getConfig: () => ({
     mode: "ipaas",
     baseUrl: "https://test.example.com/api",
     port: 8081,
-    auth: { apiKey: "test-key", imsToken: "test-ims", pat: "test-pat" },
+    auth: { pat: "test-pat" },
   }),
   loadConfig: vi.fn(),
 }));
@@ -40,11 +43,14 @@ import { createIssueHandler } from "../src/operations/create.js";
 import { updateIssueHandler } from "../src/operations/update.js";
 import { getProjectIssueTypesHandler } from "../src/operations/createmeta.js";
 import { downloadAttachmentHandler } from "../src/operations/attachment.js";
+import { getIpaasAuth } from "../src/ketchup-secrets.js";
 
 const mockJiraRequest = vi.mocked(jiraRequest);
+const mockGetIpaasAuth = vi.mocked(getIpaasAuth);
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  mockGetIpaasAuth.mockResolvedValue({ imsToken: "test-ims", apiKey: "test-key" });
 });
 
 describe("testAuthHandler", () => {

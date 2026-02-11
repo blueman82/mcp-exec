@@ -49,6 +49,7 @@ mcp-jira/                    # TypeScript Jira MCP server
     errors.ts                # JiraError class
     env.ts                   # .env or AWS secrets loader
     env-aws.ts               # AWS Secrets Manager loader
+    ketchup-secrets.ts           # Cached reader for Ketchup_Token_Secrets (iPaaS auth)
     operations/              # Tool handlers (10 tools)
   tests/                     # Vitest test suite
   Dockerfile                 # Multi-stage Node.js build
@@ -131,6 +132,9 @@ TypeScript Express server on port 8081 implementing JSON-RPC 2.0 protocol. Match
 - Two auth modes: iPaaS (production, via `USE_IPAAS=true`) and direct PAT (local dev)
 - 10 tools: `test_jira_auth`, `search_jira_issues`, `add_jira_comment`, `delete_jira_comment`, `get_jira_transitions`, `transition_jira_status`, `create_jira_issue`, `update_jira_issue`, `get_project_issue_types`, `download_attachment`
 - `npm test` to run Vitest suite, `npm run dev` for local dev with hot reload
+- iPaaS auth (IMS token + API key) comes from `Ketchup_Token_Secrets` in AWS Secrets Manager with 5-min TTL cache (`ketchup-secrets.ts`)
+- Bravo has no IMS token generation — reads tokens refreshed by Ketchup's `AsyncIMSTokenManager`
+- Local dev: override with `JIRA_IMS_TOKEN` and `JIRA_API_KEY` env vars (skips AWS entirely)
 
 ## AWS Secrets Manager
 

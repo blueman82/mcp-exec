@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { writeFile } from "node:fs/promises";
 import { getConfig } from "../config.js";
+import { getIpaasAuth } from "../ketchup-secrets.js";
 
 export const downloadAttachmentSchema = z.object({
   issueIdOrKey: z.string(),
@@ -20,8 +21,12 @@ export async function downloadAttachmentHandler(
   };
 
   if (cfg.mode === "ipaas") {
-    headers["Authorization"] = cfg.auth.imsToken;
-    headers["Api_key"] = cfg.auth.apiKey;
+    const ipaasAuth = await getIpaasAuth();
+    if (!ipaasAuth) {
+      throw new Error("iPaaS auth not available for attachment download");
+    }
+    headers["Authorization"] = ipaasAuth.imsToken;
+    headers["Api_key"] = ipaasAuth.apiKey;
     headers["x-authorization"] = `Bearer ${cfg.auth.pat}`;
   } else {
     headers["Authorization"] = `Bearer ${cfg.auth.pat}`;

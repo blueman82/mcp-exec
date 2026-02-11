@@ -3,8 +3,6 @@ export interface JiraConfig {
   baseUrl: string;
   port: number;
   auth: {
-    apiKey: string;
-    imsToken: string;
     pat: string;
   };
 }
@@ -23,8 +21,6 @@ export function loadConfig(): JiraConfig {
     baseUrl: process.env.JIRA_API_BASE_URL || defaultUrl,
     port: parseInt(process.env.PORT || "8081", 10),
     auth: {
-      apiKey: process.env.JIRA_API_KEY || "",
-      imsToken: process.env.JIRA_IMS_TOKEN || "",
       pat: process.env.JIRA_PAT || "",
     },
   };

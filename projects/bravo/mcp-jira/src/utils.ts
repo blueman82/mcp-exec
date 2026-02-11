@@ -1,11 +1,6 @@
 import { JiraError } from "./errors.js";
 import { config } from "./config.js";
-
-let currentAuthToken: string | undefined;
-
-export function setCurrentAuthToken(token: string | undefined): void {
-  currentAuthToken = token;
-}
+import { getIpaasAuth } from "./ketchup-secrets.js";
 
 interface JiraRequestOptions {
   method?: string;
@@ -35,8 +30,15 @@ export async function jiraRequest<T = unknown>(
   };
 
   if (config.mode === "ipaas") {
-    headers["Authorization"] = config.auth.imsToken;
-    headers["Api_key"] = config.auth.apiKey;
+    const ipaasAuth = await getIpaasAuth();
+    if (!ipaasAuth) {
+      throw new JiraError(
+        "iPaaS auth not available. Set JIRA_IMS_TOKEN + JIRA_API_KEY env vars or enable USE_AWS_SECRETS.",
+        401
+      );
+    }
+    headers["Authorization"] = ipaasAuth.imsToken;
+    headers["Api_key"] = ipaasAuth.apiKey;
     headers["x-authorization"] = `Bearer ${effectivePat}`;
   } else {
     headers["Authorization"] = `Bearer ${effectivePat}`;

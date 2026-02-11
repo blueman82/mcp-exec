@@ -4,8 +4,6 @@ import { loadConfig, config } from "../src/config.js";
 beforeEach(() => {
   delete process.env.USE_IPAAS;
   delete process.env.JIRA_API_BASE_URL;
-  delete process.env.JIRA_API_KEY;
-  delete process.env.JIRA_IMS_TOKEN;
   delete process.env.JIRA_PAT;
   delete process.env.PORT;
 });

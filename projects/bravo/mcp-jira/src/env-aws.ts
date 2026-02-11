@@ -4,8 +4,6 @@ import {
 } from "@aws-sdk/client-secrets-manager";
 
 const SECRET_KEY_MAP: Record<string, string> = {
-  ipaas_api_key: "JIRA_API_KEY",
-  ims_access_token: "JIRA_IMS_TOKEN",
   jira_pat: "JIRA_PAT",
   jira_pat_expiry: "JIRA_PAT_EXPIRY",
 };

@@ -6,15 +6,21 @@ import { JiraError } from "../src/errors.js";
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
 
+vi.mock("../src/ketchup-secrets.js", () => ({
+  getIpaasAuth: vi.fn().mockResolvedValue({ imsToken: "test-ims", apiKey: "test-key" }),
+}));
+
+import { getIpaasAuth } from "../src/ketchup-secrets.js";
+const mockGetIpaasAuth = vi.mocked(getIpaasAuth);
+
 beforeEach(() => {
   process.env.USE_IPAAS = "true";
-  process.env.JIRA_API_KEY = "test-key";
-  process.env.JIRA_IMS_TOKEN = "test-ims";
   process.env.JIRA_PAT = "test-pat";
   process.env.JIRA_API_BASE_URL = "https://test.example.com/api";
   loadConfig();
   vi.restoreAllMocks();
   vi.stubGlobal("fetch", mockFetch);
+  mockGetIpaasAuth.mockResolvedValue({ imsToken: "test-ims", apiKey: "test-key" });
 });
 
 describe("jiraRequest", () => {
@@ -108,5 +114,14 @@ describe("jiraRequest", () => {
 
     const result = await jiraRequest("/issue/TEST-1");
     expect(result).toEqual(payload);
+  });
+
+  it("throws JiraError when getIpaasAuth returns undefined in iPaaS mode", async () => {
+    mockGetIpaasAuth.mockResolvedValue(undefined);
+
+    await expect(jiraRequest("/myself")).rejects.toThrow(JiraError);
+    await expect(jiraRequest("/myself")).rejects.toMatchObject({
+      statusCode: 401,
+    });
   });
 });
