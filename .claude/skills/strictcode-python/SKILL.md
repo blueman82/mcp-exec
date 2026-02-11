@@ -6,7 +6,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, mcp__mcp-exec__*
 
 # StrictCode Python - Language-Specific Standards
 
-**Version:** 1.0.0
+**Version:** 2.0.0
 **Purpose:** Enforce Python idioms and patterns on `.py` files.
 
 ---
@@ -52,6 +52,52 @@ allowed-tools: Read, Write, Edit, Glob, Grep, mcp__mcp-exec__*
 
 ---
 
+## Imperative → Declarative Patterns (MANDATORY)
+
+Scan for these anti-patterns and replace with idiomatic Python.
+
+### Loop Anti-Patterns
+
+| Anti-Pattern | Replacement | Example |
+|-------------|-------------|---------|
+| Nested loops 3+ deep | `itertools.product`, comprehension, or extract function | `for a in x: for b in y: for c in z:` → `for a, b, c in product(x, y, z):` |
+| Manual counter | `enumerate()` | `i = 0; for x in items: i += 1` → `for i, x in enumerate(items):` |
+| Parallel iteration by index | `zip()` | `for i in range(len(a)): a[i], b[i]` → `for x, y in zip(a, b):` |
+| Loop with early break on condition | `any()` / `all()` | `for x in items: if pred(x): found = True; break` → `found = any(pred(x) for x in items)` |
+| Loop building dict | dict comprehension | `d = {}; for k, v in pairs: d[k] = f(v)` → `{k: f(v) for k, v in pairs}` |
+| Loop building set | set comprehension | `s = set(); for x in items: s.add(f(x))` → `{f(x) for x in items}` |
+| Loop with running total | `sum()` | `total = 0; for x in items: total += x` → `sum(items)` |
+| Loop filtering then transforming | chained comprehension | `for x in items: if pred(x): result.append(f(x))` → `[f(x) for x in items if pred(x)]` |
+| Nested loop with flatten | `itertools.chain.from_iterable()` | `for sub in lists: for x in sub: result.append(x)` → `list(chain.from_iterable(lists))` |
+| Loop with `sorted()` inside | sort once outside | `for x in items: sorted_sub = sorted(...)` → sort before loop |
+
+### Conditional Anti-Patterns
+
+| Anti-Pattern | Replacement |
+|-------------|-------------|
+| Long `if/elif/else` chains (5+) | dict dispatch / lookup table |
+| Repeated `isinstance` checks | `match/case` (3.10+) or visitor pattern |
+| Flag variables set in conditionals | direct returns or ternary |
+| Nested conditionals 3+ deep | guard clauses / early returns |
+| Boolean flag accumulation in loop | `any()` / `all()` |
+
+### Accumulation Anti-Patterns
+
+| Anti-Pattern | Replacement |
+|-------------|-------------|
+| String concatenation in loop | `"".join(parts)` |
+| Manual `list.extend` equivalent | `list.extend()` or `[*a, *b]` |
+| Manual dict merge | `{**a, **b}` or `a \| b` (3.9+) |
+| Manual max/min tracking | `max()` / `min()` with `key=` |
+| Manual grouping by key | `itertools.groupby()` or `defaultdict(list)` |
+| Manual counting | `collections.Counter` |
+| Manual deduplication | `set()` or `dict.fromkeys()` (order-preserving) |
+| Manual retry loop | `tenacity` or backoff decorator |
+| Manual path string operations | `pathlib.Path` |
+| Manual datetime arithmetic | `timedelta` |
+
+---
+
 ## Example: Before/After
 
 ```python
@@ -84,6 +130,39 @@ class DataProcessor:
         if len(items) > 0:
             return items[0]
         return None
+```
+
+---
+
+## Imperative Example: Before/After
+
+```python
+# BEFORE (imperative: manual counter, flag, nested loop, string concat)
+def summarize(groups: list[list[str]]) -> str:
+    output = ""
+    count = 0
+    found_special = False
+    for group in groups:
+        for item in group:
+            count += 1
+            if item.startswith("!"):
+                found_special = True
+            output = output + item + ", "
+    if found_special:
+        return f"Found special in {count} items: {output}"
+    else:
+        return f"No special in {count} items: {output}"
+```
+
+```python
+# AFTER (declarative: chain, any, join, f-string)
+from itertools import chain
+
+def summarize(groups: list[list[str]]) -> str:
+    flat = list(chain.from_iterable(groups))
+    found_special = any(item.startswith("!") for item in flat)
+    label = "Found special" if found_special else "No special"
+    return f"{label} in {len(flat)} items: {', '.join(flat)}"
 ```
 
 ---
@@ -162,3 +241,11 @@ Before completing Python code changes:
 - [ ] EAFP pattern (try/except not if-checks)
 - [ ] No redundant else after return
 - [ ] Comprehensions where readable
+- [ ] No nested loops 3+ deep — flatten or extract
+- [ ] `enumerate`/`zip` over manual indexing
+- [ ] `any`/`all` over loop-with-break boolean checks
+- [ ] `sum`/`max`/`min` over manual accumulation
+- [ ] `Counter`/`defaultdict` over manual counting/grouping
+- [ ] `"".join()` over string concatenation in loops
+- [ ] Dict dispatch over long `if/elif` chains (5+)
+- [ ] Guard clauses over nested conditionals 3+ deep
