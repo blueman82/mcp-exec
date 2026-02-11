@@ -40,6 +40,20 @@ src/bravo/
   models/schemas.py    # Pydantic response models
 ```
 
+```
+mcp-jira/                    # TypeScript Jira MCP server
+  src/
+    index.ts                 # Express server, JSON-RPC dispatch
+    config.ts                # Config from env vars
+    utils.ts                 # jiraRequest(), auth headers
+    errors.ts                # JiraError class
+    env.ts                   # .env or AWS secrets loader
+    env-aws.ts               # AWS Secrets Manager loader
+    operations/              # Tool handlers (10 tools)
+  tests/                     # Vitest test suite
+  Dockerfile                 # Multi-stage Node.js build
+```
+
 ## Dependency Injection
 
 Services depend on Protocol interfaces, not concrete classes. Import direction:
@@ -94,7 +108,7 @@ uv run python -m pytest tests/ -v     # All tests
 docker compose -f infrastructure/docker-compose.local.yml up --build -d
 ```
 
-Three services: `postgres:16-alpine` (:5432), `bravo-api` (:8000), `bravo-worker`. Both app services require `.env` file (see `.env.example`).
+Four services: `postgres:16-alpine` (:5432), `mcp-jira` (:8081), `bravo-api` (:8000), `bravo-worker`. Both Python app services require `.env` file (see `.env.example`). The `mcp-jira` service uses AWS Secrets Manager for credentials.
 
 ## Git Workflow
 
@@ -109,6 +123,14 @@ Bravo talks to Jira via `corp_jira_mcp` (Ketchup iPaaS fork), not direct REST. `
 - Tools used: `search_jira_issues`, `add_jira_comment`, `transition_jira_status`, `get_jira_transitions`, `create_jira_issue`, `update_jira_issue`, `download_attachment`
 - Comment schema: `{"comment": {"body": "..."}}` (nested, not top-level)
 - MCP server handles iPaaS auth, IMS tokens, and PAT rotation
+
+## Jira MCP Server
+
+TypeScript Express server on port 8081 implementing JSON-RPC 2.0 protocol. Matches the `JiraMCPClient._call_tool()` contract in `services/jira.py`.
+
+- Two auth modes: iPaaS (production, via `USE_IPAAS=true`) and direct PAT (local dev)
+- 10 tools: `test_jira_auth`, `search_jira_issues`, `add_jira_comment`, `delete_jira_comment`, `get_jira_transitions`, `transition_jira_status`, `create_jira_issue`, `update_jira_issue`, `get_project_issue_types`, `download_attachment`
+- `npm test` to run Vitest suite, `npm run dev` for local dev with hot reload
 
 ## AWS Secrets Manager
 
