@@ -22,7 +22,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, mcp__mcp-exec__*
 ### Null Handling
 - **Optional chaining** (`?.`) instead of nested null checks
 - **Nullish coalescing** (`??`) instead of `|| defaultValue`
-- **Non-null assertion (`!`)** only when you've verified safety
+- **Non-null assertion (!)** only when you've verified safety
 
 ### Switch Statements
 - **Exhaustive checks** — Never use `default` that swallows cases
