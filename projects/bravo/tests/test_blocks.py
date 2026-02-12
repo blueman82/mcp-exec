@@ -113,7 +113,8 @@ def test_build_nudge_blocks_action_button_ids() -> None:
     ids = _action_ids(blocks)
     assert "nudge_yes_updates" in ids
     assert "nudge_no_updates" in ids
-    assert ids.count("nudge_snooze") == 2
+    assert "nudge_snooze_1h" in ids
+    assert "nudge_snooze_4h" in ids
 
 
 # ---------------------------------------------------------------------------
@@ -259,7 +260,8 @@ def test_build_unsnoozed_blocks_restores_action_buttons() -> None:
     ids = _action_ids(unsnoozed)
     assert "nudge_yes_updates" in ids
     assert "nudge_no_updates" in ids
-    assert ids.count("nudge_snooze") == 2
+    assert "nudge_snooze_1h" in ids
+    assert "nudge_snooze_4h" in ids
     assert len(ids) == 4
 
 
@@ -278,3 +280,28 @@ def test_build_unsnoozed_blocks_removes_snooze_context() -> None:
         if block.get("type") == "context":
             for el in block.get("elements", []):
                 assert "Snoozed until" not in el.get("text", "")
+
+
+def test_build_unsnoozed_blocks_handles_slack_emoji_shortcodes() -> None:
+    """Slack converts Unicode emoji to shortcodes in round-tripped blocks."""
+    original = _build_default_blocks()
+    snoozed = build_snoozed_blocks(
+        original_blocks=original,
+        snoozed_until_text="3:00 PM",
+        ticket_key="BRAVO-42",
+    )
+    # Simulate Slack replacing Unicode ⏸️ with :double_vertical_bar:
+    for block in snoozed:
+        if block.get("type") == "context":
+            for el in block.get("elements", []):
+                el["text"] = el["text"].replace("\u23f8\ufe0f", ":double_vertical_bar:")
+    unsnoozed = build_unsnoozed_blocks(
+        original_blocks=snoozed,
+        ticket_key="BRAVO-42",
+    )
+    ids = _action_ids(unsnoozed)
+    assert "nudge_yes_updates" in ids
+    assert "nudge_no_updates" in ids
+    assert "nudge_snooze_1h" in ids
+    assert "nudge_snooze_4h" in ids
+    assert len(ids) == 4

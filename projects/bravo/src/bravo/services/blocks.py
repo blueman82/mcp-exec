@@ -123,7 +123,7 @@ def _actions_block(ticket_key: str) -> dict[str, Any]:
                     "text": "\u23f0 Snooze 1h",
                     "emoji": True,
                 },
-                "action_id": "nudge_snooze",
+                "action_id": "nudge_snooze_1h",
                 "value": f"{ticket_key}|1h",
             },
             {
@@ -133,7 +133,7 @@ def _actions_block(ticket_key: str) -> dict[str, Any]:
                     "text": "\u23f0 Snooze 4h",
                     "emoji": True,
                 },
-                "action_id": "nudge_snooze",
+                "action_id": "nudge_snooze_4h",
                 "value": f"{ticket_key}|4h",
             },
         ],
@@ -339,7 +339,7 @@ def build_unsnoozed_blocks(
             block.get("type") == "context"
             and elements
             and isinstance(elements[0], dict)
-            and "\u23f8" in elements[0].get("text", "")
+            and "Snoozed until" in elements[0].get("text", "")
         ):
             new_blocks.append(restored_actions)
             skip_next_actions = True

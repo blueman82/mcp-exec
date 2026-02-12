@@ -33,7 +33,7 @@ services:
       - AWS_REGION=eu-west-1
       - AWS_PROFILE=campaign_prod_v7
     volumes:
-      - ~/.aws:/home/node/.aws:ro
+      - ~/.aws:/home/bravo/.aws:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
@@ -61,6 +61,7 @@ services:
       - BRAVO_AWS_PROFILE=campaign_prod_v7
       - AWS_PROFILE=campaign_prod_v7
       - AWS_REGION=eu-west-1
+      - BRAVO_NUDGE_ALLOWLIST=harrison,omeara,mhudson,omahony,pieczyra
     volumes:
       - ./logs:/var/log
       - ~/.aws:/home/bravo/.aws:ro
@@ -95,6 +96,7 @@ services:
       - BRAVO_AWS_PROFILE=campaign_prod_v7
       - AWS_PROFILE=campaign_prod_v7
       - AWS_REGION=eu-west-1
+      - BRAVO_NUDGE_ALLOWLIST=harrison,omeara,mhudson,omahony,pieczyra
     volumes:
       - ./logs:/var/log
       - ~/.aws:/home/bravo/.aws:ro

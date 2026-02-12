@@ -211,6 +211,17 @@ class NudgeService:
             logger.warning("cannot_nudge_no_assignee", ticket_key=ticket["ticket_key"])
             return
 
+        allowlist = self.settings.nudge_allowlist
+        if allowlist:
+            allowed = {u.strip() for u in allowlist.split(",") if u.strip()}
+            if ticket["assignee_jira_id"] not in allowed:
+                logger.debug(
+                    "nudge_skipped_not_in_allowlist",
+                    ticket_key=ticket["ticket_key"],
+                    assignee=ticket["assignee_jira_id"],
+                )
+                return
+
         assignee = await queries.get_assignee(ticket["assignee_jira_id"])
         if not assignee or not assignee["slack_user_id"]:
             logger.warning(

@@ -132,7 +132,15 @@ class SlackService:
                 text=text,
                 blocks=blocks,
             )
-            return bool(response["ok"])
+            ok = bool(response["ok"])
+            if not ok:
+                logger.error(
+                    "slack_message_update_not_ok",
+                    channel=channel,
+                    ts=ts,
+                    error=response.get("error"),
+                )
+            return ok
         except Exception:
             logger.exception("slack_message_update_failed", channel=channel, ts=ts)
             return False
@@ -247,7 +255,7 @@ class SlackService:
                     await self._handle_nudge_yes_updates(payload, action)
                 elif action_id == "nudge_no_updates":
                     await self._handle_nudge_no_updates(payload, action)
-                elif action_id == "nudge_snooze":
+                elif action_id in ("nudge_snooze_1h", "nudge_snooze_4h"):
                     await self._handle_nudge_snooze(payload, action)
                 elif action_id == "nudge_unsnooze":
                     await self._handle_nudge_unsnooze(payload, action)

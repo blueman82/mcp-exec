@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     poll_interval_minutes: int = 60
     nudge_cooldown_hours: int = 24
+    nudge_allowlist: str = ""
 
     aws_secrets_enabled: bool = False
     aws_region: str = "eu-west-1"
