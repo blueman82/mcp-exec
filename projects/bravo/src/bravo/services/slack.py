@@ -5,6 +5,7 @@ receiving events and the Web API for sending messages.
 """
 
 import asyncio
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -17,8 +18,11 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from bravo.config import SlackSettings
 from bravo.db import queries
+from bravo.protocols import JiraClientProto
 from bravo.services.blocks import (
     build_acknowledged_blocks,
+    build_fix_now_modal,
+    build_fix_submitted_blocks,
     build_snoozed_blocks,
     build_unsnoozed_blocks,
     build_yes_updates_blocks,
@@ -52,13 +56,15 @@ class SlackService:
         settings: Slack API configuration.
     """
 
-    def __init__(self, settings: SlackSettings) -> None:
+    def __init__(self, settings: SlackSettings, jira: JiraClientProto) -> None:
         """Initialize the Slack service.
 
         Args:
             settings: Slack API configuration.
+            jira: Jira client for on-demand ticket field lookups.
         """
         self.settings = settings
+        self.jira = jira
         self._web_client: AsyncWebClient | None = None
         self._socket_client: SocketModeClient | None = None
 
@@ -170,6 +176,27 @@ class SlackService:
 
         return None
 
+    async def open_modal(
+        self, trigger_id: str, view: dict[str, Any]
+    ) -> bool:
+        """Open a Slack modal view.
+
+        Args:
+            trigger_id: The trigger ID from an interaction payload.
+            view: The modal view payload.
+
+        Returns:
+            True if the modal was opened successfully, False otherwise.
+        """
+        client = self._get_web_client()
+        try:
+            await client.views_open(trigger_id=trigger_id, view=view)
+            logger.info("modal_opened", callback_id=view.get("callback_id"))
+            return True
+        except Exception:
+            logger.exception("modal_open_failed", trigger_id=trigger_id)
+            return False
+
     async def start_socket_mode(self) -> None:
         """Start Socket Mode client.
 
@@ -251,7 +278,9 @@ class SlackService:
             logger.info("block_action_received", action_id=action_id)
 
             try:
-                if action_id == "nudge_yes_updates":
+                if action_id == "nudge_fix_now":
+                    await self._handle_nudge_fix_now(payload, action)
+                elif action_id == "nudge_yes_updates":
                     await self._handle_nudge_yes_updates(payload, action)
                 elif action_id == "nudge_no_updates":
                     await self._handle_nudge_no_updates(payload, action)
@@ -389,6 +418,42 @@ class SlackService:
             ),
         )
 
+    async def _handle_nudge_fix_now(
+        self, payload: dict[str, Any], action: dict[str, Any]
+    ) -> None:
+        """Handle 'Fix now' button click — open modal with missing fields.
+
+        Args:
+            payload: The interaction payload from Slack.
+            action: The specific action that was triggered.
+        """
+        trigger_id = payload.get("trigger_id", "")
+        ticket_key = action.get("value", "")
+        channel_id, message_ts, _ = self._msg_context(payload)
+
+        current_fields = await self.jira.get_ticket_fields(ticket_key)
+        if not current_fields:
+            logger.warning("fix_now_ticket_not_found", ticket_key=ticket_key)
+            return
+
+        modal = build_fix_now_modal(
+            ticket_key=ticket_key,
+            current_fields=current_fields,
+        )
+
+        if not modal["blocks"]:
+            logger.info("fix_now_no_missing_fields", ticket_key=ticket_key)
+            return
+
+        # Carry message context through to the submission handler
+        modal["private_metadata"] = json.dumps({
+            "ticket_key": ticket_key,
+            "channel": channel_id,
+            "ts": message_ts,
+        })
+
+        await self.open_modal(trigger_id, modal)
+
     async def _handle_view_submission(
         self,
         payload: dict[str, Any],
@@ -407,6 +472,95 @@ class SlackService:
 
         await client.send_socket_mode_response(
             SocketModeResponse(envelope_id=req.envelope_id),
+        )
+
+        try:
+            if callback_id == "fix_now_modal":
+                await self._handle_fix_now_submission(payload)
+            else:
+                logger.warning("unhandled_view_submission", callback_id=callback_id)
+        except Exception:
+            logger.exception("view_submission_handler_error", callback_id=callback_id)
+
+    async def _handle_fix_now_submission(self, payload: dict[str, Any]) -> None:
+        """Process 'Fix now' modal submission — update Jira and nudge message.
+
+        Args:
+            payload: The view submission payload from Slack.
+        """
+        metadata = json.loads(
+            payload.get("view", {}).get("private_metadata", "{}")
+        )
+        ticket_key = metadata.get("ticket_key", "")
+        channel_id = metadata.get("channel", "")
+        message_ts = metadata.get("ts", "")
+        values = payload.get("view", {}).get("state", {}).get("values", {})
+
+        fields: dict[str, Any] = {}
+        fields_updated: list[str] = []
+
+        desc_block = values.get("fix_description", {}).get("description_input", {})
+        if desc_value := desc_block.get("value"):
+            fields["description"] = desc_value
+            fields_updated.append("description")
+
+        pri_block = values.get("fix_priority", {}).get("priority_input", {})
+        if selected := pri_block.get("selected_option"):
+            fields["priority"] = {"name": selected["value"]}
+            fields_updated.append("priority")
+
+        comp_block = values.get("fix_components", {}).get("components_input", {})
+        if comp_value := comp_block.get("value"):
+            fields["components"] = [
+                {"name": c.strip()} for c in comp_value.split(",") if c.strip()
+            ]
+            fields_updated.append("components")
+
+        if not fields:
+            logger.warning("fix_now_no_fields_submitted", ticket_key=ticket_key)
+            return
+
+        await self.jira.update_issue(ticket_key, fields)
+
+        field_list = ", ".join(fields_updated)
+        await self.jira.add_comment(
+            ticket_key,
+            f"[Bravo] Fields updated via Fix now: {field_list}",
+        )
+        logger.info(
+            "fix_now_jira_updated",
+            ticket_key=ticket_key,
+            fields=fields_updated,
+        )
+
+        # Update nudge status
+        nudge = await queries.get_nudge_by_slack_ts(message_ts)
+        if nudge:
+            await queries.update_nudge_status(nudge["id"], "RESPONDED")
+
+        # Fetch current message blocks for in-place update
+        client = self._get_web_client()
+        original_blocks: list[dict[str, Any]] = []
+        try:
+            history = await client.conversations_history(
+                channel=channel_id, latest=message_ts, inclusive=True, limit=1,
+            )
+            messages = history.get("messages", [])
+            if messages:
+                original_blocks = messages[0].get("blocks", [])
+        except Exception:
+            logger.warning(
+                "fetch_message_blocks_failed", channel=channel_id, ts=message_ts,
+            )
+
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text=f"Fixed: {field_list}",
+            blocks=build_fix_submitted_blocks(
+                original_blocks=original_blocks,
+                fields_updated=fields_updated,
+            ),
         )
 
     async def _handle_slash_command(

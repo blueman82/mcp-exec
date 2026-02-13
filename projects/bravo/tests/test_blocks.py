@@ -6,6 +6,8 @@ import pytest
 
 from bravo.services.blocks import (
     build_acknowledged_blocks,
+    build_fix_now_modal,
+    build_fix_submitted_blocks,
     build_nudge_blocks,
     build_nudge_fallback_text,
     build_snoozed_blocks,
@@ -111,6 +113,7 @@ def test_build_nudge_blocks_ticket_url_in_info_section() -> None:
 def test_build_nudge_blocks_action_button_ids() -> None:
     blocks = _build_default_blocks()
     ids = _action_ids(blocks)
+    assert "nudge_fix_now" in ids
     assert "nudge_yes_updates" in ids
     assert "nudge_no_updates" in ids
     assert "nudge_snooze_1h" in ids
@@ -258,11 +261,12 @@ def test_build_unsnoozed_blocks_restores_action_buttons() -> None:
         ticket_key="BRAVO-42",
     )
     ids = _action_ids(unsnoozed)
+    assert "nudge_fix_now" in ids
     assert "nudge_yes_updates" in ids
     assert "nudge_no_updates" in ids
     assert "nudge_snooze_1h" in ids
     assert "nudge_snooze_4h" in ids
-    assert len(ids) == 4
+    assert len(ids) == 5
 
 
 def test_build_unsnoozed_blocks_removes_snooze_context() -> None:
@@ -300,8 +304,130 @@ def test_build_unsnoozed_blocks_handles_slack_emoji_shortcodes() -> None:
         ticket_key="BRAVO-42",
     )
     ids = _action_ids(unsnoozed)
+    assert "nudge_fix_now" in ids
     assert "nudge_yes_updates" in ids
     assert "nudge_no_updates" in ids
     assert "nudge_snooze_1h" in ids
     assert "nudge_snooze_4h" in ids
-    assert len(ids) == 4
+    assert len(ids) == 5
+
+
+# ---------------------------------------------------------------------------
+# Fix now button properties
+# ---------------------------------------------------------------------------
+
+
+def test_build_nudge_blocks_fix_now_is_first_action() -> None:
+    blocks = _build_default_blocks()
+    ids = _action_ids(blocks)
+    assert ids[0] == "nudge_fix_now"
+
+
+def test_build_nudge_blocks_fix_now_is_primary() -> None:
+    blocks = _build_default_blocks()
+    for block in blocks:
+        if block.get("type") == "actions":
+            fix_btn = block["elements"][0]
+            assert fix_btn["action_id"] == "nudge_fix_now"
+            assert fix_btn.get("style") == "primary"
+            break
+
+
+# ---------------------------------------------------------------------------
+# build_fix_now_modal
+# ---------------------------------------------------------------------------
+
+
+def test_build_fix_now_modal_all_fields_missing() -> None:
+    modal = build_fix_now_modal(
+        ticket_key="BRAVO-42",
+        current_fields={"summary": "test", "description": "", "priority": "", "components": []},
+    )
+    assert modal["callback_id"] == "fix_now_modal"
+    assert modal["private_metadata"] == "BRAVO-42"
+    block_ids = [b["block_id"] for b in modal["blocks"]]
+    assert "fix_description" in block_ids
+    assert "fix_priority" in block_ids
+    assert "fix_components" in block_ids
+    assert len(modal["blocks"]) == 3
+
+
+def test_build_fix_now_modal_partial_missing() -> None:
+    modal = build_fix_now_modal(
+        ticket_key="BRAVO-42",
+        current_fields={
+            "summary": "test",
+            "description": "",
+            "priority": "Major",
+            "components": ["Backend"],
+        },
+    )
+    assert len(modal["blocks"]) == 1
+    assert modal["blocks"][0]["block_id"] == "fix_description"
+
+
+def test_build_fix_now_modal_no_fields_missing() -> None:
+    modal = build_fix_now_modal(
+        ticket_key="BRAVO-42",
+        current_fields={
+            "summary": "test",
+            "description": "A description",
+            "priority": "Major",
+            "components": ["Backend"],
+        },
+    )
+    assert modal["blocks"] == []
+
+
+def test_build_fix_now_modal_title_truncated() -> None:
+    modal = build_fix_now_modal(
+        ticket_key="CPGNCX-123456789012345",
+        current_fields={"summary": "", "description": "", "priority": "", "components": []},
+    )
+    title = modal["title"]["text"]
+    assert len(title) <= 24
+
+
+def test_build_fix_now_modal_priority_has_options() -> None:
+    modal = build_fix_now_modal(
+        ticket_key="BRAVO-42",
+        current_fields={"summary": "test", "description": "ok", "priority": "", "components": ["X"]},
+    )
+    assert len(modal["blocks"]) == 1
+    element = modal["blocks"][0]["element"]
+    assert element["type"] == "static_select"
+    option_values = [o["value"] for o in element["options"]]
+    assert "Blocker" in option_values
+    assert "Minor" in option_values
+
+
+# ---------------------------------------------------------------------------
+# build_fix_submitted_blocks
+# ---------------------------------------------------------------------------
+
+
+def test_build_fix_submitted_blocks_replaces_actions() -> None:
+    original = _build_default_blocks()
+    result = build_fix_submitted_blocks(
+        original_blocks=original,
+        fields_updated=["description", "priority"],
+    )
+    block_types = [b["type"] for b in result]
+    assert "actions" not in block_types
+    context_texts = []
+    for block in result:
+        if block.get("type") == "context":
+            for el in block.get("elements", []):
+                context_texts.append(el.get("text", ""))
+    assert any("Fix now" in t for t in context_texts)
+    assert any("description" in t for t in context_texts)
+
+
+def test_build_fix_submitted_blocks_does_not_mutate_original() -> None:
+    original = _build_default_blocks()
+    original_snapshot = copy.deepcopy(original)
+    build_fix_submitted_blocks(
+        original_blocks=original,
+        fields_updated=["components"],
+    )
+    assert original == original_snapshot

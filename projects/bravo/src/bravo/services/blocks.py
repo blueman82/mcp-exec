@@ -99,11 +99,21 @@ def _actions_block(ticket_key: str) -> dict[str, Any]:
                 "type": "button",
                 "text": {
                     "type": "plain_text",
+                    "text": "\U0001f527 Fix now",
+                    "emoji": True,
+                },
+                "action_id": "nudge_fix_now",
+                "style": "primary",
+                "value": ticket_key,
+            },
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
                     "text": "\u2705 Yes, updates coming",
                     "emoji": True,
                 },
                 "action_id": "nudge_yes_updates",
-                "style": "primary",
                 "value": ticket_key,
             },
             {
@@ -351,3 +361,145 @@ def build_unsnoozed_blocks(
 
         new_blocks.append(block)
     return new_blocks
+
+
+_JIRA_PRIORITIES: list[str] = [
+    "Blocker",
+    "Critical",
+    "Major",
+    "Normal",
+    "Minor",
+    "Trivial",
+]
+
+
+def build_fix_now_modal(
+    *,
+    ticket_key: str,
+    current_fields: dict[str, Any],
+) -> dict[str, Any]:
+    """Build a Slack modal view for fixing missing Jira fields.
+
+    Only fields that are empty/missing in *current_fields* generate
+    an input block.  Returns a modal with an empty ``blocks`` list
+    when nothing is missing.
+
+    Args:
+        ticket_key: Jira ticket key (carried via ``private_metadata``).
+        current_fields: Dict with keys ``description``, ``priority``,
+            ``components`` holding the ticket's current values.
+
+    Returns:
+        Slack view payload suitable for ``views.open()``.
+    """
+    input_blocks: list[dict[str, Any]] = []
+
+    if not current_fields.get("description"):
+        input_blocks.append(
+            {
+                "type": "input",
+                "block_id": "fix_description",
+                "label": {
+                    "type": "plain_text",
+                    "text": "Description",
+                },
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "description_input",
+                    "multiline": True,
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Describe the issue or request\u2026",
+                    },
+                },
+            }
+        )
+
+    if not current_fields.get("priority"):
+        input_blocks.append(
+            {
+                "type": "input",
+                "block_id": "fix_priority",
+                "label": {
+                    "type": "plain_text",
+                    "text": "Priority",
+                },
+                "element": {
+                    "type": "static_select",
+                    "action_id": "priority_input",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Select priority",
+                    },
+                    "options": [
+                        {
+                            "text": {"type": "plain_text", "text": p},
+                            "value": p,
+                        }
+                        for p in _JIRA_PRIORITIES
+                    ],
+                },
+            }
+        )
+
+    if not current_fields.get("components"):
+        input_blocks.append(
+            {
+                "type": "input",
+                "block_id": "fix_components",
+                "label": {
+                    "type": "plain_text",
+                    "text": "Components",
+                },
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "components_input",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Comma-separated, e.g. Backend, API",
+                    },
+                },
+            }
+        )
+
+    # Truncate title to Slack's 24-char limit for modal titles.
+    title_text = f"Fix {ticket_key}"
+    if len(title_text) > 24:
+        title_text = title_text[:24]
+
+    return {
+        "type": "modal",
+        "callback_id": "fix_now_modal",
+        "private_metadata": ticket_key,
+        "title": {"type": "plain_text", "text": title_text},
+        "submit": {"type": "plain_text", "text": "Update Jira"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": input_blocks,
+    }
+
+
+def build_fix_submitted_blocks(
+    *,
+    original_blocks: list[dict[str, Any]],
+    fields_updated: list[str],
+) -> list[dict[str, Any]]:
+    """Replace the actions block with a fix-submitted confirmation.
+
+    Args:
+        original_blocks: The original nudge Block Kit payload.
+        fields_updated: List of field names that were updated.
+
+    Returns:
+        New list of blocks with the actions block replaced.
+    """
+    field_list = ", ".join(fields_updated) if fields_updated else "fields"
+    fix_context: dict[str, Any] = {
+        "type": "context",
+        "elements": [
+            {
+                "type": "mrkdwn",
+                "text": f"\U0001f527 Updated via Fix now: {field_list}",
+            },
+        ],
+    }
+    return _replace_actions(original_blocks, fix_context)

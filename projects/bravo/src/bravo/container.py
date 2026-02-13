@@ -52,14 +52,19 @@ def create_container(settings: Settings) -> ServiceRegistry:
     )
     registry.register(
         DependencySpec(
-            name="slack_service",
-            factory=lambda: _async(SlackService(settings.slack)),
-        )
-    )
-    registry.register(
-        DependencySpec(
             name="llm_service",
             factory=lambda: _async(LLMService(settings.llm)),
+        )
+    )
+
+    # Services with cross-service deps
+    registry.register(
+        DependencySpec(
+            name="slack_service",
+            factory=lambda jira_client: _async(
+                SlackService(settings.slack, jira_client)
+            ),
+            depends_on=["jira_client"],
         )
     )
 

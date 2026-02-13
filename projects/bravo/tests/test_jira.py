@@ -289,6 +289,111 @@ class TestErrorHandling:
             await client._call_tool("bad_tool", {})
 
 
+class TestGetTicketFields:
+    """Tests for JiraMCPClient.get_ticket_fields()."""
+
+    async def test_get_ticket_fields_returns_all(self):
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "summary": "A ticket",
+                                    "description": "Some description",
+                                    "priority": {"name": "Major"},
+                                    "components": [
+                                        {"name": "Backend"},
+                                        {"name": "API"},
+                                    ],
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_ticket_fields("TEST-1")
+
+        assert result["summary"] == "A ticket"
+        assert result["description"] == "Some description"
+        assert result["priority"] == "Major"
+        assert result["components"] == ["Backend", "API"]
+        payload = mock_http.post.call_args.kwargs["json"]
+        args = payload["params"]["arguments"]
+        assert args["minimizeOutput"] is False
+
+    async def test_get_ticket_fields_missing_description(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "summary": "A ticket",
+                                    "description": None,
+                                    "priority": {"name": "Normal"},
+                                    "components": [],
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_ticket_fields("TEST-1")
+
+        assert result["description"] == ""
+        assert result["priority"] == "Normal"
+        assert result["components"] == []
+
+    async def test_get_ticket_fields_no_issue_found(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok({"data": {"issues": []}})
+        )
+
+        result = await client.get_ticket_fields("MISSING-1")
+
+        assert result == {}
+
+    async def test_get_ticket_fields_components_parsed(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "summary": "Ticket",
+                                    "description": "desc",
+                                    "priority": None,
+                                    "components": [
+                                        {"name": "Frontend"},
+                                        {"id": "123"},
+                                        {"name": "Backend"},
+                                    ],
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_ticket_fields("TEST-1")
+
+        # Component without "name" key should be skipped
+        assert result["components"] == ["Frontend", "Backend"]
+        assert result["priority"] == ""
+
+
 class TestAddComment:
     """Tests for JiraMCPClient.add_comment()."""
 

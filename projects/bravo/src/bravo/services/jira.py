@@ -259,6 +259,52 @@ class JiraMCPClient:
         bodies = [c["body"] for c in comments if c.get("body")]
         return bodies[-self._MAX_COMMENTS :]
 
+    async def get_ticket_fields(self, ticket_key: str) -> dict[str, Any]:
+        """Fetch full field data for a single ticket.
+
+        Used by the "Fix now" modal to detect missing fields and
+        show current values. Separate from ``search_tickets()`` which
+        is optimised for polling with ``minimizeOutput: True``.
+
+        Args:
+            ticket_key: The ticket key (e.g., CPGNCX-12345).
+
+        Returns:
+            Dict with keys: summary, description, priority, components.
+            Empty dict when the ticket is not found.
+        """
+        logger.debug("fetching_ticket_fields", ticket_key=ticket_key)
+
+        data = await self._call_tool(
+            "search_jira_issues",
+            {
+                "jql": f"key = {ticket_key}",
+                "maxResults": 1,
+                "fields": ["summary", "description", "priority", "components"],
+                "minimizeOutput": False,
+            },
+        )
+
+        issues = data.get("data", {}).get("issues", [])
+        if not issues:
+            return {}
+
+        fields = issues[0].get("fields", {})
+        priority = fields.get("priority")
+        components = fields.get("components") or []
+        return {
+            "summary": fields.get("summary") or "",
+            "description": fields.get("description") or "",
+            "priority": (
+                priority.get("name", "") if isinstance(priority, dict) else ""
+            ),
+            "components": [
+                c["name"]
+                for c in components
+                if isinstance(c, dict) and c.get("name")
+            ],
+        }
+
     async def add_comment(self, ticket_key: str, body: str) -> None:
         """Add a comment to a ticket via MCP.
 
