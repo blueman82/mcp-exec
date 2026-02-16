@@ -7,11 +7,13 @@ import pytest
 from bravo.services.blocks import (
     build_acknowledged_blocks,
     build_collect_pat_modal,
+    build_comment_modal,
     build_fix_error_blocks,
     build_fix_now_modal,
     build_fix_submitted_blocks,
     build_nudge_blocks,
     build_nudge_fallback_text,
+    build_pat_error_modal,
     build_snoozed_blocks,
     build_unsnoozed_blocks,
     build_yes_updates_blocks,
