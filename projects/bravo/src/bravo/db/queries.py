@@ -431,6 +431,32 @@ async def get_nudge_by_slack_ts(slack_ts: str) -> asyncpg.Record | None:
     )
 
 
+async def get_nudge_by_slack_ts_any(slack_ts: str) -> asyncpg.Record | None:
+    """Get a nudge event by Slack message timestamp (any status).
+
+    Unlike ``get_nudge_by_slack_ts`` which only returns SENT nudges,
+    this returns the most recent nudge matching the ts regardless of
+    status. Used by the comment handler where the nudge may already
+    be RESPONDED.
+
+    Args:
+        slack_ts: The Slack message timestamp identifier.
+
+    Returns:
+        The nudge record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        SELECT * FROM nudge_events
+        WHERE slack_ts = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        slack_ts,
+    )
+
+
 async def get_snoozed_nudge_by_slack_ts(slack_ts: str) -> asyncpg.Record | None:
     """Get a snoozed nudge event by Slack message timestamp.
 
