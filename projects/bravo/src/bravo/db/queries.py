@@ -832,6 +832,145 @@ async def delete_assignee_pat(slack_user_id: str) -> bool:
     return cast(str, result) == "DELETE 1"
 
 
+# ============ RE-EVALUATION QUEUE ============
+
+
+async def enqueue_re_evaluation(
+    ticket_key: str,
+    nudge_id: UUID,
+    channel_id: str,
+    message_ts: str,
+) -> asyncpg.Record | None:
+    """Insert a re-evaluation request, dedup by nudge_id.
+
+    Args:
+        ticket_key: The Jira ticket key.
+        nudge_id: The nudge event UUID (dedup key).
+        channel_id: Slack channel for result update.
+        message_ts: Slack message timestamp for result update.
+
+    Returns:
+        The inserted record, or None if a duplicate exists.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        INSERT INTO re_evaluation_queue (ticket_key, nudge_id, channel_id, message_ts)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT DO NOTHING
+        RETURNING *
+        """,
+        ticket_key,
+        nudge_id,
+        channel_id,
+        message_ts,
+    )
+
+
+async def dequeue_re_evaluation() -> asyncpg.Record | None:
+    """Atomically claim the next PENDING re-evaluation job.
+
+    Uses FOR UPDATE SKIP LOCKED to allow concurrent consumers
+    without blocking.
+
+    Returns:
+        The claimed record, or None if the queue is empty.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        WITH claim AS (
+            SELECT id FROM re_evaluation_queue
+            WHERE status = 'PENDING'
+            ORDER BY created_at
+            FOR UPDATE SKIP LOCKED
+            LIMIT 1
+        )
+        UPDATE re_evaluation_queue q
+        SET status = 'PROCESSING',
+            locked_at = now(),
+            attempt_count = q.attempt_count + 1
+        FROM claim
+        WHERE q.id = claim.id
+        RETURNING q.*
+        """,
+    )
+
+
+async def complete_re_evaluation(queue_id: UUID, result: str) -> asyncpg.Record | None:
+    """Mark a re-evaluation job as completed.
+
+    Args:
+        queue_id: The queue entry UUID.
+        result: Human-readable result summary.
+
+    Returns:
+        The updated record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE re_evaluation_queue
+        SET status = 'COMPLETED', processed_at = now(), result = $2
+        WHERE id = $1
+        RETURNING *
+        """,
+        queue_id,
+        result,
+    )
+
+
+async def fail_re_evaluation(queue_id: UUID, error: str) -> asyncpg.Record | None:
+    """Mark a re-evaluation job as failed.
+
+    Args:
+        queue_id: The queue entry UUID.
+        error: Error message detail.
+
+    Returns:
+        The updated record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE re_evaluation_queue
+        SET status = 'FAILED', last_error = $2, processed_at = now()
+        WHERE id = $1
+        RETURNING *
+        """,
+        queue_id,
+        error,
+    )
+
+
+async def reap_stale_jobs(timeout_minutes: int = 10) -> int:
+    """Reset PROCESSING rows older than timeout back to PENDING.
+
+    Recovers from worker crashes where a job was claimed but
+    never completed.
+
+    Args:
+        timeout_minutes: Minutes after which a PROCESSING job is
+            considered stale.
+
+    Returns:
+        Number of rows reset.
+    """
+    pool = get_pool()
+    result = await pool.execute(
+        """
+        UPDATE re_evaluation_queue
+        SET status = 'PENDING', locked_at = NULL
+        WHERE status = 'PROCESSING'
+          AND locked_at < now() - ($1 || ' minutes')::interval
+        """,
+        str(timeout_minutes),
+    )
+    # result is e.g. "UPDATE 3"
+    count_str = cast(str, result).split()[-1]
+    return int(count_str) if count_str.isdigit() else 0
+
+
 async def get_poll_history(limit: int = 10) -> list[asyncpg.Record]:
     """Get recent poll history.
 
