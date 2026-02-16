@@ -125,30 +125,49 @@ class Worker:
             result = await nudge_service.evaluate_ticket(ticket_key, force=True)  # type: ignore[attr-defined]
 
             should_nudge = result.get("should_nudge", False)
-            nudge_reason = result.get("nudge_reason")
+            gate_result = result.get("gate_result")
+
+            # Build human-readable trigger reason (no gate codes)
+            if should_nudge and gate_result and gate_result.any_failed:
+                failed_codes = [
+                    code for code, passed in [
+                        ("G1", gate_result.g1_passed),
+                        ("G2", gate_result.g2_passed),
+                        ("G3", gate_result.g3_passed),
+                        ("G4", gate_result.g4_passed),
+                    ]
+                    if not passed
+                ]
+                trigger_reason = format_trigger_reasons(failed_codes)
+            elif should_nudge:
+                nudge_reason = result.get("nudge_reason", "")
+                trigger_reason = nudge_reason
+            else:
+                trigger_reason = ""
 
             if should_nudge:
-                result_text = f"Re-evaluation: still needs attention \u2014 {nudge_reason}"
+                result_text = f"Re-evaluation: still needs attention \u2014 {trigger_reason}"
             else:
-                result_text = "Re-evaluation: all checks passed \u2714\ufe0f"
+                result_text = "Re-evaluation: all checks passed"
 
             await queries.complete_re_evaluation(queue_id, result_text)
 
-            # Update original Slack DM with result
+            # Update original Slack DM with prominent result
             if channel_id and message_ts:
                 slack_service = self.container.get("slack_service")
+                original_blocks = await slack_service._fetch_message_blocks(  # type: ignore[attr-defined]
+                    channel_id, message_ts,
+                )
+                updated_blocks = build_reeval_result_blocks(
+                    original_blocks=original_blocks,
+                    passed=not should_nudge,
+                    trigger_reason=trigger_reason,
+                )
                 await slack_service.update_message(  # type: ignore[attr-defined]
                     channel=channel_id,
                     ts=message_ts,
                     text=result_text,
-                    blocks=[
-                        {
-                            "type": "context",
-                            "elements": [
-                                {"type": "mrkdwn", "text": result_text},
-                            ],
-                        },
-                    ],
+                    blocks=updated_blocks,
                 )
 
             logger.info(
