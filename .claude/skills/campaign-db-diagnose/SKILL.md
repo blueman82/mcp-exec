@@ -16,24 +16,55 @@ Investigate database performance issues for Campaign instance.
 - `instance`: Campaign instance name (e.g., comcastbusiness-mkt-prod1) - required
 - `issue`: Optional issue description (e.g., "slow queries", "stuck workflows")
 
-## Instructions
+## Diagnostic Script (Quick DB Check)
+
+For a quick overview of DB health including active queries, connections, waits, and xtksessioninfo, run the comprehensive diagnostic script:
+
+```bash
+ssh -o ConnectTimeout=30 <instance>-1.campaign.adobe.com "bash -s" \
+  < ~/.claude/scripts/campaign-diagnose.sh 2>/dev/null
+```
+
+The `database` section of the JSON output covers: connectivity, active queries, total connections, wait events, xtksessioninfo count and top logins. For deeper DB analysis (table stats, index usage, lock contention, storage consumers, workflow temp tables), use the manual queries below.
+
+## Manual Instructions
 
 When user invokes this skill:
 
+### Container Awareness
+
+Campaign instances typically have multiple containers (e.g., `<instance>-1`, `<instance>-2`, `<instance>-3`). All containers share the same RDS database, so DB diagnostic queries can be run from any container. However, the `camp-db-params` output and `pg_stat_activity.client_addr` will show which containers have active DB connections — this helps identify which container is generating problematic queries.
+
 ### 1. Connect to Database
 
-Generate connection commands:
+**For interactive SSH sessions:**
 ```bash
 ssh <instance>-1.campaign.adobe.com
-sudo su - neolane
-cd /usr/local/neolane/nl6
-source ./env.sh
-camp-db-params -e > /tmp/dbenv.sh && source /tmp/dbenv.sh
-echo "PGHOST=$PGHOST"  # VERIFY THIS - may be -restore instance!
+sudo -i camp-db-params -e
+# Copy the PGHOST/PGUSER/PGPASSWORD/PGDATABASE exports, then:
 psql
 ```
 
-**CRITICAL**: Always warn about verifying `$PGHOST` - it may point to a `-restore` instance!
+**For non-interactive SSH (scripted/remote commands):**
+
+The `source env.sh` approach does NOT work over non-interactive SSH. Use inline env vars instead:
+
+```bash
+# Step 1: Get the DB params
+ssh <instance>-1.campaign.adobe.com "sudo -i camp-db-params -e"
+# Output example:
+# export PGHOST='instance-mkt-prod1.chqkifxvjhq8.us-west-2.rds.amazonaws.com'
+# export PGUSER='instancemktprod1'
+# export PGPASSWORD='...'
+# export PGDATABASE='instancemktprod1'
+
+# Step 2: Run queries with inline env vars
+ssh <instance>-1.campaign.adobe.com \
+  "PGHOST='<host>' PGUSER='<user>' PGPASSWORD='<pass>' PGDATABASE='<db>' \
+   psql -c \"<query>\""
+```
+
+**CRITICAL**: Always verify `$PGHOST` — it may point to a `-restore` instance!
 
 ### 2. Run Diagnostic Queries
 

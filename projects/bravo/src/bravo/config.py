@@ -162,7 +162,7 @@ async def load_settings() -> Settings:
         db_secrets = await sm.get_database_secrets()
 
         try:
-            pat_key = await sm.get_secret("bravo/pat-encryption-key")
+            pat_key = await sm.get_raw_secret("bravo/pat-encryption-key")
         except Exception:
             logger.warning("pat_encryption_key_not_found_in_aws")
             pat_key = ""

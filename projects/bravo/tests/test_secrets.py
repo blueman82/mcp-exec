@@ -103,6 +103,52 @@ async def test_cache_expired() -> None:
     assert client.get_secret_value.call_count == 2
 
 
+async def test_get_raw_secret() -> None:
+    """get_raw_secret returns plain string without JSON parsing."""
+    client = AsyncMock()
+    client.get_secret_value.return_value = {"SecretString": "my-fernet-key-abc123"}
+
+    sm = SecretsManager()
+    sm._client = client
+    async with sm:
+        result = await sm.get_raw_secret("bravo/pat-encryption-key")
+
+    assert result == "my-fernet-key-abc123"
+    client.get_secret_value.assert_called_with(SecretId="bravo/pat-encryption-key")
+
+
+async def test_raw_secret_cache_hit() -> None:
+    """Second raw secret call returns cached value without AWS call."""
+    client = AsyncMock()
+    client.get_secret_value.return_value = {"SecretString": "cached-key"}
+
+    sm = SecretsManager()
+    sm._client = client
+    async with sm:
+        first = await sm.get_raw_secret("bravo/pat-encryption-key")
+        second = await sm.get_raw_secret("bravo/pat-encryption-key")
+
+    assert first == second == "cached-key"
+    assert client.get_secret_value.call_count == 1
+
+
+async def test_raw_secret_cache_expired() -> None:
+    """After TTL expires, raw secret is re-fetched from AWS."""
+    client = AsyncMock()
+    client.get_secret_value.return_value = {"SecretString": "fresh-key"}
+
+    sm = SecretsManager(cache_ttl=60)
+    sm._client = client
+    async with sm:
+        await sm.get_raw_secret("bravo/pat-encryption-key")
+        sm._raw_cache_timestamps["bravo/pat-encryption-key"] = (
+            datetime.now(UTC) - timedelta(seconds=120)
+        )
+        await sm.get_raw_secret("bravo/pat-encryption-key")
+
+    assert client.get_secret_value.call_count == 2
+
+
 async def test_profile_passed_to_session() -> None:
     """AWS profile name is forwarded to aioboto3.Session."""
     sm = SecretsManager(profile="campaign_prod_v7")
@@ -131,6 +177,7 @@ def _mock_secrets_manager(
     instance.get_slack_secrets.return_value = slack or {}
     instance.get_llm_secrets.return_value = llm or {}
     instance.get_database_secrets.return_value = db or {}
+    instance.get_raw_secret.return_value = ""
     instance.__aenter__ = AsyncMock(return_value=instance)
     instance.__aexit__ = AsyncMock(return_value=None)
     return MagicMock(return_value=instance)
@@ -197,3 +244,23 @@ async def test_env_var_takes_precedence() -> None:
     # AWS fills in the rest
     assert settings.slack.app_token == "xapp-aws"
     assert settings.llm.endpoint == "https://llm-aws.example.com"
+
+
+async def test_aws_hydrates_pat_encryption_key() -> None:
+    """load_settings fetches PAT encryption key via get_raw_secret."""
+    mock_cls = _mock_secrets_manager(
+        slack={"bot_token": "t", "app_token": "t"},
+        llm={"api_key": "k", "endpoint": "e"},
+        db={"password": "p"},
+    )
+    # Override default get_raw_secret to return a Fernet key
+    mock_cls.return_value.get_raw_secret.return_value = "test-fernet-key-abc"
+
+    with (
+        patch.dict("os.environ", {"BRAVO_AWS_SECRETS_ENABLED": "true"}, clear=False),
+        patch("bravo.services.secrets.SecretsManager", mock_cls),
+    ):
+        settings = await load_settings()
+
+    assert settings.pat_encryption_key == "test-fernet-key-abc"
+    mock_cls.return_value.get_raw_secret.assert_called_with("bravo/pat-encryption-key")

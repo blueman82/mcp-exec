@@ -37,6 +37,8 @@ class SecretsManager:
         self._client_context: Any | None = None
         self._cache: dict[str, dict[str, Any]] = {}
         self._cache_timestamps: dict[str, datetime] = {}
+        self._raw_cache: dict[str, str] = {}
+        self._raw_cache_timestamps: dict[str, datetime] = {}
 
     async def __aenter__(self) -> Self:
         """Create aioboto3 client on context entry."""
@@ -97,3 +99,36 @@ class SecretsManager:
     async def get_database_secrets(self) -> dict[str, str]:
         """Retrieve database secrets from ``bravo/database``."""
         return await self._get_secret("bravo/database")
+
+    async def get_raw_secret(self, secret_name: str) -> str:
+        """Retrieve a plain-string secret from AWS Secrets Manager with caching.
+
+        Unlike ``_get_secret`` which parses JSON, this returns the raw
+        ``SecretString`` value directly.
+
+        Args:
+            secret_name: Name of the secret in AWS Secrets Manager.
+
+        Returns:
+            Raw secret string.
+
+        Raises:
+            RuntimeError: If called outside async context manager.
+        """
+        if secret_name in self._raw_cache:
+            elapsed = datetime.now(UTC) - self._raw_cache_timestamps[secret_name]
+            if elapsed < timedelta(seconds=self.cache_ttl):
+                return self._raw_cache[secret_name]
+
+        if not self._client:
+            raise RuntimeError(
+                "SecretsManager must be used as async context manager. "
+                "Use: async with SecretsManager() as sm: ..."
+            )
+
+        response = await self._client.get_secret_value(SecretId=secret_name)
+        secret_string: str = response["SecretString"]
+
+        self._raw_cache[secret_name] = secret_string
+        self._raw_cache_timestamps[secret_name] = datetime.now(UTC)
+        return secret_string
