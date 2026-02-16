@@ -231,6 +231,46 @@ class TestEvaluateTicket:
         )
         assert result["should_nudge"] is False
 
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_force_bypasses_cooldown(self, _mock_queries):
+        service, _, mock_slack, mock_gates, mock_llm = _make_nudge_service()
+        _mock_queries.get_latest_nudge_for_ticket.return_value = {
+            "created_at": datetime.now(UTC) - timedelta(hours=1),
+            "status": "SENT",
+        }
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        result = await service.evaluate_ticket("TEST-1", force=True)
+
+        # Should NOT return cooldown — force bypasses it
+        assert result["nudge_reason"] != "cooldown"
+        mock_gates.evaluate.assert_called_once()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_force_bypasses_snooze(self, _mock_queries):
+        service, _, mock_slack, mock_gates, mock_llm = _make_nudge_service()
+        _mock_queries.get_active_snooze_for_ticket.return_value = {
+            "snoozed_until": datetime(2099, 1, 1, tzinfo=UTC),
+            "status": "SNOOZED",
+        }
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        result = await service.evaluate_ticket("TEST-1", force=True)
+
+        # Should NOT return snoozed — force bypasses it
+        assert result["nudge_reason"] != "snoozed"
+        mock_gates.evaluate.assert_called_once()
+
 
 class TestSendNudge:
     """Tests for NudgeService._send_nudge() edge cases."""
