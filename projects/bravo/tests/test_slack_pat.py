@@ -295,3 +295,63 @@ class TestCollectPATSubmission:
         response = mock_client.send_socket_mode_response.call_args[0][0]
         assert response.payload["response_action"] == "errors"
         assert "pat_input_block" in response.payload["errors"]
+
+    async def test_collect_pat_invalid_shows_error_modal(self) -> None:
+        mock_pat = AsyncMock()
+        service, mock_jira = _make_service(pat_service=mock_pat)
+        mock_jira.test_auth = AsyncMock(return_value=False)
+        mock_client = AsyncMock()
+        mock_req = AsyncMock()
+        mock_req.envelope_id = "env-123"
+
+        payload = self._submission_payload()
+        await service._handle_collect_pat_submission(
+            payload, mock_client, mock_req,
+        )
+
+        mock_pat.store_pat.assert_not_awaited()
+        mock_jira.test_auth.assert_awaited_once()
+        response = mock_client.send_socket_mode_response.call_args[0][0]
+        assert response.payload["response_action"] == "update"
+        assert response.payload["view"]["callback_id"] == "collect_pat_modal"
+
+    async def test_collect_pat_strips_whitespace(self) -> None:
+        mock_pat = AsyncMock()
+        service, mock_jira = _make_service(pat_service=mock_pat)
+        mock_jira.test_auth = AsyncMock(return_value=True)
+        mock_client = AsyncMock()
+        mock_req = AsyncMock()
+        mock_req.envelope_id = "env-123"
+
+        payload = self._submission_payload(pat_value="  ATATT3x_test_token  ")
+        await service._handle_collect_pat_submission(
+            payload, mock_client, mock_req,
+        )
+
+        mock_jira.test_auth.assert_awaited_once_with(user_pat="ATATT3x_test_token")
+        mock_pat.store_pat.assert_awaited_once_with("U456", "ATATT3x_test_token")
+
+    async def test_collect_pat_store_after_validate(self) -> None:
+        """PAT is stored only after successful validation."""
+        mock_pat = AsyncMock()
+        service, mock_jira = _make_service(pat_service=mock_pat)
+
+        call_order = []
+        async def track_test_auth(**kwargs):
+            call_order.append("test_auth")
+            return True
+        async def track_store_pat(uid, pat):
+            call_order.append("store_pat")
+
+        mock_jira.test_auth = AsyncMock(side_effect=track_test_auth)
+        mock_pat.store_pat = AsyncMock(side_effect=track_store_pat)
+        mock_client = AsyncMock()
+        mock_req = AsyncMock()
+        mock_req.envelope_id = "env-123"
+
+        payload = self._submission_payload()
+        await service._handle_collect_pat_submission(
+            payload, mock_client, mock_req,
+        )
+
+        assert call_order == ["test_auth", "store_pat"]
