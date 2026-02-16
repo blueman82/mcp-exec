@@ -222,7 +222,7 @@ class TestCollectPATSubmission:
 
     async def test_collect_pat_submission_stores_and_transitions(self) -> None:
         mock_pat = AsyncMock()
-        service, _ = _make_service(pat_service=mock_pat)
+        service, mock_jira = _make_service(pat_service=mock_pat)
         mock_client = AsyncMock()
         mock_req = AsyncMock()
         mock_req.envelope_id = "env-123"
@@ -232,6 +232,7 @@ class TestCollectPATSubmission:
             payload, mock_client, mock_req,
         )
 
+        mock_jira.test_auth.assert_awaited_once_with(user_pat="ATATT3x_test_token")
         mock_pat.store_pat.assert_awaited_once_with("U456", "ATATT3x_test_token")
         # Should send response_action: update with fix_now_modal
         mock_client.send_socket_mode_response.assert_awaited_once()
