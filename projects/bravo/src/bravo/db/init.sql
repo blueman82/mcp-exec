@@ -146,3 +146,16 @@ DROP TRIGGER IF EXISTS update_project_configs_updated_at ON project_configs;
 CREATE TRIGGER update_project_configs_updated_at
     BEFORE UPDATE ON project_configs
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Assignee PATs table (encrypted Jira PATs per Slack user)
+CREATE TABLE IF NOT EXISTS assignee_pats (
+    slack_user_id  TEXT PRIMARY KEY,
+    encrypted_pat  BYTEA        NOT NULL,
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+DROP TRIGGER IF EXISTS set_updated_at_assignee_pats ON assignee_pats;
+CREATE TRIGGER set_updated_at_assignee_pats
+    BEFORE UPDATE ON assignee_pats
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

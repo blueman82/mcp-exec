@@ -11,6 +11,7 @@ from bravo.services.jira import JiraMCPClient
 from bravo.services.llm import LLMService
 from bravo.services.nudge import NudgeService
 from bravo.services.poller import PollerService
+from bravo.services.pat import PATService
 from bravo.services.slack import SlackService
 
 
@@ -56,6 +57,13 @@ def create_container(settings: Settings) -> ServiceRegistry:
             factory=lambda: _async(LLMService(settings.llm)),
         )
     )
+    if settings.pat_encryption_key:
+        registry.register(
+            DependencySpec(
+                name="pat_service",
+                factory=lambda: _async(PATService(settings.pat_encryption_key)),
+            )
+        )
 
     # Services with cross-service deps
     registry.register(

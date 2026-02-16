@@ -120,3 +120,16 @@ class NudgeServiceProto(Protocol):
     """Protocol for nudge orchestration."""
 
     async def evaluate_ticket(self, ticket_key: str) -> dict[str, Any]: ...
+
+
+@runtime_checkable
+class PATServiceProto(Protocol):
+    """Protocol for per-user Jira PAT storage."""
+
+    async def store_pat(self, slack_user_id: str, raw_pat: str) -> None: ...
+
+    async def get_pat(self, slack_user_id: str) -> str | None: ...
+
+    async def delete_pat(self, slack_user_id: str) -> bool: ...
+
+    async def has_pat(self, slack_user_id: str) -> bool: ...

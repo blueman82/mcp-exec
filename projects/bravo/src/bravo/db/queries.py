@@ -776,6 +776,62 @@ async def complete_poll_history(
     )
 
 
+# ============ ASSIGNEE PATS ============
+
+
+async def store_assignee_pat(slack_user_id: str, encrypted_pat: bytes) -> None:
+    """UPSERT encrypted PAT for a Slack user.
+
+    Args:
+        slack_user_id: The Slack user ID.
+        encrypted_pat: The Fernet-encrypted PAT bytes.
+    """
+    pool = get_pool()
+    await pool.execute(
+        """
+        INSERT INTO assignee_pats (slack_user_id, encrypted_pat)
+        VALUES ($1, $2)
+        ON CONFLICT (slack_user_id) DO UPDATE SET
+            encrypted_pat = $2, updated_at = now()
+        """,
+        slack_user_id,
+        encrypted_pat,
+    )
+
+
+async def get_assignee_pat(slack_user_id: str) -> bytes | None:
+    """Return encrypted PAT bytes, or None if not stored.
+
+    Args:
+        slack_user_id: The Slack user ID.
+
+    Returns:
+        The encrypted PAT bytes or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchval(
+        "SELECT encrypted_pat FROM assignee_pats WHERE slack_user_id = $1",
+        slack_user_id,
+    )
+
+
+async def delete_assignee_pat(slack_user_id: str) -> bool:
+    """Delete PAT for a Slack user.
+
+    Args:
+        slack_user_id: The Slack user ID.
+
+    Returns:
+        True if a row was deleted, False otherwise.
+    """
+    pool = get_pool()
+    result = await pool.execute(
+        "DELETE FROM assignee_pats WHERE slack_user_id = $1",
+        slack_user_id,
+    )
+    return cast(str, result) == "DELETE 1"
+
+
 async def get_poll_history(limit: int = 10) -> list[asyncpg.Record]:
     """Get recent poll history.
 

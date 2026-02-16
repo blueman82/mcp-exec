@@ -4,8 +4,11 @@ import os
 from functools import lru_cache
 from pathlib import Path
 
+import structlog
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = structlog.get_logger(__name__)
 
 LOG_FILE = Path("/var/log/bravo.log")
 
@@ -114,6 +117,8 @@ class Settings(BaseSettings):
     aws_cache_ttl: int = 3600
     aws_profile: str = ""
 
+    pat_encryption_key: str = ""
+
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     jira: JiraSettings = Field(default_factory=JiraSettings)
     slack: SlackSettings = Field(default_factory=SlackSettings)
@@ -156,6 +161,12 @@ async def load_settings() -> Settings:
         llm_secrets = await sm.get_llm_secrets()
         db_secrets = await sm.get_database_secrets()
 
+        try:
+            pat_key = await sm.get_secret("bravo/pat-encryption-key")
+        except Exception:
+            logger.warning("pat_encryption_key_not_found_in_aws")
+            pat_key = ""
+
     settings.slack.bot_token = settings.slack.bot_token or slack_secrets["bot_token"]
     settings.slack.app_token = settings.slack.app_token or slack_secrets["app_token"]
     settings.slack.signing_secret = settings.slack.signing_secret or slack_secrets.get("signing_secret", "")
@@ -170,5 +181,7 @@ async def load_settings() -> Settings:
         settings.database.user = db_secrets["user"]
     if "host" in db_secrets and "DB_HOST" not in os.environ:
         settings.database.host = db_secrets["host"]
+
+    settings.pat_encryption_key = settings.pat_encryption_key or pat_key
 
     return settings
