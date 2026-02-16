@@ -103,7 +103,8 @@ class JiraMCPClient:
             "method": "tools/call",
             "params": {"name": tool_name, "arguments": arguments},
         }
-        logger.debug("mcp_call", tool=tool_name, arguments=arguments)
+        safe_args = {k: "***" if k == "userPat" else v for k, v in arguments.items()}
+        logger.debug("mcp_call", tool=tool_name, arguments=safe_args)
 
         async def _do_request() -> httpx.Response:
             async with self._semaphore:
