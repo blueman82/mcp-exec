@@ -19,9 +19,10 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from bravo.config import SlackSettings
 from bravo.db import queries
-from bravo.protocols import JiraClientProto
+from bravo.protocols import JiraClientProto, PATServiceProto
 from bravo.services.blocks import (
     build_acknowledged_blocks,
+    build_collect_pat_modal,
     build_fix_error_blocks,
     build_fix_now_modal,
     build_fix_submitted_blocks,
@@ -59,15 +60,22 @@ class SlackService:
         settings: Slack API configuration.
     """
 
-    def __init__(self, settings: SlackSettings, jira: JiraClientProto) -> None:
+    def __init__(
+        self,
+        settings: SlackSettings,
+        jira: JiraClientProto,
+        pat_service: PATServiceProto | None = None,
+    ) -> None:
         """Initialize the Slack service.
 
         Args:
             settings: Slack API configuration.
             jira: Jira client for on-demand ticket field lookups.
+            pat_service: Optional PAT storage for per-user Jira auth.
         """
         self.settings = settings
         self.jira = jira
+        self._pat_service = pat_service
         self._web_client: AsyncWebClient | None = None
         self._socket_client: SocketModeClient | None = None
 
@@ -433,10 +441,24 @@ class SlackService:
         trigger_id = payload.get("trigger_id", "")
         ticket_key = action.get("value", "")
         channel_id, message_ts, _ = self._msg_context(payload)
+        user_id = payload["user"]["id"]
 
         current_fields = await self.jira.get_ticket_fields(ticket_key)
         if not current_fields:
             logger.warning("fix_now_ticket_not_found", ticket_key=ticket_key)
+            return
+
+        # PAT gate: collect PAT before proceeding to Jira writes
+        if self._pat_service and not await self._pat_service.has_pat(user_id):
+            modal = build_collect_pat_modal()
+            modal["private_metadata"] = json.dumps({
+                "original_action": "fix_now",
+                "ticket_key": ticket_key,
+                "channel": channel_id,
+                "ts": message_ts,
+                "current_fields": current_fields,
+            })
+            await self.open_modal(trigger_id, modal)
             return
 
         modal = build_fix_now_modal(
@@ -473,17 +495,82 @@ class SlackService:
         callback_id = payload.get("view", {}).get("callback_id", "unknown")
         logger.info("view_submission_received", callback_id=callback_id)
 
-        await client.send_socket_mode_response(
-            SocketModeResponse(envelope_id=req.envelope_id),
-        )
-
         try:
+            # PAT modal controls its own ACK (response_action)
+            if callback_id == "collect_pat_modal":
+                await self._handle_collect_pat_submission(payload, client, req)
+                return
+
+            # Default ACK for other submissions
+            await client.send_socket_mode_response(
+                SocketModeResponse(envelope_id=req.envelope_id),
+            )
+
             if callback_id == "fix_now_modal":
                 await self._handle_fix_now_submission(payload)
             else:
                 logger.warning("unhandled_view_submission", callback_id=callback_id)
         except Exception:
             logger.exception("view_submission_handler_error", callback_id=callback_id)
+
+    async def _handle_collect_pat_submission(
+        self,
+        payload: dict[str, Any],
+        client: SocketModeClient,
+        req: SocketModeRequest,
+    ) -> None:
+        """Process PAT collection modal — store PAT and continue original action."""
+        user_id = payload["user"]["id"]
+        values = payload.get("view", {}).get("state", {}).get("values", {})
+        pat_value = (
+            values.get("pat_input_block", {}).get("pat_value", {}).get("value", "")
+        )
+        metadata = json.loads(
+            payload.get("view", {}).get("private_metadata", "{}")
+        )
+
+        if not pat_value:
+            await client.send_socket_mode_response(
+                SocketModeResponse(
+                    envelope_id=req.envelope_id,
+                    payload={
+                        "response_action": "errors",
+                        "errors": {"pat_input_block": "Please enter your Jira PAT"},
+                    },
+                )
+            )
+            return
+
+        await self._pat_service.store_pat(user_id, pat_value)
+        logger.info("pat_collected_via_modal", user_id=user_id)
+
+        # Continue with the original action
+        if metadata.get("original_action") == "fix_now":
+            current_fields = metadata.get("current_fields", {})
+            next_view = build_fix_now_modal(
+                ticket_key=metadata.get("ticket_key", ""),
+                current_fields=current_fields,
+            )
+            next_view["private_metadata"] = json.dumps({
+                "ticket_key": metadata.get("ticket_key", ""),
+                "channel": metadata.get("channel", ""),
+                "ts": metadata.get("ts", ""),
+            })
+
+            if next_view["blocks"]:
+                # Transition to Fix Now modal in-place
+                await client.send_socket_mode_response(
+                    SocketModeResponse(
+                        envelope_id=req.envelope_id,
+                        payload={"response_action": "update", "view": next_view},
+                    )
+                )
+                return
+
+        # No missing fields or unknown action — just close
+        await client.send_socket_mode_response(
+            SocketModeResponse(envelope_id=req.envelope_id),
+        )
 
     async def _fetch_message_blocks(
         self, channel: str, ts: str

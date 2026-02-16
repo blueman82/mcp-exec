@@ -363,6 +363,57 @@ def build_unsnoozed_blocks(
     return new_blocks
 
 
+_JIRA_BASE_URL = "https://jira.corp.adobe.com"
+
+
+def build_collect_pat_modal() -> dict[str, Any]:
+    """Build a Slack modal for collecting a user's Jira PAT.
+
+    Returns:
+        Slack view payload suitable for ``views.open()``.
+        Caller sets ``private_metadata`` before opening.
+    """
+    pat_url = (
+        f"{_JIRA_BASE_URL}/secure/ViewProfile.jspa"
+        "?selectedTab=com.atlassian.pats.pats-plugin"
+        ":jira-user-personal-access-tokens"
+    )
+    return {
+        "type": "modal",
+        "callback_id": "collect_pat_modal",
+        "private_metadata": "",
+        "title": {"type": "plain_text", "text": "Connect Jira"},
+        "submit": {"type": "plain_text", "text": "Save PAT"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        "To update Jira on your behalf, Bravo needs your "
+                        "Personal Access Token (PAT).\n\n"
+                        f"<{pat_url}|Generate a PAT in Jira>"
+                    ),
+                },
+            },
+            {
+                "type": "input",
+                "block_id": "pat_input_block",
+                "label": {"type": "plain_text", "text": "Jira PAT"},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "pat_value",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Paste your Personal Access Token",
+                    },
+                },
+            },
+        ],
+    }
+
+
 _JIRA_PRIORITIES: list[str] = [
     "Blocker",
     "Critical",

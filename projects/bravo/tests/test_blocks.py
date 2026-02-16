@@ -6,6 +6,7 @@ import pytest
 
 from bravo.services.blocks import (
     build_acknowledged_blocks,
+    build_collect_pat_modal,
     build_fix_error_blocks,
     build_fix_now_modal,
     build_fix_submitted_blocks,
@@ -482,3 +483,35 @@ def test_build_fix_error_blocks_restores_action_buttons() -> None:
     assert "nudge_no_updates" in ids
     assert "nudge_snooze_1h" in ids
     assert "nudge_snooze_4h" in ids
+
+
+# ---------------------------------------------------------------------------
+# build_collect_pat_modal
+# ---------------------------------------------------------------------------
+
+
+def test_build_collect_pat_modal_structure() -> None:
+    modal = build_collect_pat_modal()
+    assert modal["callback_id"] == "collect_pat_modal"
+    assert modal["title"]["text"] == "Connect Jira"
+    assert modal["submit"]["text"] == "Save PAT"
+    assert modal["close"]["text"] == "Cancel"
+    assert modal["private_metadata"] == ""
+
+
+def test_build_collect_pat_modal_has_pat_input() -> None:
+    modal = build_collect_pat_modal()
+    input_blocks = [b for b in modal["blocks"] if b.get("type") == "input"]
+    assert len(input_blocks) == 1
+    assert input_blocks[0]["block_id"] == "pat_input_block"
+    assert input_blocks[0]["element"]["action_id"] == "pat_value"
+    assert input_blocks[0]["element"]["type"] == "plain_text_input"
+
+
+def test_build_collect_pat_modal_has_jira_link() -> None:
+    modal = build_collect_pat_modal()
+    section = modal["blocks"][0]
+    assert section["type"] == "section"
+    text = section["text"]["text"]
+    assert "jira.corp.adobe.com" in text
+    assert "personal-access-tokens" in text
