@@ -159,3 +159,23 @@ DROP TRIGGER IF EXISTS set_updated_at_assignee_pats ON assignee_pats;
 CREATE TRIGGER set_updated_at_assignee_pats
     BEFORE UPDATE ON assignee_pats
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Re-evaluation queue (async re-eval after engineer responds)
+CREATE TABLE IF NOT EXISTS re_evaluation_queue (
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ticket_key    VARCHAR(50) NOT NULL,
+    nudge_id      UUID REFERENCES nudge_events(id),
+    channel_id    VARCHAR(100),
+    message_ts    VARCHAR(50),
+    status        VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    locked_at     TIMESTAMPTZ,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    last_error    TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    processed_at  TIMESTAMPTZ,
+    result        TEXT,
+    CONSTRAINT valid_queue_status CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'))
+);
+CREATE INDEX IF NOT EXISTS idx_reeval_queue_status ON re_evaluation_queue(status, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reeval_queue_dedup
+    ON re_evaluation_queue(nudge_id) WHERE status IN ('PENDING', 'PROCESSING');

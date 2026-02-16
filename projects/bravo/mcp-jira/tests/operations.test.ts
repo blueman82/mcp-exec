@@ -54,15 +54,30 @@ beforeEach(() => {
 });
 
 describe("testAuthHandler", () => {
-  it("calls GET /myself", async () => {
+  it("calls GET /myself without userPat", async () => {
     const user = { name: "testuser", displayName: "Test User" };
     mockJiraRequest.mockResolvedValue(user);
 
     const result = await testAuthHandler({});
 
-    expect(mockJiraRequest).toHaveBeenCalledWith("/myself");
+    expect(mockJiraRequest).toHaveBeenCalledWith("/myself", {
+      userPat: undefined,
+    });
     expect(result).toEqual(user);
   });
+
+  it("passes userPat through to jiraRequest", async () => {
+    const user = { name: "patuser", displayName: "PAT User" };
+    mockJiraRequest.mockResolvedValue(user);
+
+    const result = await testAuthHandler({ userPat: "user-pat-abc" });
+
+    expect(mockJiraRequest).toHaveBeenCalledWith("/myself", {
+      userPat: "user-pat-abc",
+    });
+    expect(result).toEqual(user);
+  });
+
 });
 
 describe("searchHandler", () => {
