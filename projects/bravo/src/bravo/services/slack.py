@@ -553,7 +553,7 @@ class SlackService:
         client: SocketModeClient,
         req: SocketModeRequest,
     ) -> None:
-        """Process PAT collection modal — store PAT and continue original action."""
+        """Process PAT collection modal — validate, store, and continue."""
         user_id = payload["user"]["id"]
         values = payload.get("view", {}).get("state", {}).get("values", {})
         pat_value = (
@@ -563,6 +563,8 @@ class SlackService:
             payload.get("view", {}).get("private_metadata", "{}")
         )
 
+        # Strip whitespace, reject empty
+        pat_value = pat_value.strip() if pat_value else ""
         if not pat_value:
             await client.send_socket_mode_response(
                 SocketModeResponse(
@@ -575,8 +577,28 @@ class SlackService:
             )
             return
 
+        # Validate PAT before storing — never log the PAT value
+        is_valid = await self.jira.test_auth(user_pat=pat_value)
+        if not is_valid:
+            logger.warning("pat_validation_failed", user_id=user_id)
+            error_view = build_pat_error_modal(
+                metadata.get("ticket_key", ""),
+            )
+            # Preserve original metadata so retry continues the flow
+            error_view["private_metadata"] = payload.get("view", {}).get(
+                "private_metadata", "{}"
+            )
+            await client.send_socket_mode_response(
+                SocketModeResponse(
+                    envelope_id=req.envelope_id,
+                    payload={"response_action": "update", "view": error_view},
+                )
+            )
+            return
+
+        # PAT is valid — store it
         await self._pat_service.store_pat(user_id, pat_value)
-        logger.info("pat_collected_via_modal", user_id=user_id)
+        logger.info("pat_validated_and_stored", user_id=user_id)
 
         # Continue with the original action
         if metadata.get("original_action") == "fix_now":
@@ -592,7 +614,6 @@ class SlackService:
             })
 
             if next_view["blocks"]:
-                # Transition to Fix Now modal in-place
                 await client.send_socket_mode_response(
                     SocketModeResponse(
                         envelope_id=req.envelope_id,
@@ -602,14 +623,21 @@ class SlackService:
                 return
 
         if metadata.get("original_action") == "yes_updates":
-            await client.send_socket_mode_response(
-                SocketModeResponse(envelope_id=req.envelope_id),
+            # Transition to comment modal in-place
+            ticket_key = metadata.get("ticket_key", "")
+            comment_view = build_comment_modal(
+                ticket_key, "PAT verified \u2014 connected to Jira",
             )
-            await self._complete_yes_updates(
-                user_id=user_id,
-                ticket_key=metadata.get("ticket_key", ""),
-                channel_id=metadata.get("channel", ""),
-                message_ts=metadata.get("ts", ""),
+            comment_view["private_metadata"] = json.dumps({
+                "ticket_key": ticket_key,
+                "channel": metadata.get("channel", ""),
+                "ts": metadata.get("ts", ""),
+            })
+            await client.send_socket_mode_response(
+                SocketModeResponse(
+                    envelope_id=req.envelope_id,
+                    payload={"response_action": "update", "view": comment_view},
+                )
             )
             return
 
