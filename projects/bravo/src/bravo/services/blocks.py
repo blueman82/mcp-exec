@@ -643,66 +643,96 @@ def build_pat_error_modal(ticket_key: str) -> dict[str, Any]:
 def build_reeval_result_blocks(
     *,
     original_blocks: list[dict[str, Any]],
+    ticket_key: str,
     passed: bool,
     trigger_reason: str,
 ) -> list[dict[str, Any]]:
-    """Replace the Why + actions blocks with a re-evaluation result.
+    """Append a re-evaluation result to the nudge message.
 
-    Preserves the header, ticket info, and first divider from the original
-    nudge, then replaces everything after with the re-eval result as a
-    prominent section block.
+    Keeps the full original message (header, ticket info, Why section)
+    intact. Removes any interim context blocks (e.g. "Comment posted")
+    that replaced the action buttons, then appends the re-eval result.
+
+    If re-eval failed, restores the original action buttons so the
+    engineer can try again. If passed, no buttons needed.
 
     Args:
-        original_blocks: The current nudge Block Kit payload.
+        original_blocks: The current message Block Kit payload.
+        ticket_key: Jira ticket key (for rebuilding action buttons).
         passed: Whether all checks passed.
         trigger_reason: Human-readable reasons (for failed re-eval).
 
     Returns:
-        New list of blocks with re-eval result.
+        New list of blocks with re-eval result appended.
     """
-    # Keep blocks up to and including the first divider after ticket info
+    # Keep all blocks except actions and the "Comment posted" context
+    # that replaced them. We identify the replacement context by checking
+    # for context blocks that appear after the last divider (where
+    # buttons used to be).
     kept: list[dict[str, Any]] = []
-    divider_count = 0
-    for block in copy.deepcopy(original_blocks):
-        kept.append(block)
-        if block.get("type") == "divider":
-            divider_count += 1
-            if divider_count >= 1:
-                break
+    last_divider_idx = -1
+    deep = copy.deepcopy(original_blocks)
 
+    # Find the index of the last divider
+    for i, block in enumerate(deep):
+        if block.get("type") == "divider":
+            last_divider_idx = i
+
+    # Keep everything up to and including the last divider.
+    # Drop anything after it (that's the "Comment posted" context
+    # or action buttons that we're replacing).
+    for i, block in enumerate(deep):
+        if i <= last_divider_idx:
+            kept.append(block)
+
+    # Build re-eval result blocks
     if passed:
-        result_section: dict[str, Any] = {
+        kept.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    "\u2705 *Re-evaluation \u2014 all checks passed!*\n\n"
+                    "\u2705 *Re-evaluation complete \u2014 all checks passed!*\n\n"
                     "Your update resolved all issues. No further action needed."
                 ),
             },
-        }
+        })
+        kept.append({
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": "\u2709\ufe0f Your comment was posted to Jira"},
+            ],
+        })
     else:
-        result_section = {
+        kept.append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f"\u26a0\ufe0f *Re-evaluation \u2014 still needs attention*\n\n"
-                    f"{trigger_reason}"
+                    "\u26a0\ufe0f *Re-evaluation complete \u2014 still needs attention*\n\n"
+                    "Your comment was posted but these checks are still failing:"
                 ),
             },
-        }
+        })
+        kept.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "\u2022 " + trigger_reason.replace(" \u00b7 ", "\n\u2022 "),
+            },
+        })
+        kept.append({
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "\U0001f4a1 _Try adding a detailed comment directly on the Jira ticket to resolve these_",
+                },
+            ],
+        })
+        # Restore action buttons so engineer can retry
+        kept.append(_actions_block(ticket_key))
 
-    comment_context: dict[str, Any] = {
-        "type": "context",
-        "elements": [
-            {"type": "mrkdwn", "text": "\u2709\ufe0f Your comment was posted to Jira"},
-        ],
-    }
-
-    kept.append(result_section)
-    kept.append(_divider_block())
-    kept.append(comment_context)
     return kept
 
 
