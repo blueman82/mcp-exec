@@ -322,7 +322,40 @@ class SlackService:
             payload: The interaction payload from Slack.
             action: The specific action that was triggered.
         """
-        channel_id, message_ts, original_blocks = self._msg_context(payload)
+        trigger_id = payload.get("trigger_id", "")
+        user_id = payload["user"]["id"]
+        ticket_key = action.get("value", "")
+        channel_id, message_ts, _ = self._msg_context(payload)
+
+        # PAT gate: collect PAT before Jira write
+        if self._pat_service and not await self._pat_service.has_pat(user_id):
+            modal = build_collect_pat_modal()
+            modal["private_metadata"] = json.dumps({
+                "original_action": "yes_updates",
+                "ticket_key": ticket_key,
+                "channel": channel_id,
+                "ts": message_ts,
+            })
+            await self.open_modal(trigger_id, modal)
+            return
+
+        await self._complete_yes_updates(
+            user_id=user_id, ticket_key=ticket_key,
+            channel_id=channel_id, message_ts=message_ts,
+        )
+
+    async def _complete_yes_updates(
+        self, *, user_id: str, ticket_key: str, channel_id: str, message_ts: str,
+    ) -> None:
+        """Add audit comment, update nudge status, and update Slack message."""
+        try:
+            await self.jira.add_comment(
+                ticket_key,
+                "[Bravo] Engineer acknowledged — updates coming",
+                slack_user_id=user_id,
+            )
+        except Exception:
+            logger.warning("yes_updates_comment_failed", ticket_key=ticket_key, exc_info=True)
 
         nudge = await queries.get_nudge_by_slack_ts(message_ts)
         if not nudge:
@@ -330,10 +363,9 @@ class SlackService:
             return
 
         await queries.update_nudge_status(nudge["id"], "RESPONDED")
+        original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
         await self.update_message(
-            channel=channel_id,
-            ts=message_ts,
-            text="Updates incoming",
+            channel=channel_id, ts=message_ts, text="Updates incoming",
             blocks=build_yes_updates_blocks(original_blocks=original_blocks),
         )
 
@@ -566,6 +598,18 @@ class SlackService:
                     )
                 )
                 return
+
+        if metadata.get("original_action") == "yes_updates":
+            await client.send_socket_mode_response(
+                SocketModeResponse(envelope_id=req.envelope_id),
+            )
+            await self._complete_yes_updates(
+                user_id=user_id,
+                ticket_key=metadata.get("ticket_key", ""),
+                channel_id=metadata.get("channel", ""),
+                message_ts=metadata.get("ts", ""),
+            )
+            return
 
         # No missing fields or unknown action — just close
         await client.send_socket_mode_response(

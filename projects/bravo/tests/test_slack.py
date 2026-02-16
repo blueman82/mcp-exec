@@ -83,6 +83,78 @@ def _mock_queries():
         yield mock_q
 
 
+class TestYesUpdatesCompletion:
+    """Tests for SlackService._complete_yes_updates()."""
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_yes_updates_adds_comment_with_slack_user_id(
+        self, _mock_queries,
+    ) -> None:
+        service, mock_jira = _make_service()
+
+        await service._complete_yes_updates(
+            user_id="U456", ticket_key="TEST-1",
+            channel_id="C123", message_ts="1234567890.123456",
+        )
+
+        mock_jira.add_comment.assert_awaited_once_with(
+            "TEST-1",
+            "[Bravo] Engineer acknowledged \u2014 updates coming",
+            slack_user_id="U456",
+        )
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_yes_updates_updates_nudge_status(
+        self, _mock_queries,
+    ) -> None:
+        service, mock_jira = _make_service()
+
+        await service._complete_yes_updates(
+            user_id="U456", ticket_key="TEST-1",
+            channel_id="C123", message_ts="1234567890.123456",
+        )
+
+        _mock_queries.update_nudge_status.assert_awaited_once_with(
+            "nudge-1", "RESPONDED",
+        )
+        web = service._web_client
+        web.chat_update.assert_awaited_once()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_yes_updates_comment_failure_nonfatal(
+        self, _mock_queries,
+    ) -> None:
+        service, mock_jira = _make_service()
+        mock_jira.add_comment.side_effect = RuntimeError("MCP down")
+
+        await service._complete_yes_updates(
+            user_id="U456", ticket_key="TEST-1",
+            channel_id="C123", message_ts="1234567890.123456",
+        )
+
+        # Comment failed but nudge still updated and Slack message still sent
+        _mock_queries.update_nudge_status.assert_awaited_once_with(
+            "nudge-1", "RESPONDED",
+        )
+        web = service._web_client
+        web.chat_update.assert_awaited_once()
+
+    async def test_yes_updates_nudge_not_found(self) -> None:
+        service, mock_jira = _make_service()
+        with patch("bravo.services.slack.queries") as mock_q:
+            mock_q.get_nudge_by_slack_ts = AsyncMock(return_value=None)
+            mock_q.update_nudge_status = AsyncMock()
+
+            await service._complete_yes_updates(
+                user_id="U456", ticket_key="TEST-1",
+                channel_id="C123", message_ts="1234567890.123456",
+            )
+
+            mock_q.update_nudge_status.assert_not_awaited()
+            web = service._web_client
+            web.chat_update.assert_not_awaited()
+
+
 class TestFixNowSubmission:
     """Tests for SlackService._handle_fix_now_submission()."""
 
