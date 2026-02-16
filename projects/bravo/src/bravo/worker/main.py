@@ -180,7 +180,7 @@ class Worker:
                             "text": {
                                 "type": "mrkdwn",
                                 "text": (
-                                    "\u2705 *Re-evaluation \u2014 all checks passed!*\n\n"
+                                    "\u2705 *Re-evaluation complete \u2014 all checks passed!*\n\n"
                                     "Your update resolved all issues. No further action needed."
                                 ),
                             },
@@ -191,10 +191,26 @@ class Worker:
                             "text": {
                                 "type": "mrkdwn",
                                 "text": (
-                                    f"\u26a0\ufe0f *Re-evaluation \u2014 still needs attention*\n\n"
-                                    f"{trigger_reason}"
+                                    "\u26a0\ufe0f *Re-evaluation complete \u2014 still needs attention*\n\n"
+                                    "Your comment was posted but these checks are still failing:"
                                 ),
                             },
+                        })
+                        blocks.append({
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": f"\u2022 {trigger_reason.replace(' \u00b7 ', '\n\u2022 ')}",
+                            },
+                        })
+                        blocks.append({
+                            "type": "context",
+                            "elements": [
+                                {
+                                    "type": "mrkdwn",
+                                    "text": "\U0001f4a1 _Try adding a detailed comment directly on the Jira ticket to resolve these_",
+                                },
+                            ],
                         })
                     blocks.append(_divider_block())
                     blocks.append({
