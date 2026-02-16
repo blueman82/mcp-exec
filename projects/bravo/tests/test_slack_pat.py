@@ -243,7 +243,7 @@ class TestCollectPATSubmission:
     async def test_collect_pat_yes_updates_closes_and_completes(self) -> None:
         mock_pat = AsyncMock()
         service, mock_jira = _make_service(pat_service=mock_pat)
-        service._complete_yes_updates = AsyncMock()
+        mock_jira.test_auth = AsyncMock(return_value=True)
         mock_client = AsyncMock()
         mock_req = AsyncMock()
         mock_req.envelope_id = "env-123"
@@ -271,17 +271,13 @@ class TestCollectPATSubmission:
             payload, mock_client, mock_req,
         )
 
+        mock_jira.test_auth.assert_awaited_once_with(user_pat="ATATT3x_test_token")
         mock_pat.store_pat.assert_awaited_once_with("U456", "ATATT3x_test_token")
-        # Should ACK (close modal) then complete yes_updates
+        # Should transition to comment_modal
         mock_client.send_socket_mode_response.assert_awaited_once()
         response = mock_client.send_socket_mode_response.call_args[0][0]
-        assert response.payload is None or "response_action" not in (response.payload or {})
-        service._complete_yes_updates.assert_awaited_once_with(
-            user_id="U456",
-            ticket_key="TEST-1",
-            channel_id="C789",
-            message_ts="1234567890.123456",
-        )
+        assert response.payload["response_action"] == "update"
+        assert response.payload["view"]["callback_id"] == "comment_modal"
 
     async def test_collect_pat_submission_empty_returns_error(self) -> None:
         mock_pat = AsyncMock()
