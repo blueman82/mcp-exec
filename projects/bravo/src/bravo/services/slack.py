@@ -660,6 +660,98 @@ class SlackService:
             SocketModeResponse(envelope_id=req.envelope_id),
         )
 
+    async def _handle_comment_submission(self, payload: dict[str, Any]) -> None:
+        """Process comment modal submission — post to Jira, enqueue re-eval.
+
+        Runs as a background task (spawned from _handle_view_submission)
+        so that the Slack ACK completes within the 3-second deadline.
+
+        Args:
+            payload: The view submission payload from Slack.
+        """
+        metadata = json.loads(
+            payload.get("view", {}).get("private_metadata", "{}")
+        )
+        ticket_key = metadata.get("ticket_key", "")
+        channel_id = metadata.get("channel", "")
+        message_ts = metadata.get("ts", "")
+        user_id = payload.get("user", {}).get("id", "")
+        values = payload.get("view", {}).get("state", {}).get("values", {})
+        comment_text = (
+            values.get("comment_input_block", {})
+            .get("comment_value", {})
+            .get("value", "")
+        )
+
+        if not comment_text or not comment_text.strip():
+            logger.warning("comment_submission_empty", ticket_key=ticket_key)
+            return
+
+        comment_text = comment_text.strip()
+
+        # Post comment to Jira (critical path)
+        try:
+            await self.jira.add_comment(
+                ticket_key, comment_text, slack_user_id=user_id,
+            )
+        except Exception:
+            logger.exception("comment_jira_post_failed", ticket_key=ticket_key)
+            # Update Slack message with error
+            original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
+            await self.update_message(
+                channel=channel_id,
+                ts=message_ts,
+                text=f"Could not post comment to {ticket_key}",
+                blocks=build_fix_error_blocks(
+                    original_blocks=original_blocks,
+                    ticket_key=ticket_key,
+                    error_message=f"Could not post comment to {ticket_key} \u2014 try again",
+                ),
+            )
+            return
+
+        logger.info("comment_posted_to_jira", ticket_key=ticket_key)
+
+        # Update nudge status
+        nudge = await queries.get_nudge_by_slack_ts(message_ts)
+        if nudge:
+            await queries.update_nudge_status(nudge["id"], "RESPONDED")
+
+            # Enqueue re-evaluation (best-effort)
+            try:
+                await queries.enqueue_re_evaluation(
+                    ticket_key=ticket_key,
+                    nudge_id=nudge["id"],
+                    channel_id=channel_id,
+                    message_ts=message_ts,
+                )
+            except Exception:
+                logger.warning(
+                    "reeval_enqueue_failed",
+                    ticket_key=ticket_key,
+                    exc_info=True,
+                )
+
+        # Update Slack message: "Comment posted, evaluation in progress"
+        original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
+        reply_context: dict[str, Any] = {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "\u2705 Comment posted \u2014 re-evaluation in progress",
+                },
+            ],
+        }
+        from bravo.services.blocks import _replace_actions
+        updated_blocks = _replace_actions(original_blocks, reply_context)
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text="Comment posted, evaluation in progress",
+            blocks=updated_blocks,
+        )
+
     async def _fetch_message_blocks(
         self, channel: str, ts: str
     ) -> list[dict[str, Any]]:
