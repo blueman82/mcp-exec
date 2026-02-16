@@ -26,6 +26,7 @@ def _make_service(
         Tuple of (service, mock_jira).
     """
     mock_jira = AsyncMock()
+    mock_jira.test_auth = AsyncMock(return_value=True)
     service = SlackService(_make_settings(), mock_jira, pat_service)
     # Stub out the web client so open_modal works
     mock_web = AsyncMock()
