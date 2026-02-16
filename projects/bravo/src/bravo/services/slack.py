@@ -21,6 +21,7 @@ from bravo.config import SlackSettings
 from bravo.db import queries
 from bravo.protocols import JiraClientProto, PATServiceProto
 from bravo.services.blocks import (
+    _replace_actions,
     build_acknowledged_blocks,
     build_collect_pat_modal,
     build_comment_modal,
