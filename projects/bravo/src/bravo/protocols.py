@@ -127,7 +127,9 @@ class PollerServiceProto(Protocol):
 class NudgeServiceProto(Protocol):
     """Protocol for nudge orchestration."""
 
-    async def evaluate_ticket(self, ticket_key: str) -> dict[str, Any]: ...
+    async def evaluate_ticket(
+        self, ticket_key: str, *, force: bool = False,
+    ) -> dict[str, Any]: ...
 
 
 @runtime_checkable
