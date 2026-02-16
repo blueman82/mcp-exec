@@ -640,6 +640,72 @@ def build_pat_error_modal(ticket_key: str) -> dict[str, Any]:
     }
 
 
+def build_reeval_result_blocks(
+    *,
+    original_blocks: list[dict[str, Any]],
+    passed: bool,
+    trigger_reason: str,
+) -> list[dict[str, Any]]:
+    """Replace the Why + actions blocks with a re-evaluation result.
+
+    Preserves the header, ticket info, and first divider from the original
+    nudge, then replaces everything after with the re-eval result as a
+    prominent section block.
+
+    Args:
+        original_blocks: The current nudge Block Kit payload.
+        passed: Whether all checks passed.
+        trigger_reason: Human-readable reasons (for failed re-eval).
+
+    Returns:
+        New list of blocks with re-eval result.
+    """
+    # Keep blocks up to and including the first divider after ticket info
+    kept: list[dict[str, Any]] = []
+    divider_count = 0
+    for block in copy.deepcopy(original_blocks):
+        kept.append(block)
+        if block.get("type") == "divider":
+            divider_count += 1
+            if divider_count >= 1:
+                break
+
+    if passed:
+        result_section: dict[str, Any] = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    "\u2705 *Re-evaluation \u2014 all checks passed!*\n\n"
+                    "Your update resolved all issues. No further action needed."
+                ),
+            },
+        }
+    else:
+        result_section = {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"\u26a0\ufe0f *Re-evaluation \u2014 still needs attention*\n\n"
+                    f"{trigger_reason}"
+                ),
+            },
+        }
+
+    comment_context: dict[str, Any] = {
+        "type": "context",
+        "elements": [
+            {"type": "mrkdwn", "text": "\u2709\ufe0f Your comment was posted to Jira"},
+        ],
+    }
+
+    kept.append(result_section)
+    kept.append(_divider_block())
+    kept.append(comment_context)
+    return kept
+
+
 def build_fix_error_blocks(
     *,
     original_blocks: list[dict[str, Any]],
