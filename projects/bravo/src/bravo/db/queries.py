@@ -971,6 +971,26 @@ async def reap_stale_jobs(timeout_minutes: int = 10) -> int:
     return int(count_str) if count_str.isdigit() else 0
 
 
+async def has_pending_reeval(ticket_key: str) -> bool:
+    """Check if a ticket has a pending or processing re-evaluation.
+
+    Args:
+        ticket_key: The Jira ticket key.
+
+    Returns:
+        True if a PENDING or PROCESSING entry exists.
+    """
+    pool = get_pool()
+    count = await pool.fetchval(
+        """
+        SELECT COUNT(*) FROM re_evaluation_queue
+        WHERE ticket_key = $1 AND status IN ('PENDING', 'PROCESSING')
+        """,
+        ticket_key,
+    )
+    return (count or 0) > 0
+
+
 async def get_poll_history(limit: int = 10) -> list[asyncpg.Record]:
     """Get recent poll history.
 
