@@ -517,3 +517,74 @@ def test_build_collect_pat_modal_has_jira_link() -> None:
     text = section["text"]["text"]
     assert "jira.corp.adobe.com" in text
     assert "personal-access-tokens" in text
+
+
+# ---------------------------------------------------------------------------
+# build_comment_modal
+# ---------------------------------------------------------------------------
+
+
+def test_build_comment_modal_structure() -> None:
+    modal = build_comment_modal("BRAVO-42", "PAT verified")
+    assert modal["callback_id"] == "comment_modal"
+    assert modal["submit"]["text"] == "Post Comment"
+    assert modal["close"]["text"] == "Cancel"
+    assert modal["private_metadata"] == ""
+
+
+def test_build_comment_modal_has_success_banner() -> None:
+    modal = build_comment_modal("BRAVO-42", "PAT verified — connected to Jira")
+    section = modal["blocks"][0]
+    assert section["type"] == "section"
+    assert "PAT verified" in section["text"]["text"]
+
+
+def test_build_comment_modal_has_text_input() -> None:
+    modal = build_comment_modal("BRAVO-42", "Success")
+    input_blocks = [b for b in modal["blocks"] if b.get("type") == "input"]
+    assert len(input_blocks) == 1
+    assert input_blocks[0]["block_id"] == "comment_input_block"
+    assert input_blocks[0]["element"]["action_id"] == "comment_value"
+    assert input_blocks[0]["element"]["multiline"] is True
+
+
+def test_build_comment_modal_title_truncated() -> None:
+    modal = build_comment_modal("CPGNCX-123456789012345", "OK")
+    title = modal["title"]["text"]
+    assert len(title) <= 24
+
+
+# ---------------------------------------------------------------------------
+# build_pat_error_modal
+# ---------------------------------------------------------------------------
+
+
+def test_build_pat_error_modal_structure() -> None:
+    modal = build_pat_error_modal("BRAVO-42")
+    assert modal["callback_id"] == "collect_pat_modal"
+    assert modal["submit"]["text"] == "Retry"
+    assert modal["close"]["text"] == "Cancel"
+
+
+def test_build_pat_error_modal_shows_error_guidance() -> None:
+    modal = build_pat_error_modal("BRAVO-42")
+    section = modal["blocks"][0]
+    assert section["type"] == "section"
+    assert "validation failed" in section["text"]["text"]
+    assert "expired" in section["text"]["text"]
+
+
+def test_build_pat_error_modal_has_pat_input() -> None:
+    modal = build_pat_error_modal("BRAVO-42")
+    input_blocks = [b for b in modal["blocks"] if b.get("type") == "input"]
+    assert len(input_blocks) == 1
+    assert input_blocks[0]["block_id"] == "pat_input_block"
+    assert input_blocks[0]["element"]["action_id"] == "pat_value"
+
+
+def test_build_pat_error_modal_has_jira_link() -> None:
+    modal = build_pat_error_modal("BRAVO-42")
+    section = modal["blocks"][0]
+    text = section["text"]["text"]
+    assert "jira.corp.adobe.com" in text
+    assert "personal-access-tokens" in text
