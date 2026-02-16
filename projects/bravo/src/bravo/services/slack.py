@@ -341,10 +341,16 @@ class SlackService:
             await self.open_modal(trigger_id, modal)
             return
 
-        await self._complete_yes_updates(
-            user_id=user_id, ticket_key=ticket_key,
-            channel_id=channel_id, message_ts=message_ts,
+        # User already has PAT — go straight to comment modal
+        comment_view = build_comment_modal(
+            ticket_key, "Ready to post your update",
         )
+        comment_view["private_metadata"] = json.dumps({
+            "ticket_key": ticket_key,
+            "channel": channel_id,
+            "ts": message_ts,
+        })
+        await self.open_modal(trigger_id, comment_view)
 
     async def _complete_yes_updates(
         self, *, user_id: str, ticket_key: str, channel_id: str, message_ts: str,
