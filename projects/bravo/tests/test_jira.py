@@ -575,6 +575,51 @@ class TestClientLifecycle:
         assert client._client is None
 
 
+class TestTestAuth:
+    """Tests for JiraMCPClient.test_auth()."""
+
+    async def test_test_auth_returns_true_on_success(self):
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok({"name": "testuser", "displayName": "Test User"})
+        )
+
+        result = await client.test_auth()
+
+        assert result is True
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["params"]["name"] == "test_jira_auth"
+
+    async def test_test_auth_returns_false_on_mcp_error(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_error("Unauthorized")
+        )
+
+        result = await client.test_auth()
+
+        assert result is False
+
+    async def test_test_auth_passes_user_pat(self):
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok({"name": "patuser"})
+        )
+
+        result = await client.test_auth(user_pat="my-pat-token")
+
+        assert result is True
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["params"]["arguments"]["userPat"] == "my-pat-token"
+
+    async def test_test_auth_no_user_pat_omits_key(self):
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok({"name": "testuser"})
+        )
+
+        await client.test_auth(user_pat=None)
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert "userPat" not in payload["params"]["arguments"]
+
+
 class TestResilience:
     """Tests for retry, semaphore, and error resilience in JiraMCPClient."""
 
