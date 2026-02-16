@@ -79,6 +79,9 @@ def _mock_queries():
         mock_q.get_nudge_by_slack_ts = AsyncMock(
             return_value={"id": "nudge-1"}
         )
+        mock_q.get_nudge_by_slack_ts_any = AsyncMock(
+            return_value={"id": "nudge-1"}
+        )
         mock_q.update_nudge_status = AsyncMock()
         mock_q.enqueue_re_evaluation = AsyncMock()
         yield mock_q
