@@ -478,6 +478,34 @@ def build_fix_now_modal(
     }
 
 
+def build_fix_error_blocks(
+    *,
+    original_blocks: list[dict[str, Any]],
+    ticket_key: str,
+    error_message: str,
+) -> list[dict[str, Any]]:
+    """Replace the actions block with an error notice and restored action buttons.
+
+    Allows the user to retry after a Jira update failure.
+
+    Args:
+        original_blocks: The original nudge Block Kit payload.
+        ticket_key: Jira ticket key for rebuilding the actions block.
+        error_message: User-facing error description.
+
+    Returns:
+        New list of blocks with the actions block replaced.
+    """
+    error_context: dict[str, Any] = {
+        "type": "context",
+        "elements": [
+            {"type": "mrkdwn", "text": f"\u26a0\ufe0f {error_message}"},
+        ],
+    }
+    restored_actions = _actions_block(ticket_key)
+    return _replace_actions(original_blocks, error_context, restored_actions)
+
+
 def build_fix_submitted_blocks(
     *,
     original_blocks: list[dict[str, Any]],

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import httpx
 import structlog
 from slack_sdk.socket_mode.aiohttp import SocketModeClient
 from slack_sdk.socket_mode.request import SocketModeRequest
@@ -21,12 +22,14 @@ from bravo.db import queries
 from bravo.protocols import JiraClientProto
 from bravo.services.blocks import (
     build_acknowledged_blocks,
+    build_fix_error_blocks,
     build_fix_now_modal,
     build_fix_submitted_blocks,
     build_snoozed_blocks,
     build_unsnoozed_blocks,
     build_yes_updates_blocks,
 )
+from bravo.services.jira import JiraMCPError
 
 logger = structlog.get_logger(__name__)
 
@@ -482,6 +485,30 @@ class SlackService:
         except Exception:
             logger.exception("view_submission_handler_error", callback_id=callback_id)
 
+    async def _fetch_message_blocks(
+        self, channel: str, ts: str
+    ) -> list[dict[str, Any]]:
+        """Fetch current Block Kit blocks from an existing Slack message.
+
+        Args:
+            channel: The channel containing the message.
+            ts: The message timestamp.
+
+        Returns:
+            List of block dicts, or empty list on failure.
+        """
+        client = self._get_web_client()
+        try:
+            history = await client.conversations_history(
+                channel=channel, latest=ts, inclusive=True, limit=1,
+            )
+            messages = history.get("messages", [])
+            if messages:
+                return messages[0].get("blocks", [])
+        except Exception:
+            logger.warning("fetch_message_blocks_failed", channel=channel, ts=ts)
+        return []
+
     async def _handle_fix_now_submission(self, payload: dict[str, Any]) -> None:
         """Process 'Fix now' modal submission — update Jira and nudge message.
 
@@ -520,13 +547,47 @@ class SlackService:
             logger.warning("fix_now_no_fields_submitted", ticket_key=ticket_key)
             return
 
-        await self.jira.update_issue(ticket_key, fields)
+        # Update Jira — on failure, show error with retry buttons
+        try:
+            await self.jira.update_issue(ticket_key, fields)
+        except (JiraMCPError, httpx.TimeoutException, httpx.TransportError) as exc:
+            logger.error(
+                "fix_now_jira_update_failed",
+                ticket_key=ticket_key,
+                error=str(exc),
+            )
+            if isinstance(exc, httpx.TimeoutException):
+                error_msg = f"Jira update timed out for {ticket_key} \u2014 try again"
+            else:
+                error_msg = (
+                    f"Could not update {ticket_key} \u2014 check field values or try again"
+                )
+            original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
+            await self.update_message(
+                channel=channel_id,
+                ts=message_ts,
+                text=error_msg,
+                blocks=build_fix_error_blocks(
+                    original_blocks=original_blocks,
+                    ticket_key=ticket_key,
+                    error_message=error_msg,
+                ),
+            )
+            return
 
         field_list = ", ".join(fields_updated)
-        await self.jira.add_comment(
-            ticket_key,
-            f"[Bravo] Fields updated via Fix now: {field_list}",
-        )
+
+        # Audit comment — partial failure is non-fatal
+        comment_failed = False
+        try:
+            await self.jira.add_comment(
+                ticket_key,
+                f"[Bravo] Fields updated via Fix now: {field_list}",
+            )
+        except Exception:
+            logger.warning("fix_now_comment_failed", ticket_key=ticket_key, exc_info=True)
+            comment_failed = True
+
         logger.info(
             "fix_now_jira_updated",
             ticket_key=ticket_key,
@@ -539,24 +600,16 @@ class SlackService:
             await queries.update_nudge_status(nudge["id"], "RESPONDED")
 
         # Fetch current message blocks for in-place update
-        client = self._get_web_client()
-        original_blocks: list[dict[str, Any]] = []
-        try:
-            history = await client.conversations_history(
-                channel=channel_id, latest=message_ts, inclusive=True, limit=1,
-            )
-            messages = history.get("messages", [])
-            if messages:
-                original_blocks = messages[0].get("blocks", [])
-        except Exception:
-            logger.warning(
-                "fetch_message_blocks_failed", channel=channel_id, ts=message_ts,
-            )
+        original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
+
+        success_text = f"Fixed: {field_list}"
+        if comment_failed:
+            success_text += " (audit comment failed)"
 
         await self.update_message(
             channel=channel_id,
             ts=message_ts,
-            text=f"Fixed: {field_list}",
+            text=success_text,
             blocks=build_fix_submitted_blocks(
                 original_blocks=original_blocks,
                 fields_updated=fields_updated,

@@ -6,6 +6,7 @@ import pytest
 
 from bravo.services.blocks import (
     build_acknowledged_blocks,
+    build_fix_error_blocks,
     build_fix_now_modal,
     build_fix_submitted_blocks,
     build_nudge_blocks,
@@ -431,3 +432,53 @@ def test_build_fix_submitted_blocks_does_not_mutate_original() -> None:
         fields_updated=["components"],
     )
     assert original == original_snapshot
+
+
+# ---------------------------------------------------------------------------
+# build_fix_error_blocks
+# ---------------------------------------------------------------------------
+
+
+def test_build_fix_error_blocks_replaces_actions() -> None:
+    original = _build_default_blocks()
+    result = build_fix_error_blocks(
+        original_blocks=original,
+        ticket_key="BRAVO-42",
+        error_message="Could not update BRAVO-42",
+    )
+    # Original 5-button actions block should be gone; a new actions block
+    # with restored buttons should exist after the error context.
+    action_blocks = [b for b in result if b.get("type") == "actions"]
+    assert len(action_blocks) == 1
+    # The restored actions block should have 5 buttons (all original buttons)
+    assert len(action_blocks[0]["elements"]) == 5
+
+
+def test_build_fix_error_blocks_shows_error_text() -> None:
+    original = _build_default_blocks()
+    result = build_fix_error_blocks(
+        original_blocks=original,
+        ticket_key="BRAVO-42",
+        error_message="Jira update timed out for BRAVO-42",
+    )
+    context_texts = []
+    for block in result:
+        if block.get("type") == "context":
+            for el in block.get("elements", []):
+                context_texts.append(el.get("text", ""))
+    assert any("Jira update timed out for BRAVO-42" in t for t in context_texts)
+
+
+def test_build_fix_error_blocks_restores_action_buttons() -> None:
+    original = _build_default_blocks()
+    result = build_fix_error_blocks(
+        original_blocks=original,
+        ticket_key="BRAVO-42",
+        error_message="Could not update BRAVO-42",
+    )
+    ids = _action_ids(result)
+    assert "nudge_fix_now" in ids
+    assert "nudge_yes_updates" in ids
+    assert "nudge_no_updates" in ids
+    assert "nudge_snooze_1h" in ids
+    assert "nudge_snooze_4h" in ids
