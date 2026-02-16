@@ -84,6 +84,88 @@ class Worker:
 
             await asyncio.sleep(self.settings.poll_interval_minutes * 60)
 
+    async def _reeval_loop(self) -> None:
+        """Re-evaluation queue consumer loop.
+
+        Polls the re_evaluation_queue every 10 seconds, processes one
+        job at a time (sequential to prevent LLM API overload), and
+        updates the original Slack DM with the re-eval result.
+        """
+        while self.running:
+            try:
+                # Reap stale jobs on each cycle (crash recovery)
+                reaped = await queries.reap_stale_jobs(timeout_minutes=10)
+                if reaped:
+                    logger.info("reeval_stale_jobs_reaped", count=reaped)
+
+                job = await queries.dequeue_re_evaluation()
+                if job:
+                    await self._process_reeval_job(job)
+            except Exception:
+                logger.exception("reeval_loop_error")
+
+            await asyncio.sleep(10)
+
+    async def _process_reeval_job(self, job: dict) -> None:
+        """Process a single re-evaluation queue entry.
+
+        Args:
+            job: The dequeued re_evaluation_queue record.
+        """
+        queue_id = job["id"]
+        ticket_key = job["ticket_key"]
+        channel_id = job["channel_id"]
+        message_ts = job["message_ts"]
+
+        logger.info("reeval_processing", ticket_key=ticket_key, queue_id=str(queue_id))
+
+        try:
+            nudge_service = self.container.get("nudge_service")
+            result = await nudge_service.evaluate_ticket(ticket_key, force=True)  # type: ignore[attr-defined]
+
+            should_nudge = result.get("should_nudge", False)
+            nudge_reason = result.get("nudge_reason")
+
+            if should_nudge:
+                result_text = f"Re-evaluation: still needs attention \u2014 {nudge_reason}"
+            else:
+                result_text = "Re-evaluation: all checks passed \u2714\ufe0f"
+
+            await queries.complete_re_evaluation(queue_id, result_text)
+
+            # Update original Slack DM with result
+            if channel_id and message_ts:
+                slack_service = self.container.get("slack_service")
+                await slack_service.update_message(  # type: ignore[attr-defined]
+                    channel=channel_id,
+                    ts=message_ts,
+                    text=result_text,
+                    blocks=[
+                        {
+                            "type": "context",
+                            "elements": [
+                                {"type": "mrkdwn", "text": result_text},
+                            ],
+                        },
+                    ],
+                )
+
+            logger.info(
+                "reeval_completed",
+                ticket_key=ticket_key,
+                queue_id=str(queue_id),
+                should_nudge=should_nudge,
+            )
+
+        except Exception as exc:
+            error_msg = str(exc)
+            logger.exception(
+                "reeval_processing_failed",
+                ticket_key=ticket_key,
+                queue_id=str(queue_id),
+            )
+            await queries.fail_re_evaluation(queue_id, error_msg)
+
     async def _socket_mode_loop(self) -> None:
         """Socket Mode event handling loop.
 
