@@ -713,8 +713,8 @@ class SlackService:
 
         logger.info("comment_posted_to_jira", ticket_key=ticket_key)
 
-        # Update nudge status
-        nudge = await queries.get_nudge_by_slack_ts(message_ts)
+        # Update nudge status — look up by slack_ts regardless of current status
+        nudge = await queries.get_nudge_by_slack_ts_any(message_ts)
         if nudge:
             await queries.update_nudge_status(nudge["id"], "RESPONDED")
 
