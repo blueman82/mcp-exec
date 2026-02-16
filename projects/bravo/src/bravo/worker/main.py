@@ -13,6 +13,7 @@ from bravo import __version__
 from bravo.config import get_settings, load_settings
 from bravo.container import create_container
 from bravo.db import close_pool, init_pool
+from bravo.db import queries
 
 logger = structlog.get_logger(__name__)
 
