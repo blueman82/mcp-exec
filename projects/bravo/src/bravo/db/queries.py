@@ -542,19 +542,22 @@ async def get_active_snooze_for_ticket(ticket_key: str) -> asyncpg.Record | None
 
 
 async def get_latest_nudge_for_ticket(ticket_key: str) -> asyncpg.Record | None:
-    """Get the most recent SENT nudge for a ticket.
+    """Get the most recent active nudge for a ticket.
+
+    Matches SENT and RESPONDED nudges so the cooldown window covers
+    tickets where the engineer has already engaged (posted a comment).
 
     Args:
         ticket_key: The Jira ticket key.
 
     Returns:
-        The most recent sent nudge record or None if none found.
+        The most recent active nudge record or None if none found.
     """
     pool = get_pool()
     return await pool.fetchrow(
         """
         SELECT * FROM nudge_events
-        WHERE ticket_key = $1 AND status = 'SENT'
+        WHERE ticket_key = $1 AND status IN ('SENT', 'RESPONDED')
         ORDER BY created_at DESC
         LIMIT 1
         """,
