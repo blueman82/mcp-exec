@@ -53,8 +53,9 @@ class Worker:
 
         poll_task = asyncio.create_task(self._poll_loop())
         socket_task = asyncio.create_task(self._socket_mode_loop())
+        reeval_task = asyncio.create_task(self._reeval_loop())
 
-        await asyncio.gather(poll_task, socket_task)
+        await asyncio.gather(poll_task, socket_task, reeval_task)
 
     async def stop(self) -> None:
         """Stop the worker gracefully.
