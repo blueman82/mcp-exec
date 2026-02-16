@@ -58,6 +58,7 @@ def _make_nudge_service() -> tuple[NudgeService, AsyncMock, AsyncMock, AsyncMock
 def _mock_queries():
     """Patch bravo.db.queries used by nudge service."""
     with patch("bravo.services.nudge.queries") as mock_q:
+        mock_q.has_pending_reeval = AsyncMock(return_value=False)
         mock_q.get_active_snooze_for_ticket = AsyncMock(return_value=None)
         mock_q.get_latest_nudge_for_ticket = AsyncMock(return_value=None)
         mock_q.get_ticket = AsyncMock(return_value=_make_ticket_record())
