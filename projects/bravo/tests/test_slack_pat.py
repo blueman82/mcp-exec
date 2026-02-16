@@ -180,14 +180,15 @@ class TestPATGateInYesUpdates:
 
     async def test_yes_updates_skips_pat_check_when_no_pat_service(self) -> None:
         service, mock_jira = _make_service(pat_service=None)
-        service._complete_yes_updates = AsyncMock()
         payload, action = _yes_updates_payload()
 
         await service._handle_nudge_yes_updates(payload, action)
 
+        # Should open comment modal when no PAT service (PAT check disabled)
         web = service._web_client
-        web.views_open.assert_not_awaited()
-        service._complete_yes_updates.assert_awaited_once()
+        web.views_open.assert_awaited_once()
+        view = web.views_open.call_args.kwargs["view"]
+        assert view["callback_id"] == "comment_modal"
 
 
 class TestCollectPATSubmission:
