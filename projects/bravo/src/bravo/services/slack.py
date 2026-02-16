@@ -744,7 +744,6 @@ class SlackService:
                 },
             ],
         }
-        from bravo.services.blocks import _replace_actions
         updated_blocks = _replace_actions(original_blocks, reply_context)
         await self.update_message(
             channel=channel_id,
