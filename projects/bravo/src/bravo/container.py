@@ -45,12 +45,23 @@ def create_container(settings: Settings) -> ServiceRegistry:
             factory=lambda: _async(GateService(settings.gates)),
         )
     )
-    registry.register(
-        DependencySpec(
-            name="jira_client",
-            factory=lambda: _async(JiraMCPClient(settings.jira)),
+    if settings.pat_encryption_key:
+        registry.register(
+            DependencySpec(
+                name="jira_client",
+                factory=lambda pat_service: _async(
+                    JiraMCPClient(settings.jira, pat_service)
+                ),
+                depends_on=["pat_service"],
+            )
         )
-    )
+    else:
+        registry.register(
+            DependencySpec(
+                name="jira_client",
+                factory=lambda: _async(JiraMCPClient(settings.jira)),
+            )
+        )
     registry.register(
         DependencySpec(
             name="llm_service",

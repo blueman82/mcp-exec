@@ -59,6 +59,7 @@ def _submission_payload(
             "components_input": {"value": components}
         }
     return {
+        "user": {"id": "U456"},
         "view": {
             "callback_id": "fix_now_modal",
             "private_metadata": json.dumps({
@@ -96,6 +97,7 @@ class TestFixNowSubmission:
         mock_jira.update_issue.assert_awaited_once_with(
             "TEST-1",
             {"description": "New desc", "priority": {"name": "Major"}},
+            slack_user_id="U456",
         )
         mock_jira.add_comment.assert_awaited_once()
         _mock_queries.update_nudge_status.assert_awaited_once_with(
@@ -172,6 +174,7 @@ class TestFixNowSubmission:
         service, mock_jira = _make_service()
         # Payload with no field values
         payload = {
+            "user": {"id": "U456"},
             "view": {
                 "callback_id": "fix_now_modal",
                 "private_metadata": json.dumps({
@@ -188,3 +191,23 @@ class TestFixNowSubmission:
         mock_jira.update_issue.assert_not_awaited()
         mock_jira.add_comment.assert_not_awaited()
         _mock_queries.update_nudge_status.assert_not_awaited()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_fix_now_submission_passes_slack_user_id(
+        self, _mock_queries,
+    ) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_fix_now_submission(
+            _submission_payload(description="New desc"),
+        )
+
+        mock_jira.update_issue.assert_awaited_once_with(
+            "TEST-1",
+            {"description": "New desc"},
+            slack_user_id="U456",
+        )
+        mock_jira.add_comment.assert_awaited_once()
+        # Verify slack_user_id kwarg on add_comment
+        call_kwargs = mock_jira.add_comment.call_args
+        assert call_kwargs.kwargs.get("slack_user_id") == "U456"

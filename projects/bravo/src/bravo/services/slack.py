@@ -608,6 +608,7 @@ class SlackService:
         ticket_key = metadata.get("ticket_key", "")
         channel_id = metadata.get("channel", "")
         message_ts = metadata.get("ts", "")
+        user_id = payload.get("user", {}).get("id", "")
         values = payload.get("view", {}).get("state", {}).get("values", {})
 
         fields: dict[str, Any] = {}
@@ -636,7 +637,7 @@ class SlackService:
 
         # Update Jira — on failure, show error with retry buttons
         try:
-            await self.jira.update_issue(ticket_key, fields)
+            await self.jira.update_issue(ticket_key, fields, slack_user_id=user_id)
         except (JiraMCPError, httpx.TimeoutException, httpx.TransportError) as exc:
             logger.error(
                 "fix_now_jira_update_failed",
@@ -670,6 +671,7 @@ class SlackService:
             await self.jira.add_comment(
                 ticket_key,
                 f"[Bravo] Fields updated via Fix now: {field_list}",
+                slack_user_id=user_id,
             )
         except Exception:
             logger.warning("fix_now_comment_failed", ticket_key=ticket_key, exc_info=True)

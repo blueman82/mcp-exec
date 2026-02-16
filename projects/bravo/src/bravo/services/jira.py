@@ -15,6 +15,7 @@ import httpx
 import structlog
 
 from bravo.config import JiraSettings
+from bravo.protocols import PATServiceProto
 from bravo.services.resilience import retry_with_backoff
 
 logger = structlog.get_logger(__name__)
@@ -66,8 +67,13 @@ class JiraMCPClient:
     rotation transparently.
     """
 
-    def __init__(self, settings: JiraSettings) -> None:
+    def __init__(
+        self,
+        settings: JiraSettings,
+        pat_service: PATServiceProto | None = None,
+    ) -> None:
         self.settings = settings
+        self._pat_service = pat_service
         self._client: httpx.AsyncClient | None = None
         self._request_id = 0
         self._semaphore = asyncio.Semaphore(settings.max_concurrent_requests)
@@ -85,9 +91,11 @@ class JiraMCPClient:
         return self._client
 
     async def _call_tool(
-        self, tool_name: str, arguments: dict[str, Any]
+        self, tool_name: str, arguments: dict[str, Any], *, user_pat: str | None = None,
     ) -> dict[str, Any]:
         """Call an MCP tool via JSON-RPC 2.0 POST to /message."""
+        if user_pat:
+            arguments = {**arguments, "userPat": user_pat}
         client = await self._get_client()
         payload = {
             "jsonrpc": "2.0",
@@ -305,23 +313,25 @@ class JiraMCPClient:
             ],
         }
 
-    async def add_comment(self, ticket_key: str, body: str) -> None:
+    async def add_comment(
+        self, ticket_key: str, body: str, *, slack_user_id: str | None = None,
+    ) -> None:
         """Add a comment to a ticket via MCP.
 
         Args:
             ticket_key: The ticket key (e.g., CPGNCX-12345).
             body: The comment body text.
+            slack_user_id: Optional Slack user ID for per-user PAT lookup.
         """
         logger.info("adding_jira_comment", ticket_key=ticket_key)
-
+        user_pat = None
+        if self._pat_service and slack_user_id:
+            user_pat = await self._pat_service.get_pat(slack_user_id)
         await self._call_tool(
             "add_jira_comment",
-            {
-                "issueIdOrKey": ticket_key,
-                "comment": {"body": body},
-            },
+            {"issueIdOrKey": ticket_key, "comment": {"body": body}},
+            user_pat=user_pat,
         )
-
         logger.info("jira_comment_added", ticket_key=ticket_key)
 
     async def transition_status(
@@ -329,6 +339,8 @@ class JiraMCPClient:
         ticket_key: str,
         transition_id: str,
         resolution: dict[str, Any] | None = None,
+        *,
+        slack_user_id: str | None = None,
     ) -> None:
         """Transition a ticket's status via MCP.
 
@@ -336,11 +348,14 @@ class JiraMCPClient:
             ticket_key: The ticket key.
             transition_id: The transition ID (from get_transitions).
             resolution: Optional resolution dict, e.g. {"name": "Done"}.
+            slack_user_id: Optional Slack user ID for per-user PAT lookup.
         """
         logger.info(
             "transitioning_ticket", ticket_key=ticket_key, transition_id=transition_id
         )
-
+        user_pat = None
+        if self._pat_service and slack_user_id:
+            user_pat = await self._pat_service.get_pat(slack_user_id)
         args: dict[str, Any] = {
             "issueIdOrKey": ticket_key,
             "transitionId": transition_id,
@@ -348,7 +363,7 @@ class JiraMCPClient:
         if resolution:
             args["resolution"] = resolution
 
-        await self._call_tool("transition_jira_status", args)
+        await self._call_tool("transition_jira_status", args, user_pat=user_pat)
         logger.info("ticket_transitioned", ticket_key=ticket_key)
 
     async def get_transitions(self, ticket_key: str) -> list[dict[str, Any]]:
@@ -382,21 +397,24 @@ class JiraMCPClient:
 
         return await self._call_tool("create_jira_issue", {"fields": fields})
 
-    async def update_issue(self, ticket_key: str, fields: dict[str, Any]) -> None:
+    async def update_issue(
+        self, ticket_key: str, fields: dict[str, Any], *, slack_user_id: str | None = None,
+    ) -> None:
         """Update an existing Jira issue via MCP.
 
         Args:
             ticket_key: The ticket key.
             fields: Fields to update.
+            slack_user_id: Optional Slack user ID for per-user PAT lookup.
         """
         logger.info("updating_jira_issue", ticket_key=ticket_key)
-
+        user_pat = None
+        if self._pat_service and slack_user_id:
+            user_pat = await self._pat_service.get_pat(slack_user_id)
         await self._call_tool(
             "update_jira_issue",
-            {
-                "issueIdOrKey": ticket_key,
-                "fields": fields,
-            },
+            {"issueIdOrKey": ticket_key, "fields": fields},
+            user_pat=user_pat,
         )
 
     async def download_attachment(

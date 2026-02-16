@@ -44,9 +44,11 @@ def _jsonrpc_error(message: str, code: int = -32000) -> dict:
     }
 
 
-def _make_client_with_mock(response_data: dict) -> tuple[JiraMCPClient, AsyncMock]:
+def _make_client_with_mock(
+    response_data: dict, *, pat_service: AsyncMock | None = None,
+) -> tuple[JiraMCPClient, AsyncMock]:
     """Create a JiraMCPClient with a mocked httpx client returning response_data."""
-    client = JiraMCPClient(_make_settings())
+    client = JiraMCPClient(_make_settings(), pat_service=pat_service)
     mock_http = AsyncMock(spec=httpx.AsyncClient)
     mock_http.is_closed = False
     mock_http.post.return_value = _mock_response(response_data)
@@ -475,6 +477,66 @@ class TestCreateUpdateIssue:
         args = payload["params"]["arguments"]
         assert args["issueIdOrKey"] == "TEST-1"
         assert args["fields"] == {"summary": "Updated"}
+
+
+class TestUserPatPlumbing:
+    """Tests for per-user PAT pass-through on write operations."""
+
+    async def test_call_tool_injects_user_pat(self):
+        """When user_pat provided, MCP payload includes userPat in arguments."""
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client._call_tool("test_tool", {"arg1": "v1"}, user_pat="pat-abc")
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["params"]["arguments"]["userPat"] == "pat-abc"
+        assert payload["params"]["arguments"]["arg1"] == "v1"
+
+    async def test_call_tool_omits_user_pat_when_none(self):
+        """When user_pat=None, MCP payload has no userPat key."""
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client._call_tool("test_tool", {"arg1": "v1"}, user_pat=None)
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert "userPat" not in payload["params"]["arguments"]
+
+    async def test_add_comment_resolves_pat(self):
+        """With pat_service + slack_user_id, get_pat called and userPat in args."""
+        mock_pat = AsyncMock()
+        mock_pat.get_pat.return_value = "pat-from-db"
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok({"ok": True}), pat_service=mock_pat,
+        )
+
+        await client.add_comment("TEST-1", "Hello", slack_user_id="U456")
+
+        mock_pat.get_pat.assert_awaited_once_with("U456")
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["params"]["arguments"]["userPat"] == "pat-from-db"
+
+    async def test_update_issue_resolves_pat(self):
+        """With pat_service + slack_user_id, userPat injected for update_issue."""
+        mock_pat = AsyncMock()
+        mock_pat.get_pat.return_value = "pat-upd"
+        client, mock_http = _make_client_with_mock(
+            _jsonrpc_ok({"ok": True}), pat_service=mock_pat,
+        )
+
+        await client.update_issue("TEST-1", {"summary": "X"}, slack_user_id="U789")
+
+        mock_pat.get_pat.assert_awaited_once_with("U789")
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert payload["params"]["arguments"]["userPat"] == "pat-upd"
+
+    async def test_write_no_pat_service_skips_lookup(self):
+        """pat_service=None means no userPat in MCP args."""
+        client, mock_http = _make_client_with_mock(_jsonrpc_ok({"ok": True}))
+
+        await client.add_comment("TEST-1", "Hello", slack_user_id="U456")
+
+        payload = mock_http.post.call_args.kwargs["json"]
+        assert "userPat" not in payload["params"]["arguments"]
 
 
 class TestClientLifecycle:

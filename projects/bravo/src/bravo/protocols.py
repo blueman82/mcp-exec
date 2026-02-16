@@ -54,20 +54,26 @@ class JiraClientProto(Protocol):
 
     async def get_ticket_fields(self, ticket_key: str) -> dict[str, Any]: ...
 
-    async def add_comment(self, ticket_key: str, body: str) -> None: ...
+    async def add_comment(
+        self, ticket_key: str, body: str, *, slack_user_id: str | None = None,
+    ) -> None: ...
 
     async def transition_status(
         self,
         ticket_key: str,
         transition_id: str,
         resolution: dict[str, Any] | None = None,
+        *,
+        slack_user_id: str | None = None,
     ) -> None: ...
 
     async def get_transitions(self, ticket_key: str) -> list[dict[str, Any]]: ...
 
     async def create_issue(self, fields: dict[str, Any]) -> dict[str, Any]: ...
 
-    async def update_issue(self, ticket_key: str, fields: dict[str, Any]) -> None: ...
+    async def update_issue(
+        self, ticket_key: str, fields: dict[str, Any], *, slack_user_id: str | None = None,
+    ) -> None: ...
 
     async def download_attachment(
         self,
