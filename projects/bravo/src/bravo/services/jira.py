@@ -144,6 +144,14 @@ class JiraMCPClient:
 
         return cast(dict[str, Any], result)
 
+    async def test_auth(self, user_pat: str | None = None) -> bool:
+        """Validate Jira auth. Returns True if valid."""
+        try:
+            await self._call_tool("test_jira_auth", {}, user_pat=user_pat)
+            return True
+        except JiraMCPError:
+            return False
+
     async def close(self) -> None:
         """Close the HTTP client."""
         if self._client and not self._client.is_closed:
