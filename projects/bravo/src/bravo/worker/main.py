@@ -152,79 +152,27 @@ class Worker:
 
             await queries.complete_re_evaluation(queue_id, result_text)
 
-            # Update original Slack DM in-place with re-eval result
+            # Update original Slack DM in-place with re-eval result.
+            # Fetches current message blocks (which still have the full
+            # nudge layout) and appends the re-eval result after the
+            # last divider, restoring action buttons if failed.
             if channel_id and message_ts:
                 slack_service = self.container.get("slack_service")
-                # Rebuild full message from ticket data (not current blocks)
-                ticket = await queries.get_ticket(ticket_key)
-                if ticket:
-                    ticket_url = f"https://jira.corp.adobe.com/browse/{ticket_key}"
-                    from bravo.services.blocks import (
-                        _header_block,
-                        _ticket_info_section,
-                        _divider_block,
-                    )
-                    blocks: list[dict] = [
-                        _header_block(ticket_key),
-                        _ticket_info_section(
-                            ticket_key=ticket_key,
-                            ticket_url=ticket_url,
-                            jira_status=ticket["jira_status"] or "Unknown",
-                            summary=ticket["summary"] or ticket_key,
-                        ),
-                        _divider_block(),
-                    ]
-                    if not should_nudge:
-                        blocks.append({
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": (
-                                    "\u2705 *Re-evaluation complete \u2014 all checks passed!*\n\n"
-                                    "Your update resolved all issues. No further action needed."
-                                ),
-                            },
-                        })
-                    else:
-                        blocks.append({
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": (
-                                    "\u26a0\ufe0f *Re-evaluation complete \u2014 still needs attention*\n\n"
-                                    "Your comment was posted but these checks are still failing:"
-                                ),
-                            },
-                        })
-                        blocks.append({
-                            "type": "section",
-                            "text": {
-                                "type": "mrkdwn",
-                                "text": f"\u2022 {trigger_reason.replace(' \u00b7 ', '\n\u2022 ')}",
-                            },
-                        })
-                        blocks.append({
-                            "type": "context",
-                            "elements": [
-                                {
-                                    "type": "mrkdwn",
-                                    "text": "\U0001f4a1 _Try adding a detailed comment directly on the Jira ticket to resolve these_",
-                                },
-                            ],
-                        })
-                    blocks.append(_divider_block())
-                    blocks.append({
-                        "type": "context",
-                        "elements": [
-                            {"type": "mrkdwn", "text": "\u2709\ufe0f Your comment was posted to Jira"},
-                        ],
-                    })
-                    await slack_service.update_message(  # type: ignore[attr-defined]
-                        channel=channel_id,
-                        ts=message_ts,
-                        text=result_text,
-                        blocks=blocks,
-                    )
+                current_blocks = await slack_service._fetch_message_blocks(  # type: ignore[attr-defined]
+                    channel_id, message_ts,
+                )
+                updated_blocks = build_reeval_result_blocks(
+                    original_blocks=current_blocks,
+                    ticket_key=ticket_key,
+                    passed=not should_nudge,
+                    trigger_reason=trigger_reason,
+                )
+                await slack_service.update_message(  # type: ignore[attr-defined]
+                    channel=channel_id,
+                    ts=message_ts,
+                    text=result_text,
+                    blocks=updated_blocks,
+                )
 
             logger.info(
                 "reeval_completed",
