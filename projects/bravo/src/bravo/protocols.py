@@ -75,6 +75,8 @@ class JiraClientProto(Protocol):
         self, ticket_key: str, fields: dict[str, Any], *, slack_user_id: str | None = None,
     ) -> None: ...
 
+    async def test_auth(self, user_pat: str | None = None) -> bool: ...
+
     async def download_attachment(
         self,
         ticket_key: str,
