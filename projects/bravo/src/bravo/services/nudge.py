@@ -87,6 +87,16 @@ class NudgeService:
             ValueError: If the ticket is not found.
         """
         if not force:
+            pending_reeval = await queries.has_pending_reeval(ticket_key)
+            if pending_reeval:
+                logger.info("nudge_skipped_pending_reeval", ticket_key=ticket_key)
+                return {
+                    "ticket_key": ticket_key,
+                    "gate_result": None,
+                    "should_nudge": False,
+                    "nudge_reason": "pending_reeval",
+                }
+
             active_snooze = await queries.get_active_snooze_for_ticket(ticket_key)
             if active_snooze:
                 logger.info(
