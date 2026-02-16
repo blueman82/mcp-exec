@@ -80,6 +80,7 @@ def _mock_queries():
             return_value={"id": "nudge-1"}
         )
         mock_q.update_nudge_status = AsyncMock()
+        mock_q.enqueue_re_evaluation = AsyncMock()
         yield mock_q
 
 
