@@ -70,11 +70,15 @@ class NudgeService:
         self.gates = gates
         self.llm = llm
 
-    async def evaluate_ticket(self, ticket_key: str) -> dict[str, Any]:
+    async def evaluate_ticket(
+        self, ticket_key: str, *, force: bool = False,
+    ) -> dict[str, Any]:
         """Evaluate a ticket and potentially trigger a nudge.
 
         Args:
             ticket_key: The Jira ticket key to evaluate.
+            force: When True, skip cooldown and snooze checks (used by
+                re-evaluation queue after engineer responds).
 
         Returns:
             Dict with ticket_key, gate_result, should_nudge, nudge_reason.
@@ -82,36 +86,37 @@ class NudgeService:
         Raises:
             ValueError: If the ticket is not found.
         """
-        active_snooze = await queries.get_active_snooze_for_ticket(ticket_key)
-        if active_snooze:
-            logger.info(
-                "nudge_snoozed",
-                ticket_key=ticket_key,
-                snoozed_until=str(active_snooze["snoozed_until"]),
-            )
-            return {
-                "ticket_key": ticket_key,
-                "gate_result": None,
-                "should_nudge": False,
-                "nudge_reason": "snoozed",
-            }
-
-        latest_nudge = await queries.get_latest_nudge_for_ticket(ticket_key)
-        if latest_nudge:
-            cooldown = timedelta(hours=self.settings.nudge_cooldown_hours)
-            nudge_age = datetime.now(UTC) - latest_nudge["created_at"]
-            if nudge_age < cooldown:
+        if not force:
+            active_snooze = await queries.get_active_snooze_for_ticket(ticket_key)
+            if active_snooze:
                 logger.info(
-                    "nudge_cooldown_active",
+                    "nudge_snoozed",
                     ticket_key=ticket_key,
-                    hours_remaining=f"{(cooldown - nudge_age).total_seconds() / 3600:.1f}",
+                    snoozed_until=str(active_snooze["snoozed_until"]),
                 )
                 return {
                     "ticket_key": ticket_key,
                     "gate_result": None,
                     "should_nudge": False,
-                    "nudge_reason": "cooldown",
+                    "nudge_reason": "snoozed",
                 }
+
+            latest_nudge = await queries.get_latest_nudge_for_ticket(ticket_key)
+            if latest_nudge:
+                cooldown = timedelta(hours=self.settings.nudge_cooldown_hours)
+                nudge_age = datetime.now(UTC) - latest_nudge["created_at"]
+                if nudge_age < cooldown:
+                    logger.info(
+                        "nudge_cooldown_active",
+                        ticket_key=ticket_key,
+                        hours_remaining=f"{(cooldown - nudge_age).total_seconds() / 3600:.1f}",
+                    )
+                    return {
+                        "ticket_key": ticket_key,
+                        "gate_result": None,
+                        "should_nudge": False,
+                        "nudge_reason": "cooldown",
+                    }
 
         ticket = await queries.get_ticket(ticket_key)
         if not ticket:
