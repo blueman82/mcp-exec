@@ -535,6 +535,14 @@ class SlackService:
                 await self._handle_collect_pat_submission(payload, client, req)
                 return
 
+            # Comment modal: ACK immediately, spawn background work
+            if callback_id == "comment_modal":
+                await client.send_socket_mode_response(
+                    SocketModeResponse(envelope_id=req.envelope_id),
+                )
+                asyncio.create_task(self._handle_comment_submission(payload))
+                return
+
             # Default ACK for other submissions
             await client.send_socket_mode_response(
                 SocketModeResponse(envelope_id=req.envelope_id),
