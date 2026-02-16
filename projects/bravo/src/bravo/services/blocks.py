@@ -529,6 +529,117 @@ def build_fix_now_modal(
     }
 
 
+def build_comment_modal(
+    ticket_key: str,
+    success_message: str,
+) -> dict[str, Any]:
+    """Build a modal for writing a Jira comment after PAT validation.
+
+    Combines a success banner with a free-text input for the engineer's
+    comment. Uses ``comment_modal`` callback_id so the submission routes
+    to ``_handle_comment_submission``.
+
+    Args:
+        ticket_key: Jira ticket key (carried via ``private_metadata``).
+        success_message: Success banner text shown above the input.
+
+    Returns:
+        Slack view payload suitable for ``response_action: "update"``.
+    """
+    title_text = f"Comment on {ticket_key}"
+    if len(title_text) > 24:
+        title_text = title_text[:24]
+
+    return {
+        "type": "modal",
+        "callback_id": "comment_modal",
+        "private_metadata": "",
+        "title": {"type": "plain_text", "text": title_text},
+        "submit": {"type": "plain_text", "text": "Post Comment"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"\u2705 {success_message}",
+                },
+            },
+            {
+                "type": "input",
+                "block_id": "comment_input_block",
+                "label": {"type": "plain_text", "text": "Your comment"},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "comment_value",
+                    "multiline": True,
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Describe your update or progress\u2026",
+                    },
+                },
+            },
+        ],
+    }
+
+
+def build_pat_error_modal(ticket_key: str) -> dict[str, Any]:
+    """Build an error modal shown when PAT validation fails.
+
+    Reuses ``collect_pat_modal`` callback_id so a retry goes through
+    the existing PAT collection handler.
+
+    Args:
+        ticket_key: Jira ticket key (informational context).
+
+    Returns:
+        Slack view payload suitable for ``response_action: "update"``.
+    """
+    pat_url = (
+        f"{_JIRA_BASE_URL}/secure/ViewProfile.jspa"
+        "?selectedTab=com.atlassian.pats.pats-plugin"
+        ":jira-user-personal-access-tokens"
+    )
+    return {
+        "type": "modal",
+        "callback_id": "collect_pat_modal",
+        "private_metadata": "",
+        "title": {"type": "plain_text", "text": "Connect Jira"},
+        "submit": {"type": "plain_text", "text": "Retry"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        "\u26a0\ufe0f *PAT validation failed*\n\n"
+                        "The token you entered could not authenticate with Jira. "
+                        "Please check that:\n"
+                        "\u2022 The token is not expired\n"
+                        "\u2022 It was copied completely (no extra spaces)\n"
+                        "\u2022 It has the required permissions\n\n"
+                        f"<{pat_url}|Generate a new PAT in Jira>"
+                    ),
+                },
+            },
+            {
+                "type": "input",
+                "block_id": "pat_input_block",
+                "label": {"type": "plain_text", "text": "Jira PAT"},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "pat_value",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Paste your Personal Access Token",
+                    },
+                },
+            },
+        ],
+    }
+
+
 def build_fix_error_blocks(
     *,
     original_blocks: list[dict[str, Any]],
