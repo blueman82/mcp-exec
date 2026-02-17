@@ -385,7 +385,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         if (isNode) {
             terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
         } else {
-            terminal.sendText('pip install -e . || uv pip install -e . || echo "Install failed — check output above"');
+            terminal.sendText('if command -v uv >/dev/null 2>&1; then uv venv .venv && uv pip install -e .; elif command -v python3 >/dev/null 2>&1; then python3 -m venv .venv && . .venv/bin/activate && pip install -e .; else echo "ERROR: Neither uv nor python3 found. Install uv (https://docs.astral.sh/uv/) or Python 3."; fi');
         }
 
         const entryPoint = path.join(data.packagePath, data.entryPoint ?? 'dist/index.js');
