@@ -26,10 +26,10 @@ from bravo.services.blocks import (
 logger = structlog.get_logger(__name__)
 
 _GATE_LABELS: dict[str, str] = {
-    "G1": "no comment",
-    "G2": "stale",
-    "G3": "slow response",
-    "G4": "unresolved",
+    "G1": "No assignee comment yet",
+    "G2": "No update in 4+ hours",
+    "G3": "No response within 24 hours",
+    "G4": "Unresolved past deadline",
 }
 
 
@@ -132,6 +132,22 @@ class NudgeService:
         if not ticket:
             raise ValueError(f"Ticket not found: {ticket_key}")
 
+        if force and ticket["assignee_jira_id"]:
+            try:
+                comment_ts = await self.jira.get_assignee_comment_ts(
+                    ticket_key, ticket["assignee_jira_id"]
+                )
+                await queries.update_ticket_comment_ts(
+                    ticket_key, ticket["assignee_jira_id"], comment_ts
+                )
+                ticket = await queries.get_ticket(ticket_key)
+            except Exception:
+                logger.warning(
+                    "force_refresh_comment_ts_failed",
+                    ticket_key=ticket_key,
+                    exc_info=True,
+                )
+
         gate_result = self.gates.evaluate(
             has_assignee_comment=ticket["last_assignee_comment_at"] is not None,
             last_assignee_comment_at=ticket["last_assignee_comment_at"],
@@ -161,8 +177,8 @@ class NudgeService:
             ]:
                 if not passed:
                     failed_gate_codes.append(code)
-            nudge_reason = "Failed gates: " + ", ".join(
-                f"{c} ({_GATE_LABELS[c]})" for c in failed_gate_codes
+            nudge_reason = " · ".join(
+                _GATE_LABELS[c] for c in failed_gate_codes
             )
         else:
             try:
@@ -191,7 +207,17 @@ class NudgeService:
 
             if llm_score.below_threshold(self.settings.llm.threshold):
                 should_nudge = True
-                nudge_reason = f"LLM score below threshold ({llm_score.average:.1f} < {self.settings.llm.threshold})"
+                threshold = self.settings.llm.threshold
+                weak = []
+                if llm_score.clarity < threshold:
+                    weak.append("Issue description could be clearer")
+                if llm_score.completeness < threshold:
+                    weak.append("Missing key details (steps, environment, expected behavior)")
+                if llm_score.root_cause < threshold:
+                    weak.append("Root cause not yet identified")
+                if llm_score.actionability < threshold:
+                    weak.append("Next steps or actions are unclear")
+                nudge_reason = " · ".join(weak) if weak else "Ticket documentation needs improvement"
 
         if should_nudge and not force:
             codes = failed_gate_codes if gate_result.any_failed else []

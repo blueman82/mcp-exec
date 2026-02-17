@@ -84,6 +84,10 @@ class JiraClientProto(Protocol):
         destination_path: str,
     ) -> dict[str, Any]: ...
 
+    async def get_assignee_comment_ts(
+        self, ticket_key: str, assignee_id: str,
+    ) -> datetime | None: ...
+
     async def close(self) -> None: ...
 
 

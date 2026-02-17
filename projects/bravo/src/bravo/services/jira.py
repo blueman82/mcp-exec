@@ -276,6 +276,58 @@ class JiraMCPClient:
         bodies = [c["body"] for c in comments if c.get("body")]
         return bodies[-self._MAX_COMMENTS :]
 
+    async def get_assignee_comment_ts(
+        self, ticket_key: str, assignee_id: str,
+    ) -> datetime | None:
+        """Get the latest comment timestamp by the ticket assignee.
+
+        Fetches comments for the ticket and finds the most recent one
+        authored by the assignee, matching on both author.name and
+        author.accountId fields.
+
+        Args:
+            ticket_key: The ticket key (e.g., CPGNCX-12345).
+            assignee_id: The assignee's Jira username or account ID.
+
+        Returns:
+            The latest assignee comment timestamp, or None if not found.
+        """
+        logger.debug("fetching_assignee_comment_ts", ticket_key=ticket_key, assignee_id=assignee_id)
+
+        data = await self._call_tool(
+            "search_jira_issues",
+            {
+                "jql": f"key = {ticket_key}",
+                "maxResults": 1,
+                "fields": ["comment"],
+                "minimizeOutput": False,
+            },
+        )
+
+        issues = data.get("data", {}).get("issues", [])
+        if not issues:
+            return None
+
+        comments = (
+            issues[0].get("fields", {}).get("comment", {}).get("comments", [])
+        )
+
+        latest: datetime | None = None
+        for comment in comments:
+            author = comment.get("author", {})
+            # Match on both name and accountId — Jira returns both shapes
+            author_name = author.get("name", "") if isinstance(author, dict) else ""
+            author_account_id = author.get("accountId", "") if isinstance(author, dict) else ""
+
+            if assignee_id in (author_name, author_account_id):
+                updated_raw = comment.get("updated", "")
+                if updated_raw:
+                    ts = datetime.fromisoformat(updated_raw.replace("Z", "+00:00"))
+                    if latest is None or ts > latest:
+                        latest = ts
+
+        return latest
+
     async def get_ticket_fields(self, ticket_key: str) -> dict[str, Any]:
         """Fetch full field data for a single ticket.
 

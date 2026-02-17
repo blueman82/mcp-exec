@@ -127,6 +127,21 @@ async def upsert_ticket(
             assignee_jira_id = EXCLUDED.assignee_jira_id,
             assignee_name = EXCLUDED.assignee_name,
             jira_status = EXCLUDED.jira_status,
+            last_assignee_comment_at = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.last_assignee_comment_at END,
+            g1_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g1_passed END,
+            g2_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g2_passed END,
+            g3_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g3_passed END,
+            g4_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g4_passed END,
             last_polled_at = NOW()
         RETURNING *
         """,
@@ -155,6 +170,42 @@ async def update_ticket_status(ticket_key: str, status: str) -> asyncpg.Record |
         "UPDATE watched_tickets SET status = $2 WHERE ticket_key = $1 RETURNING *",
         ticket_key,
         status,
+    )
+
+
+async def update_ticket_comment_ts(
+    ticket_key: str,
+    assignee_jira_id: str,
+    last_assignee_comment_at: datetime | None,
+) -> asyncpg.Record | None:
+    """Update the last assignee comment timestamp with monotonic guard.
+
+    Uses GREATEST to ensure a newer timestamp is never overwritten by
+    an older one. If the new value is NULL, preserves the existing value.
+
+    Args:
+        ticket_key: The Jira ticket key.
+        assignee_jira_id: The assignee's Jira account ID.
+        last_assignee_comment_at: The timestamp, or None to preserve existing.
+
+    Returns:
+        The updated ticket record or None if not found or assignee mismatch.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE watched_tickets
+        SET last_assignee_comment_at = CASE
+              WHEN $3::timestamptz IS NULL THEN last_assignee_comment_at
+              ELSE GREATEST(last_assignee_comment_at, $3::timestamptz)
+            END
+        WHERE ticket_key = $1
+          AND assignee_jira_id = $2
+        RETURNING *
+        """,
+        ticket_key,
+        assignee_jira_id,
+        last_assignee_comment_at,
     )
 
 

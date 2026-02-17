@@ -68,6 +68,7 @@ def _mock_queries():
         )
         mock_q.update_poll_state = AsyncMock()
         mock_q.complete_poll_history = AsyncMock()
+        mock_q.update_ticket_comment_ts = AsyncMock()
         yield mock_q
 
 
@@ -139,6 +140,35 @@ class TestPollerNudgeWiring:
         complete_call = _mock_queries.complete_poll_history.call_args
         assert complete_call.kwargs["nudges_triggered"] == 1
         assert complete_call.kwargs["status"] == "completed"
+
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_ts_extracted_during_poll(self, _mock_queries):
+        tickets = [_make_ticket("TEST-1"), _make_ticket("TEST-2")]
+        poller, mock_jira, _, _ = _make_poller()
+        mock_jira.search_tickets.return_value = tickets
+        mock_jira.get_assignee_comment_ts.return_value = datetime(
+            2026, 2, 10, 14, 0, tzinfo=UTC,
+        )
+
+        await poller.run_poll()
+
+        assert mock_jira.get_assignee_comment_ts.await_count == 2
+        mock_jira.get_assignee_comment_ts.assert_any_await("TEST-1", "user1")
+        mock_jira.get_assignee_comment_ts.assert_any_await("TEST-2", "user1")
+        assert _mock_queries.update_ticket_comment_ts.await_count == 2
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_ts_failure_doesnt_block_poll(self, _mock_queries):
+        tickets = [_make_ticket("TEST-1")]
+        poller, mock_jira, mock_nudge, _ = _make_poller()
+        mock_jira.search_tickets.return_value = tickets
+        mock_jira.get_assignee_comment_ts.side_effect = RuntimeError("MCP down")
+
+        result = await poller.run_poll()
+
+        mock_nudge.evaluate_ticket.assert_awaited_once_with("TEST-1")
+        assert result["tickets_fetched"] == 1
 
 
 class TestAssigneeAutoRegistration:

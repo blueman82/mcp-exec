@@ -70,6 +70,7 @@ def _mock_queries():
         mock_q.create_nudge = AsyncMock(return_value={"id": uuid4()})
         mock_q.update_nudge_status = AsyncMock()
         mock_q.increment_assignee_nudge_count = AsyncMock()
+        mock_q.update_ticket_comment_ts = AsyncMock()
         yield mock_q
 
 
@@ -87,7 +88,7 @@ class TestEvaluateTicket:
         result = await service.evaluate_ticket("TEST-1")
 
         assert result["should_nudge"] is True
-        assert "G1" in result["nudge_reason"]
+        assert "No assignee comment yet" in result["nudge_reason"]
         mock_slack.send_dm.assert_called_once()
 
     @pytest.mark.usefixtures("_mock_queries")
@@ -104,7 +105,7 @@ class TestEvaluateTicket:
         result = await service.evaluate_ticket("TEST-1")
 
         assert result["should_nudge"] is True
-        assert "LLM score below threshold" in result["nudge_reason"]
+        assert "Issue description could be clearer" in result["nudge_reason"]
 
     @pytest.mark.usefixtures("_mock_queries")
     async def test_gates_pass_llm_above_threshold_no_nudge(self, _mock_queries):
@@ -271,6 +272,69 @@ class TestEvaluateTicket:
         # Should NOT return snoozed — force bypasses it
         assert result["nudge_reason"] != "snoozed"
         mock_gates.evaluate.assert_called_once()
+
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_force_refreshes_comment_ts(self, _mock_queries):
+        service, mock_jira, _, mock_gates, mock_llm = _make_nudge_service()
+        comment_ts = datetime(2026, 2, 10, 14, 0, tzinfo=UTC)
+        mock_jira.get_assignee_comment_ts.return_value = comment_ts
+        # First get_ticket returns ticket without comment ts,
+        # second returns refreshed ticket with comment ts
+        refreshed = _make_ticket_record(last_assignee_comment_at=comment_ts)
+        _mock_queries.get_ticket.side_effect = [
+            _make_ticket_record(),
+            refreshed,
+        ]
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        await service.evaluate_ticket("TEST-1", force=True)
+
+        mock_jira.get_assignee_comment_ts.assert_awaited_once_with("TEST-1", "user1")
+        _mock_queries.update_ticket_comment_ts.assert_awaited_once_with(
+            "TEST-1", "user1", comment_ts,
+        )
+        assert _mock_queries.get_ticket.await_count == 2
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_force_refresh_failure_continues_evaluation(self, _mock_queries):
+        service, mock_jira, _, mock_gates, mock_llm = _make_nudge_service()
+        mock_jira.get_assignee_comment_ts.side_effect = RuntimeError("MCP down")
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        result = await service.evaluate_ticket("TEST-1", force=True)
+
+        # Should still evaluate gates with existing ticket state
+        mock_gates.evaluate.assert_called_once()
+        assert result["should_nudge"] is False
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_force_no_assignee_skips_refresh(self, _mock_queries):
+        service, mock_jira, _, mock_gates, mock_llm = _make_nudge_service()
+        _mock_queries.get_ticket.return_value = _make_ticket_record(
+            assignee_jira_id=None,
+        )
+        mock_gates.evaluate.return_value = GateEvaluation(
+            g1_passed=True, g2_passed=True, g3_passed=True, g4_passed=True,
+        )
+        mock_llm.score_ticket.return_value = LLMScore(
+            clarity=5.0, completeness=5.0, root_cause=5.0, actionability=5.0,
+        )
+
+        await service.evaluate_ticket("TEST-1", force=True)
+
+        mock_jira.get_assignee_comment_ts.assert_not_awaited()
+        _mock_queries.update_ticket_comment_ts.assert_not_awaited()
 
 
 class TestSendNudge:

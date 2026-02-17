@@ -155,6 +155,21 @@ class PollerService:
                         exc_info=True,
                     )
 
+                if ticket.assignee_id:
+                    try:
+                        comment_ts = await self.jira.get_assignee_comment_ts(
+                            ticket.key, ticket.assignee_id
+                        )
+                        await queries.update_ticket_comment_ts(
+                            ticket.key, ticket.assignee_id, comment_ts
+                        )
+                    except Exception:
+                        logger.warning(
+                            "comment_ts_fetch_failed",
+                            ticket_key=ticket.key,
+                            exc_info=True,
+                        )
+
                 if existing:
                     tickets_updated += 1
                 else:

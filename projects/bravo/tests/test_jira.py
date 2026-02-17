@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -394,6 +395,106 @@ class TestGetTicketFields:
         # Component without "name" key should be skipped
         assert result["components"] == ["Frontend", "Backend"]
         assert result["priority"] == ""
+
+
+class TestGetAssigneeCommentTs:
+    """Tests for JiraMCPClient.get_assignee_comment_ts()."""
+
+    async def test_returns_latest_by_author_name(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "comment": {
+                                        "comments": [
+                                            {
+                                                "author": {"name": "jdoe", "accountId": "abc123"},
+                                                "updated": "2026-02-10T10:00:00+00:00",
+                                            },
+                                            {
+                                                "author": {"name": "other", "accountId": "xyz"},
+                                                "updated": "2026-02-10T15:00:00+00:00",
+                                            },
+                                            {
+                                                "author": {"name": "jdoe", "accountId": "abc123"},
+                                                "updated": "2026-02-10T14:00:00+00:00",
+                                            },
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_assignee_comment_ts("TEST-1", "jdoe")
+
+        assert result == datetime(2026, 2, 10, 14, 0, tzinfo=timezone.utc)
+
+    async def test_matches_account_id(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "comment": {
+                                        "comments": [
+                                            {
+                                                "author": {"name": "jdoe", "accountId": "abc123"},
+                                                "updated": "2026-02-10T12:00:00+00:00",
+                                            },
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        # Match by accountId instead of name
+        result = await client.get_assignee_comment_ts("TEST-1", "abc123")
+
+        assert result == datetime(2026, 2, 10, 12, 0, tzinfo=timezone.utc)
+
+    async def test_no_match_returns_none(self):
+        client, _ = _make_client_with_mock(
+            _jsonrpc_ok(
+                {
+                    "data": {
+                        "issues": [
+                            {
+                                "key": "TEST-1",
+                                "fields": {
+                                    "comment": {
+                                        "comments": [
+                                            {
+                                                "author": {"name": "other", "accountId": "xyz"},
+                                                "updated": "2026-02-10T10:00:00+00:00",
+                                            },
+                                        ]
+                                    }
+                                },
+                            }
+                        ]
+                    }
+                }
+            )
+        )
+
+        result = await client.get_assignee_comment_ts("TEST-1", "jdoe")
+
+        assert result is None
 
 
 class TestAddComment:
