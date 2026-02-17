@@ -1354,7 +1354,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             
                             \${!data.isBuilt ? \`
                                 <button class="btn btn-primary" id="btn-build-local-server" style="margin-bottom: var(--spacing-md);">
-                                    Build Server (npm install && npm run build)
+                                    \${data.runtime === 'node' ? 'Build Server (npm install && npm run build)' : 'Install Server (pip install)'}
                                 </button>
                             \` : ''}
                             
