@@ -236,14 +236,14 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         try {
             // For Internal servers, check if available locally (should be downloaded when catalog opened)
             if (item.serverType === 'Internal') {
-                const localServerPath = await this.findLocalServer(item.id);
+                const localServerPath = await this.findLocalServer(item.id, item);
                 if (localServerPath) {
                     await this.handleInstallLocalServer(item, localServerPath);
                     return;
                 } else {
                     // Repo not downloaded yet - trigger download and retry
                     await this.ensureInternalRepoDownloaded();
-                    const retryPath = await this.findLocalServer(item.id);
+                    const retryPath = await this.findLocalServer(item.id, item);
                     if (retryPath) {
                         await this.handleInstallLocalServer(item, retryPath);
                         return;
