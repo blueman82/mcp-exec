@@ -1455,7 +1455,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                     // Reset build button
                     const buildBtn = document.getElementById('btn-build-local-server');
                     if (buildBtn) {
-                        buildBtn.textContent = 'Build Server (npm install && npm run build)';
+                        buildBtn.textContent = localServerSetupData?.runtime === 'node' ? 'Build Server (npm install && npm run build)' : 'Install Server (pip install)';
                         buildBtn.disabled = false;
                     }
                 }
