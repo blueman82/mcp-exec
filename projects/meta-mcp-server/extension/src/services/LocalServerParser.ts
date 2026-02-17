@@ -52,23 +52,15 @@ export async function parseLocalServer(packagePath: string): Promise<LocalServer
  * Find the Python entry point by checking common locations in order.
  */
 function findPythonEntryPoint(packagePath: string): string {
+    const dirName = path.basename(packagePath);
     const candidates = [
         'server.py',
         'src/server.py',
         '__main__.py',
+        `src/${dirName}/server.py`,
     ];
 
-    // Also check src/{dirname}/server.py for nested package layouts
-    const dirName = path.basename(packagePath);
-    candidates.push(`src/${dirName}/server.py`);
-
-    for (const candidate of candidates) {
-        if (fs.existsSync(path.join(packagePath, candidate))) {
-            return candidate;
-        }
-    }
-
-    return 'server.py';
+    return candidates.find(c => fs.existsSync(path.join(packagePath, c))) ?? 'server.py';
 }
 
 /**
