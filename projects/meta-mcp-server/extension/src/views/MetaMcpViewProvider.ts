@@ -316,15 +316,17 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 }
             }
 
-            // 2. Heuristic path guessing — directory existence only (mirrors JetBrains RepoDetector)
+            // 2. Heuristic path guessing — directory existence + has recognizable project files
             const possiblePaths = [
                 `src/${serverId}`,
                 `packages/${serverId}`,
                 serverId,
             ];
+            const projectMarkers = ['package.json', 'requirements.txt', 'pyproject.toml', 'setup.py', 'Cargo.toml', 'go.mod', 'Dockerfile', 'server.py'];
             for (const packagePath of possiblePaths) {
                 const fullPath = path.join(repoPath, packagePath);
-                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() &&
+                    projectMarkers.some(m => fs.existsSync(path.join(fullPath, m)))) {
                     return { repoPath, packagePath };
                 }
             }
