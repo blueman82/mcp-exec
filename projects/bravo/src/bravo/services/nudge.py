@@ -193,7 +193,7 @@ class NudgeService:
                 should_nudge = True
                 nudge_reason = f"LLM score below threshold ({llm_score.average:.1f} < {self.settings.llm.threshold})"
 
-        if should_nudge:
+        if should_nudge and not force:
             codes = failed_gate_codes if gate_result.any_failed else []
             await self._send_nudge(
                 ticket,
