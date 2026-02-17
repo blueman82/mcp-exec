@@ -388,7 +388,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             terminal.sendText('pip install -e . 2>/dev/null || uv pip install -e . 2>/dev/null || echo "Install complete"');
         }
 
-        const entryPoint = path.join(data.packagePath, data.entryPoint || 'dist/index.js');
+        const entryPoint = path.join(data.packagePath, data.entryPoint ?? 'dist/index.js');
 
         // Poll for build completion (check every 2 seconds for up to 2 minutes)
         const maxAttempts = 60;
@@ -430,7 +430,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 this.postMessage({ type: 'localServerBuildComplete', success: true });
                 vscode.window.showInformationMessage('Build completed successfully!');
             } else {
-                vscode.window.showWarningMessage(`Build not complete yet - ${data.entryPoint || 'dist/index.js'} not found. Wait for build to finish.`);
+                vscode.window.showWarningMessage(`Build not complete yet - ${data.entryPoint ?? 'dist/index.js'} not found. Wait for build to finish.`);
             }
         } else if (result === 'Cancel') {
             this.postMessage({ type: 'localServerBuildComplete', success: false });
