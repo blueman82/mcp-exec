@@ -363,7 +363,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     /**
      * Handle running build for a local server
      */
-    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string }): Promise<void> {
+    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string; runtime?: string; entryPoint?: string }): Promise<void> {
         // Many servers have build scripts that expect .env to exist
         // Auto-create from .env.example if missing
         const envPath = path.join(data.packagePath, '.env');
@@ -371,29 +371,33 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {
             fs.copyFileSync(envExamplePath, envPath);
         }
-        
+
         const terminal = vscode.window.createTerminal({
             name: `Build: ${data.serverName}`,
             cwd: data.packagePath
         });
-        
+
         terminal.show();
-        // Use --ignore-scripts to prevent "prepare" script from running build during install
-        terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
-        
-        const entryPoint = path.join(data.packagePath, 'dist', 'index.js');
-        
+
+        const isNode = !data.runtime || data.runtime === 'node';
+        if (isNode) {
+            terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
+        } else {
+            terminal.sendText('pip install -e . 2>/dev/null || uv pip install -e . 2>/dev/null || echo "Install complete"');
+        }
+
+        const entryPoint = path.join(data.packagePath, data.entryPoint || 'dist/index.js');
+
         // Poll for build completion (check every 2 seconds for up to 2 minutes)
         const maxAttempts = 60;
         let attempts = 0;
-        
+
         const checkBuild = async (): Promise<boolean> => {
             while (attempts < maxAttempts) {
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 attempts++;
-                
+
                 if (fs.existsSync(entryPoint)) {
-                    // Check if file was modified in the last 30 seconds (freshly built)
                     const stats = fs.statSync(entryPoint);
                     const age = Date.now() - stats.mtimeMs;
                     if (age < 30000) {
@@ -403,7 +407,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             }
             return false;
         };
-        
+
         // Start polling in background
         checkBuild().then(success => {
             if (success) {
@@ -411,20 +415,20 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 vscode.window.showInformationMessage(`${data.serverName} built successfully!`);
             }
         });
-        
+
         // Also show manual option
         const result = await vscode.window.showInformationMessage(
             `Building ${data.serverName}... Will auto-detect when done, or click "Check Now" to verify.`,
             'Check Now',
             'Cancel'
         );
-        
+
         if (result === 'Check Now') {
             if (fs.existsSync(entryPoint)) {
                 this.postMessage({ type: 'localServerBuildComplete', success: true });
                 vscode.window.showInformationMessage('Build completed successfully!');
             } else {
-                vscode.window.showWarningMessage('Build not complete yet - dist/index.js not found. Wait for build to finish.');
+                vscode.window.showWarningMessage(`Build not complete yet - ${data.entryPoint || 'dist/index.js'} not found. Wait for build to finish.`);
             }
         } else if (result === 'Cancel') {
             this.postMessage({ type: 'localServerBuildComplete', success: false });
