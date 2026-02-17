@@ -385,7 +385,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         if (isNode) {
             terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
         } else {
-            terminal.sendText('pip install -e . 2>/dev/null || uv pip install -e . 2>/dev/null || echo "Install complete"');
+            terminal.sendText('pip install -e . || uv pip install -e . || echo "Install failed — check output above"');
         }
 
         const entryPoint = path.join(data.packagePath, data.entryPoint ?? 'dist/index.js');
