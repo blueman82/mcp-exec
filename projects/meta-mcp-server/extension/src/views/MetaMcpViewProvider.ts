@@ -310,8 +310,8 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             // 1. Try catalog packagePath first (if provided and valid)
             if (item?.packagePath) {
                 const resolved = path.resolve(repoPath, item.packagePath);
-                // Containment check: ensure resolved path stays within repo
-                if (resolved.startsWith(repoPath) && fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+                // Containment check: ensure resolved path stays within repo (trailing sep prevents prefix collisions)
+                if (resolved.startsWith(repoPath + path.sep) && fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
                     return { repoPath, packagePath: item.packagePath };
                 }
             }
