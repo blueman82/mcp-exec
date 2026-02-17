@@ -60,6 +60,21 @@ function findPythonEntryPoint(packagePath: string): string {
         `src/${dirName}/server.py`,
     ];
 
+    // Also scan src/*/server.py for nested package layouts (e.g. src/firefly_mcp/server.py)
+    try {
+        const srcDir = path.join(packagePath, 'src');
+        if (fs.existsSync(srcDir) && fs.statSync(srcDir).isDirectory()) {
+            for (const entry of fs.readdirSync(srcDir)) {
+                const nested = path.join('src', entry, 'server.py');
+                if (!candidates.includes(nested) && fs.existsSync(path.join(packagePath, nested))) {
+                    candidates.push(nested);
+                }
+            }
+        }
+    } catch {
+        // Ignore read errors
+    }
+
     return candidates.find(c => fs.existsSync(path.join(packagePath, c))) ?? 'server.py';
 }
 
