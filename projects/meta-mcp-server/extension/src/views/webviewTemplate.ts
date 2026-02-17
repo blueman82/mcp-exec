@@ -1388,12 +1388,14 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         btn.textContent = 'Building...';
                         btn.disabled = true;
                     }
-                    vscode.postMessage({ 
-                        type: 'runLocalServerBuild', 
-                        data: { 
+                    vscode.postMessage({
+                        type: 'runLocalServerBuild',
+                        data: {
                             packagePath: fullPackagePath,
-                            serverName: data.serverName 
-                        } 
+                            serverName: data.serverName,
+                            runtime: data.runtime,
+                            entryPoint: data.entryPoint
+                        }
                     });
                 });
                 
