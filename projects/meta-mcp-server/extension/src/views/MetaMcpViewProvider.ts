@@ -300,42 +300,36 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Find a server in local repos (auto-detected or downloaded)
      * Returns the full path to the server package if found, null otherwise
      */
-    private async findLocalServer(serverId: string): Promise<{ repoPath: string; packagePath: string } | null> {
-        // Check common locations for the server
-        const possiblePaths = [
-            `src/${serverId}`,
-            `packages/${serverId}`,
-            serverId,
-        ];
+    private async findLocalServer(serverId: string, item?: CatalogServer): Promise<{ repoPath: string; packagePath: string } | null> {
+        const repos = [
+            await findRepository('adobe-mcp-servers'),
+            getRepositoryPath('adobe-mcp-servers'),
+        ].filter((r): r is string => r !== null);
 
-        // 1. Try auto-detected adobe-mcp-servers repo first
-        const autoDetectedRepo = await findRepository('adobe-mcp-servers');
-        if (autoDetectedRepo) {
+        for (const repoPath of repos) {
+            // 1. Try catalog packagePath first (if provided and valid)
+            if (item?.packagePath) {
+                const resolved = path.resolve(repoPath, item.packagePath);
+                // Containment check: ensure resolved path stays within repo
+                if (resolved.startsWith(repoPath) && fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+                    return { repoPath, packagePath: item.packagePath };
+                }
+            }
+
+            // 2. Heuristic path guessing — directory existence only (mirrors JetBrains RepoDetector)
+            const possiblePaths = [
+                `src/${serverId}`,
+                `packages/${serverId}`,
+                serverId,
+            ];
             for (const packagePath of possiblePaths) {
-                const fullPath = path.join(autoDetectedRepo, packagePath);
-                if (fs.existsSync(fullPath) && (
-                    fs.existsSync(path.join(fullPath, 'package.json')) ||
-                    fs.existsSync(path.join(fullPath, 'requirements.txt'))
-                )) {
-                    return { repoPath: autoDetectedRepo, packagePath };
+                const fullPath = path.join(repoPath, packagePath);
+                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+                    return { repoPath, packagePath };
                 }
             }
         }
 
-        // 2. Try downloaded repo in ~/.meta-mcp/repos/
-        const downloadedRepo = getRepositoryPath('adobe-mcp-servers');
-        if (downloadedRepo) {
-            for (const packagePath of possiblePaths) {
-                const fullPath = path.join(downloadedRepo, packagePath);
-                if (fs.existsSync(fullPath) && (
-                    fs.existsSync(path.join(fullPath, 'package.json')) ||
-                    fs.existsSync(path.join(fullPath, 'requirements.txt'))
-                )) {
-                    return { repoPath: downloadedRepo, packagePath };
-                }
-            }
-        }
-        
         return null;
     }
 
