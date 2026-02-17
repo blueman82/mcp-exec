@@ -363,7 +363,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     /**
      * Handle running build for a local server
      */
-    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string; runtime?: string; entryPoint?: string }): Promise<void> {
+    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string; runtime?: 'node' | 'python'; entryPoint?: string }): Promise<void> {
         // Many servers have build scripts that expect .env to exist
         // Auto-create from .env.example if missing
         const envPath = path.join(data.packagePath, '.env');
