@@ -236,14 +236,14 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         try {
             // For Internal servers, check if available locally (should be downloaded when catalog opened)
             if (item.serverType === 'Internal') {
-                const localServerPath = await this.findLocalServer(item.id);
+                const localServerPath = await this.findLocalServer(item.id, item);
                 if (localServerPath) {
                     await this.handleInstallLocalServer(item, localServerPath);
                     return;
                 } else {
                     // Repo not downloaded yet - trigger download and retry
                     await this.ensureInternalRepoDownloaded();
-                    const retryPath = await this.findLocalServer(item.id);
+                    const retryPath = await this.findLocalServer(item.id, item);
                     if (retryPath) {
                         await this.handleInstallLocalServer(item, retryPath);
                         return;
@@ -300,42 +300,38 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Find a server in local repos (auto-detected or downloaded)
      * Returns the full path to the server package if found, null otherwise
      */
-    private async findLocalServer(serverId: string): Promise<{ repoPath: string; packagePath: string } | null> {
-        // Check common locations for the server
-        const possiblePaths = [
-            `src/${serverId}`,
-            `packages/${serverId}`,
-            serverId,
-        ];
+    private async findLocalServer(serverId: string, item?: CatalogServer): Promise<{ repoPath: string; packagePath: string } | null> {
+        const repos = [
+            await findRepository('adobe-mcp-servers'),
+            getRepositoryPath('adobe-mcp-servers'),
+        ].filter((r): r is string => r !== null);
 
-        // 1. Try auto-detected adobe-mcp-servers repo first
-        const autoDetectedRepo = await findRepository('adobe-mcp-servers');
-        if (autoDetectedRepo) {
+        for (const repoPath of repos) {
+            // 1. Try catalog packagePath first (if provided and valid)
+            if (item?.packagePath) {
+                const resolved = path.resolve(repoPath, item.packagePath);
+                // Containment check: ensure resolved path stays within repo (trailing sep prevents prefix collisions)
+                if (resolved.startsWith(repoPath + path.sep) && fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+                    return { repoPath, packagePath: item.packagePath };
+                }
+            }
+
+            // 2. Heuristic path guessing — directory existence + has recognizable project files
+            const possiblePaths = [
+                `src/${serverId}`,
+                `packages/${serverId}`,
+                serverId,
+            ];
+            const projectMarkers = ['package.json', 'requirements.txt', 'pyproject.toml', 'setup.py', 'Cargo.toml', 'go.mod', 'Dockerfile', 'server.py'];
             for (const packagePath of possiblePaths) {
-                const fullPath = path.join(autoDetectedRepo, packagePath);
-                if (fs.existsSync(fullPath) && (
-                    fs.existsSync(path.join(fullPath, 'package.json')) ||
-                    fs.existsSync(path.join(fullPath, 'requirements.txt'))
-                )) {
-                    return { repoPath: autoDetectedRepo, packagePath };
+                const fullPath = path.join(repoPath, packagePath);
+                if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory() &&
+                    projectMarkers.some(m => fs.existsSync(path.join(fullPath, m)))) {
+                    return { repoPath, packagePath };
                 }
             }
         }
 
-        // 2. Try downloaded repo in ~/.meta-mcp/repos/
-        const downloadedRepo = getRepositoryPath('adobe-mcp-servers');
-        if (downloadedRepo) {
-            for (const packagePath of possiblePaths) {
-                const fullPath = path.join(downloadedRepo, packagePath);
-                if (fs.existsSync(fullPath) && (
-                    fs.existsSync(path.join(fullPath, 'package.json')) ||
-                    fs.existsSync(path.join(fullPath, 'requirements.txt'))
-                )) {
-                    return { repoPath: downloadedRepo, packagePath };
-                }
-            }
-        }
-        
         return null;
     }
 
@@ -369,7 +365,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     /**
      * Handle running build for a local server
      */
-    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string }): Promise<void> {
+    private async handleRunLocalServerBuild(data: { packagePath: string; serverName: string; runtime?: 'node' | 'python'; entryPoint?: string }): Promise<void> {
         // Many servers have build scripts that expect .env to exist
         // Auto-create from .env.example if missing
         const envPath = path.join(data.packagePath, '.env');
@@ -377,29 +373,33 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
         if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {
             fs.copyFileSync(envExamplePath, envPath);
         }
-        
+
         const terminal = vscode.window.createTerminal({
             name: `Build: ${data.serverName}`,
             cwd: data.packagePath
         });
-        
+
         terminal.show();
-        // Use --ignore-scripts to prevent "prepare" script from running build during install
-        terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
-        
-        const entryPoint = path.join(data.packagePath, 'dist', 'index.js');
-        
+
+        const isNode = !data.runtime || data.runtime === 'node';
+        if (isNode) {
+            terminal.sendText('npm install --ignore-scripts && NODE_OPTIONS="--max-old-space-size=8192" npm run build');
+        } else {
+            terminal.sendText('if command -v uv >/dev/null 2>&1; then uv venv .venv && uv pip install -e .; elif command -v python3 >/dev/null 2>&1; then python3 -m venv .venv && . .venv/bin/activate && pip install -e .; else echo "ERROR: Neither uv nor python3 found. Install uv (https://docs.astral.sh/uv/) or Python 3."; fi');
+        }
+
+        const entryPoint = path.join(data.packagePath, data.entryPoint ?? 'dist/index.js');
+
         // Poll for build completion (check every 2 seconds for up to 2 minutes)
         const maxAttempts = 60;
         let attempts = 0;
-        
+
         const checkBuild = async (): Promise<boolean> => {
             while (attempts < maxAttempts) {
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 attempts++;
-                
+
                 if (fs.existsSync(entryPoint)) {
-                    // Check if file was modified in the last 30 seconds (freshly built)
                     const stats = fs.statSync(entryPoint);
                     const age = Date.now() - stats.mtimeMs;
                     if (age < 30000) {
@@ -409,7 +409,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             }
             return false;
         };
-        
+
         // Start polling in background
         checkBuild().then(success => {
             if (success) {
@@ -417,20 +417,20 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 vscode.window.showInformationMessage(`${data.serverName} built successfully!`);
             }
         });
-        
+
         // Also show manual option
         const result = await vscode.window.showInformationMessage(
             `Building ${data.serverName}... Will auto-detect when done, or click "Check Now" to verify.`,
             'Check Now',
             'Cancel'
         );
-        
+
         if (result === 'Check Now') {
             if (fs.existsSync(entryPoint)) {
                 this.postMessage({ type: 'localServerBuildComplete', success: true });
                 vscode.window.showInformationMessage('Build completed successfully!');
             } else {
-                vscode.window.showWarningMessage('Build not complete yet - dist/index.js not found. Wait for build to finish.');
+                vscode.window.showWarningMessage(`Build not complete yet - ${data.entryPoint ?? 'dist/index.js'} not found. Wait for build to finish.`);
             }
         } else if (result === 'Cancel') {
             this.postMessage({ type: 'localServerBuildComplete', success: false });

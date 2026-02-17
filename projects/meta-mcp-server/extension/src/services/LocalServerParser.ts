@@ -21,17 +21,12 @@ export interface LocalServerMeta {
  * from existing structured files (.env.example, package.json, etc.)
  */
 export async function parseLocalServer(packagePath: string): Promise<LocalServerMeta> {
-    // Detect runtime based on file existence
     const hasPackageJson = fs.existsSync(path.join(packagePath, 'package.json'));
-    const hasRequirementsTxt = fs.existsSync(path.join(packagePath, 'requirements.txt'));
-    
     const runtime: 'node' | 'python' = hasPackageJson ? 'node' : 'python';
-    const entryPoint = runtime === 'node' ? 'dist/index.js' : 'server.py';
-    
-    // Check if already built
+    const entryPoint = runtime === 'node' ? 'dist/index.js' : findPythonEntryPoint(packagePath);
+
     const isBuilt = fs.existsSync(path.join(packagePath, entryPoint));
-    
-    // Check if build script exists (for node projects)
+
     let hasBuildScript = false;
     if (hasPackageJson) {
         try {
@@ -41,10 +36,9 @@ export async function parseLocalServer(packagePath: string): Promise<LocalServer
             // Ignore parse errors
         }
     }
-    
-    // Parse .env.example for required env vars
+
     const envVars = parseEnvExample(path.join(packagePath, '.env.example'));
-    
+
     return {
         envVars,
         runtime,
@@ -52,6 +46,36 @@ export async function parseLocalServer(packagePath: string): Promise<LocalServer
         isBuilt,
         hasBuildScript
     };
+}
+
+/**
+ * Find the Python entry point by checking common locations in order.
+ */
+function findPythonEntryPoint(packagePath: string): string {
+    const dirName = path.basename(packagePath);
+    const candidates = [
+        'server.py',
+        'src/server.py',
+        '__main__.py',
+        `src/${dirName}/server.py`,
+    ];
+
+    // Also scan src/*/server.py for nested package layouts (e.g. src/firefly_mcp/server.py)
+    try {
+        const srcDir = path.join(packagePath, 'src');
+        if (fs.existsSync(srcDir) && fs.statSync(srcDir).isDirectory()) {
+            for (const entry of fs.readdirSync(srcDir)) {
+                const nested = path.join('src', entry, 'server.py');
+                if (!candidates.includes(nested) && fs.existsSync(path.join(packagePath, nested))) {
+                    candidates.push(nested);
+                }
+            }
+        }
+    } catch {
+        // Ignore read errors
+    }
+
+    return candidates.find(c => fs.existsSync(path.join(packagePath, c))) ?? 'server.py';
 }
 
 /**

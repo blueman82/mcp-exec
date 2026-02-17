@@ -1354,7 +1354,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                             
                             \${!data.isBuilt ? \`
                                 <button class="btn btn-primary" id="btn-build-local-server" style="margin-bottom: var(--spacing-md);">
-                                    Build Server (npm install && npm run build)
+                                    \${data.runtime === 'node' ? 'Build Server (npm install && npm run build)' : 'Install Server (pip install)'}
                                 </button>
                             \` : ''}
                             
@@ -1388,12 +1388,14 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                         btn.textContent = 'Building...';
                         btn.disabled = true;
                     }
-                    vscode.postMessage({ 
-                        type: 'runLocalServerBuild', 
-                        data: { 
+                    vscode.postMessage({
+                        type: 'runLocalServerBuild',
+                        data: {
                             packagePath: fullPackagePath,
-                            serverName: data.serverName 
-                        } 
+                            serverName: data.serverName,
+                            runtime: data.runtime,
+                            entryPoint: data.entryPoint
+                        }
                     });
                 });
                 
@@ -1453,7 +1455,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                     // Reset build button
                     const buildBtn = document.getElementById('btn-build-local-server');
                     if (buildBtn) {
-                        buildBtn.textContent = 'Build Server (npm install && npm run build)';
+                        buildBtn.textContent = localServerSetupData?.runtime === 'node' ? 'Build Server (npm install && npm run build)' : 'Install Server (pip install)';
                         buildBtn.disabled = false;
                     }
                 }
