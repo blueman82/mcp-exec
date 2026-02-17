@@ -127,6 +127,21 @@ async def upsert_ticket(
             assignee_jira_id = EXCLUDED.assignee_jira_id,
             assignee_name = EXCLUDED.assignee_name,
             jira_status = EXCLUDED.jira_status,
+            last_assignee_comment_at = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.last_assignee_comment_at END,
+            g1_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g1_passed END,
+            g2_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g2_passed END,
+            g3_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g3_passed END,
+            g4_passed = CASE
+                WHEN watched_tickets.assignee_jira_id IS DISTINCT FROM EXCLUDED.assignee_jira_id
+                THEN NULL ELSE watched_tickets.g4_passed END,
             last_polled_at = NOW()
         RETURNING *
         """,
@@ -155,6 +170,42 @@ async def update_ticket_status(ticket_key: str, status: str) -> asyncpg.Record |
         "UPDATE watched_tickets SET status = $2 WHERE ticket_key = $1 RETURNING *",
         ticket_key,
         status,
+    )
+
+
+async def update_ticket_comment_ts(
+    ticket_key: str,
+    assignee_jira_id: str,
+    last_assignee_comment_at: datetime | None,
+) -> asyncpg.Record | None:
+    """Update the last assignee comment timestamp with monotonic guard.
+
+    Uses GREATEST to ensure a newer timestamp is never overwritten by
+    an older one. If the new value is NULL, preserves the existing value.
+
+    Args:
+        ticket_key: The Jira ticket key.
+        assignee_jira_id: The assignee's Jira account ID.
+        last_assignee_comment_at: The timestamp, or None to preserve existing.
+
+    Returns:
+        The updated ticket record or None if not found or assignee mismatch.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE watched_tickets
+        SET last_assignee_comment_at = CASE
+              WHEN $3::timestamptz IS NULL THEN last_assignee_comment_at
+              ELSE GREATEST(last_assignee_comment_at, $3::timestamptz)
+            END
+        WHERE ticket_key = $1
+          AND assignee_jira_id = $2
+        RETURNING *
+        """,
+        ticket_key,
+        assignee_jira_id,
+        last_assignee_comment_at,
     )
 
 
@@ -431,6 +482,32 @@ async def get_nudge_by_slack_ts(slack_ts: str) -> asyncpg.Record | None:
     )
 
 
+async def get_nudge_by_slack_ts_any(slack_ts: str) -> asyncpg.Record | None:
+    """Get a nudge event by Slack message timestamp (any status).
+
+    Unlike ``get_nudge_by_slack_ts`` which only returns SENT nudges,
+    this returns the most recent nudge matching the ts regardless of
+    status. Used by the comment handler where the nudge may already
+    be RESPONDED.
+
+    Args:
+        slack_ts: The Slack message timestamp identifier.
+
+    Returns:
+        The nudge record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        SELECT * FROM nudge_events
+        WHERE slack_ts = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        slack_ts,
+    )
+
+
 async def get_snoozed_nudge_by_slack_ts(slack_ts: str) -> asyncpg.Record | None:
     """Get a snoozed nudge event by Slack message timestamp.
 
@@ -516,19 +593,22 @@ async def get_active_snooze_for_ticket(ticket_key: str) -> asyncpg.Record | None
 
 
 async def get_latest_nudge_for_ticket(ticket_key: str) -> asyncpg.Record | None:
-    """Get the most recent SENT nudge for a ticket.
+    """Get the most recent active nudge for a ticket.
+
+    Matches SENT and RESPONDED nudges so the cooldown window covers
+    tickets where the engineer has already engaged (posted a comment).
 
     Args:
         ticket_key: The Jira ticket key.
 
     Returns:
-        The most recent sent nudge record or None if none found.
+        The most recent active nudge record or None if none found.
     """
     pool = get_pool()
     return await pool.fetchrow(
         """
         SELECT * FROM nudge_events
-        WHERE ticket_key = $1 AND status = 'SENT'
+        WHERE ticket_key = $1 AND status IN ('SENT', 'RESPONDED')
         ORDER BY created_at DESC
         LIMIT 1
         """,
@@ -830,6 +910,165 @@ async def delete_assignee_pat(slack_user_id: str) -> bool:
         slack_user_id,
     )
     return cast(str, result) == "DELETE 1"
+
+
+# ============ RE-EVALUATION QUEUE ============
+
+
+async def enqueue_re_evaluation(
+    ticket_key: str,
+    nudge_id: UUID,
+    channel_id: str,
+    message_ts: str,
+) -> asyncpg.Record | None:
+    """Insert a re-evaluation request, dedup by nudge_id.
+
+    Args:
+        ticket_key: The Jira ticket key.
+        nudge_id: The nudge event UUID (dedup key).
+        channel_id: Slack channel for result update.
+        message_ts: Slack message timestamp for result update.
+
+    Returns:
+        The inserted record, or None if a duplicate exists.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        INSERT INTO re_evaluation_queue (ticket_key, nudge_id, channel_id, message_ts)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT DO NOTHING
+        RETURNING *
+        """,
+        ticket_key,
+        nudge_id,
+        channel_id,
+        message_ts,
+    )
+
+
+async def dequeue_re_evaluation() -> asyncpg.Record | None:
+    """Atomically claim the next PENDING re-evaluation job.
+
+    Uses FOR UPDATE SKIP LOCKED to allow concurrent consumers
+    without blocking.
+
+    Returns:
+        The claimed record, or None if the queue is empty.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        WITH claim AS (
+            SELECT id FROM re_evaluation_queue
+            WHERE status = 'PENDING'
+            ORDER BY created_at
+            FOR UPDATE SKIP LOCKED
+            LIMIT 1
+        )
+        UPDATE re_evaluation_queue q
+        SET status = 'PROCESSING',
+            locked_at = now(),
+            attempt_count = q.attempt_count + 1
+        FROM claim
+        WHERE q.id = claim.id
+        RETURNING q.*
+        """,
+    )
+
+
+async def complete_re_evaluation(queue_id: UUID, result: str) -> asyncpg.Record | None:
+    """Mark a re-evaluation job as completed.
+
+    Args:
+        queue_id: The queue entry UUID.
+        result: Human-readable result summary.
+
+    Returns:
+        The updated record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE re_evaluation_queue
+        SET status = 'COMPLETED', processed_at = now(), result = $2
+        WHERE id = $1
+        RETURNING *
+        """,
+        queue_id,
+        result,
+    )
+
+
+async def fail_re_evaluation(queue_id: UUID, error: str) -> asyncpg.Record | None:
+    """Mark a re-evaluation job as failed.
+
+    Args:
+        queue_id: The queue entry UUID.
+        error: Error message detail.
+
+    Returns:
+        The updated record or None if not found.
+    """
+    pool = get_pool()
+    return await pool.fetchrow(
+        """
+        UPDATE re_evaluation_queue
+        SET status = 'FAILED', last_error = $2, processed_at = now()
+        WHERE id = $1
+        RETURNING *
+        """,
+        queue_id,
+        error,
+    )
+
+
+async def reap_stale_jobs(timeout_minutes: int = 10) -> int:
+    """Reset PROCESSING rows older than timeout back to PENDING.
+
+    Recovers from worker crashes where a job was claimed but
+    never completed.
+
+    Args:
+        timeout_minutes: Minutes after which a PROCESSING job is
+            considered stale.
+
+    Returns:
+        Number of rows reset.
+    """
+    pool = get_pool()
+    result = await pool.execute(
+        """
+        UPDATE re_evaluation_queue
+        SET status = 'PENDING', locked_at = NULL
+        WHERE status = 'PROCESSING'
+          AND locked_at < now() - ($1 || ' minutes')::interval
+        """,
+        str(timeout_minutes),
+    )
+    # result is e.g. "UPDATE 3"
+    count_str = cast(str, result).split()[-1]
+    return int(count_str) if count_str.isdigit() else 0
+
+
+async def has_pending_reeval(ticket_key: str) -> bool:
+    """Check if a ticket has a pending or processing re-evaluation.
+
+    Args:
+        ticket_key: The Jira ticket key.
+
+    Returns:
+        True if a PENDING or PROCESSING entry exists.
+    """
+    pool = get_pool()
+    count = await pool.fetchval(
+        """
+        SELECT COUNT(*) FROM re_evaluation_queue
+        WHERE ticket_key = $1 AND status IN ('PENDING', 'PROCESSING')
+        """,
+        ticket_key,
+    )
+    return (count or 0) > 0
 
 
 async def get_poll_history(limit: int = 10) -> list[asyncpg.Record]:

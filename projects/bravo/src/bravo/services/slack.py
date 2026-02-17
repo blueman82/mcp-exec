@@ -21,11 +21,14 @@ from bravo.config import SlackSettings
 from bravo.db import queries
 from bravo.protocols import JiraClientProto, PATServiceProto
 from bravo.services.blocks import (
+    _replace_actions,
     build_acknowledged_blocks,
     build_collect_pat_modal,
+    build_comment_modal,
     build_fix_error_blocks,
     build_fix_now_modal,
     build_fix_submitted_blocks,
+    build_pat_error_modal,
     build_snoozed_blocks,
     build_unsnoozed_blocks,
     build_yes_updates_blocks,
@@ -339,10 +342,16 @@ class SlackService:
             await self.open_modal(trigger_id, modal)
             return
 
-        await self._complete_yes_updates(
-            user_id=user_id, ticket_key=ticket_key,
-            channel_id=channel_id, message_ts=message_ts,
+        # User already has PAT — go straight to comment modal
+        comment_view = build_comment_modal(
+            ticket_key, "Ready to post your update",
         )
+        comment_view["private_metadata"] = json.dumps({
+            "ticket_key": ticket_key,
+            "channel": channel_id,
+            "ts": message_ts,
+        })
+        await self.open_modal(trigger_id, comment_view)
 
     async def _complete_yes_updates(
         self, *, user_id: str, ticket_key: str, channel_id: str, message_ts: str,
@@ -533,6 +542,14 @@ class SlackService:
                 await self._handle_collect_pat_submission(payload, client, req)
                 return
 
+            # Comment modal: ACK immediately, spawn background work
+            if callback_id == "comment_modal":
+                await client.send_socket_mode_response(
+                    SocketModeResponse(envelope_id=req.envelope_id),
+                )
+                asyncio.create_task(self._handle_comment_submission(payload))
+                return
+
             # Default ACK for other submissions
             await client.send_socket_mode_response(
                 SocketModeResponse(envelope_id=req.envelope_id),
@@ -551,7 +568,7 @@ class SlackService:
         client: SocketModeClient,
         req: SocketModeRequest,
     ) -> None:
-        """Process PAT collection modal — store PAT and continue original action."""
+        """Process PAT collection modal — validate, store, and continue."""
         user_id = payload["user"]["id"]
         values = payload.get("view", {}).get("state", {}).get("values", {})
         pat_value = (
@@ -561,6 +578,8 @@ class SlackService:
             payload.get("view", {}).get("private_metadata", "{}")
         )
 
+        # Strip whitespace, reject empty
+        pat_value = pat_value.strip() if pat_value else ""
         if not pat_value:
             await client.send_socket_mode_response(
                 SocketModeResponse(
@@ -573,8 +592,28 @@ class SlackService:
             )
             return
 
+        # Validate PAT before storing — never log the PAT value
+        is_valid = await self.jira.test_auth(user_pat=pat_value)
+        if not is_valid:
+            logger.warning("pat_validation_failed", user_id=user_id)
+            error_view = build_pat_error_modal(
+                metadata.get("ticket_key", ""),
+            )
+            # Preserve original metadata so retry continues the flow
+            error_view["private_metadata"] = payload.get("view", {}).get(
+                "private_metadata", "{}"
+            )
+            await client.send_socket_mode_response(
+                SocketModeResponse(
+                    envelope_id=req.envelope_id,
+                    payload={"response_action": "update", "view": error_view},
+                )
+            )
+            return
+
+        # PAT is valid — store it
         await self._pat_service.store_pat(user_id, pat_value)
-        logger.info("pat_collected_via_modal", user_id=user_id)
+        logger.info("pat_validated_and_stored", user_id=user_id)
 
         # Continue with the original action
         if metadata.get("original_action") == "fix_now":
@@ -590,7 +629,6 @@ class SlackService:
             })
 
             if next_view["blocks"]:
-                # Transition to Fix Now modal in-place
                 await client.send_socket_mode_response(
                     SocketModeResponse(
                         envelope_id=req.envelope_id,
@@ -600,20 +638,118 @@ class SlackService:
                 return
 
         if metadata.get("original_action") == "yes_updates":
-            await client.send_socket_mode_response(
-                SocketModeResponse(envelope_id=req.envelope_id),
+            # Transition to comment modal in-place
+            ticket_key = metadata.get("ticket_key", "")
+            comment_view = build_comment_modal(
+                ticket_key, "PAT verified \u2014 connected to Jira",
             )
-            await self._complete_yes_updates(
-                user_id=user_id,
-                ticket_key=metadata.get("ticket_key", ""),
-                channel_id=metadata.get("channel", ""),
-                message_ts=metadata.get("ts", ""),
+            comment_view["private_metadata"] = json.dumps({
+                "ticket_key": ticket_key,
+                "channel": metadata.get("channel", ""),
+                "ts": metadata.get("ts", ""),
+            })
+            await client.send_socket_mode_response(
+                SocketModeResponse(
+                    envelope_id=req.envelope_id,
+                    payload={"response_action": "update", "view": comment_view},
+                )
             )
             return
 
         # No missing fields or unknown action — just close
         await client.send_socket_mode_response(
             SocketModeResponse(envelope_id=req.envelope_id),
+        )
+
+    async def _handle_comment_submission(self, payload: dict[str, Any]) -> None:
+        """Process comment modal submission — post to Jira, enqueue re-eval.
+
+        Runs as a background task (spawned from _handle_view_submission)
+        so that the Slack ACK completes within the 3-second deadline.
+
+        Args:
+            payload: The view submission payload from Slack.
+        """
+        metadata = json.loads(
+            payload.get("view", {}).get("private_metadata", "{}")
+        )
+        ticket_key = metadata.get("ticket_key", "")
+        channel_id = metadata.get("channel", "")
+        message_ts = metadata.get("ts", "")
+        user_id = payload.get("user", {}).get("id", "")
+        values = payload.get("view", {}).get("state", {}).get("values", {})
+        comment_text = (
+            values.get("comment_input_block", {})
+            .get("comment_value", {})
+            .get("value", "")
+        )
+
+        if not comment_text or not comment_text.strip():
+            logger.warning("comment_submission_empty", ticket_key=ticket_key)
+            return
+
+        comment_text = comment_text.strip()
+
+        # Post comment to Jira (critical path)
+        try:
+            await self.jira.add_comment(
+                ticket_key, comment_text, slack_user_id=user_id,
+            )
+        except Exception:
+            logger.exception("comment_jira_post_failed", ticket_key=ticket_key)
+            # Update Slack message with error
+            original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
+            await self.update_message(
+                channel=channel_id,
+                ts=message_ts,
+                text=f"Could not post comment to {ticket_key}",
+                blocks=build_fix_error_blocks(
+                    original_blocks=original_blocks,
+                    ticket_key=ticket_key,
+                    error_message=f"Could not post comment to {ticket_key} \u2014 try again",
+                ),
+            )
+            return
+
+        logger.info("comment_posted_to_jira", ticket_key=ticket_key)
+
+        # Update nudge status — look up by slack_ts regardless of current status
+        nudge = await queries.get_nudge_by_slack_ts_any(message_ts)
+        if nudge:
+            await queries.update_nudge_status(nudge["id"], "RESPONDED")
+
+            # Enqueue re-evaluation (best-effort)
+            try:
+                await queries.enqueue_re_evaluation(
+                    ticket_key=ticket_key,
+                    nudge_id=nudge["id"],
+                    channel_id=channel_id,
+                    message_ts=message_ts,
+                )
+            except Exception:
+                logger.warning(
+                    "reeval_enqueue_failed",
+                    ticket_key=ticket_key,
+                    exc_info=True,
+                )
+
+        # Update Slack message: "Comment posted, evaluation in progress"
+        original_blocks = await self._fetch_message_blocks(channel_id, message_ts)
+        reply_context: dict[str, Any] = {
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "\u2705 Comment posted \u2014 re-evaluation in progress",
+                },
+            ],
+        }
+        updated_blocks = _replace_actions(original_blocks, reply_context)
+        await self.update_message(
+            channel=channel_id,
+            ts=message_ts,
+            text="Comment posted, evaluation in progress",
+            blocks=updated_blocks,
         )
 
     async def _fetch_message_blocks(

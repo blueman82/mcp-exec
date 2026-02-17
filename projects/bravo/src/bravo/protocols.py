@@ -75,12 +75,18 @@ class JiraClientProto(Protocol):
         self, ticket_key: str, fields: dict[str, Any], *, slack_user_id: str | None = None,
     ) -> None: ...
 
+    async def test_auth(self, user_pat: str | None = None) -> bool: ...
+
     async def download_attachment(
         self,
         ticket_key: str,
         attachment_id: str,
         destination_path: str,
     ) -> dict[str, Any]: ...
+
+    async def get_assignee_comment_ts(
+        self, ticket_key: str, assignee_id: str,
+    ) -> datetime | None: ...
 
     async def close(self) -> None: ...
 
@@ -125,7 +131,9 @@ class PollerServiceProto(Protocol):
 class NudgeServiceProto(Protocol):
     """Protocol for nudge orchestration."""
 
-    async def evaluate_ticket(self, ticket_key: str) -> dict[str, Any]: ...
+    async def evaluate_ticket(
+        self, ticket_key: str, *, force: bool = False,
+    ) -> dict[str, Any]: ...
 
 
 @runtime_checkable

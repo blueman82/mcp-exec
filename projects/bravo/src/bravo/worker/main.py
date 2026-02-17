@@ -13,6 +13,8 @@ from bravo import __version__
 from bravo.config import get_settings, load_settings
 from bravo.container import create_container
 from bravo.db import close_pool, init_pool
+from bravo.db import queries
+from bravo.services.blocks import build_reeval_result_blocks, format_trigger_reasons
 
 logger = structlog.get_logger(__name__)
 
@@ -52,8 +54,9 @@ class Worker:
 
         poll_task = asyncio.create_task(self._poll_loop())
         socket_task = asyncio.create_task(self._socket_mode_loop())
+        reeval_task = asyncio.create_task(self._reeval_loop())
 
-        await asyncio.gather(poll_task, socket_task)
+        await asyncio.gather(poll_task, socket_task, reeval_task)
 
     async def stop(self) -> None:
         """Stop the worker gracefully.
@@ -81,6 +84,111 @@ class Worker:
                 logger.error("poll_error", error=str(e))
 
             await asyncio.sleep(self.settings.poll_interval_minutes * 60)
+
+    async def _reeval_loop(self) -> None:
+        """Re-evaluation queue consumer loop.
+
+        Polls the re_evaluation_queue every 10 seconds, processes one
+        job at a time (sequential to prevent LLM API overload), and
+        updates the original Slack DM with the re-eval result.
+        """
+        while self.running:
+            try:
+                # Reap stale jobs on each cycle (crash recovery)
+                reaped = await queries.reap_stale_jobs(timeout_minutes=10)
+                if reaped:
+                    logger.info("reeval_stale_jobs_reaped", count=reaped)
+
+                job = await queries.dequeue_re_evaluation()
+                if job:
+                    await self._process_reeval_job(job)
+            except Exception:
+                logger.exception("reeval_loop_error")
+
+            await asyncio.sleep(10)
+
+    async def _process_reeval_job(self, job: dict) -> None:
+        """Process a single re-evaluation queue entry.
+
+        Args:
+            job: The dequeued re_evaluation_queue record.
+        """
+        queue_id = job["id"]
+        ticket_key = job["ticket_key"]
+        channel_id = job["channel_id"]
+        message_ts = job["message_ts"]
+
+        logger.info("reeval_processing", ticket_key=ticket_key, queue_id=str(queue_id))
+
+        try:
+            nudge_service = self.container.get("nudge_service")
+            result = await nudge_service.evaluate_ticket(ticket_key, force=True)  # type: ignore[attr-defined]
+
+            should_nudge = result.get("should_nudge", False)
+            gate_result = result.get("gate_result")
+
+            # Build human-readable trigger reason (no gate codes)
+            if should_nudge and gate_result and gate_result.any_failed:
+                failed_codes = [
+                    code for code, passed in [
+                        ("G1", gate_result.g1_passed),
+                        ("G2", gate_result.g2_passed),
+                        ("G3", gate_result.g3_passed),
+                        ("G4", gate_result.g4_passed),
+                    ]
+                    if not passed
+                ]
+                trigger_reason = format_trigger_reasons(failed_codes)
+            elif should_nudge:
+                nudge_reason = result.get("nudge_reason", "")
+                trigger_reason = nudge_reason
+            else:
+                trigger_reason = ""
+
+            if should_nudge:
+                result_text = f"Re-evaluation: still needs attention \u2014 {trigger_reason}"
+            else:
+                result_text = "Re-evaluation: all checks passed"
+
+            await queries.complete_re_evaluation(queue_id, result_text)
+
+            # Update original Slack DM in-place with re-eval result.
+            # Fetches current message blocks (which still have the full
+            # nudge layout) and appends the re-eval result after the
+            # last divider, restoring action buttons if failed.
+            if channel_id and message_ts:
+                slack_service = self.container.get("slack_service")
+                current_blocks = await slack_service._fetch_message_blocks(  # type: ignore[attr-defined]
+                    channel_id, message_ts,
+                )
+                updated_blocks = build_reeval_result_blocks(
+                    original_blocks=current_blocks,
+                    ticket_key=ticket_key,
+                    passed=not should_nudge,
+                    trigger_reason=trigger_reason,
+                )
+                await slack_service.update_message(  # type: ignore[attr-defined]
+                    channel=channel_id,
+                    ts=message_ts,
+                    text=result_text,
+                    blocks=updated_blocks,
+                )
+
+            logger.info(
+                "reeval_completed",
+                ticket_key=ticket_key,
+                queue_id=str(queue_id),
+                should_nudge=should_nudge,
+            )
+
+        except Exception as exc:
+            error_msg = str(exc)
+            logger.exception(
+                "reeval_processing_failed",
+                ticket_key=ticket_key,
+                queue_id=str(queue_id),
+            )
+            await queries.fail_re_evaluation(queue_id, error_msg)
 
     async def _socket_mode_loop(self) -> None:
         """Socket Mode event handling loop.

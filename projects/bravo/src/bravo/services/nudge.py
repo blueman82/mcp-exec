@@ -26,10 +26,10 @@ from bravo.services.blocks import (
 logger = structlog.get_logger(__name__)
 
 _GATE_LABELS: dict[str, str] = {
-    "G1": "no comment",
-    "G2": "stale",
-    "G3": "slow response",
-    "G4": "unresolved",
+    "G1": "No assignee comment yet",
+    "G2": "No update in 4+ hours",
+    "G3": "No response within 24 hours",
+    "G4": "Unresolved past deadline",
 }
 
 
@@ -70,11 +70,15 @@ class NudgeService:
         self.gates = gates
         self.llm = llm
 
-    async def evaluate_ticket(self, ticket_key: str) -> dict[str, Any]:
+    async def evaluate_ticket(
+        self, ticket_key: str, *, force: bool = False,
+    ) -> dict[str, Any]:
         """Evaluate a ticket and potentially trigger a nudge.
 
         Args:
             ticket_key: The Jira ticket key to evaluate.
+            force: When True, skip cooldown and snooze checks (used by
+                re-evaluation queue after engineer responds).
 
         Returns:
             Dict with ticket_key, gate_result, should_nudge, nudge_reason.
@@ -82,40 +86,67 @@ class NudgeService:
         Raises:
             ValueError: If the ticket is not found.
         """
-        active_snooze = await queries.get_active_snooze_for_ticket(ticket_key)
-        if active_snooze:
-            logger.info(
-                "nudge_snoozed",
-                ticket_key=ticket_key,
-                snoozed_until=str(active_snooze["snoozed_until"]),
-            )
-            return {
-                "ticket_key": ticket_key,
-                "gate_result": None,
-                "should_nudge": False,
-                "nudge_reason": "snoozed",
-            }
+        if not force:
+            pending_reeval = await queries.has_pending_reeval(ticket_key)
+            if pending_reeval:
+                logger.info("nudge_skipped_pending_reeval", ticket_key=ticket_key)
+                return {
+                    "ticket_key": ticket_key,
+                    "gate_result": None,
+                    "should_nudge": False,
+                    "nudge_reason": "pending_reeval",
+                }
 
-        latest_nudge = await queries.get_latest_nudge_for_ticket(ticket_key)
-        if latest_nudge:
-            cooldown = timedelta(hours=self.settings.nudge_cooldown_hours)
-            nudge_age = datetime.now(UTC) - latest_nudge["created_at"]
-            if nudge_age < cooldown:
+            active_snooze = await queries.get_active_snooze_for_ticket(ticket_key)
+            if active_snooze:
                 logger.info(
-                    "nudge_cooldown_active",
+                    "nudge_snoozed",
                     ticket_key=ticket_key,
-                    hours_remaining=f"{(cooldown - nudge_age).total_seconds() / 3600:.1f}",
+                    snoozed_until=str(active_snooze["snoozed_until"]),
                 )
                 return {
                     "ticket_key": ticket_key,
                     "gate_result": None,
                     "should_nudge": False,
-                    "nudge_reason": "cooldown",
+                    "nudge_reason": "snoozed",
                 }
+
+            latest_nudge = await queries.get_latest_nudge_for_ticket(ticket_key)
+            if latest_nudge:
+                cooldown = timedelta(hours=self.settings.nudge_cooldown_hours)
+                nudge_age = datetime.now(UTC) - latest_nudge["created_at"]
+                if nudge_age < cooldown:
+                    logger.info(
+                        "nudge_cooldown_active",
+                        ticket_key=ticket_key,
+                        hours_remaining=f"{(cooldown - nudge_age).total_seconds() / 3600:.1f}",
+                    )
+                    return {
+                        "ticket_key": ticket_key,
+                        "gate_result": None,
+                        "should_nudge": False,
+                        "nudge_reason": "cooldown",
+                    }
 
         ticket = await queries.get_ticket(ticket_key)
         if not ticket:
             raise ValueError(f"Ticket not found: {ticket_key}")
+
+        if force and ticket["assignee_jira_id"]:
+            try:
+                comment_ts = await self.jira.get_assignee_comment_ts(
+                    ticket_key, ticket["assignee_jira_id"]
+                )
+                await queries.update_ticket_comment_ts(
+                    ticket_key, ticket["assignee_jira_id"], comment_ts
+                )
+                ticket = await queries.get_ticket(ticket_key)
+            except Exception:
+                logger.warning(
+                    "force_refresh_comment_ts_failed",
+                    ticket_key=ticket_key,
+                    exc_info=True,
+                )
 
         gate_result = self.gates.evaluate(
             has_assignee_comment=ticket["last_assignee_comment_at"] is not None,
@@ -146,8 +177,8 @@ class NudgeService:
             ]:
                 if not passed:
                     failed_gate_codes.append(code)
-            nudge_reason = "Failed gates: " + ", ".join(
-                f"{c} ({_GATE_LABELS[c]})" for c in failed_gate_codes
+            nudge_reason = " · ".join(
+                _GATE_LABELS[c] for c in failed_gate_codes
             )
         else:
             try:
@@ -176,9 +207,19 @@ class NudgeService:
 
             if llm_score.below_threshold(self.settings.llm.threshold):
                 should_nudge = True
-                nudge_reason = f"LLM score below threshold ({llm_score.average:.1f} < {self.settings.llm.threshold})"
+                threshold = self.settings.llm.threshold
+                weak = []
+                if llm_score.clarity < threshold:
+                    weak.append("Issue description could be clearer")
+                if llm_score.completeness < threshold:
+                    weak.append("Missing key details (steps, environment, expected behavior)")
+                if llm_score.root_cause < threshold:
+                    weak.append("Root cause not yet identified")
+                if llm_score.actionability < threshold:
+                    weak.append("Next steps or actions are unclear")
+                nudge_reason = " · ".join(weak) if weak else "Ticket documentation needs improvement"
 
-        if should_nudge:
+        if should_nudge and not force:
             codes = failed_gate_codes if gate_result.any_failed else []
             await self._send_nudge(
                 ticket,

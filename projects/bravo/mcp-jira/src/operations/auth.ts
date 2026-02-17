@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { jiraRequest } from "../utils.js";
 
-export const testAuthSchema = z.object({});
+export const testAuthSchema = z.object({
+  userPat: z.string().optional(),
+});
 
 export async function testAuthHandler(
-  _args: z.infer<typeof testAuthSchema>
+  args: z.infer<typeof testAuthSchema>
 ): Promise<unknown> {
-  return jiraRequest("/myself");
+  const { userPat } = args;
+  return jiraRequest("/myself", { userPat });
 }

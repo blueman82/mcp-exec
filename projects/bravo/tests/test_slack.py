@@ -79,7 +79,11 @@ def _mock_queries():
         mock_q.get_nudge_by_slack_ts = AsyncMock(
             return_value={"id": "nudge-1"}
         )
+        mock_q.get_nudge_by_slack_ts_any = AsyncMock(
+            return_value={"id": "nudge-1"}
+        )
         mock_q.update_nudge_status = AsyncMock()
+        mock_q.enqueue_re_evaluation = AsyncMock()
         yield mock_q
 
 
@@ -283,3 +287,141 @@ class TestFixNowSubmission:
         # Verify slack_user_id kwarg on add_comment
         call_kwargs = mock_jira.add_comment.call_args
         assert call_kwargs.kwargs.get("slack_user_id") == "U456"
+
+
+def _comment_submission_payload(
+    ticket_key: str = "TEST-1",
+    comment: str = "Working on this now",
+) -> dict:
+    """Build a minimal comment_modal view_submission payload."""
+    return {
+        "user": {"id": "U456"},
+        "view": {
+            "callback_id": "comment_modal",
+            "private_metadata": json.dumps({
+                "ticket_key": ticket_key,
+                "channel": "C123",
+                "ts": "1234567890.123456",
+            }),
+            "state": {
+                "values": {
+                    "comment_input_block": {
+                        "comment_value": {"value": comment},
+                    },
+                },
+            },
+        },
+    }
+
+
+class TestCommentSubmission:
+    """Tests for SlackService._handle_comment_submission()."""
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_posts_to_jira(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(comment="Working on this now"),
+        )
+
+        mock_jira.add_comment.assert_awaited_once_with(
+            "TEST-1",
+            "Working on this now",
+            slack_user_id="U456",
+        )
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_updates_nudge_status(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(),
+        )
+
+        _mock_queries.update_nudge_status.assert_awaited_once_with(
+            "nudge-1", "RESPONDED",
+        )
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_enqueues_re_evaluation(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(),
+        )
+
+        _mock_queries.enqueue_re_evaluation.assert_awaited_once_with(
+            ticket_key="TEST-1",
+            nudge_id="nudge-1",
+            channel_id="C123",
+            message_ts="1234567890.123456",
+        )
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_updates_slack_message(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(),
+        )
+
+        web = service._web_client
+        web.chat_update.assert_awaited_once()
+        call_kwargs = web.chat_update.call_args.kwargs
+        assert "Comment posted" in call_kwargs["text"]
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_jira_failure_shows_error(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+        mock_jira.add_comment.side_effect = RuntimeError("MCP down")
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(),
+        )
+
+        _mock_queries.update_nudge_status.assert_not_awaited()
+        _mock_queries.enqueue_re_evaluation.assert_not_awaited()
+        web = service._web_client
+        web.chat_update.assert_awaited_once()
+        call_kwargs = web.chat_update.call_args.kwargs
+        assert "Could not post comment" in call_kwargs["text"]
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_queue_failure_nonfatal(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+        _mock_queries.enqueue_re_evaluation.side_effect = RuntimeError("DB down")
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(),
+        )
+
+        # Jira comment succeeded, nudge status updated
+        mock_jira.add_comment.assert_awaited_once()
+        _mock_queries.update_nudge_status.assert_awaited_once()
+        # Slack message still updated despite queue failure
+        web = service._web_client
+        web.chat_update.assert_awaited_once()
+        call_kwargs = web.chat_update.call_args.kwargs
+        assert "Comment posted" in call_kwargs["text"]
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_empty_text_skips(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(comment=""),
+        )
+
+        mock_jira.add_comment.assert_not_awaited()
+        _mock_queries.update_nudge_status.assert_not_awaited()
+
+    @pytest.mark.usefixtures("_mock_queries")
+    async def test_comment_whitespace_only_skips(self, _mock_queries) -> None:
+        service, mock_jira = _make_service()
+
+        await service._handle_comment_submission(
+            _comment_submission_payload(comment="   "),
+        )
+
+        mock_jira.add_comment.assert_not_awaited()

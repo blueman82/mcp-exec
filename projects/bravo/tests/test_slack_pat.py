@@ -26,6 +26,7 @@ def _make_service(
         Tuple of (service, mock_jira).
     """
     mock_jira = AsyncMock()
+    mock_jira.test_auth = AsyncMock(return_value=True)
     service = SlackService(_make_settings(), mock_jira, pat_service)
     # Stub out the web client so open_modal works
     mock_web = AsyncMock()
@@ -167,26 +168,27 @@ class TestPATGateInYesUpdates:
         mock_pat = AsyncMock()
         mock_pat.has_pat.return_value = True
         service, mock_jira = _make_service(pat_service=mock_pat)
-        # Stub _complete_yes_updates to avoid DB/Slack calls
-        service._complete_yes_updates = AsyncMock()
         payload, action = _yes_updates_payload()
 
         await service._handle_nudge_yes_updates(payload, action)
 
+        # Should open comment modal when PAT exists
         web = service._web_client
-        web.views_open.assert_not_awaited()
-        service._complete_yes_updates.assert_awaited_once()
+        web.views_open.assert_awaited_once()
+        view = web.views_open.call_args.kwargs["view"]
+        assert view["callback_id"] == "comment_modal"
 
     async def test_yes_updates_skips_pat_check_when_no_pat_service(self) -> None:
         service, mock_jira = _make_service(pat_service=None)
-        service._complete_yes_updates = AsyncMock()
         payload, action = _yes_updates_payload()
 
         await service._handle_nudge_yes_updates(payload, action)
 
+        # Should open comment modal when no PAT service (PAT check disabled)
         web = service._web_client
-        web.views_open.assert_not_awaited()
-        service._complete_yes_updates.assert_awaited_once()
+        web.views_open.assert_awaited_once()
+        view = web.views_open.call_args.kwargs["view"]
+        assert view["callback_id"] == "comment_modal"
 
 
 class TestCollectPATSubmission:
@@ -221,7 +223,7 @@ class TestCollectPATSubmission:
 
     async def test_collect_pat_submission_stores_and_transitions(self) -> None:
         mock_pat = AsyncMock()
-        service, _ = _make_service(pat_service=mock_pat)
+        service, mock_jira = _make_service(pat_service=mock_pat)
         mock_client = AsyncMock()
         mock_req = AsyncMock()
         mock_req.envelope_id = "env-123"
@@ -231,6 +233,7 @@ class TestCollectPATSubmission:
             payload, mock_client, mock_req,
         )
 
+        mock_jira.test_auth.assert_awaited_once_with(user_pat="ATATT3x_test_token")
         mock_pat.store_pat.assert_awaited_once_with("U456", "ATATT3x_test_token")
         # Should send response_action: update with fix_now_modal
         mock_client.send_socket_mode_response.assert_awaited_once()
@@ -241,7 +244,7 @@ class TestCollectPATSubmission:
     async def test_collect_pat_yes_updates_closes_and_completes(self) -> None:
         mock_pat = AsyncMock()
         service, mock_jira = _make_service(pat_service=mock_pat)
-        service._complete_yes_updates = AsyncMock()
+        mock_jira.test_auth = AsyncMock(return_value=True)
         mock_client = AsyncMock()
         mock_req = AsyncMock()
         mock_req.envelope_id = "env-123"
@@ -269,17 +272,13 @@ class TestCollectPATSubmission:
             payload, mock_client, mock_req,
         )
 
+        mock_jira.test_auth.assert_awaited_once_with(user_pat="ATATT3x_test_token")
         mock_pat.store_pat.assert_awaited_once_with("U456", "ATATT3x_test_token")
-        # Should ACK (close modal) then complete yes_updates
+        # Should transition to comment_modal
         mock_client.send_socket_mode_response.assert_awaited_once()
         response = mock_client.send_socket_mode_response.call_args[0][0]
-        assert response.payload is None or "response_action" not in (response.payload or {})
-        service._complete_yes_updates.assert_awaited_once_with(
-            user_id="U456",
-            ticket_key="TEST-1",
-            channel_id="C789",
-            message_ts="1234567890.123456",
-        )
+        assert response.payload["response_action"] == "update"
+        assert response.payload["view"]["callback_id"] == "comment_modal"
 
     async def test_collect_pat_submission_empty_returns_error(self) -> None:
         mock_pat = AsyncMock()
@@ -297,3 +296,63 @@ class TestCollectPATSubmission:
         response = mock_client.send_socket_mode_response.call_args[0][0]
         assert response.payload["response_action"] == "errors"
         assert "pat_input_block" in response.payload["errors"]
+
+    async def test_collect_pat_invalid_shows_error_modal(self) -> None:
+        mock_pat = AsyncMock()
+        service, mock_jira = _make_service(pat_service=mock_pat)
+        mock_jira.test_auth = AsyncMock(return_value=False)
+        mock_client = AsyncMock()
+        mock_req = AsyncMock()
+        mock_req.envelope_id = "env-123"
+
+        payload = self._submission_payload()
+        await service._handle_collect_pat_submission(
+            payload, mock_client, mock_req,
+        )
+
+        mock_pat.store_pat.assert_not_awaited()
+        mock_jira.test_auth.assert_awaited_once()
+        response = mock_client.send_socket_mode_response.call_args[0][0]
+        assert response.payload["response_action"] == "update"
+        assert response.payload["view"]["callback_id"] == "collect_pat_modal"
+
+    async def test_collect_pat_strips_whitespace(self) -> None:
+        mock_pat = AsyncMock()
+        service, mock_jira = _make_service(pat_service=mock_pat)
+        mock_jira.test_auth = AsyncMock(return_value=True)
+        mock_client = AsyncMock()
+        mock_req = AsyncMock()
+        mock_req.envelope_id = "env-123"
+
+        payload = self._submission_payload(pat_value="  ATATT3x_test_token  ")
+        await service._handle_collect_pat_submission(
+            payload, mock_client, mock_req,
+        )
+
+        mock_jira.test_auth.assert_awaited_once_with(user_pat="ATATT3x_test_token")
+        mock_pat.store_pat.assert_awaited_once_with("U456", "ATATT3x_test_token")
+
+    async def test_collect_pat_store_after_validate(self) -> None:
+        """PAT is stored only after successful validation."""
+        mock_pat = AsyncMock()
+        service, mock_jira = _make_service(pat_service=mock_pat)
+
+        call_order = []
+        async def track_test_auth(**kwargs):
+            call_order.append("test_auth")
+            return True
+        async def track_store_pat(uid, pat):
+            call_order.append("store_pat")
+
+        mock_jira.test_auth = AsyncMock(side_effect=track_test_auth)
+        mock_pat.store_pat = AsyncMock(side_effect=track_store_pat)
+        mock_client = AsyncMock()
+        mock_req = AsyncMock()
+        mock_req.envelope_id = "env-123"
+
+        payload = self._submission_payload()
+        await service._handle_collect_pat_submission(
+            payload, mock_client, mock_req,
+        )
+
+        assert call_order == ["test_auth", "store_pat"]

@@ -529,6 +529,213 @@ def build_fix_now_modal(
     }
 
 
+def build_comment_modal(
+    ticket_key: str,
+    success_message: str,
+) -> dict[str, Any]:
+    """Build a modal for writing a Jira comment after PAT validation.
+
+    Combines a success banner with a free-text input for the engineer's
+    comment. Uses ``comment_modal`` callback_id so the submission routes
+    to ``_handle_comment_submission``.
+
+    Args:
+        ticket_key: Jira ticket key (carried via ``private_metadata``).
+        success_message: Success banner text shown above the input.
+
+    Returns:
+        Slack view payload suitable for ``response_action: "update"``.
+    """
+    title_text = f"Comment on {ticket_key}"
+    if len(title_text) > 24:
+        title_text = title_text[:24]
+
+    return {
+        "type": "modal",
+        "callback_id": "comment_modal",
+        "private_metadata": "",
+        "title": {"type": "plain_text", "text": title_text},
+        "submit": {"type": "plain_text", "text": "Post Comment"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"\u2705 {success_message}",
+                },
+            },
+            {
+                "type": "input",
+                "block_id": "comment_input_block",
+                "label": {"type": "plain_text", "text": "Your comment"},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "comment_value",
+                    "multiline": True,
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Describe your update or progress\u2026",
+                    },
+                },
+            },
+        ],
+    }
+
+
+def build_pat_error_modal(ticket_key: str) -> dict[str, Any]:
+    """Build an error modal shown when PAT validation fails.
+
+    Reuses ``collect_pat_modal`` callback_id so a retry goes through
+    the existing PAT collection handler.
+
+    Args:
+        ticket_key: Jira ticket key (informational context).
+
+    Returns:
+        Slack view payload suitable for ``response_action: "update"``.
+    """
+    pat_url = (
+        f"{_JIRA_BASE_URL}/secure/ViewProfile.jspa"
+        "?selectedTab=com.atlassian.pats.pats-plugin"
+        ":jira-user-personal-access-tokens"
+    )
+    return {
+        "type": "modal",
+        "callback_id": "collect_pat_modal",
+        "private_metadata": "",
+        "title": {"type": "plain_text", "text": "Connect Jira"},
+        "submit": {"type": "plain_text", "text": "Retry"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        "\u26a0\ufe0f *PAT validation failed*\n\n"
+                        "The token you entered could not authenticate with Jira. "
+                        "Please check that:\n"
+                        "\u2022 The token is not expired\n"
+                        "\u2022 It was copied completely (no extra spaces)\n"
+                        "\u2022 It has the required permissions\n\n"
+                        f"<{pat_url}|Generate a new PAT in Jira>"
+                    ),
+                },
+            },
+            {
+                "type": "input",
+                "block_id": "pat_input_block",
+                "label": {"type": "plain_text", "text": "Jira PAT"},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "pat_value",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Paste your Personal Access Token",
+                    },
+                },
+            },
+        ],
+    }
+
+
+def build_reeval_result_blocks(
+    *,
+    original_blocks: list[dict[str, Any]],
+    ticket_key: str,
+    passed: bool,
+    trigger_reason: str,
+) -> list[dict[str, Any]]:
+    """Append a re-evaluation result to the nudge message.
+
+    Keeps the full original message (header, ticket info, Why section)
+    intact. Removes any interim context blocks (e.g. "Comment posted")
+    that replaced the action buttons, then appends the re-eval result.
+
+    If re-eval failed, restores the original action buttons so the
+    engineer can try again. If passed, no buttons needed.
+
+    Args:
+        original_blocks: The current message Block Kit payload.
+        ticket_key: Jira ticket key (for rebuilding action buttons).
+        passed: Whether all checks passed.
+        trigger_reason: Human-readable reasons (for failed re-eval).
+
+    Returns:
+        New list of blocks with re-eval result appended.
+    """
+    # Keep all blocks except actions and the "Comment posted" context
+    # that replaced them. We identify the replacement context by checking
+    # for context blocks that appear after the last divider (where
+    # buttons used to be).
+    kept: list[dict[str, Any]] = []
+    last_divider_idx = -1
+    deep = copy.deepcopy(original_blocks)
+
+    # Find the index of the last divider
+    for i, block in enumerate(deep):
+        if block.get("type") == "divider":
+            last_divider_idx = i
+
+    # Keep everything up to and including the last divider.
+    # Drop anything after it (that's the "Comment posted" context
+    # or action buttons that we're replacing).
+    for i, block in enumerate(deep):
+        if i <= last_divider_idx:
+            kept.append(block)
+
+    # Build re-eval result blocks
+    if passed:
+        kept.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    "\u2705 *Re-evaluation complete \u2014 all checks passed!*\n\n"
+                    "Your update resolved all issues. No further action needed."
+                ),
+            },
+        })
+        kept.append({
+            "type": "context",
+            "elements": [
+                {"type": "mrkdwn", "text": "\u2709\ufe0f Your comment was posted to Jira"},
+            ],
+        })
+    else:
+        kept.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    "\u26a0\ufe0f *Re-evaluation complete \u2014 still needs attention*\n\n"
+                    "Your comment was posted but these checks are still failing:"
+                ),
+            },
+        })
+        kept.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "\u2022 " + trigger_reason.replace(" \u00b7 ", "\n\u2022 "),
+            },
+        })
+        kept.append({
+            "type": "context",
+            "elements": [
+                {
+                    "type": "mrkdwn",
+                    "text": "\U0001f4a1 _Try adding a detailed comment directly on the Jira ticket to resolve these_",
+                },
+            ],
+        })
+        # Restore action buttons so engineer can retry
+        kept.append(_actions_block(ticket_key))
+
+    return kept
+
+
 def build_fix_error_blocks(
     *,
     original_blocks: list[dict[str, Any]],
