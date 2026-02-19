@@ -126,8 +126,7 @@ def register_for_role(role_value: str, manager: object) -> None:
     modules = _ROLE_MODULES.get(role_value)
     if modules is None:
         raise ValueError(
-            f"Unknown container role: {role_value!r}. "
-            f"Valid roles: {list(_ROLE_MODULES.keys())}"
+            f"Unknown container role: {role_value!r}. " f"Valid roles: {list(_ROLE_MODULES.keys())}"
         )
 
     logger.info(

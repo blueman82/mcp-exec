@@ -173,9 +173,7 @@ def register_all_services(registry: TypedServiceRegistry) -> None:
 _registration_manager = None
 
 
-def register_services_for_role(
-    registry: TypedServiceRegistry, role: ContainerRole
-) -> None:
+def register_services_for_role(registry: TypedServiceRegistry, role: ContainerRole) -> None:
     """
     Register only the services needed for the given container role.
 

@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from packages.core.constants import ACCESS_REQUEST_STATUS, KETCHUP_ALERTS_CHANNEL
 from packages.core.logging import setup_logger
 from packages.core.typed_di.exceptions import MissingDependencyError
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di.service_registrations.protocols.core_protocols import (
     SecretsManagerProtocol,
 )
@@ -37,7 +38,6 @@ from packages.core.typed_di.service_registrations.protocols.operation_protocols 
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     SlackAsyncClientProtocol,
 )
-from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di_integration import get_unified_container
 
 

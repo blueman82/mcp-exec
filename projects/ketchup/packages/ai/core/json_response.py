@@ -37,7 +37,9 @@ def safe_extract_response_text(raw_content: str, fallback: str = "") -> str:
         return fallback
 
     if not isinstance(data, dict):
-        logger.warning("AI JSON response is not a dict (got %s), using fallback", type(data).__name__)
+        logger.warning(
+            "AI JSON response is not a dict (got %s), using fallback", type(data).__name__
+        )
         return fallback
 
     # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
@@ -52,7 +54,9 @@ def safe_extract_response_text(raw_content: str, fallback: str = "") -> str:
         return fallback
 
     if not isinstance(text, str):
-        logger.warning("response_text is not a string (got %s), using fallback", type(text).__name__)
+        logger.warning(
+            "response_text is not a string (got %s), using fallback", type(text).__name__
+        )
         return fallback
 
     # Guard: reject if extracted text still looks like raw JSON
