@@ -20,6 +20,8 @@ from asksplunk.agent.content_filter import (
 from asksplunk.retriever.retriever import DocumentRetriever
 from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
+from asksplunk.survey import SurveyManager
+from asksplunk.survey.formatter import format_survey_results
 from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
@@ -151,6 +153,7 @@ class Agent:
         chat_model: str = "gpt-5",
         usage_tracker: UsageTracker | None = None,
         secrets_manager: SecretsManager | None = None,
+        survey_manager: SurveyManager | None = None,
     ):
         """Initialize agent with dependencies.
 
@@ -161,6 +164,7 @@ class Agent:
             chat_model: Azure OpenAI deployment name for chat completions
             usage_tracker: Optional UsageTracker for admin usage reporting
             secrets_manager: Optional SecretsManager for dynamic config lookup
+            survey_manager: Optional SurveyManager for admin survey results
         """
         self.retriever = retriever
         self.chat_model = chat_model
@@ -168,6 +172,7 @@ class Agent:
         self.openai_client = openai_client
         self.usage_tracker = usage_tracker
         self.secrets_manager = secrets_manager
+        self.survey_manager = survey_manager
         # Store callbacks per thread_id to handle concurrent requests
         self._status_callbacks: dict[str, Any] = {}
 
@@ -188,6 +193,43 @@ class Agent:
         return any(uk in question_lower for uk in usage_keywords) and any(
             tk in question_lower for tk in time_keywords
         )
+
+    def _is_survey_query(self, question: str) -> bool:
+        """Detect if question is asking for survey/feedback results."""
+        question_lower = question.lower()
+        return "survey" in question_lower or "feedback results" in question_lower
+
+    async def _handle_survey_query(self, user_id: str) -> dict[str, Any]:
+        """Handle admin survey results query."""
+        admin_ids = (
+            await self.secrets_manager.get_admin_user_ids() if self.secrets_manager else []
+        )
+        if not UsageTracker.is_admin(user_id, admin_ids):
+            logger.info("non_admin_survey_query_rejected", user=user_id)
+            return {
+                "action": "blocked",
+                "state": AgentState.COMPLETE.value,
+                "content": {"message": "Survey results are only available to administrators."},
+            }
+
+        if self.survey_manager:
+            survey_ids = await self.survey_manager.get_active_survey_ids()
+            if survey_ids:
+                results = await self.survey_manager.get_results(survey_ids[0])
+                message = format_survey_results(results)
+            else:
+                message = "No active surveys found."
+            return {
+                "action": "survey_results",
+                "state": AgentState.COMPLETE.value,
+                "content": {"message": message},
+            }
+
+        return {
+            "action": "blocked",
+            "state": AgentState.COMPLETE.value,
+            "content": {"message": "Survey tracking is not configured."},
+        }
 
     def _parse_time_range(self, question: str) -> tuple[datetime, datetime]:
         """Parse time range from natural language question.
@@ -303,6 +345,10 @@ class Agent:
                     "state": AgentState.COMPLETE.value,
                     "content": {"message": "Usage tracking is not configured."},
                 }
+
+        # Check for survey results query (admin only)
+        if self._is_survey_query(question):
+            return await self._handle_survey_query(user_id)
 
         # Check for harmful content / prompt injection before processing
         safety_check = check_content_safety(question)

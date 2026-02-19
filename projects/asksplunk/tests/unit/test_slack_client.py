@@ -4,6 +4,8 @@ Tests SlackClient initialization, event handler registration,
 and graceful connection lifecycle.
 """
 
+import asyncio
+import contextlib
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -179,12 +181,15 @@ class TestSlackClient:
             assert "Continuing" in mock_say.call_args[1]["text"]
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     async def test_start_creates_socket_mode_handler(self, mock_tokens):
         """start() should create and start AsyncSocketModeHandler."""
         with (
             patch("asksplunk.slack.client.AsyncApp") as MockApp,
             patch("asksplunk.slack.client.AsyncSocketModeHandler") as MockHandler,
             patch("asksplunk.slack.client.SessionManager") as MockSessionManager,
+            patch("asksplunk.slack.client.SecretsManager") as MockSecretsManager,
+            patch("asksplunk.slack.client.SurveyManager") as MockSurveyManager,
         ):
 
             mock_app = Mock()
@@ -201,6 +206,18 @@ class TestSlackClient:
             mock_session_mgr.__aexit__ = AsyncMock(return_value=None)
             MockSessionManager.return_value = mock_session_mgr
 
+            # Mock SecretsManager as async context manager
+            mock_secrets_mgr = AsyncMock()
+            mock_secrets_mgr.__aenter__ = AsyncMock(return_value=mock_secrets_mgr)
+            mock_secrets_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSecretsManager.return_value = mock_secrets_mgr
+
+            # Mock SurveyManager as async context manager
+            mock_survey_mgr = AsyncMock()
+            mock_survey_mgr.__aenter__ = AsyncMock(return_value=mock_survey_mgr)
+            mock_survey_mgr.__aexit__ = AsyncMock(return_value=None)
+            MockSurveyManager.return_value = mock_survey_mgr
+
             client = SlackClient(
                 bot_token=mock_tokens["bot_token"], app_token=mock_tokens["app_token"]
             )
@@ -211,6 +228,12 @@ class TestSlackClient:
             mock_handler_instance.start_async.assert_called_once()
             assert client.is_running is True
             assert client.handler is mock_handler_instance
+
+            # Clean up background reminder task to avoid unawaited coroutine warnings
+            if client._reminder_task:
+                client._reminder_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await client._reminder_task
 
     @pytest.mark.asyncio
     async def test_graceful_shutdown_closes_connection(self, mock_tokens):

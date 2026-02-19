@@ -13,7 +13,8 @@
       ],
       "Resource": [
         "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions",
-        "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions/index/usage-by-timestamp"
+        "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions/index/usage-by-timestamp",
+        "arn:aws:dynamodb:eu-west-1:483013340174:table/splunk-bot-sessions/index/survey-by-type"
       ]
     }
   ]

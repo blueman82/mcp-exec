@@ -1677,3 +1677,98 @@ class TestUsageIntentDetection:
         assert result["action"] == "blocked"
         assert result["state"] == "COMPLETE"
         assert "not configured" in result["content"]["message"]
+
+
+class TestSurveyIntentDetection:
+    """Test survey query detection and admin-only retrieval."""
+
+    def test_is_survey_query_detects_survey_patterns(self):
+        """_is_survey_query should detect questions about survey/feedback results."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        assert agent._is_survey_query("show survey results") is True
+        assert agent._is_survey_query("what are the Survey answers") is True
+        assert agent._is_survey_query("show me feedback results") is True
+
+    def test_is_survey_query_ignores_non_survey(self):
+        """_is_survey_query should not detect non-survey queries."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        assert agent._is_survey_query("show me bounces") is False
+        assert agent._is_survey_query("feedback on deliveries") is False
+
+    @pytest.mark.asyncio
+    async def test_survey_query_rejected_for_non_admin(self):
+        """Non-admin survey query should be blocked."""
+        secrets_manager = AsyncMock()
+        secrets_manager.get_admin_user_ids = AsyncMock(return_value=["ADMIN1"])
+
+        agent = Agent(
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+            secrets_manager=secrets_manager,
+        )
+
+        result = await agent.process_question(
+            "show survey results", "thread-1", "NON_ADMIN", "C123"
+        )
+
+        assert result["action"] == "blocked"
+        assert "administrators" in result["content"]["message"]
+
+    @pytest.mark.asyncio
+    async def test_survey_query_returns_results_for_admin(self):
+        """Admin survey query should return survey results."""
+        secrets_manager = AsyncMock()
+        secrets_manager.get_admin_user_ids = AsyncMock(return_value=["ADMIN1"])
+
+        survey_manager = AsyncMock()
+        survey_manager.get_active_survey_ids = AsyncMock(return_value=["survey_2026_q1"])
+        survey_manager.get_results = AsyncMock(
+            return_value={
+                "survey_id": "survey_2026_q1",
+                "total_sent": 10,
+                "total_responses": 5,
+                "total_completed": 5,
+                "completion_rate": 50.0,
+                "answers": {
+                    "question_1": {"Very useful": 3},
+                    "question_2": {},
+                    "question_3": {},
+                    "question_4": {},
+                },
+            }
+        )
+
+        agent = Agent(
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+            secrets_manager=secrets_manager,
+            survey_manager=survey_manager,
+        )
+
+        result = await agent.process_question("show survey results", "thread-1", "ADMIN1", "C123")
+
+        assert result["action"] == "survey_results"
+        assert "survey_2026_q1" in result["content"]["message"]
+
+    @pytest.mark.asyncio
+    async def test_survey_query_no_manager_configured(self):
+        """Survey query with no survey_manager should return blocked."""
+        secrets_manager = AsyncMock()
+        secrets_manager.get_admin_user_ids = AsyncMock(return_value=["ADMIN1"])
+
+        agent = Agent(
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+            secrets_manager=secrets_manager,
+            survey_manager=None,
+        )
+
+        result = await agent.process_question("show survey results", "thread-1", "ADMIN1", "C123")
+
+        assert result["action"] == "blocked"
+        assert "not configured" in result["content"]["message"]

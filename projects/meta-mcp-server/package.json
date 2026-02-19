@@ -1,6 +1,6 @@
 {
   "name": "@meta-mcp/monorepo",
-  "version": "0.1.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Meta MCP monorepo - Meta MCP server that wraps multiple backend MCP servers",
   "type": "module",

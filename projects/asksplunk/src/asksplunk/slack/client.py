@@ -5,6 +5,7 @@ Receives app_mention events and provides event handlers for bot interactions.
 """
 
 import asyncio
+import re
 from functools import partial
 
 import structlog
@@ -20,6 +21,11 @@ from asksplunk.slack.formatter import (
     format_clarifying_question,
     format_final_query,
     format_uncertainty_message,
+)
+from asksplunk.survey import SurveyManager
+from asksplunk.survey.formatter import (
+    build_survey_modal,
+    format_survey_reminder,
 )
 from asksplunk.usage import UsageTracker
 
@@ -91,6 +97,9 @@ class SlackClient:
         self.agent = agent  # Agent for query generation
         self.usage_tracker: UsageTracker | None = usage_tracker  # Can be passed in
         self._usage_tracker_context: UsageTracker | None = None  # Only set if we create it
+        self.survey_manager: SurveyManager | None = None
+        self._survey_manager_context: SurveyManager | None = None
+        self._reminder_task: asyncio.Task | None = None
         self._register_handlers()
 
     def _register_handlers(self) -> None:
@@ -273,6 +282,86 @@ class SlackClient:
                     thread_ts=thread_ts,
                 )
 
+        # Valid survey_id: alphanumeric, underscores, hyphens only
+        _survey_id_re = re.compile(r"^[a-zA-Z0-9_-]+$")
+
+        @self.app.action(re.compile(r"survey_open_.*"))
+        async def handle_survey_open(ack, body, client):
+            """Handle 'Take Survey' button click — open modal."""
+            await ack()
+
+            user_id = body.get("user", {}).get("id")
+
+            # Auth check
+            if self.access_validator and not await self.access_validator.is_authorized(user_id):
+                logger.info("unauthorized_survey_attempt", user=user_id)
+                return
+
+            action_id = body["actions"][0]["action_id"]
+            survey_id = action_id.removeprefix("survey_open_")
+
+            # Validate survey_id format to prevent injection
+            if not _survey_id_re.match(survey_id):
+                logger.warning("invalid_survey_id", survey_id=survey_id[:50])
+                return
+
+            logger.info("survey_modal_opened", survey_id=survey_id, user=user_id)
+            await client.views_open(
+                trigger_id=body["trigger_id"],
+                view=build_survey_modal(survey_id),
+            )
+
+        @self.app.view(re.compile(r"survey_submit_.*"))
+        async def handle_survey_submit(ack, body, view):
+            """Handle survey modal submission — store anonymous response."""
+            await ack()
+
+            user_id = body.get("user", {}).get("id")
+            callback_id = view.get("callback_id", "")
+            survey_id = callback_id.removeprefix("survey_submit_")
+
+            # Validate survey_id format
+            if not _survey_id_re.match(survey_id):
+                logger.warning("invalid_survey_id_submit", survey_id=survey_id[:50])
+                return
+
+            # Parse answers from view state
+            values = view.get("state", {}).get("values", {})
+            answers = {
+                "question_1": values.get("q1_block", {})
+                .get("question_1", {})
+                .get("selected_option", {})
+                .get("value", ""),
+                "question_2": values.get("q2_block", {})
+                .get("question_2", {})
+                .get("selected_option", {})
+                .get("value", ""),
+                "question_3": values.get("q3_block", {}).get("question_3", {}).get("value", ""),
+                "question_4": values.get("q4_block", {}).get("question_4", {}).get("value", ""),
+            }
+
+            if self.survey_manager:
+                # Verify user has a pending status for this survey
+                if not await self.survey_manager.has_status(survey_id, user_id):
+                    logger.warning("survey_submit_no_status", survey_id=survey_id, user=user_id)
+                    return
+                # Store anonymous response (no user_id)
+                await self.survey_manager.store_response(survey_id, answers)
+                # Mark user as completed
+                await self.survey_manager.mark_completed(survey_id, user_id)
+
+            logger.info("survey_submitted", survey_id=survey_id, user=user_id)
+
+            # Send confirmation DM
+            try:
+                dm = await self.app.client.conversations_open(users=[user_id])
+                await self.app.client.chat_postMessage(
+                    channel=dm["channel"]["id"],
+                    text="Thank you for completing the AskSplunk survey! Your feedback helps us improve.",
+                )
+            except Exception:
+                logger.warning("survey_confirmation_dm_failed", user=user_id, exc_info=True)
+
     async def _send_status(self, say, thread_ts: str, msg: str) -> None:
         """Send status message to a specific Slack thread.
 
@@ -343,6 +432,12 @@ class SlackClient:
             message = content.get("message", "No usage data available.")
             await say(text=f":bar_chart: {message}", thread_ts=thread_ts)
 
+        elif action == "survey_results":
+            # Admin survey results
+            content = result.get("content", {})
+            message = content.get("message", "No survey data available.")
+            await say(text=f":clipboard: {message}", thread_ts=thread_ts)
+
         else:
             # Unknown action or processing state
             logger.warning("unknown_agent_action", action=action, thread_ts=thread_ts)
@@ -350,6 +445,55 @@ class SlackClient:
                 text="Processing your request...",
                 thread_ts=thread_ts,
             )
+
+    async def _survey_reminder_worker(self) -> None:
+        """Background task that sends survey reminders automatically.
+
+        Polls every 60 minutes. For each active survey, queries pending users
+        where completed=False and reminders_sent < 3. Uses increment_reminder
+        (conditional DynamoDB update) as idempotent gate for 24h cooldown and
+        max 3 reminders. Per-user errors are isolated.
+        """
+        while self.is_running:
+            try:
+                if self.survey_manager:
+                    survey_ids = await self.survey_manager.get_active_survey_ids()
+                    for survey_id in survey_ids:
+                        pending = await self.survey_manager.get_pending_users(survey_id)
+                        for user in pending:
+                            try:
+                                # Atomic cooldown/max check — gate before send
+                                sent = await self.survey_manager.increment_reminder(
+                                    survey_id, user["user_id"]
+                                )
+                                if sent:
+                                    blocks = format_survey_reminder(
+                                        survey_id, user["reminders_sent"] + 1
+                                    )
+                                    await self.app.client.chat_postMessage(
+                                        channel=user["survey_channel_id"],
+                                        blocks=blocks,
+                                        text="AskSplunk survey reminder",
+                                    )
+                                    await asyncio.sleep(1)  # Rate limit
+                            except asyncio.CancelledError:
+                                raise
+                            except Exception:
+                                logger.warning(
+                                    "survey_reminder_send_failed",
+                                    survey_id=survey_id,
+                                    user=user["user_id"],
+                                    exc_info=True,
+                                )
+            except asyncio.CancelledError:
+                break
+            except Exception:
+                logger.warning("survey_reminder_worker_error", exc_info=True)
+
+            try:
+                await asyncio.sleep(3600)  # 60 min poll interval
+            except asyncio.CancelledError:
+                break
 
     async def _auth_test_with_retry(self) -> AsyncSlackResponse:
         for attempt in range(self.AUTH_TEST_MAX_RETRIES):
@@ -410,6 +554,10 @@ class SlackClient:
             self._usage_tracker_context = UsageTracker()
             self.usage_tracker = await self._usage_tracker_context.__aenter__()
 
+        # Initialize SurveyManager
+        self._survey_manager_context = SurveyManager()
+        self.survey_manager = await self._survey_manager_context.__aenter__()
+
         # Initialize bot_user_id via auth_test API call (with retry)
         auth_response = await self._auth_test_with_retry()
         self.bot_user_id = auth_response["user_id"]
@@ -417,6 +565,10 @@ class SlackClient:
 
         self.handler = AsyncSocketModeHandler(self.app, self.app_token)
         self.is_running = True
+
+        # Start background survey reminder worker
+        self._reminder_task = asyncio.create_task(self._survey_reminder_worker())
+
         logger.info("socket_mode_handler_starting")
         try:
             await self.handler.start_async()
@@ -440,6 +592,26 @@ class SlackClient:
             await client.shutdown()  # Clean exit
         """
         logger.info("shutting_down_socket_mode")
+
+        # Cancel reminder worker
+        if self._reminder_task is not None:
+            self._reminder_task.cancel()
+            try:
+                await self._reminder_task
+            except asyncio.CancelledError:
+                pass
+            finally:
+                self._reminder_task = None
+
+        # Close survey manager
+        if self._survey_manager_context is not None:
+            try:
+                await self._survey_manager_context.__aexit__(None, None, None)
+            except Exception:
+                logger.warning("survey_manager_cleanup_failed", exc_info=True)
+            finally:
+                self._survey_manager_context = None
+                self.survey_manager = None
 
         # Close session manager first with proper context
         if self._session_manager_context is not None:
