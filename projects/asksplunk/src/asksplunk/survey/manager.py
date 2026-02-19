@@ -212,6 +212,7 @@ class SurveyManager:
                 ConditionExpression=(
                     "(attribute_not_exists(last_reminder_at) OR last_reminder_at = :null "
                     "OR last_reminder_at < :cutoff) "
+                    "AND created_at < :cutoff "
                     "AND (attribute_not_exists(reminders_sent) OR reminders_sent < :max_r) "
                     "AND completed = :f"
                 ),
