@@ -5,6 +5,8 @@ Provides auditing and monitoring functionality for service registrations,
 including domain breakdown analysis and CI auditing reports.
 """
 
+from __future__ import annotations
+
 import json
 import os
 from datetime import datetime
@@ -72,37 +74,30 @@ def _categorize_service(service_name: str) -> str:
 
 
 def emit_registered_services_summary(
-    manager: ServiceRegistrationManager, service_count: int
+    manager: ServiceRegistrationManager,
+    service_count: int,
+    role: str | None = None,
 ) -> None:
-    """Emit registered services summary JSON for CI auditing and monitoring."""
+    """Emit registered services summary JSON for CI auditing and monitoring.
+
+    Args:
+        manager: ServiceRegistrationManager with registered services
+        service_count: Total number of registered services
+        role: Container role value (e.g. "app", "scheduler") or None for all
+    """
     try:
         # Get domain-specific counts
         domain_breakdown = get_domain_breakdown(manager)
 
-        # Create summary data structure
-        # NOTE: Batch 1-5 represent the initial TypedDI migration
-        # (84 services total: 6+4+7+7+13+40)
-        # Batch 6 is a catch-all for all services registered after
-        # the initial migration
         summary = {
             "timestamp": datetime.now().isoformat(),
             "total_services": int(service_count),
-            "batch_breakdown": {
-                "essential_services": 6,
-                "batch_1_slack_core": 4,
-                "batch_2_handlers": 7,
-                "batch_3_ai_operational": 7,
-                "batch_4_integration": 13,
-                "batch_5_additional": 40,
-                # All services beyond initial 84
-                "batch_6_post_migration_services": int(service_count) - 84,
-            },
+            "container_role": role or "all",
             "domain_breakdown": domain_breakdown,
             "services": get_service_list(manager),
             "protocols_coverage": get_protocols_coverage(manager),
             "qualifiers_implemented": ["primary"],
             "registry_status": "frozen",
-            "version": "batch_5_hardening",
         }
 
         # Write to analysis directory for CI consumption

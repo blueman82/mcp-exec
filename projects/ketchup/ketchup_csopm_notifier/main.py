@@ -35,9 +35,10 @@ Usage:
 import asyncio
 import sys
 
-from packages.core.typed_di_integration import get_unified_container
 from ketchup_csopm_notifier.scheduler import CSOPMScheduler
 from packages.core.logging import setup_logger
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
+from packages.core.typed_di_integration import get_unified_container
 
 logger = setup_logger(__name__)
 
@@ -58,7 +59,7 @@ async def main() -> None:
         # Create TypedDI container with CSOPM services
         # Container is created once at startup and shared by the scheduler
         logger.info("Initializing CSOPM DI container...")
-        container = await get_unified_container()
+        container = await get_unified_container(ContainerRole.CSOPM_NOTIFIER)
         logger.info("CSOPM DI container initialized successfully")
 
         # Create scheduler with container

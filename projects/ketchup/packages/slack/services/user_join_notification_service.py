@@ -11,8 +11,6 @@ import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
-import orjson
-
 from packages.ai.prompts.auto_status import (
     get_auto_status_prompt,
     get_auto_status_system_prompt,
@@ -459,21 +457,10 @@ class UserJoinNotificationService:
 
             # Extract from JSON if structured output is enabled
             if FeatureFlags.is_structured_json_output_enabled():
-                try:
-                    data = orjson.loads(raw_content)
-                    ai_content = data.get("response_text", raw_content)
-                    logger.info(
-                        "Extracted text from JSON response (%d chars)",
-                        len(ai_content),
-                    )
-                except orjson.JSONDecodeError as e:
-                    logger.error(
-                        "Failed to parse JSON response, falling back to raw content: %s",
-                        e,
-                    )
-                    ai_content = raw_content
+                from packages.ai.core.json_response import safe_extract_response_text
+
+                ai_content = safe_extract_response_text(raw_content, fallback=raw_content)
             else:
-                # Prose mode - return as-is
                 ai_content = raw_content
 
             logger.info("AI content generation successful")

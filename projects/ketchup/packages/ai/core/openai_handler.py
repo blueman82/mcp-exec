@@ -214,9 +214,13 @@ class OpenAIHandler(AzureAsyncClient):
         Raises:
             orjson.JSONDecodeError: If raw_content is not valid JSON.
         """
-        data = orjson.loads(raw_content)
-        lower_data = {k.lower(): v for k, v in data.items()}
-        return lower_data.get("response_text", raw_content)
+        from packages.ai.core.json_response import safe_extract_response_text
+
+        result = safe_extract_response_text(raw_content, fallback="")
+        if not result:
+            # Raise so _extract_response_content can retry
+            raise orjson.JSONDecodeError
+        return result
 
     async def _extract_response_content(
         self,

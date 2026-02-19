@@ -8,8 +8,6 @@ which is used to process the `/ketchup query` command.
 import re
 from typing import Any, Dict, Optional
 
-import orjson
-
 from packages.ai.core.openai_handler import OpenAIHandler
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.exceptions import MessagePreparationError
@@ -353,19 +351,10 @@ class SlackQueryHandler(BaseCommandHandler):
             raw_content = response_data["choices"][0]["message"]["content"]
 
             if FeatureFlags.is_structured_json_output_enabled():
-                try:
-                    # Parse JSON response
-                    data = orjson.loads(raw_content)
-                    # Extract the response_text field
-                    generated_text = data.get("response_text", raw_content)
-                    logger.info("Extracted text from JSON response (%d chars)", len(generated_text))
-                except orjson.JSONDecodeError as e:
-                    logger.error(
-                        "Failed to parse JSON response, falling back to raw content: %s", e
-                    )
-                    generated_text = raw_content  # Fallback to raw if JSON invalid
+                from packages.ai.core.json_response import safe_extract_response_text
+
+                generated_text = safe_extract_response_text(raw_content, fallback=raw_content)
             else:
-                # Prose mode - return as-is
                 generated_text = raw_content
 
         return generated_text

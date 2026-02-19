@@ -558,6 +558,7 @@ class TestCreateSignalHandler:
             assert asyncio.iscoroutine(task_arg)
             task_arg.close()  # Clean up unawaited coroutine to prevent RuntimeWarning
 
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     def test_signal_handler_works_for_sigterm(self):
         """Signal handler should handle SIGTERM."""
         with (

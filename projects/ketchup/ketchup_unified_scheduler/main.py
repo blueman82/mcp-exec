@@ -28,6 +28,7 @@ from ketchup_unified_scheduler.tasks.metadata_update_task import (
 from ketchup_unified_scheduler.tasks.pat_rotation_task import get_pat_rotation_task_config
 from ketchup_unified_scheduler.tasks.status_update_task import get_status_update_task_config
 from packages.core.logging import setup_logger
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di_integration import get_unified_container
 
 logger = setup_logger(__name__)
@@ -69,7 +70,7 @@ async def main() -> None:
 
         # Create DI container ONCE at startup - shared by all tasks
         logger.info("Initializing shared DI container...")
-        container = await get_unified_container()
+        container = await get_unified_container(ContainerRole.SCHEDULER)
         logger.info("DI container initialized successfully")
 
         # Create engine with shared container

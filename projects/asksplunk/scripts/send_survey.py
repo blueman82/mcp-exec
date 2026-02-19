@@ -116,6 +116,9 @@ async def main() -> None:
     parser.add_argument(
         "--results", action="store_true", help="Print aggregated results instead of sending"
     )
+    parser.add_argument(
+        "--user", help="Send to a single Slack user ID instead of all authorized users"
+    )
     args = parser.parse_args()
 
     load_env()
@@ -135,9 +138,13 @@ async def main() -> None:
 
         slack_client = AsyncWebClient(token=bot_token)
 
-        print("Fetching authorized user IDs...")
-        user_ids = await get_authorized_user_ids()
-        print(f"Found {len(user_ids)} authorized users\n")
+        if args.user:
+            user_ids = [args.user]
+            print(f"Targeting single user: {args.user}\n")
+        else:
+            print("Fetching authorized user IDs...")
+            user_ids = await get_authorized_user_ids()
+            print(f"Found {len(user_ids)} authorized users\n")
 
         print(f"Sending survey {args.survey_id} to {len(user_ids)} user(s)...")
         await send_surveys(

@@ -240,6 +240,9 @@ class SlackListCommand(BaseCommandHandler):
 
             # Convert customer name to uppercase for consistent display
             customer_name = stored_data.get("customer_name", "NOT YET AVAILABLE")
+            # Guard: reject values that look like raw JSON (e.g. {"RESPONSE_TEXT": ...})
+            if customer_name and customer_name.lstrip().startswith("{"):
+                customer_name = "NOT YET AVAILABLE"
             if customer_name and customer_name != "NOT YET AVAILABLE":
                 customer_name = customer_name.upper()
 

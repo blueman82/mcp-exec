@@ -74,6 +74,7 @@ build/
 # Git worktrees
 ketchup-*/
 *-worktree/
+projects/asksplunk-survey/
 
 # EC2 deployment artifacts
 *-ec2-keypair.pem

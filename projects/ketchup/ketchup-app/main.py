@@ -39,6 +39,7 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
 )
 
 # Import Ketchup modules
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di_integration import get_unified_container
 from packages.slack.channel_events.incoming_events import process_request
 
@@ -92,7 +93,7 @@ async def lifespan(app: FastAPI):
 
         # Initialize DI container
         start_time = time.time()
-        container = await get_unified_container()
+        container = await get_unified_container(ContainerRole.APP)
         init_duration = time.time() - start_time
         logger.info("DI container initialized successfully")
 

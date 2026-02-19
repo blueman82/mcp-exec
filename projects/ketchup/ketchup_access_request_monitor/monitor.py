@@ -37,6 +37,7 @@ from packages.core.typed_di.service_registrations.protocols.operation_protocols 
 from packages.core.typed_di.service_registrations.protocols.slack_protocols import (
     SlackAsyncClientProtocol,
 )
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di_integration import get_unified_container
 
 
@@ -89,7 +90,7 @@ class AccessRequestHealthMonitor:
         os.environ["AWS_DEFAULT_REGION"] = os.environ.get("AWS_DEFAULT_REGION", "eu-west-1")
 
         # Initialize TypedDI container
-        self.container = await get_unified_container()
+        self.container = await get_unified_container(ContainerRole.ACCESS_MONITOR)
 
         self.logger.info("Monitor initialized successfully")
 

@@ -5,17 +5,20 @@ Pure TypedDI integration layer - legacy DI has been fully removed.
 All services now use protocol-based type resolution.
 """
 
+from __future__ import annotations
+
 import time
-from typing import Optional
 
 from packages.core.logging import setup_logger
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 
 from .typed_di import TypedServiceRegistry
 
 logger = setup_logger(__name__)
 
 # Global instance
-_typed_registry: Optional[TypedServiceRegistry] = None
+_typed_registry: TypedServiceRegistry | None = None
+_typed_registry_role: ContainerRole | None = None
 
 
 async def _run_startup_smoke_checks(registry: TypedServiceRegistry) -> bool:
@@ -141,49 +144,81 @@ def get_typed_registry() -> TypedServiceRegistry:
     return _typed_registry
 
 
-async def get_unified_container() -> TypedServiceRegistry:
+async def get_unified_container(
+    role: ContainerRole | None = None,
+) -> TypedServiceRegistry:
     """
     Get the TypedServiceRegistry directly (legacy DI removed).
 
+    Args:
+        role: Optional container role for role-based registration.
+              If provided, only services needed by that container are registered.
+              If None, all services are registered (backward compatible).
+
     Returns:
         TypedServiceRegistry: The initialized registry instance
+
+    Raises:
+        RuntimeError: If called with a different role than the first initialization.
     """
-    global _typed_registry
+    global _typed_registry, _typed_registry_role
 
-    if _typed_registry is None:
-        logger.info("Initializing TypedServiceRegistry")
-        _typed_registry = TypedServiceRegistry()
+    if _typed_registry is not None:
+        # Validate role consistency — fail fast if caller passes a different role
+        # than what was used for the initial registration.
+        if role != _typed_registry_role:
+            existing = _typed_registry_role.value if _typed_registry_role else "all"
+            requested = role.value if role else "all"
+            if existing != requested:
+                raise RuntimeError(
+                    f"Registry already initialized with role={existing}, "
+                    f"cannot reinitialize with role={requested}"
+                )
+        return _typed_registry
 
-        # Register all services
+    logger.info("Initializing TypedServiceRegistry")
+    _typed_registry = TypedServiceRegistry()
+    _typed_registry_role = role
+
+    # Register services based on role
+    if role is not None:
+        from .typed_di.service_registrations import register_services_for_role
+
+        register_services_for_role(_typed_registry, role)
+    else:
         from .typed_di.service_registrations import register_all_services
 
         register_all_services(_typed_registry)
 
-        # Initialize all services
-        logger.info("Running TypedDI initialize_all()")
-        init_start = time.perf_counter()
-        await _typed_registry.initialize_all()
-        init_duration = time.perf_counter() - init_start
-        logger.info("TypedDI initialize_all() completed in %.2fs", init_duration)
+    # Initialize all services
+    logger.info("Running TypedDI initialize_all()")
+    init_start = time.perf_counter()
+    await _typed_registry.initialize_all()
+    init_duration = time.perf_counter() - init_start
+    logger.info("TypedDI initialize_all() completed in %.2fs", init_duration)
 
-        # Run startup smoke checks
-        logger.info("Running TypedDI startup smoke checks")
-        if not await _run_startup_smoke_checks(_typed_registry):
-            logger.error("TypedDI startup smoke checks failed")
-            raise RuntimeError("TypedDI initialization failed smoke checks")
+    # Run startup smoke checks
+    logger.info("Running TypedDI startup smoke checks")
+    if not await _run_startup_smoke_checks(_typed_registry):
+        logger.error("TypedDI startup smoke checks failed")
+        raise RuntimeError("TypedDI initialization failed smoke checks")
 
-        # Freeze registry after smoke checks pass
-        _typed_registry.freeze_after_init()
-        logger.info("TypedServiceRegistry initialized successfully with smoke checks passed")
+    # Freeze registry after smoke checks pass
+    _typed_registry.freeze_after_init()
+    logger.info(
+        "TypedServiceRegistry initialized successfully (role=%s)",
+        role.value if role else "all",
+    )
 
     return _typed_registry
 
 
 async def cleanup_unified_container() -> None:
     """Clean up the TypedServiceRegistry."""
-    global _typed_registry
+    global _typed_registry, _typed_registry_role
     logger.info("Cleaning up TypedServiceRegistry")
     _typed_registry = None
+    _typed_registry_role = None
 
 
 # Backward compatibility functions

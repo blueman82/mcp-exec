@@ -118,6 +118,16 @@ class MetadataStorage:
             # Only update if the new value is not 'NOT YET AVAILABLE', otherwise keep the existing value
             new_customer_name = metadata.get("customer_name", "NOT YET AVAILABLE")
             current_customer_name = channel_details.get("customer_name", "NOT YET AVAILABLE")
+
+            # Reject values that look like raw JSON (bug: AI sometimes returns JSON blob)
+            if new_customer_name and new_customer_name.lstrip().startswith("{"):
+                self.logger.warning(
+                    "Rejecting JSON-like customer_name for channel %s: %.80s",
+                    channel_id,
+                    new_customer_name,
+                )
+                new_customer_name = "NOT YET AVAILABLE"
+
             if new_customer_name == "NOT YET AVAILABLE":
                 customer_name_to_store = current_customer_name
             else:

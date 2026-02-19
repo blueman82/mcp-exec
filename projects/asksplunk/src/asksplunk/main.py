@@ -18,6 +18,7 @@ from asksplunk.retriever.retriever import DocumentRetriever
 from asksplunk.secrets import SecretsManager
 from asksplunk.session.manager import SessionManager
 from asksplunk.slack.client import SlackClient
+from asksplunk.survey import SurveyManager
 from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
@@ -144,6 +145,11 @@ async def main() -> None:
         usage_tracker = await usage_tracker_ctx.__aenter__()
         logger.info("usage_tracker_created")
 
+        # Create SurveyManager for agent results queries
+        survey_manager_ctx = SurveyManager()
+        survey_manager = await survey_manager_ctx.__aenter__()
+        logger.info("survey_manager_created")
+
         # Create Agent
         chat_model = openai_config.get("chat_deployment", "gpt-5")
         agent = Agent(
@@ -153,6 +159,7 @@ async def main() -> None:
             chat_model=chat_model,
             usage_tracker=usage_tracker,
             secrets_manager=secrets_manager,
+            survey_manager=survey_manager,
         )
         logger.info("agent_created")
 

@@ -8,8 +8,6 @@ functionality for extracting metadata from channel messages.
 import re
 from typing import Dict, List
 
-import orjson
-
 from packages.ai.core.openai_handler import OpenAIHandler
 from packages.ai.prompts.customer_extraction import get_customer_name_extraction_prompt
 from packages.core.config.feature_flags import FeatureFlags
@@ -213,26 +211,18 @@ class MetadataExtractor:
             )
             raw_content = response.get("choices", [{}])[0].get("message", {}).get("content", "")
 
+            _METADATA_FALLBACK = "NOT YET AVAILABLE\nNOT YET AVAILABLE"
+
             # Extract from JSON if structured output is enabled
             if FeatureFlags.is_structured_json_output_enabled():
-                try:
-                    data = orjson.loads(raw_content)
-                    # Case-insensitive key lookup (AI sometimes returns RESPONSE_TEXT)
-                    lower_data = {k.lower(): v for k, v in data.items()}
-                    response_content = lower_data.get("response_text", raw_content)
-                    logger.info(
-                        "Extracted text from JSON response (%d chars)", len(response_content)
-                    )
-                except orjson.JSONDecodeError as e:
-                    logger.error(
-                        "Failed to parse JSON response, falling back to raw content: %s", e
-                    )
-                    response_content = raw_content
+                from packages.ai.core.json_response import safe_extract_response_text
+
+                response_content = safe_extract_response_text(
+                    raw_content, fallback=_METADATA_FALLBACK
+                )
             else:
-                # Prose mode - use raw content as-is
                 response_content = raw_content
 
-            # *** THIS IS THE KEY CHANGE: Call parse_ai_response here ***
             parsed_metadata = self.parse_ai_response(response_content)
 
             # Updated log message to reflect that parsed_metadata is being used

@@ -37,6 +37,7 @@ from packages.slack.channel_operations.channel_archive_ops import SlackChannelAr
 from packages.slack.channel_operations.restore_state_manager import RestoreStateManager
 
 from .audit import emit_registered_services_summary
+from .container_roles import ContainerRole
 
 # Import the new ServiceRegistrationManager
 from .manager import ServiceRegistrationManager
@@ -123,7 +124,7 @@ from .protocols import (  # All other protocols; Critical protocols needed by co
 # All service registrations now handled by modular focused system
 # No longer dependent on service_registrations_original.py
 # Import the modular registration orchestrator
-from .registrations import register_all_focused_services
+from .registrations import register_all_focused_services, register_for_role
 
 logger = setup_logger(__name__)
 
@@ -170,6 +171,51 @@ def register_all_services(registry: TypedServiceRegistry) -> None:
 
 # Global registration manager instance
 _registration_manager = None
+
+
+def register_services_for_role(
+    registry: TypedServiceRegistry, role: ContainerRole
+) -> None:
+    """
+    Register only the services needed for the given container role.
+
+    Uses the same ServiceRegistrationManager and freeze/audit pattern as
+    register_all_services, but delegates to register_for_role instead
+    of register_all_focused_services.
+
+    Args:
+        registry: TypedServiceRegistry instance
+        role: ContainerRole identifying which container is running
+    """
+    global _registration_manager
+
+    if (
+        _registration_manager is None
+        or getattr(_registration_manager, "frozen", False)
+        or getattr(_registration_manager, "registry", None) is not registry
+    ):
+        _registration_manager = ServiceRegistrationManager(registry)
+
+    if not isinstance(role, ContainerRole):
+        raise TypeError(f"Expected ContainerRole, got {type(role).__name__}")
+
+    logger.info(
+        "Registering services for container role=%s via ServiceRegistrationManager",
+        role.value,
+    )
+
+    register_for_role(role.value, _registration_manager)
+
+    _registration_manager.freeze_registry()
+    summary = _registration_manager.get_registration_summary()
+    service_count = summary.get("total_services") or len(summary.get("services", {}))
+    logger.info(
+        "Service registry frozen with %d services for role=%s",
+        service_count,
+        role.value,
+    )
+
+    emit_registered_services_summary(_registration_manager, service_count, role=role.value)
 
 
 def register_essential_services(registry: TypedServiceRegistry) -> None:
@@ -294,7 +340,10 @@ __all__ = [
     "iPaaSRateLimiterProtocol",
     # Main registration functions
     "register_all_services",
+    "register_services_for_role",
     "register_essential_services",
+    # Container roles
+    "ContainerRole",
     # Registration manager
     "ServiceRegistrationManager",
     # Registration modules (imported for side effects during service registration)

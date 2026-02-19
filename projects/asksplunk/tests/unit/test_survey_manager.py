@@ -168,9 +168,7 @@ class TestSurveyManager:
 
             def __init__(self):
                 self.response = {"Error": {"Code": "ConditionalCheckFailedException"}}
-                super().__init__(
-                    "An error occurred (ConditionalCheckFailedException)"
-                )
+                super().__init__("An error occurred (ConditionalCheckFailedException)")
 
         mock_table.update_item = AsyncMock(side_effect=FakeClientError())
 

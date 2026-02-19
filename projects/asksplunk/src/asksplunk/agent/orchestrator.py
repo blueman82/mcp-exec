@@ -201,9 +201,7 @@ class Agent:
 
     async def _handle_survey_query(self, user_id: str) -> dict[str, Any]:
         """Handle admin survey results query."""
-        admin_ids = (
-            await self.secrets_manager.get_admin_user_ids() if self.secrets_manager else []
-        )
+        admin_ids = await self.secrets_manager.get_admin_user_ids() if self.secrets_manager else []
         if not UsageTracker.is_admin(user_id, admin_ids):
             logger.info("non_admin_survey_query_rejected", user=user_id)
             return {
@@ -213,7 +211,7 @@ class Agent:
             }
 
         if self.survey_manager:
-            survey_ids = await self.survey_manager.get_active_survey_ids()
+            survey_ids = await self.survey_manager.get_all_survey_ids()
             if survey_ids:
                 results = await self.survey_manager.get_results(survey_ids[0])
                 message = format_survey_results(results)

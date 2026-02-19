@@ -6,8 +6,6 @@ This module contains the SlackReports class, which is used to process the `/ketc
 
 from typing import Any, Dict, Optional, Tuple
 
-import orjson
-
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.exceptions import MessagePreparationError
 from packages.core.logging import setup_logger
@@ -306,19 +304,11 @@ class SlackReports(BaseCommandHandler):
         raw_content = response_data["choices"][0]["message"]["content"]
 
         if FeatureFlags.is_structured_json_output_enabled():
-            try:
-                # Parse JSON response
-                data = orjson.loads(raw_content)
-                # Extract the response_text field
-                extracted_text = data.get("response_text", raw_content)
-                logger.info("Extracted text from JSON response (%d chars)", len(extracted_text))
-                return extracted_text
-            except orjson.JSONDecodeError as e:
-                logger.error("Failed to parse JSON response, falling back to raw content: %s", e)
-                return raw_content  # Fallback to raw if JSON invalid
-        else:
-            # Prose mode - return as-is
-            return raw_content
+            from packages.ai.core.json_response import safe_extract_response_text
+
+            return safe_extract_response_text(raw_content, fallback=raw_content)
+        # Prose mode - return as-is
+        return raw_content
 
     async def _apply_corrections_to_response(
         self,

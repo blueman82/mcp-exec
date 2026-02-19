@@ -78,21 +78,28 @@ class SurveyManager:
         """
         table = await self._get_table()
 
-        await table.put_item(
-            Item={
-                "thread_id": f"SURVEY_STATUS#{survey_id}#{user_id}",
-                "entity_type": "SURVEY_STATUS",
-                "survey_id": survey_id,
-                "user_id": user_id,
-                "completed": False,
-                "reminders_sent": 0,
-                "last_reminder_at": None,
-                "survey_channel_id": channel_id,
-                "created_at": datetime.now().isoformat(),
-                "ttl": self._calculate_ttl(),
-            }
-        )
-        logger.info("survey_status_created", survey_id=survey_id, user=user_id)
+        try:
+            await table.put_item(
+                Item={
+                    "thread_id": f"SURVEY_STATUS#{survey_id}#{user_id}",
+                    "entity_type": "SURVEY_STATUS",
+                    "survey_id": survey_id,
+                    "user_id": user_id,
+                    "completed": False,
+                    "reminders_sent": 0,
+                    "last_reminder_at": None,
+                    "survey_channel_id": channel_id,
+                    "created_at": datetime.now().isoformat(),
+                    "ttl": self._calculate_ttl(),
+                },
+                ConditionExpression="attribute_not_exists(thread_id)",
+            )
+            logger.info("survey_status_created", survey_id=survey_id, user=user_id)
+        except Exception as e:
+            if "ConditionalCheckFailedException" in str(e):
+                logger.info("survey_status_exists", survey_id=survey_id, user=user_id)
+            else:
+                raise
 
     async def has_status(self, survey_id: str, user_id: str) -> bool:
         """Check if a SURVEY_STATUS record exists for this user+survey."""
@@ -289,6 +296,22 @@ class SurveyManager:
             ExpressionAttributeValues={
                 ":et": "SURVEY_STATUS",
                 ":f": False,
+            },
+            ProjectionExpression="survey_id",
+        )
+
+        items = response.get("Items", [])
+        return list({item["survey_id"] for item in items})
+
+    async def get_all_survey_ids(self) -> list[str]:
+        """Get distinct survey IDs from all status records (for admin results)."""
+        table = await self._get_table()
+
+        response = await table.query(
+            IndexName="survey-by-type",
+            KeyConditionExpression="entity_type = :et",
+            ExpressionAttributeValues={
+                ":et": "SURVEY_STATUS",
             },
             ProjectionExpression="survey_id",
         )
