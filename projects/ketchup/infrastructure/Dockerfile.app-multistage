@@ -49,6 +49,9 @@ WORKDIR /app
 COPY --chown=ketchup:ketchup packages/ ./packages/
 COPY --chown=ketchup:ketchup ketchup-app/ ./
 
+# Create analysis output directory with ketchup ownership
+RUN mkdir -p /app/analysis && chown ketchup:ketchup /app/analysis
+
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
