@@ -71,12 +71,41 @@ h3. Recommendation
 [Preventive measures]
 ```
 
+### Automation Detection Notes Template
+
+When automated monitoring (e.g. OOM detection, process checks) flags something that turns out to be a false positive or has a minor discrepancy, document it with a neutral system-level section — **do not name the automation system in the header alongside negative labels like "False Positive" or "Incorrect"**.
+
+```
+h4. OOM Detection — False Positive
+
+Automated monitoring flagged an OOM signature. Verified no actual OOM events on host.
+
+*Pattern matched:* [e.g., "kill" keyword found in syslog from operator grep command at HH:MM]
+*Verified clean:*
+{code}
+$ sudo grep -i 'Out of memory' /var/log/kern.log
+(no results)
+$ sudo dmesg -T | grep -i 'kill|oom|out of memory'
+(no results)
+$ free -h
+Mem: 30Gi total, Xgi used, Ygi free
+{code}
+```
+
+```
+h4. Process Start Date — Clarification
+
+Automated report listed watchdog start date as the web start date.
+Actual web process start: [date from pdump web@default].
+```
+
 ### Important Rules
 
 1. **DRAFT FIRST** - Always show comment before posting
 2. **NO INTERNAL DETAILS** - Don't mention AWS profiles, internal URLs
 3. **INCLUDE COMMANDS** - Show SQL for reproducibility
 4. **ATTACH DATA** - Upload CSV for large datasets
+5. **NEUTRAL AUTOMATION FRAMING** - When documenting automation false positives or misdetections, use system-level section headers (e.g., `OOM Detection — False Positive`), not `[Tool Name] reported X — Incorrect`. The purpose is to capture the detection gap for improvement, not to record that a tool was wrong.
 
 ### API Usage
 

@@ -31,15 +31,15 @@ from packages.core.cleanup_utils import cleanup_resources
 from packages.core.logging import setup_logger
 from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.service_protocols import MetricsDataCollectorProtocol
+
+# Import Ketchup modules
+from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di.service_registrations.protocols.jira_protocols import (
     JIRACacheProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
     MCPAsyncClientProtocol,
 )
-
-# Import Ketchup modules
-from packages.core.typed_di.service_registrations.container_roles import ContainerRole
 from packages.core.typed_di_integration import get_unified_container
 from packages.slack.channel_events.incoming_events import process_request
 
