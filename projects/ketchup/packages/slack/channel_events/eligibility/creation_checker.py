@@ -14,6 +14,7 @@ logger = setup_logger(__name__)
 EXEMPT_CHANNELS = [
     "ketchup_access_requests",  # For access request approvals (actual channel name)
     "ketchup-alerts",  # For monitoring and alerts
+    "camp-oncall",  # On-call channel
 ]
 
 
