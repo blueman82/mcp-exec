@@ -1,0 +1,221 @@
+feature: Ketchup Handover Summary
+description: >
+  Scheduled task that posts a compact summary of all active incident channels
+  to the camp-oncall Slack channel at shift handover times (09:00 + 17:00 UTC winter,
+  10:00 + 18:00 UTC summer). Reuses the status updater pipeline with a forced refresh
+  before collecting data.
+
+design_decisions:
+  scheduling: "Two TaskConfig entries, same handler, schedule_time from env var"
+  data_source: "Force-refresh via run_auto_status(), then read auto_status_last_content from DynamoDB"
+  target_channel: "C03PWLW9P5H (camp-oncall), env var driven"
+  feature_flag: "KETCHUP_HANDOVER_SUMMARY_ENABLED"
+  exemptions: "channel_eligibility.py exempt list + system_channels.py excluded channels"
+
+tasks:
+  # ── PHASE 1: Configuration & Exemptions ──────────────────────────
+  - id: 1
+    title: "Create handover config module"
+    description: >
+      Create packages/core/config/handover_config.py following the CSOPM config pattern
+      (packages/core/config/csopm_config.py). Parse env vars:
+      - KETCHUP_HANDOVER_SCHEDULE_TIMES (default "09:00,17:00") -> List[str]
+      - KETCHUP_HANDOVER_TARGET_CHANNEL (default "C03PWLW9P5H") -> str
+      - KETCHUP_HANDOVER_SUMMARY_ENABLED (default "false") -> checked at runtime
+    files:
+      create:
+        - packages/core/config/handover_config.py
+    commit: "feat(handover): add handover config module with env-var-driven schedule times"
+
+  - id: 2
+    title: "Add camp-oncall channel exemption"
+    description: >
+      Two changes to prevent Ketchup from leaving camp-oncall:
+      1. packages/slack/channel_operations/channel_eligibility.py line 110:
+         Add "camp-oncall" to the exempt_channels list.
+      2. packages/core/config/system_channels.py line 15:
+         Add "C03PWLW9P5H": "camp-oncall" to DEFAULT_EXCLUDED_CHANNELS dict.
+      Also update the EXCLUDED_CSO_CHANNELS env var in docker-compose.yml to include
+      C03PWLW9P5H alongside existing C090V88CB1N,C08CQN1JCSC.
+    files:
+      modify:
+        - packages/slack/channel_operations/channel_eligibility.py
+        - packages/core/config/system_channels.py
+    commit: "feat(handover): add camp-oncall channel exemption in eligibility and system channels"
+
+  - id: 3
+    title: "Add environment variables to docker-compose files"
+    description: >
+      Add to ketchup-unified-scheduler service in both docker-compose files:
+      - KETCHUP_HANDOVER_SUMMARY_ENABLED=false (disabled by default)
+      - KETCHUP_HANDOVER_TARGET_CHANNEL=C03PWLW9P5H
+      - KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00
+
+      In infrastructure/docker-compose.yml: add to ketchup-unified-scheduler environment block
+      (after line 101, alongside other feature flags).
+
+      In infrastructure/docker-compose.local.yml: add to the unified scheduler service
+      (or whichever local scheduler service exists).
+
+      Also add C03PWLW9P5H to EXCLUDED_CSO_CHANNELS in ketchup-app environment.
+    files:
+      modify:
+        - infrastructure/docker-compose.yml
+        - infrastructure/docker-compose.local.yml
+    commit: "feat(handover): add handover env vars and feature flag to docker-compose"
+
+  # ── PHASE 2: Core Handover Logic ─────────────────────────────────
+  - id: 4
+    title: "Create handover summary generator service"
+    depends_on: [1]
+    description: >
+      Create ketchup_unified_scheduler/services/handover/__init__.py and
+      ketchup_unified_scheduler/services/handover/generator.py.
+
+      The generator.py contains the core function:
+        async def generate_and_post_handover(container: TypedServiceRegistry) -> dict
+
+      Flow:
+      1. Check feature flag KETCHUP_HANDOVER_SUMMARY_ENABLED
+      2. Call run_auto_status(container=container) to force-refresh all channels
+         (import from ketchup_unified_scheduler.services.status.processor)
+      3. Get all active channels via container.aget(ChannelOperationsProtocol)
+         then query_ops.get_all_active_channels()
+      4. For each channel, read from DynamoDB:
+         - channel_name, customer_name, jira_ticket (from channel details)
+         - auto_status_last_content (the stored status text)
+         - Skip channels where auto_status_last_content is empty/None
+      5. Format each channel into a compact line:
+         - <#channel_id> | Customer: {name} | JIRA: <link|ticket>
+         - Extract just the *Overview:* line from auto_status_last_content (regex or string split)
+      6. Assemble aggregate Block Kit message with header + all channel lines
+      7. Post to KETCHUP_HANDOVER_TARGET_CHANNEL via SlackPostingHandlerProtocol
+      8. Return result dict with status, channel_count, timestamp
+
+      Key imports:
+      - run_auto_status from ketchup_unified_scheduler.services.status.processor
+      - ChannelOperationsProtocol from packages.core.typed_di.protocols
+      - SlackPostingHandlerProtocol from packages.core.typed_di.protocols
+      - HANDOVER_TARGET_CHANNEL, HANDOVER_SCHEDULE_TIMES from packages.core.config.handover_config
+    files:
+      create:
+        - ketchup_unified_scheduler/services/handover/__init__.py
+        - ketchup_unified_scheduler/services/handover/generator.py
+    commit: "feat(handover): implement handover summary generator with forced status refresh"
+
+  # ── PHASE 3: Scheduler Task Registration ─────────────────────────
+  - id: 5
+    title: "Create handover task handler and register in unified scheduler"
+    depends_on: [1, 4]
+    description: >
+      Create ketchup_unified_scheduler/tasks/handover_summary_task.py following the
+      maintenance_fetch_task.py pattern:
+
+      1. async def handover_summary_task(container=None) -> None:
+         - Calls generate_and_post_handover(container=container)
+         - Logs result, raises on error
+
+      2. Two TaskConfig factory functions reading from handover_config:
+         def get_handover_morning_task_config() -> TaskConfig:
+           schedule_times = HANDOVER_SCHEDULE_TIMES  # e.g. ["09:00", "17:00"]
+           return TaskConfig(
+             name="handover_morning",
+             handler=handover_summary_task,
+             schedule_time=schedule_times[0],  # "09:00"
+             feature_flag="KETCHUP_HANDOVER_SUMMARY_ENABLED",
+           )
+
+         def get_handover_evening_task_config() -> TaskConfig:
+           return TaskConfig(
+             name="handover_evening",
+             handler=handover_summary_task,
+             schedule_time=schedule_times[1],  # "17:00"
+             feature_flag="KETCHUP_HANDOVER_SUMMARY_ENABLED",
+           )
+
+      3. Register both in ketchup_unified_scheduler/main.py:
+         - Add imports for get_handover_morning_task_config, get_handover_evening_task_config
+         - Add registry.register() calls in create_task_registry()
+         - Update docstring: "Single container running all 7 scheduled tasks"
+    files:
+      create:
+        - ketchup_unified_scheduler/tasks/handover_summary_task.py
+      modify:
+        - ketchup_unified_scheduler/main.py
+    commit: "feat(handover): register handover morning/evening tasks in unified scheduler"
+
+  # ── PHASE 4: Tests ───────────────────────────────────────────────
+  - id: 6
+    title: "Add unit tests for handover feature"
+    depends_on: [4, 5]
+    description: >
+      Create tests following existing patterns in tests/unit/:
+
+      1. tests/unit/handover/test_handover_config.py:
+         - Test default schedule times parsing ("09:00,17:00")
+         - Test custom env var override
+         - Test target channel default and override
+
+      2. tests/unit/handover/test_handover_generator.py:
+         - Test generate_and_post_handover with mocked container
+         - Test feature flag disabled returns early
+         - Test empty active channels produces "no active incidents" message
+         - Test channel with auto_status_last_content formats correctly
+         - Test channel with missing customer_name/jira_ticket uses defaults
+         - Test Overview extraction from auto_status_last_content
+         - Test Slack posting called with correct channel and blocks
+
+      3. tests/unit/handover/test_handover_task.py:
+         - Test get_handover_morning_task_config returns correct TaskConfig
+         - Test get_handover_evening_task_config returns correct TaskConfig
+         - Test both share same handler function
+         - Test schedule_time reads from env var
+
+      4. tests/unit/handover/__init__.py (empty)
+    files:
+      create:
+        - tests/unit/handover/__init__.py
+        - tests/unit/handover/test_handover_config.py
+        - tests/unit/handover/test_handover_generator.py
+        - tests/unit/handover/test_handover_task.py
+    commit: "test(handover): add unit tests for config, generator, and task registration"
+
+  # ── PHASE 5: Documentation ──────────────────────────────────────
+  - id: 7
+    title: "Update documentation"
+    depends_on: [5]
+    description: >
+      Update CLAUDE.md and relevant docs:
+      1. CLAUDE.md: Update unified scheduler section to list 7 tasks (add handover_morning
+         and handover_evening). Add KETCHUP_HANDOVER_SUMMARY_ENABLED to feature flags list.
+         Add camp-oncall channel to infrastructure notes.
+      2. Update the "Docker Containers in Production" section if needed.
+      3. Add KETCHUP_HANDOVER_SCHEDULE_TIMES and KETCHUP_HANDOVER_TARGET_CHANNEL
+         to the feature flags documentation.
+    files:
+      modify:
+        - CLAUDE.md
+    commit: "docs(handover): update CLAUDE.md with handover summary feature documentation"
+
+testing:
+  unit:
+    - "cd tests/setup && make test-fast"
+    - "cd tests/setup && make test-parallel"
+  lint:
+    - "./check"
+  manual:
+    - "Set KETCHUP_HANDOVER_SUMMARY_ENABLED=true in docker-compose.local.yml"
+    - "Set KETCHUP_HANDOVER_TARGET_CHANNEL to a test channel ID"
+    - "Set KETCHUP_HANDOVER_SCHEDULE_TIMES to a time 2 minutes from now"
+    - "Run unified scheduler locally, verify handover posts to test channel"
+    - "Verify camp-oncall channel exemption by checking eligibility logic"
+
+risks:
+  - risk: "run_auto_status() takes too long, delaying handover post"
+    mitigation: "Add timeout wrapper; if refresh exceeds 5 minutes, proceed with stale data"
+  - risk: "No active channels at handover time"
+    mitigation: "Post a 'No active incidents' message rather than silently skipping"
+  - risk: "Distributed lock conflict with regular status updater cycle"
+    mitigation: "run_auto_status already handles this via AUTO_STATUS_GLOBAL lock with TTL"
+  - risk: "camp-oncall channel ID changes"
+    mitigation: "Channel ID is env-var driven, not hardcoded in Python"
