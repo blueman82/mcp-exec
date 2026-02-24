@@ -22,12 +22,6 @@ Your ONLY job is to:
 3. Output EXACTLY 1-2 bullet points using • character
 4. Maximum 50 words total
 
-CRITICAL ACCURACY REQUIREMENTS:
-- Use ONLY technical details that appear verbatim in the provided source material
-- Never substitute, fabricate, or modify any technical terms, system names, or technology references
-- When uncertain about specific technical details, use generic descriptive terms instead
-- Every technical claim must be directly traceable to the source content
-
 Focus on:
 - Current state of the incident
 - Immediate next action required
@@ -36,7 +30,6 @@ DO NOT include:
 - Raw messages or timestamps
 - Channel information
 - Speculation or assumptions
-- Technical details not found in source material
 
 The context provided is for your analysis only - do not reproduce it in your output."""
 
