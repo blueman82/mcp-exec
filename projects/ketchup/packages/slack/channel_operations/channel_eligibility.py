@@ -107,7 +107,7 @@ class ChannelEligibilityService:
             # 3. Apply Eligibility Rules
 
             # Check if this is an exempt channel first (before other checks)
-            exempt_channels = ["ketchup_access_requests", "ketchup-alerts"]
+            exempt_channels = ["ketchup_access_requests", "ketchup-alerts", "camp-oncall"]
             if channel_name.lower().replace("#", "") in exempt_channels:
                 logger.info(
                     "Channel %s is in exempt list - automatically eligible",
