@@ -182,3 +182,4 @@ h3. Next Steps
 2. **No internal details** - Don't mention AWS profiles
 3. **Attach evidence** - CSV files, screenshots
 4. **Draft first** - Always review before posting
+5. **Neutral automation framing** - When automated monitoring raised a false positive or had a minor detection gap, document it as a system behaviour observation — not as a named failure of a specific tool. Use section headers like `OOM Detection — False Positive` rather than `[Tool] reported X — Incorrect`. The goal is improvement, not blame.
