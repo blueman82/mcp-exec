@@ -321,7 +321,8 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   lines.push(`    const content = data.content;`);
   lines.push(`    if (Array.isArray(content) && content.length === 1 && content[0]?.type === 'text') {`);
   lines.push(`      try {`);
-  lines.push(`        return JSON.parse(content[0].text);`);
+  lines.push(`        const parsed = JSON.parse(content[0].text);`);
+  lines.push(`        return typeof __guardFields === 'function' ? __guardFields(parsed, ${safeServerName} + '.' + ${safeToolName}) : parsed;`);
   lines.push(`      } catch {`);
   lines.push(`        return content[0].text;`);
   lines.push(`      }`);
