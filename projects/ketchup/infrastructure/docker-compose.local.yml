@@ -72,23 +72,6 @@ services:
       retries: 3
       start_period: 60s
 
-  ketchup-metadata-updater:
-    build:
-      context: ..
-      dockerfile: infrastructure/Dockerfile.updater
-    image: ketchup-metadata-updater:local-dev
-    environment:
-      - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - LOG_LEVEL=INFO
-      - PYTHONPATH=/app
-    volumes:
-      - ~/.aws:/root/.aws:ro
-      - ./logs:/var/log
-    restart: unless-stopped
-
   mcp-jira:
     build:
       context: ..
@@ -117,31 +100,6 @@ services:
       start_period: 10s
       retries: 3
 
-  ketchup-status-updater:
-    build:
-      context: ..
-      dockerfile: infrastructure/Dockerfile.status-updater
-    image: ketchup-status-updater:local-dev
-    environment:
-      - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - LOG_LEVEL=INFO
-      - PYTHONPATH=/app
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      - KETCHUP_STATUS_UPDATER_FEATURE=true
-      - KETCHUP_STATUS_UPDATER_GLOBAL=false  # Don't process all channels in test
-      - KETCHUP_STATUS_UPDATER_ENABLED=true
-    volumes:
-      - ~/.aws:/root/.aws:ro
-      - ./logs:/var/log
-    depends_on:
-      - mcp-jira
-    restart: unless-stopped
-
   ketchup-access-monitor:
     build:
       context: ..
@@ -168,54 +126,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-  ketchup-jira-reporter:
-    build:
-      context: ..
-      dockerfile: infrastructure/Dockerfile.jira-reporter
-    image: ketchup-jira-reporter:local-dev
-    environment:
-      - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - LOG_LEVEL=INFO
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - CHECK_INTERVAL_MINUTES=15
-      - LOOKBACK_HOURS=24
-      - BATCH_SIZE=5
-      - PYTHONPATH=/app
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      - KETCHUP_JIRA_REPORTER_FEATURE=true
-      - KETCHUP_JIRA_REPORTER_GLOBAL=true
-      - USE_PIPELINE_PROCESSING=true
-    volumes:
-      - ~/.aws:/root/.aws:ro
-      - ./logs:/var/log
-    depends_on:
-      - mcp-jira
-    restart: unless-stopped
-
-  ketchup-maintenance-fetcher:
-    build:
-      context: ..
-      dockerfile: infrastructure/Dockerfile.maintenance_fetcher
-    image: ketchup-maintenance-fetcher:local-dev
-    environment:
-      - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - LOG_LEVEL=INFO
-      - PYTHONPATH=/app
-      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
-      - KETCHUP_MAINTENANCE_FETCHER_RUN_ON_START=true
-      - TZ=UTC
-    volumes:
-      - ~/.aws:/root/.aws:ro
-      - ./logs:/var/log
-    restart: unless-stopped
 
   # Unified Scheduler - consolidates 5 singleton scheduler services into one container
   # Replaces: ketchup-metadata-updater, ketchup-status-updater, ketchup-jira-reporter,
@@ -247,8 +157,8 @@ services:
       - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
       - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
       - KETCHUP_HANDOVER_SUMMARY_ENABLED=false
-      - KETCHUP_HANDOVER_TARGET_CHANNEL=C03PWLW9P5H
-      - KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00
+      - KETCHUP_HANDOVER_TARGET_CHANNEL=C0AGXRW7KL2 #C03PWLW9P5H - camp-oncall channel.
+      - KETCHUP_HANDOVER_SCHEDULE_TIMES=08:58,16:58
       - KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS=12
       - TZ=Europe/London
     volumes:

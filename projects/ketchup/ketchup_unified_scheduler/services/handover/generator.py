@@ -3,7 +3,7 @@
 import asyncio
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from packages.ai.core.operations.message_preparation import MessagePreparer
@@ -14,6 +14,7 @@ from packages.ai.prompts.handover_summary import (
 )
 from packages.core.config.handover_config import (
     HANDOVER_MESSAGE_WINDOW_HOURS,
+    HANDOVER_SCHEDULE_TIMES,
     HANDOVER_TARGET_CHANNEL,
 )
 from packages.core.constants import ACCESS_REQUEST_CHANNEL, FEEDBACK_CHANNEL
@@ -58,6 +59,13 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
         logger.info("Handover summary feature is disabled")
         return {"status": "disabled"}
 
+    now = datetime.now(timezone.utc)
+    current_minute = now.strftime("%H:%M")
+    previous_minute = (now - timedelta(seconds=60)).strftime("%H:%M")
+    if current_minute not in HANDOVER_SCHEDULE_TIMES and previous_minute not in HANDOVER_SCHEDULE_TIMES:
+        logger.info(f"Skipping handover: time {current_minute} not in schedule {HANDOVER_SCHEDULE_TIMES}")
+        return {"status": "skipped_not_scheduled"}
+
     logger.info("Starting handover summary generation")
     try:
         channel_operations = await container.aget(ChannelOperationsProtocol)
@@ -78,10 +86,9 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
         ]
         logger.info(f"Processing {len(filtered_channels)} channels after filtering")
 
-        membership_results = await channel_membership_ops.lookup_membership_of_channels(
-            [HANDOVER_TARGET_CHANNEL]
-        )
-        if not membership_results.get(HANDOVER_TARGET_CHANNEL, False):
+        member_channels = await channel_membership_ops.lookup_membership_of_channels()
+        member_channel_ids = {ch.get("id") for ch in member_channels}
+        if HANDOVER_TARGET_CHANNEL not in member_channel_ids:
             logger.error(
                 f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}"
             )
@@ -167,8 +174,8 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
             else "Handover Summary - No active incidents"
         )
 
-        await posting_handler.post_message(
-            channel=HANDOVER_TARGET_CHANNEL, text=fallback_text, blocks=blocks
+        await posting_handler._post_channel_message(
+            channel_id=HANDOVER_TARGET_CHANNEL, message=fallback_text, blocks=blocks
         )
         logger.info(f"Successfully posted handover summary with {len(channel_cards)} channels")
 
