@@ -1,19 +1,9 @@
-"""
-handover_summary.py
-
-This module provides prompts for on-call shift handover summary generation.
-"""
+"""Prompts for on-call shift handover summary generation."""
 
 from packages.core.config.feature_flags import FeatureFlags
 
 
 def get_handover_system_prompt() -> str:
-    """
-    Get the system prompt for handover summary generation.
-
-    Returns:
-        str: The system prompt
-    """
     return """You are an AI assistant specialized in generating ultra-compact incident summaries for on-call shift handover.
 
 Your ONLY job is to:
