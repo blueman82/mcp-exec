@@ -311,6 +311,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_TRUST_ENDORSEMENT_FEATURE=true`
 - `KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true`
 - `KETCHUP_CSOPM_NOTIFIER_ENABLED=true` - CSOPM assignment notifications
+- `KETCHUP_HANDOVER_SUMMARY_ENABLED=false` - On-call handover summary notifications
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
 
