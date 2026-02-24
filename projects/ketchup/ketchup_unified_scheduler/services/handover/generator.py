@@ -1,15 +1,4 @@
-"""
-generator.py
-
-This module contains the handover summary generation logic for on-call shift handovers.
-
-The generator:
-1. Collects messages and JIRA comments from active incident channels
-2. Uses AI to generate ultra-compact summaries (1-2 bullets per channel)
-3. Posts formatted handover summary to a designated Slack channel
-
-Feature flag controlled via KETCHUP_HANDOVER_SUMMARY_ENABLED environment variable.
-"""
+"""Handover summary generation logic for on-call shift handovers."""
 
 import asyncio
 import logging
