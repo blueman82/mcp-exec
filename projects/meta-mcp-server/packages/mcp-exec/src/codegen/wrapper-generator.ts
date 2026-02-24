@@ -135,6 +135,52 @@ function sanitizeJsDoc(text: string): string {
 }
 
 /**
+ * Generate a recursive Proxy guard that warns on undefined field access on MCP responses.
+ * Injected into generated wrapper code. On missing field: logs available fields to stderr.
+ * Zero overhead on correct access (prop in target short-circuits).
+ * Arrays are also wrapped so index access returns guarded items.
+ */
+function generateFieldGuard(): string {
+  return `
+function __guardFields(obj, label) {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return new Proxy(obj, {
+      get(target, prop) {
+        if (typeof prop === 'symbol') return target[prop];
+        const idx = Number(prop);
+        if (Number.isInteger(idx) && idx >= 0 && idx < target.length) {
+          const item = target[idx];
+          return item && typeof item === 'object' ? __guardFields(item, label + '[' + idx + ']') : item;
+        }
+        return target[prop];
+      }
+    });
+  }
+  return new Proxy(obj, {
+    get(target, prop) {
+      if (typeof prop === 'symbol' || prop === 'then' || prop === 'toJSON'
+          || prop === 'length' || prop === 'constructor' || prop === 'nodeType'
+          || prop === 'valueOf' || prop === 'toString' || prop === 'inspect') {
+        return target[prop];
+      }
+      if (prop in target) {
+        const val = target[prop];
+        if (val && typeof val === 'object') {
+          return __guardFields(val, label + '.' + String(prop));
+        }
+        return val;
+      }
+      const available = Object.keys(target).join(', ');
+      console.error('⚠ No field "' + String(prop) + '" on ' + label + '. Available: ' + available);
+      return undefined;
+    }
+  });
+}
+`;
+}
+
+/**
  * Sanitize tool name to valid TypeScript identifier
  */
 function sanitizeIdentifier(name: string): string {
