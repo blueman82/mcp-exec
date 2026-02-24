@@ -149,29 +149,9 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                     )
 
                     # Step 7c: Fetch JIRA comments if ticket exists
-                    jira_comments_text = "None"
-                    if jira_ticket and jira_ticket != "NOT YET AVAILABLE":
-                        try:
-                            comments = await mcp_client.get_issue_comments(jira_ticket)
-                            if comments:
-                                # Sort by created date (most recent first) and take top 5
-                                sorted_comments = sorted(
-                                    comments, key=lambda x: x.get("created", ""), reverse=True
-                                )[:5]
-
-                                comment_texts = []
-                                for comment in sorted_comments:
-                                    author = comment.get("author", {}).get("displayName", "Unknown")
-                                    created = comment.get("created", "")[:10]  # Just date part
-                                    body = comment.get("body", "")
-                                    clean_body = body.replace("\n\n", "\n").strip()
-                                    if clean_body:
-                                        comment_texts.append(f"[{created}] {author}: {clean_body}")
-
-                                if comment_texts:
-                                    jira_comments_text = "\n".join(comment_texts)
-                        except Exception as e:
-                            logger.warning(f"Could not fetch JIRA comments for {jira_ticket}: {e}")
+                    jira_comments_text = await _fetch_jira_comments(
+                        mcp_client, jira_ticket, logger
+                    )
 
                     # Step 7d: Skip channel if no messages AND no JIRA comments
                     has_messages = channel_metadata.get("has_channel_messages", False)
