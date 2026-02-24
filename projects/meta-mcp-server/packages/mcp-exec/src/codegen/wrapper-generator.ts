@@ -414,6 +414,9 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   lines.push(' */');
   lines.push('');
 
+  // Inject field guard helper for undefined-field warnings on responses
+  lines.push(generateFieldGuard());
+
   // Generate all interfaces first
   for (const tool of tools) {
     const interfaceCode = generateToolInterface(tool);
