@@ -17,7 +17,9 @@ async def handover_summary_task(container: Optional[TypedServiceRegistry] = None
         result = await generate_and_post_handover(container=container)
         logger.info("Handover summary task completed with result: %s", result)
         if result.get("status") == "error":
-            raise RuntimeError(f"Handover summary generation failed: {result.get('error', 'Unknown error')}")
+            raise RuntimeError(
+                f"Handover summary generation failed: {result.get('error', 'Unknown error')}"
+            )
     except Exception as e:
         logger.error("Handover summary task failed: %s", str(e), exc_info=True)
         raise
@@ -34,5 +36,7 @@ def get_handover_task_configs() -> list[TaskConfig]:
         )
         for i, time_str in enumerate(HANDOVER_SCHEDULE_TIMES)
     ]
-    logger.info(f"Created {len(configs)} handover task configs for times: {HANDOVER_SCHEDULE_TIMES}")
+    logger.info(
+        f"Created {len(configs)} handover task configs for times: {HANDOVER_SCHEDULE_TIMES}"
+    )
     return configs

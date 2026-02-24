@@ -71,17 +71,25 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
         logger.info(f"Found {len(all_channels)} active channels")
 
         filtered_channels = [
-            ch for ch in all_channels
-            if ch.get("channel_id") not in (FEEDBACK_CHANNEL, ACCESS_REQUEST_CHANNEL, HANDOVER_TARGET_CHANNEL)
+            ch
+            for ch in all_channels
+            if ch.get("channel_id")
+            not in (FEEDBACK_CHANNEL, ACCESS_REQUEST_CHANNEL, HANDOVER_TARGET_CHANNEL)
         ]
         logger.info(f"Processing {len(filtered_channels)} channels after filtering")
 
-        membership_results = await channel_membership_ops.lookup_membership_of_channels([HANDOVER_TARGET_CHANNEL])
+        membership_results = await channel_membership_ops.lookup_membership_of_channels(
+            [HANDOVER_TARGET_CHANNEL]
+        )
         if not membership_results.get(HANDOVER_TARGET_CHANNEL, False):
-            logger.error(f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}")
+            logger.error(
+                f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}"
+            )
             return {"status": "not_member"}
 
-        since_ts = str(int(datetime.now(timezone.utc).timestamp()) - (HANDOVER_MESSAGE_WINDOW_HOURS * 3600))
+        since_ts = str(
+            int(datetime.now(timezone.utc).timestamp()) - (HANDOVER_MESSAGE_WINDOW_HOURS * 3600)
+        )
         logger.info(f"Collecting messages since {since_ts} ({HANDOVER_MESSAGE_WINDOW_HOURS}h ago)")
 
         channel_cards = []
@@ -92,7 +100,9 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
             channel_name = channel.get("channel_name", "unknown")
             async with semaphore:
                 try:
-                    channel_details = await channel_operations.query_ops.get_channel_details(channel_id)
+                    channel_details = await channel_operations.query_ops.get_channel_details(
+                        channel_id
+                    )
                     customer_name = channel_details.get("customer_name", "NOT YET AVAILABLE")
                     jira_ticket = channel_details.get("jira_ticket", "")
 
@@ -101,8 +111,10 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                         channel_msg_ops=channel_msg_ops,
                         channel_info_ops=channel_operations.query_ops,
                     )
-                    prepared_messages, channel_metadata = await message_preparer.prepare_messages_for_auto_status(
-                        channel_id=channel_id, since_ts=since_ts, suppress_notification=True
+                    prepared_messages, channel_metadata = (
+                        await message_preparer.prepare_messages_for_auto_status(
+                            channel_id=channel_id, since_ts=since_ts, suppress_notification=True
+                        )
                     )
 
                     jira_comments_text = await _fetch_jira_comments(mcp_client, jira_ticket, logger)
@@ -116,9 +128,16 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                     ai_response = await openai_handler.execute_prompt(
                         messages=[
                             {"role": "system", "content": get_handover_system_prompt()},
-                            {"role": "user", "content": get_handover_channel_prompt(
-                                channel_name, customer_name, jira_ticket, prepared_messages, jira_comments_text
-                            )},
+                            {
+                                "role": "user",
+                                "content": get_handover_channel_prompt(
+                                    channel_name,
+                                    customer_name,
+                                    jira_ticket,
+                                    prepared_messages,
+                                    jira_comments_text,
+                                ),
+                            },
                         ],
                         temperature=0.1,
                         max_tokens=512,
@@ -135,14 +154,17 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                     logger.error(f"Error processing channel {channel_id}: {e}", exc_info=True)
                     return None
 
-        results = await asyncio.gather(*[process_channel(ch) for ch in filtered_channels], return_exceptions=True)
+        results = await asyncio.gather(
+            *[process_channel(ch) for ch in filtered_channels], return_exceptions=True
+        )
         channel_cards = [r for r in results if r is not None and not isinstance(r, Exception)]
         logger.info(f"Generated summaries for {len(channel_cards)} channels")
 
         blocks = _format_handover_message(channel_cards)
         fallback_text = (
             f"Handover Summary - {len(channel_cards)} active incidents"
-            if channel_cards else "Handover Summary - No active incidents"
+            if channel_cards
+            else "Handover Summary - No active incidents"
         )
 
         await posting_handler._post_channel_message(
@@ -171,12 +193,18 @@ def _format_handover_message(channel_cards: List[Dict[str, Any]]) -> List[Dict[s
     blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": title_text}}]
 
     if not channel_cards:
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "_No active incidents to report_"}})
+        blocks.append(
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": "_No active incidents to report_"},
+            }
+        )
     else:
         for i, card in enumerate(channel_cards):
             jira_link = (
                 f" • <https://jira.corp.adobe.com/browse/{card['jira_ticket']}|{card['jira_ticket']}>"
-                if card['jira_ticket'] and card['jira_ticket'] != "NOT YET AVAILABLE" else ""
+                if card["jira_ticket"] and card["jira_ticket"] != "NOT YET AVAILABLE"
+                else ""
             )
             card_text = (
                 f"*<#{card['channel_id']}|{card['channel_name']}>*\n"
@@ -184,7 +212,15 @@ def _format_handover_message(channel_cards: List[Dict[str, Any]]) -> List[Dict[s
             )
             blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": card_text}})
             if i < len(channel_cards) - 1:
-                blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "─────────────────────────────────────────"}})
+                blocks.append(
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "─────────────────────────────────────────",
+                        },
+                    }
+                )
 
     footer_text = f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n_{len(channel_cards)} active incidents • Generated by Ketchup_"
     blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": footer_text}})
