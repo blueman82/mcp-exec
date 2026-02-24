@@ -34,41 +34,19 @@ logger = setup_logger(__name__)
 async def _fetch_jira_comments(
     mcp_client: MCPAsyncClientProtocol, jira_ticket: str, logger: logging.Logger
 ) -> str:
-    """
-    Fetch and format JIRA comments for a ticket.
-
-    Args:
-        mcp_client: MCP client for JIRA API calls
-        jira_ticket: JIRA ticket ID
-        logger: Logger instance
-
-    Returns:
-        Formatted JIRA comments text, or "None" if no comments or error
-    """
     if not jira_ticket or jira_ticket == "NOT YET AVAILABLE":
         return "None"
-
     try:
         comments = await mcp_client.get_issue_comments(jira_ticket)
         if not comments:
             return "None"
-
-        # Sort by created date (most recent first) and take top 5
-        sorted_comments = sorted(
-            comments, key=lambda x: x.get("created", ""), reverse=True
-        )[:5]
-
-        comment_texts = []
-        for comment in sorted_comments:
-            author = comment.get("author", {}).get("displayName", "Unknown")
-            created = comment.get("created", "")[:10]  # Just date part
-            body = comment.get("body", "")
-            clean_body = body.replace("\n\n", "\n").strip()
-            if clean_body:
-                comment_texts.append(f"[{created}] {author}: {clean_body}")
-
+        sorted_comments = sorted(comments, key=lambda x: x.get("created", ""), reverse=True)[:5]
+        comment_texts = [
+            f"[{c.get('created', '')[:10]}] {c.get('author', {}).get('displayName', 'Unknown')}: {body}"
+            for c in sorted_comments
+            if (body := c.get("body", "").replace("\n\n", "\n").strip())
+        ]
         return "\n".join(comment_texts) if comment_texts else "None"
-
     except Exception as e:
         logger.warning(f"Could not fetch JIRA comments for {jira_ticket}: {e}")
         return "None"
