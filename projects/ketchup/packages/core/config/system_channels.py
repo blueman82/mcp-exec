@@ -15,6 +15,7 @@ logger = setup_logger(__name__)
 DEFAULT_EXCLUDED_CHANNELS = {
     "C090V88CB1N": "ketchup_access",
     "C08CQN1JCSC": "ketchup_feedback",
+    "C03PWLW9P5H": "camp-oncall",
 }
 
 
