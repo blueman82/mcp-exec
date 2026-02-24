@@ -41,7 +41,7 @@ def create_task_registry() -> TaskRegistry:
     Create and populate the task registry with all scheduled tasks.
 
     Returns:
-        TaskRegistry with all 5 tasks registered.
+        TaskRegistry with all tasks registered (including dynamic handover tasks).
     """
     registry = TaskRegistry()
 
@@ -51,6 +51,10 @@ def create_task_registry() -> TaskRegistry:
     registry.register(get_metadata_update_task_config())
     registry.register(get_status_update_task_config())
     registry.register(get_jira_report_task_config())
+
+    # Register dynamic handover tasks (one per schedule time)
+    for config in get_handover_task_configs():
+        registry.register(config)
 
     logger.info(f"Registered {len(registry)} tasks: {[t.name for t in registry.list_tasks()]}")
 
