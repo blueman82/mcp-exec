@@ -26,7 +26,7 @@ from packages.core.typed_di.service_registrations.protocols import (
     SlackChannelMessageOpsProtocol,
     SlackPostingHandlerProtocol,
 )
-from packages.core.typed_di.typed_service_registry import TypedServiceRegistry
+from packages.core.typed_di.registry import TypedServiceRegistry
 
 logger = setup_logger(__name__)
 
