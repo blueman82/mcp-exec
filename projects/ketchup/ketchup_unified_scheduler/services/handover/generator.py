@@ -167,8 +167,8 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
             else "Handover Summary - No active incidents"
         )
 
-        await posting_handler._post_channel_message(
-            channel_id=HANDOVER_TARGET_CHANNEL, message=fallback_text, blocks=blocks
+        await posting_handler.post_message(
+            channel=HANDOVER_TARGET_CHANNEL, text=fallback_text, blocks=blocks
         )
         logger.info(f"Successfully posted handover summary with {len(channel_cards)} channels")
 
