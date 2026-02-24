@@ -265,7 +265,7 @@ All external service communication uses async clients:
 
 #### Unified Scheduler Architecture
 - **Location**: `ketchup_unified_scheduler/`
-- Single container orchestrating all 5 background tasks using a shared TypedDI container
+- Single container orchestrating 5+N scheduled tasks (N = number of handover schedule times) using a shared TypedDI container
 - **Engine**: `UnifiedSchedulerEngine` manages task lifecycle and execution
 - **Task Management**: `TaskRegistry` with `TaskConfig` dataclass for declarative task definitions
 - **Health Monitoring**: `PerTaskHealthMonitor` tracks individual task health and execution metrics
@@ -275,6 +275,7 @@ All external service communication uses async clients:
   - `jira_reporter` (continuous monitoring)
   - `maintenance_fetcher` (daily at 1:30 UTC)
   - `pat_rotator` (every 24 hours)
+  - `handover_0`, `handover_1`, etc. (at configured times, e.g. 09:00/17:00 UTC)
 - **Benefits**: Single DI container initialization, unified healthcheck endpoint, simplified deployment
 - Legacy individual scheduler directories have been removed (consolidated into unified scheduler)
 - See `docs/diagrams/04-background-services.md` for visual reference
