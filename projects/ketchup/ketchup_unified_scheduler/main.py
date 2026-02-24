@@ -2,12 +2,13 @@
 """
 Unified Scheduler Main Entry Point.
 
-Single container running all 5 scheduled tasks:
+Single container running all scheduled tasks:
 - maintenance_fetcher (daily at 01:30 UTC)
 - pat_rotator (24-hour interval)
 - metadata_updater (15-minute interval)
 - status_updater (55-minute interval)
 - jira_reporter (15-minute interval)
+- handover_summary (configurable times, default: 09:00 and 17:00 UTC)
 
 Container is created once at startup and shared across all tasks for
 efficient resource utilization (shared HTTP connection pools).
