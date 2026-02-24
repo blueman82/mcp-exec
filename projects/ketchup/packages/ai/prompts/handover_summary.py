@@ -25,25 +25,8 @@ The context provided is for your analysis only - do not reproduce it in your out
 
 
 def get_handover_channel_prompt(
-    channel_name: str,
-    customer_name: str,
-    jira_ticket: str,
-    messages: str,
-    jira_comments: str,
+    channel_name: str, customer_name: str, jira_ticket: str, messages: str, jira_comments: str
 ) -> str:
-    """
-    Get the handover summary prompt for a specific channel.
-
-    Args:
-        channel_name: Name of the Slack channel
-        customer_name: Name of the customer
-        jira_ticket: JIRA ticket identifier
-        messages: Slack messages text
-        jira_comments: JIRA comments text
-
-    Returns:
-        str: The formatted prompt for handover summary generation
-    """
     prompt = f"""
 Generate a shift handover summary for #{channel_name}.
 Customer: {customer_name}
