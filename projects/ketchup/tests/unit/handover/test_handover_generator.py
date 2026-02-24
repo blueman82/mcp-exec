@@ -46,7 +46,7 @@ class TestHandoverGenerator:
         )
 
         mock_posting_handler = AsyncMock()
-        mock_posting_handler._post_channel_message = AsyncMock()
+        mock_posting_handler.post_message = AsyncMock()
 
         # Set up container.aget to return mocks
         async def mock_aget(protocol):
@@ -272,10 +272,10 @@ class TestHandoverGenerator:
                 assert result["channel_count"] == 1
 
                 # Verify posting handler was called
-                mock_container._mock_posting_handler._post_channel_message.assert_called_once()
+                mock_container._mock_posting_handler.post_message.assert_called_once()
 
                 # Verify it was posted to correct channel
-                call_args = mock_container._mock_posting_handler._post_channel_message.call_args
+                call_args = mock_container._mock_posting_handler.post_message.call_args
                 assert call_args[1]["channel_id"] == "C03PWLW9P5H"
 
     @pytest.mark.asyncio
