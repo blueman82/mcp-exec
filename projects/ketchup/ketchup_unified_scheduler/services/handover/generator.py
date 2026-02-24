@@ -12,6 +12,7 @@ Feature flag controlled via KETCHUP_HANDOVER_SUMMARY_ENABLED environment variabl
 """
 
 import asyncio
+import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
