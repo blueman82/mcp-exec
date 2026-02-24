@@ -33,14 +33,17 @@ class TestHandoverTask:
     def test_get_handover_task_configs_single_time_produces_single_config(self):
         """Test single schedule time produces single task config"""
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "14:00"}):
-            # Re-import to pick up env
             import importlib
 
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
 
-            configs = get_handover_task_configs()
+            import ketchup_unified_scheduler.tasks.handover_summary_task as task_module
+
+            importlib.reload(task_module)
+
+            configs = task_module.get_handover_task_configs()
 
             assert len(configs) == 1
 
