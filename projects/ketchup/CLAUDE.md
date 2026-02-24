@@ -33,12 +33,13 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 2. `ketchup-app-1` - FastAPI app replica 1 (port 8001)
 3. `ketchup-app-2` - FastAPI app replica 2 (port 8001)
 4. `mcp-jira` - JIRA MCP service (port 8081)
-5. `ketchup-unified-scheduler` - Unified scheduler running 5 tasks (singleton):
+5. `ketchup-unified-scheduler` - Unified scheduler running 5+N tasks (N = number of handover schedule times) (singleton):
    - `metadata_updater` (every 15 min)
    - `status_updater` (every 55 min)
    - `jira_reporter` (continuous monitoring)
    - `maintenance_fetcher` (daily at 1:30 UTC)
    - `pat_rotator` (every 24 hours)
+   - `handover_0` / `handover_1` (at KETCHUP_HANDOVER_SCHEDULE_TIMES, default 09:00/17:00 UTC)
 6. `ketchup-csopm-notifier` - CSOPM assignment notifications (singleton, runs at 08:00/16:00 UTC)
 7. `ketchup-access-monitor` - Access request monitoring
 
@@ -264,7 +265,7 @@ All external service communication uses async clients:
 
 #### Unified Scheduler Architecture
 - **Location**: `ketchup_unified_scheduler/`
-- Single container orchestrating all 5 background tasks using a shared TypedDI container
+- Single container orchestrating 5+N scheduled tasks (N = number of handover schedule times) using a shared TypedDI container
 - **Engine**: `UnifiedSchedulerEngine` manages task lifecycle and execution
 - **Task Management**: `TaskRegistry` with `TaskConfig` dataclass for declarative task definitions
 - **Health Monitoring**: `PerTaskHealthMonitor` tracks individual task health and execution metrics
@@ -274,6 +275,7 @@ All external service communication uses async clients:
   - `jira_reporter` (continuous monitoring)
   - `maintenance_fetcher` (daily at 1:30 UTC)
   - `pat_rotator` (every 24 hours)
+  - `handover_0`, `handover_1`, etc. (at configured times, e.g. 09:00/17:00 UTC)
 - **Benefits**: Single DI container initialization, unified healthcheck endpoint, simplified deployment
 - Legacy individual scheduler directories have been removed (consolidated into unified scheduler)
 - See `docs/diagrams/04-background-services.md` for visual reference
@@ -309,6 +311,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_TRUST_ENDORSEMENT_FEATURE=true`
 - `KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true`
 - `KETCHUP_CSOPM_NOTIFIER_ENABLED=true` - CSOPM assignment notifications
+- `KETCHUP_HANDOVER_SUMMARY_ENABLED=false` - On-call handover summary notifications
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
 
@@ -336,6 +339,9 @@ KETCHUP_KEEPALIVE_TIMEOUT=60
 KETCHUP_DNS_CACHE_TTL=300
 KETCHUP_USE_HTTPX=true
 KETCHUP_HTTP2_ENABLED=true
+KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00  # Comma-separated UTC times
+KETCHUP_HANDOVER_TARGET_CHANNEL=C03PWLW9P5H  # Slack channel ID for camp-oncall
+KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS=12     # Hours of messages to collect
 ```
 
 ## Code Standards
@@ -461,6 +467,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
+- **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Fresh data collection from Slack, JIRA, and DynamoDB with AI-powered 1-2 bullet summaries per channel. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
 - **January 2026**: LOC reduction initiative - ServiceSpec declarative system and code cleanup removing ~2,600 lines:
   - PR #165: Dead code audit (-1,460 LOC) - Removed unused handlers, orphan classes, legacy compatibility shims
   - PR #166: Documentation sync cleanup (-833 LOC) - Architecture diagram cleanup, removed outdated docs

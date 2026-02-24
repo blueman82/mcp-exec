@@ -2,12 +2,13 @@
 """
 Unified Scheduler Main Entry Point.
 
-Single container running all 5 scheduled tasks:
+Single container running all scheduled tasks:
 - maintenance_fetcher (daily at 01:30 UTC)
 - pat_rotator (24-hour interval)
 - metadata_updater (15-minute interval)
 - status_updater (55-minute interval)
 - jira_reporter (15-minute interval)
+- handover_summary (configurable times, default: 09:00 and 17:00 UTC)
 
 Container is created once at startup and shared across all tasks for
 efficient resource utilization (shared HTTP connection pools).
@@ -18,6 +19,7 @@ import sys
 
 from ketchup_unified_scheduler.engine import UnifiedSchedulerEngine
 from ketchup_unified_scheduler.task_registry import TaskRegistry
+from ketchup_unified_scheduler.tasks.handover_summary_task import get_handover_task_configs
 from ketchup_unified_scheduler.tasks.jira_report_task import get_jira_report_task_config
 from ketchup_unified_scheduler.tasks.maintenance_fetch_task import (
     get_maintenance_fetch_task_config,
@@ -39,7 +41,7 @@ def create_task_registry() -> TaskRegistry:
     Create and populate the task registry with all scheduled tasks.
 
     Returns:
-        TaskRegistry with all 5 tasks registered.
+        TaskRegistry with all tasks registered (including dynamic handover tasks).
     """
     registry = TaskRegistry()
 
@@ -49,6 +51,10 @@ def create_task_registry() -> TaskRegistry:
     registry.register(get_metadata_update_task_config())
     registry.register(get_status_update_task_config())
     registry.register(get_jira_report_task_config())
+
+    # Register dynamic handover tasks (one per schedule time)
+    for config in get_handover_task_configs():
+        registry.register(config)
 
     logger.info(f"Registered {len(registry)} tasks: {[t.name for t in registry.list_tasks()]}")
 
