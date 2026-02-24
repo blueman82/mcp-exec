@@ -70,19 +70,20 @@ Generate 1-2 bullet points summarizing the current state and next action for thi
 - Maximum 50 words total
 - Use • for bullets
 - Focus on: what's happening now + what needs to happen next
-- Use ONLY technical details from the source material above
-- Never fabricate, substitute, or modify technical terms
 
-**CRITICAL RULES:**
+**CRITICAL ACCURACY REQUIREMENTS:**
+• Use ONLY technical details that appear verbatim in the source material above
+• Never substitute, fabricate, or modify any technical terms, system names, or technology references
+• When uncertain about specific technical details, use generic descriptive terms instead
+• Every technical claim must be directly traceable to the source content
+
+**OUTPUT RULES:**
 • Output ONLY 1-2 bullet points, no more
 • Use • character for bullets (not - or *)
 • Maximum 50 words total
 • Each bullet: current state OR next action
 • DO NOT include timestamps, raw messages, or message content
 • DO NOT add any other sections or content
-• **TECHNICAL ACCURACY CHECK:** All technical terms, system names, and technology references in your output MUST appear verbatim in the source material
-• **NO SUBSTITUTION RULE:** Never replace or substitute technical terms with similar alternatives - use exact names from source material only
-• **FACT SOURCE VALIDATION:** Every technical claim can be traced back to provided JIRA or Slack content
 """
 
     # Add JSON schema instruction when feature flag enabled
