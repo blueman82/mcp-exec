@@ -467,6 +467,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
+- **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Fresh data collection from Slack, JIRA, and DynamoDB with AI-powered 1-2 bullet summaries per channel. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
 - **January 2026**: LOC reduction initiative - ServiceSpec declarative system and code cleanup removing ~2,600 lines:
   - PR #165: Dead code audit (-1,460 LOC) - Removed unused handlers, orphan classes, legacy compatibility shims
   - PR #166: Documentation sync cleanup (-833 LOC) - Architecture diagram cleanup, removed outdated docs
