@@ -230,10 +230,11 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
         blocks = _format_handover_message(channel_cards)
 
         # Step 9: Post to HANDOVER_TARGET_CHANNEL
-        if channel_cards:
-            fallback_text = f"Handover Summary - {len(channel_cards)} active incidents"
-        else:
-            fallback_text = "Handover Summary - No active incidents"
+        fallback_text = (
+            f"Handover Summary - {len(channel_cards)} active incidents"
+            if channel_cards
+            else "Handover Summary - No active incidents"
+        )
 
         await posting_handler._post_channel_message(
             channel_id=HANDOVER_TARGET_CHANNEL,
