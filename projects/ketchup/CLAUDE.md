@@ -33,12 +33,13 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 2. `ketchup-app-1` - FastAPI app replica 1 (port 8001)
 3. `ketchup-app-2` - FastAPI app replica 2 (port 8001)
 4. `mcp-jira` - JIRA MCP service (port 8081)
-5. `ketchup-unified-scheduler` - Unified scheduler running 5 tasks (singleton):
+5. `ketchup-unified-scheduler` - Unified scheduler running 5+N tasks (N = number of handover schedule times) (singleton):
    - `metadata_updater` (every 15 min)
    - `status_updater` (every 55 min)
    - `jira_reporter` (continuous monitoring)
    - `maintenance_fetcher` (daily at 1:30 UTC)
    - `pat_rotator` (every 24 hours)
+   - `handover_0` / `handover_1` (at KETCHUP_HANDOVER_SCHEDULE_TIMES, default 09:00/17:00 UTC)
 6. `ketchup-csopm-notifier` - CSOPM assignment notifications (singleton, runs at 08:00/16:00 UTC)
 7. `ketchup-access-monitor` - Access request monitoring
 
