@@ -67,77 +67,45 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
         openai_handler = await container.aget(OpenAIHandlerProtocol)
         posting_handler = await container.aget(SlackPostingHandlerProtocol)
 
-        # Step 3: Get all active channels
         all_channels = await channel_operations.query_ops.get_all_active_channels()
         logger.info(f"Found {len(all_channels)} active channels")
 
-        # Step 4: Filter out special channels and the handover target channel itself
         filtered_channels = [
-            ch
-            for ch in all_channels
-            if ch.get("channel_id")
-            not in (FEEDBACK_CHANNEL, ACCESS_REQUEST_CHANNEL, HANDOVER_TARGET_CHANNEL)
+            ch for ch in all_channels
+            if ch.get("channel_id") not in (FEEDBACK_CHANNEL, ACCESS_REQUEST_CHANNEL, HANDOVER_TARGET_CHANNEL)
         ]
-        logger.info(
-            f"Processing {len(filtered_channels)} channels after filtering special channels"
-        )
+        logger.info(f"Processing {len(filtered_channels)} channels after filtering")
 
-        # Step 5: Check bot membership in target channel
-        membership_results = await channel_membership_ops.lookup_membership_of_channels(
-            [HANDOVER_TARGET_CHANNEL]
-        )
+        membership_results = await channel_membership_ops.lookup_membership_of_channels([HANDOVER_TARGET_CHANNEL])
         if not membership_results.get(HANDOVER_TARGET_CHANNEL, False):
-            logger.error(
-                f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}"
-            )
+            logger.error(f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}")
             return {"status": "not_member"}
 
-        # Step 6: Calculate time window for message collection
-        since_ts = str(
-            int(datetime.now(timezone.utc).timestamp()) - (HANDOVER_MESSAGE_WINDOW_HOURS * 3600)
-        )
+        since_ts = str(int(datetime.now(timezone.utc).timestamp()) - (HANDOVER_MESSAGE_WINDOW_HOURS * 3600))
         logger.info(f"Collecting messages since {since_ts} ({HANDOVER_MESSAGE_WINDOW_HOURS}h ago)")
 
-        # Step 7: Process channels with concurrency control
         channel_cards = []
-        semaphore = asyncio.Semaphore(4)  # Process 4 channels in parallel
+        semaphore = asyncio.Semaphore(4)
 
         async def process_channel(channel: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-            """Process a single channel and return its summary card."""
             channel_id = channel.get("channel_id")
             channel_name = channel.get("channel_name", "unknown")
-
             async with semaphore:
                 try:
-                    # Step 7a: Get channel details
-                    channel_details = await channel_operations.query_ops.get_channel_details(
-                        channel_id
-                    )
+                    channel_details = await channel_operations.query_ops.get_channel_details(channel_id)
                     customer_name = channel_details.get("customer_name", "NOT YET AVAILABLE")
                     jira_ticket = channel_details.get("jira_ticket", "")
 
-                    # Step 7b: Prepare messages using MessagePreparer
-                    token_tracker = TokenTracker()
                     message_preparer = MessagePreparer(
-                        token_tracker=token_tracker,
+                        token_tracker=TokenTracker(),
                         channel_msg_ops=channel_msg_ops,
                         channel_info_ops=channel_operations.query_ops,
                     )
-
-                    prepared_messages, channel_metadata = (
-                        await message_preparer.prepare_messages_for_auto_status(
-                            channel_id=channel_id,
-                            since_ts=since_ts,
-                            suppress_notification=True,
-                        )
+                    prepared_messages, channel_metadata = await message_preparer.prepare_messages_for_auto_status(
+                        channel_id=channel_id, since_ts=since_ts, suppress_notification=True
                     )
 
-                    # Step 7c: Fetch JIRA comments if ticket exists
-                    jira_comments_text = await _fetch_jira_comments(
-                        mcp_client, jira_ticket, logger
-                    )
-
-                    # Step 7d: Skip channel if no messages AND no JIRA comments
+                    jira_comments_text = await _fetch_jira_comments(mcp_client, jira_ticket, logger)
                     has_messages = channel_metadata.get("has_channel_messages", False)
                     has_jira = jira_comments_text != "None"
 
@@ -145,70 +113,43 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                         logger.info(f"Skipping {channel_id}: no messages or JIRA comments")
                         return None
 
-                    # Step 7e: Call OpenAI with handover prompt
-                    system_prompt = get_handover_system_prompt()
-                    channel_prompt = get_handover_channel_prompt(
-                        channel_name=channel_name,
-                        customer_name=customer_name,
-                        jira_ticket=jira_ticket,
-                        messages=prepared_messages,
-                        jira_comments=jira_comments_text,
-                    )
-
                     ai_response = await openai_handler.execute_prompt(
                         messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": channel_prompt},
+                            {"role": "system", "content": get_handover_system_prompt()},
+                            {"role": "user", "content": get_handover_channel_prompt(
+                                channel_name, customer_name, jira_ticket, prepared_messages, jira_comments_text
+                            )},
                         ],
                         temperature=0.1,
                         max_tokens=512,
                     )
 
-                    summary = ai_response.strip()
-
-                    # Step 7f: Build channel card
                     return {
                         "channel_id": channel_id,
                         "channel_name": channel_name,
                         "customer_name": customer_name,
                         "jira_ticket": jira_ticket,
-                        "summary": summary,
+                        "summary": ai_response.strip(),
                     }
-
                 except Exception as e:
                     logger.error(f"Error processing channel {channel_id}: {e}", exc_info=True)
                     return None
 
-        # Process all channels in parallel
-        tasks = [process_channel(ch) for ch in filtered_channels]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # Filter out None values and exceptions
-        for result in results:
-            if result is not None and not isinstance(result, Exception):
-                channel_cards.append(result)
-
+        results = await asyncio.gather(*[process_channel(ch) for ch in filtered_channels], return_exceptions=True)
+        channel_cards = [r for r in results if r is not None and not isinstance(r, Exception)]
         logger.info(f"Generated summaries for {len(channel_cards)} channels")
 
-        # Step 8: Format Block Kit message
         blocks = _format_handover_message(channel_cards)
-
-        # Step 9: Post to HANDOVER_TARGET_CHANNEL
         fallback_text = (
             f"Handover Summary - {len(channel_cards)} active incidents"
-            if channel_cards
-            else "Handover Summary - No active incidents"
+            if channel_cards else "Handover Summary - No active incidents"
         )
 
         await posting_handler._post_channel_message(
-            channel_id=HANDOVER_TARGET_CHANNEL,
-            message=fallback_text,
-            blocks=blocks,
+            channel_id=HANDOVER_TARGET_CHANNEL, message=fallback_text, blocks=blocks
         )
-
         logger.info(f"Successfully posted handover summary with {len(channel_cards)} channels")
 
-        # Step 10: Return success status
         return {
             "status": "success",
             "channel_count": len(channel_cards),
