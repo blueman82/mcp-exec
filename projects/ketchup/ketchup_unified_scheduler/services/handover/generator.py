@@ -53,40 +53,13 @@ async def _fetch_jira_comments(
 
 
 async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[str, Any]:
-    """
-    Generate and post on-call shift handover summary to Slack.
-
-    This function:
-    1. Checks if handover summary feature is enabled
-    2. Collects messages and JIRA comments from active incident channels
-    3. Uses AI to generate ultra-compact summaries (1-2 bullets per channel)
-    4. Posts formatted Block Kit message to the handover target channel
-
-    Args:
-        container: TypedDI service container with all required dependencies
-
-    Returns:
-        Dict with status, channel_count, and timestamp. Possible status values:
-        - "disabled": Feature flag is not enabled
-        - "not_member": Bot is not a member of the target channel
-        - "success": Handover summary posted successfully
-        - "error": An error occurred during generation
-
-    Environment Variables:
-        KETCHUP_HANDOVER_SUMMARY_ENABLED: Must be "true" to enable this feature
-        KETCHUP_HANDOVER_TARGET_CHANNEL: Channel ID where summary is posted
-        KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS: Hours to look back for messages
-    """
-    # Step 1: Check feature flag (fail fast at boundary)
+    """Generate and post on-call shift handover summary to Slack."""
     if os.getenv("KETCHUP_HANDOVER_SUMMARY_ENABLED", "false").lower() != "true":
         logger.info("Handover summary feature is disabled")
         return {"status": "disabled"}
 
     logger.info("Starting handover summary generation")
-
     try:
-
-        # Step 2: Resolve services from container
         channel_operations = await container.aget(ChannelOperationsProtocol)
         channel_msg_ops = await container.aget(SlackChannelMessageOpsProtocol)
         channel_membership_ops = await container.aget(ChannelMembershipOpsProtocol)
