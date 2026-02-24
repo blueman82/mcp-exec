@@ -66,13 +66,14 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
         KETCHUP_HANDOVER_TARGET_CHANNEL: Channel ID where summary is posted
         KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS: Hours to look back for messages
     """
-    try:
-        # Step 1: Check feature flag
-        if os.getenv("KETCHUP_HANDOVER_SUMMARY_ENABLED", "false").lower() != "true":
-            logger.info("Handover summary feature is disabled")
-            return {"status": "disabled"}
+    # Step 1: Check feature flag (fail fast at boundary)
+    if os.getenv("KETCHUP_HANDOVER_SUMMARY_ENABLED", "false").lower() != "true":
+        logger.info("Handover summary feature is disabled")
+        return {"status": "disabled"}
 
-        logger.info("Starting handover summary generation")
+    logger.info("Starting handover summary generation")
+
+    try:
 
         # Step 2: Resolve services from container
         channel_operations = await container.aget(ChannelOperationsProtocol)
