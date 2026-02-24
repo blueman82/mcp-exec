@@ -126,14 +126,17 @@ class TestHandoverTask:
     def test_configs_have_correct_schedule_times(self):
         """Test task configs have correct schedule times"""
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "08:30,14:45"}):
-            # Re-import to pick up env
             import importlib
 
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
 
-            configs = get_handover_task_configs()
+            import ketchup_unified_scheduler.tasks.handover_summary_task as task_module
+
+            importlib.reload(task_module)
+
+            configs = task_module.get_handover_task_configs()
 
             assert configs[0].schedule_time == "08:30"
             assert configs[1].schedule_time == "14:45"
