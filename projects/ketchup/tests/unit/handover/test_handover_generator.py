@@ -276,7 +276,7 @@ class TestHandoverGenerator:
 
                 # Verify it was posted to correct channel
                 call_args = mock_container._mock_posting_handler.post_message.call_args
-                assert call_args[1]["channel_id"] == "C03PWLW9P5H"
+                assert call_args[1]["channel"] == "C03PWLW9P5H"
 
     @pytest.mark.asyncio
     async def test_result_includes_timestamp(self, mock_container):
