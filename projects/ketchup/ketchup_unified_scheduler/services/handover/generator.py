@@ -43,7 +43,7 @@ logger = setup_logger(__name__)
 
 
 async def _fetch_jira_comments(
-    mcp_client: MCPAsyncClientProtocol, jira_ticket: str, logger
+    mcp_client: MCPAsyncClientProtocol, jira_ticket: str, logger: logging.Logger
 ) -> str:
     """
     Fetch and format JIRA comments for a ticket.
