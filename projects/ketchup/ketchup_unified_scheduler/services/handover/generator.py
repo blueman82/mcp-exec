@@ -16,8 +16,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from packages.ai.cost_calculator import TokenTracker
 from packages.ai.core.operations.message_preparation import MessagePreparer
+from packages.ai.cost_calculator import TokenTracker
 from packages.ai.prompts.handover_summary import (
     get_handover_channel_prompt,
     get_handover_system_prompt,
@@ -102,7 +102,9 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
             [HANDOVER_TARGET_CHANNEL]
         )
         if not membership_results.get(HANDOVER_TARGET_CHANNEL, False):
-            logger.error(f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}")
+            logger.error(
+                f"Bot is not a member of handover target channel {HANDOVER_TARGET_CHANNEL}"
+            )
             return {"status": "not_member"}
 
         # Step 6: Calculate time window for message collection

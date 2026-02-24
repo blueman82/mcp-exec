@@ -97,7 +97,7 @@ Generate 1-2 bullet points summarizing the current state and next action for thi
 
     # Add JSON schema instruction when feature flag enabled
     if FeatureFlags.is_structured_json_output_enabled():
-        prompt += '\n\nIMPORTANT: Return your response as JSON with this exact structure:\n'
+        prompt += "\n\nIMPORTANT: Return your response as JSON with this exact structure:\n"
         prompt += '{"response_text": "your complete formatted response here using markdown"}\n'
 
     return prompt

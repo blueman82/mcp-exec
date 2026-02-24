@@ -3,8 +3,8 @@ Unit tests for handover summary generator.
 """
 
 import os
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

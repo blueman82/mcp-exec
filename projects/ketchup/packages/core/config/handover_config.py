@@ -34,4 +34,6 @@ HANDOVER_TARGET_CHANNEL: str = os.environ.get("KETCHUP_HANDOVER_TARGET_CHANNEL",
 
 # Message Window Configuration
 # Number of hours to look back when collecting messages for summary
-HANDOVER_MESSAGE_WINDOW_HOURS: int = int(os.environ.get("KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS", "12"))
+HANDOVER_MESSAGE_WINDOW_HOURS: int = int(
+    os.environ.get("KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS", "12")
+)

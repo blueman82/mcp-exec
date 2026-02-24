@@ -2,10 +2,7 @@
 Unit tests for handover summary prompts.
 """
 
-import os
 from unittest.mock import patch
-
-import pytest
 
 from packages.ai.prompts.handover_summary import (
     get_handover_channel_prompt,
@@ -173,7 +170,9 @@ class TestHandoverPrompts:
 
     def test_channel_prompt_includes_json_schema_when_enabled(self):
         """Test channel prompt includes JSON schema instruction when feature flag enabled"""
-        with patch("packages.ai.prompts.handover_summary.FeatureFlags.is_structured_json_output_enabled") as mock_flag:
+        with patch(
+            "packages.ai.prompts.handover_summary.FeatureFlags.is_structured_json_output_enabled"
+        ) as mock_flag:
             mock_flag.return_value = True
 
             prompt = get_handover_channel_prompt(
@@ -189,7 +188,9 @@ class TestHandoverPrompts:
 
     def test_channel_prompt_excludes_json_schema_when_disabled(self):
         """Test channel prompt excludes JSON schema instruction when feature flag disabled"""
-        with patch("packages.ai.prompts.handover_summary.FeatureFlags.is_structured_json_output_enabled") as mock_flag:
+        with patch(
+            "packages.ai.prompts.handover_summary.FeatureFlags.is_structured_json_output_enabled"
+        ) as mock_flag:
             mock_flag.return_value = False
 
             prompt = get_handover_channel_prompt(

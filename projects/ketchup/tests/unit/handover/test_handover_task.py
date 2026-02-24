@@ -21,6 +21,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "09:00,17:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -34,6 +35,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "14:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -47,6 +49,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "08:00,12:00,16:00,20:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -60,6 +63,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "09:00,17:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -74,6 +78,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "09:00,17:00,21:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -87,6 +92,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "09:00,17:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -102,6 +108,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "09:00,17:00"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -115,6 +122,7 @@ class TestHandoverTask:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "08:30,14:45"}):
             # Re-import to pick up env
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)

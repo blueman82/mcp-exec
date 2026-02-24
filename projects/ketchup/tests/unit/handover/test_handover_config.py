@@ -5,8 +5,6 @@ Unit tests for handover configuration module.
 import os
 from unittest.mock import patch
 
-import pytest
-
 
 class TestHandoverConfig:
     """Test cases for handover configuration"""
@@ -16,6 +14,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {}, clear=True):
             # Re-import module to trigger default parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -27,6 +26,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "08:00,12:00,20:00"}):
             # Re-import module to trigger env parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -38,6 +38,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": "14:30"}):
             # Re-import module to trigger env parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -49,6 +50,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SCHEDULE_TIMES": " 09:00 , 17:00 "}):
             # Re-import module to trigger env parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -60,6 +62,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {}, clear=True):
             # Re-import module to trigger default parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -71,6 +74,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_TARGET_CHANNEL": "C12345678"}):
             # Re-import module to trigger env parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -82,6 +86,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {}, clear=True):
             # Re-import module to trigger default parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -93,6 +98,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS": "24"}):
             # Re-import module to trigger env parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
@@ -104,6 +110,7 @@ class TestHandoverConfig:
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS": "6"}):
             # Re-import module to trigger env parsing
             import importlib
+
             import packages.core.config.handover_config as config_module
 
             importlib.reload(config_module)
