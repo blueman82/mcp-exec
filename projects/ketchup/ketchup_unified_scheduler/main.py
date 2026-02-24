@@ -19,6 +19,7 @@ import sys
 
 from ketchup_unified_scheduler.engine import UnifiedSchedulerEngine
 from ketchup_unified_scheduler.task_registry import TaskRegistry
+from ketchup_unified_scheduler.tasks.handover_summary_task import get_handover_task_configs
 from ketchup_unified_scheduler.tasks.jira_report_task import get_jira_report_task_config
 from ketchup_unified_scheduler.tasks.maintenance_fetch_task import (
     get_maintenance_fetch_task_config,
