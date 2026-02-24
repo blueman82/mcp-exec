@@ -38,9 +38,15 @@ class TestHandoverPrompts:
 
         assert "1-2 bullet" in prompt.lower()
 
-    def test_system_prompt_mentions_accuracy_requirements(self):
-        """Test system prompt includes accuracy requirements"""
-        prompt = get_handover_system_prompt()
+    def test_channel_prompt_mentions_accuracy_requirements(self):
+        """Test channel prompt includes accuracy requirements"""
+        prompt = get_handover_channel_prompt(
+            channel_name="test-incident",
+            customer_name="Acme Corp",
+            jira_ticket="TEST-123",
+            messages="Sample messages",
+            jira_comments="Sample comments",
+        )
 
         assert "accuracy" in prompt.lower() or "verbatim" in prompt.lower()
 
