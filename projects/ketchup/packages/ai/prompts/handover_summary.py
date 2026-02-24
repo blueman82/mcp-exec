@@ -5,9 +5,6 @@ This module provides prompts for on-call shift handover summary generation.
 """
 
 from packages.core.config.feature_flags import FeatureFlags
-from packages.core.logging import setup_logger
-
-logger = setup_logger(__name__)
 
 
 def get_handover_system_prompt() -> str:
