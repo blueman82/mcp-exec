@@ -36,9 +36,8 @@ async def handover_summary_task(container: Optional[TypedServiceRegistry] = None
         logger.info("Handover summary task completed with result: %s", result)
 
         if result.get("status") == "error":
-            raise RuntimeError(
-                f"Handover summary generation failed: {result.get('message', 'Unknown error')}"
-            )
+            error_msg = result.get("error", "Unknown error")
+            raise RuntimeError(f"Handover summary generation failed: {error_msg}")
 
     except Exception as e:
         logger.error("Handover summary task failed: %s", str(e), exc_info=True)
