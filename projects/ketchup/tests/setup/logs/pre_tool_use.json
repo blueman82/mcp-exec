@@ -285,5 +285,23 @@
       "subagent_type": "docker-infrastructure-specialist"
     },
     "tool_use_id": "toolu_01VwDzPQdZx8wuMUnPdtL3op"
+  },
+  {
+    "session_id": "2e90bf2f-b167-480f-8800-02ed78f24a65",
+    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-emea-projects-ketchup/2e90bf2f-b167-480f-8800-02ed78f24a65.jsonl",
+    "cwd": "/Users/harrison/Documents/Github/camp-ops-emea/.claude/worktrees/handover-summary/projects/ketchup/tests/setup",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Task",
+    "tool_input": {
+      "description": "Clodex final review of handover feature",
+      "prompt": "You are performing the FINAL comprehensive code review of the handover summary feature before it ships. This is the last quality gate.\n\n## Working Directory\nAll files are at: /Users/harrison/Documents/Github/camp-ops-emea/.claude/worktrees/handover-summary/projects/ketchup\n\n## Context\nThis feature generates an on-call handover summary that:\n1. Reads Slack messages from active channels (12h window)\n2. Fetches JIRA comments for associated tickets\n3. Sends channel data to Azure OpenAI for 1-2 bullet summaries\n4. Posts a Block Kit formatted summary to the camp-oncall channel\n5. Uses asyncio.Semaphore(4) for concurrent AI calls\n6. Runs as a scheduled task in the unified scheduler\n\n## Files to Review (read ALL of these)\n**Source code:**\n1. packages/core/config/handover_config.py\n2. packages/ai/prompts/handover_summary.py\n3. ketchup_unified_scheduler/services/handover/__init__.py\n4. ketchup_unified_scheduler/services/handover/generator.py (CORE - most important)\n5. ketchup_unified_scheduler/tasks/handover_summary_task.py\n6. ketchup_unified_scheduler/main.py (handover additions only)\n\n**Infrastructure:**\n7. infrastructure/docker-compose.yml (handover env vars)\n\n**Tests:**\n8. tests/unit/handover/test_handover_config.py\n9. tests/unit/handover/test_handover_generator.py\n10. tests/unit/handover/test_handover_prompt.py\n11. tests/unit/handover/test_handover_task.py\n\n## Review Focus Areas\n1. **Correctness**: Are async patterns correct? (Semaphore, gather, error handling)\n2. **Block Kit**: Is the Slack message formatting correct?\n3. **DI Integration**: Does it follow TypedDI patterns correctly?\n4. **Edge Cases**: Empty channels, AI failures, missing env vars, no active channels\n5. **Security**: No credential leaks, proper input validation\n6. **Performance**: 12h window collection, concurrent AI calls, potential bottlenecks\n7. **Error Handling**: Graceful degradation, proper logging\n8. **Test Coverage**: Are edge cases tested? Any gaps?\n\n## Instructions\n1. Read ALL files listed above\n2. For each file, note any issues found\n3. DO NOT make any edits \u2014 this is a read-only review\n4. Provide a final verdict: **PASS** or **FAIL** with specific issues\n\nWhen done, mark task #4 as completed using TaskUpdate and provide your verdict.",
+      "subagent_type": "code-reviewer",
+      "run_in_background": true,
+      "name": "clodex-reviewer",
+      "team_name": "handover-quality",
+      "mode": "bypassPermissions"
+    },
+    "tool_use_id": "toolu_bdrk_01V6fVpKtcJVWdJhFThUfo8p"
   }
 ]
