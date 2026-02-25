@@ -638,6 +638,19 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                     )
                     continue
 
+                # Skip if snoozed
+                if record.closure_snoozed_until:
+                    snooze_time = datetime.fromtimestamp(
+                        record.closure_snoozed_until, tz=timezone.utc
+                    )
+                    if now < snooze_time:
+                        logger.debug(
+                            "Ticket %s closure reminder snoozed until %s",
+                            record.ticket_key,
+                            snooze_time.isoformat(),
+                        )
+                        continue
+
                 # Reminders are sent with visibility into open followups,
                 # allowing assignees to decide if they block closure.
 

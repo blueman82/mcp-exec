@@ -104,6 +104,7 @@ class NotificationRecord:
     followup_ticket_keys: List[str] = field(default_factory=list)
     completed_at: Optional[int] = None
     closed_at: Optional[int] = None
+    closure_snoozed_until: Optional[int] = None
 
 
 @dataclass
