@@ -41,9 +41,11 @@ class TestSecretsManager:
     @pytest.mark.asyncio
     async def test_init(self):
         """Test SecretsManager initialization."""
-        # Test with default region
+        # Test default region matches the AWS_REGION constant (resolved at import time)
+        from packages.core.constants import AWS_REGION
+
         manager = SecretsManager()
-        assert manager.region_name == "eu-west-1"  # AWS_REGION default
+        assert manager.region_name == AWS_REGION
 
         # Test with custom region
         manager = SecretsManager(region_name="us-east-1")

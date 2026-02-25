@@ -16,9 +16,10 @@ async def handover_summary_task(container: Optional[TypedServiceRegistry] = None
     try:
         result = await generate_and_post_handover(container=container)
         logger.info("Handover summary task completed with result: %s", result)
-        if result.get("status") == "error":
+        status = result.get("status")
+        if status not in ("success", "disabled", "skipped_not_scheduled"):
             raise RuntimeError(
-                f"Handover summary generation failed: {result.get('error', 'Unknown error')}"
+                f"Handover summary generation failed: status={status}, {result.get('error', '')}"
             )
     except Exception as e:
         logger.error("Handover summary task failed: %s", str(e), exc_info=True)

@@ -21,3 +21,4 @@ corp_jira_mcp/node_modules
 analysis/registered_services_summary.json
 tests/benchmarks/
 docs/plans/
+.mypy_cache/

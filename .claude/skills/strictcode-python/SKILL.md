@@ -228,6 +228,24 @@ value = dictionary.get(key, default)
 
 ---
 
+## Output Sanitization Patterns
+
+When inserting untrusted text (AI output, user input, external API responses) into structured output formats, sanitize before insertion:
+
+| Output Format | Dangerous Tokens | Sanitization |
+|---------------|-----------------|--------------|
+| **Slack mrkdwn** | `<!channel>`, `<!here>`, `<!everyone>`, `<@U...>` | `re.sub(r'<[!@][^>]+>', '', text)` |
+| **HTML** | `<script>`, `onclick=`, entity injection | `html.escape(text)` |
+| **SQL** | `'; DROP TABLE`, `OR 1=1` | Parameterized queries only, never f-strings |
+| **Shell** | `$(cmd)`, `` `cmd` ``, `; rm -rf` | `shlex.quote(text)` |
+| **JSON in templates** | Unescaped quotes, newlines | `json.dumps(text)` |
+
+**Rule:** Any text from AI models, user input, or external APIs MUST be treated as untrusted. Sanitize at the point of insertion, not at the point of collection.
+
+**Allowlist > blocklist:** When building status/result dicts consumed by callers, prefer allowlist checks (`if status not in ("success", "disabled")`) over blocklist checks (`if status == "error"`) — fail-closed prevents silent failures from unhandled return values.
+
+---
+
 ## Checklist
 
 Before completing Python code changes:
@@ -249,3 +267,4 @@ Before completing Python code changes:
 - [ ] `"".join()` over string concatenation in loops
 - [ ] Dict dispatch over long `if/elif` chains (5+)
 - [ ] Guard clauses over nested conditionals 3+ deep
+- [ ] **Untrusted text sanitized before output** (AI responses, user input, API data)

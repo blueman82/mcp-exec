@@ -16,7 +16,8 @@ class TestSystemChannelExclusions:
 
         assert "C090V88CB1N" in excluded  # ketchup_access
         assert "C08CQN1JCSC" in excluded  # ketchup_feedback
-        assert len(excluded) == 2
+        assert "C03PWLW9P5H" in excluded  # camp-oncall
+        assert len(excluded) == 3
 
     def test_custom_exclusions_from_env(self):
         """Test loading exclusions from environment variable."""

@@ -9,7 +9,7 @@ Verifies:
 - Parses ISO 8601 date strings correctly
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
@@ -25,7 +25,7 @@ class TestPatExpiryCalculation:
         monitor = PatMonitor()
 
         # Set expiry date to 90 days in the future
-        expiry_date = datetime.utcnow() + timedelta(days=90)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=90)
         expiry_iso = expiry_date.isoformat()
 
         days_remaining = monitor._calculate_days_remaining(expiry_iso)
@@ -38,7 +38,7 @@ class TestPatExpiryCalculation:
         monitor = PatMonitor()
 
         # Set expiry date to 5 days in the future
-        expiry_date = datetime.utcnow() + timedelta(days=5)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=5)
         expiry_iso = expiry_date.isoformat()
 
         days_remaining = monitor._calculate_days_remaining(expiry_iso)
@@ -50,7 +50,7 @@ class TestPatExpiryCalculation:
         monitor = PatMonitor()
 
         # Set expiry date to 5 days in the past
-        expiry_date = datetime.utcnow() - timedelta(days=5)
+        expiry_date = datetime.now(timezone.utc) - timedelta(days=5)
         expiry_iso = expiry_date.isoformat()
 
         days_remaining = monitor._calculate_days_remaining(expiry_iso)
@@ -67,7 +67,7 @@ class TestRotationNeeded:
         monitor = PatMonitor()
 
         # Set expiry date to 10 days in the future (less than 15-day buffer)
-        expiry_date = datetime.utcnow() + timedelta(days=10)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=10)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -80,7 +80,7 @@ class TestRotationNeeded:
         monitor = PatMonitor()
 
         # Set expiry date to 90 days in the future (well beyond 15-day buffer)
-        expiry_date = datetime.utcnow() + timedelta(days=90)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=90)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -93,7 +93,7 @@ class TestRotationNeeded:
         monitor = PatMonitor()
 
         # Set expiry date to 75 days in the future
-        expiry_date = datetime.utcnow() + timedelta(days=75)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=75)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -107,7 +107,7 @@ class TestRotationNeeded:
         monitor = PatMonitor()
 
         # Set expiry date to exactly 15 days in the future
-        expiry_date = datetime.utcnow() + timedelta(days=15)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=15)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -121,7 +121,7 @@ class TestRotationNeeded:
         monitor = PatMonitor()
 
         # Set expiry date to 20 days in the future (well above 15-day buffer)
-        expiry_date = datetime.utcnow() + timedelta(days=20)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=20)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -135,7 +135,7 @@ class TestRotationNeeded:
         monitor = PatMonitor()
 
         # Set expiry date to 5 days in the past
-        expiry_date = datetime.utcnow() - timedelta(days=5)
+        expiry_date = datetime.now(timezone.utc) - timedelta(days=5)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -175,7 +175,7 @@ class TestDateStringParsing:
         monitor = PatMonitor()
 
         # Create an ISO 8601 date string
-        test_date = datetime.utcnow() + timedelta(days=30)
+        test_date = datetime.now(timezone.utc) + timedelta(days=30)
         iso_string = test_date.isoformat()
 
         days_remaining = monitor._calculate_days_remaining(iso_string)
@@ -188,7 +188,7 @@ class TestDateStringParsing:
         monitor = PatMonitor()
 
         # Create an ISO 8601 date string with timezone
-        test_date = datetime.utcnow() + timedelta(days=45)
+        test_date = datetime.now(timezone.utc) + timedelta(days=45)
         iso_string = test_date.isoformat() + "Z"
 
         days_remaining = monitor._calculate_days_remaining(iso_string)
@@ -213,7 +213,7 @@ class TestSecretsManagerIntegration:
         """Test that PAT_EXPIRY is read from AWS Secrets Manager."""
         monitor = PatMonitor()
 
-        expiry_date = datetime.utcnow() + timedelta(days=60)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=60)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(
@@ -233,7 +233,7 @@ class TestPublicApi:
         """Test that get_days_remaining returns correct value."""
         monitor = PatMonitor()
 
-        expiry_date = datetime.utcnow() + timedelta(days=50)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=50)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):
@@ -246,7 +246,7 @@ class TestPublicApi:
         """Test that should_rotate returns a boolean value."""
         monitor = PatMonitor()
 
-        expiry_date = datetime.utcnow() + timedelta(days=90)
+        expiry_date = datetime.now(timezone.utc) + timedelta(days=90)
         expiry_iso = expiry_date.isoformat()
 
         with patch.object(monitor, "_get_pat_expiry_from_secrets", return_value=expiry_iso):

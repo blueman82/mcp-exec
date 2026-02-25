@@ -186,3 +186,34 @@ class TestHandoverTask:
 
             # Should not raise
             await handover_summary_task(container=mock_container)
+
+    @pytest.mark.asyncio
+    async def test_not_member_status_raises_runtime_error(self):
+        """Test that not_member status raises RuntimeError"""
+        mock_generator = AsyncMock(return_value={"status": "not_member"})
+        with patch(
+            "ketchup_unified_scheduler.tasks.handover_summary_task.generate_and_post_handover",
+            mock_generator,
+        ):
+            with pytest.raises(RuntimeError, match="not_member"):
+                await handover_summary_task(container=AsyncMock())
+
+    @pytest.mark.asyncio
+    async def test_disabled_status_does_not_raise(self):
+        """Test that disabled status completes without error"""
+        mock_generator = AsyncMock(return_value={"status": "disabled"})
+        with patch(
+            "ketchup_unified_scheduler.tasks.handover_summary_task.generate_and_post_handover",
+            mock_generator,
+        ):
+            await handover_summary_task(container=AsyncMock())
+
+    @pytest.mark.asyncio
+    async def test_skipped_not_scheduled_status_does_not_raise(self):
+        """Test that skipped_not_scheduled status completes without error"""
+        mock_generator = AsyncMock(return_value={"status": "skipped_not_scheduled"})
+        with patch(
+            "ketchup_unified_scheduler.tasks.handover_summary_task.generate_and_post_handover",
+            mock_generator,
+        ):
+            await handover_summary_task(container=AsyncMock())

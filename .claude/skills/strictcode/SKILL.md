@@ -130,6 +130,40 @@ async function checkKISS(className) {
 }
 ```
 
+### 2.5 Return Value Contract Verification
+
+For functions returning status dicts/enums/tagged unions, verify all callers handle all possible return values:
+
+```javascript
+// Execute via mcp__mcp-exec__execute_code_with_wrappers with wrappers: ["serena"]
+
+async function checkReturnContracts(functionName) {
+  // 1. Read the function body to find all return paths
+  const detail = await serena.find_symbol({ name: functionName, depth: 2 });
+  const body = detail.body || '';
+
+  // 2. Extract distinct return values (status strings, enum variants, error types)
+  const returnStatuses = body.match(/return\s+\{[^}]*"status":\s*"(\w+)"/g) || [];
+  const statusValues = [...new Set(returnStatuses.map(r => r.match(/"(\w+)"$/)?.[1]).filter(Boolean))];
+
+  // 3. Find all callers
+  const callers = await serena.find_referencing_symbols({ name_path: functionName });
+
+  // 4. For each caller, check which return values they handle
+  for (const caller of callers) {
+    const callerBody = (await serena.find_symbol({ name: caller.name, depth: 1 })).body || '';
+    const handledStatuses = statusValues.filter(s => callerBody.includes(`"${s}"`));
+    const unhandled = statusValues.filter(s => !handledStatuses.includes(s));
+
+    if (unhandled.length > 0) {
+      console.log(`[CONTRACT] ${caller.name} does not handle: ${unhandled.join(', ')} from ${functionName}`);
+    }
+  }
+}
+```
+
+**Contract rule:** If a function returns N distinct status values but a caller only checks M < N, flag as "silent failure path" (HIGH severity). Prefer allowlist checks (`status not in (good_values)`) over blocklist checks (`status == "error"`) — fail-closed by default.
+
 ---
 
 ## Phase 3: Semantic Analysis via Theo

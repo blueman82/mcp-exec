@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -19,6 +20,7 @@ from packages.core.config.handover_config import (
 )
 from packages.core.constants import ACCESS_REQUEST_CHANNEL, FEEDBACK_CHANNEL
 from packages.core.logging import setup_logger
+from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.protocols import (
     ChannelMembershipOpsProtocol,
     ChannelOperationsProtocol,
@@ -27,9 +29,20 @@ from packages.core.typed_di.service_registrations.protocols import (
     SlackChannelMessageOpsProtocol,
     SlackPostingHandlerProtocol,
 )
-from packages.core.typed_di.registry import TypedServiceRegistry
 
 logger = setup_logger(__name__)
+
+
+def _sanitize_mrkdwn(text: str) -> str:
+    """Remove Slack broadcast tokens and user mentions from text to prevent unwanted pings."""
+    # Strip broadcast tokens
+    text = re.sub(r"<!channel>", "", text)
+    text = re.sub(r"<!here>", "", text)
+    text = re.sub(r"<!everyone>", "", text)
+    # Strip user mentions (both simple and display name formats)
+    text = re.sub(r"<@U[A-Z0-9]+\|[^>]+>", "", text)
+    text = re.sub(r"<@U[A-Z0-9]+>", "", text)
+    return text
 
 
 async def _fetch_jira_comments(
@@ -62,8 +75,13 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
     now = datetime.now(timezone.utc)
     current_minute = now.strftime("%H:%M")
     previous_minute = (now - timedelta(seconds=60)).strftime("%H:%M")
-    if current_minute not in HANDOVER_SCHEDULE_TIMES and previous_minute not in HANDOVER_SCHEDULE_TIMES:
-        logger.info(f"Skipping handover: time {current_minute} not in schedule {HANDOVER_SCHEDULE_TIMES}")
+    if (
+        current_minute not in HANDOVER_SCHEDULE_TIMES
+        and previous_minute not in HANDOVER_SCHEDULE_TIMES
+    ):
+        logger.info(
+            f"Skipping handover: time {current_minute} not in schedule {HANDOVER_SCHEDULE_TIMES}"
+        )
         return {"status": "skipped_not_scheduled"}
 
     logger.info("Starting handover summary generation")
@@ -155,7 +173,7 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                         "channel_name": channel_name,
                         "customer_name": customer_name,
                         "jira_ticket": jira_ticket,
-                        "summary": ai_response.strip(),
+                        "summary": _sanitize_mrkdwn(ai_response.strip()),
                     }
                 except Exception as e:
                     logger.error(f"Error processing channel {channel_id}: {e}", exc_info=True)
@@ -234,5 +252,13 @@ def _format_handover_message(channel_cards: List[Dict[str, Any]]) -> List[Dict[s
     # Slack API limit: max 50 blocks per message
     if len(blocks) > 50:
         blocks = blocks[:49]
-        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"_...and more ({len(channel_cards)} total incidents) • Truncated to fit Slack limits_"}})
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"_...and more ({len(channel_cards)} total incidents) • Truncated to fit Slack limits_",
+                },
+            }
+        )
     return blocks

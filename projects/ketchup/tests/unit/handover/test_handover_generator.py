@@ -126,7 +126,9 @@ class TestHandoverGenerator:
                 assert result["channel_count"] == 0
 
     @pytest.mark.asyncio
-    async def test_channels_with_no_data_are_skipped(self, mock_container, current_time_in_schedule):
+    async def test_channels_with_no_data_are_skipped(
+        self, mock_container, current_time_in_schedule
+    ):
         """Test channels with no messages and no JIRA comments are skipped"""
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SUMMARY_ENABLED": "true"}):
             with patch(
@@ -318,9 +320,7 @@ class TestHandoverGenerator:
                     mock_container._mock_posting_handler._post_channel_message.assert_called_once()
 
                     # Verify it was posted to correct channel
-                    call_args = (
-                        mock_container._mock_posting_handler._post_channel_message.call_args
-                    )
+                    call_args = mock_container._mock_posting_handler._post_channel_message.call_args
                     assert call_args[1]["channel_id"] == "C03PWLW9P5H"
 
     @pytest.mark.asyncio
@@ -474,3 +474,42 @@ class TestHandoverGenerator:
                     assert messages[0]["role"] == "system"
                     assert messages[1]["role"] == "user"
                     assert "test-channel" in messages[1]["content"]
+
+
+class TestSanitizeMrkdwn:
+    """Test cases for mrkdwn sanitization"""
+
+    def test_strips_channel_broadcast(self):
+        from ketchup_unified_scheduler.services.handover.generator import _sanitize_mrkdwn
+
+        assert "alert" in _sanitize_mrkdwn("<!channel> alert")
+        assert "<!channel>" not in _sanitize_mrkdwn("<!channel> alert")
+
+    def test_strips_here_broadcast(self):
+        from ketchup_unified_scheduler.services.handover.generator import _sanitize_mrkdwn
+
+        assert "<!here>" not in _sanitize_mrkdwn("<!here> update")
+
+    def test_strips_everyone_broadcast(self):
+        from ketchup_unified_scheduler.services.handover.generator import _sanitize_mrkdwn
+
+        assert "<!everyone>" not in _sanitize_mrkdwn("<!everyone> notice")
+
+    def test_strips_user_mentions(self):
+        from ketchup_unified_scheduler.services.handover.generator import _sanitize_mrkdwn
+
+        result = _sanitize_mrkdwn("Assigned to <@U0123ABCD>")
+        assert "<@U0123ABCD>" not in result
+        assert "Assigned to" in result
+
+    def test_strips_user_mentions_with_display_name(self):
+        from ketchup_unified_scheduler.services.handover.generator import _sanitize_mrkdwn
+
+        result = _sanitize_mrkdwn("CC <@U0123ABCD|john.doe>")
+        assert "<@U0123ABCD|john.doe>" not in result
+
+    def test_preserves_normal_text(self):
+        from ketchup_unified_scheduler.services.handover.generator import _sanitize_mrkdwn
+
+        text = "• Investigating memory leak in production server"
+        assert _sanitize_mrkdwn(text) == text

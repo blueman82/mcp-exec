@@ -219,7 +219,7 @@ class OpenAIHandler(AzureAsyncClient):
         result = safe_extract_response_text(raw_content, fallback="")
         if not result:
             # Raise so _extract_response_content can retry
-            raise orjson.JSONDecodeError
+            raise ValueError("Empty response_text from JSON extraction")
         return result
 
     async def _extract_response_content(
@@ -236,7 +236,7 @@ class OpenAIHandler(AzureAsyncClient):
             extracted = self._parse_json_response(raw_content)
             logger.info("Extracted text from JSON response (%d chars)", len(extracted))
             return extracted
-        except orjson.JSONDecodeError:
+        except (orjson.JSONDecodeError, ValueError):
             logger.warning("JSON parse failed, retrying API call once")
 
         try:

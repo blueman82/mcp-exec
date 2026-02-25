@@ -149,6 +149,38 @@ for (const symbol of symbols.classes || []) {
 - Deeply nested symbol hierarchies
 - Overly verbose property accessors
 
+### 2.4 Behavioral Dead Path Detection
+Use Serena to trace return values through call chains. A function return path that no caller ever branches on is effectively dead behavior — the code exists but has no observable effect.
+
+```javascript
+// Execute via mcp__mcp-exec__execute_code_with_wrappers with wrappers: ["serena"]
+
+async function findDeadReturnPaths(functionName) {
+  const detail = await serena.find_symbol({ name: functionName, depth: 2 });
+  const body = detail.body || '';
+
+  // Extract distinct return statuses
+  const returnPaths = body.match(/return\s+\{[^}]*"status":\s*"(\w+)"/g) || [];
+  if (returnPaths.length < 2) return []; // Only interesting with multiple return paths
+
+  const callers = await serena.find_referencing_symbols({ name_path: functionName });
+  const deadPaths = [];
+
+  for (const caller of callers) {
+    const callerBody = (await serena.find_symbol({ name: caller.name, depth: 1 })).body || '';
+    for (const path of returnPaths) {
+      const status = path.match(/"(\w+)"$/)?.[1];
+      if (status && !callerBody.includes(`"${status}"`)) {
+        deadPaths.push({ caller: caller.name, unhandledStatus: status, function: functionName });
+      }
+    }
+  }
+  return deadPaths;
+}
+```
+
+**Dead path rule:** If a return status is never checked by any caller, flag as "unobserved return path" — candidate for removal or evidence of a silent failure bug in the caller.
+
 ### 2.2 Theo Semantic Analysis (Patterns)
 Search for duplicate/similar code patterns:
 
