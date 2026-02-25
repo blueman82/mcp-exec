@@ -231,7 +231,7 @@ export class AIToolConfigurator {
             const content = fs.readFileSync(configPath, 'utf-8');
             const config = JSON.parse(content);
             const servers = config[tool.configKey];
-            return servers && META_MCP_SERVER_NAME in servers;
+            return servers && (META_MCP_SERVER_NAME in servers || 'mcp-exec' in servers);
         } catch {
             return false;
         }
