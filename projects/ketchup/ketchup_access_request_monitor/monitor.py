@@ -260,13 +260,17 @@ class AccessRequestHealthMonitor:
             # This is a simplified check - in production you'd want more sophisticated tracking
             all_requests = []
 
-            # Sample a few users to check processing times
-            sample_users = ["U" + str(i).zfill(6) for i in range(100)]  # Sample check
+            # Get real user IDs from actual pending requests rather than synthetic ones
+            pending_requests = await ops.get_all_pending_requests()
+            if not pending_requests:
+                return issues
+            sample_users = list({req.user_id for req in pending_requests if req.user_id})[:20]
             for user_id in sample_users:
                 try:
                     history = await ops.get_user_request_history(user_id)
                     all_requests.extend(history)
-                except Exception:
+                except Exception as e:
+                    self.logger.debug("Skipping user %s in processing-time check: %s", user_id, e)
                     continue
 
             # Filter recent processed requests

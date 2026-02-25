@@ -5,7 +5,7 @@ Protocol definitions for operational services including base operations,
 restore state operations, trust operations, and join notification operations.
 """
 
-from typing import Protocol, runtime_checkable
+from typing import List, Protocol, runtime_checkable
 
 __all__ = [
     "BaseOperationsProtocol",
@@ -57,7 +57,7 @@ class RestoreStateManagerProtocol(Protocol):
 class AccessRequestOperationsProtocol(Protocol):
     """Protocol for access request operations."""
 
-    pass
+    async def get_user_request_history(self, user_id: str, limit: int = 10) -> List[object]: ...
 
 
 @runtime_checkable

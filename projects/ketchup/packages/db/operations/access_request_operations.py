@@ -372,6 +372,50 @@ class AccessRequestOperations(BaseOperations):
             logger.error(f"Error scanning pending requests: {e}")
             return []
 
+    async def get_user_request_history(self, user_id: str, limit: int = 10) -> List[AccessRequest]:
+        """Get recent access request history for a specific user.
+
+        Args:
+            user_id: The Slack user ID to look up.
+            limit: Maximum number of requests to return.
+
+        Returns:
+            List of AccessRequest objects for the user, newest first.
+        """
+        try:
+            items: list = []
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "user_id = :user_id",
+                "expression_attribute_values": {":user_id": {"S": user_id}},
+            }
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                for item in response.get("Items", []):
+                    try:
+                        if "SK" in item:
+                            sk_value = (
+                                item["SK"].get("S")
+                                if isinstance(item.get("SK"), dict)
+                                else item.get("SK")
+                            )
+                            if not sk_value or not sk_value.startswith("ACCESS_REQUEST#"):
+                                continue
+                        items.append(AccessRequest.from_item(item))
+                    except Exception as e:
+                        logger.debug("Skipping malformed item for user %s: %s", user_id, e)
+                        continue
+                if len(items) >= limit:
+                    break
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
+            return sorted(items, key=lambda r: r.request_timestamp, reverse=True)[:limit]
+        except Exception as e:
+            logger.warning("Error getting request history for %s: %s", user_id, e)
+            return []
+
     def invalidate_cache(self):
         """Invalidate the pending requests cache."""
         self._pending_cache = None
