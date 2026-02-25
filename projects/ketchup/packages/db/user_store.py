@@ -283,6 +283,37 @@ class UserStore:
 
                     users.append(user_dict)
 
+            # Handle pagination if needed
+            while "LastEvaluatedKey" in response:
+                response = await underlying_client.scan(
+                    TableName=self.table_name,
+                    FilterExpression=filter_expression,
+                    ExpressionAttributeNames={"#feature_name": feature_name},
+                    ExpressionAttributeValues={
+                        ":sk": {"S": "METADATA"},
+                        ":value": {"BOOL": value},
+                    },
+                    ProjectionExpression="PK, real_name, features",
+                    ExclusiveStartKey=response["LastEvaluatedKey"],
+                )
+
+                for item in response.get("Items", []):
+                    pk = item.get("PK", {}).get("S", "")
+                    user_id = pk.replace("USER#", "") if pk.startswith("USER#") else ""
+
+                    if user_id:
+                        user_dict = {
+                            "user_id": user_id,
+                            "real_name": item.get("real_name", {}).get("S", "Unknown"),
+                        }
+
+                        # Add features if present
+                        if "features" in item:
+                            features_map = item["features"].get("M", {})
+                            user_dict["features"] = self._parse_features_from_dynamodb(features_map)
+
+                        users.append(user_dict)
+
             return users
         except Exception as e:
             logger.error(f"Error getting users with feature {feature_name}: {e}")
