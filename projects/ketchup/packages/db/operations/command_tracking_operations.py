@@ -275,21 +275,29 @@ class CommandTrackingOperations(BaseOperations):
             # "timestamp" is a DynamoDB reserved word, so we must alias it via
             # ExpressionAttributeNames.
             # Filter for command records only (PK starts with USER# and SK starts with COMMAND#)
-            response = await self.client.scan(
-                filter_expression="#ts >= :start AND #ts <= :end AND begins_with(PK, :pk_prefix) AND begins_with(SK, :sk_prefix)",
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "filter_expression": "#ts >= :start AND #ts <= :end AND begins_with(PK, :pk_prefix) AND begins_with(SK, :sk_prefix)",
+                "expression_attribute_values": {
                     ":start": {"N": str(start_timestamp)},
                     ":end": {"N": str(end_timestamp)},
                     ":pk_prefix": {"S": "USER#"},
                     ":sk_prefix": {"S": "COMMAND#"},
                 },
-                expression_attribute_names={"#ts": "timestamp"},
-                table_name=self.table_name,
-            )
+                "expression_attribute_names": {"#ts": "timestamp"},
+                "table_name": self.table_name,
+            }
+            raw_items: list = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                raw_items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
             # Normalize the items
             normalized_items = []
-            for item in response.get("Items", []):
+            for item in raw_items:
                 normalized_items.append(self._normalize_item(item))
 
             # Group by user_id and count commands
@@ -356,21 +364,29 @@ class CommandTrackingOperations(BaseOperations):
             start_timestamp, end_timestamp = get_current_week_timestamps()
 
             # Scan for all command records in the time window
-            response = await self.client.scan(
-                filter_expression="#ts >= :start AND #ts <= :end AND begins_with(PK, :pk_prefix) AND begins_with(SK, :sk_prefix)",
-                expression_attribute_values={
+            scan_kwargs = {
+                "filter_expression": "#ts >= :start AND #ts <= :end AND begins_with(PK, :pk_prefix) AND begins_with(SK, :sk_prefix)",
+                "expression_attribute_values": {
                     ":start": {"N": str(start_timestamp)},
                     ":end": {"N": str(end_timestamp)},
                     ":pk_prefix": {"S": "USER#"},
                     ":sk_prefix": {"S": "COMMAND#"},
                 },
-                expression_attribute_names={"#ts": "timestamp"},
-                table_name=self.table_name,
-            )
+                "expression_attribute_names": {"#ts": "timestamp"},
+                "table_name": self.table_name,
+            }
+            raw_items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                raw_items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
             # Normalize the items
             normalized_items = []
-            for item in response.get("Items", []):
+            for item in raw_items:
                 normalized_items.append(self._normalize_item(item))
 
             # Group by user_id and command_type
@@ -452,23 +468,31 @@ class CommandTrackingOperations(BaseOperations):
         """
         try:
             # Scan for all command records in the time window
-            response = await self.client.scan(
-                filter_expression="#ts >= :start AND #ts < :end AND begins_with(PK, :pk_prefix) AND begins_with(SK, :sk_prefix)",
-                expression_attribute_values={
+            scan_kwargs = {
+                "filter_expression": "#ts >= :start AND #ts < :end AND begins_with(PK, :pk_prefix) AND begins_with(SK, :sk_prefix)",
+                "expression_attribute_values": {
                     ":start": {"N": str(start_ts)},
                     ":end": {"N": str(end_ts)},
                     ":pk_prefix": {"S": "USER#"},
                     ":sk_prefix": {"S": "COMMAND#"},
                 },
-                expression_attribute_names={"#ts": "timestamp"},
-                table_name=self.table_name,
-            )
+                "expression_attribute_names": {"#ts": "timestamp"},
+                "table_name": self.table_name,
+            }
+            raw_items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                raw_items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
             # Aggregate data
             commands = {}
             users = {}
 
-            for item in response.get("Items", []):
+            for item in raw_items:
                 normalized_item = self._normalize_item(item)
                 command_type = normalized_item.get("command_type", "unknown")
                 user_id = normalized_item.get("user_id")
