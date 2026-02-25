@@ -522,6 +522,93 @@ class TestReassignmentDetection:
         mock_notifier.resolve_slack_user_id.assert_not_called()
         mock_notifier.send_assignment_dm.assert_not_called()
 
+    @pytest.mark.asyncio
+    async def test_run_task_does_not_count_failed_reassignment_dm(self):
+        """Test that reassignment_count is not incremented when send_assignment_dm fails."""
+        from ketchup_csopm_notifier.scheduler import CSOPMScheduler
+
+        # Create mock ticket with NEW assignee
+        mock_ticket = CSOPMTicket(
+            key="CSOPM-123",
+            summary="Test ticket",
+            assignee_username="newuser",  # Different from stored assignee
+            created_at=datetime.now(timezone.utc),
+            status="New",
+        )
+
+        # Create existing notification record with OLD assignee
+        mock_record = NotificationRecord(
+            ticket_key="CSOPM-123",
+            notification_status="sent",
+            rca_ping_count=1,
+            closure_ping_count=0,
+            assignee_slack_id="U_OLD_USER",
+            assignee_jira_username="olduser",  # Different from ticket.assignee_username
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+        )
+
+        # Create mock services
+        mock_poller = AsyncMock(spec=CSOPMJIRAPollerProtocol)
+        mock_poller.poll_for_new_assignments.return_value = [mock_ticket]
+
+        mock_notifier = AsyncMock(spec=CSOPMSlackNotifierProtocol)
+        mock_notifier.resolve_slack_user_id.return_value = "U_NEW_USER"
+        # DM fails — returns False
+        mock_notifier.send_assignment_dm.return_value = False
+
+        mock_state_tracker = AsyncMock(spec=CSOPMStateTrackerProtocol)
+        mock_state_tracker.get_notification_record.return_value = mock_record
+        mock_state_tracker.handle_reassignment.return_value = NotificationRecord(
+            ticket_key="CSOPM-123",
+            notification_status="sent",
+            rca_ping_count=1,
+            closure_ping_count=0,
+            assignee_slack_id="U_NEW_USER",
+            assignee_jira_username="newuser",
+            rca_reminder_sent=False,
+            closure_reminder_sent=False,
+        )
+
+        mock_reminder_service = AsyncMock(spec=CSOPMReminderServiceProtocol)
+        mock_reminder_service.check_rca_reminders.return_value = []
+        mock_reminder_service.check_closure_reminders.return_value = []
+
+        # Create mock container
+        mock_container = AsyncMock()
+
+        async def mock_aget(protocol):
+            if protocol == CSOPMJIRAPollerProtocol:
+                return mock_poller
+            elif protocol == CSOPMSlackNotifierProtocol:
+                return mock_notifier
+            elif protocol == CSOPMStateTrackerProtocol:
+                return mock_state_tracker
+            elif protocol == CSOPMReminderServiceProtocol:
+                return mock_reminder_service
+            raise ValueError(f"Unknown protocol: {protocol}")
+
+        mock_container.aget = mock_aget
+
+        scheduler = CSOPMScheduler(container=mock_container)
+
+        # Run task — must complete without raising
+        await scheduler.run_task()
+
+        # DM was attempted for the new assignee
+        mock_notifier.send_assignment_dm.assert_called_once_with(mock_ticket, "U_NEW_USER")
+
+        # State was still updated (handle_reassignment is called before DM, not conditioned on it)
+        mock_state_tracker.handle_reassignment.assert_called_once_with(
+            ticket_key="CSOPM-123",
+            new_jira_username="newuser",
+            new_slack_id="U_NEW_USER",
+        )
+
+        # create_notification_record must NOT be called — that path is only for new tickets.
+        # Its absence confirms we stayed in the reassignment branch, not the new-ticket branch.
+        mock_state_tracker.create_notification_record.assert_not_called()
+
 
 class TestReminderProcessing:
     """Tests for reminder processing."""

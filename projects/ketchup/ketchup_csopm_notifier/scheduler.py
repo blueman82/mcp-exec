@@ -213,14 +213,20 @@ class CSOPMScheduler(BaseScheduler):
                                 )
 
                                 # Send notification to new assignee
-                                await notifier.send_assignment_dm(ticket, new_slack_id)
-                                reassignment_count += 1
-
-                                self.logger.info(
-                                    "Handled reassignment for %s to %s",
-                                    ticket.key,
-                                    current_assignee,
-                                )
+                                dm_sent = await notifier.send_assignment_dm(ticket, new_slack_id)
+                                if dm_sent:
+                                    reassignment_count += 1
+                                    self.logger.info(
+                                        "Handled reassignment for %s to %s",
+                                        ticket.key,
+                                        current_assignee,
+                                    )
+                                else:
+                                    self.logger.warning(
+                                        "Reassignment DM failed for %s to %s — not counted",
+                                        ticket.key,
+                                        current_assignee,
+                                    )
                             else:
                                 self.logger.warning(
                                     "Could not resolve Slack ID for new assignee %s on %s",
