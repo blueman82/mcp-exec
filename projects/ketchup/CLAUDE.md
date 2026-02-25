@@ -289,7 +289,7 @@ The CSOPM (Customer Support Operations Management) feature uses a split architec
 - `actions.py` - Interactive button action handlers
 
 **Scheduler-Specific Code** (`ketchup_csopm_notifier/`):
-- `scheduler.py` - Scheduled polling at 08:00/16:00 UTC
+- `scheduler.py` - Scheduled polling 5x daily (controlled via CSOPM_SCHEDULE_TIMES env var)
 - `jira_poller.py` - Polls JIRA for CSOPM assignments
 - `slack_notifier.py` - Sends Slack DM notifications
 - `reminder_service.py` - RCA and closure reminders
