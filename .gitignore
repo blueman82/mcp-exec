@@ -83,3 +83,4 @@ instance-config.json
 .claude-flow/
 projects/meta-mcp-lazy-agents/
 .serena/
+projects/ketchup/tests/setup/logs/
