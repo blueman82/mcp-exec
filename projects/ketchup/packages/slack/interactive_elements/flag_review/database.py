@@ -163,14 +163,22 @@ class FlagReviewDatabaseOperations:
         try:
             # Use scan since we need to find by flag_id attribute
             # Ensure this is an async call
-            result = await self.db_store.client.scan(
-                table_name=self.table_name,
-                filter_expression="flag_id = :flag_id",
-                expression_attribute_values={":flag_id": {"S": flag_id}},
-                limit=1,
-            )
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "flag_id = :flag_id",
+                "expression_attribute_values": {":flag_id": {"S": flag_id}},
+            }
+            items = []
+            while True:
+                result = await self.db_store.client.scan(**scan_kwargs)
+                items.extend(result.get("Items", []))
+                if items:
+                    break
+                last_key = result.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
-            items = result.get("Items", [])
             if items:
                 return items[0]
             return None
@@ -291,18 +299,24 @@ class FlagReviewDatabaseOperations:
             List of flag review records
         """
         try:
-            result = await self.db_store.client.scan(
-                table_name=self.table_name,
-                filter_expression="user_id = :user_id",
-                expression_attribute_values={":user_id": {"S": user_id}},
-                limit=limit,
-            )
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "user_id = :user_id",
+                "expression_attribute_values": {":user_id": {"S": user_id}},
+            }
+            items = []
+            while True:
+                result = await self.db_store.client.scan(**scan_kwargs)
+                items.extend(result.get("Items", []))
+                last_key = result.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
             # Sort results by created_at descending (since scan doesn't support sorting)
-            items = result.get("Items", [])
             items.sort(key=lambda x: x.get("created_at", {}).get("S", ""), reverse=True)
 
-            return items
+            return items[:limit]
 
         except Exception as e:
             logger.error(f"Error querying flag reviews for user: {e}")
@@ -368,21 +382,26 @@ class FlagReviewDatabaseOperations:
                 f"message_ts={message_ts}, message_ts_type={type(message_ts).__name__}"
             )
 
-            result = await self.db_store.client.scan(
-                table_name=self.table_name,
-                filter_expression="channel_id = :channel_id AND message_ts = :message_ts",
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "channel_id = :channel_id AND message_ts = :message_ts",
+                "expression_attribute_values": {
                     ":channel_id": {"S": channel_id},
                     ":message_ts": {"S": message_ts},
                 },
-                limit=1,
-            )
+            }
+            items = []
+            while True:
+                result = await self.db_store.client.scan(**scan_kwargs)
+                items.extend(result.get("Items", []))
+                if items:
+                    break
+                last_key = result.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
-            items = result.get("Items", [])
-            logger.info(
-                f"Database scan result: found {len(items)} items. "
-                f"Scanned count: {result.get('ScannedCount', 0)}"
-            )
+            logger.info(f"Database scan result: found {len(items)} items.")
 
             if not items:
                 logger.warning(
@@ -456,18 +475,26 @@ class FlagReviewDatabaseOperations:
         """
         # Construct flag_id for command flags
         try:
-            result = await self.db_store.client.scan(
-                table_name=self.table_name,
-                filter_expression="channel_id = :channel_id AND command_execution_id = :cmd_id AND user_id = :user_id",
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "channel_id = :channel_id AND command_execution_id = :cmd_id AND user_id = :user_id",
+                "expression_attribute_values": {
                     ":channel_id": {"S": channel_id},
                     ":cmd_id": {"S": command_execution_id},
                     ":user_id": {"S": original_user_id},
                 },
-                limit=1,
-            )
+            }
+            items = []
+            while True:
+                result = await self.db_store.client.scan(**scan_kwargs)
+                items.extend(result.get("Items", []))
+                if items:
+                    break
+                last_key = result.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
-            items = result.get("Items", [])
             if not items:
                 logger.warning(
                     f"No command flag found for channel {channel_id}, command {command_execution_id}"
@@ -527,14 +554,21 @@ class FlagReviewDatabaseOperations:
         try:
             # Look for feedback records matching the channel and message
             flag_id = f"{channel_id}_{message_ts}"
-            result = await self.db_store.client.scan(
-                table_name=self.table_name,
-                filter_expression="flag_id = :flag_id",
-                expression_attribute_values={":flag_id": {"S": flag_id}},
-                limit=1,
-            )
-
-            items = result.get("Items", [])
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "flag_id = :flag_id",
+                "expression_attribute_values": {":flag_id": {"S": flag_id}},
+            }
+            items = []
+            while True:
+                result = await self.db_store.client.scan(**scan_kwargs)
+                items.extend(result.get("Items", []))
+                if items:
+                    break
+                last_key = result.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
             if items:
                 item = items[0]
                 # Convert DynamoDB format to expected format

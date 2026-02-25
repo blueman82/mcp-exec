@@ -232,16 +232,24 @@ class AdminResponseHandler:
 
             # Construct flag_id and lookup (fallback - scan by channel/message)
             # This is less efficient but maintains backward compatibility
-            result = await self.db_store.client.scan(
-                table_name=self.db_store.table_name,
-                filter_expression="channel_id = :channel_id AND message_ts = :message_ts",
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.db_store.table_name,
+                "filter_expression": "channel_id = :channel_id AND message_ts = :message_ts",
+                "expression_attribute_values": {
                     ":channel_id": {"S": channel_id},
                     ":message_ts": {"S": message_ts},
                 },
-                limit=1,
-            )
-            items = result.get("Items", [])
+            }
+            items = []
+            while True:
+                result = await self.db_store.client.scan(**scan_kwargs)
+                items.extend(result.get("Items", []))
+                if items:
+                    break
+                last_key = result.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
             user_id = items[0].get("user_id", {}).get("S", "") if items else ""
 
         await MessageUpdater(self.posting_handler).update_acknowledged_message(

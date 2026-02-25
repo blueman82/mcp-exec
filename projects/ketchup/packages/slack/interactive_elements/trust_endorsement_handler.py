@@ -263,28 +263,45 @@ class TrustEndorsementHandler:
 
             # Use DynamoDB scan to find the command execution across all channels
             # This is not ideal for performance but necessary for this lookup
+            items = []
             try:
                 # Try using the wrapper's scan method first
-                response = await self.db_store.client.scan(
-                    table_name=self.db_store.table_name,
-                    filter_expression="SK = :sk",
-                    expression_attribute_values={":sk": sk_value},
-                )
+                scan_kwargs: dict = {
+                    "table_name": self.db_store.table_name,
+                    "filter_expression": "SK = :sk",
+                    "expression_attribute_values": {":sk": sk_value},
+                }
+                while True:
+                    response = await self.db_store.client.scan(**scan_kwargs)
+                    items.extend(response.get("Items", []))
+                    if items:
+                        break
+                    last_key = response.get("LastEvaluatedKey")
+                    if not last_key:
+                        break
+                    scan_kwargs["exclusive_start_key"] = last_key
                 logger.info(f"Using wrapper scan method, response type: {type(response)}")
             except Exception as wrapper_error:
                 logger.warning(f"Wrapper scan failed, trying direct client: {wrapper_error}")
                 # Fallback to direct boto3 client
                 underlying_client = await self.db_store.client._get_client()
-                response = await underlying_client.scan(
-                    TableName=self.db_store.table_name,
-                    FilterExpression="SK = :sk",
-                    ExpressionAttributeValues={":sk": {"S": sk_value}},
-                    ProjectionExpression="PK, channel_id",
-                )
+                items = []
+                boto_kwargs: dict = {
+                    "TableName": self.db_store.table_name,
+                    "FilterExpression": "SK = :sk",
+                    "ExpressionAttributeValues": {":sk": {"S": sk_value}},
+                    "ProjectionExpression": "PK, channel_id",
+                }
+                while True:
+                    response = await underlying_client.scan(**boto_kwargs)
+                    items.extend(response.get("Items", []))
+                    if items:
+                        break
+                    last_key = response.get("LastEvaluatedKey")
+                    if not last_key:
+                        break
+                    boto_kwargs["ExclusiveStartKey"] = last_key
                 logger.info("Using direct boto3 client scan")
-
-            # Handle response format differences between wrapper and direct client
-            items = response.get("Items", [])
             count = response.get("Count", 0)
             logger.info(f"DynamoDB scan response: {count} items found")
 
