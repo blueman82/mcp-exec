@@ -8,6 +8,7 @@ This test would have caught the exact bugs we found in production:
 
 Tests the COMPLETE workflow with real AWS services where possible.
 """
+
 import asyncio
 import os
 import sys

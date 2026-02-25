@@ -4,6 +4,7 @@ Example AI/OpenAI integration test using the base integration test framework.
 
 Tests OpenAI handler functionality with real API calls.
 """
+
 import asyncio
 import sys
 

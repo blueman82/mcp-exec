@@ -54,8 +54,7 @@ class TestEndToEndFlow:
     def mock_openai_handler(self):
         """Create a mock OpenAI handler that generates test reports."""
         handler = MagicMock()
-        handler.generate_response = AsyncMock(
-            return_value="""
+        handler.generate_response = AsyncMock(return_value="""
 h3. Executive Summary
 Test incident report generated for integration testing.
 
@@ -69,8 +68,7 @@ h3. Incident Timeline
 
 h3. Resolution & Mitigation
 Test resolution for integration testing.
-"""
-        )
+""")
         return handler
 
     @pytest.fixture

@@ -5,6 +5,7 @@ Base class for all integration tests requiring the full DI container.
 This module provides a reusable framework for integration tests that need
 access to real services like DynamoDB, Slack API, OpenAI, etc.
 """
+
 import os
 import sys
 from abc import ABC, abstractmethod

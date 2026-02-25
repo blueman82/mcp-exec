@@ -4,6 +4,7 @@ Example Slack integration test using the base integration test framework.
 
 Shows how to test Slack operations like message posting and channel info.
 """
+
 import asyncio
 import sys
 

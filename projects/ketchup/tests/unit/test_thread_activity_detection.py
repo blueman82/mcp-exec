@@ -44,8 +44,7 @@ class TestThreadActivityDetection:
         )
 
         # Mock the API response with messages that have threads
-        mock_response = {
-            "body": """{"ok": true, "messages": [
+        mock_response = {"body": """{"ok": true, "messages": [
                 {
                     "ts": "1234567890.000100",
                     "thread_ts": "1234567890.000100",
@@ -58,8 +57,7 @@ class TestThreadActivityDetection:
                     "reply_count": 3,
                     "latest_reply": "1234567885.000100"
                 }
-            ]}"""
-        }
+            ]}"""}
 
         with (
             patch.object(channel_ops, "_make_api_request", AsyncMock(return_value=mock_response)),
@@ -92,16 +90,14 @@ class TestThreadActivityDetection:
         )
 
         # Mock response with old thread replies
-        mock_response = {
-            "body": """{"ok": true, "messages": [
+        mock_response = {"body": """{"ok": true, "messages": [
                 {
                     "ts": "1234567890.000100",
                     "thread_ts": "1234567890.000100",
                     "reply_count": 5,
                     "latest_reply": "1234567892.000200"
                 }
-            ]}"""
-        }
+            ]}"""}
 
         with (
             patch.object(channel_ops, "_make_api_request", AsyncMock(return_value=mock_response)),

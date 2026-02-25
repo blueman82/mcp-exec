@@ -4,6 +4,7 @@ test_normalize_actual.py
 
 Test normalization with actual problematic input from production.
 """
+
 from packages.core.utils import normalize_prompt_for_agent
 
 

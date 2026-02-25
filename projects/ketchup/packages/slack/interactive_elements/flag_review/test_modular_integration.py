@@ -3,6 +3,7 @@
 Quick integration test to catch the exact bugs we found in production.
 Tests the REAL modular workflow without mocking internal calls.
 """
+
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 

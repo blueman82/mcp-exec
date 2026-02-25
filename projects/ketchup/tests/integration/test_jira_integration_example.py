@@ -4,6 +4,7 @@ Example JIRA integration test using the base integration test framework.
 
 This demonstrates how easy it is to create new integration tests.
 """
+
 import asyncio
 import sys
 

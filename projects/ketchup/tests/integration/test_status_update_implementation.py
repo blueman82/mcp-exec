@@ -8,6 +8,7 @@ This script simulates a status updater run on the test channel to verify:
 3. New post timestamp storage works
 4. Backward compatibility with existing channels
 """
+
 import asyncio
 import sys
 from datetime import datetime, timezone
