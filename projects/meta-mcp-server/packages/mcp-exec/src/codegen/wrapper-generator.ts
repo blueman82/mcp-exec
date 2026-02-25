@@ -332,7 +332,7 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   lines.push(`        }`);
   lines.push(`        return typeof __guardFields === 'function' ? __guardFields(parsed, ${safeServerName} + '.' + ${safeToolName}) : parsed;`);
   lines.push(`      } catch (e) {`);
-  lines.push(`        if (e instanceof Error && e.message !== content[0].text) throw e;`);
+  lines.push(`        if (e instanceof Error && !(e instanceof SyntaxError)) throw e;`);
   lines.push(`        return content[0].text;`);
   lines.push(`      }`);
   lines.push(`    }`);
