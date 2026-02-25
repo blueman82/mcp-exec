@@ -197,7 +197,7 @@ ketchup/
 │
 ├── ketchup_csopm_notifier/     # CSOPM assignment notification scheduler
 │   ├── main.py                 # Entry point for scheduler container
-│   ├── scheduler.py            # Runs at 08:00/16:00 UTC
+│   ├── scheduler.py            # Runs at 08:00/12:00/16:00/20:00/00:00 UTC (controlled via CSOPM_SCHEDULE_TIMES)
 │   ├── container.py            # TypedDI container setup
 │   └── services/               # Scheduler-specific services
 │       ├── jira_poller.py      # Polls JIRA for CSOPM assignments
