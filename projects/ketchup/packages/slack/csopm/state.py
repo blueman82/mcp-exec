@@ -508,17 +508,25 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 "begins_with(PK, :pk_prefix) AND " "SK = :sk AND " "notification_status = :status"
             )
 
-            response = await self.client.scan(
-                table_name=self.table_name,
-                filter_expression=filter_expression,
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": filter_expression,
+                "expression_attribute_values": {
                     ":pk_prefix": {"S": PK_NOTIFICATION_PREFIX},
                     ":sk": {"S": SK_NOTIFICATION},
                     ":status": {"S": "pending"},
                 },
-            )
+            }
 
-            items = response.get("Items", [])
+            items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
+
             records: List[NotificationRecord] = []
 
             for item in items:
@@ -601,17 +609,25 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 "notification_status <> :escalated_status"
             )
 
-            response = await self.client.scan(
-                table_name=self.table_name,
-                filter_expression=filter_expression,
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": filter_expression,
+                "expression_attribute_values": {
                     ":pk_prefix": {"S": PK_NOTIFICATION_PREFIX},
                     ":sk": {"S": SK_NOTIFICATION},
                     ":escalated_status": {"S": "escalated"},
                 },
-            )
+            }
 
-            items = response.get("Items", [])
+            items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
+
             records: List[NotificationRecord] = []
 
             for item in items:
@@ -640,16 +656,24 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
         try:
             filter_expression = "begins_with(PK, :pk_prefix) AND " "SK = :sk"
 
-            response = await self.client.scan(
-                table_name=self.table_name,
-                filter_expression=filter_expression,
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": filter_expression,
+                "expression_attribute_values": {
                     ":pk_prefix": {"S": PK_NOTIFICATION_PREFIX},
                     ":sk": {"S": SK_NOTIFICATION},
                 },
-            )
+            }
 
-            items = response.get("Items", [])
+            items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
+
             records: List[NotificationRecord] = []
 
             for item in items:

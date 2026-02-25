@@ -287,6 +287,14 @@ class CSOPMScheduler(BaseScheduler):
                             ticket=ticket,
                             slack_id=slack_user_id,
                         )
+                        try:
+                            await state_tracker.update_notification_status(ticket.key, "sent")
+                        except Exception as _status_err:
+                            self.logger.warning(
+                                "Failed to update status to sent for %s: %s",
+                                ticket.key,
+                                _status_err,
+                            )
                         notification_count += 1
                         self.logger.info(
                             "Sent notification for %s to %s",
