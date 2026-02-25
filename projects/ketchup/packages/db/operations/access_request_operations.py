@@ -84,18 +84,23 @@ class AccessRequestOperations(BaseOperations):
         """Get pending access request for a user using scan (no GSI available)."""
         try:
             # Use scan with filter since GSI is not available
-            response = await self.client.scan(
-                table_name=self.table_name,
-                filter_expression="#status = :pending AND user_id = :user_id",
-                expression_attribute_names={"#status": "status"},
-                expression_attribute_values={
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "#status = :pending AND user_id = :user_id",
+                "expression_attribute_names": {"#status": "status"},
+                "expression_attribute_values": {
                     ":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]},
                     ":user_id": {"S": user_id},
                 },
-                limit=100,  # Reasonable limit for scan
-            )
-
-            items = response.get("Items", [])
+            }
+            items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
             if items:
                 # Verify TTL hasn't expired
                 item = items[0]
@@ -229,18 +234,27 @@ class AccessRequestOperations(BaseOperations):
     async def get_all_pending_requests(self) -> List[AccessRequest]:
         """Get all pending requests for admin dashboard using scan (no GSI available)."""
         try:
-            response = await self.client.scan(
-                table_name=self.table_name,
-                filter_expression="#status = :pending",
-                expression_attribute_names={"#status": "status"},
-                expression_attribute_values={":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}},
-                limit=500,  # Reasonable limit for admin operations
-            )
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "#status = :pending",
+                "expression_attribute_names": {"#status": "status"},
+                "expression_attribute_values": {
+                    ":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}
+                },
+            }
+            items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
             requests = []
             current_time = time.time()
 
-            for item in response.get("Items", []):
+            for item in items:
                 try:
                     # Check if this is an access request item by verifying SK pattern
                     if "SK" in item:
@@ -314,17 +328,27 @@ class AccessRequestOperations(BaseOperations):
     async def _scan_all_pending_requests(self) -> List[AccessRequest]:
         """Scan for all pending requests (internal method for caching)."""
         try:
-            response = await self.client.scan(
-                table_name=self.table_name,
-                filter_expression="#status = :pending",
-                expression_attribute_names={"#status": "status"},
-                expression_attribute_values={":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}},
-            )
+            scan_kwargs: dict = {
+                "table_name": self.table_name,
+                "filter_expression": "#status = :pending",
+                "expression_attribute_names": {"#status": "status"},
+                "expression_attribute_values": {
+                    ":pending": {"S": ACCESS_REQUEST_STATUS["PENDING"]}
+                },
+            }
+            items = []
+            while True:
+                response = await self.client.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                last_key = response.get("LastEvaluatedKey")
+                if not last_key:
+                    break
+                scan_kwargs["exclusive_start_key"] = last_key
 
             requests = []
             current_time = time.time()
 
-            for item in response.get("Items", []):
+            for item in items:
                 try:
                     # Check if this is an access request item by verifying SK pattern
                     if "SK" in item:
