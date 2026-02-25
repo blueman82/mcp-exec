@@ -129,7 +129,7 @@ class PerTaskHealthMonitor:
                         "status": status,
                     }
         except Exception:
-            pass
+            pass  # Health updates must not crash the scheduler — failure logged by caller
         return None
 
     def get_last_run(self, task_name: str) -> Optional[int]:
@@ -148,7 +148,7 @@ class PerTaskHealthMonitor:
                 content = last_run_file.read_text().strip()
                 return int(content)
         except Exception:
-            pass
+            pass  # Health updates must not crash the scheduler — failure logged by caller
         return None
 
     def get_all_task_statuses(self) -> Dict[str, Dict[str, any]]:

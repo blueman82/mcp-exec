@@ -5,10 +5,13 @@ This module provides simplified async functions for resolving services
 from the TypedDI registry without requiring direct registry access.
 """
 
+import logging
 from typing import Type, TypeVar
 
 from packages.core.typed_di.resolver import TypedResolver
 from packages.core.typed_di_integration import get_typed_registry
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
@@ -44,5 +47,10 @@ async def resolve_typed_optional(protocol: Type[T]) -> T | None:
     """
     try:
         return await resolve_typed(protocol)
-    except Exception:
+    except Exception as e:
+        logger.debug(
+            "DI resolution returned None for %s: %s",
+            protocol,
+            e,
+        )
         return None

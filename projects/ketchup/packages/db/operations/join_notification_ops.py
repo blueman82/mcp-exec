@@ -108,10 +108,15 @@ class JoinNotificationOps(BaseOperations):
                 expression_attribute_names={"#ujn": "user_join_notifications"},
                 expression_attribute_values={":empty_map": {"M": {}}},
             )
-        except Exception:
-            # Map might already exist, continue with counter updates
-            # This matches the pattern from user_store.py for handling existing nested structures
-            pass
+        except Exception as e:
+            error_name = type(e).__name__
+            if "ConditionalCheckFailed" not in error_name:
+                logger.warning(
+                    "DynamoDB update failed (expected ConditionalCheckFailed, got %s): %s",
+                    error_name,
+                    e,
+                )
+            # Map might already exist — ConditionalCheckFailed is expected on retry, continue
 
         # Step 2: Update counters and timestamp (no path overlap with parent map)
         update_expr = """

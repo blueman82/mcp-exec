@@ -110,7 +110,13 @@ class ServiceSpec:
                     protocol_type, _ = dep_info
                     try:
                         resolved_deps[param_name] = await resolver.aget(protocol_type)
-                    except Exception:
+                    except Exception as e:
+                        logger.warning(
+                            "DI resolution failed for param '%s' in %s: %s. Resolving to None.",
+                            param_name,
+                            concrete.__name__,
+                            e,
+                        )
                         resolved_deps[param_name] = None
                 else:
                     # Required dependency
