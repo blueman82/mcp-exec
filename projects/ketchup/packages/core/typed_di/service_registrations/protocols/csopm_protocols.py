@@ -289,6 +289,31 @@ class CSOPMStateTrackerProtocol(Protocol):
         """
         ...
 
+    async def set_closure_snooze(
+        self, ticket_key: str, snooze_days: int = 7
+    ) -> Optional[NotificationRecord]:
+        """Set closure_snoozed_until to now + snooze_days.
+
+        Args:
+            ticket_key: The JIRA ticket key
+            snooze_days: Number of days to snooze (default 7)
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
+        """
+        ...
+
+    async def clear_closure_snooze(self, ticket_key: str) -> Optional[NotificationRecord]:
+        """Clear closure_snoozed_until (unsnooze).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
+        """
+        ...
+
     async def get_pending_notifications(self) -> List[NotificationRecord]:
         """Get all notifications in pending state.
 

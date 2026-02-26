@@ -38,6 +38,7 @@ dependencies = [
     # HTTP Clients
     "aiohttp>=3.13.3",
     "httpx[http2]",
+    "urllib3>=2.6.3",  # CVE-2026-21441: decompression bomb via redirect responses
     # Async Support
     "aiofiles",
     # Scheduling

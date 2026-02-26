@@ -796,7 +796,8 @@ class CSOPMButtonActionHandler:
         logger.info("Handling snooze action for %s by user %s", ticket_key, user_id)
 
         try:
-            # Note: Snooze implementation would update StateTracker with snooze_until
+            if self._state_tracker:
+                await self._state_tracker.set_closure_snooze(ticket_key, snooze_days=7)
             logger.info("Snoozing closure reminder for %s for 7 days", ticket_key)
 
             # Update original message to show Unsnooze button
@@ -842,8 +843,8 @@ class CSOPMButtonActionHandler:
         logger.info("Handling unsnooze action for %s by user %s", ticket_key, user_id)
 
         try:
-            # Clear snooze by setting closure_snoozed_until to 0/None
-            # This would be done via state_tracker if we had such a method
+            if self._state_tracker:
+                await self._state_tracker.clear_closure_snooze(ticket_key)
             logger.info("Unsnoozed closure reminder for %s", ticket_key)
 
             # Update original message to show Snooze button again

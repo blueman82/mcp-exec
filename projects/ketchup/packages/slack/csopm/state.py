@@ -16,7 +16,7 @@ isolate CSOPM data from other Ketchup records in the same table.
 """
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
@@ -491,6 +491,93 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
 
         except Exception as e:
             logger.error("Error marking closure reminder sent for %s: %s", ticket_key, e)
+            return None
+
+    async def set_closure_snooze(
+        self, ticket_key: str, snooze_days: int = 7
+    ) -> Optional[NotificationRecord]:
+        """Set closure_snoozed_until to now + snooze_days.
+
+        Args:
+            ticket_key: The JIRA ticket key
+            snooze_days: Number of days to snooze (default 7)
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
+        """
+        logger.info("Setting closure snooze for %s for %d days", ticket_key, snooze_days)
+
+        try:
+            current_time = int(time.time())
+            snooze_until = int(
+                (datetime.now(timezone.utc) + timedelta(days=snooze_days)).timestamp()
+            )
+
+            response = await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="SET closure_snoozed_until = :snooze_until, updated_at = :updated_at",
+                expression_attribute_values={
+                    ":snooze_until": {"N": str(snooze_until)},
+                    ":updated_at": {"N": str(current_time)},
+                },
+                return_values="ALL_NEW",
+            )
+
+            attributes = response.get("Attributes")
+            if not attributes:
+                logger.warning("No record found to set closure snooze for: %s", ticket_key)
+                return None
+
+            logger.info(
+                "Closure snooze set for %s until %d (%d days)", ticket_key, snooze_until, snooze_days
+            )
+            return self._item_to_notification_record(attributes)
+
+        except Exception as e:
+            logger.error("Error setting closure snooze for %s: %s", ticket_key, e)
+            return None
+
+    async def clear_closure_snooze(self, ticket_key: str) -> Optional[NotificationRecord]:
+        """Clear closure_snoozed_until (unsnooze).
+
+        Args:
+            ticket_key: The JIRA ticket key
+
+        Returns:
+            Updated NotificationRecord if found, None otherwise.
+        """
+        logger.info("Clearing closure snooze for %s", ticket_key)
+
+        try:
+            current_time = int(time.time())
+
+            response = await self.client.update_item(
+                table_name=self.table_name,
+                key={
+                    "PK": {"S": self._make_pk(ticket_key)},
+                    "SK": {"S": SK_NOTIFICATION},
+                },
+                update_expression="REMOVE closure_snoozed_until SET updated_at = :updated_at",
+                expression_attribute_values={
+                    ":updated_at": {"N": str(current_time)},
+                },
+                return_values="ALL_NEW",
+            )
+
+            attributes = response.get("Attributes")
+            if not attributes:
+                logger.warning("No record found to clear closure snooze for: %s", ticket_key)
+                return None
+
+            logger.info("Closure snooze cleared for %s", ticket_key)
+            return self._item_to_notification_record(attributes)
+
+        except Exception as e:
+            logger.error("Error clearing closure snooze for %s: %s", ticket_key, e)
             return None
 
     async def get_pending_notifications(self) -> List[NotificationRecord]:

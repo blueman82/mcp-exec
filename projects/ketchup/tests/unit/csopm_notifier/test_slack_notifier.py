@@ -63,6 +63,8 @@ class MockStateTracker:
         self.get_notification_record = AsyncMock()
         self.update_notification_status = AsyncMock()
         self.mark_closure_reminder_sent = AsyncMock()
+        self.set_closure_snooze = AsyncMock()
+        self.clear_closure_snooze = AsyncMock()
 
 
 class MockMetrics:
