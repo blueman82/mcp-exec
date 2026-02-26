@@ -303,12 +303,6 @@ class TestServiceBatchSmokeChecks(unittest.TestCase):
 
         asyncio.run(self._factory_invocation_validation_async())
 
-    def test_factory_invocation_validation_sync(self):
-        """Deprecated - kept for backwards compatibility."""
-        # This test is now redundant since test_factory_invocation_validation
-        # already runs the async test synchronously
-        pass
-
     def test_batch_4_integration_services_registered(self):
         """Test Batch 4 integration services are registered."""
         # Use protocol names which are what the registry stores as service_type
