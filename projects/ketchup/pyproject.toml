@@ -36,7 +36,7 @@ dependencies = [
     # Azure OpenAI
     "openai",
     # HTTP Clients
-    "aiohttp",
+    "aiohttp>=3.13.3",
     "httpx[http2]",
     # Async Support
     "aiofiles",
@@ -286,5 +286,6 @@ skip = [".venv", "node_modules", "ketchup-log-viewer", "corp_jira_mcp"]
 
 [dependency-groups]
 dev = [
+    "pip-audit>=2.10.0",
     "vulture>=2.14",
 ]

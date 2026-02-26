@@ -34,13 +34,20 @@ class TestSmokeResolution(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         """Set up test fixtures."""
-        # Set up AWS environment variables for testing
-        os.environ["AWS_SECRET_NAME"] = "test-secret"
-        os.environ["AWS_REGION"] = "us-east-1"
-        os.environ["DYNAMODB_TABLE_NAME"] = "test-table"
+        # Set up AWS environment variables for testing (isolated via patch.dict)
+        env_patcher = patch.dict(
+            os.environ,
+            {
+                "AWS_SECRET_NAME": "test-secret",
+                "AWS_REGION": "us-east-1",
+                "DYNAMODB_TABLE_NAME": "test-table",
+            },
+        )
+        env_patcher.start()
 
         # Start comprehensive AWS mocking
         self._setup_aws_mocks()
+        self.active_patchers.append(env_patcher)
 
         self.registry = TypedServiceRegistry()
 
@@ -221,13 +228,20 @@ class TestNegativeResolution(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
         """Set up test fixtures."""
-        # Set up AWS environment variables for testing
-        os.environ["AWS_SECRET_NAME"] = "test-secret"
-        os.environ["AWS_REGION"] = "us-east-1"
-        os.environ["DYNAMODB_TABLE_NAME"] = "test-table"
+        # Set up AWS environment variables for testing (isolated via patch.dict)
+        env_patcher = patch.dict(
+            os.environ,
+            {
+                "AWS_SECRET_NAME": "test-secret",
+                "AWS_REGION": "us-east-1",
+                "DYNAMODB_TABLE_NAME": "test-table",
+            },
+        )
+        env_patcher.start()
 
         # Start comprehensive AWS mocking
         self._setup_aws_mocks()
+        self.active_patchers.append(env_patcher)
 
     def _setup_aws_mocks(self):
         """Set up comprehensive AWS service mocking."""
