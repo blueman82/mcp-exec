@@ -162,7 +162,7 @@ class UsageExportHandler:
             form_data = urllib.parse.urlencode(upload_url_payload)
 
             async with (
-                aiohttp.ClientSession() as session,
+                aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session,
                 session.post(url, headers=headers, data=form_data) as response,
             ):
                 upload_url_response = await response.json()
@@ -179,7 +179,7 @@ class UsageExportHandler:
 
             # Step 2: Upload file to the URL
             async with (
-                aiohttp.ClientSession() as session,
+                aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session,
                 session.post(
                     upload_url, data=csv_bytes, headers={"Content-Type": "text/csv"}
                 ) as response,

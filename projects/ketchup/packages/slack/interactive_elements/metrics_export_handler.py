@@ -212,7 +212,7 @@ class MetricsExportHandler:
         form_data = urllib.parse.urlencode(upload_url_payload)
 
         async with (
-            aiohttp.ClientSession() as session,
+            aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session,
             session.post(url, headers=headers, data=form_data) as response,
         ):
             upload_url_response = await response.json()
@@ -244,7 +244,7 @@ class MetricsExportHandler:
             True if upload successful (HTTP 200), False otherwise
         """
         async with (
-            aiohttp.ClientSession() as session,
+            aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session,
             session.post(
                 upload_url, data=html_bytes, headers={"Content-Type": "text/html"}
             ) as response,

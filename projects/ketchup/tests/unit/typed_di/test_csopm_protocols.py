@@ -83,6 +83,7 @@ class TestCSOPMDataClasses(unittest.TestCase):
             "followup_ticket_keys",
             "completed_at",
             "closed_at",
+            "closure_snoozed_until",
         }
 
         actual_fields = {f.name for f in fields(NotificationRecord)}
