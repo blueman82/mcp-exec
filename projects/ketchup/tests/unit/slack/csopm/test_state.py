@@ -1009,5 +1009,210 @@ class TestCSOPMStateTrackerFollowupTicketKeysParsing(unittest.TestCase):
         self.assertEqual(result.followup_ticket_keys, [])
 
 
+class TestCSOPMStateTrackerSetClosureSnooze(unittest.IsolatedAsyncioTestCase):
+    """Test set_closure_snooze and clear_closure_snooze methods."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from packages.slack.csopm.state import CSOPMStateTracker
+
+        self.mock_client = MockDynamoDBAsyncClient()
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
+
+    def _make_snooze_response(self, ticket_key: str = "CSOPM-1234", snooze_until: int = 9999999) -> dict:
+        return {
+            "Attributes": {
+                "ticket_key": {"S": ticket_key},
+                "notification_status": {"S": "sent"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
+                "assignee_slack_id": {"S": "U12345678"},
+                "rca_reminder_sent": {"BOOL": False},
+                "closure_reminder_sent": {"BOOL": False},
+                "closure_snoozed_until": {"N": str(snooze_until)},
+            }
+        }
+
+    async def test_set_closure_snooze_returns_record(self):
+        """Test set_closure_snooze returns an updated NotificationRecord."""
+        self.mock_client.update_item.return_value = self._make_snooze_response()
+
+        result = await self.tracker.set_closure_snooze("CSOPM-1234")
+
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, NotificationRecord)
+        self.assertEqual(result.ticket_key, "CSOPM-1234")
+
+    async def test_set_closure_snooze_parses_closure_snoozed_until(self):
+        """Test set_closure_snooze result has closure_snoozed_until populated."""
+        snooze_ts = 9999999
+        self.mock_client.update_item.return_value = self._make_snooze_response(snooze_until=snooze_ts)
+
+        result = await self.tracker.set_closure_snooze("CSOPM-1234")
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.closure_snoozed_until, snooze_ts)
+
+    async def test_set_closure_snooze_uses_correct_key(self):
+        """Test set_closure_snooze writes to correct PK/SK."""
+        self.mock_client.update_item.return_value = self._make_snooze_response()
+
+        await self.tracker.set_closure_snooze("CSOPM-1234")
+
+        call_args = self.mock_client.update_item.call_args
+        key = call_args.kwargs.get("key", {})
+
+        self.assertEqual(key["PK"]["S"], "CSOPM_NOTIFICATION#CSOPM-1234")
+        self.assertEqual(key["SK"]["S"], "NOTIFICATION")
+
+    async def test_set_closure_snooze_sets_snooze_expression(self):
+        """Test set_closure_snooze update expression contains closure_snoozed_until."""
+        self.mock_client.update_item.return_value = self._make_snooze_response()
+
+        await self.tracker.set_closure_snooze("CSOPM-1234")
+
+        call_args = self.mock_client.update_item.call_args
+        update_expr = call_args.kwargs.get("update_expression", "")
+
+        self.assertIn("closure_snoozed_until", update_expr)
+
+    async def test_set_closure_snooze_snooze_value_is_future_timestamp(self):
+        """Test set_closure_snooze expression value is a positive future epoch."""
+        import time
+
+        self.mock_client.update_item.return_value = self._make_snooze_response()
+        before = int(time.time())
+
+        await self.tracker.set_closure_snooze("CSOPM-1234", snooze_days=7)
+
+        call_args = self.mock_client.update_item.call_args
+        expr_values = call_args.kwargs.get("expression_attribute_values", {})
+
+        self.assertIn(":snooze_until", expr_values)
+        snooze_value = int(expr_values[":snooze_until"]["N"])
+
+        # Should be at least 7 days from now
+        seven_days = 7 * 24 * 3600
+        self.assertGreaterEqual(snooze_value, before + seven_days)
+
+    async def test_set_closure_snooze_not_found_returns_none(self):
+        """Test set_closure_snooze returns None when record not found."""
+        self.mock_client.update_item.return_value = {}
+
+        result = await self.tracker.set_closure_snooze("CSOPM-9999")
+
+        self.assertIsNone(result)
+
+    async def test_set_closure_snooze_on_error_returns_none(self):
+        """Test set_closure_snooze returns None on DynamoDB error."""
+        self.mock_client.update_item.side_effect = Exception("DynamoDB error")
+
+        result = await self.tracker.set_closure_snooze("CSOPM-1234")
+
+        self.assertIsNone(result)
+
+    async def test_clear_closure_snooze_returns_record(self):
+        """Test clear_closure_snooze returns an updated NotificationRecord."""
+        self.mock_client.update_item.return_value = {
+            "Attributes": {
+                "ticket_key": {"S": "CSOPM-1234"},
+                "notification_status": {"S": "sent"},
+                "rca_ping_count": {"N": "1"},
+                "closure_ping_count": {"N": "0"},
+                "rca_reminder_sent": {"BOOL": False},
+                "closure_reminder_sent": {"BOOL": False},
+                # closure_snoozed_until absent — field was removed
+            }
+        }
+
+        result = await self.tracker.clear_closure_snooze("CSOPM-1234")
+
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, NotificationRecord)
+        self.assertIsNone(result.closure_snoozed_until)
+
+    async def test_clear_closure_snooze_uses_remove_expression(self):
+        """Test clear_closure_snooze uses REMOVE for closure_snoozed_until."""
+        self.mock_client.update_item.return_value = {
+            "Attributes": {
+                "ticket_key": {"S": "CSOPM-1234"},
+                "notification_status": {"S": "sent"},
+                "rca_ping_count": {"N": "0"},
+                "closure_ping_count": {"N": "0"},
+                "rca_reminder_sent": {"BOOL": False},
+                "closure_reminder_sent": {"BOOL": False},
+            }
+        }
+
+        await self.tracker.clear_closure_snooze("CSOPM-1234")
+
+        call_args = self.mock_client.update_item.call_args
+        update_expr = call_args.kwargs.get("update_expression", "")
+
+        self.assertIn("REMOVE", update_expr)
+        self.assertIn("closure_snoozed_until", update_expr)
+
+    async def test_clear_closure_snooze_not_found_returns_none(self):
+        """Test clear_closure_snooze returns None when record not found."""
+        self.mock_client.update_item.return_value = {}
+
+        result = await self.tracker.clear_closure_snooze("CSOPM-9999")
+
+        self.assertIsNone(result)
+
+    async def test_clear_closure_snooze_on_error_returns_none(self):
+        """Test clear_closure_snooze returns None on DynamoDB error."""
+        self.mock_client.update_item.side_effect = Exception("DynamoDB error")
+
+        result = await self.tracker.clear_closure_snooze("CSOPM-1234")
+
+        self.assertIsNone(result)
+
+
+class TestCSOPMStateTrackerClosureSnoozedUntilParsing(unittest.TestCase):
+    """Test closure_snoozed_until field parsing in _item_to_notification_record."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        from packages.slack.csopm.state import CSOPMStateTracker
+
+        self.mock_client = MockDynamoDBAsyncClient()
+        self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
+
+    def test_item_with_closure_snoozed_until_parsed(self):
+        """Test closure_snoozed_until is parsed as int when present."""
+        snooze_ts = 1999999999
+        item = {
+            "ticket_key": {"S": "CSOPM-1234"},
+            "notification_status": {"S": "sent"},
+            "rca_ping_count": {"N": "0"},
+            "closure_ping_count": {"N": "0"},
+            "rca_reminder_sent": {"BOOL": False},
+            "closure_reminder_sent": {"BOOL": False},
+            "closure_snoozed_until": {"N": str(snooze_ts)},
+        }
+
+        result = self.tracker._item_to_notification_record(item)
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.closure_snoozed_until, snooze_ts)
+
+    def test_item_without_closure_snoozed_until_defaults_to_none(self):
+        """Test closure_snoozed_until defaults to None when absent."""
+        item = {
+            "ticket_key": {"S": "CSOPM-1234"},
+            "notification_status": {"S": "sent"},
+            "rca_ping_count": {"N": "0"},
+            "closure_ping_count": {"N": "0"},
+            "rca_reminder_sent": {"BOOL": False},
+            "closure_reminder_sent": {"BOOL": False},
+        }
+
+        result = self.tracker._item_to_notification_record(item)
+
+        self.assertIsNotNone(result)
+        self.assertIsNone(result.closure_snoozed_until)
+
+
 if __name__ == "__main__":
     unittest.main()

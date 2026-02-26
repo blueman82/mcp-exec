@@ -252,39 +252,6 @@ class CSOPMScheduler(BaseScheduler):
                 len(tickets_to_notify),
             )
 
-            # Step 2.5: Recover pending records whose status update previously failed
-            # Records are created as 'pending' and immediately transitioned to 'sent'.
-            # If that second write fails, the record stays 'pending' indefinitely because
-            # Step 2 above only checks for reassignment on existing records, never retrying.
-            # get_pending_notifications() catches these orphans and flips them to 'sent'.
-            self.logger.info("Step 2.5: Recovering stuck pending notification records")
-            try:
-                pending_records = await state_tracker.get_pending_notifications()
-                if pending_records:
-                    self.logger.warning(
-                        "Found %d records stuck in pending state — retrying status transition",
-                        len(pending_records),
-                    )
-                    for pending_record in pending_records:
-                        try:
-                            await state_tracker.update_notification_status(
-                                pending_record.ticket_key, "sent"
-                            )
-                            self.logger.info(
-                                "Recovered pending record for %s → sent",
-                                pending_record.ticket_key,
-                            )
-                        except Exception as _recovery_err:
-                            self.logger.error(
-                                "Failed to recover pending record for %s: %s",
-                                pending_record.ticket_key,
-                                _recovery_err,
-                            )
-                else:
-                    self.logger.debug("No stuck pending records found")
-            except Exception as e:
-                self.logger.error("Error during pending record recovery: %s", e)
-
             # Step 3: Send notifications for new tickets
             self.logger.info("Step 3: Sending notifications")
             notification_count = 0
