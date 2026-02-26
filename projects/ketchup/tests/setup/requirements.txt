@@ -1,7 +1,7 @@
 # Core dependencies
 aiohttp>=3.13.3  # CVE floor: DoS fixes (GHSA-7px3-6xmm-7jmg, GHSA-3p5v-g6rw-3p5r)
-aioboto3
-aiobotocore
+aioboto3>=15.5.0  # floor: validated baseline; hard-pins aiobotocore==2.25.1 transitively
+aiobotocore==2.25.1  # pinned: exact version required by aioboto3>=15.5.0 (security: prevent unpinned resolver drift)
 pydantic
 python-dotenv
 httpx
