@@ -38,6 +38,8 @@ class MockStateTracker:
         self.record_followup = AsyncMock()
         self.get_all_active_notifications = AsyncMock()
         self.handle_reassignment = AsyncMock()
+        self.set_closure_snooze = AsyncMock()
+        self.clear_closure_snooze = AsyncMock()
 
 
 class MockMCPClient:
