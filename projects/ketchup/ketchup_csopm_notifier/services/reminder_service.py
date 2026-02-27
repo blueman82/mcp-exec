@@ -816,24 +816,17 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             True if snooze was applied, False otherwise.
         """
         try:
-            snooze_until = datetime.now(timezone.utc) + timedelta(days=snooze_days)
-
             logger.info(
-                "Snoozing closure reminder for %s until %s",
-                ticket_key,
-                snooze_until.isoformat(),
+                "Snoozing closure reminder for %s for %d days", ticket_key, snooze_days
             )
 
-            # Update the notification record with snooze timestamp
-            # Note: This would require adding a new method to StateTracker
-            # For now, we log the action
-            logger.info(
-                "Snooze applied for %s: closure_snoozed_until=%d",
-                ticket_key,
-                int(snooze_until.timestamp()),
-            )
-
-            return True
+            result = await self._state_tracker.set_closure_snooze(ticket_key, snooze_days)
+            success = result is not None
+            if success:
+                logger.info("Closure snooze applied for %s (%d days)", ticket_key, snooze_days)
+            else:
+                logger.warning("Closure snooze failed for %s (record not found)", ticket_key)
+            return success
 
         except Exception as e:
             logger.error("Error snoozing closure reminder for %s: %s", ticket_key, e)
