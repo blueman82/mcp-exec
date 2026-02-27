@@ -26,16 +26,34 @@ class TestTypedDISmokeChecks(unittest.IsolatedAsyncioTestCase):
     """Test TypedDI smoke check behavior."""
 
     def setUp(self):
-        """Reset global state before each test."""
+        """Reset environment variables and global state before each test."""
+        # Store original env vars for restoration
+        self.original_env = {}
+        for key in ["KETCHUP_USE_TYPED_DI"]:
+            self.original_env[key] = os.environ.get(key)
+            if key in os.environ:
+                del os.environ[key]
+
+        # Reset global instances to ensure clean state
         import packages.core.typed_di_integration as integration_module
 
         integration_module._typed_registry = None
 
+    def tearDown(self):
+        """Restore original environment variables."""
+        for key, value in self.original_env.items():
+            if value is not None:
+                os.environ[key] = value
+            elif key in os.environ:
+                del os.environ[key]
+
     async def test_smoke_checks_pass_scenario(self):
         """Test smoke check success scenario - TypedDI initializes correctly."""
+        # Set up for TypedDI enabled
+        os.environ["KETCHUP_USE_TYPED_DI"] = "true"
+
         # Mock all dependencies to succeed
         with (
-            patch.dict(os.environ, {"KETCHUP_USE_TYPED_DI": "true"}),
             patch("packages.core.typed_di_integration.TypedServiceRegistry") as mock_registry_class,
             patch(
                 "packages.core.typed_di_integration._run_startup_smoke_checks"
@@ -70,10 +88,24 @@ class TestTypedDISmokeCheckIntegration(unittest.IsolatedAsyncioTestCase):
     """Integration tests for the actual smoke check implementation."""
 
     def setUp(self):
-        """Reset global state before each test."""
+        """Set up test environment."""
+        # Store original env vars
+        self.original_env = {}
+        for key in ["KETCHUP_USE_TYPED_DI"]:
+            self.original_env[key] = os.environ.get(key)
+
+        # Reset global instances
         import packages.core.typed_di_integration as integration_module
 
         integration_module._typed_registry = None
+
+    def tearDown(self):
+        """Restore environment variables."""
+        for key, value in self.original_env.items():
+            if value is not None:
+                os.environ[key] = value
+            elif key in os.environ:
+                del os.environ[key]
 
     async def test_smoke_check_implementation_with_mocks(self):
         """Test the actual smoke check implementation with mocked services."""

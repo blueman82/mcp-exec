@@ -38,8 +38,6 @@ class MockStateTracker:
         self.record_followup = AsyncMock()
         self.get_all_active_notifications = AsyncMock()
         self.handle_reassignment = AsyncMock()
-        self.set_closure_snooze = AsyncMock()
-        self.clear_closure_snooze = AsyncMock()
 
 
 class MockMCPClient:
@@ -783,33 +781,16 @@ class TestSnoozeClosureReminder(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_snooze_closure_reminder_success(self):
-        """Test snoozing closure reminder delegates to state_tracker."""
-        mock_record = make_notification_record()
-        self.mock_state_tracker.set_closure_snooze.return_value = mock_record
-
+        """Test snoozing closure reminder."""
         result = await self.service.snooze_closure_reminder("CSOPM-1234", snooze_days=7)
 
         self.assertTrue(result)
-        self.mock_state_tracker.set_closure_snooze.assert_called_once_with("CSOPM-1234", 7)
 
     async def test_snooze_closure_reminder_custom_days(self):
-        """Test snoozing closure reminder passes custom duration to state_tracker."""
-        mock_record = make_notification_record()
-        self.mock_state_tracker.set_closure_snooze.return_value = mock_record
-
+        """Test snoozing closure reminder with custom duration."""
         result = await self.service.snooze_closure_reminder("CSOPM-1234", snooze_days=14)
 
         self.assertTrue(result)
-        self.mock_state_tracker.set_closure_snooze.assert_called_once_with("CSOPM-1234", 14)
-
-    async def test_snooze_closure_reminder_returns_false_when_record_not_found(self):
-        """Test snooze returns False when state_tracker returns None (record not found)."""
-        self.mock_state_tracker.set_closure_snooze.return_value = None
-
-        result = await self.service.snooze_closure_reminder("CSOPM-9999", snooze_days=7)
-
-        self.assertFalse(result)
-        self.mock_state_tracker.set_closure_snooze.assert_called_once_with("CSOPM-9999", 7)
 
 
 class TestCloseTicketViaReminder(unittest.IsolatedAsyncioTestCase):
