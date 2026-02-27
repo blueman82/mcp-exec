@@ -1019,7 +1019,9 @@ class TestCSOPMStateTrackerSetClosureSnooze(unittest.IsolatedAsyncioTestCase):
         self.mock_client = MockDynamoDBAsyncClient()
         self.tracker = CSOPMStateTracker(client=self.mock_client, table_name="test-table")
 
-    def _make_snooze_response(self, ticket_key: str = "CSOPM-1234", snooze_until: int = 9999999) -> dict:
+    def _make_snooze_response(
+        self, ticket_key: str = "CSOPM-1234", snooze_until: int = 9999999
+    ) -> dict:
         return {
             "Attributes": {
                 "ticket_key": {"S": ticket_key},
@@ -1046,7 +1048,9 @@ class TestCSOPMStateTrackerSetClosureSnooze(unittest.IsolatedAsyncioTestCase):
     async def test_set_closure_snooze_parses_closure_snoozed_until(self):
         """Test set_closure_snooze result has closure_snoozed_until populated."""
         snooze_ts = 9999999
-        self.mock_client.update_item.return_value = self._make_snooze_response(snooze_until=snooze_ts)
+        self.mock_client.update_item.return_value = self._make_snooze_response(
+            snooze_until=snooze_ts
+        )
 
         result = await self.tracker.set_closure_snooze("CSOPM-1234")
 
