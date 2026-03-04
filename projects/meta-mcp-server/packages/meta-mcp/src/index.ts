@@ -48,6 +48,12 @@ Environment:
 }
 
 async function main() {
+  // Kill any orphaned meta-mcp-server instances left over from crashed/closed parent sessions
+  const killed = await cleanupOrphanedProcesses('meta-mcp-server');
+  if (killed > 0) {
+    process.stderr.write(`Cleaned up ${killed} orphaned meta-mcp-server process(es)\n`);
+  }
+
   // Parse transport configuration from environment
   const transportConfig = parseTransportConfig();
 
