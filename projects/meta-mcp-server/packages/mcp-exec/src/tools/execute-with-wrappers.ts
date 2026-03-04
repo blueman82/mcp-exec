@@ -249,6 +249,7 @@ export function createExecuteWithWrappersHandler(
 
       // Step 6: Stop the bridge server
       await bridge.stop();
+      activeBridge = null;
 
       // Step 7: Format and return result
       return formatResult(result);
@@ -261,12 +262,15 @@ export function createExecuteWithWrappersHandler(
       } catch {
         // Ignore cleanup errors
       }
+      activeBridge = null;
 
       // Return error with any partial output
       const errorMessage = error instanceof Error ? error.message : String(error);
       return formatErrorResult(errorMessage, result);
     }
-  };
+  }
+
+  return { handler: executeWithWrappersHandler, stopActiveBridge };
 }
 
 /**
