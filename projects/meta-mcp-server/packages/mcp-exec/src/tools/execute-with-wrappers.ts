@@ -92,6 +92,53 @@ export function isExecuteWithWrappersInput(args: unknown): args is ExecuteWithWr
 }
 
 /**
+ * REPL-like return value capture: if the last expression of userCode is a bare
+ * expression statement (not a declaration or control-flow keyword), transform it
+ * to an async IIFE that returns that expression and prints the result.
+ *
+ * Handles common cases:
+ *   `42`                 → prints 42
+ *   `someVar`            → prints value of someVar
+ *   `await mcp.callTool(...)` → prints result
+ *
+ * Skips if last statement starts with const/let/var/function/class/return/throw/if/for/…
+ */
+function wrapUserCodeForReturnCapture(code: string): string {
+  const trimmed = code.trimEnd();
+  if (!trimmed) return code;
+
+  const lines = trimmed.split('\n');
+  let lastIdx = lines.length - 1;
+
+  // Find last non-empty, non-comment line
+  while (lastIdx >= 0) {
+    const t = lines[lastIdx].trim();
+    if (t && !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')) break;
+    lastIdx--;
+  }
+
+  if (lastIdx < 0) return code;
+
+  const lastTrimmed = lines[lastIdx].trim();
+
+  // Skip if it's a statement keyword, declaration, or already a return
+  const isStatement = /^(const|let|var|function\s|class\s|import\s|export\s|return\b|throw\b|if\s*\(|else\b|for\s*[\({]|while\s*\(|do\s*\{|switch\s*\(|try\s*\{|catch\s*\(|finally\s*\{|break\b|continue\b|;)/.test(lastTrimmed);
+  if (isStatement) return code;
+
+  // Strip trailing semicolon from the last expression before wrapping
+  const expr = lastTrimmed.replace(/;$/, '');
+  const indent = lines[lastIdx].match(/^(\s*)/)?.[1] ?? '';
+
+  lines[lastIdx] = `${indent}const __execResult = await Promise.resolve(${expr});
+${indent}if (__execResult !== undefined) {
+${indent}  const __out = typeof __execResult === 'string' ? __execResult : JSON.stringify(__execResult, null, 2);
+${indent}  process.stdout.write(__out + '\\n');
+${indent}}`;
+
+  return lines.join('\n');
+}
+
+/**
  * Generate the MCP helper preamble that provides the global `mcp` object
  * for calling MCP tools via the HTTP bridge
  */
@@ -127,7 +174,7 @@ globalThis.mcp = {
  *
  * @param pool - Server pool for MCP connections
  * @param config - Optional handler configuration
- * @returns Handler function for execute_code_with_wrappers tool
+ * @returns Object with handler function and stopActiveBridge for graceful shutdown
  */
 export function createExecuteWithWrappersHandler(
   pool: ServerPool,
@@ -136,10 +183,27 @@ export function createExecuteWithWrappersHandler(
   // Preferred port (actual port determined at runtime via dynamic allocation)
   const preferredPort = config.bridgeConfig?.port ?? 3000;
 
+  // Track the bridge that is currently running (at most one per handler instance)
+  let activeBridge: MCPBridge | null = null;
+
+  /**
+   * Stop the currently active bridge, if any. Called during graceful shutdown.
+   */
+  async function stopActiveBridge(): Promise<void> {
+    if (activeBridge?.isRunning()) {
+      try {
+        await activeBridge.stop();
+      } catch {
+        // Ignore — process is shutting down anyway
+      }
+    }
+    activeBridge = null;
+  }
+
   /**
    * Execute code with wrappers handler - generates wrappers, composes code, and executes
    */
-  return async function executeWithWrappersHandler(
+  async function executeWithWrappersHandler(
     args: ExecuteWithWrappersInput
   ): Promise<CallToolResult> {
     const { code, wrappers, timeout_ms = DEFAULT_TIMEOUT_MS } = args;
@@ -180,6 +244,7 @@ export function createExecuteWithWrappersHandler(
       ...config.bridgeConfig,
       port: preferredPort,
     });
+    activeBridge = bridge;
 
     try {
       // Step 1: Start the MCP bridge server (gets dynamic port)
@@ -217,7 +282,8 @@ export function createExecuteWithWrappersHandler(
       const generatedWrappers = wrapperModules.join('\n\n');
       const mcpDictionary = generateMcpDictionary(wrappers);
       const mcpPreamble = getMcpPreamble(actualPort);
-      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${mcpPreamble}\n${code}`;
+      const instrumentedCode = wrapUserCodeForReturnCapture(code);
+      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${mcpPreamble}\n${instrumentedCode}`;
 
       // Step 4: Create executor with actual port for sandbox network config
       const sandboxConfig: SandboxExecutorConfig = {
@@ -231,6 +297,7 @@ export function createExecuteWithWrappersHandler(
 
       // Step 6: Stop the bridge server
       await bridge.stop();
+      activeBridge = null;
 
       // Step 7: Format and return result
       return formatResult(result);
@@ -243,12 +310,15 @@ export function createExecuteWithWrappersHandler(
       } catch {
         // Ignore cleanup errors
       }
+      activeBridge = null;
 
       // Return error with any partial output
       const errorMessage = error instanceof Error ? error.message : String(error);
       return formatErrorResult(errorMessage, result);
     }
-  };
+  }
+
+  return { handler: executeWithWrappersHandler, stopActiveBridge };
 }
 
 /**

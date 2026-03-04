@@ -1,7 +1,9 @@
 /**
- * Port cleanup utilities for handling stale mcp-exec processes
+ * Port cleanup utilities for handling stale mcp-exec processes on the bridge port.
+ * Orphan process cleanup (PPID=1) is handled by cleanupOrphanedProcesses in core.
  */
 import { execSync } from 'child_process';
+import { isOrphanedProcess } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Check if a process is an mcp-exec process by examining its command line
@@ -33,9 +35,9 @@ function getProcessesOnPort(port: number): number[] {
 }
 
 /**
- * Attempt to clean up stale mcp-exec processes on a specific port
- * Only kills processes that match mcp-exec/meta-mcp in their command line
- * 
+ * Attempt to clean up stale mcp-exec processes on a specific port.
+ * Kills processes that match mcp-exec/meta-mcp in their command line OR are orphaned (PPID=1).
+ *
  * @param port - Port number to check for stale processes
  * @returns true if any processes were killed, false otherwise
  */
@@ -46,7 +48,7 @@ export async function cleanupStaleProcess(port: number): Promise<boolean> {
   let killedAny = false;
 
   for (const pid of pids) {
-    if (isMcpExecProcess(pid)) {
+    if (isMcpExecProcess(pid) || isOrphanedProcess(pid)) {
       try {
         process.kill(pid, 'SIGTERM');
         killedAny = true;
@@ -57,7 +59,6 @@ export async function cleanupStaleProcess(port: number): Promise<boolean> {
   }
 
   if (killedAny) {
-    // Give processes time to terminate
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
@@ -66,7 +67,7 @@ export async function cleanupStaleProcess(port: number): Promise<boolean> {
 
 /**
  * Check if a port is currently in use
- * 
+ *
  * @param port - Port number to check
  * @returns true if port is in use, false otherwise
  */

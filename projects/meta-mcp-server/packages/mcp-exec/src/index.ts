@@ -6,7 +6,7 @@
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createMcpExecServer } from './server.js';
-import { ServerPool, createConnection, getServerConfig, loadServerManifest } from '@justanothermldude/meta-mcp-core';
+import { ServerPool, createConnection, getServerConfig, loadServerManifest, cleanupOrphanedProcesses } from '@justanothermldude/meta-mcp-core';
 
 // Export types
 export * from './types/index.js';
@@ -95,6 +95,12 @@ Environment:
 }
 
 async function main() {
+  // Kill any orphaned mcp-exec instances left over from crashed/closed parent sessions
+  const killed = await cleanupOrphanedProcesses('mcp-exec');
+  if (killed > 0) {
+    process.stderr.write(`Cleaned up ${killed} orphaned mcp-exec process(es)\n`);
+  }
+
   // Load config on startup
   const configPath = process.env.SERVERS_CONFIG;
   if (configPath) {

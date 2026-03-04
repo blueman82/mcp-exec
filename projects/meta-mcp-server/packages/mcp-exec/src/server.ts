@@ -62,7 +62,7 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   const getToolSchemaHandler = createGetToolSchemaHandler(pool);
 
   // Create the execute_code_with_wrappers handler with the pool
-  const executeWithWrappersHandler = createExecuteWithWrappersHandler(pool, config.handlerConfig);
+  const { handler: executeWithWrappersHandler, stopActiveBridge } = createExecuteWithWrappersHandler(pool, config.handlerConfig);
 
   // Register all tools
   const tools: Tool[] = [
@@ -136,8 +136,8 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   });
 
   const shutdown = async () => {
-    // No pool shutdown needed - pool is managed externally
-    // Server cleanup handled by server.close()
+    // Stop any in-flight bridge so it doesn't keep the event loop alive
+    await stopActiveBridge();
   };
 
   return {
