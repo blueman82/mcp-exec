@@ -92,6 +92,53 @@ export function isExecuteWithWrappersInput(args: unknown): args is ExecuteWithWr
 }
 
 /**
+ * REPL-like return value capture: if the last expression of userCode is a bare
+ * expression statement (not a declaration or control-flow keyword), transform it
+ * to an async IIFE that returns that expression and prints the result.
+ *
+ * Handles common cases:
+ *   `42`                 → prints 42
+ *   `someVar`            → prints value of someVar
+ *   `await mcp.callTool(...)` → prints result
+ *
+ * Skips if last statement starts with const/let/var/function/class/return/throw/if/for/…
+ */
+function wrapUserCodeForReturnCapture(code: string): string {
+  const trimmed = code.trimEnd();
+  if (!trimmed) return code;
+
+  const lines = trimmed.split('\n');
+  let lastIdx = lines.length - 1;
+
+  // Find last non-empty, non-comment line
+  while (lastIdx >= 0) {
+    const t = lines[lastIdx].trim();
+    if (t && !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')) break;
+    lastIdx--;
+  }
+
+  if (lastIdx < 0) return code;
+
+  const lastTrimmed = lines[lastIdx].trim();
+
+  // Skip if it's a statement keyword, declaration, or already a return
+  const isStatement = /^(const|let|var|function\s|class\s|import\s|export\s|return\b|throw\b|if\s*\(|else\b|for\s*[\({]|while\s*\(|do\s*\{|switch\s*\(|try\s*\{|catch\s*\(|finally\s*\{|break\b|continue\b|;)/.test(lastTrimmed);
+  if (isStatement) return code;
+
+  // Strip trailing semicolon from the last expression before wrapping
+  const expr = lastTrimmed.replace(/;$/, '');
+  const indent = lines[lastIdx].match(/^(\s*)/)?.[1] ?? '';
+
+  lines[lastIdx] = `${indent}const __execResult = await Promise.resolve(${expr});
+${indent}if (__execResult !== undefined) {
+${indent}  const __out = typeof __execResult === 'string' ? __execResult : JSON.stringify(__execResult, null, 2);
+${indent}  process.stdout.write(__out + '\\n');
+${indent}}`;
+
+  return lines.join('\n');
+}
+
+/**
  * Generate the MCP helper preamble that provides the global `mcp` object
  * for calling MCP tools via the HTTP bridge
  */
