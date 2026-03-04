@@ -1,7 +1,9 @@
 /**
- * Port cleanup utilities for handling stale mcp-exec processes
+ * Port cleanup utilities for handling stale mcp-exec processes on the bridge port.
+ * Orphan process cleanup (PPID=1) is handled by cleanupOrphanedProcesses in core.
  */
 import { execSync } from 'child_process';
+import { isOrphanedProcess } from '@justanothermldude/meta-mcp-core';
 
 /**
  * Check if a process is an mcp-exec process by examining its command line
@@ -10,18 +12,6 @@ function isMcpExecProcess(pid: number): boolean {
   try {
     const cmdline = execSync(`ps -p ${pid} -o command=`, { encoding: 'utf8' }).trim();
     return cmdline.includes('mcp-exec') || cmdline.includes('meta-mcp');
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Check if a process is orphaned (parent is init/launchd, PID 1)
- */
-function isOrphanedProcess(pid: number): boolean {
-  try {
-    const ppid = execSync(`ps -p ${pid} -o ppid=`, { encoding: 'utf8' }).trim();
-    return parseInt(ppid, 10) === 1;
   } catch {
     return false;
   }
@@ -39,23 +29,6 @@ function getProcessesOnPort(port: number): number[] {
       .filter(Boolean)
       .map((pid) => parseInt(pid, 10))
       .filter((pid) => !isNaN(pid));
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Find all mcp-exec process PIDs system-wide, excluding the current process
- */
-function getAllMcpExecPids(): number[] {
-  try {
-    const result = execSync(`pgrep -f 'mcp-exec'`, { encoding: 'utf8' }).trim();
-    if (!result) return [];
-    return result
-      .split('\n')
-      .filter(Boolean)
-      .map((pid) => parseInt(pid, 10))
-      .filter((pid) => !isNaN(pid) && pid !== process.pid);
   } catch {
     return [];
   }
@@ -86,39 +59,10 @@ export async function cleanupStaleProcess(port: number): Promise<boolean> {
   }
 
   if (killedAny) {
-    // Give processes time to terminate
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   return killedAny;
-}
-
-/**
- * Kill all orphaned mcp-exec processes (PPID=1) system-wide.
- * Should be called at startup to clean up leftovers from crashed/closed parent sessions.
- *
- * @returns number of processes killed
- */
-export async function cleanupOrphanedProcesses(): Promise<number> {
-  const pids = getAllMcpExecPids();
-  let killed = 0;
-
-  for (const pid of pids) {
-    if (isOrphanedProcess(pid)) {
-      try {
-        process.kill(pid, 'SIGTERM');
-        killed++;
-      } catch {
-        // Process may have already exited
-      }
-    }
-  }
-
-  if (killed > 0) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-
-  return killed;
 }
 
 /**
