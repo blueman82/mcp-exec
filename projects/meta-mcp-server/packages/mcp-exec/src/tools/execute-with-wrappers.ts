@@ -197,6 +197,7 @@ export function createExecuteWithWrappersHandler(
       ...config.bridgeConfig,
       port: preferredPort,
     });
+    activeBridge = bridge;
 
     try {
       // Step 1: Start the MCP bridge server (gets dynamic port)
