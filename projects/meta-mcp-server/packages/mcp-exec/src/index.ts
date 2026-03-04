@@ -96,7 +96,7 @@ Environment:
 
 async function main() {
   // Kill any orphaned mcp-exec instances left over from crashed/closed parent sessions
-  const killed = await cleanupOrphanedProcesses();
+  const killed = await cleanupOrphanedProcesses('mcp-exec');
   if (killed > 0) {
     process.stderr.write(`Cleaned up ${killed} orphaned mcp-exec process(es)\n`);
   }
