@@ -16,6 +16,18 @@ function isMcpExecProcess(pid: number): boolean {
 }
 
 /**
+ * Check if a process is orphaned (parent is init/launchd, PID 1)
+ */
+function isOrphanedProcess(pid: number): boolean {
+  try {
+    const ppid = execSync(`ps -p ${pid} -o ppid=`, { encoding: 'utf8' }).trim();
+    return parseInt(ppid, 10) === 1;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Get PIDs of processes listening on a specific port
  */
 function getProcessesOnPort(port: number): number[] {
@@ -33,9 +45,26 @@ function getProcessesOnPort(port: number): number[] {
 }
 
 /**
- * Attempt to clean up stale mcp-exec processes on a specific port
- * Only kills processes that match mcp-exec/meta-mcp in their command line
- * 
+ * Find all mcp-exec process PIDs system-wide, excluding the current process
+ */
+function getAllMcpExecPids(): number[] {
+  try {
+    const result = execSync(`pgrep -f 'mcp-exec'`, { encoding: 'utf8' }).trim();
+    if (!result) return [];
+    return result
+      .split('\n')
+      .filter(Boolean)
+      .map((pid) => parseInt(pid, 10))
+      .filter((pid) => !isNaN(pid) && pid !== process.pid);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Attempt to clean up stale mcp-exec processes on a specific port.
+ * Kills processes that match mcp-exec/meta-mcp in their command line OR are orphaned (PPID=1).
+ *
  * @param port - Port number to check for stale processes
  * @returns true if any processes were killed, false otherwise
  */
@@ -46,7 +75,7 @@ export async function cleanupStaleProcess(port: number): Promise<boolean> {
   let killedAny = false;
 
   for (const pid of pids) {
-    if (isMcpExecProcess(pid)) {
+    if (isMcpExecProcess(pid) || isOrphanedProcess(pid)) {
       try {
         process.kill(pid, 'SIGTERM');
         killedAny = true;
@@ -65,8 +94,36 @@ export async function cleanupStaleProcess(port: number): Promise<boolean> {
 }
 
 /**
+ * Kill all orphaned mcp-exec processes (PPID=1) system-wide.
+ * Should be called at startup to clean up leftovers from crashed/closed parent sessions.
+ *
+ * @returns number of processes killed
+ */
+export async function cleanupOrphanedProcesses(): Promise<number> {
+  const pids = getAllMcpExecPids();
+  let killed = 0;
+
+  for (const pid of pids) {
+    if (isOrphanedProcess(pid)) {
+      try {
+        process.kill(pid, 'SIGTERM');
+        killed++;
+      } catch {
+        // Process may have already exited
+      }
+    }
+  }
+
+  if (killed > 0) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  return killed;
+}
+
+/**
  * Check if a port is currently in use
- * 
+ *
  * @param port - Port number to check
  * @returns true if port is in use, false otherwise
  */
