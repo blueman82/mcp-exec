@@ -73,3 +73,6 @@ export type {
   GatewayAuthConfig,
   GatewayAuthResult,
 } from './auth/index.js';
+
+// Process utilities
+export { isOrphanedProcess, cleanupOrphanedProcesses } from './process/cleanup.js';
