@@ -182,7 +182,20 @@ export function parseEnvFile(filePath: string): Record<string, string> {
     
     const key = trimmed.slice(0, eqIndex).trim();
     let value = trimmed.slice(eqIndex + 1).trim();
-    
+
+    // Extract value, stripping inline comments and surrounding quotes.
+    // Handles: KEY="value" # comment  →  value
+    //          KEY='value' # comment  →  value
+    //          KEY=value # comment    →  value
+    const quote = value[0];
+    if (quote === '"' || quote === "'") {
+      const closeIdx = value.indexOf(quote, 1);
+      value = closeIdx > 0 ? value.slice(1, closeIdx) : value.slice(1);
+    } else {
+      const commentIdx = value.search(/\s+#/);
+      if (commentIdx > -1) value = value.slice(0, commentIdx).trim();
+    }
+
     // Remove surrounding quotes if present
     if ((value.startsWith('"') && value.endsWith('"')) ||
         (value.startsWith("'") && value.endsWith("'"))) {

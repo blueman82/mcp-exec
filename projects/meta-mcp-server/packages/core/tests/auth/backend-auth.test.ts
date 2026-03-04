@@ -3,9 +3,12 @@
  * Tests environment variable resolution and backend auth header lookup
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { writeFileSync, unlinkSync } from 'node:fs';
+import { homedir } from 'node:os';
 import {
   resolveBackendAuth,
   getBackendAuthHeader,
+  parseEnvFile,
   EnvVarNotFoundError,
 } from '../../src/auth/index.js';
 import type { ServerConfig } from '../../src/types/index.js';
@@ -223,6 +226,43 @@ describe('backend-auth', () => {
       const result = getBackendAuthHeader(config, 'backend');
 
       expect(result).toBe('ApiKey secret-key');
+    });
+  });
+
+  describe('parseEnvFile inline comments', () => {
+    it('strips trailing comment from double-quoted value', () => {
+      const f = `${homedir()}/.test-parse-env-inline.env`;
+      writeFileSync(f, 'TOKEN="abc123"  # provide via header\n');
+      expect(parseEnvFile(f)).toEqual({ TOKEN: 'abc123' });
+      unlinkSync(f);
+    });
+
+    it('strips trailing comment from single-quoted value', () => {
+      const f = `${homedir()}/.test-parse-env-inline.env`;
+      writeFileSync(f, "TOKEN='abc123'  # comment\n");
+      expect(parseEnvFile(f)).toEqual({ TOKEN: 'abc123' });
+      unlinkSync(f);
+    });
+
+    it('strips trailing comment from unquoted value', () => {
+      const f = `${homedir()}/.test-parse-env-inline.env`;
+      writeFileSync(f, 'TOKEN=abc123   # comment\n');
+      expect(parseEnvFile(f)).toEqual({ TOKEN: 'abc123' });
+      unlinkSync(f);
+    });
+
+    it('preserves value with no comment', () => {
+      const f = `${homedir()}/.test-parse-env-inline.env`;
+      writeFileSync(f, 'TOKEN="abc123"\n');
+      expect(parseEnvFile(f)).toEqual({ TOKEN: 'abc123' });
+      unlinkSync(f);
+    });
+
+    it('preserves empty quoted value', () => {
+      const f = `${homedir()}/.test-parse-env-inline.env`;
+      writeFileSync(f, 'TOKEN=""  # provide via header\n');
+      expect(parseEnvFile(f)).toEqual({ TOKEN: '' });
+      unlinkSync(f);
     });
   });
 

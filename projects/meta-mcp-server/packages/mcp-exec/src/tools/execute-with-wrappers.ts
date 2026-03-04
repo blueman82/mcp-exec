@@ -107,25 +107,27 @@ function wrapUserCodeForReturnCapture(code: string): string {
   const trimmed = code.trimEnd();
   if (!trimmed) return code;
 
-  const lines = trimmed.split('\n');
-  let lastIdx = lines.length - 1;
+  // If the code ends with } it closes a block statement — nothing to capture.
+  // This single check handles try/catch, if/else, loops, functions, etc.
+  if (trimmed.replace(/;+$/, '').endsWith('}')) return code;
 
   // Find last non-empty, non-comment line
+  const lines = trimmed.split('\n');
+  let lastIdx = lines.length - 1;
   while (lastIdx >= 0) {
     const t = lines[lastIdx].trim();
     if (t && !t.startsWith('//') && !t.startsWith('*') && !t.startsWith('/*')) break;
     lastIdx--;
   }
-
   if (lastIdx < 0) return code;
 
   const lastTrimmed = lines[lastIdx].trim();
 
-  // Skip if it's a statement keyword, declaration, or already a return
-  const isStatement = /^(const|let|var|function\s|class\s|import\s|export\s|return\b|throw\b|if\s*\(|else\b|for\s*[\({]|while\s*\(|do\s*\{|switch\s*\(|try\s*\{|catch\s*\(|finally\s*\{|break\b|continue\b|;)/.test(lastTrimmed);
-  if (isStatement) return code;
+  // Skip declaration and control-flow keywords
+  if (/^(const|let|var|function\s|class\s|import\s|export\s|return\b|throw\b|if\s*\(|else\b|for\s*[\({]|while\s*\(|do\s*\{|switch\s*\(|try\s*\{|catch\s*\(|finally\s*\{|break\b|continue\b)/.test(lastTrimmed)) {
+    return code;
+  }
 
-  // Strip trailing semicolon from the last expression before wrapping
   const expr = lastTrimmed.replace(/;$/, '');
   const indent = lines[lastIdx].match(/^(\s*)/)?.[1] ?? '';
 
