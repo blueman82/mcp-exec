@@ -6,6 +6,7 @@ import {
   createConnection,
   ToolCache,
   getServerConfig,
+  cleanupOrphanedProcesses,
 } from '@justanothermldude/meta-mcp-core';
 import { parseTransportConfig, TransportMode } from './transport.js';
 import { createHttpServer, HttpServerResult } from './http-server.js';
