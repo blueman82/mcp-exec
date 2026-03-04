@@ -136,8 +136,8 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   });
 
   const shutdown = async () => {
-    // No pool shutdown needed - pool is managed externally
-    // Server cleanup handled by server.close()
+    // Stop any in-flight bridge so it doesn't keep the event loop alive
+    await stopActiveBridge();
   };
 
   return {
