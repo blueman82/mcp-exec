@@ -127,7 +127,7 @@ globalThis.mcp = {
  *
  * @param pool - Server pool for MCP connections
  * @param config - Optional handler configuration
- * @returns Handler function for execute_code_with_wrappers tool
+ * @returns Object with handler function and stopActiveBridge for graceful shutdown
  */
 export function createExecuteWithWrappersHandler(
   pool: ServerPool,
@@ -136,10 +136,27 @@ export function createExecuteWithWrappersHandler(
   // Preferred port (actual port determined at runtime via dynamic allocation)
   const preferredPort = config.bridgeConfig?.port ?? 3000;
 
+  // Track the bridge that is currently running (at most one per handler instance)
+  let activeBridge: MCPBridge | null = null;
+
+  /**
+   * Stop the currently active bridge, if any. Called during graceful shutdown.
+   */
+  async function stopActiveBridge(): Promise<void> {
+    if (activeBridge?.isRunning()) {
+      try {
+        await activeBridge.stop();
+      } catch {
+        // Ignore — process is shutting down anyway
+      }
+    }
+    activeBridge = null;
+  }
+
   /**
    * Execute code with wrappers handler - generates wrappers, composes code, and executes
    */
-  return async function executeWithWrappersHandler(
+  async function executeWithWrappersHandler(
     args: ExecuteWithWrappersInput
   ): Promise<CallToolResult> {
     const { code, wrappers, timeout_ms = DEFAULT_TIMEOUT_MS } = args;
