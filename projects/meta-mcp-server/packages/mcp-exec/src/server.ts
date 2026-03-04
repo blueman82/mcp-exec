@@ -62,7 +62,7 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   const getToolSchemaHandler = createGetToolSchemaHandler(pool);
 
   // Create the execute_code_with_wrappers handler with the pool
-  const executeWithWrappersHandler = createExecuteWithWrappersHandler(pool, config.handlerConfig);
+  const { handler: executeWithWrappersHandler, stopActiveBridge } = createExecuteWithWrappersHandler(pool, config.handlerConfig);
 
   // Register all tools
   const tools: Tool[] = [
