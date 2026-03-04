@@ -282,7 +282,8 @@ export function createExecuteWithWrappersHandler(
       const generatedWrappers = wrapperModules.join('\n\n');
       const mcpDictionary = generateMcpDictionary(wrappers);
       const mcpPreamble = getMcpPreamble(actualPort);
-      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${mcpPreamble}\n${code}`;
+      const instrumentedCode = wrapUserCodeForReturnCapture(code);
+      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${mcpPreamble}\n${instrumentedCode}`;
 
       // Step 4: Create executor with actual port for sandbox network config
       const sandboxConfig: SandboxExecutorConfig = {
