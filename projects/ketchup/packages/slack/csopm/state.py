@@ -139,9 +139,11 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 followup_ticket_keys=followup_ticket_keys,
                 completed_at=completed_at,
                 closed_at=closed_at,
-                closure_snoozed_until=int(normalized["closure_snoozed_until"])
-                if normalized.get("closure_snoozed_until") is not None
-                else None,
+                closure_snoozed_until=(
+                    int(normalized["closure_snoozed_until"])
+                    if normalized.get("closure_snoozed_until") is not None
+                    else None
+                ),
             )
         except Exception as e:
             logger.error("Error parsing notification record: %s", e)
@@ -533,7 +535,10 @@ class CSOPMStateTracker(BaseOperations, CSOPMStateTrackerProtocol):
                 return None
 
             logger.info(
-                "Closure snooze set for %s until %d (%d days)", ticket_key, snooze_until, snooze_days
+                "Closure snooze set for %s until %d (%d days)",
+                ticket_key,
+                snooze_until,
+                snooze_days,
             )
             return self._item_to_notification_record(attributes)
 

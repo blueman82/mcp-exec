@@ -217,6 +217,8 @@ async def cleanup_unified_container() -> None:
     """Clean up the TypedServiceRegistry."""
     global _typed_registry, _typed_registry_role
     logger.info("Cleaning up TypedServiceRegistry")
+    if _typed_registry is not None:
+        await _typed_registry.cleanup()
     _typed_registry = None
     _typed_registry_role = None
 

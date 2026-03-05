@@ -262,6 +262,14 @@ class UnifiedSchedulerEngine:
 
         # Cleanup
         await self._stop_all_tasks()
+
+        # Close DI container sessions (aioboto3/aiohttp) to prevent resource leak warnings
+        try:
+            from packages.core.typed_di_integration import cleanup_unified_container
+            await cleanup_unified_container()
+        except Exception as e:
+            self._logger.error("Error during container cleanup: %s", e)
+
         self._update_health_status("stopped")
         self._logger.info("UnifiedSchedulerEngine stopped")
 
