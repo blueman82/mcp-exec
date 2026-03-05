@@ -1,8 +1,8 @@
-# Meta-MCP Server
+# mcp-exec
 
 ![Meta-MCP](extension/media/meta-mcp-logo.png)
 
-A Model Context Protocol (MCP) server that wraps multiple backend MCP servers for token-efficient tool discovery via lazy loading.
+Sandboxed code execution for AI tools, with typed access to all your MCP servers. A single MCP entry point that wraps your existing backend servers for token-efficient tool discovery and isolated code execution.
 
 ## Monorepo Structure
 
@@ -11,7 +11,6 @@ This project is organized as a monorepo with the following packages:
 ```
 packages/
 ├── core/           # @justanothermldude/meta-mcp-core - Shared utilities, types, pool, and registry
-├── meta-mcp/       # @justanothermldude/meta-mcp-server - Main MCP server with 3 meta-tools
 └── mcp-exec/       # @justanothermldude/mcp-exec - Sandboxed code execution with typed wrappers
 
 extension/          # VS Code/Cursor extension (VSIX)
@@ -21,7 +20,6 @@ jetbrains-plugin/   # IntelliJ IDEA plugin (works with Junie)
 | Package | Description | Install |
 |---------|-------------|---------|
 | [`@justanothermldude/meta-mcp-core`](./packages/core/README.md) | Core utilities: types, connection pool, registry, tool cache | `npm i @justanothermldude/meta-mcp-core` |
-| [`@justanothermldude/meta-mcp-server`](./packages/meta-mcp/README.md) | MCP server exposing 3 meta-tools for token optimization | `npm i -g @justanothermldude/meta-mcp-server` |
 | [`@justanothermldude/mcp-exec`](./packages/mcp-exec/README.md) | Sandboxed code execution with MCP tool access via typed wrappers | `npm i -g @justanothermldude/mcp-exec` |
 
 ## Problem
@@ -30,13 +28,13 @@ When Claude/Droid connects to many MCP servers, it loads all tool schemas upfron
 
 ## Solution
 
-Meta-MCP exposes only 3 tools to the AI:
+mcp-exec exposes only 3 tools to the AI:
 
 | Tool | Purpose |
 |------|---------|
-| `list_servers` | List available backend servers (lightweight, no schemas) |
-| `get_server_tools` | Fetch tools from a server. Supports `summary_only` for names/descriptions, `tools` for specific schemas |
-| `call_tool` | Execute a tool on a backend server |
+| `list_available_mcp_servers` | List available backend servers (lightweight, no schemas) |
+| `get_mcp_tool_schema` | Fetch schema for a specific tool on-demand |
+| `execute_code_with_wrappers` | Run code in a sandbox with typed access to any MCP tool |
 
 Backend servers are spawned lazily on first access and managed via a connection pool.
 
@@ -63,7 +61,7 @@ Backend servers are spawned lazily on first access and managed via a connection 
 | Step | Action |
 |------|--------|
 | 1 | Click **Meta-MCP icon** in sidebar to open panel |
-| 2 | **Setup tab** → Click "Install" for meta-mcp-server (and optionally mcp-exec) |
+| 2 | **Setup tab** → Click "Install" for mcp-exec |
 | 3 | **Catalog tab** → Click "Add" on a server you want |
 | 4 | **Build** → Popup appears → Click **"Build Server"** → Wait for terminal |
 | 5 | **Install** → Click "Install" (enabled after build completes) |
@@ -88,11 +86,6 @@ Backend servers are spawned lazily on first access and managed via a connection 
 ```json
 {
   "mcpServers": {
-    "meta-mcp": {
-      "command": "npx",
-      "args": ["-y", "@justanothermldude/meta-mcp-server"],
-      "env": { "SERVERS_CONFIG": "~/.meta-mcp/servers.json" }
-    },
     "mcp-exec": {
       "command": "npx",
       "args": ["-y", "@justanothermldude/mcp-exec"],
@@ -107,13 +100,59 @@ Backend servers are spawned lazily on first access and managed via a connection 
 
 For IntelliJ IDEA with **Junie** - download from [Releases](https://github.com/OneAdobe/camp-ops-emea/releases) (jetbrains-v1.0.0). See [JetBrains README](jetbrains-plugin/README.md).
 
-### Option 2: npm Package
+### Option 2: npm
+
+**1. Install mcp-exec:**
 
 ```bash
-npm install -g @justanothermldude/meta-mcp-server
+npm install -g @justanothermldude/mcp-exec
 ```
 
-Then add to your AI tool config (see Configuration below).
+**2. Create `~/.meta-mcp/servers.json`:**
+
+```bash
+mkdir -p ~/.meta-mcp
+```
+
+Open your AI tool's current `mcp.json` and copy all your existing `mcpServers` entries into `~/.meta-mcp/servers.json`:
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "your-token"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-filesystem", "/path/to/allowed/dir"]
+    }
+  }
+}
+```
+
+**3. Replace your AI tool config with only mcp-exec:**
+
+Remove all existing entries from your AI tool's `mcp.json` and replace with just this:
+
+```json
+{
+  "mcpServers": {
+    "mcp-exec": {
+      "command": "npx",
+      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "env": {
+        "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
+      }
+    }
+  }
+}
+```
+
+**4. Restart your AI tool.**
 
 ### Option 3: Build from Source
 
@@ -188,17 +227,17 @@ For internal/corporate MCP servers (like corp-jira), the extension handles setup
 
 ### AI Tool Configuration
 
-Add meta-mcp to your AI tool's config file:
+Add mcp-exec to your AI tool's config file:
 
 **Claude** (`~/.claude.json`):
 ```json
 {
   "mcpServers": {
-    "meta-mcp": {
+    "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/meta-mcp-server"],
+      "args": ["-y", "@justanothermldude/mcp-exec"],
       "env": {
-        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/servers.json"
+        "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
       }
     }
   }
@@ -209,11 +248,11 @@ Add meta-mcp to your AI tool's config file:
 ```json
 {
   "mcpServers": {
-    "meta-mcp": {
+    "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/meta-mcp-server"],
+      "args": ["-y", "@justanothermldude/mcp-exec"],
       "env": {
-        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/servers.json"
+        "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
       }
     }
   }
@@ -224,11 +263,11 @@ Add meta-mcp to your AI tool's config file:
 ```json
 {
   "mcpServers": {
-    "meta-mcp": {
+    "mcp-exec": {
       "command": "node",
-      "args": ["/path/to/meta-mcp-server/dist/index.js"],
+      "args": ["/path/to/meta-mcp-server/packages/mcp-exec/dist/index.js"],
       "env": {
-        "SERVERS_CONFIG": "/Users/yourname/.meta-mcp/servers.json"
+        "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
       }
     }
   }
@@ -244,25 +283,20 @@ Restart Claude or Droid to load the new configuration.
 Once configured, the AI will see only 3 tools instead of all backend tools:
 
 ```
-# AI discovers available servers
-list_servers()
+# AI lists available servers
+list_available_mcp_servers()
 → [{name: "corp-jira", description: "JIRA integration"}, ...]
 
-# AI fetches tool summaries (lightweight, ~100 tokens for 25 tools)
-get_server_tools({server_name: "corp-jira", summary_only: true})
-→ [{name: "search_issues", description: "Search JIRA issues"}, ...]
+# AI fetches a specific tool schema on-demand
+get_mcp_tool_schema({server_name: "corp-jira", tool_name: "search_issues"})
+→ {name: "search_issues", inputSchema: {...}}
 
-# AI fetches specific tool schemas (on-demand)
-get_server_tools({server_name: "corp-jira", tools: ["search_issues", "create_issue"]})
-→ [{name: "search_issues", inputSchema: {...}}, ...]
-
-# AI fetches all tools (backward compatible, ~16k tokens for 25 tools)
-get_server_tools({server_name: "corp-jira"})
-→ [{name: "search_issues", inputSchema: {...}}, ...]
-
-# AI calls a tool
-call_tool({server_name: "corp-jira", tool_name: "search_issues", arguments: {jql: "..."}})
-→ {content: [...]}
+# AI executes code with typed MCP wrappers
+execute_code_with_wrappers({
+  code: 'const issues = await mcp.corpJira.searchIssues({ jql: "..." }); console.log(issues)',
+  wrappers: ["corp-jira"]
+})
+→ {output: [...]}
 ```
 
 ### Two-Tier Lazy Loading
@@ -303,11 +337,6 @@ npm run clean --workspaces
 cd packages/core
 npm run build
 npm run dev  # watch mode
-
-# Meta-MCP server
-cd packages/meta-mcp
-npm run build
-npm test
 
 # MCP-Exec package
 cd packages/mcp-exec
@@ -350,17 +379,6 @@ packages/
 │       │   ├── connection.ts
 │       │   └── stdio-transport.ts
 │       └── tools/           # Tool caching utilities (tool-cache.ts)
-│
-├── meta-mcp/                # @justanothermldude/meta-mcp-server - Main MCP server
-│   └── src/
-│       ├── index.ts         # Entry point with stdio transport
-│       ├── server.ts        # MCP server setup
-│       ├── transport.ts     # Transport layer abstraction
-│       ├── http-server.ts   # HTTP/Streamable transport support
-│       └── tools/           # Meta-tool implementations
-│           ├── list-servers.ts
-│           ├── get-server-tools.ts
-│           └── call-tool.ts
 │
 └── mcp-exec/                # @justanothermldude/mcp-exec - Code execution
     └── src/
