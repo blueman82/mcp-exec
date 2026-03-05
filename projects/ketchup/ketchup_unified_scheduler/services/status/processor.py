@@ -272,7 +272,7 @@ class AutoStatusProcessor:
                 all_channels = await self.channel_membership_ops.lookup_membership_of_channels()
                 if channel_id not in [ch["id"] for ch in all_channels]:
                     logger.warning(f"Bot not member of channel {channel_id}, skipping")
-                    return False
+                    return True  # Not a failure — bot simply not invited to this channel
             except Exception as e:
                 logger.warning(f"Could not check channel membership for {channel_id}: {e}")
                 # Continue processing if membership check fails (assume bot is member for tests)
