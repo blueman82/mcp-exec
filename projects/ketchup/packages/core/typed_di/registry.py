@@ -461,6 +461,8 @@ class TypedServiceRegistry:
         """Clean up all registered service instances by calling their cleanup() methods."""
         for service_key, service_instance in list(self._instances.items()):
             instance = service_instance.instance
+            if instance is self:
+                continue  # Skip self to prevent infinite recursion
             cleanup_method = getattr(instance, "cleanup", None)
             if callable(cleanup_method):
                 try:

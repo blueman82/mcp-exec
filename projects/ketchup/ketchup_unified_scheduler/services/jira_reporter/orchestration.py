@@ -265,6 +265,7 @@ async def run_reporting_cycle(
         logger.info("Starting JIRA reporting cycle")
         stats["last_run"] = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
 
+        container_created_internally = container is None
         if container is None:
             container = await get_unified_container()
 
@@ -365,7 +366,8 @@ async def run_reporting_cycle(
         logger.error(f"Error in reporting cycle: {str(e)}")
         write_health_status("error")
     finally:
-        try:
-            await cleanup_unified_container()
-        except Exception as cleanup_error:
-            logger.error(f"Error during client cleanup: {str(cleanup_error)}")
+        if container_created_internally:
+            try:
+                await cleanup_unified_container()
+            except Exception as cleanup_error:
+                logger.error(f"Error during client cleanup: {str(cleanup_error)}")
