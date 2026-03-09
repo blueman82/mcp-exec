@@ -113,7 +113,7 @@ class ChannelInfoOps(SlackAsyncClient):
             await self.posting_handler.post_message(
                 user_id=user_id,
                 channel_id=dm_channel_id,
-                message=f"I am not currently a member of channel `{channel_id}`. Please invite me manually.",
+                message=f"I am not currently a member of channel `{channel_id}`. Please invite me by typing `@Ketchup` in that channel.",
                 response_url=response_url,
             )
         except Exception as post_error:
@@ -137,9 +137,7 @@ class ChannelInfoOps(SlackAsyncClient):
             error_message_to_user = f"Error: Could not find channel `{channel_id}`. Please verify the channel ID is correct."
             logger.error("Channel %s not found.", channel_id)
         elif api_error == "not_in_channel":
-            error_message_to_user = (
-                f"I am not currently a member of channel `{channel_id}`. Please invite me."
-            )
+            error_message_to_user = f"I am not currently a member of channel `{channel_id}`. Please invite me by typing `@Ketchup` in that channel."
             logger.warning("Bot is not in channel %s (API error).", channel_id)
         else:
             logger.error("Slack API error when looking up channel %s: %s", channel_id, api_error)
