@@ -1,5 +1,6 @@
 aioboto3
 aiohttp
+chromadb
 defusedxml
 fastapi
 httpx[http2]

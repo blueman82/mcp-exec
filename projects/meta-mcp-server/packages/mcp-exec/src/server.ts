@@ -17,7 +17,7 @@ import {
   getMcpToolSchemaTool,
   createGetToolSchemaHandler,
   isGetToolSchemaInput,
-  executeCodeWithWrappersTool,
+  createExecuteCodeWithWrappersToolDefinition,
   createExecuteWithWrappersHandler,
   isExecuteWithWrappersInput,
   type ExecuteWithWrappersHandlerConfig,
@@ -68,7 +68,7 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   const tools: Tool[] = [
     listAvailableMcpServersTool as Tool,
     getMcpToolSchemaTool as Tool,
-    executeCodeWithWrappersTool as Tool,
+    createExecuteCodeWithWrappersToolDefinition() as Tool,
   ];
 
   const listToolsHandler = async () => ({ tools });

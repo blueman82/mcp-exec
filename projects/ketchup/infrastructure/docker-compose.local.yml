@@ -30,40 +30,54 @@ services:
       - nginx
     restart: unless-stopped
 
+  chromadb:
+    image: chromadb/chroma:1.5.5
+    container_name: chromadb
+    restart: unless-stopped
+    ports:
+      - "8100:8000"  # Host 8100 to avoid dynamodb-local port conflict
+    volumes:
+      - chromadb-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+      - TZ=Europe/London
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   ketchup-app:
     build:
       context: ..
       dockerfile: infrastructure/Dockerfile.app-multistage
     image: ketchup-app:local-dev
+    env_file:
+      - common.env
+      - performance.env
+      - features.env
+      - azure.env
+      - agent.env
+    # Local overrides (prod values from .env files)
     environment:
       - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      - LOG_LEVEL=INFO
-      - PYTHONPATH=/app
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - JIRA_TOOL_PERSIST_CORRECTIONS=true
-      - JIRA_TOOL_CORRECTIONS_FILE=/tmp/jira_corrections_cache.json
-      - KETCHUP_STATUS_UPDATER_FEATURE=true
-      - KETCHUP_STATUS_UPDATER_GLOBAL=true
-      - KETCHUP_JIRA_REPORTER_FEATURE=true
-      - KETCHUP_JIRA_REPORTER_GLOBAL=true
-      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true   # Enable trust endorsement
-      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true     # Enabled globally for all channels
-      - KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true  # Enable access request automation
-      - KETCHUP_ACCESS_REQUEST_AUTOMATION_GLOBAL=true   # Enable globally for all users
-      - KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE=true   # Enable user join notifications
-      - KETCHUP_USER_JOIN_NOTIFICATIONS_GLOBAL=true    # Enable globally for all channels
-      - KETCHUP_MAINTENANCE_DETECTION=true  # Enable maintenance detection globally
-      - USE_PIPELINE_PROCESSING=true   # Enable pipeline processing for slash commands
+      - KETCHUP_AGENT_ENABLED=true
+      - KETCHUP_AGENT_BACKFILL_ENABLED=true
     volumes:
       - ~/.aws:/home/ketchup/.aws:ro
       - ./logs:/var/log
     depends_on:
-      - mcp-jira
+      mcp-jira:
+        condition: service_started
+      chromadb:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -80,12 +94,12 @@ services:
     ports:
       - "8081:8081"  # Expose for testing
     env_file:
+      - common.env
       - ../corp_jira_mcp/.env
+    # Local overrides (prod values from .env files)
     environment:
-      - USE_IPAAS=true
       - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
+      - USE_IPAAS=true
       - PORT=8081
       - NODE_ENV=development
       - LOG_LEVEL=debug
@@ -105,17 +119,14 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile.access-monitor
     image: ketchup-access-monitor:local-dev
+    env_file:
+      - common.env
+      - performance.env
+    # Local overrides (prod values from .env files)
     environment:
       - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - LOG_LEVEL=INFO
-      - PYTHONPATH=/app
-      - TZ=Europe/London
       - ACCESS_REQUEST_MONITOR_INTERVAL=300  # 5 minutes
       - ACCESS_REQUEST_ALERT_COOLDOWN=3600  # 1 hour
-      - MAX_CONCURRENT_REQUESTS=20
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs/access_monitor:/var/log/access_monitor
@@ -135,32 +146,16 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile.unified-scheduler
     image: ketchup-unified-scheduler:local-dev
+    env_file:
+      - common.env
+      - performance.env
+      - features.env
+      - azure.env
+    # Local overrides (prod values from .env files)
     environment:
       - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
-      - LOG_LEVEL=INFO
-      - PYTHONPATH=/app
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      # Feature flags for individual tasks
-      - KETCHUP_STATUS_UPDATER_FEATURE=true
       - KETCHUP_STATUS_UPDATER_GLOBAL=false  # Don't process all channels in local dev
-      - KETCHUP_STATUS_UPDATER_ENABLED=true
-      - KETCHUP_JIRA_REPORTER_FEATURE=true
-      - KETCHUP_JIRA_REPORTER_GLOBAL=true
-      - KETCHUP_METADATA_UPDATER_FEATURE=true
-      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
-      - KETCHUP_JIRA_PAT_ROTATOR_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
-      - KETCHUP_HANDOVER_SUMMARY_ENABLED=false
       - KETCHUP_HANDOVER_TARGET_CHANNEL=C0AGXRW7KL2 #C03PWLW9P5H - camp-oncall channel.
-      - KETCHUP_HANDOVER_SCHEDULE_TIMES=08:58,16:58
-      - KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS=12
-      - TZ=Europe/London
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
@@ -180,23 +175,19 @@ services:
       context: ..
       dockerfile: infrastructure/Dockerfile.csopm-notifier
     image: ketchup-csopm-notifier:local-dev
+    env_file:
+      - common.env
+      - performance.env
+      - csopm.env
+    # Local testing overrides (prod values from csopm.env)
     environment:
       - AWS_PROFILE=campaign_prod_v7
-      - AWS_REGION=eu-west-1
-      - DYNAMODB_TABLE_NAME=ketchup_channel_information
-      - AWS_SECRET_NAME=Ketchup_Token_Secrets
       - LOG_LEVEL=DEBUG
-      - PYTHONPATH=/app
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
-      - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
-      # Local testing configuration - 0 thresholds for immediate E2E testing
       - CSOPM_JIRA_PROJECT=CPGNCX
       - CSOPM_RCA_REMINDER_DAYS=0
       - CSOPM_CLOSURE_REMINDER_DAYS=0
       - CSOPM_MAX_PING_COUNT=2
       - CSOPM_SCHEDULE_TIMES=10:16,12:00,15:00,18:00
-      - TZ=Europe/London
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
@@ -263,3 +254,7 @@ services:
       - ./localstack-init.sh:/init.sh:ro
     entrypoint: ["sh", "/init.sh"]
     restart: "no"
+
+volumes:
+  chromadb-data:
+    driver: local

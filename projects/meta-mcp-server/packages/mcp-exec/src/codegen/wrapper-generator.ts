@@ -22,17 +22,48 @@ interface JsonSchemaProperty {
   enum?: unknown[];
   default?: unknown;
   $ref?: string;
+  oneOf?: JsonSchemaProperty[];
+  anyOf?: JsonSchemaProperty[];
+  allOf?: JsonSchemaProperty[];
+  const?: unknown;
+  nullable?: boolean;
+  additionalProperties?: boolean | JsonSchemaProperty;
+  definitions?: Record<string, JsonSchemaProperty>;
 }
 
 /**
  * Convert a JSON Schema type to TypeScript type
  * @param prop - JSON Schema property definition
  * @param required - Whether the property is required
+ * @param definitions - Root schema definitions for $ref resolution
+ * @param visited - Set of already-visited $ref keys to prevent cycles
  * @returns TypeScript type string
  */
-function jsonSchemaToTs(prop: JsonSchemaProperty | undefined, _required: boolean = true): string {
+function jsonSchemaToTs(
+  prop: JsonSchemaProperty | undefined,
+  _required: boolean = true,
+  definitions?: Record<string, JsonSchemaProperty>,
+  visited: Set<string> = new Set()
+): string {
   if (!prop) {
     return 'unknown';
+  }
+
+  // Handle $ref
+  if (prop.$ref) {
+    const refKey = prop.$ref.replace(/^#\/(definitions|\$defs)\//, '');
+    if (definitions && refKey in definitions) {
+      if (visited.has(refKey)) return 'unknown'; // break cycle
+      const nextVisited = new Set(visited);
+      nextVisited.add(refKey);
+      return jsonSchemaToTs(definitions[refKey], _required, definitions, nextVisited);
+    }
+    return 'unknown';
+  }
+
+  // Handle const keyword
+  if ('const' in prop && prop.const !== undefined) {
+    return JSON.stringify(prop.const);
   }
 
   // Handle array of types (e.g., ["string", "null"])
@@ -46,25 +77,87 @@ function jsonSchemaToTs(prop: JsonSchemaProperty | undefined, _required: boolean
     return prop.enum.map((v) => JSON.stringify(v)).join(' | ');
   }
 
+  // Handle oneOf
+  if (prop.oneOf) {
+    const types = prop.oneOf
+      .map((s) => jsonSchemaToTs(s, _required, definitions, visited))
+      .filter((t) => t !== 'unknown');
+    if (types.length > 0) {
+      return types.join(' | ');
+    }
+  }
+
+  // Handle anyOf
+  if (prop.anyOf) {
+    const types = prop.anyOf
+      .map((s) => jsonSchemaToTs(s, _required, definitions, visited))
+      .filter((t) => t !== 'unknown');
+    if (types.length > 0) {
+      return types.join(' | ');
+    }
+  }
+
+  // Handle allOf
+  if (prop.allOf) {
+    const types = prop.allOf
+      .map((s) => jsonSchemaToTs(s, _required, definitions, visited))
+      .filter((t) => t !== 'unknown');
+    if (types.length > 0) {
+      const primitives = ['string', 'number', 'boolean', 'null'];
+      const incompatible = types.filter(t => primitives.includes(t)).length > 1;
+      if (incompatible) return 'unknown';
+      return types.join(' & ');
+    }
+  }
+
   // Handle object types with properties
   if (prop.type === 'object' && prop.properties) {
     const propLines = Object.entries(prop.properties).map(([key, value]) => {
       const isRequired = prop.required?.includes(key) ?? false;
-      const tsType = jsonSchemaToTs(value as JsonSchemaProperty, isRequired);
+      const tsType = jsonSchemaToTs(value as JsonSchemaProperty, isRequired, definitions, visited);
       const optionalMark = isRequired ? '' : '?';
       return `${key}${optionalMark}: ${tsType}`;
     });
+
+    // Handle additionalProperties
+    if (prop.additionalProperties === true) {
+      propLines.push('[key: string]: unknown');
+    } else if (typeof prop.additionalProperties === 'object' && prop.additionalProperties !== null) {
+      // When named properties are present, the index signature must be a supertype of all
+      // named property types. Using `unknown` is always valid and avoids TS4023 errors
+      // (e.g., `id?: number` incompatible with `[key: string]: string`).
+      propLines.push('[key: string]: unknown');
+    } else if (Object.keys(prop.properties).length === 0 && !prop.additionalProperties) {
+      // If no properties and no additionalProperties, return Record type
+      return 'Record<string, unknown>';
+    }
+
     return `{ ${propLines.join('; ')} }`;
+  }
+
+  // Handle object type without properties
+  if (prop.type === 'object') {
+    if (prop.additionalProperties === true || (typeof prop.additionalProperties === 'object' && prop.additionalProperties !== null)) {
+      return 'Record<string, unknown>';
+    }
   }
 
   // Handle array types
   if (prop.type === 'array') {
-    const itemType = prop.items ? jsonSchemaToTs(prop.items, true) : 'unknown';
+    const itemType = prop.items ? jsonSchemaToTs(prop.items, true, definitions, visited) : 'unknown';
     return `${itemType}[]`;
   }
 
-  // Handle primitive types
-  return primitiveToTs(prop.type ?? 'unknown');
+  let result = primitiveToTs(prop.type ?? 'unknown');
+
+  // Handle nullable: true (OpenAPI 3.0 style)
+  if ((prop as any).nullable === true) {
+    if (result !== 'unknown' && !result.includes('| null') && !result.includes('null |')) {
+      result = `${result} | null`;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -94,9 +187,12 @@ function primitiveToTs(type: string): string {
  * Generate TypeScript interface from JSON Schema
  * @param name - Interface name
  * @param schema - JSON Schema object
+ * @param definitions - Root schema definitions for $ref resolution
  * @returns TypeScript interface definition
  */
-function generateInterface(name: string, schema: { properties?: Record<string, unknown>; required?: string[] }): string {
+function generateInterface(name: string, schema: { properties?: Record<string, unknown>; required?: string[]; definitions?: Record<string, JsonSchemaProperty> }, definitions?: Record<string, JsonSchemaProperty>): string {
+  const defs = definitions || (schema as any).definitions;
+
   if (!schema.properties || Object.keys(schema.properties).length === 0) {
     return `interface ${name} {}`;
   }
@@ -108,7 +204,7 @@ function generateInterface(name: string, schema: { properties?: Record<string, u
     const prop = propValue as JsonSchemaProperty;
     const isRequired = schema.required?.includes(propName) ?? false;
     const optionalMark = isRequired ? '' : '?';
-    const tsType = jsonSchemaToTs(prop, isRequired);
+    const tsType = jsonSchemaToTs(prop, isRequired, defs);
 
     // Add JSDoc if description exists
     if (prop.description) {
@@ -252,13 +348,14 @@ function toPascalCase(name: string): string {
 /**
  * Generate interface definition for a tool (if it has input properties)
  * @param tool - Tool definition from MCP server
+ * @param rootDefinitions - Root schema definitions for $ref resolution
  * @returns Interface definition string or empty string
  */
-function generateToolInterface(tool: ToolDefinition): string {
+function generateToolInterface(tool: ToolDefinition, rootDefinitions?: Record<string, JsonSchemaProperty>): string {
   const interfaceName = `${toPascalCase(tool.name)}Input`;
 
   if (tool.inputSchema?.properties && Object.keys(tool.inputSchema.properties).length > 0) {
-    return generateInterface(interfaceName, tool.inputSchema);
+    return generateInterface(interfaceName, tool.inputSchema, rootDefinitions);
   }
   return '';
 }
@@ -281,6 +378,19 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
 
   const lines: string[] = [];
 
+  // Collect required and optional params for summary
+  const requiredParams: string[] = [];
+  const optionalParams: string[] = [];
+  if (tool.inputSchema?.properties) {
+    for (const propName of Object.keys(tool.inputSchema.properties)) {
+      if (tool.inputSchema.required?.includes(propName)) {
+        requiredParams.push(propName);
+      } else {
+        optionalParams.push(propName);
+      }
+    }
+  }
+
   // Add JSDoc comment
   if (tool.description) {
     lines.push('  /**');
@@ -288,11 +398,26 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
     if (tool.inputSchema?.properties) {
       for (const [propName, propValue] of Object.entries(tool.inputSchema.properties)) {
         const prop = propValue as JsonSchemaProperty;
+        const isRequired = tool.inputSchema.required?.includes(propName) ?? false;
+        const marker = isRequired ? '[required]' : '[optional]';
         if (prop.description) {
-          lines.push(`   * @param input.${propName} - ${sanitizeJsDoc(prop.description)}`);
+          lines.push(`   * @param input.${propName} ${marker} - ${sanitizeJsDoc(prop.description)}`);
+        } else {
+          lines.push(`   * @param input.${propName} ${marker}`);
         }
       }
     }
+    // Add required/optional summary
+    if (requiredParams.length > 0 || optionalParams.length > 0) {
+      lines.push(`   * Required: ${requiredParams.length > 0 ? requiredParams.join(', ') : 'none'}`);
+      if (optionalParams.length > 0) {
+        lines.push(`   * Optional: ${optionalParams.join(', ')}`);
+      }
+    }
+    // Add @returns hint
+    const safeServerName = JSON.stringify(serverName);
+    const safeToolName = JSON.stringify(tool.name);
+    lines.push(`   * @returns Promise<unknown>. To inspect response shape: get_mcp_tool_schema({ server: ${safeServerName}, tool: ${safeToolName} })`);
     lines.push('   */');
   }
 
@@ -311,15 +436,15 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   lines.push(`      }),`);
   lines.push(`    });`);
   lines.push(`    if (!response.ok) {`);
-  lines.push('      throw new Error(`Tool call failed: ${response.statusText}`);');
+  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] HTTP \${response.status}: \${response.statusText}\`);`);
   lines.push(`    }`);
   lines.push(`    const data = await response.json() as { success: boolean; content?: unknown; error?: string; isError?: boolean };`);
   lines.push(`    if (!data.success) {`);
-  lines.push(`      throw new Error(data.error || 'Tool call failed');`);
+  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] \${data.error || 'Tool call failed'}\`);`);
   lines.push(`    }`);
   lines.push(`    if (data.isError) {`);
   lines.push(`      const errText = Array.isArray(data.content) && data.content[0]?.text ? data.content[0].text : 'Tool returned isError';`);
-  lines.push(`      throw new Error(errText);`);
+  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] \${errText}\`);`);
   lines.push(`    }`);
   lines.push(`    // Auto-parse JSON from MCP text content blocks for convenience`);
   lines.push(`    const content = data.content;`);
@@ -409,11 +534,12 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string): s
  * @param tools - Array of tool definitions
  * @param serverName - Name of the MCP server
  * @param bridgePort - Port for the MCP bridge (default: 3000)
+ * @param variableNameOverride - Optional override for the namespace variable name
  * @returns TypeScript code string with namespace object
  */
-export function generateServerModule(tools: ToolDefinition[], serverName: string, bridgePort: number = 3000): string {
+export function generateServerModule(tools: ToolDefinition[], serverName: string, bridgePort: number = 3000, variableNameOverride?: string): string {
   const lines: string[] = [];
-  const namespaceName = sanitizeIdentifier(serverName);
+  const namespaceName = variableNameOverride ?? sanitizeIdentifier(serverName);
 
   // File header comment
   lines.push('/**');
@@ -428,7 +554,8 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
 
   // Generate all interfaces first
   for (const tool of tools) {
-    const interfaceCode = generateToolInterface(tool);
+    const rootDefs = (tool.inputSchema as any)?.definitions ?? (tool.inputSchema as any)?.$defs;
+    const interfaceCode = generateToolInterface(tool, rootDefs);
     if (interfaceCode) {
       lines.push(interfaceCode);
       lines.push('');
@@ -455,14 +582,78 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
 }
 
 /**
+ * Generate MCP dictionary from a pre-computed name map.
+ * Keys: original server names. Values: unique variable names used in generateServerModule.
+ *
+ * @param serverNames - Array of original server names
+ * @param nameMap - Map of original server name → variable name
+ * @returns TypeScript code string with mcp dictionary
+ */
+export function generateMcpDictionaryFromMap(serverNames: string[], nameMap: Map<string, string>): string {
+  const lines: string[] = [];
+  lines.push('/**');
+  lines.push(' * MCP Server Dictionary - Access all MCP servers via case-agnostic lookup.');
+  lines.push(` * Available: ${serverNames.map((n) => `mcp['${n}']`).join(', ')}`);
+  lines.push(' */');
+  lines.push('');
+  lines.push('const mcp_servers_raw: Record<string, unknown> = {');
+  for (const serverName of serverNames) {
+    const varName = nameMap.get(serverName) ?? sanitizeIdentifier(serverName);
+    lines.push(`  ${JSON.stringify(serverName)}: ${varName},`);
+  }
+  lines.push('};');
+  lines.push('');
+  lines.push(`const mcp = ${generateFuzzyProxy('mcp_servers_raw', 'mcp')};`);
+  lines.push('');
+  return lines.join('\n');
+}
+
+/**
  * Generate the MCP dictionary code that maps server names to their namespace objects.
  * Creates a case-agnostic `mcp` dictionary with fuzzy matching for server name resolution.
+ * Detects and resolves sanitized name collisions by appending numeric suffixes.
  *
  * @param serverNames - Array of original server names
  * @returns TypeScript code string with mcp dictionary
+ * @deprecated Use generateMcpDictionaryFromMap instead to ensure name consistency with generateServerModule
  */
 export function generateMcpDictionary(serverNames: string[]): string {
   const lines: string[] = [];
+
+  // Track sanitized names for collision detection
+  const sanitizedToOriginal = new Map<string, string[]>();
+  const uniqueNames = new Map<string, string>(); // original name -> unique variable name
+
+  // First pass: collect all sanitized names and detect collisions
+  for (let i = 0; i < serverNames.length; i++) {
+    const originalName = serverNames[i];
+    const sanitized = sanitizeIdentifier(originalName);
+
+    if (!sanitizedToOriginal.has(sanitized)) {
+      sanitizedToOriginal.set(sanitized, []);
+    }
+    sanitizedToOriginal.get(sanitized)!.push(originalName);
+  }
+
+  // Second pass: assign unique variable names, adding suffix on collision
+  let collisionIndex = 0;
+  for (const originalName of serverNames) {
+    const sanitized = sanitizeIdentifier(originalName);
+    const conflictingNames = sanitizedToOriginal.get(sanitized)!;
+
+    if (conflictingNames.length > 1) {
+      // Collision detected - use index suffix
+      const uniqueName = `${sanitized}_${collisionIndex}`;
+      uniqueNames.set(originalName, uniqueName);
+      lines.push(`// WARNING: Server name collision: '${originalName}' and previous server both sanitize to '${sanitized}'. Using '${uniqueName}'.`);
+      collisionIndex++;
+    } else {
+      // No collision - use standard sanitized name
+      uniqueNames.set(originalName, sanitized);
+    }
+  }
+
+  lines.push('');
 
   // Generate comment header with server list for AI discoverability
   const sanitizedNames = serverNames.map(sanitizeIdentifier);
@@ -473,12 +664,12 @@ export function generateMcpDictionary(serverNames: string[]): string {
   lines.push(' */');
   lines.push('');
 
-  // Create raw dictionary mapping original names to sanitized namespace variables
+  // Create raw dictionary mapping original names to unique namespace variables
   lines.push('const mcp_servers_raw: Record<string, unknown> = {');
   for (const serverName of serverNames) {
-    const sanitized = sanitizeIdentifier(serverName);
+    const uniqueName = uniqueNames.get(serverName)!;
     // Map original name to the namespace variable
-    lines.push(`  ${JSON.stringify(serverName)}: ${sanitized},`);
+    lines.push(`  ${JSON.stringify(serverName)}: ${uniqueName},`);
   }
   lines.push('};');
   lines.push('');

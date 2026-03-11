@@ -2,8 +2,9 @@
  * execute_code_with_wrappers MCP tool handler
  * Executes code with auto-generated typed wrappers for specified MCP servers
  */
-import type { ServerPool } from '@justanothermldude/meta-mcp-core';
-import { generateServerModule, generateMcpDictionary } from '../codegen/index.js';
+import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
+import { listServers } from '@justanothermldude/meta-mcp-core';
+import { generateServerModule, generateMcpDictionaryFromMap } from '../codegen/index.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
@@ -37,7 +38,7 @@ export interface ExecuteWithWrappersInput {
 }
 
 /**
- * MCP Tool definition for execute_code_with_wrappers
+ * MCP Tool definition for execute_code_with_wrappers (static fallback)
  */
 export const executeCodeWithWrappersTool = {
   name: 'execute_code_with_wrappers',
@@ -67,6 +68,81 @@ export const executeCodeWithWrappersTool = {
 };
 
 /**
+ * Build dynamic server list string for tool description
+ */
+function buildServerListString(): string {
+  try {
+    const servers = listServers();
+    if (!servers || servers.length === 0) {
+      return '';
+    }
+
+    // Build bullet list of first few servers with descriptions
+    const serverLines = servers.slice(0, 7).map((s) => {
+      const desc = s.description || 'No description';
+      return `  • ${s.name} — ${desc}`;
+    });
+
+    const moreCount = Math.max(0, servers.length - 7);
+    const moreStr = moreCount > 0 ? `\n  [+${moreCount} more]` : '';
+
+    return `
+Available MCP servers (use exact names in wrappers array):
+${serverLines.join('\n')}${moreStr}
+
+Use list_available_mcp_servers to discover tools on each server before calling execute_code_with_wrappers.`;
+  } catch {
+    // Fallback if listServers() fails
+    return '';
+  }
+}
+
+/**
+ * Create the execute_code_with_wrappers tool definition with dynamic server list embedded
+ */
+export function createExecuteCodeWithWrappersToolDefinition() {
+  const baseDescription =
+    'Execute TypeScript/JavaScript code with auto-generated typed wrappers for specified MCP servers. ' +
+    'Provides a typed API like github.createIssue({ title: "..." }) instead of raw mcp.callTool(). ' +
+    'Multi-line code is supported - format naturally for readability.';
+
+  const serverList = buildServerListString();
+
+  const environmentNote =
+    '\n\nExecution environment: Node.js (not browser). Top-level await is supported.\n' +
+    '- Use ES modules syntax (import/export NOT supported — modules are pre-injected as namespace vars)\n' +
+    '- DO NOT use require(), __dirname, __filename, or browser APIs (window, document, localStorage)\n' +
+    '- Available globals: fetch (Node 18+), console, process, Buffer, setTimeout, clearTimeout\n' +
+    '- Server namespaces are pre-injected: use serverName.toolName(args) directly\n' +
+    '- mcp is the server dictionary: mcp["server-name"].toolName(args) for dynamic lookup\n' +
+    '- Low-level fallback (avoid if typed wrapper exists): globalThis.mcp.callTool(serverName, toolName, args)';
+
+  return {
+    name: 'execute_code_with_wrappers',
+    description: baseDescription + serverList + environmentNote,
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        code: {
+          type: 'string',
+          description: 'The TypeScript/JavaScript code to execute. Multi-line supported - format for readability.',
+        },
+        wrappers: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Array of MCP server names to generate typed wrappers for',
+        },
+        timeout_ms: {
+          type: 'number',
+          description: `Maximum execution time in milliseconds (default: ${DEFAULT_TIMEOUT_MS})`,
+        },
+      },
+      required: ['code', 'wrappers'],
+    },
+  };
+}
+
+/**
  * Configuration for the execute_code_with_wrappers handler
  */
 export interface ExecuteWithWrappersHandlerConfig {
@@ -74,6 +150,56 @@ export interface ExecuteWithWrappersHandlerConfig {
   sandboxConfig?: SandboxExecutorConfig;
   /** Configuration for the MCP bridge */
   bridgeConfig?: MCPBridgeConfig;
+}
+
+/**
+ * Sanitize identifier: replace non-alphanumeric chars with underscore,
+ * ensure starts with letter. Matches logic in wrapper-generator.ts.
+ */
+function sanitizeIdentifier(name: string): string {
+  let s = name.replace(/[^a-zA-Z0-9_]/g, '_');
+  if (/^[0-9]/.test(s)) {
+    s = '_' + s;
+  }
+  return s;
+}
+
+/**
+ * Pre-compute collision-aware variable names for all servers.
+ * Detects when multiple server names sanitize to the same identifier
+ * and appends numeric suffixes to resolve collisions.
+ *
+ * @param names - Array of original server names
+ * @returns Map from original name to unique variable name
+ */
+function buildUniqueNameMap(names: string[]): Map<string, string> {
+  const sanitizedToOriginals = new Map<string, string[]>();
+
+  // First pass: group originals by their sanitized form
+  for (const name of names) {
+    const s = sanitizeIdentifier(name);
+    if (!sanitizedToOriginals.has(s)) {
+      sanitizedToOriginals.set(s, []);
+    }
+    sanitizedToOriginals.get(s)!.push(name);
+  }
+
+  // Second pass: assign unique names, adding suffix on collision
+  const nameMap = new Map<string, string>();
+  for (const name of names) {
+    const s = sanitizeIdentifier(name);
+    const group = sanitizedToOriginals.get(s)!;
+    if (group.length === 1) {
+      // No collision - use sanitized name
+      nameMap.set(name, s);
+    } else {
+      // Collision - append index within group
+      const idx = group.indexOf(name);
+      nameMap.set(name, `${s}_${idx}`);
+    }
+  }
+
+  return nameMap;
 }
 
 /**
@@ -141,37 +267,6 @@ ${indent}}`;
 }
 
 /**
- * Generate the MCP helper preamble that provides the global `mcp` object
- * for calling MCP tools via the HTTP bridge
- */
-function getMcpPreamble(bridgePort: number): string {
-  return `
-// MCP helper for calling tools via HTTP bridge
-declare global {
-  var mcp: {
-    callTool: (server: string, tool: string, args?: Record<string, unknown>) => Promise<unknown[]>;
-  };
-}
-
-globalThis.mcp = {
-  callTool: async (server: string, tool: string, args: Record<string, unknown> = {}) => {
-    const response = await fetch('http://127.0.0.1:${bridgePort}/call', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ server, tool, args }),
-    });
-    const data = await response.json() as { success: boolean; content?: unknown[]; error?: string };
-    if (!data.success) {
-      throw new Error(data.error || 'MCP tool call failed');
-    }
-    return data.content || [];
-  },
-};
-
-`;
-}
-
-/**
  * Creates the execute_code_with_wrappers handler function
  *
  * @param pool - Server pool for MCP connections
@@ -208,6 +303,7 @@ export function createExecuteWithWrappersHandler(
   async function executeWithWrappersHandler(
     args: ExecuteWithWrappersInput
   ): Promise<CallToolResult> {
+    const TOOLS_FETCH_TIMEOUT_MS = 15000;
     const { code, wrappers, timeout_ms = DEFAULT_TIMEOUT_MS } = args;
 
     // Validate input
@@ -253,26 +349,53 @@ export function createExecuteWithWrappersHandler(
       await bridge.start();
       const actualPort = bridge.getPort();
 
-      // Step 2: Generate typed wrappers for each requested server using actual port
+      // Step 2: Pre-compute collision-aware variable names for all servers
+      const uniqueNameMap = buildUniqueNameMap(wrappers);
+
+      // Step 3: Generate typed wrappers for each requested server using actual port
       const wrapperModules: string[] = [];
 
       for (const serverName of wrappers) {
+        let connection: MCPConnection | undefined;
         try {
           // Get connection for this server
-          const connection = await pool.getConnection(serverName);
+          connection = await pool.getConnection(serverName);
+          const conn = connection;
 
-          // Fetch tools from the server
-          const tools = await connection.getTools();
+          // Fetch tools from the server with proper timeout cleanup
+          const tools = await new Promise<Awaited<ReturnType<MCPConnection['getTools']>>>((resolve, reject) => {
+            const timeoutHandle = setTimeout(() => {
+              reject(
+                new Error(
+                  `Timed out fetching tools from server '${serverName}' after ${TOOLS_FETCH_TIMEOUT_MS}ms`
+                )
+              );
+            }, TOOLS_FETCH_TIMEOUT_MS);
 
-          // Generate TypeScript module for this server with actual port
-          const moduleCode = generateServerModule(tools, serverName, actualPort);
+            conn.getTools().then(
+              (result) => { clearTimeout(timeoutHandle); resolve(result); },
+              (err: unknown) => { clearTimeout(timeoutHandle); reject(err); }
+            );
+          });
+
+          // Get the collision-aware variable name for this server
+          const uniqueName = uniqueNameMap.get(serverName) ?? sanitizeIdentifier(serverName);
+
+          // Generate TypeScript module for this server with actual port and unique variable name
+          const moduleCode = generateServerModule(tools, serverName, actualPort, uniqueName);
           wrapperModules.push(moduleCode);
 
           // Release connection back to pool
           pool.releaseConnection(serverName);
         } catch (serverError) {
           const errorMessage = serverError instanceof Error ? serverError.message : String(serverError);
+          // Only release if connection was successfully obtained; getConnection may have thrown
+          // before assigning, in which case there is nothing in the pool to release.
+          if (connection !== undefined) {
+            pool.releaseConnection(serverName);
+          }
           await bridge.stop();
+          activeBridge = null;
           return {
             content: [{ type: 'text', text: `Error generating wrapper for server '${serverName}': ${errorMessage}` }],
             isError: true,
@@ -280,28 +403,28 @@ export function createExecuteWithWrappersHandler(
         }
       }
 
-      // Step 3: Compose full code with wrappers + MCP dictionary + MCP preamble + user code
+      // Step 4: Compose full code with wrappers + MCP dictionary + user code
+      // Note: executor.ts prepends its own globalThis.mcp callTool preamble using actualPort
       const generatedWrappers = wrapperModules.join('\n\n');
-      const mcpDictionary = generateMcpDictionary(wrappers);
-      const mcpPreamble = getMcpPreamble(actualPort);
+      const mcpDictionary = generateMcpDictionaryFromMap(wrappers, uniqueNameMap);
       const instrumentedCode = wrapUserCodeForReturnCapture(code);
-      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${mcpPreamble}\n${instrumentedCode}`;
+      const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${instrumentedCode}`;
 
-      // Step 4: Create executor with actual port for sandbox network config
+      // Step 5: Create executor with actual port for sandbox network config
       const sandboxConfig: SandboxExecutorConfig = {
         ...config.sandboxConfig,
         mcpBridgePort: actualPort,
       };
       const executor = new SandboxExecutor(sandboxConfig);
 
-      // Step 5: Execute code in sandbox
+      // Step 6: Execute code in sandbox
       result = await executor.execute(fullCode, timeout_ms);
 
-      // Step 6: Stop the bridge server
+      // Step 7: Stop the bridge server
       await bridge.stop();
       activeBridge = null;
 
-      // Step 7: Format and return result
+      // Step 8: Format and return result
       return formatResult(result);
     } catch (error) {
       // Ensure bridge is stopped on error

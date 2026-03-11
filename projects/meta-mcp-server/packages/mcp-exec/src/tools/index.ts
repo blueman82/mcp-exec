@@ -21,6 +21,7 @@ export {
 // Export execute_code_with_wrappers tool
 export {
   executeCodeWithWrappersTool,
+  createExecuteCodeWithWrappersToolDefinition,
   createExecuteWithWrappersHandler,
   isExecuteWithWrappersInput,
   type ExecuteWithWrappersInput,

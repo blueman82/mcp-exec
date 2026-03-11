@@ -73,6 +73,7 @@ class SlackEventHandler:
         feature_service=None,
         user_join_notification_service=None,
         user_store=None,
+        typed_container=None,
     ):
         """
         Initialize the SlackEventHandler with injected dependencies.
@@ -89,6 +90,7 @@ class SlackEventHandler:
             list_command: Optional command for listing channels
             feature_service: Optional service for managing feature flags
             user_join_notification_service: Optional service for user join notifications
+            typed_container: Optional TypedServiceRegistry for resolving agent dependencies
         """
         self.secrets_manager = secrets_manager
         self.dynamodb_store = dynamodb_store
@@ -103,6 +105,7 @@ class SlackEventHandler:
         self.feature_service = feature_service
         self.user_join_notification_service = user_join_notification_service
         self.user_store = user_store
+        self.typed_container = typed_container
         logger.info("SlackEventHandler initialized with injected dependencies.")
 
     async def handle_channel_created(self, event: dict, response_url: Optional[str] = None):
@@ -158,6 +161,23 @@ class SlackEventHandler:
             restore_state_manager=self.restore_state_manager,
         )
 
+        # ── Agent backfill on bot join ──
+        # When the bot joins a channel, schedule backfill to index history.
+        # Idempotent — checks watermark, skips if already done.
+        try:
+            from packages.agent.slack.handler import is_agent_enabled
+
+            bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
+            if event.get("user") == bot_user_id and is_agent_enabled() and self.typed_container:
+                from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+                    AgentBackfillIngestorProtocol,
+                )
+
+                backfill = await self.typed_container.aget(AgentBackfillIngestorProtocol)
+                await backfill.schedule_backfill(event.get("channel"))
+        except Exception as e:
+            logger.debug("Agent backfill on join skipped: %s", e)
+
     async def handle_channel_archive(self, event: dict):
         """
         Handle a Slack channel_archive event.
@@ -180,6 +200,29 @@ class SlackEventHandler:
         try:
             # Delegate core processing to the imported function
             await process_channel_archive(channel_id=channel_id, dynamodb_store=self.dynamodb_store)
+
+            # ── Agent cleanup on archive ──
+            try:
+                from packages.agent.slack.handler import is_agent_enabled
+
+                if is_agent_enabled() and self.typed_container:
+                    from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+                        AgentConversationStoreProtocol,
+                        AgentVectorStoreProtocol,
+                    )
+
+                    conversation_store = await self.typed_container.aget(
+                        AgentConversationStoreProtocol
+                    )
+                    vector_store = await self.typed_container.aget(AgentVectorStoreProtocol)
+
+                    from packages.agent.slack.lifecycle import handle_channel_archive_agent_cleanup
+
+                    await handle_channel_archive_agent_cleanup(
+                        channel_id, conversation_store, vector_store
+                    )
+            except Exception as e:
+                logger.warning("Agent cleanup on archive failed for %s: %s", channel_id, e)
 
         except Exception as e:
             error_message = (
@@ -288,70 +331,42 @@ class SlackEventHandler:
             logger.info("Ignoring bot's own mention")
             return
 
-        # CHECK FOR MAINTENANCE PROMPT FIRST
+        # ── 1. Active maintenance prompt (state machine, not heuristic) ──
+        # A DynamoDB record exists asking this channel for a JIRA ticket.
+        # Only intercept if the user actually provides one.
         maintenance_prompt = await self.dynamodb_store.get_maintenance_prompt(channel_id)
 
         if maintenance_prompt:
-            # Active prompt exists - this is a reply to maintenance prompt
             jira_ticket = JiraPromptHandler.extract_jira_ticket(text)
 
             if jira_ticket:
                 logger.info(f"Maintenance reply detected: {jira_ticket} in {channel_id}")
-                # Send acknowledgment to the user (ephemeral - only visible to them)
                 await self.posting_handler.post_message(
                     user_id=user_id,
                     channel_id=channel_id,
                     message=f"<@{user_id}> Thank you! Processing {jira_ticket}...",
                 )
-                # Store the reply in DynamoDB (don't delete - let waiting container find it)
                 await self.dynamodb_store.store_maintenance_reply(channel_id, jira_ticket)
-                return  # Done - waiting container will pick up the reply
-        else:
-            # No active prompt, but check if user is providing a late JIRA ticket
-            jira_ticket = JiraPromptHandler.extract_jira_ticket(text)
-
-            if jira_ticket:
-                # User provided JIRA ticket but DynamoDB prompt record expired/was deleted
-                # This happens when user responds after 120-second per-attempt timeout
-                logger.info(
-                    f"Late JIRA ticket reply detected: {jira_ticket} in {channel_id} "
-                    "(no active prompt - likely timed out)"
-                )
-
-                # IMPROVEMENT: Store the late response so we don't lose it
-                # The user provided the info they were asked for - we should use it!
-                try:
-                    await self.dynamodb_store.store_maintenance_reply(channel_id, jira_ticket)
-                    logger.info(f"Stored late reply {jira_ticket} for {channel_id}")
-                except Exception as e:
-                    logger.warning(f"Failed to store late reply: {e}")
-
-                await self.posting_handler.post_message(
-                    channel_id=channel_id,
-                    message=(
-                        f"<@{user_id}> I see you provided {jira_ticket}, but I didn't catch "
-                        "it within the expected timeframe. The maintenance check workflow has completed. "
-                        "If you need to re-run this, please ask me to join the channel again."
-                    ),
-                )
                 return
+            # Active prompt but no JIRA ticket in text — fall through to agent/handlers
 
-        # Check if this is a Ketchup-generated message
-        ketchup_markers = [
-            "Generated by Ketchup",
-            "Please rate the summary",
-            "bar_chart",
-            "ketchup:",
-            "Response:",
-            "Query:",
-        ]
+        # ── 2. Agent dispatch ──
+        # The agent is the universal handler for @Ketchup mentions.
+        try:
+            from packages.agent.slack.handler import is_agent_enabled
 
-        if any(marker in text for marker in ketchup_markers):
-            logger.info("Ignoring app mention in Ketchup-generated message")
-            return
+            if is_agent_enabled() and self.typed_container:
+                from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+                    AgentSlackHandlerProtocol,
+                )
 
-        # Log the event
-        logger.info(f"App mentioned by user {user_id} in channel {channel_id}: {event.get('text')}")
+                agent_handler = await self.typed_container.aget(AgentSlackHandlerProtocol)
+                await agent_handler.handle_mention(event)
+                return
+        except Exception as e:
+            logger.warning("Agent dispatch failed: %s", e)
+
+        logger.info("Unhandled app mention from %s in %s", user_id, channel_id)
 
     async def handle_message(self, event: dict):
         """
@@ -375,6 +390,34 @@ class SlackEventHandler:
             logger.info(f"Ignoring message from bot/app with bot_id: {event.get('bot_id')}")
             return
 
+        # ── Agent thread reply detection ──
+        # Skip if message contains a bot mention — app_mention event handles that
+        # to avoid double-processing the same @Ketchup message.
+        thread_ts = event.get("thread_ts")
+        text = event.get("text", "")
+        if thread_ts and f"<@{bot_user_id}>" not in text:
+            try:
+                from packages.agent.slack.handler import is_agent_enabled
+
+                if is_agent_enabled() and self.typed_container:
+                    from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+                        AgentConversationStoreProtocol,
+                        AgentSlackHandlerProtocol,
+                    )
+
+                    conversation_store = await self.typed_container.aget(
+                        AgentConversationStoreProtocol
+                    )
+                    is_agent = await conversation_store.is_agent_thread(
+                        event.get("channel"), thread_ts
+                    )
+                    if is_agent:
+                        agent_handler = await self.typed_container.aget(AgentSlackHandlerProtocol)
+                        await agent_handler.handle_thread_reply(event)
+                        return
+            except Exception as e:
+                logger.warning("Agent thread reply check failed: %s", e)
+
         # Check if the message contains a mention of the bot
         text = event.get("text", "")
         if f"<@{bot_user_id}>" in text:
@@ -384,6 +427,20 @@ class SlackEventHandler:
 
         else:
             logger.info(f"Message does not mention bot: {text}")
+
+        # ── Agent real-time ingestion ──
+        try:
+            from packages.agent.slack.handler import is_agent_enabled
+
+            if is_agent_enabled() and self.typed_container:
+                from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+                    AgentRealtimeIngestorProtocol,
+                )
+
+                ingestor = await self.typed_container.aget(AgentRealtimeIngestorProtocol)
+                await ingestor.ingest_message(event.get("channel"), event)
+        except Exception as e:
+            logger.debug("Agent ingestion skipped: %s", e)
 
     async def handle_message_im(self, event: dict):
         """

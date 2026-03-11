@@ -136,7 +136,8 @@ class TestAutoStatusProcessor:
         )
 
         result = await processor._process_channel(channel)
-        assert result is False
+        # Bot not being a member is not a failure — returns True (handled by skipping)
+        assert result is True
 
     @pytest.mark.asyncio
     async def test_process_channel_skip_after_failures(self, processor, mock_dependencies):

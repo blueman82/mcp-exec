@@ -123,19 +123,8 @@ class ApiExecutor:
             # We'll assume for now it's the _make_azure_api_request from the original class
             # and it implicitly uses self._endpoint passed during init.
             # A cleaner way might be to pass endpoint/url explicitly here.
-            # Log the endpoint and check if query params are present
-            logger.info(f"ApiExecutor: Making request with endpoint URL: {self._endpoint}")
-            logger.info(f"ApiExecutor: Endpoint contains '?': {'?' in self._endpoint}")
-            logger.info(f"ApiExecutor: Full endpoint repr: {repr(self._endpoint)}")
-
-            # TEMPORARY WORKAROUND: Ensure query params are included
-            url_to_use = self._endpoint
-            if "?" not in url_to_use and "chat/completions" in url_to_use:
-                logger.warning("ApiExecutor: Query parameter missing! Adding api-version")
-                url_to_use = f"{url_to_use}?api-version=2025-01-01-preview"
-
             response_data = await self._api_request_func(
-                url=url_to_use,
+                url=self._endpoint,
                 method="POST",
                 headers={"api-key": self._api_key},
                 json_data=payload,

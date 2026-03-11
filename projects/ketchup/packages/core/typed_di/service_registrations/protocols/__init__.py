@@ -12,6 +12,21 @@ circular dependencies and improve maintainability.
 # Import protocols from modular files instead of service_registrations_original
 # Core infrastructure protocols
 # AI protocols
+# Agent protocols
+from .agent_protocols import (
+    AgentBackfillIngestorProtocol,
+    AgentContextBuilderProtocol,
+    AgentConversationStoreProtocol,
+    AgentEmbeddingsClientProtocol,
+    AgentEngineProtocol,
+    AgentJiraBackfillIngestorProtocol,
+    AgentRealtimeIngestorProtocol,
+    AgentRetrieverProtocol,
+    AgentSlackHandlerProtocol,
+    AgentThreadFilterProtocol,
+    AgentThreadManagerProtocol,
+    AgentVectorStoreProtocol,
+)
 from .ai_protocols import (
     ApiExecutorProtocol,
     AzureConfigProtocol,
@@ -323,6 +338,19 @@ __all__ = [
     "RavenMaintenanceClientProtocol",
     "MaintenanceCheckerProtocol",
     "JiraPromptHandlerProtocol",
+    # Agent protocols
+    "AgentEmbeddingsClientProtocol",
+    "AgentVectorStoreProtocol",
+    "AgentConversationStoreProtocol",
+    "AgentRetrieverProtocol",
+    "AgentContextBuilderProtocol",
+    "AgentEngineProtocol",
+    "AgentRealtimeIngestorProtocol",
+    "AgentBackfillIngestorProtocol",
+    "AgentJiraBackfillIngestorProtocol",
+    "AgentSlackHandlerProtocol",
+    "AgentThreadManagerProtocol",
+    "AgentThreadFilterProtocol",
     # CSOPM notifier protocols (data classes)
     "CSOPMTicket",
     "NotificationRecord",

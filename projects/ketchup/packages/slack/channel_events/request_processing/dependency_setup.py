@@ -578,6 +578,7 @@ async def setup_dependencies(container: TypedServiceRegistry) -> Dict[str, Any]:
                 feature_service=feature_service,
                 user_join_notification_service=user_join_notification_service,
                 user_store=user_store,
+                typed_container=container,
             )
             logger.info("SlackEventHandler instantiated.")
         except Exception as e:

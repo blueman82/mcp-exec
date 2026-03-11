@@ -280,7 +280,8 @@ async def test_fetch_thread_messages_exception(
         assert mock_logger.error.called
 
 
-def test_collect_batch_data_filters_bot_messages(ops: SlackChannelMessageOps) -> None:
+@pytest.mark.asyncio
+async def test_collect_batch_data_filters_bot_messages(ops: SlackChannelMessageOps) -> None:
     """Test _collect_batch_data filters out bot messages."""
     ops._bot_user_id = "U084HFUQMFE"
 
@@ -294,7 +295,7 @@ def test_collect_batch_data_filters_bot_messages(ops: SlackChannelMessageOps) ->
     user_mentions = set()
     thread_timestamps = []
 
-    ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps)
+    await ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps, "C1")
 
     # Only non-bot messages should be collected
     assert len(messages_dict) == 2
@@ -308,7 +309,8 @@ def test_collect_batch_data_filters_bot_messages(ops: SlackChannelMessageOps) ->
     assert "U789012" in user_mentions
 
 
-def test_collect_batch_data_filters_slash_commands(ops: SlackChannelMessageOps) -> None:
+@pytest.mark.asyncio
+async def test_collect_batch_data_filters_slash_commands(ops: SlackChannelMessageOps) -> None:
     """Test _collect_batch_data filters out slash commands."""
     ops._bot_user_id = "U084HFUQMFE"
 
@@ -331,7 +333,7 @@ def test_collect_batch_data_filters_slash_commands(ops: SlackChannelMessageOps) 
     user_mentions = set()
     thread_timestamps = []
 
-    ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps)
+    await ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps, "C1")
 
     # Only non-slash-command messages should be collected
     assert len(messages_dict) == 2
@@ -341,7 +343,8 @@ def test_collect_batch_data_filters_slash_commands(ops: SlackChannelMessageOps) 
     assert "4" in messages_dict  # Not a slash command (doesn't start with /ketchup)
 
 
-def test_collect_batch_data_filters_bot_mentions(ops: SlackChannelMessageOps) -> None:
+@pytest.mark.asyncio
+async def test_collect_batch_data_filters_bot_mentions(ops: SlackChannelMessageOps) -> None:
     """Test _collect_batch_data filters out @Ketchup mentions but keeps thread replies."""
     ops._bot_user_id = "U084HFUQMFE"
 
@@ -370,7 +373,7 @@ def test_collect_batch_data_filters_bot_mentions(ops: SlackChannelMessageOps) ->
     user_mentions = set()
     thread_timestamps = []
 
-    ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps)
+    await ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps, "C1")
 
     # Only non-mention messages and thread replies should be collected
     assert len(messages_dict) == 2
@@ -380,7 +383,8 @@ def test_collect_batch_data_filters_bot_mentions(ops: SlackChannelMessageOps) ->
     assert "4" in messages_dict  # Thread reply kept despite bot mention
 
 
-def test_collect_batch_data_collects_user_mentions(ops: SlackChannelMessageOps) -> None:
+@pytest.mark.asyncio
+async def test_collect_batch_data_collects_user_mentions(ops: SlackChannelMessageOps) -> None:
     """Test _collect_batch_data properly collects user mentions from text."""
     ops._bot_user_id = "U084HFUQMFE"
 
@@ -393,7 +397,7 @@ def test_collect_batch_data_collects_user_mentions(ops: SlackChannelMessageOps) 
     user_mentions = set()
     thread_timestamps = []
 
-    ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps)
+    await ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps, "C1")
 
     # Should collect all user mentions
     assert "U123456" in user_mentions  # Message author
@@ -402,7 +406,8 @@ def test_collect_batch_data_collects_user_mentions(ops: SlackChannelMessageOps) 
     assert "U111222" in user_mentions  # Mentioned user
 
 
-def test_collect_batch_data_tracks_thread_timestamps(
+@pytest.mark.asyncio
+async def test_collect_batch_data_tracks_thread_timestamps(
     ops: SlackChannelMessageOps,
 ) -> None:
     """Test _collect_batch_data properly tracks thread parent timestamps."""
@@ -428,7 +433,7 @@ def test_collect_batch_data_tracks_thread_timestamps(
     user_mentions = set()
     thread_timestamps = []
 
-    ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps)
+    await ops._collect_batch_data(messages, messages_dict, user_mentions, thread_timestamps, "C1")
 
     # Should track thread parent timestamp
     assert thread_timestamps == ["1"]

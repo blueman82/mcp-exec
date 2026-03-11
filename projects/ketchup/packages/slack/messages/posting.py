@@ -60,6 +60,7 @@ class SlackPostingHandler(SlackAsyncClient):
         message: Optional[str] = None,
         response_url: Optional[str] = None,
         blocks: Optional[list] = None,
+        thread_ts: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Post a message to Slack using a hierarchical approach:
@@ -158,7 +159,9 @@ class SlackPostingHandler(SlackAsyncClient):
             try:
                 message_text = message if message is not None else ""
                 logger.info("Attempting to post to channel via chat.postMessage: %s", channel_id)
-                response = await self._post_channel_message(channel_id, message_text, blocks)
+                response = await self._post_channel_message(
+                    channel_id, message_text, blocks, thread_ts=thread_ts
+                )
                 logger.info("chat.postMessage successful.")
                 return response
             except Exception as e:
@@ -391,7 +394,11 @@ class SlackPostingHandler(SlackAsyncClient):
 
     # Backoff handled by inherited _make_api_request
     async def _post_channel_message(
-        self, channel_id: str, message: str, blocks: Optional[list] = None
+        self,
+        channel_id: str,
+        message: str,
+        blocks: Optional[list] = None,
+        thread_ts: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Post a message visible to the entire channel.
@@ -406,7 +413,11 @@ class SlackPostingHandler(SlackAsyncClient):
         """
         await self._init_slack_token()
 
-        logger.info("Sending message using chat.postMessage: %s", channel_id)
+        logger.info(
+            "Sending message using chat.postMessage: channel=%s thread_ts=%s",
+            channel_id,
+            thread_ts,
+        )
         headers = self.config.get_headers()
 
         # Prepare basic payload
@@ -414,6 +425,10 @@ class SlackPostingHandler(SlackAsyncClient):
             "channel": channel_id,
             "text": message,
         }
+
+        # Add thread_ts for threaded replies
+        if thread_ts:
+            payload["thread_ts"] = thread_ts
 
         # Add blocks if provided
         if blocks:

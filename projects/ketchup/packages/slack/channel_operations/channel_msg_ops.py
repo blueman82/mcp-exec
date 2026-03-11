@@ -5,6 +5,7 @@ This module contains the SlackChannelMessageOps class for fetching messages from
 """
 
 import asyncio
+import os
 import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -72,12 +73,53 @@ class SlackChannelMessageOps(SlackAsyncClient):
         self._bot_user_id = None  # Will be set during initialization
         self._batch_sizer = BatchSizeManager()
         self._latest_message_ts = None  # Track latest message timestamp seen
+        self._agent_thread_filter = None  # Lazily resolved agent thread filter
+        self._agent_threads_cache: Dict[str, Set[str]] = {}  # channel_id -> agent thread_ts set
         logger.info("SlackChannelMessageOps initialized with injected dependencies.")
 
     async def set_bot_user_id(self, bot_user_id: str):
         """Set the bot user ID for filtering Ketchup messages."""
         self._bot_user_id = bot_user_id
         logger.info(f"Bot user ID set to {bot_user_id} for message filtering")
+
+    async def _get_agent_threads(self, channel_id: str) -> Set[str]:
+        """Lazily resolve and fetch agent thread timestamps for a channel.
+
+        Args:
+            channel_id: The channel to look up.
+
+        Returns:
+            Set of thread_ts strings belonging to agent conversations, or empty set if unavailable.
+        """
+        # Check if agent feature is enabled
+        if os.environ.get("KETCHUP_AGENT_ENABLED", "false").lower() != "true":
+            return set()
+
+        # Return cached result if available
+        if channel_id in self._agent_threads_cache:
+            return self._agent_threads_cache[channel_id]
+
+        # Try to lazily resolve the agent thread filter from DI
+        try:
+            if self._agent_thread_filter is None:
+                from packages.core.typed_di.registry import TypedServiceRegistry
+                from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+                    AgentThreadFilterProtocol,
+                )
+
+                # Get the global DI registry
+                registry = TypedServiceRegistry.instance()
+                self._agent_thread_filter = await registry.aget(AgentThreadFilterProtocol)
+
+            # Get agent threads for this channel
+            agent_threads = await self._agent_thread_filter.get_agent_threads(channel_id)
+            self._agent_threads_cache[channel_id] = agent_threads
+            return agent_threads
+
+        except Exception as e:
+            # Agent feature disabled or resolution failed — skip filter gracefully
+            logger.debug(f"Agent thread filter unavailable: {e}")
+            return set()
 
     @property
     def latest_message_ts(self) -> Optional[str]:
@@ -211,11 +253,12 @@ class SlackChannelMessageOps(SlackAsyncClient):
                         self._batch_sizer.increase_size()  # Success, increase batch size
                         messages = response_data.get("messages", [])
 
-                        self._collect_batch_data(
+                        await self._collect_batch_data(
                             messages,
                             messages_dict,
                             user_mentions,
                             thread_timestamps,
+                            channel_id,
                             include_bot_messages,
                             include_system_messages,
                         )
@@ -354,11 +397,12 @@ class SlackChannelMessageOps(SlackAsyncClient):
             # Phase 3: Process all collected data (same as sequential)
             for page_data in all_pages_data:
                 if page_data:  # Skip failed pages
-                    self._collect_batch_data(
+                    await self._collect_batch_data(
                         page_data,
                         messages_dict,
                         user_mentions,
                         thread_timestamps,
+                        channel_id,
                         include_bot_messages,
                         include_system_messages,
                     )
@@ -710,11 +754,12 @@ class SlackChannelMessageOps(SlackAsyncClient):
                         page_user_mentions: Set[str] = set()
                         page_thread_timestamps: List[str] = []
 
-                        self._collect_batch_data(
+                        await self._collect_batch_data(
                             messages,
                             page_messages_dict,
                             page_user_mentions,
                             page_thread_timestamps,
+                            channel_id,
                             include_bot_messages,
                             include_system_messages,
                         )
@@ -899,16 +944,17 @@ class SlackChannelMessageOps(SlackAsyncClient):
 
         return all_messages
 
-    def _collect_batch_data(
+    async def _collect_batch_data(
         self,
         messages,
         messages_dict,
         user_mentions,
         thread_timestamps,
+        channel_id: str,
         include_bot_messages: bool = False,
         include_system_messages: bool = False,
     ):
-        """Collects raw message data, filtering out Ketchup interactions."""
+        """Collects raw message data, filtering out Ketchup interactions and agent threads."""
         latest_ts = "0"
 
         # First pass: find the absolute latest timestamp from ALL messages (including bot messages)
@@ -916,6 +962,9 @@ class SlackChannelMessageOps(SlackAsyncClient):
             msg_ts = msg.get("ts", "0")
             if msg_ts > latest_ts:
                 latest_ts = msg_ts
+
+        # Get agent thread timestamps for this channel (cached, empty set if agent disabled)
+        agent_threads = await self._get_agent_threads(channel_id)
 
         # Second pass: collect non-bot and non-system messages
         for msg in messages:
@@ -931,6 +980,15 @@ class SlackChannelMessageOps(SlackAsyncClient):
             # Skip system messages (joins, leaves, topic changes, etc.) unless explicitly included
             if not include_system_messages and msg.get("subtype") in FILTERED_SYSTEM_SUBTYPES:
                 # logger.info(f"Filtering out system message: subtype={msg.get('subtype')}")
+                continue
+
+            # ── 4th filter layer: Agent thread isolation ──
+            # Skip messages that belong to agent conversation threads
+            if (
+                agent_threads
+                and self._agent_thread_filter
+                and self._agent_thread_filter.is_agent_thread_message(msg, agent_threads)
+            ):
                 continue
 
             # Get message text for filtering

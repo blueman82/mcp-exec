@@ -165,8 +165,6 @@ class AzureAsyncClient(AsyncClient[AzureConfig, Dict[str, Any]]):
             asyncio.TimeoutError: If the request times out after exhausting retries.
             Exception: For other unexpected errors during the process.
         """
-        logger.info(f"AzureAsyncClient._make_azure_api_request: Received URL: {repr(url)}")
-        logger.info(f"AzureAsyncClient._make_azure_api_request: URL contains '?': {'?' in url}")
 
         async def _core_request_logic() -> Dict[str, Any]:
             current_headers = headers

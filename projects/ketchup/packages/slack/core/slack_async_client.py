@@ -172,3 +172,26 @@ class SlackAsyncClient(AsyncClient[SlackConfig, aiohttp.ClientResponse]):
             )
             # Re-raise as this is a critical error for API calls
             raise
+
+    async def api_get(self, endpoint: str, params: dict) -> dict:
+        """Make a generic GET request to a Slack API endpoint.
+
+        Args:
+            endpoint: Slack API endpoint (e.g., 'conversations.history')
+            params: Query parameters to send
+
+        Returns:
+            Parsed JSON response from Slack
+        """
+        url = f"{await self.get_api_base_url()}/{endpoint}"
+        headers = self.headers
+        response = await self._make_api_request(url, method="GET", headers=headers, params=params)
+        try:
+            return orjson.loads(response["body"])
+        except (orjson.JSONDecodeError, json.JSONDecodeError) as e:
+            logger.error(
+                "Failed to parse JSON response from API GET to %s: %s",
+                endpoint,
+                str(e),
+            )
+            raise

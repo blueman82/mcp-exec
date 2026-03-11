@@ -1,4 +1,25 @@
 services:
+  # ChromaDB - Vector database for agent RAG pipeline
+  # Stores embeddings for Slack channel history and JIRA documents
+  chromadb:
+    image: chromadb/chroma:1.5.5
+    environment:
+      - TZ=Europe/London
+    volumes:
+      - chromadb_data:/chroma/chroma
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   nginx:
     image: nginx:alpine
     ports:
@@ -20,36 +41,23 @@ services:
         max-file: "3"
 
   ketchup-app:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.408
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.409
     env_file:
       - common.env
       - performance.env
+      - features.env
+      - azure.env
+      - agent.env
     environment:
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - JIRA_TOOL_PERSIST_CORRECTIONS=true
-      - JIRA_TOOL_CORRECTIONS_FILE=/tmp/jira_corrections_cache.json
-      - KETCHUP_STATUS_UPDATER_FEATURE=true
-      - KETCHUP_STATUS_UPDATER_GLOBAL=true
-      - KETCHUP_JIRA_REPORTER_FEATURE=true
-      - KETCHUP_JIRA_REPORTER_GLOBAL=true
-      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
-      - KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true
-      - KETCHUP_ACCESS_REQUEST_AUTOMATION_GLOBAL=true
-      - KETCHUP_USER_JOIN_NOTIFICATIONS_FEATURE=true
-      - KETCHUP_USER_JOIN_NOTIFICATIONS_GLOBAL=true
-      - KETCHUP_MAINTENANCE_DETECTION=true
-      - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
-      - TZ=Europe/London
-      - EXCLUDED_CSO_CHANNELS=C090V88CB1N,C08CQN1JCSC,C03PWLW9P5H
       - KETCHUP_MAINTENANCE_MODE=${KETCHUP_MAINTENANCE_MODE:-false}
       - KETCHUP_MAINTENANCE_MESSAGE=${KETCHUP_MAINTENANCE_MESSAGE:-}
     volumes:
       - ./logs:/var/log
     depends_on:
-      - mcp-jira
+      mcp-jira:
+        condition: service_started
+      chromadb:
+        condition: service_healthy
     deploy:
       replicas: 2
     restart: unless-stopped
@@ -79,31 +87,12 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-unified-scheduler:v2.360.408
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-unified-scheduler:v2.360.409
     env_file:
       - common.env
       - performance.env
-    environment:
-      - MCP_BASE_URL=http://mcp-jira:8081
-      - OPENAI_API_VERSION=2025-01-01-preview
-      - AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview
-      # Feature flags for individual tasks
-      - KETCHUP_STATUS_UPDATER_FEATURE=true
-      - KETCHUP_STATUS_UPDATER_GLOBAL=true
-      - KETCHUP_STATUS_UPDATER_ENABLED=true
-      - KETCHUP_JIRA_REPORTER_FEATURE=true
-      - KETCHUP_JIRA_REPORTER_GLOBAL=true
-      - KETCHUP_METADATA_UPDATER_FEATURE=true
-      - KETCHUP_MAINTENANCE_FETCHER_ENABLED=true
-      - KETCHUP_JIRA_PAT_ROTATOR_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_FEATURE=true
-      - KETCHUP_TRUST_ENDORSEMENT_GLOBAL=true
-      - KETCHUP_HANDOVER_SUMMARY_ENABLED=false
-      - KETCHUP_HANDOVER_TARGET_CHANNEL=C03PWLW9P5H #on-call channel id
-      - KETCHUP_HANDOVER_SCHEDULE_TIMES=08:58,16:58
-      - KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS=12 #retrieves the last 12 hours of messages for handover
-      - KETCHUP_EVENTS_QUEUE_URL=https://sqs.eu-west-1.amazonaws.com/483013340174/ketchup-events-queue
-      - TZ=Europe/London
+      - features.env
+      - azure.env
     volumes:
       - ./logs:/var/log
       - ./logs/unified_scheduler:/var/log/unified_scheduler
@@ -136,25 +125,11 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-csopm-notifier:v2.360.408
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-csopm-notifier:v2.360.409
     env_file:
       - common.env
       - performance.env
-    environment:
-      - MCP_BASE_URL=http://mcp-jira:8081
-      # CSOPM feature flag
-      - KETCHUP_CSOPM_NOTIFIER_ENABLED=true
-      # DynamoDB table for state tracking
-      - CSOPM_DYNAMODB_TABLE=ketchup_channel_information
-      # CSOPM configuration (can be overridden in docker-compose.local.yml for testing)
-      - CSOPM_JIRA_PROJECT=CSOPM
-      - CSOPM_RCA_REMINDER_DAYS=7
-      - CSOPM_CLOSURE_REMINDER_DAYS=45
-      - CSOPM_MAX_PING_COUNT=3
-      - CSOPM_SCHEDULE_TIMES=08:00,12:00,16:00,20:00,00:00
-      # Pilot users for initial rollout (empty = all users, set = only listed users)
-      - CSOPM_PILOT_SLACK_IDS=WDGLSLQRK,W5H6R82Q6,WDHGPEL2K,W4RT2F744,W74KBA6SG,W6YLR99EJ,W4R4RGY4Q,W7MGASQ2K
-      - TZ=Europe/London
+      - csopm.env
     volumes:
       - ./logs:/var/log
     depends_on:
@@ -187,7 +162,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.408
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.409
     ports:
       - "8081:8081"
     env_file:
@@ -201,7 +176,6 @@ services:
       - JIRA_PASSWORD=
       - JIRA_IMS_TOKEN=
       - JIRA_USE_PAT_AUTH=true
-      - TZ=Europe/London
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/health"]
@@ -216,12 +190,11 @@ services:
         max-file: "3"
 
   ketchup-access-monitor:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.408
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.409
     env_file:
       - common.env
       - performance.env
     environment:
-      - TZ=Europe/London
       - ACCESS_REQUEST_MONITOR_INTERVAL=300
       - ACCESS_REQUEST_ALERT_COOLDOWN=3600
     volumes:
@@ -248,4 +221,6 @@ networks:
         - subnet: 172.18.0.0/16
 
 # Persistent volumes
-volumes: {}
+volumes:
+  chromadb_data:
+    driver: local

@@ -342,40 +342,57 @@ export class MCPBridge {
   private handleCallRequest(req: IncomingMessage, res: ServerResponse): void {
     let body = '';
     let bodySize = 0;
+    let responseSent = false;
 
     req.on('data', (chunk: Buffer) => {
       bodySize += chunk.length;
       if (bodySize > MAX_REQUEST_BODY_SIZE) {
         req.destroy();
-        this.sendError(res, 413, `Request body too large. Maximum size is ${MAX_REQUEST_BODY_SIZE / 1024 / 1024}MB`);
+        if (!responseSent) {
+          responseSent = true;
+          this.sendError(res, 413, `Request body too large. Maximum size is ${MAX_REQUEST_BODY_SIZE / 1024 / 1024}MB`);
+        }
         return;
       }
       body += chunk.toString();
     });
 
     req.on('end', async () => {
+      if (responseSent) return;
       try {
         // Parse request body
         let request: CallRequest;
         try {
           request = JSON.parse(body) as CallRequest;
         } catch {
-          this.sendError(res, 400, 'Invalid JSON body');
+          if (!responseSent) {
+            responseSent = true;
+            this.sendError(res, 400, 'Invalid JSON body');
+          }
           return;
         }
 
         // Validate required fields
         if (!request.server || typeof request.server !== 'string') {
-          this.sendError(res, 400, 'Missing or invalid "server" field');
+          if (!responseSent) {
+            responseSent = true;
+            this.sendError(res, 400, 'Missing or invalid "server" field');
+          }
           return;
         }
         if (!request.tool || typeof request.tool !== 'string') {
-          this.sendError(res, 400, 'Missing or invalid "tool" field');
+          if (!responseSent) {
+            responseSent = true;
+            this.sendError(res, 400, 'Missing or invalid "tool" field');
+          }
           return;
         }
         // Validate args is an object if provided
         if (request.args !== undefined && (typeof request.args !== 'object' || request.args === null || Array.isArray(request.args))) {
-          this.sendError(res, 400, '"args" must be an object');
+          if (!responseSent) {
+            responseSent = true;
+            this.sendError(res, 400, '"args" must be an object');
+          }
           return;
         }
 
@@ -384,12 +401,21 @@ export class MCPBridge {
         try {
           connection = await this.pool.getConnection(request.server) as unknown as MCPConnectionWithClient;
         } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : String(err);
-          // Check if this is a "server not found" type error
-          if (errorMsg.includes('not found') || errorMsg.includes('No server configured') || errorMsg.includes('Unknown server')) {
-            this.sendError(res, 404, buildServerNotFoundError(request.server));
-          } else {
-            this.sendError(res, 502, buildConnectionError(request.server, errorMsg));
+          if (!responseSent) {
+            responseSent = true;
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            // Check if this is a "server not found" type error
+            if (errorMsg.includes('not found') || errorMsg.includes('No server configured') || errorMsg.includes('Unknown server')) {
+              this.sendError(res, 404, buildServerNotFoundError(request.server));
+            } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden') || errorMsg.includes('PermissionError') || errorMsg.includes('Unauthorized')) {
+              // HTTP 403 or permission error
+              this.sendError(res, 403, `Authentication failed for server '${request.server}'. Check X-MCP-Client header and backend auth config.`);
+            } else if (errorMsg.includes('503') || errorMsg.includes('Service Unavailable')) {
+              // HTTP 503 or service unavailable
+              this.sendError(res, 503, `Server '${request.server}' is unavailable. It may be starting up — retry in a few seconds.`);
+            } else {
+              this.sendError(res, 502, buildConnectionError(request.server, errorMsg));
+            }
           }
           return;
         }
@@ -411,42 +437,58 @@ export class MCPBridge {
             timeout ? { timeout } : undefined
           );
 
-          const response: CallResponse = {
-            success: true,
-            content: result.content,
-            isError: result.isError,
-          };
+          if (!responseSent) {
+            responseSent = true;
+            const response: CallResponse = {
+              success: true,
+              content: result.content,
+              isError: result.isError,
+            };
 
-          res.writeHead(200);
-          res.end(JSON.stringify(response));
+            res.writeHead(200);
+            res.end(JSON.stringify(response));
+          }
         } catch (err) {
-          const errorMsg = err instanceof Error ? err.message : String(err);
-          // Check if this is a "tool not found" type error
-          if (errorMsg.includes('not found') || errorMsg.includes('Unknown tool') || errorMsg.includes('no such tool')) {
-            // Try to get available tools for better error message
-            try {
-              const tools = await connection.getTools();
-              const toolNames = tools.map(t => t.name);
-              this.sendError(res, 404, buildToolNotFoundError(request.server, request.tool, toolNames));
-            } catch {
-              // If we can't get tools, fall back to basic error
-              this.sendError(res, 500, `Tool '${request.tool}' not found on server '${request.server}'. Unable to fetch available tools.`);
+          if (!responseSent) {
+            responseSent = true;
+            const errorMsg = err instanceof Error ? err.message : String(err);
+            // Check if this is a "tool not found" type error
+            if (errorMsg.includes('not found') || errorMsg.includes('Unknown tool') || errorMsg.includes('no such tool')) {
+              // Try to get available tools for better error message
+              try {
+                const tools = await connection.getTools();
+                const toolNames = tools.map(t => t.name);
+                this.sendError(res, 404, buildToolNotFoundError(request.server, request.tool, toolNames));
+              } catch {
+                // If we can't get tools, fall back to basic error
+                this.sendError(res, 500, `Tool '${request.tool}' not found on server '${request.server}'. Unable to fetch available tools.`);
+              }
+            } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden') || errorMsg.includes('PermissionError') || errorMsg.includes('Unauthorized')) {
+              this.sendError(res, 403, `Authorization failed calling '${request.tool}' on '${request.server}': ${errorMsg}. Ensure X-MCP-Client header is being sent.`);
+            } else if (errorMsg.includes('503') || errorMsg.includes('504') || errorMsg.includes('Gateway')) {
+              this.sendError(res, 503, `Server '${request.server}' temporarily unavailable during tool '${request.tool}'. Retry after a short delay.`);
+            } else {
+              this.sendError(res, 500, `[${request.server}.${request.tool}] Tool execution failed: ${errorMsg}`);
             }
-          } else {
-            this.sendError(res, 500, `Tool execution failed: ${errorMsg}`);
           }
         } finally {
           // Release connection back to pool
           this.pool.releaseConnection(request.server);
         }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        this.sendError(res, 500, `Internal error: ${errorMsg}`);
+        if (!responseSent) {
+          responseSent = true;
+          const errorMsg = err instanceof Error ? err.message : String(err);
+          this.sendError(res, 500, `Internal error: ${errorMsg}`);
+        }
       }
     });
 
     req.on('error', (err) => {
-      this.sendError(res, 400, `Request error: ${err.message}`);
+      if (!responseSent) {
+        responseSent = true;
+        this.sendError(res, 400, `Request error: ${err.message}`);
+      }
     });
   }
 

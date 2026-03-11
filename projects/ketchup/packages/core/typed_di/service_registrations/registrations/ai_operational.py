@@ -238,24 +238,26 @@ def _register_ai_operations_and_config(manager: "ServiceRegistrationManager") ->
 
     # ApiExecutor with protocol
     async def create_api_executor(resolver) -> ApiExecutor:
-        """Factory function for ApiExecutor."""
+        """Factory function for ApiExecutor.
+
+        Uses the same endpoint and API key sources as OpenAIHandler.initialize():
+        - Endpoint: AZURE_OPENAI_ENDPOINT from constants.py (full deployment URL)
+        - API key: AZURE_OPENAI_LB_API_KEY from Secrets Manager (LB key)
+        """
         from packages.ai.core.azure_async_client import AzureAsyncClient
+        from packages.core.constants import AZURE_OPENAI_ENDPOINT
 
         token_tracker = await resolver.aget(TokenTrackerProtocol)
         slack_channel_archive_ops = await resolver.aget(SlackChannelArchiveOpsProtocol)
         secrets_manager = await resolver.aget(SecretsManagerProtocol)
-        secrets = await secrets_manager.get_app_secrets()
-        endpoint = secrets.get("AZURE_OPENAI_ENDPOINT", "")
+        api_key = await secrets_manager.get_azure_openai_lb_api_key()
 
-        # Truly lazy initialization - returns function, not result
-        def get_azure_api_request_func():
-            azure_client = AzureAsyncClient(endpoint)
-            return azure_client._make_azure_api_request
+        azure_client = AzureAsyncClient(api_key=api_key, endpoint=AZURE_OPENAI_ENDPOINT)
 
         return ApiExecutor(
-            api_request_func=get_azure_api_request_func,  # Pass function, not call it
-            endpoint=endpoint,
-            api_key=secrets.get("AZURE_OPENAI_API_KEY", ""),
+            api_request_func=azure_client._make_azure_api_request,
+            endpoint=AZURE_OPENAI_ENDPOINT,
+            api_key=api_key,
             token_tracker=token_tracker,
             channel_archive_ops=slack_channel_archive_ops,
         )
@@ -299,11 +301,13 @@ def _register_ai_operations_and_config(manager: "ServiceRegistrationManager") ->
     # AzureConfig with protocol
     async def create_azure_config(resolver) -> AzureConfig:
         """Factory function for AzureConfig."""
+        from packages.core.constants import AZURE_OPENAI_ENDPOINT
+
         secrets_manager = await resolver.aget(SecretsManagerProtocol)
-        secrets = await secrets_manager.get_app_secrets()
+        api_key = await secrets_manager.get_azure_openai_lb_api_key()
         return AzureConfig(
-            api_key=secrets.get("AZURE_OPENAI_API_KEY"),
-            endpoint=secrets.get("AZURE_OPENAI_ENDPOINT"),
+            api_key=api_key,
+            endpoint=AZURE_OPENAI_ENDPOINT,
         )
 
     manager.register_protocol_with_concrete_alias(

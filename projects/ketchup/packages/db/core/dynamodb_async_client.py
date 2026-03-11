@@ -318,6 +318,8 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
         table_name: Optional[str] = None,
         limit: Optional[int] = None,
         exclusive_start_key: Optional[Dict[str, Any]] = None,
+        scan_index_forward: Optional[bool] = None,
+        projection_expression: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Query items from DynamoDB with retry logic.
 
@@ -329,6 +331,8 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
             table_name: Optional table name override
             limit: Optional maximum number of items to return
             exclusive_start_key: Optional key to start query from
+            scan_index_forward: Sort order (True=ascending, False=descending)
+            projection_expression: Attributes to retrieve
 
         Returns:
             Response from DynamoDB
@@ -367,6 +371,12 @@ class DynamoDBAsyncClient(AsyncClient[DynamoDBConfig, Dict[str, Any]]):
 
         if exclusive_start_key:
             params["ExclusiveStartKey"] = exclusive_start_key
+
+        if scan_index_forward is not None:
+            params["ScanIndexForward"] = scan_index_forward  # type: ignore[assignment]
+
+        if projection_expression:
+            params["ProjectionExpression"] = projection_expression
 
         return await client.query(**params)
 

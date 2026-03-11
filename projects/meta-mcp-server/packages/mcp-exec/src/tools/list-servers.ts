@@ -5,6 +5,13 @@
 import { listServers, type ServerManifestEntry } from '@justanothermldude/meta-mcp-core';
 
 /**
+ * Escapes pipe characters in text for safe inclusion in a markdown table cell.
+ */
+function escapeMarkdownCell(text: string): string {
+  return text.replace(/\|/g, '\\|');
+}
+
+/**
  * Input type for list_available_mcp_servers tool
  */
 export interface ListServersInput {
@@ -84,9 +91,56 @@ export function createListServersHandler() {
         });
       }
 
-      // Format and return result
+      // Format as markdown table for better LLM parsing
+      if (servers.length === 0) {
+        // Empty result after filter
+        const noMatchMsg = filter
+          ? `No servers matched filter: '${filter}'. Try list_available_mcp_servers without a filter.`
+          : 'No servers are configured. Check that servers.json is properly set up.';
+        return {
+          content: [{ type: 'text', text: noMatchMsg }],
+          isError: false,
+        };
+      }
+
+      // Build markdown table
+      const rows = servers.map((server) => {
+        // Truncate description at 80 chars if needed, respecting UTF-16 surrogate pairs
+        const desc = (() => {
+          if (!server.description) return '';
+          if (server.description.length <= 80) return server.description;
+          // Truncate then strip any trailing lone high surrogate (broken emoji)
+          let truncated = server.description.substring(0, 77);
+          truncated = truncated.replace(/[\uD800-\uDBFF]$/, '');
+          return truncated + '...';
+        })();
+
+        // Format tags: max 5 shown, append "+N more" if additional
+        let tagsStr = '';
+        if (server.tags && server.tags.length > 0) {
+          const displayTags = server.tags.slice(0, 5);
+          const hasMore = server.tags.length > 5;
+          tagsStr = displayTags.join(', ') + (hasMore ? ` +${server.tags.length - 5} more` : '');
+        }
+
+        const escapedName = escapeMarkdownCell(server.name);
+        const escapedDesc = escapeMarkdownCell(desc);
+        const escapedTags = escapeMarkdownCell(tagsStr);
+        return `| \`${escapedName}\` | ${escapedDesc} | ${escapedTags} |`;
+      });
+
+      const table =
+        '## Available MCP Servers\n\n' +
+        '| Name | Description | Tags |\n' +
+        '|------|-------------|------|\n' +
+        rows.join('\n') +
+        '\n\n' +
+        'To use a server, pass its exact name in the `wrappers` array of `execute_code_with_wrappers`.\n' +
+        'Example: `wrappers: ["adobe-mcp-gateway"]`\n\n' +
+        'To see tools on a server: `get_mcp_tool_schema({ server: "adobe-mcp-gateway" })`';
+
       return {
-        content: [{ type: 'text', text: JSON.stringify(servers, null, 2) }],
+        content: [{ type: 'text', text: table }],
         isError: false,
       };
     } catch (error) {
