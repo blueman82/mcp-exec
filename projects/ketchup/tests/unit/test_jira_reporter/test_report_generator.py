@@ -205,11 +205,18 @@ h3. Incident Timeline
         # Assert
         assert "Customer: Adobe Campaign" in result
         assert "JIRA Ticket: CPGNREQ-12345" in result
-        assert "Channel Name: cso_202401010001_adobe_campaign_12345" in result
+        assert "cso_202401010001_adobe_campaign_12345" in result
         assert "Test messages" in result
         assert "h3. Executive Summary" in result
         assert "h3. People Involved" in result
         assert "h3. Incident Timeline" in result
+        # Verify XML-tagged structure
+        assert "<role>" in result
+        assert "<context>" in result
+        assert "<response_structure>" in result
+        assert "<data_source>" in result
+        assert "<formatting_rules>" in result
+        assert "<constraints>" in result
 
     def test_format_for_jira(self, report_generator, sample_channel_metadata):
         """Test JIRA markdown formatting."""

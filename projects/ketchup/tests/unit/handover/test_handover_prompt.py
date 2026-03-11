@@ -48,7 +48,7 @@ class TestHandoverPrompts:
             jira_comments="Sample comments",
         )
 
-        assert "accuracy" in prompt.lower() or "verbatim" in prompt.lower()
+        assert "speculation" in prompt.lower() or "only the slack messages" in prompt.lower()
 
     def test_channel_prompt_includes_channel_name(self):
         """Test channel prompt includes the channel name"""

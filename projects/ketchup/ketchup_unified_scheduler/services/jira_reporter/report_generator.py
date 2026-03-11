@@ -139,56 +139,54 @@ class ReportGenerator:
             f"Customer: {customer}\n" if customer and customer != "NOT YET AVAILABLE" else ""
         )
 
-        prompt = f"""
-You are an AI assistant specialized in summarizing incident response channels.
-Your task is to create a comprehensive report of a Slack conversation from a CSO war room.
-Follow these instructions carefully to produce an accurate and informative summary.
+        prompt = f"""<role>
+You are an AI assistant specialized in summarizing incident response conversations from CSO (Customer Support Operations) war rooms. Your task is to extract key incident information from Slack messages and structure them into a comprehensive JIRA-formatted report.
+</role>
 
-{customer_line}
+<context>
+Channel: {channel_name}
 JIRA Ticket: {jira_ticket}
-Channel Name: {channel_name}
+{customer_line.rstrip()}
+</context>
 
-Analyze the provided Slack conversation and create a comprehensive incident summary report.
-The report should be formatted using JIRA wiki formatting and include the following sections:
+<response_structure>
+Generate a report with these nine sections in order. Use JIRA wiki formatting throughout:
+- h3. Executive Summary — incident overview, current status, CSO Phase, business impact
+- h3. People Involved — engineers listed with roles/contributions
+- h3. Incident Timeline — key events chronologically (timestamps: DD-MMM-YYYY, HH:MM UTC)
+- h3. Technical Analysis — root cause, systems affected, error patterns
+- h3. Impact Assessment — customer impact, service availability, affected metrics
+- h3. Resolution & Mitigation — actions taken, workarounds, fixes applied
+- h3. JIRA Tickets & Work Done — related tickets with work summaries
+- h3. Next Steps — pending actions, ongoing investigations, preventative measures
+- h3. References — support tickets, documentation, case numbers
 
-1. h3. Executive Summary
-   Provide a brief overview of the incident, current status, CSO Phase, and business impacts.
+Within sections, use * for bullet points. Do not create subsections or nested headers.
+</response_structure>
 
-2. h3. People Involved
-   List the engineers and their roles/contributions during the incident.
+<data_source>
+Slack channel messages (provided below):
 
-3. h3. Incident Timeline
-   Present key events in chronological order with timestamps (format: DD-MMM-YYYY, HH:MM UTC).
-
-4. h3. Technical Analysis
-   Describe the root cause analysis, systems affected, and error patterns observed.
-
-5. h3. Impact Assessment
-   Explain the customer experience impact, service availability, and affected metrics.
-
-6. h3. Resolution & Mitigation
-   Detail the actions taken, workarounds implemented, and fixes applied.
-
-7. h3. JIRA Tickets & Work Done
-   List related JIRA tickets with brief summaries of work completed.
-
-8. h3. Next Steps
-   Outline pending actions, ongoing investigations, and preventative measures.
-
-9. h3. References
-   Include links to support tickets, documentation, and case numbers.
-
-Channel Messages:
 {formatted_messages}
+</data_source>
 
-When creating the report:
-1. Use JIRA wiki formatting (h3. for headers, * for bullets, etc.).
-2. Keep the report concise but informative, focusing on key information for stakeholders.
-3. Extract relevant information from the provided Slack conversation to populate each section.
-4. If the Customer name do not include it and omit it from the report.
-5. Ensure that all timestamps are in the format DD-MMM-YYYY, HH:MM UTC.
-6. Use bullet points where appropriate to improve readability.
-7. If certain information is not available in the conversation, indicate that it is "Not specified" in the relevant section.
+<formatting_rules>
+✅ JIRA wiki syntax: h3. for headers, * for bullets, [link text|URL] for links
+✅ Timestamps: DD-MMM-YYYY, HH:MM UTC format (e.g. 15-Mar-2026, 14:32 UTC)
+✅ Attribute actions to people by name or Slack handle where possible
+❌ Do not use Slack mrkdwn (* bold, _italic, etc.) — use JIRA wiki only
+❌ Do not invent section headers or skip sections
+</formatting_rules>
+
+<constraints>
+- Extract information only from the provided Slack messages. Never fabricate events or timestamps.
+- If a section has no relevant information, write "Not specified" rather than leaving it blank.
+- Keep language concise and factual. Focus on what happened, not speculation.
+- Omit the Customer field from the report body if no valid customer name was provided.
+- Preserve error messages, code snippets, and numeric values verbatim from source.
+</constraints>
+
+Analyse the provided Slack conversation above and generate the report now.
 """
 
         # Add JSON format instruction when structured output is enabled

@@ -53,9 +53,9 @@ class TestPromptFunctions:
         assert query_text in prompt
         assert "END OF QUERY RESPONSE INSTRUCTIONS" in prompt
 
-        # Test new format requirements
-        assert "**Direct Answer:**" in prompt
-        assert "**Details:**" in prompt
+        # Test new format requirements (single asterisks for Slack mrkdwn)
+        assert "*Direct Answer:*" in prompt
+        assert "*Details:*" in prompt
         assert "50-150 words maximum" in prompt
         assert "Lead with a direct answer to the query" in prompt
         assert "exact matches only" in prompt
@@ -66,7 +66,9 @@ class TestPromptFunctions:
         # Test with no parameters
         prompt = get_status_prompt()
         assert isinstance(prompt, str)
-        assert "STATUS REPORT INSTRUCTIONS" in prompt
+        assert "<role>" in prompt
+        assert "<constraints>" in prompt
+        assert "<response_structure>" in prompt
 
         # Test with user preferences as dict
         user_prefs = {"role": "incident response analyst", "detail_level": "balanced"}
@@ -74,11 +76,10 @@ class TestPromptFunctions:
         assert isinstance(prompt, str)
 
         # Test new sections are present
-        assert "Engineers Actively Investigating & Their Tasks" in prompt
-        assert "Timeline" in prompt
-        assert ":construction_worker:" in prompt
+        assert "Engineers Actively Investigating" in prompt
         assert ":calendar:" in prompt
-        assert "**DD-MMM-YYYY, HH:MM UTC:**" in prompt
+        assert ":construction_worker:" in prompt
+        assert "*DD-MMM-YYYY, HH:MM UTC:*" in prompt
         assert "600 words" in prompt  # Updated word limit
 
     @pytest.mark.parametrize("report_text", [None, "full report", "minimal"])
@@ -89,16 +90,17 @@ class TestPromptFunctions:
         else:
             prompt = get_report_prompt(report_text)
         assert isinstance(prompt, str)
-        assert "END OF REPORT INSTRUCTIONS" in prompt
+        assert "<role>" in prompt
+        assert "<response_structure>" in prompt
+        assert "<constraints>" in prompt
 
         # Test new sections are present
         assert "People Involved" in prompt
         assert "Incident Timeline" in prompt
-        assert ":busts_in_silhouette:" in prompt
-        assert ":calendar:" in prompt
-        assert "**DD-MMM-YYYY, HH:MM UTC:**" in prompt
+        assert ":page_facing_up:" in prompt
+        assert "*DD-MMM-YYYY, HH:MM UTC:*" in prompt
         assert "600 words" in prompt  # Updated word limit
-        assert "8-9 main sections" in prompt  # Updated from 7 to 8-9
+        assert "9 sections" in prompt  # Updated to 9 sections
 
 
 @pytest.mark.unit
@@ -110,8 +112,9 @@ class TestPromptAdaptation:
             "product_focus": ["ketchup"],
         }
         prompt = get_status_prompt(user_prefs=prefs)
-        assert "highly skilled SRE" in prompt
+        assert "highly skilled incident response analyst" in prompt
         assert "ketchup" in prompt
+        assert "<role>" in prompt
 
     def test_report_prompt_user_prefs(self):
         prefs = {
@@ -120,4 +123,6 @@ class TestPromptAdaptation:
             "product_focus": ["mustard"],
         }
         prompt = get_report_prompt(user_prefs=prefs)
-        assert "As a incident response analyst," in prompt
+        assert "<role>" in prompt
+        assert "incident report analyst" in prompt
+        assert "<response_structure>" in prompt

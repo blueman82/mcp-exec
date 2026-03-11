@@ -17,10 +17,10 @@ class TestAutoStatusPrompts:
 
         assert isinstance(prompt, str)
         assert (
-            "AI assistant specialized in generating ultra-concise channel status reports" in prompt
+            "AI specialist in generating ultra-concise channel status reports" in prompt
         )
-        assert "CRITICAL ACCURACY REQUIREMENTS" in prompt
-        assert "technical details" in prompt
+        assert "EXACTLY 4 bullets" in prompt
+        assert "traceable to provided JIRA or Slack content" in prompt
 
     def test_get_auto_status_prompt_basic(self):
         """Test basic auto-status prompt generation"""
@@ -40,8 +40,8 @@ class TestAutoStatusPrompts:
         assert "JIRA: TEST-123" in prompt
         assert "*Overview:*" in prompt
         assert "*What's been done / What's next:*" in prompt
-        assert "EXACTLY 4 bullets, no more, no less" in prompt
-        assert "Under 150 words" in prompt
+        assert "EXACTLY 4 bullets" in prompt
+        assert "under 150 words" in prompt
 
     def test_get_auto_status_prompt_missing_info(self):
         """Test prompt generation with missing information"""
@@ -76,9 +76,9 @@ class TestAutoStatusPrompts:
         prompt = get_auto_status_prompt(channel_info)
 
         # Check all formatting rules
-        assert "1-2 sentences maximum" in prompt
+        assert "1–2 sentences" in prompt or "one or two sentences" in prompt
         assert "EXACTLY 4 bullets" in prompt
-        assert "past tense for completed" in prompt
+        assert "Past tense for completed" in prompt
         assert "future tense for planned" in prompt
-        assert "Under 150 words" in prompt
-        assert "MUST appear verbatim in the source" in prompt
+        assert "under 150 words" in prompt
+        assert "exact terminology from source" in prompt

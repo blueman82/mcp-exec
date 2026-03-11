@@ -10,9 +10,17 @@ COMMON_GUIDELINES_PROMPT = r"""
 ✅ JIRA tickets: <https://jira.corp.adobe.com/browse/TICKET-123|TICKET-123>
 ✅ Valid prefixes: CPGNREQ, CPGNTT, NEO, PLATIR, CSOPM, CPGNCX, AMSE, CPGNPROV
 ✅ Channels: <#CHANNEL_ID|channel_name>
+✅ User mentions: <@U12345>
 ✅ Bold: *text* (single asterisk)
+✅ Italic: _text_ (underscores)
+✅ Strikethrough: ~text~ (single tildes)
+✅ Code: `inline` and ```blocks```
+✅ Bullets: • character (not - or *)
+✅ Blockquotes: > for quoting messages
 ✅ CSO Phase: Always include (use "Unknown" if not found)
 ✅ Language: British English
+❌ NEVER use # headers — Slack does not render them. Use *bold text* on its own line instead.
+❌ NEVER use **double asterisks**, ~~double tildes~~, or any other standard Markdown syntax.
 ❌ Never format: plain numbers (73488), internal IDs (DM64530), dynamics cases (E-001597874)
 
 ## QUERY FILTERING - CHECK FIRST
