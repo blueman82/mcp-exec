@@ -140,9 +140,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
 
         return True
 
-    def _is_closure_reminder_due(
-        self, ticket: CSOPMTicket, record: Dict[str, Any]
-    ) -> bool:
+    def _is_closure_reminder_due(self, ticket: CSOPMTicket, record: Dict[str, Any]) -> bool:
         """Check if a closure reminder is due for a ticket.
 
         Closure reminder is due when:
@@ -230,9 +228,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
     # Terminal statuses that indicate a ticket is closed/complete
     TERMINAL_STATUSES = frozenset({"Closed", "Done", "Resolved", "Complete"})
 
-    async def _get_open_followup_tickets(
-        self, record: NotificationRecord
-    ) -> List[Dict[str, str]]:
+    async def _get_open_followup_tickets(self, record: NotificationRecord) -> List[Dict[str, str]]:
         """Get open followup tickets with their statuses.
 
         Queries followup_ticket_keys from the notification record and checks
@@ -257,15 +253,15 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
         # Try to use status poller if available (uses cached/polled data)
         if self._status_poller:
             try:
-                status_results = await self._status_poller.get_followup_statuses(
-                    record.ticket_key
-                )
+                status_results = await self._status_poller.get_followup_statuses(record.ticket_key)
                 for ticket_key, status_result in status_results.items():
                     if status_result.current_status not in self.TERMINAL_STATUSES:
-                        open_followups.append({
-                            "key": ticket_key,
-                            "status": status_result.current_status,
-                        })
+                        open_followups.append(
+                            {
+                                "key": ticket_key,
+                                "status": status_result.current_status,
+                            }
+                        )
                 logger.debug(
                     "Found %d open followup tickets for %s via status poller",
                     len(open_followups),
@@ -294,10 +290,12 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                         else "Unknown"
                     )
                     if status_name not in self.TERMINAL_STATUSES:
-                        open_followups.append({
-                            "key": followup_key,
-                            "status": status_name,
-                        })
+                        open_followups.append(
+                            {
+                                "key": followup_key,
+                                "status": status_name,
+                            }
+                        )
             except Exception as e:
                 logger.warning(
                     "Error getting status for followup ticket %s: %s",
@@ -305,10 +303,12 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                     e,
                 )
                 # Include the ticket anyway with unknown status
-                open_followups.append({
-                    "key": followup_key,
-                    "status": "Unknown",
-                })
+                open_followups.append(
+                    {
+                        "key": followup_key,
+                        "status": "Unknown",
+                    }
+                )
 
         logger.debug(
             "Found %d open followup tickets for %s via direct query",
@@ -481,9 +481,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             # Parse created date
             created_str = fields.get("created", "")
             try:
-                created_at = datetime.fromisoformat(
-                    created_str.replace("+0000", "+00:00")
-                )
+                created_at = datetime.fromisoformat(created_str.replace("+0000", "+00:00"))
             except (ValueError, AttributeError):
                 created_at = datetime.now(timezone.utc)
 
@@ -497,9 +495,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
                 ),
                 created_at=created_at,
                 status=(
-                    status_obj.get("name", "Unknown")
-                    if isinstance(status_obj, dict)
-                    else "Unknown"
+                    status_obj.get("name", "Unknown") if isinstance(status_obj, dict) else "Unknown"
                 ),
             )
 
@@ -801,9 +797,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             logger.error("Error processing closure reminder for %s: %s", ticket.key, e)
             return None
 
-    async def snooze_closure_reminder(
-        self, ticket_key: str, snooze_days: int = 7
-    ) -> bool:
+    async def snooze_closure_reminder(self, ticket_key: str, snooze_days: int = 7) -> bool:
         """Snooze a closure reminder for a specified number of days.
 
         Updates the closure_snoozed_until timestamp in DynamoDB.
@@ -816,9 +810,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
             True if snooze was applied, False otherwise.
         """
         try:
-            logger.info(
-                "Snoozing closure reminder for %s for %d days", ticket_key, snooze_days
-            )
+            logger.info("Snoozing closure reminder for %s for %d days", ticket_key, snooze_days)
 
             result = await self._state_tracker.set_closure_snooze(ticket_key, snooze_days)
             success = result is not None
@@ -850,9 +842,7 @@ class CSOPMReminderService(CSOPMReminderServiceProtocol):
 
             # Check if closure reminder was already sent before this closure
             record = await self._state_tracker.get_notification_record(ticket_key)
-            closure_reminder_was_sent = (
-                record.closure_reminder_sent if record else False
-            )
+            closure_reminder_was_sent = record.closure_reminder_sent if record else False
 
             # Call MCP tool to transition ticket to Closed
             result = await self._mcp_client._call_mcp_tool(

@@ -200,9 +200,7 @@ class CSOPMScheduler(BaseScheduler):
 
                         try:
                             # Resolve new assignee's Slack ID
-                            new_slack_id = await notifier.resolve_slack_user_id(
-                                current_assignee
-                            )
+                            new_slack_id = await notifier.resolve_slack_user_id(current_assignee)
 
                             if new_slack_id:
                                 # Call handle_reassignment to update state
@@ -293,9 +291,7 @@ class CSOPMScheduler(BaseScheduler):
             for ticket in tickets_to_notify:
                 try:
                     # Resolve Slack user ID from JIRA username
-                    slack_user_id = await notifier.resolve_slack_user_id(
-                        ticket.assignee_username
-                    )
+                    slack_user_id = await notifier.resolve_slack_user_id(ticket.assignee_username)
 
                     if not slack_user_id:
                         self.logger.warning(
@@ -380,13 +376,9 @@ class CSOPMScheduler(BaseScheduler):
                         continue
 
                     # Resolve Slack user and send reminder
-                    slack_user_id = await notifier.resolve_slack_user_id(
-                        ticket.assignee_username
-                    )
+                    slack_user_id = await notifier.resolve_slack_user_id(ticket.assignee_username)
                     if slack_user_id:
-                        success = await notifier.send_reminder_dm(
-                            ticket, slack_user_id, "rca"
-                        )
+                        success = await notifier.send_reminder_dm(ticket, slack_user_id, "rca")
                         if success:
                             await state_tracker.mark_rca_reminder_sent(ticket.key)
                             await state_tracker.increment_rca_ping_count(ticket.key)
@@ -420,11 +412,11 @@ class CSOPMScheduler(BaseScheduler):
                     closure_result = await reminder_service.process_closure_reminder(
                         ticket, current_ping_count
                     )
-                    open_followups = closure_result.get("open_followups", []) if closure_result else []
-
-                    slack_user_id = await notifier.resolve_slack_user_id(
-                        ticket.assignee_username
+                    open_followups = (
+                        closure_result.get("open_followups", []) if closure_result else []
                     )
+
+                    slack_user_id = await notifier.resolve_slack_user_id(ticket.assignee_username)
                     if slack_user_id:
                         success = await notifier.send_reminder_dm(
                             ticket, slack_user_id, "closure", open_followups=open_followups

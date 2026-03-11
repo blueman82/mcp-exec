@@ -112,7 +112,9 @@ class CSOPMJIRAPoller(CSOPMJIRAPollerProtocol):
 
             # Extract status name
             status_obj = fields.get("status", {})
-            status = status_obj.get("name", "Unknown") if isinstance(status_obj, dict) else "Unknown"
+            status = (
+                status_obj.get("name", "Unknown") if isinstance(status_obj, dict) else "Unknown"
+            )
 
             # Extract assignee username
             assignee_obj = fields.get("assignee", {})

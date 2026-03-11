@@ -189,9 +189,7 @@ class AgentEngine:
 
 # Valid JIRA project prefixes used across Ketchup
 _JIRA_PREFIXES = "CPGNREQ|CPGNTT|NEO|PLATIR|CSOPM|CPGNCX|AMSE|CPGNPROV"
-_JIRA_TICKET_RE = re.compile(
-    rf"(?<!\|)(?<!browse/)(?<!/)\b((?:{_JIRA_PREFIXES})-\d+)\b(?![^<]*>)"
-)
+_JIRA_TICKET_RE = re.compile(rf"(?<!\|)(?<!browse/)(?<!/)\b((?:{_JIRA_PREFIXES})-\d+)\b(?![^<]*>)")
 _JIRA_BASE_URL = "https://jira.corp.adobe.com/browse"
 
 

@@ -172,10 +172,12 @@ class CSOPMTicketStatusPoller(CSOPMTicketStatusPollerProtocol):
                         record.assignee_slack_id,
                         record.notification_status,
                     )
-                    self._corrupted_records.append({
-                        "slack_id": record.assignee_slack_id,
-                        "notification_status": record.notification_status,
-                    })
+                    self._corrupted_records.append(
+                        {
+                            "slack_id": record.assignee_slack_id,
+                            "notification_status": record.notification_status,
+                        }
+                    )
                     continue
 
                 main_ticket_keys.append(record.ticket_key)
