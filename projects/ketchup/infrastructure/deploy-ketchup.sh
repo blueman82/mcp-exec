@@ -155,13 +155,13 @@ map_instance_ids_to_servers() {
 }
 
 # ========== ENV FILE SYNC (PER-SERVER) ==========
-# Sync env files (common.env, performance.env) to production servers.
+# Sync env files to production servers.
 # These files are referenced by docker-compose.yml via env_file: directive.
 sync_env_files_if_changed() {
     local server=$1
     log_section "Env Files Sync ($server)"
 
-    local env_files=("common.env" "performance.env")
+    local env_files=("common.env" "performance.env" "features.env" "azure.env" "agent.env" "csopm.env")
 
     for env_file in "${env_files[@]}"; do
         local local_file="infrastructure/${env_file}"
