@@ -10,7 +10,6 @@ Requires:
     - Network access to Azure OpenAI endpoint
 """
 
-import json
 import os
 import re
 import sys
@@ -93,10 +92,11 @@ async def _call_agent(api_key: str, question: str) -> str:
 # Structural validators
 # ---------------------------------------------------------------------------
 
+
 def _count_words(text: str) -> int:
     """Approximate word count (strips mrkdwn syntax)."""
     clean = re.sub(r"<[^>]+>", "LINK", text)  # collapse links
-    clean = re.sub(r"[`*_~>•]", "", clean)     # strip mrkdwn chars
+    clean = re.sub(r"[`*_~>•]", "", clean)  # strip mrkdwn chars
     return len(clean.split())
 
 
@@ -105,16 +105,16 @@ def assert_no_markdown_headers(text: str):
     lines = text.strip().split("\n")
     for line in lines:
         stripped = line.strip()
-        assert not re.match(r"^#{1,6}\s", stripped), (
-            f"Response contains a Markdown header (Slack won't render this): '{stripped}'"
-        )
+        assert not re.match(
+            r"^#{1,6}\s", stripped
+        ), f"Response contains a Markdown header (Slack won't render this): '{stripped}'"
 
 
 def assert_no_double_asterisks(text: str):
     """Agent must use *bold* not **bold**."""
-    assert "**" not in text, (
-        "Response uses **double asterisks** — Slack mrkdwn uses single *asterisks* for bold"
-    )
+    assert (
+        "**" not in text
+    ), "Response uses **double asterisks** — Slack mrkdwn uses single *asterisks* for bold"
 
 
 def assert_uses_bullet_character(text: str):
@@ -127,17 +127,15 @@ def assert_uses_bullet_character(text: str):
             # Allow "---" dividers
             if stripped.startswith("---"):
                 continue
-            pytest.fail(
-                f"Response uses '- ' dash bullets instead of '•': '{stripped}'"
-            )
+            pytest.fail(f"Response uses '- ' dash bullets instead of '•': '{stripped}'")
 
 
 def assert_has_bold_first_line(text: str):
     """First line should contain *bold* text (the direct answer)."""
     first_line = text.strip().split("\n")[0]
-    assert re.search(r"\*[^*]+\*", first_line), (
-        f"First line lacks *bold* direct answer: '{first_line}'"
-    )
+    assert re.search(
+        r"\*[^*]+\*", first_line
+    ), f"First line lacks *bold* direct answer: '{first_line}'"
 
 
 def assert_has_bullets(text: str):
@@ -152,9 +150,7 @@ def assert_jira_tickets_are_links(text: str):
         r"(?<!\|)(?<!browse/)\b(CPGNCX|CPGNREQ|CPGNTT|NEO|PLATIR|CSOPM|AMSE|CPGNPROV)-\d+\b(?![^<]*>)",
         text,
     )
-    assert not bare_tickets, (
-        f"JIRA tickets not formatted as clickable links: {bare_tickets}"
-    )
+    assert not bare_tickets, f"JIRA tickets not formatted as clickable links: {bare_tickets}"
 
 
 def assert_user_mentions_preserved(text: str):
@@ -165,14 +161,13 @@ def assert_user_mentions_preserved(text: str):
 def assert_word_count_under(text: str, limit: int):
     """Response should be under the word limit."""
     count = _count_words(text)
-    assert count <= limit, (
-        f"Response is {count} words — exceeds {limit}-word target"
-    )
+    assert count <= limit, f"Response is {count} words — exceeds {limit}-word target"
 
 
 # ---------------------------------------------------------------------------
 # Test cases — one per question type
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 @pytest.mark.integration
@@ -267,9 +262,17 @@ async def test_insufficient_context_structure(api_key):
 
     # Should indicate it doesn't have the answer
     limitation_signals = [
-        "don't have", "no mention", "not found", "no messages",
-        "doesn't appear", "isn't mentioned", "not discussed",
-        "cannot find", "no context", "don't see", "not in",
+        "don't have",
+        "no mention",
+        "not found",
+        "no messages",
+        "doesn't appear",
+        "isn't mentioned",
+        "not discussed",
+        "cannot find",
+        "no context",
+        "don't see",
+        "not in",
     ]
     text_lower = response.lower()
     has_limitation = any(signal in text_lower for signal in limitation_signals)
@@ -288,6 +291,6 @@ async def test_no_question_parrot(api_key):
 
     # First line shouldn't be the question repeated
     first_line = response.strip().split("\n")[0].lower()
-    assert "who identified the root cause" not in first_line, (
-        "Agent repeated the user's question in the first line"
-    )
+    assert (
+        "who identified the root cause" not in first_line
+    ), "Agent repeated the user's question in the first line"

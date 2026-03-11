@@ -16,9 +16,7 @@ class TestAutoStatusPrompts:
         prompt = get_auto_status_system_prompt()
 
         assert isinstance(prompt, str)
-        assert (
-            "AI specialist in generating ultra-concise channel status reports" in prompt
-        )
+        assert "AI specialist in generating ultra-concise channel status reports" in prompt
         assert "EXACTLY 4 bullets" in prompt
         assert "traceable to provided JIRA or Slack content" in prompt
 

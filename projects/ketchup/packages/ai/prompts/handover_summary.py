@@ -7,7 +7,6 @@ Assembled as: COMMON_GUIDELINES_PROMPT (formatting, JIRA links, query filtering)
 from packages.ai.prompts.common_guidelines import COMMON_GUIDELINES_PROMPT
 from packages.core.config.feature_flags import FeatureFlags
 
-
 _HANDOVER_CORE_PROMPT = r"""
 <role>
 You are an AI assistant specialized in generating ultra-compact incident summaries for on-call shift handover.

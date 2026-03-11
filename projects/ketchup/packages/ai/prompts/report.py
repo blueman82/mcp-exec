@@ -66,7 +66,9 @@ def get_report_prompt(
     # Add time window context
     time_window_note = ""
     if "last" in time_window or "past" in time_window:
-        time_window_note = f"\n• Prioritise events from the {time_window.replace('_', ' ')} where relevant"
+        time_window_note = (
+            f"\n• Prioritise events from the {time_window.replace('_', ' ')} where relevant"
+        )
     elif "complete" in time_window:
         time_window_note = "\n• Include all relevant information from the entire channel history"
     else:

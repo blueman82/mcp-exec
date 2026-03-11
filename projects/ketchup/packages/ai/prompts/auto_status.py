@@ -115,7 +115,9 @@ Product: {channel_info.get('product', 'Unknown')}
 
     # Add JSON schema instruction when feature flag enabled
     if FeatureFlags.is_structured_json_output_enabled():
-        prompt += "\n<json_output>\nIMPORTANT: Return your response as JSON with this exact structure:\n"
+        prompt += (
+            "\n<json_output>\nIMPORTANT: Return your response as JSON with this exact structure:\n"
+        )
         prompt += '{"response_text": "your complete formatted response here using Slack mrkdwn"}\n'
         prompt += "</json_output>\n"
 

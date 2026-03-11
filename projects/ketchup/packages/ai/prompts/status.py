@@ -59,7 +59,9 @@ def get_status_prompt(user_prefs: Optional[Dict[str, Any]] = None) -> str:
     # Add technical section only for detailed reports
     technical_section = ""
     if detail_level == "detailed":
-        technical_section = "\n• *Technical Details:* Configuration, error logs, and system metrics if available"
+        technical_section = (
+            "\n• *Technical Details:* Configuration, error logs, and system metrics if available"
+        )
 
     # Product focus guidance
     if "all_products" in product_focus:
