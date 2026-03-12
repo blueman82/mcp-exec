@@ -47,6 +47,7 @@ env/
 .claude/*
 !.claude/skills/
 !.claude/commands/
+projects/asksplunk/.claude/
 
 # Node
 node_modules/
