@@ -236,7 +236,7 @@ function sanitizeJsDoc(text: string): string {
  * Zero overhead on correct access (prop in target short-circuits).
  * Arrays are also wrapped so index access returns guarded items.
  */
-function generateFieldGuard(): string {
+export function generateFieldGuard(): string {
   return `
 function __guardFields(obj, label) {
   if (!obj || typeof obj !== 'object') return obj;
@@ -579,9 +579,6 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   lines.push(` * Access tools via: ${namespaceName}.methodName()`);
   lines.push(' */');
   lines.push('');
-
-  // Inject field guard helper for undefined-field warnings on responses
-  lines.push(generateFieldGuard());
 
   // Generate all interfaces first
   for (const tool of tools) {

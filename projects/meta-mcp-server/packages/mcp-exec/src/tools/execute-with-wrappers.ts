@@ -4,7 +4,7 @@
  */
 import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
 import { listServers } from '@justanothermldude/meta-mcp-core';
-import { generateServerModule, generateMcpDictionaryFromMap } from '../codegen/index.js';
+import { generateServerModule, generateMcpDictionaryFromMap, generateFieldGuard } from '../codegen/index.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
@@ -418,7 +418,7 @@ export function createExecuteWithWrappersHandler(
 
       // Step 4: Compose full code with wrappers + MCP dictionary + user code
       // Note: executor.ts prepends its own globalThis.mcp callTool preamble using actualPort
-      const generatedWrappers = wrapperModules.join('\n\n');
+      const generatedWrappers = generateFieldGuard() + '\n\n' + wrapperModules.join('\n\n');
       const mcpDictionary = generateMcpDictionaryFromMap(wrappers, uniqueNameMap);
       const instrumentedCode = wrapUserCodeForReturnCapture(code);
       const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${instrumentedCode}`;

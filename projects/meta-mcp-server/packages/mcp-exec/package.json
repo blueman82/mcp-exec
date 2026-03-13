@@ -1,6 +1,6 @@
 {
   "name": "@justanothermldude/mcp-exec",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "MCP execution utilities for sandboxed code execution with OS-level isolation",
   "type": "module",
   "main": "dist/index.js",
