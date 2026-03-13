@@ -64,14 +64,17 @@ export function createMcpExecServer(pool: ServerPool, config: McpExecServerConfi
   // Create the execute_code_with_wrappers handler with the pool
   const { handler: executeWithWrappersHandler, stopActiveBridge } = createExecuteWithWrappersHandler(pool, config.handlerConfig);
 
-  // Register all tools
-  const tools: Tool[] = [
+  // Static tools (never change)
+  const staticTools: Tool[] = [
     listAvailableMcpServersTool as Tool,
     getMcpToolSchemaTool as Tool,
-    createExecuteCodeWithWrappersToolDefinition() as Tool,
   ];
 
-  const listToolsHandler = async () => ({ tools });
+  // Rebuild execute_code_with_wrappers definition on each request
+  // so it includes the latest disk-cached tool catalog
+  const listToolsHandler = async () => ({
+    tools: [...staticTools, createExecuteCodeWithWrappersToolDefinition() as Tool],
+  });
 
   const callToolRequestHandler = async (
     params: CallToolParams

@@ -4,10 +4,11 @@
  */
 import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
 import { listServers } from '@justanothermldude/meta-mcp-core';
-import { generateServerModule, generateMcpDictionaryFromMap } from '../codegen/index.js';
+import { generateServerModule, generateMcpDictionaryFromMap, generateFieldGuard, sanitizeIdentifier } from '../codegen/index.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
+import { updateCatalogForServer, buildCatalogString } from './tool-catalog.js';
 
 /**
  * CallToolResult content item
@@ -36,36 +37,6 @@ export interface ExecuteWithWrappersInput {
   /** Execution timeout in milliseconds (default: 30000) */
   timeout_ms?: number;
 }
-
-/**
- * MCP Tool definition for execute_code_with_wrappers (static fallback)
- */
-export const executeCodeWithWrappersTool = {
-  name: 'execute_code_with_wrappers',
-  description:
-    'Execute TypeScript/JavaScript code with auto-generated typed wrappers for specified MCP servers. ' +
-    'Provides a typed API like github.createIssue({ title: "..." }) instead of raw mcp.callTool(). ' +
-    'Multi-line code is supported - format naturally for readability.',
-  inputSchema: {
-    type: 'object' as const,
-    properties: {
-      code: {
-        type: 'string',
-        description: 'The TypeScript/JavaScript code to execute. Multi-line supported - format for readability.',
-      },
-      wrappers: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Array of MCP server names to generate typed wrappers for',
-      },
-      timeout_ms: {
-        type: 'number',
-        description: `Maximum execution time in milliseconds (default: ${DEFAULT_TIMEOUT_MS})`,
-      },
-    },
-    required: ['code', 'wrappers'],
-  },
-};
 
 /**
  * Build dynamic server list string for tool description
@@ -108,14 +79,18 @@ export function createExecuteCodeWithWrappersToolDefinition() {
 
   const serverList = buildServerListString();
 
+  const catalogNote = buildCatalogString();
+
   const environmentNote =
     '\n\nExecution environment: Node.js (not browser). Top-level await is supported.\n' +
-    '- Use ES modules syntax (import/export NOT supported — modules are pre-injected as namespace vars)\n' +
-    '- DO NOT use require(), __dirname, __filename, or browser APIs (window, document, localStorage)\n' +
-    '- Available globals: fetch (Node 18+), console, process, Buffer, setTimeout, clearTimeout\n' +
-    '- Server namespaces are pre-injected: use serverName.toolName(args) directly\n' +
-    '- mcp is the server dictionary: mcp["server-name"].toolName(args) for dynamic lookup\n' +
-    '- Low-level fallback (avoid if typed wrapper exists): globalThis.mcp.callTool(serverName, toolName, args)';
+    '- Server namespaces are pre-injected: use serverName.toolName({params}) directly\n' +
+    '- mcp is the server dictionary: mcp["server-name"].toolName({params}) for dynamic lookup\n' +
+    '- DO NOT use mcp__server__tool() syntax — that is the MCP protocol layer, not the sandbox API\n' +
+    '- DO NOT guess tool or parameter names — use ONLY exact names from the API reference below\n' +
+    '- Available globals: fetch, console, process, Buffer, setTimeout, clearTimeout\n' +
+    '- import/export NOT supported — modules are pre-injected as namespace variables\n' +
+    '- DO NOT use require(), __dirname, __filename, or browser APIs' +
+    catalogNote;
 
   return {
     name: 'execute_code_with_wrappers',
@@ -150,18 +125,6 @@ export interface ExecuteWithWrappersHandlerConfig {
   sandboxConfig?: SandboxExecutorConfig;
   /** Configuration for the MCP bridge */
   bridgeConfig?: MCPBridgeConfig;
-}
-
-/**
- * Sanitize identifier: replace non-alphanumeric chars with underscore,
- * ensure starts with letter. Matches logic in wrapper-generator.ts.
- */
-function sanitizeIdentifier(name: string): string {
-  let s = name.replace(/[^a-zA-Z0-9_]/g, '_');
-  if (/^[0-9]/.test(s)) {
-    s = '_' + s;
-  }
-  return s;
 }
 
 /**
@@ -383,6 +346,9 @@ export function createExecuteWithWrappersHandler(
             );
           });
 
+          // Cache tools to disk for catalog embedding in tool description
+          updateCatalogForServer(serverName, tools);
+
           // Get the collision-aware variable name for this server
           const uniqueName = uniqueNameMap.get(serverName) ?? sanitizeIdentifier(serverName);
 
@@ -410,7 +376,7 @@ export function createExecuteWithWrappersHandler(
 
       // Step 4: Compose full code with wrappers + MCP dictionary + user code
       // Note: executor.ts prepends its own globalThis.mcp callTool preamble using actualPort
-      const generatedWrappers = wrapperModules.join('\n\n');
+      const generatedWrappers = generateFieldGuard() + '\n\n' + wrapperModules.join('\n\n');
       const mcpDictionary = generateMcpDictionaryFromMap(wrappers, uniqueNameMap);
       const instrumentedCode = wrapUserCodeForReturnCapture(code);
       const fullCode = `${generatedWrappers}\n\n${mcpDictionary}\n\n${instrumentedCode}`;

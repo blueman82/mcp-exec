@@ -4,6 +4,7 @@
  */
 
 import type { ToolDefinition } from '@justanothermldude/meta-mcp-core';
+import { formatToolSignature } from '../tools/tool-catalog.js';
 
 /**
  * Bridge endpoint URL for tool calls
@@ -236,7 +237,7 @@ function sanitizeJsDoc(text: string): string {
  * Zero overhead on correct access (prop in target short-circuits).
  * Arrays are also wrapped so index access returns guarded items.
  */
-function generateFieldGuard(): string {
+export function generateFieldGuard(): string {
   return `
 function __guardFields(obj, label) {
   if (!obj || typeof obj !== 'object') return obj;
@@ -289,8 +290,7 @@ function escapeForTemplateLiteral(s: string): string {
 /**
  * Sanitize tool name to valid TypeScript identifier
  */
-function sanitizeIdentifier(name: string): string {
-  // Replace non-alphanumeric chars with underscore, ensure starts with letter
+export function sanitizeIdentifier(name: string): string {
   let sanitized = name.replace(/[^a-zA-Z0-9_]/g, '_');
   if (/^[0-9]/.test(sanitized)) {
     sanitized = '_' + sanitized;
@@ -319,8 +319,9 @@ export function normalizeName(name: string): string {
  * @param contextName - Context name for error messages (e.g., server name)
  * @returns String containing Proxy code to be injected into generated wrapper
  */
-export function generateFuzzyProxy(targetVarName: string, contextName: string): string {
+export function generateFuzzyProxy(targetVarName: string, contextName: string, helpString?: string): string {
   const safeContextName = escapeForTemplateLiteral(JSON.stringify(contextName));
+  const safeHelp = helpString ? escapeForTemplateLiteral(helpString) : '';
   return `new Proxy(${targetVarName}, {
   get(target, prop) {
     if (typeof prop !== 'string') return undefined;
@@ -340,9 +341,9 @@ export function generateFuzzyProxy(targetVarName: string, contextName: string): 
       }
     }
 
-    // No match found - throw helpful error
+    // No match found - throw helpful error with parameter signatures
     const available = Object.keys(target).join(', ');
-    throw new TypeError(\`Property "\${prop}" not found on ${safeContextName}. Available: \${available}\`);
+    throw new TypeError(\`Property "\${prop}" not found on ${safeContextName}. Available: \${available}${safeHelp ? '\\nAPI: ' + safeHelp : ''}\`);
   }
 })`;
 }
@@ -439,6 +440,21 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   const safeToolName = JSON.stringify(tool.name);
 
   lines.push(`  ${methodName}: async (${inputParam}): Promise<unknown> => {`);
+
+  // Runtime required-param validation
+  if (hasInput && requiredParams.length > 0) {
+    const paramList = JSON.stringify(requiredParams);
+    const schemaStr = escapeForTemplateLiteral(
+      '{' + requiredParams.join(', ') + (optionalParams.length > 0 ? ', ' + optionalParams.map(p => p + '?').join(', ') : '') + '}'
+    );
+    lines.push(`    for (const __p of ${paramList}) {`);
+    lines.push(`      if (!input || !(__p in input)) {`);
+    lines.push(`        const __got = input ? Object.keys(input).join(', ') : 'none';`);
+    lines.push(`        throw new Error(\`[${escapeForTemplateLiteral(safeServerName)}.${escapeForTemplateLiteral(safeToolName)}] Missing required parameter "\${__p}". Got: \${__got}. Expected: ${schemaStr}\`);`);
+    lines.push(`      }`);
+    lines.push(`    }`);
+  }
+
   lines.push(`    const response = await fetch('http://127.0.0.1:${bridgePort}/call', {`);
   lines.push(`      method: 'POST',`);
   lines.push(`      headers: { 'Content-Type': 'application/json' },`);
@@ -564,9 +580,6 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   lines.push(' */');
   lines.push('');
 
-  // Inject field guard helper for undefined-field warnings on responses
-  lines.push(generateFieldGuard());
-
   // Generate all interfaces first
   for (const tool of tools) {
     const rootDefs = (tool.inputSchema as any)?.definitions ?? (tool.inputSchema as any)?.$defs;
@@ -589,8 +602,11 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   lines.push('};');
   lines.push('');
 
+  // Compact API help string for FuzzyProxy error messages
+  const helpString = tools.map(formatToolSignature).join(', ');
+
   // Wrap with fuzzy Proxy for case-agnostic access
-  lines.push(`const ${namespaceName} = ${generateFuzzyProxy(`${namespaceName}_raw`, serverName)};`);
+  lines.push(`const ${namespaceName} = ${generateFuzzyProxy(`${namespaceName}_raw`, serverName, helpString)};`);
   lines.push('');
 
   return lines.join('\n');
