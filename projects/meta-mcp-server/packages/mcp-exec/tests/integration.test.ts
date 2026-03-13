@@ -184,12 +184,12 @@ describe('mcp-exec Integration Tests', () => {
     });
 
     it('should create handler function', () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       expect(typeof handler).toBe('function');
     });
 
     it('should return error for missing code', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({ code: '', wrappers: ['test'] });
 
       expect(result.isError).toBe(true);
@@ -198,7 +198,7 @@ describe('mcp-exec Integration Tests', () => {
     });
 
     it('should return error for empty wrappers', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({ code: 'console.log(1)', wrappers: [] });
 
       expect(result.isError).toBe(true);
@@ -206,7 +206,7 @@ describe('mcp-exec Integration Tests', () => {
     });
 
     it('should return error for invalid timeout', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({ code: 'console.log(1)', wrappers: ['test'], timeout_ms: -1 });
 
       expect(result.isError).toBe(true);

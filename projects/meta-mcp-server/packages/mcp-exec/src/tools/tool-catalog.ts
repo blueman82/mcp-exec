@@ -10,6 +10,13 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 
+/** Minimal tool shape used for signature formatting */
+export interface ToolLike {
+  name: string;
+  description?: string;
+  inputSchema?: { required?: string[]; properties?: Record<string, unknown> };
+}
+
 interface CatalogEntry {
   name: string;
   required: string[];
@@ -25,9 +32,20 @@ interface ToolCatalog {
 const CATALOG_PATH = join(homedir(), '.meta-mcp', 'tool-catalog.json');
 
 /**
+ * Format a single tool as a compact signature: toolName({required, optional?})
+ * Single source of truth — used by catalog, FuzzyProxy help, and wrapper-generator.
+ */
+export function formatToolSignature(t: ToolLike): string {
+  const allProps = Object.keys(t.inputSchema?.properties ?? {});
+  const req = t.inputSchema?.required ?? [];
+  const params = [...req, ...allProps.filter(k => !req.includes(k)).map(p => p + '?')];
+  return `${t.name}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
+}
+
+/**
  * Load catalog from disk. Returns empty catalog if file doesn't exist or is corrupt.
  */
-export function loadCatalog(): ToolCatalog {
+function loadCatalog(): ToolCatalog {
   try {
     const data = readFileSync(CATALOG_PATH, 'utf-8');
     return JSON.parse(data);
@@ -52,10 +70,7 @@ function saveCatalog(catalog: ToolCatalog): void {
  * Update the catalog for a single server after tool discovery.
  * Called as a side-effect of execute_code_with_wrappers.
  */
-export function updateCatalogForServer(
-  serverName: string,
-  tools: { name: string; description?: string; inputSchema?: { required?: string[]; properties?: Record<string, unknown> } }[]
-): void {
+export function updateCatalogForServer(serverName: string, tools: ToolLike[]): void {
   const catalog = loadCatalog();
   catalog.servers[serverName] = tools.map(t => {
     const allProps = Object.keys(t.inputSchema?.properties ?? {});
@@ -87,10 +102,7 @@ export function buildCatalogString(): string {
   ];
   for (const [server, tools] of servers) {
     const toolStrs = tools.map(t => {
-      const params: string[] = [
-        ...t.required,
-        ...t.optional.map(p => p + '?'),
-      ];
+      const params = [...t.required, ...t.optional.map(p => p + '?')];
       return `${t.name}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
     });
     lines.push(`  ${server}: ${toolStrs.join(', ')}`);
@@ -100,22 +112,4 @@ export function buildCatalogString(): string {
   lines.push('Inside this sandbox, use serverName.toolName({params}) or mcp["server-name"].toolName({params}).');
   lines.push('Do NOT use mcp__server__tool() syntax — that is the protocol layer, not the sandbox API.');
   return lines.join('\n');
-}
-
-/**
- * Build a help string for a specific server's tools (for FuzzyProxy error messages).
- * Includes parameter signatures so the LLM knows how to fix a wrong tool name.
- */
-export function buildServerHelpString(
-  tools: { name: string; inputSchema?: { required?: string[]; properties?: Record<string, unknown> } }[]
-): string {
-  return tools.map(t => {
-    const allProps = Object.keys(t.inputSchema?.properties ?? {});
-    const req = t.inputSchema?.required ?? [];
-    const params = [
-      ...req,
-      ...allProps.filter(k => !req.includes(k)).map(p => p + '?'),
-    ];
-    return `${t.name}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
-  }).join(', ');
 }

@@ -4,7 +4,7 @@
  */
 import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
 import { listServers } from '@justanothermldude/meta-mcp-core';
-import { generateServerModule, generateMcpDictionaryFromMap, generateFieldGuard } from '../codegen/index.js';
+import { generateServerModule, generateMcpDictionaryFromMap, generateFieldGuard, sanitizeIdentifier } from '../codegen/index.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
@@ -37,36 +37,6 @@ export interface ExecuteWithWrappersInput {
   /** Execution timeout in milliseconds (default: 30000) */
   timeout_ms?: number;
 }
-
-/**
- * MCP Tool definition for execute_code_with_wrappers (static fallback)
- */
-export const executeCodeWithWrappersTool = {
-  name: 'execute_code_with_wrappers',
-  description:
-    'Execute TypeScript/JavaScript code with auto-generated typed wrappers for specified MCP servers. ' +
-    'Provides a typed API like github.createIssue({ title: "..." }) instead of raw mcp.callTool(). ' +
-    'Multi-line code is supported - format naturally for readability.',
-  inputSchema: {
-    type: 'object' as const,
-    properties: {
-      code: {
-        type: 'string',
-        description: 'The TypeScript/JavaScript code to execute. Multi-line supported - format for readability.',
-      },
-      wrappers: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Array of MCP server names to generate typed wrappers for',
-      },
-      timeout_ms: {
-        type: 'number',
-        description: `Maximum execution time in milliseconds (default: ${DEFAULT_TIMEOUT_MS})`,
-      },
-    },
-    required: ['code', 'wrappers'],
-  },
-};
 
 /**
  * Build dynamic server list string for tool description
@@ -155,18 +125,6 @@ export interface ExecuteWithWrappersHandlerConfig {
   sandboxConfig?: SandboxExecutorConfig;
   /** Configuration for the MCP bridge */
   bridgeConfig?: MCPBridgeConfig;
-}
-
-/**
- * Sanitize identifier: replace non-alphanumeric chars with underscore,
- * ensure starts with letter. Matches logic in wrapper-generator.ts.
- */
-function sanitizeIdentifier(name: string): string {
-  let s = name.replace(/[^a-zA-Z0-9_]/g, '_');
-  if (/^[0-9]/.test(s)) {
-    s = '_' + s;
-  }
-  return s;
 }
 
 /**

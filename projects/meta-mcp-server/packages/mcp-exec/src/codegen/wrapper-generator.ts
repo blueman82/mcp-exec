@@ -4,6 +4,7 @@
  */
 
 import type { ToolDefinition } from '@justanothermldude/meta-mcp-core';
+import { formatToolSignature } from '../tools/tool-catalog.js';
 
 /**
  * Bridge endpoint URL for tool calls
@@ -289,8 +290,7 @@ function escapeForTemplateLiteral(s: string): string {
 /**
  * Sanitize tool name to valid TypeScript identifier
  */
-function sanitizeIdentifier(name: string): string {
-  // Replace non-alphanumeric chars with underscore, ensure starts with letter
+export function sanitizeIdentifier(name: string): string {
   let sanitized = name.replace(/[^a-zA-Z0-9_]/g, '_');
   if (/^[0-9]/.test(sanitized)) {
     sanitized = '_' + sanitized;
@@ -602,14 +602,8 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   lines.push('};');
   lines.push('');
 
-  // Compute compact API help string for error messages
-  const helpParts = tools.map(t => {
-    const allProps = Object.keys(t.inputSchema?.properties ?? {});
-    const req = t.inputSchema?.required ?? [];
-    const params = [...req, ...allProps.filter(k => !req.includes(k)).map(p => p + '?')];
-    return `${sanitizeIdentifier(t.name)}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
-  });
-  const helpString = helpParts.join(', ');
+  // Compact API help string for FuzzyProxy error messages
+  const helpString = tools.map(formatToolSignature).join(', ');
 
   // Wrap with fuzzy Proxy for case-agnostic access
   lines.push(`const ${namespaceName} = ${generateFuzzyProxy(`${namespaceName}_raw`, serverName, helpString)};`);

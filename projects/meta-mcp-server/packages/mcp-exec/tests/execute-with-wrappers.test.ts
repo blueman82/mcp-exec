@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
-  executeCodeWithWrappersTool,
+  createExecuteCodeWithWrappersToolDefinition,
   isExecuteWithWrappersInput,
   createExecuteWithWrappersHandler,
   type ExecuteWithWrappersInput,
@@ -80,46 +80,48 @@ function createSampleTools(): ToolDefinition[] {
   ];
 }
 
-describe('executeCodeWithWrappersTool definition', () => {
+describe('createExecuteCodeWithWrappersToolDefinition', () => {
+  const tool = createExecuteCodeWithWrappersToolDefinition();
+
   it('should have correct tool name', () => {
-    expect(executeCodeWithWrappersTool.name).toBe('execute_code_with_wrappers');
+    expect(tool.name).toBe('execute_code_with_wrappers');
   });
 
   it('should have descriptive description', () => {
-    expect(executeCodeWithWrappersTool.description).toContain('Execute TypeScript/JavaScript code');
-    expect(executeCodeWithWrappersTool.description).toContain('auto-generated typed wrappers');
+    expect(tool.description).toContain('Execute TypeScript/JavaScript code');
+    expect(tool.description).toContain('auto-generated typed wrappers');
   });
 
   it('should have correct inputSchema structure', () => {
-    expect(executeCodeWithWrappersTool.inputSchema).toBeDefined();
-    expect(executeCodeWithWrappersTool.inputSchema.type).toBe('object');
-    expect(executeCodeWithWrappersTool.inputSchema.properties).toBeDefined();
+    expect(tool.inputSchema).toBeDefined();
+    expect(tool.inputSchema.type).toBe('object');
+    expect(tool.inputSchema.properties).toBeDefined();
   });
 
   it('should have required fields: code and wrappers', () => {
-    expect(executeCodeWithWrappersTool.inputSchema.required).toContain('code');
-    expect(executeCodeWithWrappersTool.inputSchema.required).toContain('wrappers');
+    expect(tool.inputSchema.required).toContain('code');
+    expect(tool.inputSchema.required).toContain('wrappers');
   });
 
   it('should have code property as string type', () => {
-    const codeProperty = executeCodeWithWrappersTool.inputSchema.properties.code;
+    const codeProperty = tool.inputSchema.properties.code;
     expect(codeProperty).toBeDefined();
     expect(codeProperty.type).toBe('string');
     expect(codeProperty.description).toBeDefined();
   });
 
   it('should have wrappers property as array type', () => {
-    const wrappersProperty = executeCodeWithWrappersTool.inputSchema.properties.wrappers;
+    const wrappersProperty = tool.inputSchema.properties.wrappers;
     expect(wrappersProperty).toBeDefined();
     expect(wrappersProperty.type).toBe('array');
     expect(wrappersProperty.items).toEqual({ type: 'string' });
   });
 
   it('should have optional timeout_ms property as number type', () => {
-    const timeoutProperty = executeCodeWithWrappersTool.inputSchema.properties.timeout_ms;
+    const timeoutProperty = tool.inputSchema.properties.timeout_ms;
     expect(timeoutProperty).toBeDefined();
     expect(timeoutProperty.type).toBe('number');
-    expect(executeCodeWithWrappersTool.inputSchema.required).not.toContain('timeout_ms');
+    expect(tool.inputSchema.required).not.toContain('timeout_ms');
   });
 });
 
@@ -360,13 +362,13 @@ describe('createExecuteWithWrappersHandler', () => {
   });
 
   it('should create a handler function', () => {
-    const handler = createExecuteWithWrappersHandler(mockPool);
+    const { handler } = createExecuteWithWrappersHandler(mockPool);
     expect(typeof handler).toBe('function');
   });
 
   describe('input validation', () => {
     it('should return error for missing code', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({ code: '', wrappers: ['test'] } as ExecuteWithWrappersInput);
 
       expect(result.isError).toBe(true);
@@ -374,7 +376,7 @@ describe('createExecuteWithWrappersHandler', () => {
     });
 
     it('should return error for missing wrappers', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({ code: 'console.log(1)', wrappers: null } as unknown as ExecuteWithWrappersInput);
 
       expect(result.isError).toBe(true);
@@ -382,7 +384,7 @@ describe('createExecuteWithWrappersHandler', () => {
     });
 
     it('should return error for empty wrappers array', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({ code: 'console.log(1)', wrappers: [] });
 
       expect(result.isError).toBe(true);
@@ -390,7 +392,7 @@ describe('createExecuteWithWrappersHandler', () => {
     });
 
     it('should return error for invalid timeout_ms', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({
         code: 'console.log(1)',
         wrappers: ['test'],
@@ -402,7 +404,7 @@ describe('createExecuteWithWrappersHandler', () => {
     });
 
     it('should return error for zero timeout_ms', async () => {
-      const handler = createExecuteWithWrappersHandler(mockPool);
+      const { handler } = createExecuteWithWrappersHandler(mockPool);
       const result = await handler({
         code: 'console.log(1)',
         wrappers: ['test'],
@@ -420,7 +422,7 @@ describe('createExecuteWithWrappersHandler', () => {
         getConnection: vi.fn().mockRejectedValue(new Error('Server not found: unknown-server')),
       });
 
-      const handler = createExecuteWithWrappersHandler(errorPool);
+      const { handler } = createExecuteWithWrappersHandler(errorPool);
       const result = await handler({
         code: 'console.log(1)',
         wrappers: ['unknown-server'],
@@ -435,7 +437,7 @@ describe('createExecuteWithWrappersHandler', () => {
         getConnection: vi.fn().mockRejectedValue(new Error('Connection timeout')),
       });
 
-      const handler = createExecuteWithWrappersHandler(timeoutPool);
+      const { handler } = createExecuteWithWrappersHandler(timeoutPool);
       const result = await handler({
         code: 'console.log(1)',
         wrappers: ['slow-server'],
@@ -469,7 +471,7 @@ describe('createExecuteWithWrappersHandler', () => {
         getConnection: vi.fn().mockResolvedValue(mockConnection),
       });
 
-      const handler = createExecuteWithWrappersHandler(pool);
+      const { handler } = createExecuteWithWrappersHandler(pool);
 
       // The handler will fail at execution stage (no real sandbox), but we can verify
       // that getConnection and getTools were called
@@ -503,7 +505,7 @@ describe('createExecuteWithWrappersHandler', () => {
         getConnection: vi.fn().mockResolvedValue(mockConnection),
       });
 
-      const handler = createExecuteWithWrappersHandler(pool);
+      const { handler } = createExecuteWithWrappersHandler(pool);
       const result = await handler({
         code: 'console.log("test")',
         wrappers: ['failing-server'],
@@ -536,7 +538,7 @@ describe('createExecuteWithWrappersHandler', () => {
         getConnection: vi.fn().mockResolvedValue(mockConnection),
       });
 
-      const handler = createExecuteWithWrappersHandler(pool);
+      const { handler } = createExecuteWithWrappersHandler(pool);
 
       try {
         await handler({
@@ -781,7 +783,7 @@ describe('generateServerModule Proxy wrapping', () => {
     const module = generateServerModule(tools, 'github');
     // Verify Proxy handler structure
     expect(module).toContain('get(target, prop)');
-    expect(module).toContain('if (prop in target)');
+    expect(module).toContain('hasOwnProperty.call(target, prop)');
     expect(module).toContain('normalizedProp');
     expect(module).toContain('normalizedKey');
   });
