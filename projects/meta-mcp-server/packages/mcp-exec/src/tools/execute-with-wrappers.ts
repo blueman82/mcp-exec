@@ -8,6 +8,7 @@ import { generateServerModule, generateMcpDictionaryFromMap } from '../codegen/i
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';
 import { DEFAULT_TIMEOUT_MS, type ExecutionResult } from '../types/execution.js';
+import { updateCatalogForServer, buildCatalogString } from './tool-catalog.js';
 
 /**
  * CallToolResult content item
@@ -108,14 +109,18 @@ export function createExecuteCodeWithWrappersToolDefinition() {
 
   const serverList = buildServerListString();
 
+  const catalogNote = buildCatalogString();
+
   const environmentNote =
     '\n\nExecution environment: Node.js (not browser). Top-level await is supported.\n' +
-    '- Use ES modules syntax (import/export NOT supported — modules are pre-injected as namespace vars)\n' +
-    '- DO NOT use require(), __dirname, __filename, or browser APIs (window, document, localStorage)\n' +
-    '- Available globals: fetch (Node 18+), console, process, Buffer, setTimeout, clearTimeout\n' +
-    '- Server namespaces are pre-injected: use serverName.toolName(args) directly\n' +
-    '- mcp is the server dictionary: mcp["server-name"].toolName(args) for dynamic lookup\n' +
-    '- Low-level fallback (avoid if typed wrapper exists): globalThis.mcp.callTool(serverName, toolName, args)';
+    '- Server namespaces are pre-injected: use serverName.toolName({params}) directly\n' +
+    '- mcp is the server dictionary: mcp["server-name"].toolName({params}) for dynamic lookup\n' +
+    '- DO NOT use mcp__server__tool() syntax — that is the MCP protocol layer, not the sandbox API\n' +
+    '- DO NOT guess tool or parameter names — use ONLY exact names from the API reference below\n' +
+    '- Available globals: fetch, console, process, Buffer, setTimeout, clearTimeout\n' +
+    '- import/export NOT supported — modules are pre-injected as namespace variables\n' +
+    '- DO NOT use require(), __dirname, __filename, or browser APIs' +
+    catalogNote;
 
   return {
     name: 'execute_code_with_wrappers',
@@ -382,6 +387,9 @@ export function createExecuteWithWrappersHandler(
               (err: unknown) => { clearTimeout(timeoutHandle); reject(err); }
             );
           });
+
+          // Cache tools to disk for catalog embedding in tool description
+          updateCatalogForServer(serverName, tools);
 
           // Get the collision-aware variable name for this server
           const uniqueName = uniqueNameMap.get(serverName) ?? sanitizeIdentifier(serverName);

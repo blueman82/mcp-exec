@@ -319,8 +319,9 @@ export function normalizeName(name: string): string {
  * @param contextName - Context name for error messages (e.g., server name)
  * @returns String containing Proxy code to be injected into generated wrapper
  */
-export function generateFuzzyProxy(targetVarName: string, contextName: string): string {
+export function generateFuzzyProxy(targetVarName: string, contextName: string, helpString?: string): string {
   const safeContextName = escapeForTemplateLiteral(JSON.stringify(contextName));
+  const safeHelp = helpString ? escapeForTemplateLiteral(helpString) : '';
   return `new Proxy(${targetVarName}, {
   get(target, prop) {
     if (typeof prop !== 'string') return undefined;
@@ -340,9 +341,9 @@ export function generateFuzzyProxy(targetVarName: string, contextName: string): 
       }
     }
 
-    // No match found - throw helpful error
+    // No match found - throw helpful error with parameter signatures
     const available = Object.keys(target).join(', ');
-    throw new TypeError(\`Property "\${prop}" not found on ${safeContextName}. Available: \${available}\`);
+    throw new TypeError(\`Property "\${prop}" not found on ${safeContextName}. Available: \${available}${safeHelp ? '\\nAPI: ' + safeHelp : ''}\`);
   }
 })`;
 }
@@ -439,6 +440,21 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   const safeToolName = JSON.stringify(tool.name);
 
   lines.push(`  ${methodName}: async (${inputParam}): Promise<unknown> => {`);
+
+  // Runtime required-param validation
+  if (hasInput && requiredParams.length > 0) {
+    const paramList = JSON.stringify(requiredParams);
+    const schemaStr = escapeForTemplateLiteral(
+      '{' + requiredParams.join(', ') + (optionalParams.length > 0 ? ', ' + optionalParams.map(p => p + '?').join(', ') : '') + '}'
+    );
+    lines.push(`    for (const __p of ${paramList}) {`);
+    lines.push(`      if (!input || !(__p in input)) {`);
+    lines.push(`        const __got = input ? Object.keys(input).join(', ') : 'none';`);
+    lines.push(`        throw new Error(\`[${escapeForTemplateLiteral(safeServerName)}.${escapeForTemplateLiteral(safeToolName)}] Missing required parameter "\${__p}". Got: \${__got}. Expected: ${schemaStr}\`);`);
+    lines.push(`      }`);
+    lines.push(`    }`);
+  }
+
   lines.push(`    const response = await fetch('http://127.0.0.1:${bridgePort}/call', {`);
   lines.push(`      method: 'POST',`);
   lines.push(`      headers: { 'Content-Type': 'application/json' },`);
@@ -589,8 +605,17 @@ export function generateServerModule(tools: ToolDefinition[], serverName: string
   lines.push('};');
   lines.push('');
 
+  // Compute compact API help string for error messages
+  const helpParts = tools.map(t => {
+    const allProps = Object.keys(t.inputSchema?.properties ?? {});
+    const req = t.inputSchema?.required ?? [];
+    const params = [...req, ...allProps.filter(k => !req.includes(k)).map(p => p + '?')];
+    return `${sanitizeIdentifier(t.name)}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
+  });
+  const helpString = helpParts.join(', ');
+
   // Wrap with fuzzy Proxy for case-agnostic access
-  lines.push(`const ${namespaceName} = ${generateFuzzyProxy(`${namespaceName}_raw`, serverName)};`);
+  lines.push(`const ${namespaceName} = ${generateFuzzyProxy(`${namespaceName}_raw`, serverName, helpString)};`);
   lines.push('');
 
   return lines.join('\n');
