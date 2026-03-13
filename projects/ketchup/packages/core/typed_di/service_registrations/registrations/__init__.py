@@ -95,6 +95,7 @@ _ROLE_MODULES: dict[str, list[Callable]] = {
         register_command_processing,
         register_maintenance_services,
         register_csopm_services,
+        register_agent_services,
     ],
     # CSOPM_NOTIFIER: core + slack_core + slack_handlers + ai_operational + integrations + csopm
     # Includes slack_handlers because integrations → HomeTabHandler

@@ -154,7 +154,7 @@ class JiraBackfillIngestor:
                     "text": ticket_text,
                     "metadata": {
                         "channel_id": channel_id,
-                        "message_ts": "0",
+                        "message_ts": 0.0,
                         "user_id": "jira",
                         "has_thread_replies": False,
                         "ingested_at": now,
@@ -188,7 +188,7 @@ class JiraBackfillIngestor:
                     "text": comment_text,
                     "metadata": {
                         "channel_id": channel_id,
-                        "message_ts": "0",
+                        "message_ts": 0.0,
                         "user_id": "jira",
                         "has_thread_replies": False,
                         "ingested_at": now,

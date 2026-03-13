@@ -114,6 +114,24 @@ class AgentVectorStoreProtocol(Protocol):
         """Get the number of documents, optionally filtered by channel."""
         ...
 
+    async def get_by_time_range(
+        self, channel_id: str, since_ts: str, until_ts: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Retrieve all documents for a channel within a time range.
+
+        Uses metadata filtering on message_ts (no embedding needed).
+        Slack timestamps are epoch strings that sort lexicographically.
+
+        Args:
+            channel_id: Filter to this channel.
+            since_ts: Earliest message_ts (inclusive).
+            until_ts: Latest message_ts (exclusive). None = no upper bound.
+
+        Returns:
+            List of dicts with keys: id, text, metadata — sorted chronologically.
+        """
+        ...
+
     async def cleanup(self) -> None:
         """Clean up resources."""
         ...

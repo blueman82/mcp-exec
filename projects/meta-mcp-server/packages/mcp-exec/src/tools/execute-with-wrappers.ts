@@ -254,13 +254,18 @@ function wrapUserCodeForReturnCapture(code: string): string {
     return code;
   }
 
+  // Skip multi-line continuations: closing brackets, method chains, index access
+  // These indicate the last line is a continuation of a prior expression, not standalone
+  if (lines.length > 1 && /^[}\])\.\[?]/.test(lastTrimmed)) return code;
+
   const expr = lastTrimmed.replace(/;$/, '');
   const indent = lines[lastIdx].match(/^(\s*)/)?.[1] ?? '';
 
-  lines[lastIdx] = `${indent}const __execResult = await Promise.resolve(${expr});
-${indent}if (__execResult !== undefined) {
-${indent}  const __out = typeof __execResult === 'string' ? __execResult : JSON.stringify(__execResult, null, 2);
-${indent}  process.stdout.write(__out + '\\n');
+  // Use collision-resistant variable name to avoid shadowing user code
+  lines[lastIdx] = `${indent}const __mcp_exec_capture__ = await Promise.resolve(${expr});
+${indent}if (__mcp_exec_capture__ !== undefined) {
+${indent}  const __mcp_exec_out__ = typeof __mcp_exec_capture__ === 'string' ? __mcp_exec_capture__ : JSON.stringify(__mcp_exec_capture__, null, 2);
+${indent}  process.stdout.write(__mcp_exec_out__ + '\\n');
 ${indent}}`;
 
   return lines.join('\n');
@@ -457,7 +462,7 @@ function formatResult(result: ExecutionResult): CallToolResult {
     lines.push(...result.output);
   }
 
-  // Add error if present (non-fatal stderr)
+  // Add stderr if present (may be warnings even on success)
   if (result.error) {
     lines.push(`[stderr]: ${result.error}`);
   }
@@ -465,7 +470,8 @@ function formatResult(result: ExecutionResult): CallToolResult {
   // Add execution time
   lines.push(`[Execution completed in ${result.durationMs}ms]`);
 
-  const hasError = !!result.error;
+  // Use exit code for error determination — stderr alone (e.g. deprecation warnings) is not an error
+  const hasError = result.exitCode !== undefined ? result.exitCode !== 0 : !!result.error;
 
   return {
     content: [{ type: 'text', text: lines.join('\n') }],

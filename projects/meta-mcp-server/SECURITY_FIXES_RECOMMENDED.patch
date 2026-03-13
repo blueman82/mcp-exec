@@ -1,0 +1,194 @@
+diff --git a/packages/mcp-exec/src/codegen/wrapper-generator.ts b/packages/mcp-exec/src/codegen/wrapper-generator.ts
+index original..fixed 100644
+--- a/packages/mcp-exec/src/codegen/wrapper-generator.ts
++++ b/packages/mcp-exec/src/codegen/wrapper-generator.ts
+@@ -227,10 +227,24 @@ function generateInterface(name: string, schema: { properties?: Record<string,
+  */
+ function sanitizeJsDoc(text: string): string {
+   // Escape */ to prevent premature JSDoc comment closure
+   // This handles glob patterns like "src/**/*.ts" in tool descriptions
+-  return text.replace(/\*\//g, '* /');
++  let sanitized = text.replace(/\*\//g, '* /');
++
++  // Remove literal newlines to prevent line-injection into JSDoc blocks
++  sanitized = sanitized.replace(/\r?\n/g, ' ');
++
++  // Escape @ at word boundaries to prevent JSDoc tag injection
++  // Pattern: @word followed by space or end of string becomes escaped
++  sanitized = sanitized.replace(/(?:^|\s)@([a-zA-Z_]\w*)/g, ' \\@$1');
++
++  return sanitized;
+ }
+
+ /**
++ * Generate a unique identifier for the field guard function to prevent collisions
++ */
++function generateFieldGuardName(): string {
++  return '__guardFields_' + Math.random().toString(36).slice(2, 9);
++}
+
+ /**
+  * Generate a recursive Proxy guard that warns on undefined field access on MCP responses.
+@@ -238,9 +252,22 @@ function sanitizeJsDoc(text: string): string {
+  * Injected into generated wrapper code. On missing field: logs available fields to stderr.
+  * Zero overhead on correct access (prop in target short-circuits).
+  * Arrays are also wrapped so index access returns guarded items.
++ * Blocks access to dangerous inherited properties (__proto__, hasOwnProperty, etc.)
+  */
+ function generateFieldGuard(): string {
+-  return `
++  const guardName = generateFieldGuardName();
++
++  // Properties that are always safe to access (serialization and introspection)
++  const safeKeys = "new Set(['then', 'toJSON', 'length', 'constructor', 'nodeType', 'valueOf', 'toString', 'inspect'])";
++
++  // Dangerous properties that could enable prototype pollution or introspection abuse
++  const dangerousKeys = "new Set(['__proto__', '__defineGetter__', '__defineSetter__', '__lookupGetter__', '__lookupSetter__', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable'])";
++
++  return `
++// Field guard: prevents access to undefined fields and dangerous inherited properties
++const __fieldGuardSafeKeys = ${safeKeys};
++const __fieldGuardDangerousKeys = ${dangerousKeys};
++
+ function __guardFields(obj, label) {
+   if (!obj || typeof obj !== 'object') return obj;
+   if (Array.isArray(obj)) {
+@@ -248,7 +275,7 @@ function generateFieldGuard(): string {
+       get(target, prop) {
+         if (typeof prop === 'symbol') return target[prop];
+         const idx = Number(prop);
+-        if (Number.isInteger(idx) && idx >= 0 && idx < target.length) {
++        if (Number.isInteger(idx) && idx >= 0 && idx < (target as any).length) {
+           const item = target[idx];
+           return item && typeof item === 'object' ? __guardFields(item, label + '[' + idx + ']') : item;
+         }
+@@ -257,20 +284,25 @@ function generateFieldGuard(): string {
+     });
+   }
+   return new Proxy(obj, {
+     get(target, prop) {
+       if (typeof prop === 'symbol') return target[prop];
+
++      // Block access to dangerous inherited properties
++      const propStr = String(prop);
++      if (__fieldGuardDangerousKeys.has(propStr)) {
++        throw new Error('Access to "' + propStr + '" is not allowed on ' + label);
++      }
++
+       // Allow safe inherited properties
+-      if (typeof prop === 'symbol' || prop === 'then' || prop === 'toJSON'
+-          || prop === 'length' || prop === 'constructor' || prop === 'nodeType'
+-          || prop === 'valueOf' || prop === 'toString' || prop === 'inspect') {
++      if (__fieldGuardSafeKeys.has(propStr)) {
+         return target[prop];
+       }
+-      if (prop in target) {
++
++      // Check only own properties, not prototype chain
++      if (Object.prototype.hasOwnProperty.call(target, prop)) {
+         const val = target[prop];
+         if (val && typeof val === 'object') {
+-          return __guardFields(val, label + '.' + String(prop));
++          return __guardFields(val, label + '.' + propStr);
+         }
+         return val;
+       }
+       const available = Object.keys(target).join(', ');
+-      console.error('⚠ No field "' + String(prop) + '" on ' + label + '. Available: ' + available);
++      console.error('⚠ No field "' + propStr + '" on ' + label + '. Available: ' + available);
+       return undefined;
+     }
+   });
+ }
+`;
+ }
+
+@@ -312,8 +344,15 @@ function toPascalCase(name: string): string {
+  */
+ export function generateFuzzyProxy(targetVarName: string, contextName: string): string {
+   const safeContextName = JSON.stringify(contextName);
++  const blockedProperties = "new Set(['__proto__', 'constructor', 'prototype'])";
++
+   return `new Proxy(${targetVarName}, {
+   get(target, prop) {
++    // Block access to prototype manipulation properties
++    if (typeof prop === 'string' && ${blockedProperties}.has(prop)) {
++      throw new TypeError('Cannot access "' + prop + '" on ${safeContextName}');
++    }
++
+     if (typeof prop !== 'string') return undefined;
+
+     // Fast-path: exact match
+-    if (prop in target) return target[prop];
++    if (Object.prototype.hasOwnProperty.call(target, prop)) return target[prop];
+
+     // Fuzzy match: normalize and search
+     const normalizedProp = prop.toLowerCase().replace(/[_-]/g, '');
+@@ -436,16 +475,22 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, br
+   });`);
+   lines.push(`    if (!response.ok) {`);
+-  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] HTTP \${response.status}: \${response.statusText}\`);`);
++  // Use string concatenation instead of template literal to prevent backtick/dollar injection
++  lines.push(`      throw new Error('[' + ${safeServerName} + '.' + ${safeToolName} + '] HTTP ' + response.status + ': ' + response.statusText);`);
+   lines.push(`    }`);
+   lines.push(`    const data = await response.json() as { success: boolean; content?: unknown; error?: string; isError?: boolean };`);
+   lines.push(`    if (!data.success) {`);
+-  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] \${data.error || 'Tool call failed'}\`);`);
++  lines.push(`      throw new Error('[' + ${safeServerName} + '.' + ${safeToolName} + '] ' + (data.error || 'Tool call failed'));`);
+   lines.push(`    }`);
+   lines.push(`    if (data.isError) {`);
+   lines.push(`      const errText = Array.isArray(data.content) && data.content[0]?.text ? data.content[0].text : 'Tool returned isError';`);
+-  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] \${errText}\`);`);
++  lines.push(`      throw new Error('[' + ${safeServerName} + '.' + ${safeToolName} + '] ' + errText);`);
+   lines.push(`    }`);
+   lines.push(`    // Auto-parse JSON from MCP text content blocks for convenience`);
+   lines.push(`    const content = data.content;`);
+   lines.push(`    if (Array.isArray(content) && content.length === 1 && content[0]?.type === 'text') {`);
+@@ -456,7 +501,8 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, br
+           throw new Error(parsed.error);
+         }`);
+-  lines.push(`        return typeof __guardFields === 'function' ? __guardFields(parsed, ${safeServerName} + '.' + ${safeToolName}) : parsed;`);
++  // SafeServerName/safeToolName are already JSON strings, concatenate them properly
++  lines.push(`        return typeof __guardFields === 'function' ? __guardFields(parsed, ${safeServerName} + '.' + ${safeToolName}) : parsed;`);
+   lines.push(`      } catch (e) {`);
+   lines.push(`        if (e instanceof Error && !(e instanceof SyntaxError)) throw e;`);
+   lines.push(`        return content[0].text;`);
+@@ -514,8 +560,10 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string):
+   lines.push(`  const response = await fetch('${BRIDGE_ENDPOINT}', {`);
+   lines.push(`    method: 'POST',`);
+   lines.push(`    headers: { 'Content-Type': 'application/json' },`);
+   lines.push(`    body: JSON.stringify({`);
+-  lines.push(`      server: '${serverName}',`);
+-  lines.push(`      tool: '${tool.name}',`);
++  // Use JSON.stringify to safely escape server and tool names
++  const safeServerName = JSON.stringify(serverName);
++  const safeToolName = JSON.stringify(tool.name);
++  lines.push(`      server: ${safeServerName},`);
++  lines.push(`      tool: ${safeToolName},`);
+   lines.push(`      args: ${inputArg},`);
+   lines.push(`    }),`);
+   lines.push(`  });`);
+@@ -540,6 +588,12 @@ export function generateToolWrapper(tool: ToolDefinition, serverName: string):
+  */
+ export function generateServerModule(tools: ToolDefinition[], serverName: string, bridgePort: number = 3000, variableNameOverride?: string): string {
+   const lines: string[] = [];
+   const namespaceName = variableNameOverride ?? sanitizeIdentifier(serverName);
++
++  // Track if field guard has been injected (should only happen once per module)
++  let fieldGuardInjected = false;
+
+   // File header comment
+   lines.push('/**');
+@@ -549,7 +603,9 @@ export function generateServerModule(tools: ToolDefinition[], serverName: stri
+   lines.push(' */');
+   lines.push('');
+
+-  // Inject field guard helper for undefined-field warnings on responses
++  // Inject field guard helper once per module for undefined-field warnings on responses
++  // SECURITY: Field guard blocks access to __proto__ and other dangerous inherited properties
++  if (!fieldGuardInjected) {
+   lines.push(generateFieldGuard());
++    fieldGuardInjected = true;
++  }
+
+   // Generate all interfaces first

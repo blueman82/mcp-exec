@@ -112,7 +112,7 @@ globalThis.mcp = {
     // Generate unique temp file names
     const fileId = randomUUID();
     const tsFilePath = join(this.tempDir, `${fileId}.ts`);
-    const jsFilePath = join(this.tempDir, `${fileId}.js`);
+    const jsFilePath = join(this.tempDir, `${fileId}.mjs`);
 
     // Prepend MCP helper preamble to user code
     const fullCode = this.getMcpPreamble() + code;
@@ -155,6 +155,7 @@ globalThis.mcp = {
         return {
           output: result.stdout,
           error: result.stderr || undefined,
+          exitCode: result.exitCode,
           durationMs: Date.now() - startTime,
         };
       } catch (execError) {
@@ -194,7 +195,7 @@ globalThis.mcp = {
   private executeCommand(
     command: string,
     abortSignal: AbortSignal
-  ): Promise<{ stdout: string[]; stderr: string | null }> {
+  ): Promise<{ stdout: string[]; stderr: string | null; exitCode: number }> {
     return new Promise((resolve, reject) => {
       const child = spawn('sh', ['-c', command], {
         signal: abortSignal,
@@ -214,9 +215,9 @@ globalThis.mcp = {
 
       child.on('close', (code) => {
         if (code === 0) {
-          resolve({ stdout, stderr: stderr || null });
+          resolve({ stdout, stderr: stderr || null, exitCode: 0 });
         } else {
-          resolve({ stdout, stderr: stderr || `Process exited with code ${code}` });
+          resolve({ stdout, stderr: stderr || `Process exited with code ${code}`, exitCode: code ?? 1 });
         }
       });
 

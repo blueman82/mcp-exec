@@ -16,6 +16,8 @@ export interface ExecutionResult {
   output: string[];
   /** Error message if execution failed */
   error?: string;
+  /** Process exit code (0 = success). Undefined if process was killed/timed out. */
+  exitCode?: number;
   /** Execution duration in milliseconds */
   durationMs: number;
 }

@@ -260,7 +260,8 @@ function __guardFields(obj, label) {
           || prop === 'valueOf' || prop === 'toString' || prop === 'inspect') {
         return target[prop];
       }
-      if (prop in target) {
+      if (prop === '__proto__' || prop === 'prototype') return undefined;
+      if (Object.prototype.hasOwnProperty.call(target, prop)) {
         const val = target[prop];
         if (val && typeof val === 'object') {
           return __guardFields(val, label + '.' + String(prop));
@@ -274,6 +275,15 @@ function __guardFields(obj, label) {
   });
 }
 `;
+}
+
+/**
+ * Escape a string for safe embedding inside a JavaScript template literal.
+ * JSON.stringify does NOT escape backticks or ${}, which can break generated
+ * template literals or enable code injection.
+ */
+function escapeForTemplateLiteral(s: string): string {
+  return s.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
 }
 
 /**
@@ -310,13 +320,16 @@ export function normalizeName(name: string): string {
  * @returns String containing Proxy code to be injected into generated wrapper
  */
 export function generateFuzzyProxy(targetVarName: string, contextName: string): string {
-  const safeContextName = JSON.stringify(contextName);
+  const safeContextName = escapeForTemplateLiteral(JSON.stringify(contextName));
   return `new Proxy(${targetVarName}, {
   get(target, prop) {
     if (typeof prop !== 'string') return undefined;
 
-    // Fast-path: exact match
-    if (prop in target) return target[prop];
+    // Block prototype pollution vectors
+    if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') return undefined;
+
+    // Fast-path: exact match — use hasOwnProperty to avoid prototype chain leaks
+    if (Object.prototype.hasOwnProperty.call(target, prop)) return target[prop];
 
     // Fuzzy match: normalize and search
     const normalizedProp = prop.toLowerCase().replace(/[_-]/g, '');
@@ -435,16 +448,18 @@ function generateMethodDefinition(tool: ToolDefinition, serverName: string, brid
   lines.push(`        args: ${inputArg},`);
   lines.push(`      }),`);
   lines.push(`    });`);
+  // Use escapeForTemplateLiteral to prevent backtick/`${}` injection in error messages
+  const tlSafe = (s: string) => escapeForTemplateLiteral(s);
   lines.push(`    if (!response.ok) {`);
-  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] HTTP \${response.status}: \${response.statusText}\`);`);
+  lines.push(`      throw new Error(\`[${tlSafe(safeServerName)}.${tlSafe(safeToolName)}] HTTP \${response.status}: \${response.statusText}\`);`);
   lines.push(`    }`);
   lines.push(`    const data = await response.json() as { success: boolean; content?: unknown; error?: string; isError?: boolean };`);
   lines.push(`    if (!data.success) {`);
-  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] \${data.error || 'Tool call failed'}\`);`);
+  lines.push(`      throw new Error(\`[${tlSafe(safeServerName)}.${tlSafe(safeToolName)}] \${data.error || 'Tool call failed'}\`);`);
   lines.push(`    }`);
   lines.push(`    if (data.isError) {`);
   lines.push(`      const errText = Array.isArray(data.content) && data.content[0]?.text ? data.content[0].text : 'Tool returned isError';`);
-  lines.push(`      throw new Error(\`[${safeServerName}.${safeToolName}] \${errText}\`);`);
+  lines.push(`      throw new Error(\`[${tlSafe(safeServerName)}.${tlSafe(safeToolName)}] \${errText}\`);`);
   lines.push(`    }`);
   lines.push(`    // Auto-parse JSON from MCP text content blocks for convenience`);
   lines.push(`    const content = data.content;`);

@@ -155,7 +155,7 @@ class RealtimeIngestor:
                     "text": doc.text,
                     "metadata": {
                         "channel_id": doc.channel_id,
-                        "message_ts": doc.message_ts,
+                        "message_ts": float(doc.message_ts),
                         "user_id": doc.user_id,
                         "has_thread_replies": doc.has_thread_replies,
                         "ingested_at": int(time.time()),

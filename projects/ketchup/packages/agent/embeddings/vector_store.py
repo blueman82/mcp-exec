@@ -212,6 +212,77 @@ class ChromaVectorStore:
                 return await asyncio.to_thread(self._collection.count)
             raise
 
+    async def get_by_time_range(
+        self, channel_id: str, since_ts: str, until_ts: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Retrieve all documents for a channel within a time range.
+
+        Args:
+            channel_id: Filter to this channel.
+            since_ts: Earliest message_ts (inclusive).
+            until_ts: Latest message_ts (exclusive). None = no upper bound.
+
+        Returns:
+            List of dicts with keys: id, text, metadata — sorted chronologically.
+        """
+        if not self._collection:
+            raise RuntimeError("Vector store not initialized")
+
+        # Build metadata filter with channel_id and message_ts range
+        # ChromaDB requires numeric types for comparison operators
+        where_conditions = [
+            {"channel_id": channel_id},
+            {"message_ts": {"$gte": float(since_ts)}},
+        ]
+        if until_ts is not None:
+            where_conditions.append({"message_ts": {"$lt": float(until_ts)}})
+
+        where = {"$and": where_conditions}
+
+        try:
+            results = await asyncio.to_thread(
+                self._collection.get,
+                where=where,
+                include=["documents", "metadatas"],
+            )
+        except Exception as e:
+            if "does not exist" in str(e):
+                logger.warning("Collection gone during get_by_time_range, re-creating: %s", e)
+                await self._ensure_collection()
+                results = await asyncio.to_thread(
+                    self._collection.get,
+                    where=where,
+                    include=["documents", "metadatas"],
+                )
+            else:
+                raise
+
+        output = (
+            [
+                {
+                    "id": doc_id,
+                    "text": results["documents"][i] if results["documents"] else "",
+                    "metadata": results["metadatas"][i] if results["metadatas"] else {},
+                }
+                for i, doc_id in enumerate(results["ids"])
+            ]
+            if results and results["ids"]
+            else []
+        )
+
+        # Sort chronologically by message_ts
+        output.sort(key=lambda x: x.get("metadata", {}).get("message_ts", 0.0))
+
+        logger.info(
+            "Retrieved %d documents for channel %s in time range [%s, %s)",
+            len(output),
+            channel_id,
+            since_ts,
+            until_ts or "∞",
+        )
+
+        return output
+
     async def cleanup(self) -> None:
         """Clean up ChromaDB connection."""
         logger.info("ChromaVectorStore cleanup complete")

@@ -126,10 +126,10 @@ class TestHandoverGenerator:
                 assert result["channel_count"] == 0
 
     @pytest.mark.asyncio
-    async def test_channels_with_no_data_are_skipped(
+    async def test_channels_with_no_data_included_with_no_updates_summary(
         self, mock_container, current_time_in_schedule
     ):
-        """Test channels with no messages and no JIRA comments are skipped"""
+        """Test channels with no messages and no JIRA comments are included with 'no updates' summary"""
         with patch.dict(os.environ, {"KETCHUP_HANDOVER_SUMMARY_ENABLED": "true"}):
             with patch(
                 "ketchup_unified_scheduler.services.handover.generator.HANDOVER_SCHEDULE_TIMES",
@@ -159,7 +159,9 @@ class TestHandoverGenerator:
                     result = await generate_and_post_handover(mock_container)
 
                     assert result["status"] == "success"
-                    assert result["channel_count"] == 0  # Channel should be skipped
+                    assert (
+                        result["channel_count"] == 1
+                    )  # No-activity channels included with summary
 
     @pytest.mark.asyncio
     async def test_feedback_channel_is_filtered_out(self, mock_container, current_time_in_schedule):

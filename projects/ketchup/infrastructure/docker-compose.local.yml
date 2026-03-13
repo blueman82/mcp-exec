@@ -151,16 +151,22 @@ services:
       - performance.env
       - features.env
       - azure.env
+      - agent.env
     # Local overrides (prod values from .env files)
     environment:
       - AWS_PROFILE=campaign_prod_v7
       - KETCHUP_STATUS_UPDATER_GLOBAL=false  # Don't process all channels in local dev
       - KETCHUP_HANDOVER_TARGET_CHANNEL=C0AGXRW7KL2 #C03PWLW9P5H - camp-oncall channel.
+      - KETCHUP_AGENT_ENABLED=true
+      - KETCHUP_AGENT_BACKFILL_ENABLED=false
+      - KETCHUP_HANDOVER_SUMMARY_ENABLED=true
+      - KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
     depends_on:
       - mcp-jira
+      - chromadb
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/unified_scheduler_health LAST_RUN_FILE=/tmp/unified_scheduler_last_run MAX_RUN_AGE=4200 MAX_HEALTH_AGE=600 SERVICE_NAME=UnifiedScheduler /app/infrastructure/healthcheck-scheduler.sh"]
