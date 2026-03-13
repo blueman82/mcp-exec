@@ -33,6 +33,10 @@ graph TB
         subgraph "Shared Dependencies"
             Packages["packages/<br/>ai, core, db,<br/>integrations,<br/>secrets, slack"]
         end
+
+        subgraph "Vector Storage (prod1 ONLY)"
+            ChromaDB["chromadb<br/>Port 8000<br/>Vector Embeddings"]
+        end
     end
 
     subgraph "AWS Services"
@@ -69,6 +73,10 @@ graph TB
     App2 -->|Query/Update| DDB
     UnifiedScheduler -->|Query/Update| DDB
 
+    App1 -->|Vector queries| ChromaDB
+    App2 -->|Vector queries| ChromaDB
+    UnifiedScheduler -->|Vector queries| ChromaDB
+
     App1 -->|Get Secrets| Secrets
     App2 -->|Get Secrets| Secrets
     MCP -->|Get Secrets| Secrets
@@ -84,6 +92,7 @@ graph TB
     style UnifiedScheduler fill:#cc99ff
     style CSOPMNotifier fill:#cc99ff
     style AccessMonitor fill:#ffcc99
+    style ChromaDB fill:#66cc99
     style DDB fill:#527fff
     style Secrets fill:#527fff
     style SQS fill:#527fff
@@ -233,9 +242,9 @@ graph TD
 ```mermaid
 graph TB
     subgraph "prod1 Resource Usage"
-        CPU1["7 Containers<br/>Total CPU: ~2.5 cores shared"]
-        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>csopm-notifier: 256MB<br/>access-monitor: 128MB"]
-        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~400MB"]
+        CPU1["8 Containers<br/>Total CPU: ~3.0 cores shared"]
+        Memory1["Memory allocation:<br/>nginx: 256MB<br/>app-1: 512MB<br/>app-2: 512MB<br/>mcp-jira: 256MB<br/>unified-scheduler: 512MB<br/>csopm-notifier: 256MB<br/>chromadb: 512MB<br/>access-monitor: 128MB"]
+        Storage1["Logs:<br/>10MB max per<br/>container<br/>3 file retention<br/>Total ~400MB<br/>(vector data: ~2GB)"]
     end
 
     subgraph "prod2 Resource Usage"
@@ -278,5 +287,5 @@ graph TB
 
 ---
 
-**Total Containers**: 12 (7 on prod1, 5 on prod2)
-**Total Services**: 7 (FastAPI x2, MCP, unified-scheduler, csopm-notifier, access-monitor x2)
+**Total Containers**: 13 (8 on prod1, 5 on prod2)
+**Total Services**: 8 (FastAPI x2, MCP, unified-scheduler, csopm-notifier, access-monitor x2, chromadb)

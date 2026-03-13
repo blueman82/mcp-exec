@@ -119,6 +119,7 @@ graph TB
     
     subgraph DataStores["Data Stores"]
         DDB[("DynamoDB<br/>ketchup_channel_information")]
+        ChromaDB[("ChromaDB<br/>Vector Embeddings")]
         Secrets["🔐 Secrets Manager<br/>Ketchup_Token_Secrets"]
         SQS["📨 SQS Queue<br/>ketchup-events-queue"]
     end
@@ -156,6 +157,7 @@ graph TB
     JiraReporter -.->|"Get tokens"| Secrets
     MaintenanceFetcher -.->|"Get tokens"| Secrets
     PatRotator -.->|"Get tokens"| Secrets
+    UnifiedScheduler -.->|"Vector embeddings"| ChromaDB
     AccessMonitor1 -.->|"Get tokens"| Secrets
     AccessMonitor2 -.->|"Get tokens"| Secrets
     
@@ -189,6 +191,7 @@ graph TB
 2. **Reduced Overhead:** 1 container instead of 5 (lower memory, CPU, deployment complexity)
 3. **Unified Health Monitoring:** Single healthcheck endpoint exposes all task statuses
 4. **Simplified Deployment:** One Dockerfile, one docker-compose entry, one deployment unit
+5. **ChromaDB Integration:** When `KETCHUP_CHROMADB_ENABLED=true`, handover task accesses ChromaDB container for vector embeddings and semantic search on channel messages
 
 **Task Orchestration:**
 - Each task is a separate async function (`StatusUpdaterTask`, `MetadataUpdaterTask`, etc.)
@@ -582,6 +585,8 @@ All background services respect feature flags:
 - `KETCHUP_JIRA_REPORTER_GLOBAL=false`
 - `KETCHUP_TRUST_ENDORSEMENT_FEATURE=true`
 - `KETCHUP_CSOPM_NOTIFIER_ENABLED=true`
+- `KETCHUP_CHROMADB_ENABLED=false` — ChromaDB foundation services (embeddings, vector store, ingestion)
+- `KETCHUP_AGENT_ENABLED=false` — Full agent chat/RAG pipeline
 
 **DynamoDB Channel Flags:**
 - `features.status_updater_enabled`

@@ -1,20 +1,25 @@
 """
 Agent Service Registrations.
 
-Registers all Ketchup Agent services via ServiceSpec for:
+Two-tier architecture for managing ChromaDB and Agent services:
+
+Layer 1 - ChromaDB Foundation (gated by KETCHUP_CHROMADB_ENABLED or KETCHUP_AGENT_ENABLED):
 - Embeddings client (Azure OpenAI ada-002)
 - Vector store (ChromaDB)
 - Conversation store (DynamoDB)
-- RAG pipeline (retriever, context builder, engine)
-- Ingestion (real-time + backfill)
-- Slack interface (handler, thread manager, isolation filter)
+- Realtime ingestor (data ingestion during conversations)
 
-All services are registered as singletons and gated behind
-the KETCHUP_AGENT_ENABLED feature flag at runtime.
+Layer 2 - Agent Chat/RAG (gated by KETCHUP_AGENT_ENABLED):
+- Retriever, context builder, engine (RAG pipeline)
+- JIRA backfill, backfill ingestor (historical data ingestion)
+- Slack handler, thread manager, thread filter (Slack interface)
+
+The two-tier split allows features like handover summaries to use
+ChromaDB foundation services independently of the agent chat feature.
+All services are registered as singletons.
 """
 
 import os
-from typing import List
 
 from packages.core.logging import setup_logger
 from packages.core.typed_di.service_registrations.manager import (
@@ -25,43 +30,51 @@ from packages.core.typed_di.service_spec import ServiceSpec, register_from_specs
 logger = setup_logger(__name__)
 
 
-def _get_agent_specs() -> List[ServiceSpec]:
-    """Build the list of agent ServiceSpecs."""
+async def _create_realtime_ingestor(resolver):
+    """Custom factory for RealtimeIngestor — resolves bot_user_id from secrets."""
+    from packages.agent.ingestion.realtime_ingestor import RealtimeIngestor
+    from packages.core.typed_di.service_registrations.protocols import (
+        AgentConversationStoreProtocol,
+        AgentEmbeddingsClientProtocol,
+        AgentVectorStoreProtocol,
+        SecretsManagerProtocol,
+    )
+
+    embeddings_client = await resolver.aget(AgentEmbeddingsClientProtocol)
+    vector_store = await resolver.aget(AgentVectorStoreProtocol)
+    conversation_store = await resolver.aget(AgentConversationStoreProtocol)
+    secrets_manager = await resolver.aget(SecretsManagerProtocol)
+    bot_user_id = await secrets_manager.get_bot_slack_user_id_async()
+
+    return RealtimeIngestor(
+        embeddings_client=embeddings_client,
+        vector_store=vector_store,
+        conversation_store=conversation_store,
+        bot_user_id=bot_user_id,
+    )
+
+
+def _get_chromadb_specs() -> list[ServiceSpec]:
+    """Build the list of ChromaDB foundation ServiceSpecs.
+
+    These form the data layer used by both agent chat and handover summary features:
+    - Layer 1: Embeddings client, vector store, conversation store (foundation)
+    - Layer 1b: Realtime ingestor (depends only on foundation + secrets)
+    """
     # Import concrete implementations
     from packages.agent.conversation.store import ConversationStore
     from packages.agent.embeddings.azure_embeddings_client import (
         AzureEmbeddingsClient,
     )
     from packages.agent.embeddings.vector_store import ChromaVectorStore
-    from packages.agent.ingestion.backfill_ingestor import BackfillIngestor
-    from packages.agent.ingestion.jira_backfill import JiraBackfillIngestor
     from packages.agent.ingestion.realtime_ingestor import RealtimeIngestor
-    from packages.agent.rag.context_builder import ContextBuilder
-    from packages.agent.rag.engine import AgentEngine
-    from packages.agent.rag.retriever import Retriever
-    from packages.agent.slack.handler import AgentSlackHandler
-    from packages.agent.slack.isolation import AgentThreadFilter
-    from packages.agent.slack.thread_manager import AgentThreadManager
     from packages.core.typed_di.service_registrations.protocols import (
-        AgentBackfillIngestorProtocol,
-        AgentContextBuilderProtocol,
         AgentConversationStoreProtocol,
         AgentEmbeddingsClientProtocol,
-        AgentEngineProtocol,
-        AgentJiraBackfillIngestorProtocol,
         AgentRealtimeIngestorProtocol,
-        AgentRetrieverProtocol,
-        AgentSlackHandlerProtocol,
-        AgentThreadFilterProtocol,
-        AgentThreadManagerProtocol,
         AgentVectorStoreProtocol,
         DynamoDBAsyncClientProtocol,
-        JIRADataExtractorProtocol,
         SecretsManagerProtocol,
-        SlackPostingHandlerProtocol,
-    )
-    from packages.core.typed_di.service_registrations.protocols.ai_protocols import (
-        ApiExecutorProtocol,
     )
 
     return [
@@ -81,7 +94,61 @@ def _get_agent_specs() -> List[ServiceSpec]:
             concrete=ConversationStore,
             deps={"dynamodb_client": DynamoDBAsyncClientProtocol},
         ),
-        # ── Layer 2: Depends on Layer 1 ──────────────────────────
+        # ── Layer 1b: Realtime ingestor (depends on Layer 1 + bot_user_id from secrets) ──
+        ServiceSpec(
+            protocol=AgentRealtimeIngestorProtocol,
+            concrete=RealtimeIngestor,
+            deps={
+                "embeddings_client": AgentEmbeddingsClientProtocol,
+                "vector_store": AgentVectorStoreProtocol,
+                "conversation_store": AgentConversationStoreProtocol,
+                "secrets_manager": SecretsManagerProtocol,
+            },
+            factory=_create_realtime_ingestor,
+        ),
+    ]
+
+
+def _get_agent_specs() -> list[ServiceSpec]:
+    """Build the list of agent chat/RAG ServiceSpecs.
+
+    These depend on ChromaDB foundation services and form the agent feature:
+    - Layer 2: Retriever, context builder, thread manager, thread filter
+    - Layer 2b: JIRA backfill, backfill ingestor
+    - Layer 3: Agent engine
+    - Layer 4: Slack handler
+    """
+    # Import concrete implementations
+    from packages.agent.ingestion.backfill_ingestor import BackfillIngestor
+    from packages.agent.ingestion.jira_backfill import JiraBackfillIngestor
+    from packages.agent.rag.context_builder import ContextBuilder
+    from packages.agent.rag.engine import AgentEngine
+    from packages.agent.rag.retriever import Retriever
+    from packages.agent.slack.handler import AgentSlackHandler
+    from packages.agent.slack.isolation import AgentThreadFilter
+    from packages.agent.slack.thread_manager import AgentThreadManager
+    from packages.core.typed_di.service_registrations.protocols import (
+        AgentBackfillIngestorProtocol,
+        AgentContextBuilderProtocol,
+        AgentConversationStoreProtocol,
+        AgentEmbeddingsClientProtocol,
+        AgentEngineProtocol,
+        AgentJiraBackfillIngestorProtocol,
+        AgentRetrieverProtocol,
+        AgentSlackHandlerProtocol,
+        AgentThreadFilterProtocol,
+        AgentThreadManagerProtocol,
+        AgentVectorStoreProtocol,
+        JIRADataExtractorProtocol,
+        SecretsManagerProtocol,
+        SlackPostingHandlerProtocol,
+    )
+    from packages.core.typed_di.service_registrations.protocols.ai_protocols import (
+        ApiExecutorProtocol,
+    )
+
+    return [
+        # ── Layer 2: Depends on ChromaDB foundation ──────────────────
         ServiceSpec(
             protocol=AgentRetrieverProtocol,
             concrete=Retriever,
@@ -108,18 +175,7 @@ def _get_agent_specs() -> List[ServiceSpec]:
                 "posting_handler": SlackPostingHandlerProtocol,
             },
         ),
-        # ── Layer 2b: Ingestion (depends on Layer 1 + bot_user_id from secrets) ──
-        ServiceSpec(
-            protocol=AgentRealtimeIngestorProtocol,
-            concrete=RealtimeIngestor,
-            deps={
-                "embeddings_client": AgentEmbeddingsClientProtocol,
-                "vector_store": AgentVectorStoreProtocol,
-                "conversation_store": AgentConversationStoreProtocol,
-                "secrets_manager": SecretsManagerProtocol,
-            },
-            factory=_create_realtime_ingestor,
-        ),
+        # ── Layer 2b: Backfill ingestion ──────────────────────────────
         ServiceSpec(
             protocol=AgentJiraBackfillIngestorProtocol,
             concrete=JiraBackfillIngestor,
@@ -169,30 +225,6 @@ def _get_agent_specs() -> List[ServiceSpec]:
             },
         ),
     ]
-
-
-async def _create_realtime_ingestor(resolver):
-    """Custom factory for RealtimeIngestor — resolves bot_user_id from secrets."""
-    from packages.agent.ingestion.realtime_ingestor import RealtimeIngestor
-    from packages.core.typed_di.service_registrations.protocols import (
-        AgentConversationStoreProtocol,
-        AgentEmbeddingsClientProtocol,
-        AgentVectorStoreProtocol,
-        SecretsManagerProtocol,
-    )
-
-    embeddings_client = await resolver.aget(AgentEmbeddingsClientProtocol)
-    vector_store = await resolver.aget(AgentVectorStoreProtocol)
-    conversation_store = await resolver.aget(AgentConversationStoreProtocol)
-    secrets_manager = await resolver.aget(SecretsManagerProtocol)
-    bot_user_id = await secrets_manager.get_bot_slack_user_id_async()
-
-    return RealtimeIngestor(
-        embeddings_client=embeddings_client,
-        vector_store=vector_store,
-        conversation_store=conversation_store,
-        bot_user_id=bot_user_id,
-    )
 
 
 async def _create_backfill_ingestor(resolver):
@@ -260,11 +292,11 @@ async def _create_agent_engine(resolver):
     )
 
 
-def register_agent_services(manager: ServiceRegistrationManager) -> int:
-    """Register all agent services if the feature is enabled.
+def register_chromadb_services(manager: ServiceRegistrationManager) -> int:
+    """Register ChromaDB foundation services if KETCHUP_CHROMADB_ENABLED or KETCHUP_AGENT_ENABLED.
 
-    Services are always registered (for DI graph completeness) but
-    gated at runtime by the KETCHUP_AGENT_ENABLED feature flag.
+    Registers: embeddings client, vector store, conversation store, and realtime ingestor.
+    These form the data layer used by both the agent chat and handover summary features.
 
     Args:
         manager: The ServiceRegistrationManager instance.
@@ -272,13 +304,40 @@ def register_agent_services(manager: ServiceRegistrationManager) -> int:
     Returns:
         Number of services registered.
     """
+    chromadb_enabled = os.environ.get("KETCHUP_CHROMADB_ENABLED", "false").lower() == "true"
+    agent_enabled = os.environ.get("KETCHUP_AGENT_ENABLED", "false").lower() == "true"
+
+    if not chromadb_enabled and not agent_enabled:
+        logger.info("ChromaDB disabled — skipping chromadb service registration")
+        return 0
+
+    specs = _get_chromadb_specs()
+    count = register_from_specs(manager, specs, "chromadb_services")
+    logger.info("Registered %d chromadb services", count)
+    return count
+
+
+def register_agent_services(manager: ServiceRegistrationManager) -> int:
+    """Register all agent services if the feature is enabled.
+
+    Calls register_chromadb_services() first to ensure foundation services
+    are available, then registers the agent chat/RAG services.
+
+    Args:
+        manager: The ServiceRegistrationManager instance.
+
+    Returns:
+        Number of services registered.
+    """
+    register_chromadb_services(manager)
+
     enabled = os.environ.get("KETCHUP_AGENT_ENABLED", "false").lower() == "true"
 
     if not enabled:
-        logger.info("Agent feature disabled — skipping agent service registration")
+        logger.info("Agent feature disabled — skipping agent chat service registration")
         return 0
 
     specs = _get_agent_specs()
     count = register_from_specs(manager, specs, "agent_services")
-    logger.info("Registered %d agent services", count)
+    logger.info("Registered %d agent chat services", count)
     return count

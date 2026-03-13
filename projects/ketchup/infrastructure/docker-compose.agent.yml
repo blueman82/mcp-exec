@@ -15,7 +15,7 @@ services:
     # Production maps to 8000 in docker-compose.yml (no DynamoDB).
     volumes:
       # Persistent storage for vector embeddings and metadata
-      - chromadb-data:/chroma/chroma
+      - chromadb_data:/chroma/chroma
     environment:
       # Enable persistent storage for embeddings across restarts
       - IS_PERSISTENT=TRUE
@@ -51,16 +51,7 @@ services:
       chromadb:
         condition: service_healthy
 
-  # Extend unified-scheduler with agent-specific configuration
-  ketchup-unified-scheduler:
-    env_file:
-      - agent.env
-    depends_on:
-      # Wait for ChromaDB to be healthy before scheduler starts
-      chromadb:
-        condition: service_healthy
-
 # Define named volume for ChromaDB data persistence
 volumes:
-  chromadb-data:
+  chromadb_data:
     driver: local

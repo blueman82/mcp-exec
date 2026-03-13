@@ -37,7 +37,7 @@ services:
     ports:
       - "8100:8000"  # Host 8100 to avoid dynamodb-local port conflict
     volumes:
-      - chromadb-data:/chroma/chroma
+      - chromadb_data:/chroma/chroma
     environment:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
@@ -70,6 +70,7 @@ services:
       - AWS_PROFILE=campaign_prod_v7
       - KETCHUP_AGENT_ENABLED=true
       - KETCHUP_AGENT_BACKFILL_ENABLED=true
+      - KETCHUP_CHROMADB_ENABLED=true
     volumes:
       - ~/.aws:/home/ketchup/.aws:ro
       - ./logs:/var/log
@@ -159,6 +160,7 @@ services:
       - KETCHUP_HANDOVER_TARGET_CHANNEL=C0AGXRW7KL2 #C03PWLW9P5H - camp-oncall channel.
       - KETCHUP_AGENT_ENABLED=true
       - KETCHUP_AGENT_BACKFILL_ENABLED=false
+      - KETCHUP_CHROMADB_ENABLED=true
       - KETCHUP_HANDOVER_SUMMARY_ENABLED=true
       - KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00
     volumes:
@@ -262,5 +264,5 @@ services:
     restart: "no"
 
 volumes:
-  chromadb-data:
+  chromadb_data:
     driver: local

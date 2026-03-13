@@ -17,6 +17,7 @@ graph TB
         FF6["KETCHUP_USE_HTTPX"]
         FF7["KETCHUP_HTTP2_ENABLED"]
         FF8["KETCHUP_KEEPALIVE_ENABLED"]
+        FF9["KETCHUP_CHROMADB_ENABLED"]
     end
 
     subgraph "Services Using Flags"
@@ -26,6 +27,7 @@ graph TB
         AccessSvc["Access Request<br/>Service"]
         PipelineSvc["Message Processing<br/>Pipeline"]
         HttpSvc["HTTP Client<br/>Layer"]
+        ChromaDBSvc["ChromaDB Data Layer<br/>(Embeddings + Vector Store)"]
     end
 
     DockerCompose -->|Defines| FF1
@@ -36,6 +38,7 @@ graph TB
     DockerCompose -->|Defines| FF6
     DockerCompose -->|Defines| FF7
     DockerCompose -->|Defines| FF8
+    DockerCompose -->|Defines| FF9
 
     FF1 -->|Controls| StatusSvc
     FF2 -->|Controls| JiraSvc
@@ -45,6 +48,7 @@ graph TB
     FF6 -->|Controls| HttpSvc
     FF7 -->|Controls| HttpSvc
     FF8 -->|Controls| HttpSvc
+    FF9 -->|Controls| ChromaDBSvc
 
     style DockerCompose fill:#ff9900
     style FF1 fill:#0099cc
@@ -55,6 +59,7 @@ graph TB
     style FF6 fill:#0099cc
     style FF7 fill:#0099cc
     style FF8 fill:#0099cc
+    style FF9 fill:#0099cc
 ```
 
 ## Feature Flag Resolution Flow
@@ -227,6 +232,10 @@ KETCHUP_DNS_CACHE_TTL=300                     # Cache DNS 5 minutes
 # Network Optimization
 KETCHUP_HTTPX_POOL_SIZE=100                   # Connection pool size
 KETCHUP_HTTPX_MAX_KEEPALIVE=50                # Max keepalive connections
+
+# ChromaDB & Agent
+KETCHUP_CHROMADB_ENABLED=false                # ChromaDB foundation (embeddings, vector store)
+KETCHUP_AGENT_ENABLED=false                   # Full agent chat/RAG stack
 ```
 
 ## Feature Flag Lifecycle
@@ -295,6 +304,8 @@ sequenceDiagram
 | **Status Updater** | Hourly reports | Manual only | Saves 5+ hours/week |
 | **JIRA Reporter** | Auto-sync | Manual | 100% accuracy |
 | **Access Automation** | Auto-approve | Manual review | Fast onboarding |
+| **ChromaDB Data Layer** | Pre-indexed messages | Slack API fallback | Faster handover summaries |
+| **Agent Chat** | RAG-powered @Ketchup | Disabled | Conversational agent |
 
 ## Adding a New Feature Flag
 

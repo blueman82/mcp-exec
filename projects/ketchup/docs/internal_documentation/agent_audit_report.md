@@ -54,6 +54,8 @@ Real-time Ingestion (all messages -> RealtimeIngestor -> vector store)
 **Files audited**: 18 source files across `packages/agent/`, `packages/core/typed_di/`, `packages/slack/`
 **Tests reviewed**: 19 test files (18 unit + 1 integration)
 
+> **Note (March 2026):** ChromaDB foundation services (embeddings, vector store, conversation store, realtime ingestor) have been decoupled from `KETCHUP_AGENT_ENABLED` and can now be independently enabled via `KETCHUP_CHROMADB_ENABLED`. The agent chat/RAG pipeline (Retriever, ContextBuilder, AgentEngine, etc.) still requires `KETCHUP_AGENT_ENABLED`. See `agent_services.py` for the two-tier registration architecture.
+
 ---
 
 ## Bug Findings

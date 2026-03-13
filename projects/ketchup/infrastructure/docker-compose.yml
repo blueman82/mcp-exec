@@ -93,11 +93,15 @@ services:
       - performance.env
       - features.env
       - azure.env
+      - agent.env
     volumes:
       - ./logs:/var/log
       - ./logs/unified_scheduler:/var/log/unified_scheduler
     depends_on:
-      - mcp-jira
+      mcp-jira:
+        condition: service_started
+      chromadb:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "bash", "-c", "HEALTH_FILE=/tmp/unified_scheduler_health LAST_RUN_FILE=/tmp/unified_scheduler_last_run MAX_RUN_AGE=4200 MAX_HEALTH_AGE=600 SERVICE_NAME=UnifiedScheduler /app/infrastructure/healthcheck-scheduler.sh"]

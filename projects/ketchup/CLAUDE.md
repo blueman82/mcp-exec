@@ -251,6 +251,13 @@ ServiceSpec(
 - Supports optional dependencies: `deps={"name": (Protocol, True)}`
 - Use `register_from_specs(manager, specs_list)` for batch registration
 
+#### Two-Tier Agent/ChromaDB Service Registration
+- **Location**: `packages/core/typed_di/service_registrations/registrations/agent_services.py`
+- ChromaDB foundation services (embeddings, vector store, conversation store, realtime ingestor) gated by `KETCHUP_CHROMADB_ENABLED` or `KETCHUP_AGENT_ENABLED`
+- Agent chat/RAG services (retriever, context builder, engine, handlers) gated by `KETCHUP_AGENT_ENABLED` only
+- `register_agent_services()` calls `register_chromadb_services()` first for backward compatibility
+- Allows handover summary to use ChromaDB without the full agent stack
+
 #### Two-Phase Processing
 Slack requires responses within 3 seconds, but AI operations take longer. Solution:
 1. **Quick Response Phase**: FastAPI endpoint immediately acknowledges (HTTP 200)
@@ -312,6 +319,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_ACCESS_REQUEST_AUTOMATION_FEATURE=true`
 - `KETCHUP_CSOPM_NOTIFIER_ENABLED=true` - CSOPM assignment notifications
 - `KETCHUP_HANDOVER_SUMMARY_ENABLED=false` - On-call handover summary notifications
+- `KETCHUP_CHROMADB_ENABLED=false` - ChromaDB data layer (embeddings, vector store, realtime ingestion)
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
 
@@ -339,6 +347,7 @@ KETCHUP_KEEPALIVE_TIMEOUT=60
 KETCHUP_DNS_CACHE_TTL=300
 KETCHUP_USE_HTTPX=true
 KETCHUP_HTTP2_ENABLED=true
+KETCHUP_CHROMADB_ENABLED=false               # ChromaDB data layer (independent of agent)
 KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00  # Comma-separated UTC times
 KETCHUP_HANDOVER_TARGET_CHANNEL=C03PWLW9P5H  # Slack channel ID for camp-oncall
 KETCHUP_HANDOVER_MESSAGE_WINDOW_HOURS=12     # Hours of messages to collect
@@ -467,6 +476,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
+- **March 2026**: ChromaDB decoupled from agent feature flag — new `KETCHUP_CHROMADB_ENABLED` flag allows handover summary to use ChromaDB pre-indexed messages without requiring the full agent chat/RAG stack. Two-tier service registration: chromadb foundation (4 services) + agent chat (8 services).
 - **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Fresh data collection from Slack, JIRA, and DynamoDB with AI-powered 1-2 bullet summaries per channel. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
 - **January 2026**: LOC reduction initiative - ServiceSpec declarative system and code cleanup removing ~2,600 lines:
   - PR #165: Dead code audit (-1,460 LOC) - Removed unused handlers, orphan classes, legacy compatibility shims

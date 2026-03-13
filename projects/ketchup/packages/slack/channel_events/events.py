@@ -201,11 +201,12 @@ class SlackEventHandler:
             # Delegate core processing to the imported function
             await process_channel_archive(channel_id=channel_id, dynamodb_store=self.dynamodb_store)
 
-            # ── Agent cleanup on archive ──
+            # ── ChromaDB/Agent cleanup on archive ──
             try:
                 from packages.agent.slack.handler import is_agent_enabled
+                from packages.core.config.feature_flags import FeatureFlags
 
-                if is_agent_enabled() and self.typed_container:
+                if (is_agent_enabled() or FeatureFlags.is_chromadb_enabled()) and self.typed_container:
                     from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                         AgentConversationStoreProtocol,
                         AgentVectorStoreProtocol,
@@ -428,11 +429,13 @@ class SlackEventHandler:
         else:
             logger.info(f"Message does not mention bot: {text}")
 
-        # ── Agent real-time ingestion ──
+        # ── ChromaDB real-time ingestion ──
+        # Runs when either ChromaDB or full agent is enabled (ingestor is in the chromadb tier)
         try:
             from packages.agent.slack.handler import is_agent_enabled
+            from packages.core.config.feature_flags import FeatureFlags
 
-            if is_agent_enabled() and self.typed_container:
+            if (is_agent_enabled() or FeatureFlags.is_chromadb_enabled()) and self.typed_container:
                 from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                     AgentRealtimeIngestorProtocol,
                 )
@@ -440,7 +443,7 @@ class SlackEventHandler:
                 ingestor = await self.typed_container.aget(AgentRealtimeIngestorProtocol)
                 await ingestor.ingest_message(event.get("channel"), event)
         except Exception as e:
-            logger.debug("Agent ingestion skipped: %s", e)
+            logger.warning("ChromaDB ingestion failed: %s", e)
 
     async def handle_message_im(self, event: dict):
         """

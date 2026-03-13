@@ -15,7 +15,7 @@ from collections.abc import Callable
 from packages.core.logging import setup_logger
 
 # Import all registration functions from focused modules
-from .agent_services import register_agent_services
+from .agent_services import register_agent_services, register_chromadb_services
 from .ai_operational import register_ai_operational
 from .command_processing import register_command_processing
 from .core_infrastructure import register_core_infrastructure
@@ -46,6 +46,7 @@ __all__ = [
     "register_ui_services",
     "register_maintenance_services",
     "register_csopm_services",
+    "register_chromadb_services",
     "register_agent_services",
     "register_all_focused_services",
     "register_for_role",
@@ -186,6 +187,8 @@ def register_all_focused_services(manager: object) -> None:
     # CSOPM notifier services (4 services) - state tracking, JIRA polling, Slack notifications, reminders
     register_csopm_services(manager)
 
-    # Agent services (11 services) - embeddings, vector store, RAG pipeline, Slack handler
-    # Gated by KETCHUP_AGENT_ENABLED feature flag
+    # ChromaDB foundation + Agent services
+    # ChromaDB (4 services): embeddings, vector store, conversation store, realtime ingestor
+    # Agent (8 services): retriever, context builder, thread manager, filter, JIRA backfill, backfill ingestor, engine, handler
+    # Gated by KETCHUP_CHROMADB_ENABLED and KETCHUP_AGENT_ENABLED feature flags
     register_agent_services(manager)

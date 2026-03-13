@@ -266,6 +266,21 @@ class FeatureFlags:
         return value == "true"
 
     @staticmethod
+    def is_chromadb_enabled() -> bool:
+        """
+        Check if ChromaDB data layer is enabled independently of the agent.
+
+        When enabled, registers ChromaDB foundation services (embeddings, vector store,
+        conversation store, realtime ingestor) for use by features like handover summary
+        without requiring the full agent chat/RAG stack.
+
+        Returns:
+            True if ChromaDB is enabled, False otherwise
+        """
+        value = os.environ.get("KETCHUP_CHROMADB_ENABLED", "false").lower()
+        return value == "true"
+
+    @staticmethod
     def get_all_flags() -> Dict[str, Any]:
         """
         Get all feature flags and their current values.
@@ -292,5 +307,6 @@ class FeatureFlags:
             "http2_enabled": FeatureFlags.is_http2_enabled(),
             "httpx_pool_limits": FeatureFlags.get_httpx_pool_limits(),
             "structured_json_output_enabled": FeatureFlags.is_structured_json_output_enabled(),
+            "chromadb_enabled": FeatureFlags.is_chromadb_enabled(),
             # async_mcp_enabled removed - always True (consolidated to AsyncMCPClient)
         }
