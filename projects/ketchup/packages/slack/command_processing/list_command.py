@@ -110,7 +110,7 @@ class SlackListCommand(BaseCommandHandler):
                 channels_list=channel_list,
                 include_helper_text=True,
             )
-            return self.create_success_response({"message": "List command processed"})
+            return self.create_success_response("List command processed")
         except Exception as e:
             logger.error("Error processing list request: %s", str(e))
             return self.create_error_response(f"Error processing list request: {str(e)}")

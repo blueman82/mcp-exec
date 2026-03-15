@@ -113,8 +113,7 @@ class TestAccessRequestE2E(BaseIntegrationTest):
                 result = await router.route_command(dm_command)
 
                 # Verify response
-                status_code = result.status_code if isinstance(result, ProcessingResult) else result.get("statusCode")
-                if status_code != 200:
+                if result.status_code != 200:
                     self.logger.error(f"Unexpected status code: {result}")
                     return False
 

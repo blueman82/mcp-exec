@@ -49,26 +49,6 @@ class TestSlackListCommand:
             block_kit_builder=self.block_kit_builder,
             user_store=self.user_store,
         )
-        # Patch response methods to match test expectations
-        self.handler.create_success_response = lambda msg: {
-            "status": "success",
-            "statusCode": 200,
-            "body": msg if isinstance(msg, str) else msg.get("message", msg),
-            "message": msg if isinstance(msg, str) else msg.get("message", msg),
-            "feedback_sent": True,
-        }
-        self.handler.create_error_response = lambda msg, status_code=500: {
-            "status": "error",
-            "statusCode": status_code,
-            "body": msg,
-            "message": msg,
-        }
-        self.handler.create_validation_error_response = lambda msg: {
-            "status": "validation_error",
-            "statusCode": 400,
-            "body": (msg if "Invalid initial input" in str(msg) else "Invalid initial input"),
-            "message": msg,
-        }
 
     @pytest.mark.asyncio
     async def test_process_list_params_valid(self) -> None:
@@ -89,7 +69,6 @@ class TestSlackListCommand:
         user_id = "U123"
         incoming_channel = "C123"
         response_url = "https://slack.com/response"
-        # Patch _process_list to return a realistic channel list
         channel_list = [
             {
                 "channel_id": "C123",
@@ -113,11 +92,10 @@ class TestSlackListCommand:
                 params, user_id, incoming_channel, response_url
             )
             assert result is not None
-            assert result["status"] == "success"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 200
             mock_proc.assert_awaited()
             mock_send_msg.assert_awaited()
-            # post_message is no longer called - usage instructions removed
-            # mock_post_msg.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_process_list_params_invalid_params(self) -> None:
@@ -143,7 +121,8 @@ class TestSlackListCommand:
                 params, user_id, incoming_channel, response_url
             )
             assert result is not None
-            assert result["status"] == "validation_error"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 400
             mock_proc.assert_not_called()
 
     @pytest.mark.asyncio
@@ -171,6 +150,7 @@ class TestSlackListCommand:
                 params, user_id, incoming_channel, response_url
             )
             assert result is not None
-            assert result["status"] == "error"
-            assert "fail!" in result["message"]
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 500
+            assert "fail!" in result.body
             mock_proc.assert_awaited()
