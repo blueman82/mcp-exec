@@ -5,9 +5,10 @@ This module contains the BaseCommandHandler class, which serves as the base clas
 for all command handlers in the system.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 from packages.core.logging import setup_logger
+from packages.slack.channel_events.models import ProcessingResult
 
 logger = setup_logger(__name__)
 
@@ -37,7 +38,7 @@ class BaseCommandHandler:
             list(dependencies.keys()),
         )
 
-    def create_success_response(self, message: str) -> Dict[str, Any]:
+    def create_success_response(self, message: str) -> ProcessingResult:
         """
         Create a standardized success response.
 
@@ -45,11 +46,11 @@ class BaseCommandHandler:
             message: The success message to include
 
         Returns:
-            A dictionary containing the success response
+            A ProcessingResult containing the success response
         """
-        return {"statusCode": 200, "body": message, "feedback_sent": True}
+        return ProcessingResult(status_code=200, body=message, feedback_sent=True)
 
-    def create_error_response(self, message: str, status_code: int = 500) -> Dict[str, Any]:
+    def create_error_response(self, message: str, status_code: int = 500) -> ProcessingResult:
         """
         Create a standardized error response.
 
@@ -58,11 +59,11 @@ class BaseCommandHandler:
             status_code: The HTTP status code (default: 500)
 
         Returns:
-            A dictionary containing the error response
+            A ProcessingResult containing the error response
         """
-        return {"statusCode": status_code, "body": message, "feedback_sent": True}
+        return ProcessingResult(status_code=status_code, body=message, feedback_sent=True)
 
-    def create_validation_error_response(self, message: str) -> Dict[str, Any]:
+    def create_validation_error_response(self, message: str) -> ProcessingResult:
         """
         Create a standardized validation error response.
 
@@ -70,6 +71,6 @@ class BaseCommandHandler:
             message: The validation error message to include
 
         Returns:
-            A dictionary containing the validation error response
+            A ProcessingResult containing the validation error response
         """
-        return {"statusCode": 400, "body": message, "feedback_sent": True}
+        return ProcessingResult(status_code=400, body=message, feedback_sent=True)

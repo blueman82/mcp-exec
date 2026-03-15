@@ -8,6 +8,7 @@ from functools import wraps
 from typing import Any, Callable, Optional
 
 from packages.core.logging import setup_logger
+from packages.slack.channel_events.models import ProcessingResult
 
 logger = setup_logger(__name__)
 
@@ -74,11 +75,7 @@ async def _handle_missing_params(instance, user_id, target_channel_id, dm_channe
             logger.error("Failed to send error via response_url: %s", post_err)
     if hasattr(instance, "create_validation_error_response"):
         return instance.create_validation_error_response("Missing required parameters")
-    return {
-        "statusCode": 400,
-        "body": "Missing required parameters",
-        "feedback_sent": True,
-    }
+    return ProcessingResult(status_code=400, body="Missing required parameters", feedback_sent=True)
 
 
 async def _handle_missing_restore_ops(
@@ -100,11 +97,7 @@ async def _handle_missing_restore_ops(
             logger.error("Failed to send error via response_url: %s", post_err)
     if hasattr(instance, "create_error_response"):
         return instance.create_error_response("Internal configuration error", status_code=500)
-    return {
-        "statusCode": 500,
-        "body": "Internal configuration error",
-        "feedback_sent": True,
-    }
+    return ProcessingResult(status_code=500, body="Internal configuration error", feedback_sent=True)
 
 
 async def _handle_restore_failure(instance, channel_to_check):
@@ -116,11 +109,7 @@ async def _handle_restore_failure(instance, channel_to_check):
         return instance.create_error_response(
             f"Failed to access channel {channel_to_check}", status_code=400
         )
-    return {
-        "statusCode": 400,
-        "body": f"Failed to access channel {channel_to_check}",
-        "feedback_sent": True,
-    }
+    return ProcessingResult(status_code=400, body=f"Failed to access channel {channel_to_check}", feedback_sent=True)
 
 
 async def _handle_exception(instance, e, kwargs, response_url):
@@ -142,11 +131,7 @@ async def _handle_exception(instance, e, kwargs, response_url):
             logger.error("Failed to send decorator exception via response_url: %s", post_err)
     if hasattr(instance, "create_error_response"):
         return instance.create_error_response(f"Internal server error: {str(e)}", status_code=500)
-    return {
-        "statusCode": 500,
-        "body": f"Internal server error: {str(e)}",
-        "feedback_sent": True,
-    }
+    return ProcessingResult(status_code=500, body=f"Internal server error: {str(e)}", feedback_sent=True)
 
 
 async def _handle_finally(

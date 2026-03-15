@@ -12,7 +12,7 @@ from packages.core.logging import setup_logger
 from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.slack.authorisation.auth import SlackAuth
 from packages.slack.channel_events.events import SlackEventHandler
-from packages.slack.channel_events.models import SlackRequest
+from packages.slack.channel_events.models import ProcessingResult, SlackRequest
 from packages.slack.channel_events.request_processing.dependency_setup import (
     setup_dependencies,
 )
@@ -27,7 +27,7 @@ logger = setup_logger(__name__)
 
 
 # --- Main Request Handler --- #
-async def process_request(request: SlackRequest, container: TypedServiceRegistry) -> Dict[str, Any]:
+async def process_request(request: SlackRequest, container: TypedServiceRegistry) -> ProcessingResult:
     """
     Process a request from Slack at the module level.
 
@@ -39,16 +39,16 @@ async def process_request(request: SlackRequest, container: TypedServiceRegistry
         container: The TypedServiceRegistry instance
 
     Returns:
-        Dict with statusCode and body
+        ProcessingResult with status code and body
     """
     if not container.is_initialized():
         logger.error("process_request called with uninitialized DI container.")
-        return {
-            "statusCode": 500,
-            "body": json.dumps(
+        return ProcessingResult(
+            status_code=500,
+            body=json.dumps(
                 {"error": "Internal configuration error: DI container not initialized."}
             ),
-        }
+        )
 
     try:
         # Setup dependencies for this specific request using the container
@@ -70,10 +70,10 @@ async def process_request(request: SlackRequest, container: TypedServiceRegistry
 
     except ValueError as ve:  # Catch specific config errors
         logger.error("Configuration error during process_request setup: %s", ve)
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": f"Internal configuration error: {ve}"}),
-        }
+        return ProcessingResult(
+            status_code=500,
+            body=json.dumps({"error": f"Internal configuration error: {ve}"}),
+        )
     except Exception as e:
         logger.error(
             "Unhandled error during process_request setup or processing: %s",
@@ -81,10 +81,10 @@ async def process_request(request: SlackRequest, container: TypedServiceRegistry
             exc_info=True,
         )
         # Return a generic error response
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": "An unexpected error occurred."}),
-        }
+        return ProcessingResult(
+            status_code=500,
+            body=json.dumps({"error": "An unexpected error occurred."}),
+        )
 
 
 # --- EventProcessor Class --- #
@@ -132,7 +132,7 @@ class EventProcessor:
         # Get CSOPMHandler for CSOPM interactive button actions
         self.csopm_handler = clients.get("csopm_handler")
 
-    async def process_request(self, request: SlackRequest) -> Dict[str, Any]:
+    async def process_request(self, request: SlackRequest) -> ProcessingResult:
         """
         Process an incoming Slack request.
 
@@ -140,7 +140,7 @@ class EventProcessor:
             request: The parsed SlackRequest.
 
         Returns:
-            A dictionary with statusCode and body.
+            ProcessingResult with status code and body.
         """
         logger.info("Processing incoming request within EventProcessor")
 
@@ -148,7 +148,7 @@ class EventProcessor:
         retry_num = request.headers.get("x-slack-retry-num")
         if retry_num:
             logger.warning("Slack retry attempt number %s detected. Ignoring.", retry_num)
-            return {"statusCode": 200, "body": "Retry ignored"}
+            return ProcessingResult(status_code=200, body="Retry ignored")
 
         # Use pre-parsed body data directly
         parsed_body_dict = request.parsed_body
@@ -212,4 +212,4 @@ class EventProcessor:
             logger.warning("Unknown request type received")
             logger.info("Unknown request body dict: %s", parsed_body_dict)
             logger.info("Unknown request body multivalue: %s", parsed_body_multivalue)
-            return {"statusCode": 400, "body": "Unknown request type"}
+            return ProcessingResult(status_code=400, body="Unknown request type")
