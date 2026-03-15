@@ -303,10 +303,7 @@ class TestMetadataUpdaterPassthrough:
         # Setup mock container
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
 
-        event = {"source": "test"}
-        context = {}
-
-        result = await process_channels(event, context, container=mock_container)
+        result = await process_channels(container=mock_container)
         # Should return error response due to exception
         assert result["statusCode"] == 500
 
@@ -317,9 +314,6 @@ class TestMetadataUpdaterPassthrough:
 
         # Setup mock container to return required dependencies
         mock_container.aget = AsyncMock(return_value=mock_secrets_manager)
-
-        event = {"source": "test"}
-        context = {}
 
         with patch(
             "ketchup_unified_scheduler.services.metadata.processor.get_unified_container"
@@ -334,7 +328,7 @@ class TestMetadataUpdaterPassthrough:
                 mock_updater.cleanup_clients = AsyncMock()
                 mock_create_updater.return_value = mock_updater
 
-                await process_channels(event, context, container=mock_container)
+                await process_channels(container=mock_container)
 
                 # get_unified_container should NOT be called when container is provided
                 mock_get_container.assert_not_called()
@@ -347,14 +341,11 @@ class TestMetadataUpdaterPassthrough:
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
 
-        event = {"source": "test"}
-        context = {}
-
         with patch(
             "ketchup_unified_scheduler.services.metadata.processor.get_unified_container",
             return_value=mock_container,
         ):
-            result = await process_channels(event, context)
+            result = await process_channels()
             # Should return error due to exception
             assert result["statusCode"] == 500
 
@@ -366,14 +357,11 @@ class TestMetadataUpdaterPassthrough:
         mock_container = AsyncMock()
         mock_container.aget = AsyncMock(side_effect=Exception("Test exit"))
 
-        event = {"source": "test"}
-        context = {}
-
         with patch(
             "ketchup_unified_scheduler.services.metadata.processor.get_unified_container",
             return_value=mock_container,
         ) as mock_get_container:
-            await process_channels(event, context)
+            await process_channels()
 
             # get_unified_container SHOULD be called when no container provided
             mock_get_container.assert_called_once()
