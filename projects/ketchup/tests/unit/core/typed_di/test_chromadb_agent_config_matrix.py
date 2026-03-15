@@ -7,19 +7,8 @@ correctly as independent functions.
 """
 
 import os
-import sys
 import unittest
-from types import ModuleType
-from unittest.mock import MagicMock, patch
-
-# chromadb pip package is only in Docker — stub it for unit tests
-if "chromadb" not in sys.modules:
-    _chromadb_stub = ModuleType("chromadb")
-    _chromadb_stub.HttpClient = MagicMock  # type: ignore[attr-defined]
-    sys.modules["chromadb"] = _chromadb_stub
-    _config_stub = ModuleType("chromadb.config")
-    _config_stub.Settings = MagicMock  # type: ignore[attr-defined]
-    sys.modules["chromadb.config"] = _config_stub
+from unittest.mock import patch
 
 from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.core.typed_di.service_registrations.manager import (

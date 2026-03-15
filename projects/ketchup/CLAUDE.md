@@ -255,7 +255,7 @@ ServiceSpec(
 - **Location**: `packages/core/typed_di/service_registrations/registrations/agent_services.py`
 - ChromaDB foundation services (embeddings, vector store, conversation store, realtime ingestor) gated by `KETCHUP_CHROMADB_ENABLED` or `KETCHUP_AGENT_ENABLED`
 - Agent chat/RAG services (retriever, context builder, engine, handlers) gated by `KETCHUP_AGENT_ENABLED` only
-- `register_agent_services()` calls `register_chromadb_services()` first for backward compatibility
+- Both `register_chromadb_services()` and `register_agent_services()` are explicit entries in the role maps (`__init__.py`)
 - Allows handover summary to use ChromaDB without the full agent stack
 
 #### Two-Phase Processing
