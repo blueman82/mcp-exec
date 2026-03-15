@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from packages.core.typed_di.registry import TypedServiceRegistry
+from packages.slack.channel_events.models import ProcessingResult
 
 # ============================================================================
 # Fixtures
@@ -305,7 +306,7 @@ class TestMetadataUpdaterPassthrough:
 
         result = await process_channels(container=mock_container)
         # Should return error response due to exception
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
 
     @pytest.mark.asyncio
     async def test_uses_provided_container(self, mock_container, mock_secrets_manager):
@@ -347,7 +348,7 @@ class TestMetadataUpdaterPassthrough:
         ):
             result = await process_channels()
             # Should return error due to exception
-            assert result["statusCode"] == 500
+            assert result.status_code == 500
 
     @pytest.mark.asyncio
     async def test_creates_container_when_none_provided(self):

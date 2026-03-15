@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 from packages.slack.channel_events.events import SlackEventHandler
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_router import CommandRouter
 from packages.slack.home.home import HomeTabHandler
 from packages.slack.interactive_elements.channel_metadata_edit import (
@@ -29,7 +30,7 @@ logger = setup_logger(__name__)
 
 async def handle_slack_command(
     parsed_body_multivalue: Dict[str, List[str]], command_router: CommandRouter
-) -> Dict[str, Any]:
+) -> ProcessingResult:
     """
     Handles incoming slash commands by routing them.
 
@@ -38,23 +39,23 @@ async def handle_slack_command(
         command_router: The CommandRouter instance.
 
     Returns:
-        A dictionary suitable for returning from the Lambda function (ack).
+        ProcessingResult with status code and response body.
     """
     logger.info("Request identified as a Slash Command, routing...")
     response_url = parsed_body_multivalue.get("response_url", [None])[0]
     if not response_url:
         logger.error("No response_url found in command payload for routing")
         # Cannot acknowledge without response_url, return error
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Missing response_url for command"}),
-        }
+        return ProcessingResult(
+            status_code=400,
+            body=json.dumps({"error": "Missing response_url for command"}),
+        )
 
     try:
         # Route the command using the injected command_router
         await command_router.route_command(parsed_body_multivalue, response_url)
         logger.info("Command routed successfully")
-        return {"statusCode": 200, "body": ""}  # Ack command
+        return ProcessingResult(status_code=200, body="")  # Ack command
     except Exception as e:
         logger.error("Error routing command: %s", e, exc_info=True)
         # Attempt to post error via response_url if possible
@@ -73,7 +74,7 @@ async def handle_slack_command(
         except Exception as post_err:
             logger.error("Failed to post command routing error: %s", post_err)
         # Return 200 to ack receipt, even if internal processing failed
-        return {"statusCode": 200, "body": "Error processing command"}
+        return ProcessingResult(status_code=200, body="Error processing command")
 
 
 async def handle_interactive_component(
@@ -88,7 +89,7 @@ async def handle_interactive_component(
     access_request_handler: Any = None,  # AccessRequestHandler - optional for access request automation
     flag_review_handler: Any = None,  # FlagReviewHandler - optional until implemented
     csopm_handler: Any = None,  # CSOPMHandler - optional for CSOPM notifications
-) -> Dict[str, Any]:
+) -> ProcessingResult:
     """
     Handles incoming interactive component payloads.
 
@@ -100,16 +101,16 @@ async def handle_interactive_component(
         feedback_report_handler: The FeedbackReportHandler instance.
 
     Returns:
-        A dictionary suitable for returning from the Lambda function (ack).
+        ProcessingResult with status code and response body.
     """
     logger.info("Request identified as an Interactive Component")
     payload_list = parsed_body_multivalue.get("payload")
     if not payload_list or not isinstance(payload_list, list) or not payload_list[0]:
         logger.error("Invalid or missing payload in interactive component request")
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Invalid payload format"}),
-        }
+        return ProcessingResult(
+            status_code=400,
+            body=json.dumps({"error": "Invalid payload format"}),
+        )
 
     payload_str = payload_list[0]
     try:
@@ -131,14 +132,14 @@ async def handle_interactive_component(
         logger.info("Processed interactive payload successfully.")
         # Return modal response (errors/update) if handler returned a dict
         if isinstance(result, dict) and result.get("response_action"):
-            return {"statusCode": 200, "body": json.dumps(result)}
-        return {"statusCode": 200, "body": ""}  # Ack interaction
+            return ProcessingResult(status_code=200, body=json.dumps(result))
+        return ProcessingResult(status_code=200, body="")  # Ack interaction
     except json.JSONDecodeError:
         logger.error("Failed to parse interactive payload JSON: %s", payload_str[:100])
-        return {
-            "statusCode": 400,
-            "body": json.dumps({"error": "Invalid payload format"}),
-        }
+        return ProcessingResult(
+            status_code=400,
+            body=json.dumps({"error": "Invalid payload format"}),
+        )
     except Exception as e:
         logger.error("Error processing interactive payload: %s", e, exc_info=True)
         # Attempt to notify if possible (e.g., via response_url if available in payload)
@@ -153,7 +154,7 @@ async def handle_interactive_component(
                 logger.error("Failed to send interaction error via response_url: %s", post_error)
 
         # Ack receipt even on error to prevent Slack retries
-        return {"statusCode": 200, "body": "Error processing interaction"}
+        return ProcessingResult(status_code=200, body="Error processing interaction")
 
 
 async def handle_events_api(
@@ -161,7 +162,7 @@ async def handle_events_api(
     parsed_body_dict: Dict[str, Any],
     event_handler: SlackEventHandler,
     home_tab_handler: Optional[HomeTabHandler] = None,
-) -> Dict[str, Any]:
+) -> ProcessingResult:
     """
     Handles incoming Events API events (url_verification or event_callback).
 
@@ -172,7 +173,7 @@ async def handle_events_api(
         home_tab_handler: Optional HomeTabHandler instance for app_home_opened events.
 
     Returns:
-        A dictionary suitable for returning from the Lambda function.
+        ProcessingResult with status code and response body.
     """
     # Determine event type (preferring multivalue source)
     event_type_list = parsed_body_multivalue.get("type")
@@ -196,7 +197,7 @@ async def handle_events_api(
         challenge_list = parsed_body_multivalue.get("challenge")
         challenge = challenge_list[0] if challenge_list else parsed_body_dict.get("challenge")
         logger.info("Returning URL verification challenge: %s", challenge)
-        return {"statusCode": 200, "body": challenge or ""}
+        return ProcessingResult(status_code=200, body=challenge or "")
 
     # Handle Event Callbacks (nested or direct)
     nested_event_data = None
@@ -217,10 +218,10 @@ async def handle_events_api(
                             else type(nested_event_list[0])
                         ),
                     )
-                    return {"statusCode": 400, "body": "Invalid event format"}
+                    return ProcessingResult(status_code=400, body="Invalid event format")
         else:
             logger.error("Missing or invalid 'event' field in multivalue dict for event_callback")
-            return {"statusCode": 400, "body": "Invalid event_callback structure"}
+            return ProcessingResult(status_code=400, body="Invalid event_callback structure")
 
     elif "event" in parsed_body_dict:
         nested_event_data = parsed_body_dict.get("event")
@@ -246,7 +247,7 @@ async def handle_events_api(
             # Add handling if source was multivalue but event wasn't nested (less common)
             elif source_dict == "multivalue":
                 logger.error("Cannot process non-nested direct event from multivalue source.")
-                return {"statusCode": 400, "body": "Unexpected event structure"}
+                return ProcessingResult(status_code=400, body="Unexpected event structure")
 
         # If we have a dictionary to process, dispatch it
         if dict_to_process:
@@ -259,7 +260,7 @@ async def handle_events_api(
                     "Invalid or missing event type in event data: %s",
                     actual_event_type,
                 )
-                return {"statusCode": 400, "body": "Invalid event data: Missing type"}
+                return ProcessingResult(status_code=400, body="Invalid event data: Missing type")
 
             # Special handling for app_home_opened events
             if actual_event_type == "app_home_opened" and home_tab_handler:
@@ -272,7 +273,7 @@ async def handle_events_api(
                         home_err,
                         exc_info=True,
                     )
-                return {"statusCode": 200, "body": "Home tab updated"}
+                return ProcessingResult(status_code=200, body="Home tab updated")
 
             # Map event types to handler methods on the event_handler object
             event_handler_map = {
@@ -304,7 +305,7 @@ async def handle_events_api(
             logger.error(
                 "Event type is 'event_callback' but nested 'event' data is invalid or missing."
             )
-            return {"statusCode": 400, "body": "Invalid event_callback structure"}
+            return ProcessingResult(status_code=400, body="Invalid event_callback structure")
         else:
             # Case where no valid dictionary was identified for processing
             logger.warning(
@@ -312,9 +313,9 @@ async def handle_events_api(
                 event_type,
             )
 
-        return {"statusCode": 200, "body": "Event received"}
+        return ProcessingResult(status_code=200, body="Event received")
 
     except Exception as e:
         logger.error("Error during event processing by SlackEventHandler: %s", e, exc_info=True)
         # Return 200 to ack receipt to Slack, but log the internal error
-        return {"statusCode": 200, "body": "Error processing event"}
+        return ProcessingResult(status_code=200, body="Error processing event")

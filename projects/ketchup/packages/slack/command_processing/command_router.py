@@ -15,6 +15,7 @@ from packages.db.operations.command_tracking_operations import (
 from packages.db.user_store import UserStore
 from packages.slack.authorisation.user_verification import UserVerifier
 from packages.slack.blockkits.handlers.access_request_blocks import AccessRequestBlocks
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_logger import (
     extract_command_details,
     log_command_execution,
@@ -70,7 +71,7 @@ class CommandRouter:
         self._command_tracking_ops = command_tracking_ops
         logger.info("CommandRouter initialized with injected command handlers and user verifier.")
 
-    async def route_command(self, body: Dict[str, Any], response_url: str = "") -> Dict[str, Any]:
+    async def route_command(self, body: Dict[str, Any], response_url: str = "") -> ProcessingResult:
         """
         Route a Slack command to the appropriate handler.
 
@@ -166,7 +167,7 @@ class CommandRouter:
                         )
                     except Exception as e:
                         logger.error("Error posting message to Slack: %s", str(e))
-                return {"statusCode": 200, "body": ""}
+                return ProcessingResult(status_code=200, body="")
 
         # Fetch user's real name from database for proper JIRA query handling
         user_real_name = user_name  # Default to Slack username
@@ -198,7 +199,7 @@ class CommandRouter:
 
         if not params:
             logger.warning("Command verification failed: %s", combined_command)
-            return {"statusCode": 200, "body": ""}
+            return ProcessingResult(status_code=200, body="")
 
         logger.info("Routing command type: %s", params.command_type)
 
@@ -236,7 +237,7 @@ class CommandRouter:
                 channel_id=incoming_channel,
                 message=f"Sorry, the command `{combined_command}` is not supported or configured correctly.",
             )
-            return {"statusCode": 400, "body": "Unsupported command type"}
+            return ProcessingResult(status_code=400, body="Unsupported command type")
 
         logger.info("Found handler: %s", type(handler).__name__)
 
@@ -368,4 +369,4 @@ class CommandRouter:
                     response_url=response_url,
                 )
 
-            return {"statusCode": 500, "body": error_message}
+            return ProcessingResult(status_code=500, body=error_message)

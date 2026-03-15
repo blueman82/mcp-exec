@@ -31,7 +31,7 @@ async def metadata_update_task(container: Optional[TypedServiceRegistry] = None)
     try:
         result = await process_channels(container=container)
 
-        status_code = result.get("statusCode", 500)
+        status_code = result.status_code
         if status_code == 200:
             logger.info("Metadata update task completed successfully: %s", result)
         else:

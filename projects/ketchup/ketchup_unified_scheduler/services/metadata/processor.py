@@ -31,6 +31,7 @@ from packages.core.typed_di.service_registrations.protocols.slack_protocols impo
     SlackChannelMessageOpsProtocol,
 )
 from packages.core.typed_di_integration import get_unified_container
+from packages.slack.channel_events.models import ProcessingResult
 
 logger = setup_logger(__name__)
 
@@ -74,7 +75,7 @@ async def create_channel_metadata_updater(container) -> ChannelMetadataUpdater:
 
 async def process_channels(
     container: Optional[TypedServiceRegistry] = None,
-) -> Dict[str, Any]:
+) -> ProcessingResult:
     """Process channels with missing metadata asynchronously.
 
     Args:
@@ -98,10 +99,10 @@ async def process_channels(
             str(e),
             exc_info=True,
         )
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": f"Container initialization failed: {str(e)}"}),
-        }
+        return ProcessingResult(
+            status_code=500,
+            body=json.dumps({"error": f"Container initialization failed: {str(e)}"}),
+        )
 
     updater = None
     try:
@@ -113,10 +114,10 @@ async def process_channels(
 
         if not channels:
             logger.info("No channels found with missing metadata")
-            return {
-                "statusCode": 200,
-                "body": json.dumps({"message": "No channels found with missing metadata"}),
-            }
+            return ProcessingResult(
+                status_code=200,
+                body=json.dumps({"message": "No channels found with missing metadata"}),
+            )
 
         logger.info("Found %d channel(s) with missing metadata", len(channels))
 
@@ -129,9 +130,9 @@ async def process_channels(
             stats.get("total", 0),
         )
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
+        return ProcessingResult(
+            status_code=200,
+            body=json.dumps(
                 {
                     "processed": stats.get("total", 0),
                     "successful": stats.get("success", 0),
@@ -139,14 +140,14 @@ async def process_channels(
                     "failed": stats.get("failure", 0),
                 }
             ),
-        }
+        )
 
     except RuntimeError as e:
         logger.error("Runtime error in metadata update process: %s", str(e))
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        return ProcessingResult(status_code=500, body=json.dumps({"error": str(e)}))
     except Exception as e:
         logger.error("Unexpected error in metadata update process: %s", str(e))
-        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        return ProcessingResult(status_code=500, body=json.dumps({"error": str(e)}))
     # NOTE: No finally/cleanup block here for unified scheduler context.
     # All dependencies are shared DI singletons that MUST NOT be cleaned up
     # by individual tasks. Cleanup is managed by the DI container lifecycle.

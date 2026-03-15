@@ -19,6 +19,7 @@ PATCH_PATH_NORMALIZE_PREFS = (
 )
 
 from packages.secrets.manager import SecretsManager
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.status_report_command import SlackReports
 from packages.slack.config.slack_config import SlackConfig
 
@@ -147,7 +148,7 @@ class TestSlackReports:
         # )
 
         assert result is not None
-        assert result["statusCode"] == 200
+        assert result.status_code == 200
 
     @pytest.mark.asyncio
     async def test_process_report_request_valid_no_db_prefs(self) -> None:
@@ -206,7 +207,7 @@ class TestSlackReports:
             query_text="generate comprehensive incident report",
             normalized_prefs_for_ai=mock_normalized_default_prefs,
         )
-        assert actual_result["statusCode"] == 200  # Check the actual_result
+        assert actual_result.status_code == 200  # Check the actual_result
         # self.block_kit_builder.send_ketchup_report_block_kit.assert_awaited() # This assertion might need adjustment based on actual calls
         # Instead, check if slack_posting_handler.post_message was called with the report.
         # This depends on how report_message_handler.send_message is implemented

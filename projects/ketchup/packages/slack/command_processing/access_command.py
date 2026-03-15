@@ -9,6 +9,7 @@ from typing import Any, Dict
 from packages.core.logging import setup_logger
 from packages.slack.authorisation.user_verification import UserVerifier
 from packages.slack.blockkits.handlers.access_request_blocks import AccessRequestBlocks
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.base_command_handler import BaseCommandHandler
 from packages.slack.command_processing.command_parameters.models import (
     AccessCommandParams,
@@ -50,7 +51,7 @@ class AccessCommand(BaseCommandHandler):
         user_id: str,
         incoming_channel: str,
         response_url: str,
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Process the access command.
 
@@ -98,7 +99,7 @@ class AccessCommand(BaseCommandHandler):
                 )
                 logger.info(f"User {user_id} shown access request UI")
 
-            return {"statusCode": 200, "body": ""}
+            return ProcessingResult(status_code=200, body="")
 
         except Exception as e:
             logger.error(f"Error processing access command: {e}", exc_info=True)
@@ -108,4 +109,4 @@ class AccessCommand(BaseCommandHandler):
                 message="Sorry, there was an error processing your request. Please try again later.",
                 response_url=response_url,
             )
-            return {"statusCode": 500, "body": "Error"}
+            return ProcessingResult(status_code=500, body="Error")

@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from packages.core.logging import setup_logger
 from packages.secrets.manager import SecretsManager
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.base_command_handler import BaseCommandHandler
 from packages.slack.command_processing.command_parameters.models import (
     FeatureCommandParams,
@@ -63,7 +64,7 @@ class FeatureCommand(BaseCommandHandler):
         user_id: str,
         incoming_channel: str,
         response_url: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Process feature command params and execute the appropriate action.
 
@@ -87,7 +88,7 @@ class FeatureCommand(BaseCommandHandler):
                 message="You are not authorized to manage feature flags. This command is restricted to administrators.",
                 response_url=response_url,
             )
-            return {"statusCode": 200, "body": "Unauthorized"}
+            return ProcessingResult(status_code=200, body="Unauthorized")
 
         # Process command based on action type
         feature_name = params.feature_name
@@ -137,7 +138,7 @@ class FeatureCommand(BaseCommandHandler):
                 ),
                 response_url=response_url,
             )
-            return {"statusCode": 200, "body": "Invalid action"}
+            return ProcessingResult(status_code=200, body="Invalid action")
 
     async def _handle_enable_feature(
         self,
@@ -146,7 +147,7 @@ class FeatureCommand(BaseCommandHandler):
         feature_name: str,
         params: FeatureCommandParams,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Handle the enable feature action.
 
@@ -169,7 +170,7 @@ class FeatureCommand(BaseCommandHandler):
                     message="You must specify a channel to enable the feature for (e.g., `/ketchup feature status_updater enable C1234567890`).",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "Missing target channel"}
+                return ProcessingResult(status_code=200, body="Missing target channel")
 
             # Enable the feature for channel
             success = await self.feature_service.enable_feature_for_channel(
@@ -196,7 +197,7 @@ class FeatureCommand(BaseCommandHandler):
                     message="You must specify a user to enable the feature for.",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "Missing target user"}
+                return ProcessingResult(status_code=200, body="Missing target user")
 
             # Get user display name for a nicer message
             user_names = await self.slack_user_ops.get_user_names([params.target_user_id])
@@ -222,7 +223,7 @@ class FeatureCommand(BaseCommandHandler):
                     response_url=response_url,
                 )
 
-        return {"statusCode": 200, "body": "Feature enabled"}
+        return ProcessingResult(status_code=200, body="Feature enabled")
 
     async def _handle_disable_feature(
         self,
@@ -231,7 +232,7 @@ class FeatureCommand(BaseCommandHandler):
         feature_name: str,
         params: FeatureCommandParams,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Handle the disable feature action.
 
@@ -254,7 +255,7 @@ class FeatureCommand(BaseCommandHandler):
                     message="You must specify a channel to disable the feature for (e.g., `/ketchup feature status_updater disable C1234567890`).",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "Missing target channel"}
+                return ProcessingResult(status_code=200, body="Missing target channel")
 
             # Disable the feature for channel
             success = await self.feature_service.disable_feature_for_channel(
@@ -281,7 +282,7 @@ class FeatureCommand(BaseCommandHandler):
                     message="You must specify a user to disable the feature for.",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "Missing target user"}
+                return ProcessingResult(status_code=200, body="Missing target user")
 
             # Get user display name for a nicer message
             user_names = await self.slack_user_ops.get_user_names([params.target_user_id])
@@ -307,7 +308,7 @@ class FeatureCommand(BaseCommandHandler):
                     response_url=response_url,
                 )
 
-        return {"statusCode": 200, "body": "Feature disabled"}
+        return ProcessingResult(status_code=200, body="Feature disabled")
 
     async def _handle_list_feature(
         self,
@@ -315,7 +316,7 @@ class FeatureCommand(BaseCommandHandler):
         channel_id: str,
         feature_name: str,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Handle the list feature action.
 
@@ -340,7 +341,7 @@ class FeatureCommand(BaseCommandHandler):
                     message=f"No channels have the {feature_name.upper()} feature enabled.",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "No channels"}
+                return ProcessingResult(status_code=200, body="No channels")
 
             # Format the message with channel names
             channel_lines = []
@@ -358,7 +359,7 @@ class FeatureCommand(BaseCommandHandler):
                 response_url=response_url,
             )
 
-            return {"statusCode": 200, "body": "Feature channels listed"}
+            return ProcessingResult(status_code=200, body="Feature channels listed")
 
         else:  # User-based features
             # Get users with feature enabled
@@ -371,7 +372,7 @@ class FeatureCommand(BaseCommandHandler):
                     message=f"No users have the {feature_name.upper()} feature enabled.",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "No users"}
+                return ProcessingResult(status_code=200, body="No users")
 
             # Format the message
             user_lines = []
@@ -389,7 +390,7 @@ class FeatureCommand(BaseCommandHandler):
                 response_url=response_url,
             )
 
-            return {"statusCode": 200, "body": "Feature users listed"}
+            return ProcessingResult(status_code=200, body="Feature users listed")
 
     async def _handle_feature_status(
         self,
@@ -397,7 +398,7 @@ class FeatureCommand(BaseCommandHandler):
         channel_id: str,
         feature_name: str,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Handle the feature status action.
 
@@ -450,7 +451,7 @@ class FeatureCommand(BaseCommandHandler):
             response_url=response_url,
         )
 
-        return {"statusCode": 200, "body": "Feature status"}
+        return ProcessingResult(status_code=200, body="Feature status")
 
     async def _handle_access_management(
         self,
@@ -459,7 +460,7 @@ class FeatureCommand(BaseCommandHandler):
         action: str,
         params: FeatureCommandParams,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Handle access management actions (grant/revoke/list/status).
 
@@ -499,7 +500,7 @@ class FeatureCommand(BaseCommandHandler):
                 ),
                 response_url=response_url,
             )
-            return {"statusCode": 200, "body": "Invalid action"}
+            return ProcessingResult(status_code=200, body="Invalid action")
 
     async def _handle_grant_access(
         self,
@@ -507,7 +508,7 @@ class FeatureCommand(BaseCommandHandler):
         incoming_channel: str,
         params: FeatureCommandParams,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """Handle granting access to a user."""
         if not params.target_user_id:
             await self.posting_handler.post_message(
@@ -516,7 +517,7 @@ class FeatureCommand(BaseCommandHandler):
                 message="You must specify a user to grant access to. Example: `/ketchup feature access_management grant @user`",
                 response_url=response_url,
             )
-            return {"statusCode": 200, "body": "Missing target user"}
+            return ProcessingResult(status_code=200, body="Missing target user")
 
         try:
             # Get user display name
@@ -576,7 +577,7 @@ class FeatureCommand(BaseCommandHandler):
                     response_url=response_url,
                 )
 
-            return {"statusCode": 200, "body": "Access granted"}
+            return ProcessingResult(status_code=200, body="Access granted")
 
         except Exception as e:
             logger.error(f"Error granting access: {e}")
@@ -586,7 +587,7 @@ class FeatureCommand(BaseCommandHandler):
                 message="❌ Failed to grant access. Please check the logs for details.",
                 response_url=response_url,
             )
-            return {"statusCode": 500, "body": "Error granting access"}
+            return ProcessingResult(status_code=500, body="Error granting access")
 
     async def _handle_revoke_access(
         self,
@@ -594,7 +595,7 @@ class FeatureCommand(BaseCommandHandler):
         incoming_channel: str,
         params: FeatureCommandParams,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """Handle revoking access from a user."""
         if not params.target_user_id:
             await self.posting_handler.post_message(
@@ -603,7 +604,7 @@ class FeatureCommand(BaseCommandHandler):
                 message="You must specify a user to revoke access from. Example: `/ketchup feature access_management revoke @user`",
                 response_url=response_url,
             )
-            return {"statusCode": 200, "body": "Missing target user"}
+            return ProcessingResult(status_code=200, body="Missing target user")
 
         try:
             # Get user display name
@@ -663,7 +664,7 @@ class FeatureCommand(BaseCommandHandler):
                     response_url=response_url,
                 )
 
-            return {"statusCode": 200, "body": "Access revoked"}
+            return ProcessingResult(status_code=200, body="Access revoked")
 
         except Exception as e:
             logger.error(f"Error revoking access: {e}")
@@ -673,14 +674,14 @@ class FeatureCommand(BaseCommandHandler):
                 message="❌ Failed to revoke access. Please check the logs for details.",
                 response_url=response_url,
             )
-            return {"statusCode": 500, "body": "Error revoking access"}
+            return ProcessingResult(status_code=500, body="Error revoking access")
 
     async def _handle_list_authorized_users(
         self,
         user_id: str,
         incoming_channel: str,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """Handle listing authorized users."""
         try:
             # Get authorized users from SecretsManager
@@ -693,7 +694,7 @@ class FeatureCommand(BaseCommandHandler):
                     message="No authorized users found.",
                     response_url=response_url,
                 )
-                return {"statusCode": 200, "body": "No authorized users"}
+                return ProcessingResult(status_code=200, body="No authorized users")
 
             # Get user names for display
             user_names = await self.slack_user_ops.get_user_names(authorized_users)
@@ -713,7 +714,7 @@ class FeatureCommand(BaseCommandHandler):
                 response_url=response_url,
             )
 
-            return {"statusCode": 200, "body": "Authorized users listed"}
+            return ProcessingResult(status_code=200, body="Authorized users listed")
 
         except Exception as e:
             logger.error(f"Error listing authorized users: {e}")
@@ -723,14 +724,14 @@ class FeatureCommand(BaseCommandHandler):
                 message="❌ Failed to retrieve authorized users. Please check the logs for details.",
                 response_url=response_url,
             )
-            return {"statusCode": 500, "body": "Error listing users"}
+            return ProcessingResult(status_code=500, body="Error listing users")
 
     async def _handle_access_management_status(
         self,
         user_id: str,
         incoming_channel: str,
         response_url: Optional[str],
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """Handle access management status."""
         try:
             # Get counts from SecretsManager
@@ -751,7 +752,7 @@ class FeatureCommand(BaseCommandHandler):
                 response_url=response_url,
             )
 
-            return {"statusCode": 200, "body": "Access management status"}
+            return ProcessingResult(status_code=200, body="Access management status")
 
         except Exception as e:
             logger.error(f"Error getting access management status: {e}")
@@ -761,7 +762,7 @@ class FeatureCommand(BaseCommandHandler):
                 message="❌ Failed to retrieve access management status. Please check the logs for details.",
                 response_url=response_url,
             )
-            return {"statusCode": 500, "body": "Error getting status"}
+            return ProcessingResult(status_code=500, body="Error getting status")
 
     async def _send_access_notification(
         self,

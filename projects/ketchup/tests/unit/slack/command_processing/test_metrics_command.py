@@ -28,6 +28,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from packages.secrets.manager import SecretsManager
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_parameters.models import (
     CommandContext,
     CommandType,
@@ -138,7 +139,7 @@ class TestMetricsCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Metrics dashboard generated"}
+        assert result == ProcessingResult(status_code=200, body="Metrics dashboard generated")
         mock_metrics_export_handler.handle_metrics_request.assert_called_once_with(
             user_id="U12345",
             response_url="https://slack.com/response",
@@ -193,7 +194,7 @@ class TestMetricsCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 500, "body": "Failed to generate metrics"}
+        assert result == ProcessingResult(status_code=500, body="Failed to generate metrics")
         mock_metrics_export_handler.handle_metrics_request.assert_called_once_with(
             user_id="U12345",
             response_url="https://slack.com/response",
@@ -245,7 +246,7 @@ class TestMetricsCommand:
             response_url=None,
         )
 
-        assert result == {"statusCode": 200, "body": "Metrics dashboard generated"}
+        assert result == ProcessingResult(status_code=200, body="Metrics dashboard generated")
         mock_metrics_export_handler.handle_metrics_request.assert_called_once_with(
             user_id="U12345",
             response_url=None,
@@ -339,7 +340,7 @@ class TestMetricsCommand:
                 response_url=f"https://slack.com/response/{user_id}",
             )
 
-            assert result == {"statusCode": 200, "body": "Metrics dashboard generated"}
+            assert result == ProcessingResult(status_code=200, body="Metrics dashboard generated")
 
         # Verify called for each user
         assert mock_metrics_export_handler.handle_metrics_request.call_count == 3

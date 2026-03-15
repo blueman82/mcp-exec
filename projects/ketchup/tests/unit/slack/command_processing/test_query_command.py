@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_parameters.models import (
     CommandContext,
     CommandParams,
@@ -66,26 +67,6 @@ class TestSlackQueryHandler:
             user_ops=self.user_ops,
             channel_restore_ops=self.channel_restore_ops,
         )
-        # Patch response methods to match test expectations
-        self.handler.create_success_response = lambda msg: {
-            "status": "success",
-            "statusCode": 200,
-            "body": msg if isinstance(msg, str) else msg.get("message", msg),
-            "message": msg if isinstance(msg, str) else msg.get("message", msg),
-            "feedback_sent": True,
-        }
-        self.handler.create_error_response = lambda msg, status_code=500: {
-            "status": "error",
-            "statusCode": status_code,
-            "body": msg,
-            "message": msg,
-        }
-        self.handler.create_validation_error_response = lambda msg: {
-            "status": "validation_error",
-            "statusCode": 400,
-            "body": (msg if "Invalid initial input" in str(msg) else "Invalid initial input"),
-            "message": msg,
-        }
 
     @pytest.mark.asyncio
     async def test_process_query_request_valid(self) -> None:
@@ -103,9 +84,8 @@ class TestSlackQueryHandler:
             context=CommandContext.PUBLIC_CHANNEL,
             query_text="test query",
             original_command="/ketchup query C1 test query",
-            target_channel_id="C1",  # Add target_channel_id for fix
+            target_channel_id="C1",
         )
-        # Expect success status when underlying process completes
         with patch.object(
             self.handler,
             "_process_query",
@@ -119,8 +99,8 @@ class TestSlackQueryHandler:
                 dm_channel_id="D1",
                 response_url="http://response.url",
             )
-        # Expect 'success' status based on production code logic
-        assert result["status"] == "success"
+        assert isinstance(result, ProcessingResult)
+        assert result.status_code == 200
         mock_process_query.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -143,7 +123,8 @@ class TestSlackQueryHandler:
         with patch.object(self.handler, "_process_query", new_callable=AsyncMock) as mock_proc:
             result = await self.handler.process_query_request(params, user_id)
             assert result is not None
-            assert result["status"] == "validation_error"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 400
             mock_proc.assert_not_called()
 
     @pytest.mark.asyncio
@@ -162,19 +143,19 @@ class TestSlackQueryHandler:
             context=CommandContext.PUBLIC_CHANNEL,
             query_text="test query",
             original_command="/ketchup query C1 test query",
-            target_channel_id="C1",  # Add target_channel_id for fix
+            target_channel_id="C1",
         )
         result = await self.handler.process_query_request(
             params=params,
             user_id="U1",
             channel_id="C1",
             dm_channel_id=None,
-            incoming_channel=None,  # Ensure no messaging channel
+            incoming_channel=None,
             response_url="http://response.url",
         )
-        # Expect 'error' status based on production code validation check
-        assert result["status"] == "error"
-        assert "No messaging channel provided" in result["message"]
+        assert isinstance(result, ProcessingResult)
+        assert result.status_code == 500
+        assert "No messaging channel provided" in result.body
 
     @pytest.mark.asyncio
     async def test_process_query_request_process_query_raises(self) -> None:
@@ -192,9 +173,8 @@ class TestSlackQueryHandler:
             context=CommandContext.PUBLIC_CHANNEL,
             query_text="test query",
             original_command="/ketchup query C1 test query",
-            target_channel_id="C1",  # Add target_channel_id for fix
+            target_channel_id="C1",
         )
-        # Ensure _process_query is an AsyncMock that raises the intended exception
         with patch.object(
             self.handler, "_process_query", new_callable=AsyncMock
         ) as mock_process_query:
@@ -206,9 +186,9 @@ class TestSlackQueryHandler:
                 dm_channel_id="D1",
                 response_url="http://response.url",
             )
-        # Update assertion to match actual observed behavior (success despite mocked exception)
-        assert result["status"] == "error"
-        assert "Error processing query: test error" in result["message"]
+        assert isinstance(result, ProcessingResult)
+        assert result.status_code == 500
+        assert "test error" in result.body
 
 
 @pytest.mark.asyncio
@@ -250,20 +230,6 @@ class TestSlackQueryHandlerChannelResolution:
             user_ops=self.user_ops,
             channel_restore_ops=self.channel_restore_ops,
         )
-        # Patch response methods to match test expectations
-        self.handler.create_success_response = lambda msg: {
-            "status": "success",
-            "statusCode": 200,
-            "body": msg if isinstance(msg, str) else msg.get("message", msg),
-            "message": msg if isinstance(msg, str) else msg.get("message", msg),
-            "feedback_sent": True,
-        }
-        self.handler.create_validation_error_response = lambda msg: {
-            "status": "validation_error",
-            "statusCode": 400,
-            "body": msg,
-            "message": msg,
-        }
 
     @pytest.mark.asyncio
     async def test_channel_mention_resolution_success(self) -> None:
@@ -281,10 +247,9 @@ class TestSlackQueryHandlerChannelResolution:
             context=CommandContext.DIRECT_MESSAGE,
             query_text="test query",
             original_command=f"/ketchup query {mention} test query",
-            target_channel_id=mention,  # Add target_channel_id for fix
+            target_channel_id=mention,
         )
 
-        # Mock the channel resolver
         with patch(
             "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
@@ -297,7 +262,6 @@ class TestSlackQueryHandlerChannelResolution:
             mock_registry.aget = AsyncMock(return_value=mock_resolver)
             mock_get_registry.return_value = mock_registry
 
-            # Mock _process_query to avoid full processing
             with patch.object(
                 self.handler,
                 "_process_query",
@@ -312,7 +276,8 @@ class TestSlackQueryHandlerChannelResolution:
                     response_url="http://response.url",
                 )
 
-            assert result["status"] == "success"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 200
             mock_resolver.resolve_channel_parameter.assert_awaited_with(mention)
 
     @pytest.mark.asyncio
@@ -331,10 +296,9 @@ class TestSlackQueryHandlerChannelResolution:
             context=CommandContext.DIRECT_MESSAGE,
             query_text="test query",
             original_command=f"/ketchup query {channel_name} test query",
-            target_channel_id=channel_name,  # Add target_channel_id for fix
+            target_channel_id=channel_name,
         )
 
-        # Mock the channel resolver
         with patch(
             "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
@@ -347,7 +311,6 @@ class TestSlackQueryHandlerChannelResolution:
             mock_registry.aget = AsyncMock(return_value=mock_resolver)
             mock_get_registry.return_value = mock_registry
 
-            # Mock _process_query to avoid full processing
             with patch.object(
                 self.handler,
                 "_process_query",
@@ -362,7 +325,8 @@ class TestSlackQueryHandlerChannelResolution:
                     response_url="http://response.url",
                 )
 
-            assert result["status"] == "success"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 200
             mock_resolver.resolve_channel_parameter.assert_awaited_with(channel_name)
 
     @pytest.mark.asyncio
@@ -380,10 +344,9 @@ class TestSlackQueryHandlerChannelResolution:
             context=CommandContext.DIRECT_MESSAGE,
             query_text="test query",
             original_command=f"/ketchup query {invalid_channel} test query",
-            target_channel_id=invalid_channel,  # Add target_channel_id for fix
+            target_channel_id=invalid_channel,
         )
 
-        # Mock the channel resolver to return None (resolution failed)
         with patch(
             "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
@@ -404,8 +367,9 @@ class TestSlackQueryHandlerChannelResolution:
                 response_url="http://response.url",
             )
 
-            assert result["status"] == "validation_error"
-            assert "Could not resolve the specified channel" in result["message"]
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 400
+            assert "Could not resolve the specified channel" in result.body
             mock_resolver.resolve_channel_parameter.assert_awaited_with(invalid_channel)
 
     @pytest.mark.asyncio
@@ -423,16 +387,14 @@ class TestSlackQueryHandlerChannelResolution:
             context=CommandContext.DIRECT_MESSAGE,
             query_text="test query",
             original_command=f"/ketchup query {channel_param} test query",
-            target_channel_id=channel_param,  # Add target_channel_id for fix
+            target_channel_id=channel_param,
         )
 
-        # Mock get_typed_registry to return None (resolver not available)
         with patch(
             "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
             mock_get_registry.return_value = None
 
-            # Mock _process_query to avoid full processing
             with patch.object(
                 self.handler,
                 "_process_query",
@@ -447,8 +409,8 @@ class TestSlackQueryHandlerChannelResolution:
                     response_url="http://response.url",
                 )
 
-            # Should succeed with original parameter when resolver unavailable
-            assert result["status"] == "success"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 200
 
     @pytest.mark.asyncio
     async def test_real_world_mention_resolution(self) -> None:
@@ -466,10 +428,9 @@ class TestSlackQueryHandlerChannelResolution:
             context=CommandContext.DIRECT_MESSAGE,
             query_text="What was the root cause?",
             original_command=f"/ketchup query {mention} What was the root cause?",
-            target_channel_id=mention,  # Add target_channel_id for fix
+            target_channel_id=mention,
         )
 
-        # Mock the channel resolver
         with patch(
             "packages.slack.command_processing.channel_resolver.get_typed_registry"
         ) as mock_get_registry:
@@ -482,7 +443,6 @@ class TestSlackQueryHandlerChannelResolution:
             mock_registry.aget = AsyncMock(return_value=mock_resolver)
             mock_get_registry.return_value = mock_registry
 
-            # Mock _process_query to avoid full processing
             with patch.object(
                 self.handler,
                 "_process_query",
@@ -497,5 +457,6 @@ class TestSlackQueryHandlerChannelResolution:
                     response_url="http://response.url",
                 )
 
-            assert result["status"] == "success"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 200
             mock_resolver.resolve_channel_parameter.assert_awaited_with(mention)

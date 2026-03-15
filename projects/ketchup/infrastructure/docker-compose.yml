@@ -41,7 +41,7 @@ services:
         max-file: "3"
 
   ketchup-app:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.414
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-app:v2.360.415
     env_file:
       - common.env
       - performance.env
@@ -87,7 +87,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-unified-scheduler:v2.360.414
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-unified-scheduler:v2.360.415
     env_file:
       - common.env
       - performance.env
@@ -129,7 +129,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-csopm-notifier:v2.360.414
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-csopm-notifier:v2.360.415
     env_file:
       - common.env
       - performance.env
@@ -166,7 +166,7 @@ services:
           - type=local,src=/tmp/.buildx-cache
         cache-to:
           - type=local,dest=/tmp/.buildx-cache
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.414
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/mcp-jira:v2.360.415
     ports:
       - "8081:8081"
     env_file:
@@ -194,7 +194,7 @@ services:
         max-file: "3"
 
   ketchup-access-monitor:
-    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.414
+    image: 483013340174.dkr.ecr.eu-west-1.amazonaws.com/ketchup-access-monitor:v2.360.415
     env_file:
       - common.env
       - performance.env

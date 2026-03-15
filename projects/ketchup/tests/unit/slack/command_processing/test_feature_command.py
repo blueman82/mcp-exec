@@ -30,6 +30,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from packages.secrets.manager import SecretsManager
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_parameters.models import (
     CommandContext,
     CommandType,
@@ -110,16 +111,16 @@ class TestFeatureCommand:
         )
         # Mock the handler methods to be async
         command._handle_enable_feature = AsyncMock(
-            return_value={"statusCode": 200, "body": "Feature enabled"}
+            return_value=ProcessingResult(status_code=200, body="Feature enabled")
         )
         command._handle_disable_feature = AsyncMock(
-            return_value={"statusCode": 200, "body": "Feature disabled"}
+            return_value=ProcessingResult(status_code=200, body="Feature disabled")
         )
         command._handle_list_feature = AsyncMock(
-            return_value={"statusCode": 200, "body": "Feature users listed"}
+            return_value=ProcessingResult(status_code=200, body="Feature users listed")
         )
         command._handle_feature_status = AsyncMock(
-            return_value={"statusCode": 200, "body": "Feature status"}
+            return_value=ProcessingResult(status_code=200, body="Feature status")
         )
         return command
 
@@ -149,7 +150,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Unauthorized"}
+        assert result == ProcessingResult(status_code=200, body="Unauthorized")
         mock_slack_posting.post_message.assert_called_once()
         call_args = mock_slack_posting.post_message.call_args[1]
         assert "not authorized" in call_args["message"]
@@ -184,7 +185,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature enabled"}
+        assert result == ProcessingResult(status_code=200, body="Feature enabled")
         # Check that the handler was called with correct params
         feature_command._handle_enable_feature.assert_called_once_with(
             "UADMIN", "D12345", "nlp", params, "https://slack.com/response"
@@ -220,7 +221,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature disabled"}
+        assert result == ProcessingResult(status_code=200, body="Feature disabled")
         # Check that the handler was called with correct params
         feature_command._handle_disable_feature.assert_called_once_with(
             "UADMIN", "D12345", "nlp", params, "https://slack.com/response"
@@ -257,7 +258,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature enabled"}
+        assert result == ProcessingResult(status_code=200, body="Feature enabled")
         # When database error, handler should still be called
         feature_command._handle_enable_feature.assert_called_once_with(
             "UADMIN", "D12345", "nlp", params, "https://slack.com/response"
@@ -305,7 +306,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature users listed"}
+        assert result == ProcessingResult(status_code=200, body="Feature users listed")
         # Check that the handler was called with correct params
         feature_command._handle_list_feature.assert_called_once_with(
             "UADMIN", "D12345", "nlp", "https://slack.com/response"
@@ -342,7 +343,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature users listed"}
+        assert result == ProcessingResult(status_code=200, body="Feature users listed")
         # Handler should be called even when no users
         feature_command._handle_list_feature.assert_called_once_with(
             "UADMIN", "D12345", "nlp", "https://slack.com/response"
@@ -377,7 +378,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature status"}
+        assert result == ProcessingResult(status_code=200, body="Feature status")
         # Check that the handler was called with correct params
         feature_command._handle_feature_status.assert_called_once_with(
             "UADMIN", "D12345", "nlp", "https://slack.com/response"
@@ -414,7 +415,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature enabled"}
+        assert result == ProcessingResult(status_code=200, body="Feature enabled")
         # Handler should still be called even when user not found
         feature_command._handle_enable_feature.assert_called_once_with(
             "UADMIN", "D12345", "nlp", params, "https://slack.com/response"
@@ -451,7 +452,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature status"}
+        assert result == ProcessingResult(status_code=200, body="Feature status")
         # Should call the handler since user is admin
         feature_command._handle_feature_status.assert_called_once_with(
             "U12345", "D12345", "nlp", "https://slack.com/response"
@@ -495,7 +496,7 @@ class TestFeatureCommand:
             response_url="https://slack.com/response",
         )
 
-        assert result == {"statusCode": 200, "body": "Feature status"}
+        assert result == ProcessingResult(status_code=200, body="Feature status")
         # Check that the handler was called with correct params
         feature_command._handle_feature_status.assert_called_once_with(
             "UADMIN", "D12345", "nlp", "https://slack.com/response"

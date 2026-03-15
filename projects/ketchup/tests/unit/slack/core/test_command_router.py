@@ -32,6 +32,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_parameters.models import CommandType
 from packages.slack.command_processing.command_router import CommandRouter
 
@@ -77,7 +78,7 @@ class TestCommandRouter:
     async def test_user_not_authorized(self, mock_verify: AsyncMock) -> None:
         self.mock_user_verifier.validate_user_id = AsyncMock(return_value=False)
         result = await self.router.route_command(self.body, "url")
-        assert result == {"statusCode": 200, "body": ""}
+        assert result == ProcessingResult(status_code=200, body="")
         self.mock_posting_handler.post_message.assert_awaited_once()
 
     @patch(
@@ -88,7 +89,7 @@ class TestCommandRouter:
         self.mock_user_verifier.validate_user_id = AsyncMock(return_value=True)
         mock_verify.return_value = None
         result = await self.router.route_command(self.body, "url")
-        assert result == {"statusCode": 200, "body": ""}
+        assert result == ProcessingResult(status_code=200, body="")
 
     @patch(
         "packages.slack.command_processing.command_router.verify_and_extract_command",
@@ -101,7 +102,7 @@ class TestCommandRouter:
         params.command_type = MagicMock()
         mock_verify.return_value = params
         result = await self.router.route_command(self.body, "url")
-        assert result == {"statusCode": 400, "body": "Unsupported command type"}
+        assert result == ProcessingResult(status_code=400, body="Unsupported command type")
         self.mock_posting_handler.post_message.assert_awaited_once()
 
     @pytest.mark.parametrize(
@@ -174,7 +175,7 @@ class TestCommandRouter:
         handler.process_list_params.side_effect = Exception("fail")
         mock_verify.return_value = params
         result = await self.router.route_command(self.body, "url")
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
         self.mock_posting_handler.post_message.assert_awaited_once()
 
     @patch(
@@ -189,5 +190,5 @@ class TestCommandRouter:
         handler.process_list_params.side_effect = Exception("unhandled errors in a TaskGroup")
         mock_verify.return_value = params
         result = await self.router.route_command(self.body, "url")
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
         self.mock_posting_handler.post_message.assert_awaited_once()

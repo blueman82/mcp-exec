@@ -31,3 +31,18 @@ class SlackRequest:
     path: str
     parsed_body: Dict[str, Any]
     parsed_body_multivalue: Dict[str, List[Any]]
+
+
+@dataclass(frozen=True)
+class ProcessingResult:
+    """Result of processing a Slack request — replaces {statusCode, body} dicts.
+
+    Attributes:
+        status_code: HTTP status code (e.g., 200, 400, 500).
+        body: Response body string (plain text or JSON-encoded).
+        feedback_sent: Whether feedback was already sent to the user (command handlers).
+    """
+
+    status_code: int
+    body: str = ""
+    feedback_sent: bool = False

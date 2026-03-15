@@ -229,7 +229,7 @@ class SlackSummaryHandler(BaseCommandHandler):
                 summaries=summaries,
                 target_channel=channel_id,
             )
-            return self.create_success_response({"message": "Summary generated successfully."})
+            return self.create_success_response("Summary generated successfully.")
         except Exception as e:
             logger.error("Error processing summary: %s", str(e), exc_info=True)
             # Try to send an error message back to the user
@@ -407,23 +407,6 @@ class SlackSummaryHandler(BaseCommandHandler):
         return generated_text
         # Note: Block Kit sending is moved to the caller (process_summary_params)
 
-    def create_success_response(self, message: dict) -> dict:
-        """
-        Create a standardized success response.
-
-        Args:
-            message: The success message to include (now a dict)
-
-        Returns:
-            A dictionary containing the success response
-        """
-        response = {"status": "success"}
-        if isinstance(message, dict):
-            response.update(message)
-        else:
-            response["message"] = str(message)
-        response["feedback_sent"] = True
-        return response
 
     @classmethod
     async def create(

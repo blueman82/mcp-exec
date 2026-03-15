@@ -25,6 +25,7 @@ PATCH_PATH_NORMALIZE_PREFS = (
 
 # from packages.slack.config.slack_config import DEFAULT_KETCHUP_PREFERENCES # Removed
 from packages.ai.core.openai_handler import OpenAIError
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.status_report_command import SlackReports
 
 # Define default preferences locally as it's not available for import
@@ -157,7 +158,7 @@ class TestSlackStatusHandler:
             target_channel=channel_id,
             execution_channel=dm_channel_id,
         )
-        assert result["statusCode"] == 200
+        assert result.status_code == 200
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
@@ -235,8 +236,8 @@ class TestSlackStatusHandler:
             error_result = result
 
         assert error_result is not None
-        assert error_result["statusCode"] == expected_status_code
-        assert expected_message_fragment in error_result["body"]
+        assert error_result.status_code == expected_status_code
+        assert expected_message_fragment in error_result.body
 
         # Only check OpenAI call expectations for cases where it would be reached
         if expected_status_code == 200:
@@ -273,8 +274,8 @@ class TestSlackStatusHandler:
             channel_id=COMMON_MOCK_CONFIG["channel_id"],
         )
         result = result_tuple
-        assert result["statusCode"] == 500
-        assert "Failed to get response from AI" in result["body"]
+        assert result.status_code == 500
+        assert "Failed to get response from AI" in result.body
 
     @pytest.mark.asyncio
     async def test_process_status_request_jira_correction(self) -> None:
@@ -325,7 +326,7 @@ class TestSlackStatusHandler:
                 response_url=response_url,
                 channel_id=channel_id,
             )
-        assert result["statusCode"] == 200
+        assert result.status_code == 200
         mock_apply_corrections.assert_awaited_once_with(
             models_response=ai_response_needs_correction,
             channel_id=channel_id,
@@ -365,8 +366,8 @@ class TestSlackStatusHandler:
         )
 
         assert result is not None
-        assert result["statusCode"] == 500
-        assert "Internal server error: AI error" in result["body"]
+        assert result.status_code == 500
+        assert "Internal server error: AI error" in result.body
 
     @pytest.mark.asyncio
     async def test_process_status_request_channel_not_found(self) -> None:
@@ -386,9 +387,9 @@ class TestSlackStatusHandler:
         # The process_status_request method then returns this error dictionary directly (not in a tuple from decorator).
         assert result is not None
         assert (
-            result["statusCode"] == 500
+            result.status_code == 500
         )  # The actual status code returned by create_error_response
-        assert "Channel validation failed or bot not member." in result["body"]
+        assert "Channel validation failed or bot not member." in result.body
 
     @pytest.mark.asyncio
     async def test_process_status_request_permission_denied(self) -> None:
@@ -409,9 +410,9 @@ class TestSlackStatusHandler:
         )
         # Generic exception is caught, and an error dict is returned directly.
         assert result is not None
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
         assert (
-            "Internal server error: Simulated permission issue" in result["body"]
+            "Internal server error: Simulated permission issue" in result.body
         )  # Corrected expected message
         self.openai_handler.call_openai_endpoint.assert_not_awaited()
 
@@ -455,7 +456,7 @@ class TestSlackStatusHandler:
                 response_url=response_url,
                 channel_id=channel_id,
             )
-        assert result["statusCode"] == 200
+        assert result.status_code == 200
 
         # Assert that status message was sent correctly via the block_kit_builder
         self.block_kit_builder.send_ketchup_status_block_kit.assert_awaited_once_with(

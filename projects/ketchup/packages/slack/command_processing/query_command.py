@@ -253,7 +253,7 @@ class SlackQueryHandler(BaseCommandHandler):
                 query=query_text,
                 target_channel=channel_id,
             )
-            return self.create_success_response({"message": "Query processed successfully."})
+            return self.create_success_response("Query processed successfully.")
         except Exception as e:
             logger.error("Error processing query: %s", str(e))
             return self.create_error_response(f"Error processing query: {str(e)}")
@@ -400,20 +400,3 @@ class SlackQueryHandler(BaseCommandHandler):
 
         return mention_pattern.sub(replace_mention, text)
 
-    def create_success_response(self, message: dict) -> dict:
-        """
-        Create a standardized success response.
-
-        Args:
-            message: The success message to include (now a dict)
-
-        Returns:
-            A dictionary containing the success response
-        """
-        response = {"status": "success"}
-        if isinstance(message, dict):
-            response.update(message)
-        else:
-            response["message"] = str(message)
-        response["feedback_sent"] = True
-        return response

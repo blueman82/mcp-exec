@@ -15,6 +15,7 @@ import pytest
 
 import packages.slack.command_processing.short_long_command as src_mod
 from packages.db.user_store import UserStore
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_parameters.models import (
     CommandContext,
     CommandParams,
@@ -56,26 +57,6 @@ class TestSlackSummaryHandler:
             channel_restore_ops=self.channel_restore_ops,
             user_store=self.mock_user_store,
         )
-        # Patch response methods to match test expectations
-        self.handler.create_success_response = lambda msg: {
-            "status": "success",
-            "statusCode": 200,
-            "body": msg if isinstance(msg, str) else msg.get("message", msg),
-            "message": msg if isinstance(msg, str) else msg.get("message", msg),
-            "feedback_sent": True,
-        }
-        self.handler.create_error_response = lambda msg, status_code=500: {
-            "status": "error",
-            "statusCode": status_code,
-            "body": msg,
-            "message": msg,
-        }
-        self.handler.create_validation_error_response = lambda msg: {
-            "status": "error",
-            "statusCode": 400,
-            "body": (msg if "Invalid initial input" in str(msg) else "Invalid initial input"),
-            "message": msg,
-        }
 
         # Patch the handle_archived_channel decorator to call the wrapped function and return (result, (True, True))
         def passthrough_decorator(f):
@@ -121,8 +102,8 @@ class TestSlackSummaryHandler:
                 dm_channel_id=dm_channel_id,
                 response_url=params.response_url,
             )
-            assert result["status"] == "success"
-            # Check that any call to post_message had a message containing the expected substrings
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 200
             found = False
             for call in self.slack_posting_handler.post_message.await_args_list:
                 msg = call.kwargs.get("message", "")
@@ -152,7 +133,8 @@ class TestSlackSummaryHandler:
         user_id = "U123"
         with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
             result = await self.handler.process_summary_params(params, user_id)
-            assert result["status"] == "error"
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 400
             mock_proc.assert_not_called()
 
     @pytest.mark.asyncio
@@ -182,8 +164,9 @@ class TestSlackSummaryHandler:
                 dm_channel_id=None,
                 response_url=None,
             )
-            assert result["status"] == "error"
-            assert "No messaging channel provided" in result["message"]
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 500
+            assert "No messaging channel provided" in result.body
             mock_proc.assert_not_called()
 
     @pytest.mark.asyncio
@@ -216,8 +199,9 @@ class TestSlackSummaryHandler:
                 dm_channel_id=dm_channel_id,
                 response_url=params.response_url,
             )
-            assert result["status"] == "error"
-            assert "fail!" in result["message"]
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 500
+            assert "fail!" in result.body
             self.slack_posting_handler.post_message.assert_any_await(
                 user_id=user_id,
                 channel_id=dm_channel_id,
@@ -246,11 +230,8 @@ class TestSlackSummaryHandler:
         user_id = "U123"
         channel_id = "CINVALID"
         dm_channel_id = "D123"
-        # Simulate restore ops returning (False, False) for invalid channel
         self.channel_restore_ops.restore_archived_channel = AsyncMock(return_value=(False, False))
-        # Patch the decorator to call the handler directly (simulate decorator logic)
         with patch.object(self.handler, "_process_summary", new_callable=AsyncMock) as mock_proc:
-            # _process_summary should not be called for invalid channel
             result = await self.handler.process_summary_params(
                 params=params,
                 user_id=user_id,
@@ -258,8 +239,8 @@ class TestSlackSummaryHandler:
                 dm_channel_id=dm_channel_id,
                 response_url=params.response_url,
             )
-            assert result["statusCode"] == 400 or result.get("status") == "error"
-            # Update assertion: Expect 0 calls based on observed test failure
+            assert isinstance(result, ProcessingResult)
+            assert result.status_code == 400
             assert self.slack_posting_handler.post_message.await_count == 0
             mock_proc.assert_not_called()
 
