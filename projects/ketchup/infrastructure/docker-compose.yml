@@ -117,7 +117,7 @@ services:
 
   # CSOPM Notifier - Standalone CSOPM notification service (singleton on prod1)
   # Polls JIRA for CSOPM assignments and sends Slack DM notifications
-  # Runs at 08:00 and 16:00 UTC daily
+  # Runs 5x daily (controlled via CSOPM_SCHEDULE_TIMES in csopm.env)
   ketchup-csopm-notifier:
     build:
       context: ..
