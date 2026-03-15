@@ -4,7 +4,7 @@ Unit tests for packages/slack/channel_events/incoming_events.py
 Covers:
 - process_request (module-level)
 - EventProcessor.process_request
-- All error and edge cases, including DI container, dependency setup, warm-up, signature verification, retry, routing, and assertion errors.
+- All error and edge cases, including DI container, dependency setup, routing, and assertion errors.
 
 All dependencies and routing handlers are mocked.
 """
@@ -14,6 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import packages.slack.channel_events.incoming_events as incoming_events
+from packages.slack.channel_events.models import SlackRequest
 
 
 @pytest.mark.asyncio
@@ -21,8 +22,15 @@ class TestProcessRequestModuleLevel:
     async def test_uninitialized_container_returns_500(self):
         container = MagicMock()
         container.is_initialized.return_value = False
-        event = {}
-        result = await incoming_events.process_request(event, container)
+        request = SlackRequest(
+            raw_body=b"",
+            body_str="",
+            headers={},
+            path="/slack/events",
+            parsed_body={},
+            parsed_body_multivalue={},
+        )
+        result = await incoming_events.process_request(request, container)
         assert result["statusCode"] == 500
         assert "not initialized" in result["body"]
 
@@ -34,8 +42,15 @@ class TestProcessRequestModuleLevel:
         container = MagicMock()
         container.is_initialized.return_value = True
         mock_setup.side_effect = ValueError("bad config")
-        event = {}
-        result = await incoming_events.process_request(event, container)
+        request = SlackRequest(
+            raw_body=b"",
+            body_str="",
+            headers={},
+            path="/slack/events",
+            parsed_body={},
+            parsed_body_multivalue={},
+        )
+        result = await incoming_events.process_request(request, container)
         assert result["statusCode"] == 500
         assert "bad config" in result["body"]
 
@@ -47,8 +62,15 @@ class TestProcessRequestModuleLevel:
         container = MagicMock()
         container.is_initialized.return_value = True
         mock_setup.side_effect = Exception("fail")
-        event = {}
-        result = await incoming_events.process_request(event, container)
+        request = SlackRequest(
+            raw_body=b"",
+            body_str="",
+            headers={},
+            path="/slack/events",
+            parsed_body={},
+            parsed_body_multivalue={},
+        )
+        result = await incoming_events.process_request(request, container)
         assert result["statusCode"] == 500
         assert "unexpected error" in result["body"].lower()
 
@@ -69,10 +91,17 @@ class TestProcessRequestModuleLevel:
         processor = MagicMock()
         processor.process_request = AsyncMock(return_value={"statusCode": 200, "body": "ok"})
         mock_ep.return_value = processor
-        event = {"foo": "bar"}
-        result = await incoming_events.process_request(event, container)
+        request = SlackRequest(
+            raw_body=b"foo=bar",
+            body_str="foo=bar",
+            headers={},
+            path="/slack/events",
+            parsed_body={"foo": "bar"},
+            parsed_body_multivalue={"foo": ["bar"]},
+        )
+        result = await incoming_events.process_request(request, container)
         assert result == {"statusCode": 200, "body": "ok"}
-        processor.process_request.assert_awaited_once_with(event)
+        processor.process_request.assert_awaited_once_with(request)
 
 
 @pytest.mark.asyncio
@@ -97,36 +126,16 @@ class TestEventProcessor:
             event_handler=self.event_handler,
         )
 
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_signature_verification_failure(self, mock_verify):
-        event = {}
-        mock_verify.return_value = (None, None, None)
-        result = await self.processor.process_request(event)
-        assert result["statusCode"] == 401
-        assert "unauthorized" in result["body"].lower()
-
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_parsed_bodies_none(self, mock_verify):
-        event = {}
-        mock_verify.return_value = (b"body", None, None)
-        result = await self.processor.process_request(event)
-        assert result["statusCode"] == 500
-        assert "internal processing error" in result["body"].lower()
-
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_retry_header(self, mock_verify):
-        event = {"headers": {"x-slack-retry-num": "1"}}
-        mock_verify.return_value = (b"body", {"foo": "bar"}, {"foo": "bar"})
-        result = await self.processor.process_request(event)
+    async def test_retry_header(self):
+        request = SlackRequest(
+            raw_body=b"body",
+            body_str="body",
+            headers={"x-slack-retry-num": "1"},
+            path="/slack/events",
+            parsed_body={"foo": "bar"},
+            parsed_body_multivalue={"foo": ["bar"]},
+        )
+        result = await self.processor.process_request(request)
         assert result["statusCode"] == 200
         assert "retry ignored" in result["body"].lower()
 
@@ -134,15 +143,17 @@ class TestEventProcessor:
         "packages.slack.channel_events.incoming_events.handle_slack_command",
         new_callable=AsyncMock,
     )
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_handle_slack_command(self, mock_verify, mock_handle):
-        event = {}
-        mock_verify.return_value = (b"body", {"foo": "bar"}, {"command": ["/test"]})
+    async def test_handle_slack_command(self, mock_handle):
+        request = SlackRequest(
+            raw_body=b"body",
+            body_str="body",
+            headers={},
+            path="/slack/commands",
+            parsed_body={"foo": "bar"},
+            parsed_body_multivalue={"command": ["/test"]},
+        )
         mock_handle.return_value = {"statusCode": 201, "body": "command"}
-        result = await self.processor.process_request(event)
+        result = await self.processor.process_request(request)
         mock_handle.assert_awaited_once()
         assert result["statusCode"] == 201
         assert "command" in result["body"]
@@ -151,19 +162,18 @@ class TestEventProcessor:
         "packages.slack.channel_events.incoming_events.handle_interactive_component",
         new_callable=AsyncMock,
     )
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_handle_interactive_component(self, mock_verify, mock_handle):
-        event = {}
-        # Reset mocks to ensure clean state
-        mock_verify.reset_mock()
+    async def test_handle_interactive_component(self, mock_handle):
+        request = SlackRequest(
+            raw_body=b"body",
+            body_str="body",
+            headers={},
+            path="/slack/interactions",
+            parsed_body={"foo": "bar"},
+            parsed_body_multivalue={"payload": ["data"]},
+        )
         mock_handle.reset_mock()
-        mock_verify.return_value = (b"body", {"foo": "bar"}, {"payload": ["data"]})
         mock_handle.return_value = {"statusCode": 202, "body": "interactive"}
-        # All handlers present
-        result = await self.processor.process_request(event)
+        result = await self.processor.process_request(request)
         mock_handle.assert_awaited_once()
         assert result["statusCode"] == 202
         assert "interactive" in result["body"]
@@ -172,38 +182,44 @@ class TestEventProcessor:
         "packages.slack.channel_events.incoming_events.handle_events_api",
         new_callable=AsyncMock,
     )
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_handle_events_api(self, mock_verify, mock_handle):
-        event = {}
-        mock_verify.return_value = (b"body", {"event": {"type": "foo"}}, {"foo": "bar"})
+    async def test_handle_events_api(self, mock_handle):
+        request = SlackRequest(
+            raw_body=b"body",
+            body_str="body",
+            headers={},
+            path="/slack/events",
+            parsed_body={"event": {"type": "foo"}},
+            parsed_body_multivalue={"foo": ["bar"]},
+        )
         mock_handle.return_value = {"statusCode": 203, "body": "event"}
-        result = await self.processor.process_request(event)
+        result = await self.processor.process_request(request)
         mock_handle.assert_awaited_once()
         assert result["statusCode"] == 203
         assert "event" in result["body"]
 
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_unknown_request_type(self, mock_verify):
-        event = {}
-        mock_verify.return_value = (b"body", {"foo": "bar"}, {"foo": "bar"})
-        result = await self.processor.process_request(event)
+    async def test_unknown_request_type(self):
+        request = SlackRequest(
+            raw_body=b"body",
+            body_str="body",
+            headers={},
+            path="/slack/events",
+            parsed_body={"foo": "bar"},
+            parsed_body_multivalue={"foo": ["bar"]},
+        )
+        result = await self.processor.process_request(request)
         assert result["statusCode"] == 400
         assert "unknown request type" in result["body"].lower()
 
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
-    async def test_assertion_errors_for_missing_handlers(self, mock_verify):
+    async def test_assertion_errors_for_missing_handlers(self):
         # Remove handlers one by one and check assertion
-        event = {}
-        mock_verify.return_value = (b"body", {"foo": "bar"}, {"payload": ["data"]})
+        request = SlackRequest(
+            raw_body=b"body",
+            body_str="body",
+            headers={},
+            path="/slack/interactions",
+            parsed_body={"foo": "bar"},
+            parsed_body_multivalue={"payload": ["data"]},
+        )
         # Remove slack_posting_handler
         processor = incoming_events.EventProcessor(
             clients={
@@ -216,7 +232,7 @@ class TestEventProcessor:
             event_handler=self.event_handler,
         )
         with pytest.raises(RuntimeError, match="Slack posting handler is None"):
-            await processor.process_request(event)
+            await processor.process_request(request)
         # Remove feedback_reactions_handler
         processor = incoming_events.EventProcessor(
             clients={
@@ -229,7 +245,7 @@ class TestEventProcessor:
             event_handler=self.event_handler,
         )
         with pytest.raises(RuntimeError, match="Feedback reactions handler is None"):
-            await processor.process_request(event)
+            await processor.process_request(request)
         # Remove shortcut_handler
         processor = incoming_events.EventProcessor(
             clients={
@@ -242,7 +258,7 @@ class TestEventProcessor:
             event_handler=self.event_handler,
         )
         with pytest.raises(RuntimeError, match="Shortcut handler is None"):
-            await processor.process_request(event)
+            await processor.process_request(request)
         # Remove feedback_report_handler
         processor = incoming_events.EventProcessor(
             clients={
@@ -255,4 +271,4 @@ class TestEventProcessor:
             event_handler=self.event_handler,
         )
         with pytest.raises(RuntimeError, match="Feedback report handler is None"):
-            await processor.process_request(event)
+            await processor.process_request(request)

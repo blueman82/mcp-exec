@@ -13,7 +13,6 @@ It is responsible for:
 
 """
 
-import base64
 import hashlib
 import hmac
 import json
@@ -21,13 +20,13 @@ import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Optional
-from urllib.parse import parse_qs
 
 import aioboto3
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from packages.core.cleanup_utils import cleanup_resources
+from packages.core.event_parsing_utils import parse_slack_body
 from packages.core.logging import setup_logger
 from packages.core.typed_di.exceptions import MissingDependencyError
 from packages.core.typed_di.service_protocols import MetricsDataCollectorProtocol
@@ -42,6 +41,7 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
 )
 from packages.core.typed_di_integration import get_unified_container
 from packages.slack.channel_events.incoming_events import process_request
+from packages.slack.channel_events.models import SlackRequest
 
 logger = setup_logger(__name__)
 
@@ -160,68 +160,51 @@ def verify_slack_headers(request: Request) -> tuple[str, str]:
     return timestamp, signature
 
 
-def convert_headers_to_lambda_format(headers: dict[str, str]) -> dict[str, str]:
-    """Convert FastAPI headers to Lambda event format."""
-    return {k.lower(): v for k, v in headers.items()}
+def build_slack_request(body: bytes, headers: dict[str, str], path: str) -> SlackRequest:
+    """Construct SlackRequest directly from FastAPI data.
+
+    Args:
+        body: Raw request body as bytes.
+        headers: Request headers from FastAPI.
+        path: Request path.
+
+    Returns:
+        SlackRequest with parsed body and headers.
+    """
+    lowered = {k.lower(): v for k, v in headers.items()}
+    body_str = body.decode("utf-8")
+    content_type = lowered.get("content-type", "")
+    parsed, multivalue = parse_slack_body(body, content_type)
+    return SlackRequest(
+        raw_body=body,
+        body_str=body_str,
+        headers=lowered,
+        path=path,
+        parsed_body=parsed,
+        parsed_body_multivalue=multivalue,
+    )
 
 
-def create_lambda_event(body: bytes, headers: dict[str, str], path: str) -> dict[str, Any]:
-    """Create Lambda-compatible event structure"""
-    # Determine if body is base64 encoded
+async def process_slack_background(slack_request: SlackRequest) -> None:
+    """Process Slack request asynchronously in a background task."""
     try:
-        body_str = body.decode("utf-8")
-        is_base64 = False
-    except UnicodeDecodeError:
-        body_str = base64.b64encode(body).decode("utf-8")
-        is_base64 = True
-
-    return {
-        "body": body_str,
-        "isBase64Encoded": is_base64,
-        "headers": convert_headers_to_lambda_format(headers),
-        "httpMethod": "POST",
-        "path": path,
-        "requestContext": {
-            "accountId": "123456789012",
-            "apiId": "ketchup-api",
-            "protocol": "HTTP/1.1",
-            "httpMethod": "POST",
-            "path": path,
-            "stage": "prod",
-            "requestTime": "09/Apr/2024:12:34:56 +0000",
-            "requestTimeEpoch": int(time.time() * 1000),
-            "requestId": "fastapi-request",
-            "identity": {"sourceIp": "127.0.0.1", "userAgent": "FastAPI"},
-        },
-    }
-
-
-async def process_slack_request(body: bytes, headers: dict[str, str], path: str) -> None:
-    """Process Slack request asynchronously using existing Ketchup logic."""
-    try:
-        # Create Lambda-compatible event
-        lambda_event = create_lambda_event(body, headers, path)
-
-        # Process using existing Ketchup logic
-        result = await process_request(lambda_event, container)
-
-        # Log the result (actual response was already sent to Slack)
+        result = await process_request(slack_request, container)
         if result.get("statusCode") != 200:
             logger.error(f"Processing failed: {result}")
         else:
-            logger.info(f"Successfully processed {path} request")
-
+            logger.info(f"Successfully processed {slack_request.path} request")
     except Exception as e:
         logger.error(f"Error processing request: {e}", exc_info=True)
 
 
-async def process_slack_request_sync(
-    body: bytes, headers: dict[str, str], path: str
-) -> dict[str, Any] | None:
-    """Process Slack request synchronously and return result for modal responses."""
+async def process_slack_sync(slack_request: SlackRequest) -> dict[str, Any] | None:
+    """Process Slack request synchronously and return result for modal responses.
+
+    Returns:
+        Modal response dict if applicable, otherwise None.
+    """
     try:
-        lambda_event = create_lambda_event(body, headers, path)
-        result = await process_request(lambda_event, container)
+        result = await process_request(slack_request, container)
 
         # Check if body contains modal response (errors or update)
         if result.get("statusCode") == 200 and result.get("body"):
@@ -266,8 +249,8 @@ async def handle_slack_event(request: Request, background_tasks: BackgroundTasks
         return PlainTextResponse(event_data.get("challenge", ""))
 
     # Process asynchronously in background
-    headers = dict(request.headers)
-    background_tasks.add_task(process_slack_request, body, headers, "/slack/events")
+    slack_request = build_slack_request(body, dict(request.headers), "/slack/events")
+    background_tasks.add_task(process_slack_background, slack_request)
 
     # Immediate response to Slack
     return Response(status_code=200)
@@ -290,8 +273,8 @@ async def handle_slack_command(request: Request, background_tasks: BackgroundTas
         raise HTTPException(status_code=403, detail="Invalid signature")
 
     # Process asynchronously in background
-    headers = dict(request.headers)
-    background_tasks.add_task(process_slack_request, body, headers, "/slack/commands")
+    slack_request = build_slack_request(body, dict(request.headers), "/slack/commands")
+    background_tasks.add_task(process_slack_background, slack_request)
 
     # Immediate response to Slack
     return Response(status_code=200)
@@ -313,19 +296,18 @@ async def handle_slack_interaction(request: Request, background_tasks: Backgroun
         logger.warning("Invalid Slack signature for interactions endpoint")
         raise HTTPException(status_code=403, detail="Invalid signature")
 
-    # Parse payload to check if it's a view_submission that needs synchronous response
+    # Build SlackRequest once — reused for both sync check and background processing
+    slack_request = build_slack_request(body, dict(request.headers), "/slack/interactions")
+
+    # Check if it's a view_submission that needs synchronous response
     try:
-        parsed = parse_qs(body.decode("utf-8"))
-        payload_str = parsed.get("payload", ["{}"])[0]
-        payload = json.loads(payload_str)
-        payload_type = payload.get("type")
+        payload = slack_request.parsed_body.get("payload", {})
+        payload_type = payload.get("type") if isinstance(payload, dict) else None
 
         # view_submission requires synchronous response for errors/update
         if payload_type == "view_submission":
             logger.info("Processing view_submission synchronously for modal response")
-            result = await process_slack_request_sync(
-                body, dict(request.headers), "/slack/interactions"
-            )
+            result = await process_slack_sync(slack_request)
             if isinstance(result, dict):
                 # Return modal response (errors or update)
                 return JSONResponse(content=result)
@@ -335,8 +317,7 @@ async def handle_slack_interaction(request: Request, background_tasks: Backgroun
         logger.warning("Failed to parse interaction payload for sync check: %s", e)
 
     # Process other interactions asynchronously in background
-    headers = dict(request.headers)
-    background_tasks.add_task(process_slack_request, body, headers, "/slack/interactions")
+    background_tasks.add_task(process_slack_background, slack_request)
 
     # Immediate response to Slack
     return Response(status_code=200)

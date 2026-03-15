@@ -12,6 +12,7 @@ from packages.core.logging import setup_logger
 from packages.core.typed_di.registry import TypedServiceRegistry
 from packages.slack.authorisation.auth import SlackAuth
 from packages.slack.channel_events.events import SlackEventHandler
+from packages.slack.channel_events.models import SlackRequest
 from packages.slack.channel_events.request_processing.dependency_setup import (
     setup_dependencies,
 )
@@ -20,16 +21,13 @@ from packages.slack.channel_events.request_processing.routing import (
     handle_interactive_component,
     handle_slack_command,
 )
-from packages.slack.channel_events.request_processing.verification_parsing import (
-    verify_and_parse_body,
-)
 from packages.slack.command_processing.command_router import CommandRouter
 
 logger = setup_logger(__name__)
 
 
 # --- Main Request Handler --- #
-async def process_request(event: Dict[str, Any], container: TypedServiceRegistry) -> Dict[str, Any]:
+async def process_request(request: SlackRequest, container: TypedServiceRegistry) -> Dict[str, Any]:
     """
     Process a request from Slack at the module level.
 
@@ -37,7 +35,7 @@ async def process_request(event: Dict[str, Any], container: TypedServiceRegistry
     to an EventProcessor instance created per-request.
 
     Args:
-        event: The Lambda event containing the Slack request
+        request: The parsed SlackRequest.
         container: The TypedServiceRegistry instance
 
     Returns:
@@ -68,7 +66,7 @@ async def process_request(event: Dict[str, Any], container: TypedServiceRegistry
         )
 
         # Process the request using the local processor instance
-        return await processor.process_request(event)
+        return await processor.process_request(request)
 
     except ValueError as ve:  # Catch specific config errors
         logger.error("Configuration error during process_request setup: %s", ve)
@@ -134,61 +132,36 @@ class EventProcessor:
         # Get CSOPMHandler for CSOPM interactive button actions
         self.csopm_handler = clients.get("csopm_handler")
 
-    async def process_request(self, event: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_request(self, request: SlackRequest) -> Dict[str, Any]:
         """
-        Process an incoming request event (Lambda or similar).
-
-        Verifies, parses, and routes the request using external functions.
+        Process an incoming Slack request.
 
         Args:
-            event: The raw event dictionary.
+            request: The parsed SlackRequest.
 
         Returns:
-            A dictionary suitable for returning from a Lambda function.
+            A dictionary with statusCode and body.
         """
         logger.info("Processing incoming request within EventProcessor")
 
-        # --- Body Parsing and Signature Verification --- #
-        (
-            raw_body_bytes,
-            parsed_body_dict,
-            parsed_body_multivalue,
-        ) = await verify_and_parse_body(event, self.slack_auth)
-
-        # Check if verification/parsing failed
-        if raw_body_bytes is None:
-            # Distinguish between signature failure and parsing error if needed
-            # For now, return 401 for any failure in this step
-            logger.warning("Body verification or parsing failed.")
-            return {"statusCode": 401, "body": "Unauthorized or Invalid Request"}
-
-        # Ensure parsed bodies are not None before accessing keys
-        if parsed_body_dict is None or parsed_body_multivalue is None:
-            logger.error("Parsed bodies are None after successful verification. Unexpected state.")
-            return {"statusCode": 500, "body": "Internal processing error"}
-
-        # Check for retry attempts
-        headers = event.get("headers", {})
-        retry_num = headers.get("x-slack-retry-num")
+        # Check for retry attempts (headers already lowercase)
+        retry_num = request.headers.get("x-slack-retry-num")
         if retry_num:
             logger.warning("Slack retry attempt number %s detected. Ignoring.", retry_num)
             return {"statusCode": 200, "body": "Retry ignored"}
 
-        # --- Request Routing Logic --- #
-        # logger.info("Parsed Body Dict Keys: %s", list(parsed_body_dict.keys()))
-        # logger.info(
-        #     "Parsed Body Multivalue Keys: %s", list(parsed_body_multivalue.keys())
-        # )
+        # Use pre-parsed body data directly
+        parsed_body_dict = request.parsed_body
+        parsed_body_multivalue = request.parsed_body_multivalue
 
         # --- Determine Request Type and Delegate --- #
         if "command" in parsed_body_multivalue:
             return await handle_slack_command(
                 parsed_body_multivalue=parsed_body_multivalue,
-                command_router=self.command_router,  # Pass dependency
+                command_router=self.command_router,
             )
 
         elif "payload" in parsed_body_multivalue:
-            # Check if handlers are not None before passing
             if self.slack_posting_handler is None:
                 msg = "Slack posting handler is None"
                 logger.error(msg)
@@ -201,7 +174,6 @@ class EventProcessor:
                 msg = "Shortcut handler is None"
                 logger.error(msg)
                 raise RuntimeError(msg)
-            # Check if the re-added handler is not None
             if self.feedback_report_handler is None:
                 msg = "Feedback report handler is None"
                 logger.error(msg)
@@ -214,7 +186,6 @@ class EventProcessor:
                 msg = "Flag review handler is None"
                 logger.error(msg)
                 raise RuntimeError(msg)
-            # Pass feedback_report_handler, trust_endorsement_handler, and flag_review_handler to the call
             return await handle_interactive_component(
                 parsed_body_multivalue=parsed_body_multivalue,
                 posting_handler=self.slack_posting_handler,
@@ -230,7 +201,6 @@ class EventProcessor:
             )
 
         elif "event" in parsed_body_dict or "event" in parsed_body_multivalue:
-            # Pass the home_tab_handler to handle_events_api
             return await handle_events_api(
                 parsed_body_multivalue=parsed_body_multivalue,
                 parsed_body_dict=parsed_body_dict,
