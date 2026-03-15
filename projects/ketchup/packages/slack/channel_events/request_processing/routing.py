@@ -162,7 +162,7 @@ async def handle_events_api(
     parsed_body_dict: Dict[str, Any],
     event_handler: SlackEventHandler,
     home_tab_handler: Optional[HomeTabHandler] = None,
-) -> Dict[str, Any]:
+) -> ProcessingResult:
     """
     Handles incoming Events API events (url_verification or event_callback).
 
@@ -173,7 +173,7 @@ async def handle_events_api(
         home_tab_handler: Optional HomeTabHandler instance for app_home_opened events.
 
     Returns:
-        A dictionary suitable for returning from the Lambda function.
+        ProcessingResult with status code and response body.
     """
     # Determine event type (preferring multivalue source)
     event_type_list = parsed_body_multivalue.get("type")
@@ -197,7 +197,7 @@ async def handle_events_api(
         challenge_list = parsed_body_multivalue.get("challenge")
         challenge = challenge_list[0] if challenge_list else parsed_body_dict.get("challenge")
         logger.info("Returning URL verification challenge: %s", challenge)
-        return {"statusCode": 200, "body": challenge or ""}
+        return ProcessingResult(status_code=200, body=challenge or "")
 
     # Handle Event Callbacks (nested or direct)
     nested_event_data = None
@@ -218,10 +218,10 @@ async def handle_events_api(
                             else type(nested_event_list[0])
                         ),
                     )
-                    return {"statusCode": 400, "body": "Invalid event format"}
+                    return ProcessingResult(status_code=400, body="Invalid event format")
         else:
             logger.error("Missing or invalid 'event' field in multivalue dict for event_callback")
-            return {"statusCode": 400, "body": "Invalid event_callback structure"}
+            return ProcessingResult(status_code=400, body="Invalid event_callback structure")
 
     elif "event" in parsed_body_dict:
         nested_event_data = parsed_body_dict.get("event")
@@ -247,7 +247,7 @@ async def handle_events_api(
             # Add handling if source was multivalue but event wasn't nested (less common)
             elif source_dict == "multivalue":
                 logger.error("Cannot process non-nested direct event from multivalue source.")
-                return {"statusCode": 400, "body": "Unexpected event structure"}
+                return ProcessingResult(status_code=400, body="Unexpected event structure")
 
         # If we have a dictionary to process, dispatch it
         if dict_to_process:
@@ -260,7 +260,7 @@ async def handle_events_api(
                     "Invalid or missing event type in event data: %s",
                     actual_event_type,
                 )
-                return {"statusCode": 400, "body": "Invalid event data: Missing type"}
+                return ProcessingResult(status_code=400, body="Invalid event data: Missing type")
 
             # Special handling for app_home_opened events
             if actual_event_type == "app_home_opened" and home_tab_handler:
@@ -273,7 +273,7 @@ async def handle_events_api(
                         home_err,
                         exc_info=True,
                     )
-                return {"statusCode": 200, "body": "Home tab updated"}
+                return ProcessingResult(status_code=200, body="Home tab updated")
 
             # Map event types to handler methods on the event_handler object
             event_handler_map = {
@@ -305,7 +305,7 @@ async def handle_events_api(
             logger.error(
                 "Event type is 'event_callback' but nested 'event' data is invalid or missing."
             )
-            return {"statusCode": 400, "body": "Invalid event_callback structure"}
+            return ProcessingResult(status_code=400, body="Invalid event_callback structure")
         else:
             # Case where no valid dictionary was identified for processing
             logger.warning(
@@ -313,9 +313,9 @@ async def handle_events_api(
                 event_type,
             )
 
-        return {"statusCode": 200, "body": "Event received"}
+        return ProcessingResult(status_code=200, body="Event received")
 
     except Exception as e:
         logger.error("Error during event processing by SlackEventHandler: %s", e, exc_info=True)
         # Return 200 to ack receipt to Slack, but log the internal error
-        return {"statusCode": 200, "body": "Error processing event"}
+        return ProcessingResult(status_code=200, body="Error processing event")

@@ -41,7 +41,7 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
 )
 from packages.core.typed_di_integration import get_unified_container
 from packages.slack.channel_events.incoming_events import process_request
-from packages.slack.channel_events.models import SlackRequest
+from packages.slack.channel_events.models import ProcessingResult, SlackRequest
 
 logger = setup_logger(__name__)
 
@@ -189,7 +189,7 @@ async def process_slack_background(slack_request: SlackRequest) -> None:
     """Process Slack request asynchronously in a background task."""
     try:
         result = await process_request(slack_request, container)
-        if result.get("statusCode") != 200:
+        if result.status_code != 200:
             logger.error(f"Processing failed: {result}")
         else:
             logger.info(f"Successfully processed {slack_request.path} request")
@@ -207,9 +207,9 @@ async def process_slack_sync(slack_request: SlackRequest) -> dict[str, Any] | No
         result = await process_request(slack_request, container)
 
         # Check if body contains modal response (errors or update)
-        if result.get("statusCode") == 200 and result.get("body"):
+        if result.status_code == 200 and result.body:
             try:
-                body_content = json.loads(result["body"])
+                body_content = json.loads(result.body)
                 if isinstance(body_content, dict) and body_content.get("response_action"):
                     logger.info("Returning modal response: %s", body_content.get("response_action"))
                     return body_content
