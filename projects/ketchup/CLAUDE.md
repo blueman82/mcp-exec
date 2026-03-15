@@ -371,7 +371,6 @@ Unit → Integration → E2E → Manual
 ## Important Documentation
 
 - **[High-Level Architecture Guide](./docs/internal_documentation/ketchup_high_level.md)** - Complete system design and event flow
-- **[Code Walkthrough](./docs/internal_documentation/ketchup_code_walkthrough_documentation.md)** - Component-by-component reference
 - **[Diagram Index & Navigation](./docs/diagrams/README.md)** - Visual documentation of infrastructure, services, and workflows
 - **[Feature Flags Reference](./docs/internal_documentation/ketchup_feature_flags.md)** - Comprehensive guide to all environment variables and feature controls
 

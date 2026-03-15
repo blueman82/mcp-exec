@@ -201,7 +201,6 @@ Common feature flags:
 Ketchup has comprehensive architecture and implementation documentation:
 
 - **[High-Level Architecture Guide](./docs/internal_documentation/ketchup_high_level.md)** - Complete system design, event flow, and feature flags
-- **[Code Walkthrough Documentation](./docs/internal_documentation/ketchup_code_walkthrough_documentation.md)** - Detailed component-by-component reference
 - **[Diagram Index & Navigation](./docs/diagrams/README.md)** - Visual documentation of infrastructure, event flows, services, and workflows
 - **[Feature Flags Reference](./docs/internal_documentation/ketchup_feature_flags.md)** - Comprehensive guide to all 40+ environment variables and feature controls
 
