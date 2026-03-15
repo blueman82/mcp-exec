@@ -1010,7 +1010,7 @@ Slack events (e.g., a user joining a channel, a reaction added to a message) are
     *   Write unit tests for your new event processor, mocking its dependencies.
     *   Consider integration tests if the event triggers a complex flow involving multiple services.
 
-This provides a high-level framework. The exact implementation details, especially for routing and dependency access, will depend on the existing patterns in the `packages/slack/channel_events/` directory, which the `ketchup_code_walkthrough_documentation.md` should detail further.
+This provides a high-level framework. The exact implementation details, especially for routing and dependency access, will depend on the existing patterns in the `packages/slack/channel_events/` directory.
 
 ### How to Create a New Async Client
 
@@ -1484,7 +1484,7 @@ The recommended way to set up your development environment and run tests is by u
     *   **Never commit actual secrets or sensitive API keys to version control.**
 
 6.  **Explore the Code:**
-    With the setup complete, you can activate the virtual environment manually if needed (`source tests/setup/.venv/bin/activate`) and start exploring the codebase using your preferred IDE. The sections above in this document, and the more detailed `ketchup_code_walkthrough_documentation.md`, will guide you further.
+    With the setup complete, you can activate the virtual environment manually if needed (`source tests/setup/.venv/bin/activate`) and start exploring the codebase using your preferred IDE. The sections above in this document will guide you further.
 
 This initial setup should provide you with a functional development environment. For more advanced testing scenarios (like Docker-based concurrency tests) or troubleshooting, refer to `tests/setup/README-setup.md`.
 
