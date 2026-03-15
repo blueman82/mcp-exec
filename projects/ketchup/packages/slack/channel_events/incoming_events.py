@@ -148,11 +148,6 @@ class EventProcessor:
         """
         logger.info("Processing incoming request within EventProcessor")
 
-        # Check for warm-up pings
-        if event.get("source") == "aws.events":
-            logger.info("Warm-up ping received. Exiting.")
-            return {"statusCode": 200, "body": "Warm-up successful"}
-
         # --- Body Parsing and Signature Verification --- #
         (
             raw_body_bytes,
@@ -174,7 +169,7 @@ class EventProcessor:
 
         # Check for retry attempts
         headers = event.get("headers", {})
-        retry_num = headers.get("X-Slack-Retry-Num")
+        retry_num = headers.get("x-slack-retry-num")
         if retry_num:
             logger.warning("Slack retry attempt number %s detected. Ignoring.", retry_num)
             return {"statusCode": 200, "body": "Retry ignored"}
