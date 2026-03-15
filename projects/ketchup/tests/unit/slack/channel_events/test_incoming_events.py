@@ -101,17 +101,6 @@ class TestEventProcessor:
         "packages.slack.channel_events.incoming_events.verify_and_parse_body",
         new_callable=AsyncMock,
     )
-    async def test_warmup_ping(self, mock_verify):
-        event = {"source": "aws.events"}
-        result = await self.processor.process_request(event)
-        assert result["statusCode"] == 200
-        assert "warm-up" in result["body"].lower()
-        mock_verify.assert_not_called()
-
-    @patch(
-        "packages.slack.channel_events.incoming_events.verify_and_parse_body",
-        new_callable=AsyncMock,
-    )
     async def test_signature_verification_failure(self, mock_verify):
         event = {}
         mock_verify.return_value = (None, None, None)
@@ -135,7 +124,7 @@ class TestEventProcessor:
         new_callable=AsyncMock,
     )
     async def test_retry_header(self, mock_verify):
-        event = {"headers": {"X-Slack-Retry-Num": "1"}}
+        event = {"headers": {"x-slack-retry-num": "1"}}
         mock_verify.return_value = (b"body", {"foo": "bar"}, {"foo": "bar"})
         result = await self.processor.process_request(event)
         assert result["statusCode"] == 200

@@ -4,12 +4,8 @@ processor.py
 This module contains the metadata processing handler for the channel metadata updater.
 """
 
-import asyncio
-import gc
 import json
 from typing import Any, Dict, Optional
-
-import aiohttp
 
 from ketchup_unified_scheduler.services.metadata.updater import ChannelMetadataUpdater
 from packages.core.logging import setup_logger
@@ -37,25 +33,6 @@ from packages.core.typed_di.service_registrations.protocols.slack_protocols impo
 from packages.core.typed_di_integration import get_unified_container
 
 logger = setup_logger(__name__)
-
-
-async def cleanup_sessions():
-    """
-    Close all unclosed aiohttp client sessions before Lambda exits.
-    """
-    sessions = [obj for obj in gc.get_objects() if isinstance(obj, aiohttp.ClientSession)]
-
-    logger.info("Found %d aiohttp sessions to clean up", len(sessions))
-
-    for session in sessions:
-        try:
-            if not session.closed:
-                logger.info("Closing unclosed aiohttp ClientSession")
-                await session.close()
-        except Exception as e:
-            logger.error("Error closing session: %s", str(e))
-
-    await asyncio.sleep(0.5)
 
 
 async def create_channel_metadata_updater(container) -> ChannelMetadataUpdater:
@@ -178,52 +155,3 @@ async def process_channels(
     # All dependencies are shared DI singletons that MUST NOT be cleaned up
     # by individual tasks. Cleanup is managed by the DI container lifecycle.
     # See cleanup_clients() docstring for historical context.
-
-
-def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """AWS Lambda function handler.
-
-    Args:
-        event: The Lambda event data
-        context: The Lambda context object
-
-    Returns:
-        Dict with status information
-    """
-    try:
-        result = {}  # Initialize result
-        try:
-            logger.info("Lambda invoked with event: %s", json.dumps(event))
-            result = asyncio.run(process_channels(event, context))
-        except Exception as e:
-            logger.error(
-                "Unhandled exception in Lambda handler's process_channels: %s",
-                str(e),
-                exc_info=True,
-            )
-            result = {
-                "statusCode": 500,
-                "body": json.dumps({"error": f"Unhandled processing error: {str(e)}"}),
-            }
-        finally:
-            logger.info("Initiating session cleanup...")
-            try:
-                asyncio.run(cleanup_sessions())
-                logger.info("Session cleanup completed.")
-            except Exception as e:
-                logger.error(
-                    "Error during session cleanup: %s",
-                    str(e),
-                    exc_info=True,
-                )
-        return result
-    except Exception as top_level_e:
-        logger.error(
-            "Top-level unhandled exception in Lambda handler: %s",
-            str(top_level_e),
-            exc_info=True,
-        )
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": f"Top-level handler error: {str(top_level_e)}"}),
-        }

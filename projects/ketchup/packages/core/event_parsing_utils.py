@@ -34,13 +34,7 @@ def parse_event_body(
     parsed_body_dict: Dict[str, Any] = {}
     parsed_body_multivalue: Dict[str, Any] = {}
     headers = event.get("headers", {}) or {}
-    mv_headers = event.get("multiValueHeaders", {}) or {}
     merged_headers = {k.lower(): v for k, v in headers.items()}
-    for k, v in mv_headers.items():
-        if isinstance(v, list) and v:
-            merged_headers[k.lower()] = v[0]
-        elif isinstance(v, str):
-            merged_headers[k.lower()] = v
     # logger.info("Merged headers for event: %s", merged_headers)
     content_type = merged_headers.get("content-type", "")
     is_json = "application/json" in content_type
