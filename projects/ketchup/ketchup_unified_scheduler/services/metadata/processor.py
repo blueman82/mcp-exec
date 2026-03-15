@@ -96,21 +96,17 @@ async def create_channel_metadata_updater(container) -> ChannelMetadataUpdater:
 
 
 async def process_channels(
-    event: Dict[str, Any],
-    context: Any,
     container: Optional[TypedServiceRegistry] = None,
 ) -> Dict[str, Any]:
     """Process channels with missing metadata asynchronously.
 
     Args:
-        event: The Lambda event data
-        context: The Lambda context object
         container: Optional pre-initialized TypedDI container. If None, creates one.
 
     Returns:
         Dict with status information
     """
-    logger.info("Starting metadata update process for event: %s", event)
+    logger.info("Starting metadata update process")
 
     try:
         if container is None:

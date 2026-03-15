@@ -29,11 +29,7 @@ async def metadata_update_task(container: Optional[TypedServiceRegistry] = None)
     logger.info("Starting metadata update task")
 
     try:
-        result = await process_channels(
-            event=None,
-            context=None,
-            container=container,
-        )
+        result = await process_channels(container=container)
 
         status_code = result.get("statusCode", 500)
         if status_code == 200:

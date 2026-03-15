@@ -169,8 +169,6 @@ class TestMetadataUpdateTask:
             await metadata_update_task(container=mock_container)
 
             mock_process.assert_called_once_with(
-                event=None,
-                context=None,
                 container=mock_container,
             )
 
