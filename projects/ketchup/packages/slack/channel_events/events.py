@@ -164,19 +164,23 @@ class SlackEventHandler:
         # ── Agent backfill on bot join ──
         # When the bot joins a channel, schedule backfill to index history.
         # Idempotent — checks watermark, skips if already done.
-        try:
-            from packages.agent.slack.handler import is_agent_enabled
+        from packages.core.config.feature_flags import FeatureFlags
 
-            bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
-            if event.get("user") == bot_user_id and is_agent_enabled() and self.typed_container:
+        bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
+        if (
+            event.get("user") == bot_user_id
+            and FeatureFlags.is_agent_enabled()
+            and self.typed_container
+        ):
+            try:
                 from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                     AgentBackfillIngestorProtocol,
                 )
 
                 backfill = await self.typed_container.aget(AgentBackfillIngestorProtocol)
                 await backfill.schedule_backfill(event.get("channel"))
-        except Exception as e:
-            logger.debug("Agent backfill on join skipped: %s", e)
+            except Exception as e:
+                logger.debug("Agent backfill on join skipped: %s", e)
 
     async def handle_channel_archive(self, event: dict):
         """
@@ -203,10 +207,11 @@ class SlackEventHandler:
 
             # ── ChromaDB/Agent cleanup on archive ──
             try:
-                from packages.agent.slack.handler import is_agent_enabled
                 from packages.core.config.feature_flags import FeatureFlags
 
-                if (is_agent_enabled() or FeatureFlags.is_chromadb_enabled()) and self.typed_container:
+                if (
+                    FeatureFlags.is_agent_enabled() or FeatureFlags.is_chromadb_enabled()
+                ) and self.typed_container:
                     from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                         AgentConversationStoreProtocol,
                         AgentVectorStoreProtocol,
@@ -354,9 +359,9 @@ class SlackEventHandler:
         # ── 2. Agent dispatch ──
         # The agent is the universal handler for @Ketchup mentions.
         try:
-            from packages.agent.slack.handler import is_agent_enabled
+            from packages.core.config.feature_flags import FeatureFlags
 
-            if is_agent_enabled() and self.typed_container:
+            if FeatureFlags.is_agent_enabled() and self.typed_container:
                 from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                     AgentSlackHandlerProtocol,
                 )
@@ -398,9 +403,9 @@ class SlackEventHandler:
         text = event.get("text", "")
         if thread_ts and f"<@{bot_user_id}>" not in text:
             try:
-                from packages.agent.slack.handler import is_agent_enabled
+                from packages.core.config.feature_flags import FeatureFlags
 
-                if is_agent_enabled() and self.typed_container:
+                if FeatureFlags.is_agent_enabled() and self.typed_container:
                     from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                         AgentConversationStoreProtocol,
                         AgentSlackHandlerProtocol,
@@ -432,10 +437,11 @@ class SlackEventHandler:
         # ── ChromaDB real-time ingestion ──
         # Runs when either ChromaDB or full agent is enabled (ingestor is in the chromadb tier)
         try:
-            from packages.agent.slack.handler import is_agent_enabled
             from packages.core.config.feature_flags import FeatureFlags
 
-            if (is_agent_enabled() or FeatureFlags.is_chromadb_enabled()) and self.typed_container:
+            if (
+                FeatureFlags.is_agent_enabled() or FeatureFlags.is_chromadb_enabled()
+            ) and self.typed_container:
                 from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                     AgentRealtimeIngestorProtocol,
                 )

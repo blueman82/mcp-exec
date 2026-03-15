@@ -281,6 +281,17 @@ class FeatureFlags:
         return value == "true"
 
     @staticmethod
+    def is_agent_enabled() -> bool:
+        """
+        Check if the agent chat/RAG feature is enabled.
+
+        Returns:
+            True if agent is enabled, False otherwise
+        """
+        value = os.environ.get("KETCHUP_AGENT_ENABLED", "false").lower()
+        return value == "true"
+
+    @staticmethod
     def get_all_flags() -> Dict[str, Any]:
         """
         Get all feature flags and their current values.
@@ -308,5 +319,6 @@ class FeatureFlags:
             "httpx_pool_limits": FeatureFlags.get_httpx_pool_limits(),
             "structured_json_output_enabled": FeatureFlags.is_structured_json_output_enabled(),
             "chromadb_enabled": FeatureFlags.is_chromadb_enabled(),
+            "agent_enabled": FeatureFlags.is_agent_enabled(),
             # async_mcp_enabled removed - always True (consolidated to AsyncMCPClient)
         }
