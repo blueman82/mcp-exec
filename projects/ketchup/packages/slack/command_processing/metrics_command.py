@@ -13,6 +13,7 @@ from packages.core.exports.time_period_formatter import (
 )
 from packages.core.logging import setup_logger
 from packages.secrets.manager import SecretsManager
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.base_command_handler import BaseCommandHandler
 from packages.slack.command_processing.command_parameters.models import (
     MetricsCommandParams,
@@ -65,7 +66,7 @@ class MetricsCommand(BaseCommandHandler):
         user_id: str,
         incoming_channel: str,
         response_url: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> ProcessingResult:
         """
         Process metrics command params and generate HTML dashboard.
 
@@ -92,7 +93,7 @@ class MetricsCommand(BaseCommandHandler):
                 channel_id=user_id,
                 message="⛔ Access Denied: The `/ketchup metrics` command is restricted to authorized administrators only.",
             )
-            return {"statusCode": 403, "body": "Access denied"}
+            return ProcessingResult(status_code=403, body="Access denied")
 
         # Send immediate confirmation message
         confirmation_msg = format_confirmation_message(
@@ -130,9 +131,9 @@ class MetricsCommand(BaseCommandHandler):
         )
 
         if success:
-            return {"statusCode": 200, "body": "Metrics dashboard generated"}
+            return ProcessingResult(status_code=200, body="Metrics dashboard generated")
         else:
-            return {"statusCode": 500, "body": "Failed to generate metrics"}
+            return ProcessingResult(status_code=500, body="Failed to generate metrics")
 
     async def _check_if_admin(self, user_id: str) -> bool:
         """

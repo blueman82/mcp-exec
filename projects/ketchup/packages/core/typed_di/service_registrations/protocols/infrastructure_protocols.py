@@ -6,6 +6,8 @@ including HTTP clients, backoff strategies, and async operations.
 
 from typing import Protocol, runtime_checkable
 
+from packages.slack.channel_events.models import ProcessingResult
+
 
 @runtime_checkable
 class AsyncClientProtocol(Protocol):
@@ -32,7 +34,7 @@ class ExponentialBackoffStrategyProtocol(Protocol):
 class EventProcessorProtocol(Protocol):
     """Protocol for event processing."""
 
-    async def process_request(self, event: dict) -> dict:
+    async def process_request(self, event: dict) -> ProcessingResult:
         """
         Process an incoming request event.
 
@@ -40,8 +42,7 @@ class EventProcessorProtocol(Protocol):
             event: The raw event dictionary from Slack or other sources
 
         Returns:
-            A dictionary suitable for returning from a Lambda function
-            with statusCode and body fields
+            A ProcessingResult with status code and body
         """
         ...
 
