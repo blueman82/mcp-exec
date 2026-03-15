@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from ketchup_unified_scheduler.task_config import TaskConfig
+from packages.slack.channel_events.models import ProcessingResult
 
 
 class TestMaintenanceFetchTask:
@@ -157,7 +158,7 @@ class TestMetadataUpdateTask:
     async def test_metadata_update_task_calls_process_channels(self):
         """Test that metadata_update_task calls process_channels."""
         mock_container = MagicMock()
-        mock_result = {"statusCode": 200, "body": "Processed channels"}
+        mock_result = ProcessingResult(status_code=200, body="Processed channels")
 
         with patch(
             "ketchup_unified_scheduler.tasks.metadata_update_task.process_channels",
@@ -176,7 +177,7 @@ class TestMetadataUpdateTask:
     async def test_metadata_update_task_handles_non_200_status(self):
         """Test that metadata_update_task handles non-200 status gracefully."""
         mock_container = MagicMock()
-        mock_result = {"statusCode": 500, "body": "Error"}
+        mock_result = ProcessingResult(status_code=500, body="Error")
 
         with patch(
             "ketchup_unified_scheduler.tasks.metadata_update_task.process_channels",

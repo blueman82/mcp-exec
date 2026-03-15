@@ -326,7 +326,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Verify resolution occurred and restore was called with resolved ID
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
             call_args = self.handler.channel_restore_ops.restore_archived_channel.call_args
@@ -364,7 +364,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
 
             # Verify that restore was called with resolved ID
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
@@ -414,7 +414,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
 
             # Verify that restore was called with resolved ID (this worked before)
             self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
