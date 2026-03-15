@@ -81,6 +81,7 @@ _ROLE_MODULES: dict[str, list[Callable]] = {
         register_ui_services,
         register_maintenance_services,
         register_csopm_services,
+        register_chromadb_services,
         register_agent_services,
     ],
     # SCHEDULER: drops event_processing, ui_services
@@ -96,6 +97,7 @@ _ROLE_MODULES: dict[str, list[Callable]] = {
         register_command_processing,
         register_maintenance_services,
         register_csopm_services,
+        register_chromadb_services,
         register_agent_services,
     ],
     # CSOPM_NOTIFIER: core + slack_core + slack_handlers + ai_operational + integrations + csopm
@@ -187,8 +189,10 @@ def register_all_focused_services(manager: object) -> None:
     # CSOPM notifier services (4 services) - state tracking, JIRA polling, Slack notifications, reminders
     register_csopm_services(manager)
 
-    # ChromaDB foundation + Agent services
-    # ChromaDB (4 services): embeddings, vector store, conversation store, realtime ingestor
-    # Agent (8 services): retriever, context builder, thread manager, filter, JIRA backfill, backfill ingestor, engine, handler
-    # Gated by KETCHUP_CHROMADB_ENABLED and KETCHUP_AGENT_ENABLED feature flags
+    # ChromaDB foundation services (4 services) - embeddings, vector store, conversation store, realtime ingestor
+    # Gated by KETCHUP_CHROMADB_ENABLED or KETCHUP_AGENT_ENABLED feature flags
+    register_chromadb_services(manager)
+
+    # Agent chat/RAG services (8 services) - retriever, context builder, thread manager, filter, JIRA backfill, backfill ingestor, engine, handler
+    # Gated by KETCHUP_AGENT_ENABLED feature flag
     register_agent_services(manager)

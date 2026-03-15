@@ -318,10 +318,10 @@ def register_chromadb_services(manager: ServiceRegistrationManager) -> int:
 
 
 def register_agent_services(manager: ServiceRegistrationManager) -> int:
-    """Register all agent services if the feature is enabled.
+    """Register agent chat/RAG services if the feature is enabled.
 
-    Calls register_chromadb_services() first to ensure foundation services
-    are available, then registers the agent chat/RAG services.
+    Assumes chromadb foundation services are already registered via
+    register_chromadb_services() in the role maps.
 
     Args:
         manager: The ServiceRegistrationManager instance.
@@ -329,8 +329,6 @@ def register_agent_services(manager: ServiceRegistrationManager) -> int:
     Returns:
         Number of services registered.
     """
-    register_chromadb_services(manager)
-
     enabled = os.environ.get("KETCHUP_AGENT_ENABLED", "false").lower() == "true"
 
     if not enabled:
