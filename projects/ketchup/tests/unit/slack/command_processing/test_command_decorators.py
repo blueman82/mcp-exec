@@ -32,6 +32,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing import command_decorators
 
 
@@ -45,7 +46,7 @@ class TestHandleArchivedChannel:
 
             @command_decorators.handle_archived_channel
             async def do_command(self, **kwargs):
-                return {"statusCode": 200, "body": "ok", "feedback_sent": True}
+                return ProcessingResult(status_code=200, body="ok", feedback_sent=True)
 
         self.handler = DummyHandler()
 
@@ -57,18 +58,18 @@ class TestHandleArchivedChannel:
         result = await self.handler.do_command(
             user_id="U1", channel_id="C1", incoming_channel="C1", response_url="url"
         )
-        assert result == {"statusCode": 200, "body": "ok", "feedback_sent": True}
+        assert result == ProcessingResult(status_code=200, body="ok", feedback_sent=True)
         self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
 
     async def test_missing_required_parameters(self) -> None:
         result = await self.handler.do_command(channel_id="C1", response_url="url")
-        assert result["statusCode"] == 400
+        assert result.status_code == 400
         self.handler.slack_posting_handler.post_message.assert_awaited_once()
 
     async def test_missing_restore_ops(self) -> None:
         self.handler.channel_restore_ops = None
         result = await self.handler.do_command(user_id="U1", channel_id="C1", response_url="url")
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
         self.handler.slack_posting_handler.post_message.assert_awaited_once()
 
     async def test_restore_fails(self) -> None:
@@ -77,7 +78,7 @@ class TestHandleArchivedChannel:
             True,
         )
         result = await self.handler.do_command(user_id="U1", channel_id="C1", response_url="url")
-        assert result["statusCode"] == 400
+        assert result.status_code == 400
         self.handler.channel_restore_ops.restore_archived_channel.assert_awaited_once()
 
     async def test_exception_in_command(self) -> None:
@@ -93,14 +94,14 @@ class TestHandleArchivedChannel:
         handler = DummyHandler()
         handler.channel_restore_ops.restore_archived_channel.return_value = (True, True)
         result = await handler.do_command(user_id="U1", channel_id="C1", response_url="url")
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
         handler.slack_posting_handler.post_message.assert_awaited_once()
 
     async def test_exception_in_decorator(self) -> None:
         # Patch restore_archived_channel to raise
         self.handler.channel_restore_ops.restore_archived_channel.side_effect = Exception("fail")
         result = await self.handler.do_command(user_id="U1", channel_id="C1", response_url="url")
-        assert result["statusCode"] == 500
+        assert result.status_code == 500
         self.handler.slack_posting_handler.post_message.assert_awaited_once()
 
 
@@ -119,7 +120,7 @@ class TestHandleArchivedChannelResolution:
             async def do_command(self, **kwargs):
                 # Store kwargs to verify resolution worked
                 self.received_kwargs = kwargs.copy()
-                return {"statusCode": 200, "body": "ok", "feedback_sent": True}
+                return ProcessingResult(status_code=200, body="ok", feedback_sent=True)
 
         self.handler = DummyHandler()
         self.handler.channel_restore_ops.restore_archived_channel.return_value = (
@@ -150,7 +151,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Verify the channel_id was not changed (already valid)
             assert self.handler.received_kwargs["channel_id"] == channel_id
             mock_resolver.resolve_channel_parameter.assert_awaited_once_with(channel_id)
@@ -178,7 +179,7 @@ class TestHandleArchivedChannelResolution:
                 user_id="U1", channel_id=mention, text=original_text, response_url="url"
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Verify the channel_id was resolved
             assert self.handler.received_kwargs["channel_id"] == resolved_id
             # Verify the text was updated
@@ -211,7 +212,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Verify the channel_id was resolved
             assert self.handler.received_kwargs["channel_id"] == resolved_id
             # Verify the text was updated
@@ -236,7 +237,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Channel parameter should use fallback regex extraction for mentions
             # The fallback extracts "C1234567890" from "<#C1234567890|general>"
             assert self.handler.received_kwargs["channel_id"] == "C1234567890"
@@ -261,7 +262,7 @@ class TestHandleArchivedChannelResolution:
                 response_url="url",
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Channel parameter should be unchanged when resolution fails
             assert self.handler.received_kwargs["channel_id"] == channel_param
 
@@ -288,7 +289,7 @@ class TestHandleArchivedChannelResolution:
                 user_id="U1", channel_id=mention, text=original_text, response_url="url"
             )
 
-            assert result["statusCode"] == 200
+            assert result.status_code == 200
             # Verify the channel_id was properly extracted
             assert self.handler.received_kwargs["channel_id"] == resolved_id
             # Verify the text was updated

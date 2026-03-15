@@ -27,6 +27,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import packages.slack.channel_events.request_processing.routing as routing
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.interactive_elements.channel_metadata_edit import (
     ChannelMetadataEditHandler,
 )
@@ -75,13 +76,12 @@ async def test_handle_slack_command_response_url(
     if not missing_url:
         command_router.route_command = AsyncMock()
         result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
-        assert result["statusCode"] == 200
-        assert result["body"] == ""
+        assert result == ProcessingResult(status_code=200, body="")
         command_router.route_command.assert_awaited_once()
     else:
         result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
-        assert result["statusCode"] == 400
-        assert "error" in json.loads(result["body"])
+        assert result.status_code == 400
+        assert "error" in json.loads(result.body)
 
 
 async def test_handle_slack_command_exception_and_posting_handler() -> None:
@@ -99,9 +99,9 @@ async def test_handle_slack_command_exception_and_posting_handler() -> None:
     command_router.route_command = AsyncMock(side_effect=Exception("fail"))
     command_router.slack_posting_handler = posting_handler
     result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
-    assert result["statusCode"] == 200
+    assert result.status_code == 200
     assert (
-        "Error processing command" in result["body"] or result["body"] == "Error processing command"
+        "Error processing command" in result.body or result.body == "Error processing command"
     )
     posting_handler.post_message.assert_awaited_once()
 
@@ -119,9 +119,9 @@ async def test_handle_slack_command_exception_no_posting_handler() -> None:
     command_router.route_command = AsyncMock(side_effect=Exception("fail"))
     # No slack_posting_handler attribute
     result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
-    assert result["statusCode"] == 200
+    assert result.status_code == 200
     assert (
-        "Error processing command" in result["body"] or result["body"] == "Error processing command"
+        "Error processing command" in result.body or result.body == "Error processing command"
     )
 
 
@@ -154,8 +154,7 @@ async def test_handle_interactive_component_success(
             home_tab_handler_mock,
             trust_endorsement_handler,
         )
-        assert result["statusCode"] == 200
-        assert result["body"] == ""
+        assert result == ProcessingResult(status_code=200, body="")
         mock_proc.assert_awaited_once()
 
 
@@ -196,8 +195,8 @@ async def test_handle_interactive_component_invalid_payload(
         home_tab_handler_mock,
         trust_endorsement_handler,
     )
-    assert result["statusCode"] == 400
-    assert "error" in json.loads(result["body"])
+    assert result.status_code == 400
+    assert "error" in json.loads(result.body)
 
 
 async def test_handle_interactive_component_json_decode_error(
@@ -225,8 +224,8 @@ async def test_handle_interactive_component_json_decode_error(
         home_tab_handler_mock,
         trust_endorsement_handler,
     )
-    assert result["statusCode"] == 400
-    assert "error" in json.loads(result["body"])
+    assert result.status_code == 400
+    assert "error" in json.loads(result.body)
 
 
 async def test_handle_interactive_component_exception_with_response_url(
@@ -262,10 +261,10 @@ async def test_handle_interactive_component_exception_with_response_url(
             home_tab_handler_mock,
             trust_endorsement_handler,
         )
-        assert result["statusCode"] == 200
+        assert result.status_code == 200
         assert (
-            "Error processing interaction" in result["body"]
-            or result["body"] == "Error processing interaction"
+            "Error processing interaction" in result.body
+            or result.body == "Error processing interaction"
         )
         posting_handler.post_message.assert_awaited_once()
 
@@ -303,10 +302,10 @@ async def test_handle_interactive_component_exception_no_response_url(
             home_tab_handler_mock,
             trust_endorsement_handler,
         )
-        assert result["statusCode"] == 200
+        assert result.status_code == 200
         assert (
-            "Error processing interaction" in result["body"]
-            or result["body"] == "Error processing interaction"
+            "Error processing interaction" in result.body
+            or result.body == "Error processing interaction"
         )
         posting_handler.post_message.assert_not_awaited()
 
@@ -328,8 +327,7 @@ async def test_handle_events_api_url_verification() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 200
-    assert result["body"] == "abc123"
+    assert result == ProcessingResult(status_code=200, body="abc123")
 
 
 async def test_handle_events_api_url_verification_single_value() -> None:
@@ -348,8 +346,7 @@ async def test_handle_events_api_url_verification_single_value() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 200
-    assert result["body"] == "def456"
+    assert result == ProcessingResult(status_code=200, body="def456")
 
 
 async def test_handle_events_api_event_callback_nested_event() -> None:
@@ -371,8 +368,7 @@ async def test_handle_events_api_event_callback_nested_event() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 200
-    assert result["body"] == "Event received"
+    assert result == ProcessingResult(status_code=200, body="Event received")
     event_handler.handle_channel_created.assert_awaited_once_with(event)
 
 
@@ -390,8 +386,7 @@ async def test_handle_events_api_event_callback_nested_event_decode_error() -> N
     event_handler = MagicMock()
     event_handler.handle_channel_created = AsyncMock()
     result = await routing.handle_events_api(parsed_body_multivalue, parsed_body_dict, event_handler)  # type: ignore
-    assert result["statusCode"] == 200
-    assert result["body"] == "Event received"
+    assert result == ProcessingResult(status_code=200, body="Event received")
     event_handler.handle_channel_created.assert_awaited_once_with(event)
 
 
@@ -408,8 +403,8 @@ async def test_handle_events_api_event_callback_missing_event_field() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 400
-    assert "Invalid event_callback structure" in result["body"]
+    assert result.status_code == 400
+    assert "Invalid event_callback structure" in result.body
 
 
 async def test_handle_events_api_event_callback_event_not_dict() -> None:
@@ -425,8 +420,8 @@ async def test_handle_events_api_event_callback_event_not_dict() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 400
-    assert result["body"] == "Invalid event_callback structure"
+    assert result.status_code == 400
+    assert result.body == "Invalid event_callback structure"
 
 
 async def test_handle_events_api_event_callback_missing_type_in_event() -> None:
@@ -446,8 +441,8 @@ async def test_handle_events_api_event_callback_missing_type_in_event() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 400
-    assert "Invalid event_callback structure" in result["body"]
+    assert result.status_code == 400
+    assert "Invalid event_callback structure" in result.body
 
 
 async def test_handle_events_api_event_callback_unhandled_type() -> None:
@@ -467,8 +462,7 @@ async def test_handle_events_api_event_callback_unhandled_type() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 200
-    assert result["body"] == "Event received"
+    assert result == ProcessingResult(status_code=200, body="Event received")
 
 
 async def test_handle_events_api_event_callback_no_valid_dict() -> None:
@@ -482,8 +476,8 @@ async def test_handle_events_api_event_callback_no_valid_dict() -> None:
     parsed_body_dict: Dict[str, Any] = {}
     event_handler = MagicMock()
     result = await routing.handle_events_api(parsed_body_multivalue, parsed_body_dict, event_handler)  # type: ignore
-    assert result["statusCode"] == 400
-    assert "Invalid event_callback structure" in result["body"]
+    assert result.status_code == 400
+    assert "Invalid event_callback structure" in result.body
 
 
 async def test_handle_events_api_direct_event_type_processing() -> None:
@@ -501,8 +495,7 @@ async def test_handle_events_api_direct_event_type_processing() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 200
-    assert result["body"] == "Event received"
+    assert result == ProcessingResult(status_code=200, body="Event received")
     event_handler.handle_channel_archive.assert_awaited_once_with(parsed_body_dict)
 
 
@@ -519,8 +512,8 @@ async def test_handle_events_api_direct_event_type_processing_multivalue_error()
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 400
-    assert "Unexpected event structure" in result["body"]
+    assert result.status_code == 400
+    assert "Unexpected event structure" in result.body
 
 
 async def test_handle_events_api_event_processing_exception() -> None:
@@ -541,5 +534,5 @@ async def test_handle_events_api_event_processing_exception() -> None:
     result = await routing.handle_events_api(
         parsed_body_multivalue, parsed_body_dict, event_handler
     )
-    assert result["statusCode"] == 200
-    assert "Error processing event" in result["body"]
+    assert result.status_code == 200
+    assert "Error processing event" in result.body

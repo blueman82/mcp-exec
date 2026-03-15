@@ -15,6 +15,7 @@ import pytest
 
 import packages.slack.command_processing.short_long_command as src_mod
 from packages.db.user_store import UserStore
+from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.command_parameters.models import (
     CommandContext,
     CommandParams,
@@ -258,7 +259,7 @@ class TestSlackSummaryHandler:
                 dm_channel_id=dm_channel_id,
                 response_url=params.response_url,
             )
-            assert result["statusCode"] == 400 or result.get("status") == "error"
+            assert result.status_code == 400 or result.get("status") == "error"
             # Update assertion: Expect 0 calls based on observed test failure
             assert self.slack_posting_handler.post_message.await_count == 0
             mock_proc.assert_not_called()
