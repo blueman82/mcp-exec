@@ -1235,12 +1235,16 @@ class CSOPMNotificationBlocks:
         cls,
         field_metadata: List[Dict[str, Any]],
         required_only: bool = True,
+        force_required: bool = False,
     ) -> List[Dict[str, Any]]:
         """Build Slack input blocks for dynamic JIRA fields.
 
         Args:
             field_metadata: List of field metadata from get_issuetype_metadata.
             required_only: If True, only include required fields.
+            force_required: If True, all fields are marked as required regardless
+                of JIRA metadata. Used for transition modals where all shown
+                fields must be filled.
 
         Returns:
             List of Slack block dicts for dynamic fields.
@@ -1252,7 +1256,7 @@ class CSOPMNotificationBlocks:
             if required_only and not field.get("required", False):
                 continue
 
-            block = cls.build_dynamic_field_block(field)
+            block = cls.build_dynamic_field_block(field, force_required=force_required)
             if block:
                 blocks.append(block)
 
