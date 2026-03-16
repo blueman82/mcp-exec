@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
+import { listServers } from '@justanothermldude/meta-mcp-core';
 
 /** Minimal tool shape used for signature formatting */
 export interface ToolLike {
@@ -92,6 +93,24 @@ export function updateCatalogForServer(serverName: string, tools: ToolLike[]): v
  */
 export function buildCatalogString(): string {
   const catalog = loadCatalog();
+
+  // Prune and persist servers no longer in servers.json
+  try {
+    const active = new Set(listServers().map(s => s.name));
+    if (active.size > 0) {
+      let pruned = false;
+      for (const key of Object.keys(catalog.servers)) {
+        if (!active.has(key)) {
+          delete catalog.servers[key];
+          pruned = true;
+        }
+      }
+      if (pruned) saveCatalog(catalog);
+    }
+  } catch {
+    // Non-fatal
+  }
+
   const servers = Object.entries(catalog.servers);
   if (servers.length === 0) return '';
 
