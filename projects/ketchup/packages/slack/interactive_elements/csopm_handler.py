@@ -475,8 +475,7 @@ class CSOPMHandler:
             # screen-based field requirements instead of transition-level fields
             if not field_metadata and issue_type_id and project_key:
                 logger.info(
-                    "No transition fields found, falling back to issue type metadata "
-                    "for %s/%s",
+                    "No transition fields found, falling back to issue type metadata " "for %s/%s",
                     project_key,
                     issue_type_id,
                 )

@@ -924,9 +924,7 @@ class CSOPMNotificationBlocks:
                     },
                 }
             )
-            dynamic_blocks = cls.build_dynamic_fields_blocks(
-                field_metadata, required_only=False
-            )
+            dynamic_blocks = cls.build_dynamic_fields_blocks(field_metadata, required_only=False)
             blocks.extend(dynamic_blocks)
 
         # Add optional comment field
