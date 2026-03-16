@@ -431,17 +431,23 @@ class CSOPMHandler:
         )
 
         try:
-            # Fetch ticket details for summary display
+            # Fetch ticket details for summary display and issue type
             ticket_summary = ""
+            issue_type_id = None
+            project_key = ticket_key.split("-")[0] if "-" in ticket_key else None
             try:
                 ticket_data = await self._mcp_client.get_issue(
                     issue_key=ticket_key,
-                    fields=["summary"],
+                    fields=["summary", "issuetype"],
                 )
                 if ticket_data:
-                    ticket_summary = ticket_data.get("fields", {}).get("summary", "")
+                    fields = ticket_data.get("fields", {})
+                    ticket_summary = fields.get("summary", "")
+                    issue_type_obj = fields.get("issuetype", {})
+                    if isinstance(issue_type_obj, dict):
+                        issue_type_id = issue_type_obj.get("id")
             except Exception as e:
-                logger.warning("Failed to fetch ticket summary for %s: %s", ticket_key, e)
+                logger.warning("Failed to fetch ticket details for %s: %s", ticket_key, e)
 
             # Fetch transition field metadata
             field_metadata = []
@@ -463,6 +469,38 @@ class CSOPMHandler:
                     target_status,
                     e,
                 )
+
+            # Fallback: if transition fields are empty, use issue type metadata
+            # JIRA's transition API often returns no fields when the workflow uses
+            # screen-based field requirements instead of transition-level fields
+            if not field_metadata and issue_type_id and project_key:
+                logger.info(
+                    "No transition fields found, falling back to issue type metadata "
+                    "for %s/%s",
+                    project_key,
+                    issue_type_id,
+                )
+                try:
+                    user_pat = None
+                    if self._user_pat_ops:
+                        user_pat = await self._user_pat_ops.get_pat(user_id)
+                    metadata_result = await self._mcp_client.get_issuetype_metadata(
+                        project_key, issue_type_id, user_pat=user_pat
+                    )
+                    field_metadata = metadata_result.get("values", [])
+                    logger.info(
+                        "Fetched %d fields from issue type metadata for %s/%s",
+                        len(field_metadata),
+                        project_key,
+                        issue_type_id,
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "Failed to fetch issue type metadata for %s/%s: %s",
+                        project_key,
+                        issue_type_id,
+                        e,
+                    )
 
             # Check if user has a stored PAT
             pat_expiry_minutes = None
