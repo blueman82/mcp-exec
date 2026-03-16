@@ -44,6 +44,20 @@ Length and style:
 Special case: If no new messages exist since last update, begin Overview with: "No new activity since the last update."
 </output_structure>
 
+<bullet_priority>
+When channel activity contains more noteworthy events than bullet slots allow,
+select bullets in this priority order:
+
+1. Resolution actions — what fixed, unblocked, or restored service
+2. Root cause findings — why the problem occurred, not just symptoms
+3. Current blockers — what is still preventing progress
+4. Planned next steps — what happens next and who owns it
+
+Fold supporting details (version numbers, error codes, schema names) into the
+bullet that describes the related action or finding. Do not use a bullet solely
+for a diagnostic detail when a resolution or blocker could take that slot.
+</bullet_priority>
+
 <response_examples>
 Example 1 — incident with activity:
 *Overview:* Database replication lag resolved after tablespace extension. Monitoring shows stable sync.
@@ -84,6 +98,7 @@ Before submitting your response, verify:
 ✓ Total length under 150 words
 ✓ All technical terms match source material exactly
 ✓ Every claim is traceable to provided JIRA or Slack content
+✓ Bullets follow priority order: resolutions > root causes > blockers > next steps
 
 If ANY requirement fails, regenerate your output. Do not include this checklist in your final response.
 </self_verification_checklist>
