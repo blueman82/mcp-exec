@@ -464,6 +464,17 @@ class CSOPMHandler:
                     e,
                 )
 
+            # Fallback: use hardcoded CSOPM fields when API returns nothing
+            if not field_metadata and ticket_key.startswith("CSOPM-"):
+                from packages.slack.csopm import CSOPMNotificationBlocks
+
+                if target_status == "Complete":
+                    field_metadata = CSOPMNotificationBlocks.CSOPM_COMPLETE_FIELDS
+                    logger.info(
+                        "Using hardcoded CSOPM Complete fields (%d fields)",
+                        len(field_metadata),
+                    )
+
             # Check if user has a stored PAT
             pat_expiry_minutes = None
             if self._user_pat_ops:
