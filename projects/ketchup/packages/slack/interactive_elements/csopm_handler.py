@@ -501,8 +501,6 @@ class CSOPMHandler:
                 )
 
             # Build modal
-            from packages.slack.csopm import CSOPMNotificationBlocks
-
             modal = CSOPMNotificationBlocks.build_status_transition_modal(
                 ticket_key=ticket_key,
                 target_status=target_status,
