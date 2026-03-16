@@ -80,7 +80,7 @@ export function updateCatalogForServer(serverName: string, tools: ToolLike[]): v
       name: t.name,
       required: req,
       optional: allProps.filter(k => !req.includes(k)),
-      description: t.description ? t.description.slice(0, 60) : undefined,
+      description: t.description || undefined,
     };
   });
   catalog.updatedAt = new Date().toISOString();
