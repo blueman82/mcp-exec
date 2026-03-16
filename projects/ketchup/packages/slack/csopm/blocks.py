@@ -1029,6 +1029,55 @@ class CSOPMNotificationBlocks:
     # Fields that are auto-filled and should not be shown in modal
     SKIP_FIELDS = {"project", "issuetype", "reporter", "attachment", "issuelinks"}
 
+    # Hardcoded CSOPM transition fields for "Complete" (RCA Completion).
+    # The JIRA transitions API returns no field metadata for CSOPM, and the
+    # createmeta/editmeta endpoints are permission-restricted. These fields
+    # were identified from the JIRA transition screen.
+    CSOPM_COMPLETE_FIELDS: List[Dict[str, Any]] = [
+        {
+            "fieldId": "customfield_33706",
+            "name": "RCA Category",
+            "required": True,
+            "schema": {"type": "option"},
+            "allowedValues": [
+                {"id": "153403", "value": "Architecture - Back End"},
+                {"id": "153401", "value": "Architecture - Front End"},
+                {"id": "153402", "value": "Architecture - Middle Tier"},
+                {"id": "114904", "value": "Capacity"},
+                {"id": "153405", "value": "Change Process"},
+                {"id": "114908", "value": "Customer Caused"},
+                {"id": "114906", "value": "External / Vendor"},
+                {"id": "114905", "value": "False alerts"},
+                {"id": "114902", "value": "Human error"},
+                {"id": "153404", "value": "Infrastructure"},
+                {"id": "153400", "value": "Process or Procedural Error"},
+                {"id": "114901", "value": "Unknown Root Cause"},
+            ],
+        },
+        {
+            "fieldId": "customfield_30801",
+            "name": "Root Cause Analysis",
+            "required": True,
+            "schema": {"type": "option"},
+            "allowedValues": [
+                {"id": "108924", "value": "Duplicate RCA"},
+                {"id": "108922", "value": "RCA found - No permanent fix available"},
+                {"id": "108923", "value": "RCA found - Permanent fix available"},
+                {"id": "108921", "value": "RCA not found"},
+            ],
+        },
+        {
+            "fieldId": "customfield_33710",
+            "name": "Caused by Change",
+            "required": True,
+            "schema": {"type": "option"},
+            "allowedValues": [
+                {"id": "114462", "value": "Yes"},
+                {"id": "114463", "value": "No"},
+            ],
+        },
+    ]
+
     @classmethod
     def _build_pat_blocks(
         cls,
