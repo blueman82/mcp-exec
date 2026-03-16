@@ -40,7 +40,7 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
    - `maintenance_fetcher` (daily at 1:30 UTC)
    - `pat_rotator` (every 24 hours)
    - `handover_0` / `handover_1` (at KETCHUP_HANDOVER_SCHEDULE_TIMES, default 09:00/17:00 UTC)
-6. `ketchup-csopm-notifier` - CSOPM assignment notifications (singleton, runs at 08:00/12:00/16:00/20:00/00:00 UTC (5x daily, controlled via CSOPM_SCHEDULE_TIMES))
+6. `ketchup-csopm-notifier` - CSOPM assignment notifications (singleton, runs at 08:00/12:00/14:00/16:00/20:00/00:00 UTC (6x daily, controlled via CSOPM_SCHEDULE_TIMES))
 7. `ketchup-access-monitor` - Access request monitoring
 
 **prod2 (ketchup-prod2.campaign.adobe.com)** - 5 containers:
@@ -197,7 +197,7 @@ ketchup/
 │
 ├── ketchup_csopm_notifier/     # CSOPM assignment notification scheduler
 │   ├── main.py                 # Entry point for scheduler container
-│   ├── scheduler.py            # Runs at 08:00/12:00/16:00/20:00/00:00 UTC (controlled via CSOPM_SCHEDULE_TIMES)
+│   ├── scheduler.py            # Runs at 08:00/12:00/14:00/16:00/20:00/00:00 UTC (controlled via CSOPM_SCHEDULE_TIMES)
 │   ├── container.py            # TypedDI container setup
 │   └── services/               # Scheduler-specific services
 │       ├── jira_poller.py      # Polls JIRA for CSOPM assignments
