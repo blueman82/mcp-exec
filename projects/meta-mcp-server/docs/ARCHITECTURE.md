@@ -45,6 +45,8 @@ flowchart LR
 
 **Startup**: ~1.9k tokens (3 meta-tool schemas loaded once)
 
+**mcp-exec catalog**: ~800-1000 tokens (tool names + param signatures, loaded once per session from `~/.meta-mcp/tool-catalog.json`)
+
 | Tool | Per-call cost |
 |------|---------------|
 | `list_servers` | minimal |
