@@ -974,7 +974,7 @@ class CSOPMNotificationBlocks:
             },
             "submit": {
                 "type": "plain_text",
-                "text": "Submit",
+                "text": "Confirm",
             },
             "close": {
                 "type": "plain_text",
