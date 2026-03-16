@@ -1121,22 +1121,19 @@ class CSOPMNotificationBlocks:
     def build_dynamic_field_block(
         cls,
         field: Dict[str, Any],
-        force_required: bool = False,
     ) -> Optional[Dict[str, Any]]:
         """Build a Slack input block for a JIRA field based on its metadata.
 
         Args:
             field: Field metadata from get_issuetype_metadata response.
                 Expected keys: fieldId, name, required, schema, allowedValues
-            force_required: If True, field is always marked required regardless
-                of JIRA metadata.
 
         Returns:
             Slack block dict or None if field should be skipped.
         """
         field_id = field.get("fieldId", "")
         field_name = field.get("name", field_id)
-        required = True if force_required else field.get("required", False)
+        required = field.get("required", False)
         schema = field.get("schema", {})
         allowed_values = field.get("allowedValues")
         schema_type = schema.get("type", "string")
