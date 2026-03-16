@@ -160,6 +160,7 @@ node dist/index.js   # Run
 | `src/pool/server-pool.ts` | Connection manager |
 | `src/registry/loader.ts` | Config loading |
 | `src/tools/tool-cache.ts` | Schema cache |
+| `packages/mcp-exec/src/tools/tool-catalog.ts` | Disk-persisted tool catalog (self-building, pruned against servers.json) |
 
 ---
 
