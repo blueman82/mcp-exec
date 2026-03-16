@@ -85,6 +85,12 @@ See [Architecture Guide](docs/ARCHITECTURE.md) and [Diagram Index](docs/diagrams
 - `src/registry/loader.ts` - Loads `servers.json`, validates with Zod, caches manifest
 - `src/tools/tool-cache.ts` - Per-server tool definition cache
 
+### mcp-exec Components (`packages/mcp-exec/src/`)
+- `tools/tool-catalog.ts` - Disk-persisted tool catalog (`~/.meta-mcp/tool-catalog.json`). Auto-populates on first tool call, refreshes on every call, prunes against `servers.json` on startup. Embedded in tool description so the agent sees API signatures before writing code.
+- `tools/execute-with-wrappers.ts` - Main execution handler. Generates typed wrappers, updates catalog, composes sandbox code.
+- `codegen/wrapper-generator.ts` - Generates TypeScript wrappers with FuzzyProxy (case-agnostic access, helpful errors on wrong names), required param guards, and field guards on responses.
+- `server.ts` - MCP server exposing `execute_code_with_wrappers`, `list_available_mcp_servers`, `get_mcp_tool_schema`. Tool description rebuilt dynamically on each `tools/list` request to include latest catalog.
+
 **Extension Components** (`extension/src/`):
 - `views/MetaMcpViewProvider.ts` - Main webview provider
 - `views/webviewTemplate.ts` - UI template (Servers, Setup, Catalog tabs)

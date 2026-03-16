@@ -45,6 +45,8 @@ flowchart LR
 
 **Startup**: ~1.9k tokens (3 meta-tool schemas loaded once)
 
+**mcp-exec catalog**: ~800-1000 tokens (tool names + param signatures, loaded once per session from `~/.meta-mcp/tool-catalog.json`)
+
 | Tool | Per-call cost |
 |------|---------------|
 | `list_servers` | minimal |
@@ -158,6 +160,7 @@ node dist/index.js   # Run
 | `src/pool/server-pool.ts` | Connection manager |
 | `src/registry/loader.ts` | Config loading |
 | `src/tools/tool-cache.ts` | Schema cache |
+| `packages/mcp-exec/src/tools/tool-catalog.ts` | Disk-persisted tool catalog (self-building, pruned against servers.json) |
 
 ---
 

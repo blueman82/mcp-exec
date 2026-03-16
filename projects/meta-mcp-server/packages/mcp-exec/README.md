@@ -325,6 +325,42 @@ const content = await read_file({ path: '/tmp/test.txt' });
 await write_file({ path: '/tmp/output.txt', content: 'Hello!' });
 ```
 
+## Tool Catalog
+
+mcp-exec maintains a disk-cached tool catalog at `~/.meta-mcp/tool-catalog.json` that stores tool names and parameter signatures for every server the agent has used.
+
+### How it works
+
+1. **First session (cold start):** No catalog exists. The agent discovers tools via `get_mcp_tool_schema` or trial and error. The first `execute_code_with_wrappers` call fetches the live tool list from the server and writes it to the catalog file.
+
+2. **Every session after:** On startup, mcp-exec reads the catalog and embeds the full API reference in the `execute_code_with_wrappers` tool description. The agent sees all tool names and parameter signatures before writing code:
+   ```
+   Tool API Reference:
+     adobe-mcp-gateway: glean_search({args, config?}), jira_search({args, config?}), ...
+   ```
+
+3. **Self-maintaining:**
+   - Refreshed on every tool call (picks up new/changed tools from the live server)
+   - Pruned on startup against `servers.json` (removed servers are cleaned from the catalog)
+   - No TTL, no timers, no manual maintenance
+
+### Error guardrails
+
+Wrong tool or parameter names produce immediate, actionable errors:
+
+```typescript
+// Wrong tool name
+server.searchMemory({ query: "test" });
+// TypeError: Property "searchMemory" not found on "recall".
+//   Available: memory_store_tool, memory_recall_tool, ...
+//   API: memory_store_tool({content, memory_type?, ...}), ...
+
+// Wrong parameter name
+server.memory_recall_tool({ search_text: "test" });
+// Error: Missing required parameter "query". Got: search_text.
+//   Expected: {query, n_results?, namespace?, ...}
+```
+
 ## Case-Agnostic Access
 
 Server and tool names support flexible, case-agnostic access via Proxy-based fuzzy resolution. This means you don't need to remember exact naming conventions—camelCase, snake_case, and kebab-case all work interchangeably.
