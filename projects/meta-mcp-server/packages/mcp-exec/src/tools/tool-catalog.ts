@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
+import { listServers } from '@justanothermldude/meta-mcp-core';
 
 /** Minimal tool shape used for signature formatting */
 export interface ToolLike {
