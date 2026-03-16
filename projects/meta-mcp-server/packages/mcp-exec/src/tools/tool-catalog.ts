@@ -83,6 +83,18 @@ export function updateCatalogForServer(serverName: string, tools: ToolLike[]): v
       description: t.description ? t.description.slice(0, 60) : undefined,
     };
   });
+  // Prune servers no longer in servers.json
+  try {
+    const active = new Set(listServers().map(s => s.name));
+    if (active.size > 0) {
+      for (const key of Object.keys(catalog.servers)) {
+        if (!active.has(key)) delete catalog.servers[key];
+      }
+    }
+  } catch {
+    // Non-fatal — skip pruning if listServers fails
+  }
+
   catalog.updatedAt = new Date().toISOString();
   saveCatalog(catalog);
 }
