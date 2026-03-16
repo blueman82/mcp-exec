@@ -106,12 +106,24 @@ export function updateCatalogForServer(serverName: string, tools: ToolLike[]): v
 export function buildCatalogString(): string {
   const catalog = loadCatalog();
 
-  // Only include servers that still exist in servers.json
-  const activeServerNames = new Set(
-    (() => { try { return listServers().map(s => s.name); } catch { return []; } })()
-  );
-  const servers = Object.entries(catalog.servers)
-    .filter(([name]) => activeServerNames.size === 0 || activeServerNames.has(name));
+  // Prune and persist servers no longer in servers.json
+  try {
+    const active = new Set(listServers().map(s => s.name));
+    if (active.size > 0) {
+      let pruned = false;
+      for (const key of Object.keys(catalog.servers)) {
+        if (!active.has(key)) {
+          delete catalog.servers[key];
+          pruned = true;
+        }
+      }
+      if (pruned) saveCatalog(catalog);
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  const servers = Object.entries(catalog.servers);
   if (servers.length === 0) return '';
 
   const lines: string[] = [
