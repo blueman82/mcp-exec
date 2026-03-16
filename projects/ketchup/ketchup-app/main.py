@@ -41,7 +41,7 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
 )
 from packages.core.typed_di_integration import get_unified_container
 from packages.slack.channel_events.incoming_events import process_request
-from packages.slack.channel_events.models import ProcessingResult, SlackRequest
+from packages.slack.channel_events.models import SlackRequest
 
 logger = setup_logger(__name__)
 

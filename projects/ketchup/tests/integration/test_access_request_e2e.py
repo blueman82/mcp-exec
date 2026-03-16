@@ -13,7 +13,6 @@ from unittest.mock import AsyncMock
 from base_integration_test import BaseIntegrationTest
 
 from packages.core.constants import ACCESS_REQUEST_CHANNEL, ACCESS_REQUEST_STATUS
-from packages.slack.channel_events.models import ProcessingResult
 
 
 class TestAccessRequestE2E(BaseIntegrationTest):

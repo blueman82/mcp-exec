@@ -25,7 +25,6 @@ PATCH_PATH_NORMALIZE_PREFS = (
 
 # from packages.slack.config.slack_config import DEFAULT_KETCHUP_PREFERENCES # Removed
 from packages.ai.core.openai_handler import OpenAIError
-from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.status_report_command import SlackReports
 
 # Define default preferences locally as it's not available for import
@@ -386,9 +385,7 @@ class TestSlackStatusHandler:
         # When channel_info_ops.get_channel_details returns None, it posts an error message itself.
         # The process_status_request method then returns this error dictionary directly (not in a tuple from decorator).
         assert result is not None
-        assert (
-            result.status_code == 500
-        )  # The actual status code returned by create_error_response
+        assert result.status_code == 500  # The actual status code returned by create_error_response
         assert "Channel validation failed or bot not member." in result.body
 
     @pytest.mark.asyncio

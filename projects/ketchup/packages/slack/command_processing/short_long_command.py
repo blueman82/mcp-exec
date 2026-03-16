@@ -407,7 +407,6 @@ class SlackSummaryHandler(BaseCommandHandler):
         return generated_text
         # Note: Block Kit sending is moved to the caller (process_summary_params)
 
-
     @classmethod
     async def create(
         cls,

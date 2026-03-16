@@ -27,7 +27,9 @@ logger = setup_logger(__name__)
 
 
 # --- Main Request Handler --- #
-async def process_request(request: SlackRequest, container: TypedServiceRegistry) -> ProcessingResult:
+async def process_request(
+    request: SlackRequest, container: TypedServiceRegistry
+) -> ProcessingResult:
     """
     Process a request from Slack at the module level.
 

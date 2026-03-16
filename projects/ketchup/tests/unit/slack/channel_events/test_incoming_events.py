@@ -89,7 +89,9 @@ class TestProcessRequestModuleLevel:
         }
         mock_setup.return_value = deps
         processor = MagicMock()
-        processor.process_request = AsyncMock(return_value=ProcessingResult(status_code=200, body="ok"))
+        processor.process_request = AsyncMock(
+            return_value=ProcessingResult(status_code=200, body="ok")
+        )
         mock_ep.return_value = processor
         request = SlackRequest(
             raw_body=b"foo=bar",
