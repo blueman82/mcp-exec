@@ -5,7 +5,7 @@ This module contains the metadata processing handler for the channel metadata up
 """
 
 import json
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from ketchup_unified_scheduler.services.metadata.updater import ChannelMetadataUpdater
 from packages.core.logging import setup_logger

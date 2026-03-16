@@ -4,7 +4,7 @@ metrics_command.py
 This module contains the MetricsCommand class for generating metrics dashboard.
 """
 
-from typing import Any, Dict, Optional
+from typing import Optional
 
 import orjson
 

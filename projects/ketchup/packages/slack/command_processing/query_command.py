@@ -399,4 +399,3 @@ class SlackQueryHandler(BaseCommandHandler):
             return user_id_to_name.get(uid, match.group(0))
 
         return mention_pattern.sub(replace_mention, text)
-

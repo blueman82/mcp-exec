@@ -19,7 +19,6 @@ PATCH_PATH_NORMALIZE_PREFS = (
 )
 
 from packages.secrets.manager import SecretsManager
-from packages.slack.channel_events.models import ProcessingResult
 from packages.slack.command_processing.status_report_command import SlackReports
 from packages.slack.config.slack_config import SlackConfig
 

@@ -100,9 +100,7 @@ async def test_handle_slack_command_exception_and_posting_handler() -> None:
     command_router.slack_posting_handler = posting_handler
     result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
     assert result.status_code == 200
-    assert (
-        "Error processing command" in result.body or result.body == "Error processing command"
-    )
+    assert "Error processing command" in result.body or result.body == "Error processing command"
     posting_handler.post_message.assert_awaited_once()
 
 
@@ -120,9 +118,7 @@ async def test_handle_slack_command_exception_no_posting_handler() -> None:
     # No slack_posting_handler attribute
     result = await routing.handle_slack_command(parsed_body_multivalue, command_router)
     assert result.status_code == 200
-    assert (
-        "Error processing command" in result.body or result.body == "Error processing command"
-    )
+    assert "Error processing command" in result.body or result.body == "Error processing command"
 
 
 # --- handle_interactive_component ---

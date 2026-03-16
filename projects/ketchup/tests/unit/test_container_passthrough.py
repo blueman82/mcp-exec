@@ -14,7 +14,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from packages.core.typed_di.registry import TypedServiceRegistry
-from packages.slack.channel_events.models import ProcessingResult
 
 # ============================================================================
 # Fixtures

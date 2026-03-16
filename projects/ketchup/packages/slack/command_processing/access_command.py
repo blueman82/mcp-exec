@@ -4,8 +4,6 @@ access_command.py
 This module contains the AccessCommand class for handling access requests.
 """
 
-from typing import Any, Dict
-
 from packages.core.logging import setup_logger
 from packages.slack.authorisation.user_verification import UserVerifier
 from packages.slack.blockkits.handlers.access_request_blocks import AccessRequestBlocks
