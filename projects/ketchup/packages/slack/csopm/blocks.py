@@ -925,7 +925,7 @@ class CSOPMNotificationBlocks:
                 }
             )
             dynamic_blocks = cls.build_dynamic_fields_blocks(
-                field_metadata, required_only=False, force_required=True
+                field_metadata, required_only=False
             )
             blocks.extend(dynamic_blocks)
 
