@@ -431,58 +431,74 @@ class CSOPMHandler:
         )
 
         try:
-            # Fetch ticket details for summary display
-            ticket_summary = ""
-            try:
-                ticket_data = await self._mcp_client.get_issue(
-                    issue_key=ticket_key,
-                    fields=["summary"],
-                )
-                if ticket_data:
-                    ticket_summary = ticket_data.get("fields", {}).get("summary", "")
-            except Exception as e:
-                logger.warning("Failed to fetch ticket summary for %s: %s", ticket_key, e)
+            import asyncio
 
-            # Fetch transition field metadata
-            field_metadata = []
-            try:
-                field_metadata = await self._mcp_client.get_transition_fields(
-                    ticket_key=ticket_key,
-                    target_status=target_status,
-                )
+            from packages.slack.csopm import CSOPMNotificationBlocks
+
+            # Use hardcoded fields for CSOPM (JIRA API returns nothing for this project)
+            field_metadata: List[Dict[str, Any]] = []
+            if ticket_key.startswith("CSOPM-") and target_status == "Complete":
+                field_metadata = CSOPMNotificationBlocks.CSOPM_COMPLETE_FIELDS
                 logger.info(
-                    "Fetched %d fields for transition %s -> %s",
+                    "Using hardcoded CSOPM Complete fields (%d fields)",
                     len(field_metadata),
-                    ticket_key,
-                    target_status,
-                )
-            except Exception as e:
-                logger.warning(
-                    "Failed to fetch transition fields for %s -> %s: %s",
-                    ticket_key,
-                    target_status,
-                    e,
                 )
 
-            # Fallback: use hardcoded CSOPM fields when API returns nothing
-            if not field_metadata and ticket_key.startswith("CSOPM-"):
-                from packages.slack.csopm import CSOPMNotificationBlocks
-
-                if target_status == "Complete":
-                    field_metadata = CSOPMNotificationBlocks.CSOPM_COMPLETE_FIELDS
-                    logger.info(
-                        "Using hardcoded CSOPM Complete fields (%d fields)",
-                        len(field_metadata),
+            # Fetch summary and PAT expiry in parallel to stay within 3s trigger window
+            async def _get_summary() -> str:
+                try:
+                    data = await self._mcp_client.get_issue(
+                        issue_key=ticket_key, fields=["summary"]
                     )
+                    return data.get("fields", {}).get("summary", "") if data else ""
+                except Exception as e:
+                    logger.warning("Failed to fetch ticket summary for %s: %s", ticket_key, e)
+                    return ""
 
-            # Check if user has a stored PAT
-            pat_expiry_minutes = None
-            if self._user_pat_ops:
-                pat_expiry_minutes = await self._user_pat_ops.get_pat_expiry_minutes(user_id)
-                if pat_expiry_minutes:
-                    logger.info(
-                        "User %s has stored PAT, expires in %d min", user_id, pat_expiry_minutes
+            async def _get_pat_expiry() -> Optional[int]:
+                if self._user_pat_ops:
+                    try:
+                        return await self._user_pat_ops.get_pat_expiry_minutes(user_id)
+                    except Exception:
+                        pass
+                return None
+
+            async def _get_transition_fields() -> List[Dict[str, Any]]:
+                try:
+                    result = await self._mcp_client.get_transition_fields(
+                        ticket_key=ticket_key, target_status=target_status
                     )
+                    logger.info(
+                        "Fetched %d fields for transition %s -> %s",
+                        len(result),
+                        ticket_key,
+                        target_status,
+                    )
+                    return result
+                except Exception as e:
+                    logger.warning(
+                        "Failed to fetch transition fields for %s -> %s: %s",
+                        ticket_key,
+                        target_status,
+                        e,
+                    )
+                    return []
+
+            if field_metadata:
+                # CSOPM: skip transition fields API, just fetch summary + PAT in parallel
+                ticket_summary, pat_expiry_minutes = await asyncio.gather(
+                    _get_summary(), _get_pat_expiry()
+                )
+            else:
+                # Non-CSOPM: fetch all three in parallel
+                ticket_summary, pat_expiry_minutes, field_metadata = await asyncio.gather(
+                    _get_summary(), _get_pat_expiry(), _get_transition_fields()
+                )
+
+            if pat_expiry_minutes:
+                logger.info(
+                    "User %s has stored PAT, expires in %d min", user_id, pat_expiry_minutes
+                )
 
             # Build modal
             from packages.slack.csopm import CSOPMNotificationBlocks
