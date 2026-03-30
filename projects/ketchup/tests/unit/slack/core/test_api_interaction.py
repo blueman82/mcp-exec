@@ -60,9 +60,9 @@ def test_build_openai_payload_default(executor: ApiExecutor) -> None:
     assert payload["top_p"] == 0.9
 
 
-def test_build_openai_payload_long_status_report(executor: ApiExecutor) -> None:
-    """Test build_openai_payload returns double tokens for long/status/report commands."""
-    for cmd in ["long", "status", "report"]:
+def test_build_openai_payload_status_report(executor: ApiExecutor) -> None:
+    """Test build_openai_payload returns double tokens for status/report commands."""
+    for cmd in ["status", "report"]:
         payload = executor.build_openai_payload([{"role": "user", "content": "foo"}], cmd)
         assert payload["max_tokens"] == 2048
 
