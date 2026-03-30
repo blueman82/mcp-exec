@@ -219,12 +219,6 @@ async def _build_command_handlers_dict(resolver) -> dict:
         logger.warning("Failed to resolve SlackQueryHandler: %s", e)
 
     try:
-        command_handlers["short"] = await resolver.aget(SlackSummaryHandlerProtocol)
-        command_handlers["long"] = await resolver.aget(SlackSummaryHandlerProtocol)
-    except Exception as e:
-        logger.warning("Failed to resolve SlackSummaryHandler: %s", e)
-
-    try:
         command_handlers["status"] = await resolver.aget(SlackReportsProtocol)
         command_handlers["report"] = await resolver.aget(SlackReportsProtocol)
     except Exception as e:
