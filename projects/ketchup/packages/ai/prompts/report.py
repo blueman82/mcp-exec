@@ -201,6 +201,7 @@ Generate a professional incident report with these 9 sections in order:
 2. *People Involved* — Names, roles, key contributions (2–3 bullets)
 3. *Incident Timeline* — Timestamps and major milestones in chronological order (3–5 bullets)
 4. *Technical Analysis* — Root cause, systems affected, error patterns (3 bullets)
+   *Example formatting:* Root cause: `iRc=16384` feedback parsing error on `jti-mid-prod6`
 5. *Impact Assessment* — Customer experience impact, service/feature availability, performance metrics (3 bullets)
 6. *Resolution & Mitigation* — Actions taken, workarounds, permanent fixes (3 bullets)
 7. *JIRA Tickets & Work Done* — Ticket links, status, issue details, summarised comments (include only if tickets found)
