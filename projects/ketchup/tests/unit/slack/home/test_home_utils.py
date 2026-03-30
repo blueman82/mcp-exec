@@ -134,7 +134,6 @@ def test_get_time_window_display_name():
     assert get_time_window_display_name("past_2_hours") == "Past 2 hours (falls back to latest)"
     assert get_time_window_display_name("past_24_hours") == "Last day (falls back to latest)"
     assert get_time_window_display_name("since_last_summary") == "Last day (falls back to latest)"
-    assert get_time_window_display_name("always_ask") == "Always ask me"
     assert get_time_window_display_name("unknown") == "Last day (falls back to latest)"
 
 

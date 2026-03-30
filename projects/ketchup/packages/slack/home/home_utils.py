@@ -45,7 +45,6 @@ def get_time_window_display_name(time_window: str) -> str:
         "past_2_hours": "Past 2 hours (falls back to latest)",
         "past_24_hours": "Last day (falls back to latest)",
         "all_time": "All Time (Complete channel history)",
-        "always_ask": "Always ask me",
     }
     return time_map.get(time_window, "Last day (falls back to latest)")
 
@@ -335,14 +334,6 @@ def build_home_tab_blocks(
                             },
                             "value": "all_time",
                         },
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Always ask me",
-                                "emoji": True,
-                            },
-                            "value": "always_ask",
-                        },
                     ],
                     "initial_option": validate_initial_option(
                         [
@@ -358,7 +349,6 @@ def build_home_tab_blocks(
                                 "past_2_hours",
                                 "past_24_hours",
                                 "all_time",
-                                "always_ask",
                             ]
                         ],
                         {

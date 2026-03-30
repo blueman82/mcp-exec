@@ -24,10 +24,6 @@ class TestTimeWindowToOldestTs:
         result = time_window_to_oldest_ts("all_time")
         assert result == "0"
 
-    def test_always_ask(self):
-        result = time_window_to_oldest_ts("always_ask")
-        assert result == "0"
-
     def test_unknown_value(self):
         result = time_window_to_oldest_ts("some_unknown_value")
         assert result == "0"

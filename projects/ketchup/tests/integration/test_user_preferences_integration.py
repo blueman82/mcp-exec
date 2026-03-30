@@ -344,7 +344,7 @@ async def test_home_tab_preference_extraction():
                         "detail_level_select": {"selected_option": {"value": "high_level"}}
                     },
                     "time_window_selection": {
-                        "time_window_select": {"selected_option": {"value": "always_ask"}}
+                        "time_window_select": {"selected_option": {"value": "all_time"}}
                     },
                 }
             }

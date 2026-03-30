@@ -24,7 +24,7 @@ def time_window_to_oldest_ts(time_window: str) -> str:
     """Convert a time_window preference to a Slack oldest_ts value.
 
     Args:
-        time_window: One of "past_2_hours", "past_24_hours", "all_time", "always_ask".
+        time_window: One of "past_2_hours", "past_24_hours", "all_time".
 
     Returns:
         A Slack timestamp string. "0" means fetch all messages.
