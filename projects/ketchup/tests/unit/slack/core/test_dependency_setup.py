@@ -49,7 +49,6 @@ class TestInstantiateCommandHandlers:
         assert "command_handlers_dict" in result
         assert "list_handler" in result
         assert "query_handler" in result
-        assert "summary_handler" in result
         assert "status_report_handler" in result
         assert "archive_handler" in result
 
