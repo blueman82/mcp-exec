@@ -118,7 +118,7 @@ class AgentEngine:
         # Step 3: Build payload and call LLM
         payload = {
             "messages": messages,
-            "max_tokens": self._max_tokens,
+            "max_completion_tokens": self._max_tokens,
             "temperature": self._temperature,
             "top_p": 0.9,
         }

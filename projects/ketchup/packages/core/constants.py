@@ -15,8 +15,8 @@ DYNAMODB_TABLE_NAME = os.environ.get("DYNAMODB_TABLE_NAME", "ketchup_channel_inf
 AWS_SECRET_NAME = os.environ.get("AWS_SECRET_NAME", "Ketchup_Token_Secrets")
 
 # Azure OpenAI Configuration
-OPENAI_API_VERSION = "2025-01-01-preview"
-DEFAULT_AZURE_OPENAI_ENDPOINT = f"https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version={OPENAI_API_VERSION}"
+OPENAI_API_VERSION = "2024-12-01-preview"
+DEFAULT_AZURE_OPENAI_ENDPOINT = f"https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-5.4-mini/chat/completions?api-version={OPENAI_API_VERSION}"
 # Allow override via environment variable
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", DEFAULT_AZURE_OPENAI_ENDPOINT)
 

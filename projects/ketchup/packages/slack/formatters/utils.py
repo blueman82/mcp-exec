@@ -34,8 +34,8 @@ def normalize_text(text: str) -> str:
         text = text.replace(url, placeholder)
 
     # Step 2: Apply normalization to the rest of the text
-    # Remove backticks entirely
-    text = re.sub(r"`+", "", text)
+    # Preserve single backticks (inline code) but remove triple backticks (code blocks not supported in Block Kit sections)
+    text = re.sub(r"```[^`]*```", "", text)  # Remove code blocks
     # Remove unwanted markdown markers (for example, tildes and bold markers)
     text = re.sub(r"[~]", "", text)
     # Convert markdown bold (**text**) to Slack bold (*text*)

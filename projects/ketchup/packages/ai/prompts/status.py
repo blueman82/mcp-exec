@@ -140,6 +140,11 @@ Product scope: {product_guidance}
 • No conversational text, explanations, or endings
 </constraints>
 
+<slack_mrkdwn_formatting>
+Use Slack inline code (backticks) for: error codes (e.g., `iRc=16384`), process names (e.g., `pipelined@jti_mid_prod6`), PIDs (e.g., `PID 18821`), config keys (e.g., `NmsPipeline_EnrichBatchSize`), instance names (e.g., `jti-mid-prod6-1`), DB lock types (e.g., `RowExclusiveLock`), and error identifiers (e.g., `PIP-680059`).
+Use triple-backtick code blocks for multi-line log excerpts if present.
+</slack_mrkdwn_formatting>
+
 <response_structure>
 :traffic_light: *Current Status:*
 • *CSO Phase:* [Phase or "Unknown"]
@@ -149,15 +154,15 @@ Product scope: {product_guidance}
 :mag: *Key Information:*
 • [Most relevant update or technical findings]
 • [Impact: service disruption, affected users, scope]
-• [Error patterns and system behaviour observed]
-• [6–8 bullet points maximum — include error codes and system identifiers]
+• `[process@instance]` [error pattern description] (`[error_code]`)
+• [6–8 bullet points maximum — wrap error codes, process names, and identifiers in backticks]
 
 :wrench: *Technical Details:*
-• *Instance:* [instance name / environment]
-• *Affected processes:* [process names, PIDs if known]
-• *Error codes:* [specific error codes observed]
-• *Configuration:* [relevant config changes attempted or needed]
-• *Database/Infrastructure:* [query times, resource usage, capacity issues]
+• *Instance:* `[instance_name]` ([environment])
+• *Affected processes:* `[process@instance]` (PID `[pid]`), `[process]` (PID `[pid]`)
+• *Error codes:* `[error_code]` (`[error_id]`), `[error_code]` (`[error_id]`)
+• *Configuration:* `[config_key]` [change description]
+• *Database/Infrastructure:* `[lock_type]` on `[table]`; query durations [metrics]
 
 :construction_worker: *Engineers Actively Investigating:*
 • *[Name]*: [Current task or investigation]
@@ -234,6 +239,10 @@ Product scope: {product_guidance}
 • No conversational text, explanations, or endings
 </constraints>
 
+<slack_mrkdwn_formatting>
+Use Slack inline code (backticks) sparingly for key error codes and config values only (e.g., `iRc=16384`, `NmsPipeline_EnrichBatchSize`). Don't overuse code formatting — keep the report readable and focused on business-technical balance.
+</slack_mrkdwn_formatting>
+
 <response_structure>
 :traffic_light: *Current Status:*
 • *CSO Phase:* [Phase or "Unknown"]
@@ -243,6 +252,7 @@ Product scope: {product_guidance}
 :mag: *Key Information:*
 • [Most relevant update or technical findings]
 • [Impact: service disruption, affected users, scope]
+• Key error: `[error_code]` on `[instance]` — [description]
 • [6 bullet points maximum]
 
 :construction_worker: *Engineers Actively Investigating:*

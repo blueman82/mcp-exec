@@ -124,6 +124,9 @@ Focus on facts found in these sources. If information is unavailable, use fallba
 • JIRA Description: Extract key information into 3–5 bullet points
 • JIRA Comments: Summarise to 2–3 lines per comment; focus on work done, findings, solutions
 • If data is missing: use fallbacks listed above
+
+Use Slack inline code (backticks) for: error codes (e.g., `iRc=16384`), process names (e.g., `pipelined@jti_mid_prod6`), PIDs (e.g., `PID 18821`), config keys (e.g., `NmsPipeline_EnrichBatchSize`), instance names (e.g., `jti-mid-prod6-1`), DB lock types (e.g., `RowExclusiveLock`), and error identifiers (e.g., `PIP-680059`).
+Use triple-backtick code blocks for multi-line log excerpts if present.
 </response_guidelines>
 
 <response_structure>
@@ -132,8 +135,13 @@ Generate a comprehensive technical incident report with these 10 sections in ord
 1. *Executive Summary* — Brief overview, current status, CSO Phase, key impacts (3 bullets)
 2. *People Involved* — Names, roles, key contributions (2–3 bullets)
 3. *Incident Timeline* — Timestamps and major milestones in chronological order (5–8 entries)
-4. *Technical Analysis* — Root cause, systems affected, error patterns with specific codes (4–5 bullets)
-5. *Technical Details* — Instance names, affected processes/PIDs, error codes, config values, DB/infrastructure metrics (4–5 bullets)
+4. *Technical Analysis* — Root cause: `[error_code]` [description]; systems affected: `[instance]`; error patterns: `[error_id]` (4–5 bullets)
+5. *Technical Details* — Use backtick formatting throughout:
+   • *Instance:* `[instance_name]` ([environment])
+   • *Affected processes:* `[process@instance]` (PID `[pid]`)
+   • *Error codes:* `[error_code]` (`[error_id]`), `[error_code]`
+   • *Configuration:* `[config_key]` [change description]
+   • *Database/Infrastructure:* `[lock_type]` on `[table]`; [metrics]
 6. *Impact Assessment* — Customer experience, service availability, performance metrics (3 bullets)
 7. *Resolution & Mitigation* — Actions taken, workarounds, permanent fixes with technical specifics (3 bullets)
 8. *JIRA Tickets & Work Done* — Ticket links, status, issue details, summarised comments (include only if tickets found)
@@ -182,6 +190,8 @@ Focus on facts found in these sources. If information is unavailable, use fallba
 • JIRA Description: Extract key information into 3–5 bullet points
 • JIRA Comments: Summarise to 2–3 lines per comment; focus on work done, findings, solutions
 • If data is missing: use fallbacks listed above
+
+Use Slack inline code (backticks) sparingly for key error codes and config values only (e.g., `iRc=16384`, `NmsPipeline_EnrichBatchSize`). Don't overuse code formatting — keep the report readable and focused on business-technical balance.
 </response_guidelines>
 
 <response_structure>
@@ -190,7 +200,7 @@ Generate a professional incident report with these 9 sections in order:
 1. *Executive Summary* — Brief overview, current status, CSO Phase, key business impacts (3 bullets)
 2. *People Involved* — Names, roles, key contributions (2–3 bullets)
 3. *Incident Timeline* — Timestamps and major milestones in chronological order (3–5 bullets)
-4. *Technical Analysis* — Root cause, systems affected, error patterns (3 bullets)
+4. *Technical Analysis* — Root cause: `[error_code]` [description] on `[instance]`; systems affected; error patterns (3 bullets)
 5. *Impact Assessment* — Customer experience impact, service/feature availability, performance metrics (3 bullets)
 6. *Resolution & Mitigation* — Actions taken, workarounds, permanent fixes (3 bullets)
 7. *JIRA Tickets & Work Done* — Ticket links, status, issue details, summarised comments (include only if tickets found)
