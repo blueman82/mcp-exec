@@ -157,7 +157,7 @@ class AzureAIProtocol(Protocol):
     async def generate_summary(
         self,
         messages: list[str],
-        max_tokens: int = 500
+        max_completion_tokens: int = 500
     ) -> str:
         """Generate AI summary from messages"""
         ...
