@@ -13,8 +13,8 @@ from typing import Literal, Optional
 class CommandType(Enum):
     """Types of supported Ketchup commands."""
 
-    SHORT = "short"
-    LONG = "long"
+    SHORT = "short"  # Deprecated: redirects to STATUS
+    LONG = "long"  # Deprecated: redirects to REPORT
     QUERY = "query"
     STATUS = "status"
     REPORT = "report"
