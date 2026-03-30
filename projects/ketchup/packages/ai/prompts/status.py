@@ -259,6 +259,7 @@ Use Slack inline code (backticks) sparingly for key error codes and config value
 • [Most relevant update or technical findings]
 • [Impact: service disruption, affected users, scope]
 • [6 bullet points maximum]
+*Example formatting:* Error code `iRc=16384` caused pipeline failures on `jti-mid-prod6`
 
 :construction_worker: *Engineers Actively Investigating:*
 • *[Name]*: [Current task or investigation]
