@@ -317,7 +317,6 @@ __all__ = [
     "QueryMessageHandlerProtocol",
     "ReportMessageHandlerProtocol",
     "StatusMessageHandlerProtocol",
-    "SummaryMessageHandlerProtocol",
     "ParameterMessageHandlerProtocol",
     # Additional UI service protocols
     "SlackMessageFormatterProtocol",
