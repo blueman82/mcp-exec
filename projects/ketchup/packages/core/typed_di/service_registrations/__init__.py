@@ -324,7 +324,6 @@ __all__ = [
     "SlackListCommandProtocol",
     "SlackQueryHandlerProtocol",
     "SlackReportsProtocol",
-    "SlackSummaryHandlerProtocol",
     "SlackUserOpsProtocol",
     "SlackUserStoreProtocol",
     "TokenTrackerProtocol",
