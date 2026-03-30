@@ -46,7 +46,6 @@ from .command_protocols import (
     SlackArchiveCommandProtocol,
     SlackListCommandProtocol,
     SlackQueryHandlerProtocol,
-    SlackSummaryHandlerProtocol,
     StatusReportCommandProtocol,
     VerifyCommandProtocol,
 )
