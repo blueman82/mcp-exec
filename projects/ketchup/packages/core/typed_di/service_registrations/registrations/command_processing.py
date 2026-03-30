@@ -175,7 +175,6 @@ def _register_command_router(manager: "ServiceRegistrationManager") -> None:
             DependencySpec(SlackListCommandProtocol, optional=True),
             DependencySpec(MetricsCommand, optional=True),
             DependencySpec(SlackQueryHandlerProtocol, optional=True),
-            DependencySpec(SlackSummaryHandlerProtocol, optional=True),
             DependencySpec(SlackReportsProtocol, optional=True),
             DependencySpec(CommandTrackingOperationsProtocol, optional=True),
         ],
