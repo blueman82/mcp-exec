@@ -52,9 +52,7 @@ class TestGetPromptForCommand:
         """Test /ketchup report command returns only the report prompt (no guidelines)."""
         result = get_prompt_for_command(command="/ketchup report")
         assert result == "REPORT"
-        mock_report.assert_called_once_with(
-            "generate full incident report with all details captured", user_prefs=None
-        )
+        mock_report.assert_called_once_with(user_prefs=None)
 
     def test_unrecognized_command(self) -> None:
         """Test that an unrecognized command returns None."""

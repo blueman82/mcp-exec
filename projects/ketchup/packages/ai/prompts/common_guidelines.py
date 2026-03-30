@@ -7,8 +7,10 @@ This module provides a function to generate a common guidelines prompt for the A
 COMMON_GUIDELINES_PROMPT = r"""
 ## FORMATTING RULES
 ✅ Times: UTC format (HH:MM:SS)
-✅ JIRA tickets: <https://jira.corp.adobe.com/browse/TICKET-123|TICKET-123>
-✅ Valid prefixes: CPGNREQ, CPGNTT, NEO, PLATIR, CSOPM, CPGNCX, AMSE, CPGNPROV
+✅ JIRA tickets: Always render as <https://jira.corp.adobe.com/browse/TICKET-123|TICKET-123> — even when found in JIRA comments or source data. Never backtick them.
+✅ Valid prefixes: CPGNREQ-1234, CPGNTT-5678, NEO-91011, PLATIR-1213, CSOPM-1415, CPGNCX-1617, AMSE-1819, CPGNPROV-2021
+  Example — Source data: "fix via NEO-94666 / NEO-94687"
+  Your output: "fix via <https://jira.corp.adobe.com/browse/NEO-94666|NEO-94666> / <https://jira.corp.adobe.com/browse/NEO-94687|NEO-94687>"
 ✅ Channels: <#CHANNEL_ID|channel_name>
 ✅ User mentions: <@U12345>
 ✅ Bold: *text* (single asterisk)

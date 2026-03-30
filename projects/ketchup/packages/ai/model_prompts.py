@@ -56,7 +56,6 @@ def get_prompt_for_command(
     elif command.startswith("/ketchup report"):
         logger.info("Setting instructions for a report command.")
         report_prompt_text = get_report_prompt(
-            "generate full incident report with all details captured",
             user_prefs=user_prefs,
         )
         return report_prompt_text

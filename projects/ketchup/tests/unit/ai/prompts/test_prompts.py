@@ -82,13 +82,9 @@ class TestPromptFunctions:
         assert "*DD-MMM-YYYY, HH:MM UTC:*" in prompt
         assert "500 words" in prompt  # Balanced word limit
 
-    @pytest.mark.parametrize("report_text", [None, "full report", "minimal"])
-    def test_get_report_prompt(self, report_text: str | None) -> None:
-        """Test get_report_prompt returns a string with the report text and required sections."""
-        if report_text is None:
-            prompt = get_report_prompt()
-        else:
-            prompt = get_report_prompt(report_text)
+    def test_get_report_prompt(self) -> None:
+        """Test get_report_prompt returns a string with required sections."""
+        prompt = get_report_prompt()
         assert isinstance(prompt, str)
         assert "<role>" in prompt
         assert "<response_structure>" in prompt

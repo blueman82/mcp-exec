@@ -11,14 +11,12 @@ from packages.core.config.feature_flags import FeatureFlags
 
 
 def get_report_prompt(
-    report_text: str = "generate full incident report with all details captured",
     user_prefs: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Get the report prompt, adapting structure and depth to user preferences.
 
     Args:
-        report_text: The specific report text to use in the prompt
         user_prefs: Optional dictionary of user preferences (detail_level, product_focus, etc.)
 
     Returns:
@@ -80,7 +78,7 @@ Generate a professional executive incident report with these 5 sections in order
 2. *Impact Assessment* — Customer experience impact, service availability, scope (3 bullets)
 3. *Resolution & Mitigation* — Actions taken, workarounds, planned fixes (3 bullets)
 4. *Next Steps* — Pending actions and expected timeline (2–3 bullets)
-5. *References* — Support ticket, channel, case number (include only if found)
+5. *References* — Support ticket as Slack link: <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]>, channel, case number (include only if found)
 
 For section headers: use emoji + *bold text* (e.g., ":page_facing_up: *Executive Summary:*")
 For content: use • bullets, *bold* for labels, and Slack mrkdwn formatting only (no # headers)
@@ -144,9 +142,9 @@ Generate a comprehensive technical incident report with these 10 sections in ord
    • *Database/Infrastructure:* `[lock_type]` on `[table]`; [metrics]
 6. *Impact Assessment* — Customer experience, service availability, performance metrics (3 bullets)
 7. *Resolution & Mitigation* — Actions taken, workarounds, permanent fixes with technical specifics (3 bullets)
-8. *JIRA Tickets & Work Done* — Ticket links, status, issue details, summarised comments (include only if tickets found)
+8. *JIRA Tickets & Work Done* — <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]> — [Summary] (Status: [Status], Assignee: [Name]); summarised comments (include only if tickets found)
 9. *Next Steps* — Pending actions, engineering tickets, follow-up investigations (3 bullets)
-10. *References* — Support ticket, channel, related engineering tickets, documentation, case number (include only if found)
+10. *References* — Support ticket as Slack link: <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]>, channel, related engineering tickets, documentation, case number (include only if found)
 
 For section headers: use emoji + *bold text* (e.g., ":page_facing_up: *Executive Summary:*")
 For content: use • bullets, *bold* for labels, and Slack mrkdwn formatting only (no # headers)
@@ -157,7 +155,7 @@ For timestamps: use "*DD-MMM-YYYY, HH:MM UTC:*" format (bold, no brackets)
 • Never speculate about technical causes not found in the data; use "Not yet identified" fallback
 • Never include template brackets like [Name] or [ticket_id] — always replace with actual values or fallback text
 • Keep JIRA comment summaries to 2–3 lines; exclude greetings, signatures, and redundant information
-• Do not repeat the report_text parameter in output; it is instruction only
+• Do not repeat the prompt instructions in output
 • Do not include the template, checklist, or example sections in the output report
 • Refer to unknown customers as "the customer"
 </constraints>
@@ -203,9 +201,9 @@ Generate a professional incident report with these 9 sections in order:
 4. *Technical Analysis* — Root cause: `[error_code]` [description] on `[instance]`; systems affected; error patterns (3 bullets)
 5. *Impact Assessment* — Customer experience impact, service/feature availability, performance metrics (3 bullets)
 6. *Resolution & Mitigation* — Actions taken, workarounds, permanent fixes (3 bullets)
-7. *JIRA Tickets & Work Done* — Ticket links, status, issue details, summarised comments (include only if tickets found)
+7. *JIRA Tickets & Work Done* — <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]> — [Summary] (Status: [Status], Assignee: [Name]); summarised comments (include only if tickets found)
 8. *Next Steps* — Pending actions, follow-up investigations, preventative measures (3 bullets)
-9. *References* — Support ticket, channel, documentation, case number (include only if found)
+9. *References* — Support ticket as Slack link: <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]>, channel, documentation, case number (include only if found)
 
 For section headers: use emoji + *bold text* (e.g., ":page_facing_up: *Executive Summary:*")
 For content: use • bullets, *bold* for labels, and Slack mrkdwn formatting only (no # headers)
@@ -216,7 +214,7 @@ For timestamps: use "*DD-MMM-YYYY, HH:MM UTC:*" format (bold, no brackets)
 • Never speculate about technical causes not found in the data; use "Not yet identified" fallback
 • Never include template brackets like [Name] or [ticket_id] — always replace with actual values or fallback text
 • Keep JIRA comment summaries to 2–3 lines; exclude greetings, signatures, and redundant information
-• Do not repeat the report_text parameter in output; it is instruction only
+• Do not repeat the prompt instructions in output
 • Do not include the template, checklist, or example sections in the output report
 • Refer to unknown customers as "the customer"
 </constraints>
