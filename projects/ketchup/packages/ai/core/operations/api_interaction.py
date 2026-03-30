@@ -78,7 +78,7 @@ class ApiExecutor:
 
         payload = {
             "messages": messages,
-            "max_tokens": max_tokens,
+            "max_completion_tokens": max_tokens,
             "temperature": temperature,
             "top_p": prefs.get("top_p", 0.9),
         }
