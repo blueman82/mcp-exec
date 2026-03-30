@@ -118,8 +118,6 @@ def format_command_stats(command_stats: Dict[str, int]) -> str:
         "status": ":traffic_light:",
         "report": ":memo:",
         "analyze": ":mag:",
-        "short": ":scissors:",
-        "long": ":page_with_curl:",
         "query": ":question:",
         "list": ":clipboard:",
         "archive": ":file_folder:",
