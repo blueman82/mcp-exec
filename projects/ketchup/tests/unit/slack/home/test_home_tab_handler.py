@@ -107,7 +107,7 @@ class TestHomeTabHandler:
         default_raw_prefs = {
             "product_focus": ["all_products"],
             "detail_level": "technical_details",
-            "time_window": "past_24_hours",
+            "time_window": "all_time",
         }
         normalized_defaults_mock = {"detail_level": "balanced_normalized"}  # Example mock
 
@@ -135,7 +135,7 @@ class TestHomeTabHandler:
         default_raw_prefs = {
             "product_focus": ["all_products"],
             "detail_level": "technical_details",
-            "time_window": "past_24_hours",
+            "time_window": "all_time",
         }
         normalized_defaults_mock = {"detail_level": "balanced_normalized"}  # Example mock
 

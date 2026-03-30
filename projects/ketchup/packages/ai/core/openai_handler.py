@@ -144,6 +144,7 @@ class OpenAIHandler(AzureAsyncClient):
         passed_channel_id: Optional[str],
         channel_name: Optional[str],
         query_text: Optional[str],
+        oldest_ts: str = "0",
         normalized_prefs_for_ai: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[Dict[str, str]], Optional[Dict[str, Any]]]:
         """
@@ -159,6 +160,7 @@ class OpenAIHandler(AzureAsyncClient):
             passed_channel_id: The target channel ID (if provided).
             channel_name: The name of the channel (may be fetched).
             query_text: The query text for query commands.
+            oldest_ts: Slack timestamp for filtering messages. "0" means fetch all messages.
             normalized_prefs_for_ai: Optional dictionary of normalized user preferences for AI.
 
         Returns:
@@ -190,6 +192,7 @@ class OpenAIHandler(AzureAsyncClient):
                 passed_channel_id=passed_channel_id,
                 channel_name=channel_name,
                 query_text=query_text,
+                oldest_ts=oldest_ts,
                 normalized_user_preferences=normalized_prefs_for_ai,
             )
             # Enrich with JIRA context if available
@@ -347,6 +350,7 @@ class OpenAIHandler(AzureAsyncClient):
         channel_name: Optional[str] = None,
         query_text: Optional[str] = None,
         messages: Optional[List[Dict[str, str]]] = None,
+        oldest_ts: str = "0",
         normalized_prefs_for_ai: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
@@ -364,6 +368,7 @@ class OpenAIHandler(AzureAsyncClient):
             channel_name: The name of the channel (may be fetched).
             query_text: The query text for query commands.
             messages: Optional list of messages to use directly.
+            oldest_ts: Slack timestamp for filtering messages. "0" means fetch all messages.
             normalized_prefs_for_ai: Optional dictionary of normalized user preferences for AI.
 
         Returns:
@@ -387,6 +392,7 @@ class OpenAIHandler(AzureAsyncClient):
                 passed_channel_id=passed_channel_id,
                 channel_name=channel_name,
                 query_text=query_text,
+                oldest_ts=oldest_ts,
                 normalized_prefs_for_ai=normalized_prefs_for_ai,
             )
 

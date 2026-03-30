@@ -11,6 +11,7 @@ import time
 from typing import Optional
 
 from packages.core.config.feature_flags import FeatureFlags
+from packages.core.jira_constants import VALID_JIRA_PROJECTS
 from packages.core.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -188,7 +189,7 @@ class AgentEngine:
 
 
 # Valid JIRA project prefixes used across Ketchup
-_JIRA_PREFIXES = "CPGNREQ|CPGNTT|NEO|PLATIR|CSOPM|CPGNCX|AMSE|CPGNPROV"
+_JIRA_PREFIXES = "|".join(VALID_JIRA_PROJECTS)
 _JIRA_TICKET_RE = re.compile(rf"(?<!\|)(?<!browse/)(?<!/)\b((?:{_JIRA_PREFIXES})-\d+)\b(?![^<]*>)")
 _JIRA_BASE_URL = "https://jira.corp.adobe.com/browse"
 

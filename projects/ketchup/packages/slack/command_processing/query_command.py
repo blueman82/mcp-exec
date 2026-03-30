@@ -310,7 +310,7 @@ class SlackQueryHandler(BaseCommandHandler):
         default_raw_prefs = {
             "product_focus": ["all_products"],
             "detail_level": "balanced",
-            "time_window": "past_24_hours",
+            "time_window": "all_time",
         }
         raw_preferences = (
             user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs

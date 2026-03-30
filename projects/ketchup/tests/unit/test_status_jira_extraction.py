@@ -37,6 +37,7 @@ class TestJIRAExtraction:
         assert generator._extract_valid_jira_ticket("Issue NEO-999 is fixed") == "NEO-999"
         assert generator._extract_valid_jira_ticket("See PLATIR-1 for details") == "PLATIR-1"
         assert generator._extract_valid_jira_ticket("cpgncc-789 lowercase") == "CPGNCC-789"
+        assert generator._extract_valid_jira_ticket("Tracking in CAMP-59130") == "CAMP-59130"
 
         # Test invalid tickets (not in approved list)
         assert generator._extract_valid_jira_ticket("Working on INVALID-12345") is None

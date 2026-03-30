@@ -31,7 +31,7 @@ from packages.slack.command_processing.status_report_command import SlackReports
 DEFAULT_KETCHUP_PREFERENCES = {
     "product_focus": ["all_products"],
     "detail_level": "balanced",
-    "time_window": "past_24_hours",
+    "time_window": "all_time",
 }
 
 # Define a dictionary for common mock return values or configurations

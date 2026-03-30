@@ -19,7 +19,7 @@ def get_report_prompt(
 
     Args:
         report_text: The specific report text to use in the prompt
-        user_prefs: Optional dictionary of user preferences (detail_level, time_window, product_focus, etc.)
+        user_prefs: Optional dictionary of user preferences (detail_level, product_focus, etc.)
 
     Returns:
         str: The complete report prompt (COMMON_GUIDELINES_PROMPT + core prompt + preferences)
@@ -30,7 +30,6 @@ def get_report_prompt(
 
     # Extract normalized preferences
     detail_level = user_prefs.get("detail_level", "balanced")
-    time_window = user_prefs.get("time_window", "past_24_hours")
 
     # Build role instruction based on detail level
     if detail_level == "high-level":
@@ -63,17 +62,6 @@ def get_report_prompt(
             "• Include key technical details only where they affect understanding of business impact"
         )
 
-    # Add time window context
-    time_window_note = ""
-    if "last" in time_window or "past" in time_window:
-        time_window_note = (
-            f"\n• Prioritise events from the {time_window.replace('_', ' ')} where relevant"
-        )
-    elif "complete" in time_window:
-        time_window_note = "\n• Include all relevant information from the entire channel history"
-    else:
-        time_window_note = "\n• Focus on the most recent and relevant information"
-
     _report_core_prompt = f"""
 <role>
 {role_instruction}
@@ -89,7 +77,7 @@ Focus on facts found in these sources. If information is unavailable, use the pr
 </data_sources>
 
 <response_guidelines>
-• Keep the report under *600 words*. Summarise JIRA data concisely.{time_window_note}
+• Keep the report under *600 words*. Summarise JIRA data concisely.
 • Focus on *facts*, not speculation. Prioritise *clarity*, *completeness*, and *structure*.
 {technical_detail}
 • Include all 9 sections in order (see template below)

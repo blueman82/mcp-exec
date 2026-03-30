@@ -558,7 +558,7 @@ class UserStore:
 
         # Convert time_window (string)
         if "time_window" in preferences_map:
-            preferences["time_window"] = preferences_map["time_window"].get("S", "past_24_hours")
+            preferences["time_window"] = preferences_map["time_window"].get("S", "all_time")
 
         # Convert include_in_summary (list of strings)
         if "include_in_summary" in preferences_map:
