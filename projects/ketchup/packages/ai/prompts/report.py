@@ -185,6 +185,8 @@ Focus on facts found in these sources. If information is unavailable, use fallba
 • JIRA Description: Extract key information into 3–5 bullet points
 • JIRA Comments: Summarise to 2–3 lines per comment; focus on work done, findings, solutions
 • If data is missing: use fallbacks listed above
+
+Use Slack inline code (backticks) sparingly for key error codes and config values only (e.g., `iRc=16384`, `NmsPipeline_EnrichBatchSize`). Don't overuse code formatting — keep the report readable and focused on business-technical balance.
 </response_guidelines>
 
 <response_structure>
