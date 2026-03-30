@@ -45,8 +45,6 @@ class TestCommandRouter:
             "list": AsyncMock(),
             "archive": AsyncMock(),
             "query": AsyncMock(),
-            "short": AsyncMock(),
-            "long": AsyncMock(),
             "status": AsyncMock(),
             "report": AsyncMock(),
         }
