@@ -12,7 +12,6 @@ __all__ = [
     "QueryCommandProtocol",
     "VerifyCommandProtocol",
     "StatusReportCommandProtocol",
-    "ShortLongCommandProtocol",
     "SlackArchiveCommandProtocol",
     "SlackListCommandProtocol",
     "SlackQueryHandlerProtocol",
