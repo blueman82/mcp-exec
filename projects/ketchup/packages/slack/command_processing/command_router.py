@@ -70,20 +70,6 @@ class CommandRouter:
         self._command_tracking_ops = command_tracking_ops
         logger.info("CommandRouter initialized with injected command handlers and user verifier.")
 
-    async def _post_redirect_message(
-        self, message: str, user_id: str, channel_id: str, response_url: str
-    ) -> None:
-        """Post a redirect warning message to the user."""
-        try:
-            await self.slack_posting_handler.post_message(
-                user_id=user_id,
-                channel_id=channel_id,
-                message=message,
-                response_url=response_url,
-            )
-        except Exception as e:
-            logger.error("Failed to post redirect message: %s", str(e))
-
     async def route_command(self, body: Dict[str, Any], response_url: str = "") -> ProcessingResult:
         """
         Route a Slack command to the appropriate handler.
@@ -285,59 +271,6 @@ class CommandRouter:
                     response_url=response_url,
                     user_name=user_real_name,  # Pass user_name
                 )
-            elif params.command_type in [CommandType.SHORT, CommandType.LONG]:
-                # Redirect deprecated short/long commands to status/report
-                if params.command_type == CommandType.SHORT:
-                    redirect_msg = ":warning: 'Short' command has been replaced by Status. Running a Status report for you now :clipboard:"
-                    new_type = "status"
-                else:
-                    redirect_msg = ":warning: 'Long' command has been replaced by Full Report. Running a Full Report for you now :memo:"
-                    new_type = "report"
-                await self._post_redirect_message(
-                    redirect_msg, user_id, incoming_channel, response_url
-                )
-                # Re-route to status/report handler
-                new_handler = self.command_handlers.get(new_type)
-                if new_handler:
-                    report_params = StatusReportCommandParams(
-                        user_id=params.user_id,
-                        user_name=params.user_name,
-                        channel_id=params.channel_id,
-                        command_text=params.command_text,
-                        response_url=params.response_url,
-                        original_command=params.original_command,
-                        command_type=(
-                            CommandType.STATUS if new_type == "status" else CommandType.REPORT
-                        ),
-                        context=params.context,
-                        target_channel_id=getattr(params, "target_channel_id", None),
-                        report_type=new_type,
-                    )
-                    if new_type == "status":
-                        result = await new_handler.process_status_request(
-                            command_verified=report_params.original_command,
-                            text=f"status {report_params.target_channel_id}",
-                            user_id=user_id,
-                            incoming_channel=incoming_channel,
-                            dm_channel_id=incoming_channel,
-                            response_url=response_url,
-                            channel_id=report_params.target_channel_id,
-                            user_name=user_real_name,
-                        )
-                    else:
-                        result = await new_handler.process_report_request(
-                            command_verified=report_params.original_command,
-                            text=f"report {report_params.target_channel_id}",
-                            user_id=user_id,
-                            incoming_channel=incoming_channel,
-                            dm_channel_id=incoming_channel,
-                            response_url=response_url,
-                            channel_id=report_params.target_channel_id,
-                            user_name=user_real_name,
-                        )
-                else:
-                    logger.error("No handler found for redirected command type: %s", new_type)
-                    result = ProcessingResult(status_code=500, body="Redirect handler not found")
             elif params.command_type in [CommandType.STATUS, CommandType.REPORT]:
                 # Cast params to StatusReportCommandParams before accessing report_type/target_channel_id
                 report_params = cast(StatusReportCommandParams, params)

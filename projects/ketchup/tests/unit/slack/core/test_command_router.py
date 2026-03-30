@@ -6,7 +6,7 @@ Covers:
 - User not authorized
 - Command verification fails
 - No handler for command type
-- Each command type (LIST, ARCHIVE, QUERY, SHORT, LONG, STATUS, REPORT)
+- Each command type (LIST, ARCHIVE, QUERY, STATUS, REPORT)
 - Handler raises exception (including TaskGroup error)
 - All required parameters present/missing
 - All external dependencies are mocked
@@ -73,7 +73,7 @@ class TestCommandRouter:
         "packages.slack.command_processing.command_router.verify_and_extract_command",
         new_callable=AsyncMock,
     )
-    async def test_user_not_authorized(self, mock_verify: AsyncMock) -> None:
+    async def test_user_not_authorized(self, _mock_verify: AsyncMock) -> None:
         self.mock_user_verifier.validate_user_id = AsyncMock(return_value=False)
         result = await self.router.route_command(self.body, "url")
         assert result == ProcessingResult(status_code=200, body="")
@@ -128,6 +128,7 @@ class TestCommandRouter:
         params = MagicMock()
         params.command_type = cmd_type
         # Set required attributes for each command type
+        handler: AsyncMock
         if cmd_type == CommandType.LIST:
             handler = self.mock_handlers["list"]
             handler.process_list_params.return_value = expected_result

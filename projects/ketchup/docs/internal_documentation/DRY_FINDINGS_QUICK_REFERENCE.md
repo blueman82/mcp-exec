@@ -70,7 +70,7 @@ ACTION: Add factory methods to CommandParams dataclasses
 - Action: Abstract BaseBusinessService class
 
 ### Finding 6: AI Prompt Scaffolding (4 files, 60-80 LOC)
-- short_summary.py, long_summary.py, status.py, report.py
+- status.py, report.py
 - Same: Self-verification structure, output templates, formatting rules
 - Action: PromptScaffold utility class
 
@@ -130,8 +130,6 @@ ACTION: Add factory methods to CommandParams dataclasses
 
 ### AI Prompts
 - `/packages/ai/prompts/`
-  - short_summary.py (79 LOC)
-  - long_summary.py (83 LOC)
   - status.py (260 LOC)
   - report.py (251 LOC)
 

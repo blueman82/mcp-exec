@@ -46,6 +46,8 @@ class TestExtractCommandType:
             ("/ketchup archive", CommandType.ARCHIVE),
             ("/ketchup list", CommandType.LIST),
             ("/ketchup unknown", None),
+            ("/ketchup short", None),
+            ("/ketchup long", None),
             ("/notketchup short", None),
             ("short", None),
             ("/ketchup", None),

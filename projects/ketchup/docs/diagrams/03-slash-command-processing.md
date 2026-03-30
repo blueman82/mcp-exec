@@ -19,9 +19,7 @@ graph TB
     
     CommandRoute -->|"status"| ReportCmd["ReportCommand<br/>(type='status')"]
     CommandRoute -->|"report"| ReportCmd2["ReportCommand<br/>(type='report')"]
-    CommandRoute -->|"short"| ReportCmd3["ReportCommand<br/>(type='short')"]
-    CommandRoute -->|"long"| ReportCmd4["ReportCommand<br/>(type='long')"]
-    CommandRoute -->|"query"| QueryCmd["QueryCommand"]
+CommandRoute -->|"query"| QueryCmd["QueryCommand"]
     CommandRoute -->|"archive"| ArchiveCmd["ArchiveCommand"]
     CommandRoute -->|"list"| ListCmd["ListCommand"]
     CommandRoute -->|"access"| AccessCmd["AccessCommand"]
@@ -44,8 +42,6 @@ graph TB
     subgraph Validation["Parameter Extraction & Validation"]
         ReportCmd --> ValidateReport["Validate:<br/>- Channel ID exists<br/>- Time range valid"]
         ReportCmd2 --> ValidateReport
-        ReportCmd3 --> ValidateReport
-        ReportCmd4 --> ValidateReport
         
         QueryCmd --> ValidateQuery["Validate:<br/>- Question provided<br/>- Channel eligible"]
         
@@ -135,8 +131,6 @@ graph TB
 ### Report Commands (AI-Powered)
 - **status**: Quick channel status (last 24 hours)
 - **report**: Detailed channel report (configurable time range)
-- **short**: Brief summary (< 100 words)
-- **long**: Detailed summary (> 300 words)
 
 **Execution:** Fetch messages → AI summarization → Post formatted response
 
