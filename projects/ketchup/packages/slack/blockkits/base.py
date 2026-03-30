@@ -36,7 +36,6 @@ class BlockKitBuilder:
         self._query_handler = QueryMessageHandler()
         self._status_handler = StatusMessageHandler()
         self._report_handler = ReportMessageHandler()
-        self._summary_handler = SummaryMessageHandler()
         self._lookup_handler = LookupMessageHandler()
         self._archive_handler = ArchiveMessageHandler()
 
