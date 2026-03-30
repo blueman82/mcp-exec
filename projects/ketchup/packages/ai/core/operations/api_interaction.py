@@ -74,9 +74,7 @@ class ApiExecutor:
         else:
             max_tokens = 1024  # Default token count
             if combined_command and (
-                "long" in combined_command
-                or "status" in combined_command
-                or "report" in combined_command
+                "status" in combined_command or "report" in combined_command
             ):
                 max_tokens = 2048  # Double token count for more verbose responses
 
