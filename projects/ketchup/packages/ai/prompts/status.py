@@ -154,8 +154,8 @@ Use triple-backtick code blocks for multi-line log excerpts if present.
 :mag: *Key Information:*
 • [Most relevant update or technical findings]
 • [Impact: service disruption, affected users, scope]
-• [Error patterns and system behaviour observed]
-• [6–8 bullet points maximum — include error codes and system identifiers]
+• `[process@instance]` [error pattern description] (`[error_code]`)
+• [6–8 bullet points maximum — wrap error codes, process names, and identifiers in backticks]
 
 :wrench: *Technical Details:*
 • *Instance:* `[instance_name]` ([environment])
