@@ -19,7 +19,6 @@ __all__ = [
     "QueryMessageHandlerProtocol",
     "ReportMessageHandlerProtocol",
     "StatusMessageHandlerProtocol",
-    "SummaryMessageHandlerProtocol",
     "ParameterMessageHandlerProtocol",
 ]
 
