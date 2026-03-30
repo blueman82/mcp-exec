@@ -83,7 +83,6 @@ class TestExtractCommandParams:
             return_value=MagicMock(spec=CommandParams),
         )
         self.mock_context = self.patcher_context.start()
-        self.mock_summary = self.patcher_summary.start()
         self.mock_query = self.patcher_query.start()
         self.mock_status = self.patcher_status.start()
         self.mock_archive = self.patcher_archive.start()
