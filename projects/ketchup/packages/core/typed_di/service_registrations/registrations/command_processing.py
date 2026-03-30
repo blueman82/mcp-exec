@@ -390,6 +390,7 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
         lifetime="singleton",
     )
 
+
 def _register_feature_command_services(manager: "ServiceRegistrationManager") -> None:
     """Register feature command and base command services."""
 

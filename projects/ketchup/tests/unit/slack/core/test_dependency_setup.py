@@ -25,9 +25,7 @@ class TestInstantiateCommandHandlers:
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackQueryHandler")
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackReports")
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackArchiveCommand")
-    def test_instantiates_all_handlers(
-        self, mock_archive, mock_reports, mock_query, mock_list
-    ):
+    def test_instantiates_all_handlers(self, mock_archive, mock_reports, mock_query, mock_list):
         handler_clients = {
             "info_ops": MagicMock(),
             "membership_ops": MagicMock(),

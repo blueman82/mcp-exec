@@ -306,9 +306,9 @@ class CommandRouter:
                         command_text=params.command_text,
                         response_url=params.response_url,
                         original_command=params.original_command,
-                        command_type=CommandType.STATUS
-                        if new_type == "status"
-                        else CommandType.REPORT,
+                        command_type=(
+                            CommandType.STATUS if new_type == "status" else CommandType.REPORT
+                        ),
                         context=params.context,
                         target_channel_id=getattr(params, "target_channel_id", None),
                         report_type=new_type,
@@ -337,9 +337,7 @@ class CommandRouter:
                         )
                 else:
                     logger.error("No handler found for redirected command type: %s", new_type)
-                    result = ProcessingResult(
-                        status_code=500, body="Redirect handler not found"
-                    )
+                    result = ProcessingResult(status_code=500, body="Redirect handler not found")
             elif params.command_type in [CommandType.STATUS, CommandType.REPORT]:
                 # Cast params to StatusReportCommandParams before accessing report_type/target_channel_id
                 report_params = cast(StatusReportCommandParams, params)
