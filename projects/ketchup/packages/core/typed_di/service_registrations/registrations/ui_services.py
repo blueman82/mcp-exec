@@ -35,7 +35,6 @@ try:
     from packages.slack.blockkits.handlers.query import QueryMessageHandler
     from packages.slack.blockkits.handlers.report import ReportMessageHandler
     from packages.slack.blockkits.handlers.status import StatusMessageHandler
-    from packages.slack.blockkits.handlers.summary import SummaryMessageHandler
     from packages.slack.channel_operations.slack_message_formatter import SlackMessageFormatter
     from packages.slack.interactive_elements.flag_review.block_builder import BlockBuilder
 
