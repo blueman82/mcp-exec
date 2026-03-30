@@ -60,7 +60,6 @@ from packages.slack.command_processing.command_router import CommandRouter
 from packages.slack.command_processing.feature_command import FeatureCommand
 from packages.slack.command_processing.list_command import SlackListCommand
 from packages.slack.command_processing.query_command import SlackQueryHandler
-from packages.slack.command_processing.short_long_command import SlackSummaryHandler
 from packages.slack.command_processing.status_report_command import SlackReports
 from packages.slack.interactive_elements.channel_metadata_edit import (
     ChannelMetadataEditHandler,
