@@ -122,13 +122,6 @@ class StatusMessageHandlerProtocol(Protocol):
 
 
 @runtime_checkable
-class SummaryMessageHandlerProtocol(Protocol):
-    """Protocol for summary message handler operations."""
-
-    pass
-
-
-@runtime_checkable
 class ParameterMessageHandlerProtocol(Protocol):
     """Protocol for parameter message handler operations."""
 
