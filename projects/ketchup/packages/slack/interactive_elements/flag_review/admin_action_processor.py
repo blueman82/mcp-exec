@@ -12,6 +12,7 @@ from packages.secrets.manager import SecretsManager
 from packages.slack.interactive_elements.flag_review.admin_response_handler import (
     AdminResponseHandler,
 )
+from packages.slack.interactive_elements.flag_review.flag_types import REVIEW_CHANNEL_ID
 from packages.slack.messages.posting import SlackPostingHandler
 
 logger = setup_logger(__name__)
@@ -198,6 +199,13 @@ class AdminActionProcessor:
                     status="replied",
                     acknowledged_by=admin_id,
                     acknowledged_at=datetime.now(timezone.utc).isoformat(),
+                )
+
+                # Send ephemeral confirmation to the admin
+                await self.posting_handler.post_message(
+                    channel_id=REVIEW_CHANNEL_ID,
+                    user_id=admin_id,
+                    message=f"💬 Reply sent to <@{flagged_user_id}> successfully!",
                 )
 
             return True

@@ -58,6 +58,24 @@ bullet that describes the related action or finding. Do not use a bullet solely
 for a diagnostic detail when a resolution or blocker could take that slot.
 </bullet_priority>
 
+<temporal_reasoning>
+Messages often contain pasted error logs or stack traces as context for why
+an action was taken or why an approach failed. These quoted errors describe
+past state, not current state.
+
+To determine the CURRENT situation:
+1. Read messages chronologically — later statements supersede earlier ones
+2. Look for resolution signals: "reverted", "rolled back", "running now",
+   "services are back", "operational", "restarted successfully"
+3. If the previous status reported a problem, check whether newer messages
+   indicate it was resolved. Do not carry forward a blocker that has been fixed.
+4. When a message quotes error logs to explain a failed attempt, report the
+   outcome of that attempt (e.g. "pointer rollback abandoned due to session
+   timeouts") — not the errors themselves as ongoing.
+5. If the previous status confirmed a service is operational and no new messages
+   contradict this, the service is still operational — state this in the Overview.
+</temporal_reasoning>
+
 <response_examples>
 Example 1 — incident with activity:
 *Overview:* Database replication lag resolved after tablespace extension. Monitoring shows stable sync.
@@ -76,6 +94,23 @@ Example 2 — no new activity:
 • Health checks passing on all 3 replication nodes
 • Maintenance window scheduled for 2026-03-15 at 22:00 UTC
 • On-call rotation notified of standby requirements
+
+Example 3 — message contains quoted error logs from a failed past attempt:
+Messages contain: pasted ODBC auth errors from a failed data re-ingestion attempt,
+followed by "We need a new strategy", and R&D confirming no OOTB method available.
+Previous status confirmed tracking workflow is operational after rollback.
+
+Correct:
+*Overview:* Tracking workflow operational after pointer rollback. Historical data import requires an alternative approach.
+
+*What's been done / What's next:*
+• Tracking log backups confirmed on all containers for files older than March 14
+• R&D confirmed no out-of-the-box method to back-port data from backup files
+• Pointer rollback to re-ingest historical data abandoned due to Snowflake session timeouts
+• Awaiting R&D recommendation for alternative import method
+
+Wrong (treats quoted historical errors as current state):
+*Overview:* Workflow unable to connect to Snowflake due to authentication token expiry.
 </response_examples>
 
 <constraints>

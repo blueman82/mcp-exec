@@ -6,6 +6,7 @@ including fetching channel history and formatting.
 """
 
 import asyncio
+import re
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -311,6 +312,9 @@ class MessagePreparer:
             # Join messages into a single string
             formatted_messages = "\n".join(messages_list) if messages_list else "No messages found"
 
+            # Collapse large code blocks to reduce noise from pasted error logs
+            formatted_messages = self._collapse_large_code_blocks(formatted_messages)
+
             # Return formatted messages and enhanced metadata
             return formatted_messages, {
                 "latest_ts": latest_ts,
@@ -327,3 +331,24 @@ class MessagePreparer:
                 "has_channel_messages": False,
                 "has_thread_activity": False,
             }
+
+    @staticmethod
+    def _collapse_large_code_blocks(text: str, min_lines: int = 5) -> str:
+        """Collapse code blocks with 5+ lines into a one-line summary.
+
+        Large pasted error logs dominate LLM attention and get misinterpreted
+        as current state. This replaces them with a brief description.
+        """
+
+        def _summarise_block(match: re.Match) -> str:
+            content = match.group(1)
+            lines = [ln for ln in content.strip().splitlines() if ln.strip()]
+            if len(lines) < min_lines:
+                return match.group(0)  # leave small blocks alone
+            # Count distinct error-like patterns for the summary
+            error_keywords = {"error", "failed", "exception", "timeout", "refused"}
+            has_errors = any(kw in content.lower() for kw in error_keywords)
+            label = "error/log" if has_errors else "log"
+            return f"[QUOTED {label.upper()}: {len(lines)} lines omitted — see original message]"
+
+        return re.sub(r"```(.*?)```", _summarise_block, text, flags=re.DOTALL)
