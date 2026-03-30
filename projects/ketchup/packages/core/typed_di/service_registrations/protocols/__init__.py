@@ -202,7 +202,6 @@ from .ui_protocols import (
     ReportMessageHandlerProtocol,
     SlackMessageFormatterProtocol,
     StatusMessageHandlerProtocol,
-    SummaryMessageHandlerProtocol,
 )
 
 # All protocols are imported from modular domain-specific files
