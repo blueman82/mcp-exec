@@ -162,8 +162,6 @@ def instantiate_command_handlers(
     command_handlers_dict = {
         CommandType.LIST.value: list_handler,
         CommandType.QUERY.value: query_handler,
-        CommandType.SHORT.value: summary_handler,
-        CommandType.LONG.value: summary_handler,
         CommandType.STATUS.value: status_report_handler,
         CommandType.REPORT.value: status_report_handler,
         CommandType.ARCHIVE.value: archive_handler,
