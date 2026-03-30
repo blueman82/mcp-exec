@@ -75,12 +75,12 @@ class TestPromptFunctions:
         prompt = get_status_prompt(user_prefs)
         assert isinstance(prompt, str)
 
-        # Test new sections are present
+        # Test balanced sections are present
         assert "Engineers Actively Investigating" in prompt
         assert ":calendar:" in prompt
         assert ":construction_worker:" in prompt
         assert "*DD-MMM-YYYY, HH:MM UTC:*" in prompt
-        assert "600 words" in prompt  # Updated word limit
+        assert "500 words" in prompt  # Balanced word limit
 
     @pytest.mark.parametrize("report_text", [None, "full report", "minimal"])
     def test_get_report_prompt(self, report_text: str | None) -> None:
