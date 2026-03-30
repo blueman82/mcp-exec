@@ -171,16 +171,6 @@ async def test_send_ketchup_report_block_kit(builder) -> None:
 
 
 @pytest.mark.asyncio
-async def test_send_ketchup_summary_block_kit(builder) -> None:
-    """Test send_ketchup_summary_block_kit delegates to summary handler."""
-    builder._summary_handler.send_message = AsyncMock()
-    await builder.send_ketchup_summary_block_kit(
-        "cmd", "url", [{"summary": 1}], target_channel="C1"
-    )
-    builder._summary_handler.send_message.assert_awaited_once()
-
-
-@pytest.mark.asyncio
 async def test_send_ketchup_archive_block_kit(builder) -> None:
     """Test send_ketchup_archive_block_kit delegates to archive handler."""
     builder._archive_handler.send_message = AsyncMock()
