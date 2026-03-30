@@ -4,7 +4,7 @@ Unit tests for AdminActionProcessor.
 Tests admin actions (acknowledge, reply) for flag review functionality.
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
