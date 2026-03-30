@@ -944,7 +944,7 @@ Ketchup commands now support three ways to specify channels:
 /ketchup report #incident-response
 ```
 
-All formats work with: query, status, report, short, and long commands.
+All formats work with: query, status, and report commands.
 
 **Important Notes:**
 - Channel names must follow Slack's naming rules (lowercase, no spaces)
