@@ -80,13 +80,6 @@ class BlockKitBuilder:
             self._build_feedback_blocks,
         )
 
-        self._summary_handler.configure(
-            self._posting_handler,
-            self._channel_details_getter,
-            self._get_channel_details_with_fallback,
-            self._build_feedback_blocks,
-        )
-
         self._lookup_handler.configure(self._posting_handler, self._channel_details_getter)
 
         self._archive_handler.configure(self._posting_handler, self._channel_details_getter)
