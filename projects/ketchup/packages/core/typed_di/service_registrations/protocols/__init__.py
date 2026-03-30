@@ -43,11 +43,9 @@ from .command_protocols import (
     FeatureServiceProtocol,
     ListCommandProtocol,
     QueryCommandProtocol,
-    ShortLongCommandProtocol,
     SlackArchiveCommandProtocol,
     SlackListCommandProtocol,
     SlackQueryHandlerProtocol,
-    SlackSummaryHandlerProtocol,
     StatusReportCommandProtocol,
     VerifyCommandProtocol,
 )
@@ -204,7 +202,6 @@ from .ui_protocols import (
     ReportMessageHandlerProtocol,
     SlackMessageFormatterProtocol,
     StatusMessageHandlerProtocol,
-    SummaryMessageHandlerProtocol,
 )
 
 # All protocols are imported from modular domain-specific files
@@ -281,7 +278,6 @@ __all__ = [
     "SlackListCommandProtocol",
     "SlackQueryHandlerProtocol",
     "SlackReportsProtocol",
-    "SlackSummaryHandlerProtocol",
     "SlackUserOpsProtocol",
     "SlackUserStoreProtocol",
     "TokenTrackerProtocol",
@@ -312,7 +308,6 @@ __all__ = [
     "QueryCommandProtocol",
     "VerifyCommandProtocol",
     "StatusReportCommandProtocol",
-    "ShortLongCommandProtocol",
     # Event processor protocols
     "ArchiveProcessorProtocol",
     "CreationProcessorProtocol",
@@ -322,7 +317,6 @@ __all__ = [
     "QueryMessageHandlerProtocol",
     "ReportMessageHandlerProtocol",
     "StatusMessageHandlerProtocol",
-    "SummaryMessageHandlerProtocol",
     "ParameterMessageHandlerProtocol",
     # Additional UI service protocols
     "SlackMessageFormatterProtocol",

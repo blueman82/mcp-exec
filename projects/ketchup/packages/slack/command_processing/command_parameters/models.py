@@ -13,8 +13,8 @@ from typing import Literal, Optional
 class CommandType(Enum):
     """Types of supported Ketchup commands."""
 
-    SHORT = "short"
-    LONG = "long"
+    SHORT = "short"  # Deprecated: redirects to STATUS
+    LONG = "long"  # Deprecated: redirects to REPORT
     QUERY = "query"
     STATUS = "status"
     REPORT = "report"
@@ -130,18 +130,6 @@ class ArchiveCommandParams(CommandParams):
 
     archive_days: Optional[int] = 30  # Number of days to look back for archive
     include_metadata: bool = True  # Whether to include channel metadata in archive report
-
-
-@dataclass
-class SummaryCommandParams(CommandParams):
-    """
-    Parameters for summary commands (short/long).
-
-    Summary commands generate brief or detailed summaries of channel activity.
-    """
-
-    summary_type: Optional[str] = None  # Required field, must be set (short, long)
-    target_channel_id: Optional[str] = None  # Required field, must be set
 
 
 @dataclass

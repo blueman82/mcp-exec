@@ -29,14 +29,12 @@ from packages.slack.command_processing.command_parameters.models import (
     CommandType,
     QueryCommandParams,
     StatusReportCommandParams,
-    SummaryCommandParams,
 )
 
 
 class TestCommandTypeEnum:
     def test_enum_values(self) -> None:
         """Test CommandType enum values and string conversion."""
-        assert str(CommandType.SHORT) == "short"
         assert CommandType.LIST.value == "list"
         assert CommandType("archive") is CommandType.ARCHIVE
 
@@ -56,35 +54,15 @@ class TestCommandParams:
             user_id="U123456789",
             user_name="testuser",
             channel_id="C123456789",
-            command_text="short",
+            command_text="status",
             response_url="https://hooks.slack.com/commands/123",
-            original_command="/ketchup short",
-            command_type=CommandType.SHORT,
+            original_command="/ketchup status",
+            command_type=CommandType.STATUS,
             context=CommandContext.DIRECT_MESSAGE,
         )
-        assert params.command_type == CommandType.SHORT
-        assert params.original_command == "/ketchup short"
+        assert params.command_type == CommandType.STATUS
+        assert params.original_command == "/ketchup status"
         assert params.context == CommandContext.DIRECT_MESSAGE
-
-
-class TestSummaryCommandParams:
-    def test_instantiation(self) -> None:
-        """Test SummaryCommandParams instantiation."""
-        params = SummaryCommandParams(
-            user_id="U123456789",
-            user_name="testuser",
-            channel_id="C123456789",
-            command_text="short",
-            response_url="https://hooks.slack.com/commands/123",
-            original_command="/ketchup short",
-            command_type=CommandType.SHORT,
-            context=CommandContext.DIRECT_MESSAGE,
-            target_channel_id="C123",
-            summary_type="short",
-        )
-        assert params.target_channel_id == "C123"
-        assert params.summary_type == "short"
-        assert params.response_url == "https://hooks.slack.com/commands/123"
 
 
 class TestQueryCommandParams:

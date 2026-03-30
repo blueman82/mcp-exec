@@ -40,8 +40,6 @@ class TestExtractCommandType:
     @pytest.mark.parametrize(
         "command,expected",
         [
-            ("/ketchup short", CommandType.SHORT),
-            ("/ketchup LONG", CommandType.LONG),
             ("/ketchup query", CommandType.QUERY),
             ("/ketchup status", CommandType.STATUS),
             ("/ketchup report", CommandType.REPORT),
@@ -68,10 +66,6 @@ class TestExtractCommandParams:
             "packages.slack.command_processing.command_parameters.validation.get_command_context",
             return_value=CommandContext.DIRECT_MESSAGE,
         )
-        self.patcher_summary = patch(
-            "packages.slack.command_processing.command_parameters.parser.extract_summary_params",
-            return_value=MagicMock(spec=CommandParams),
-        )
         self.patcher_query = patch(
             "packages.slack.command_processing.command_parameters.parser.extract_query_params",
             return_value=MagicMock(spec=CommandParams),
@@ -89,7 +83,6 @@ class TestExtractCommandParams:
             return_value=MagicMock(spec=CommandParams),
         )
         self.mock_context = self.patcher_context.start()
-        self.mock_summary = self.patcher_summary.start()
         self.mock_query = self.patcher_query.start()
         self.mock_status = self.patcher_status.start()
         self.mock_archive = self.patcher_archive.start()
@@ -101,8 +94,6 @@ class TestExtractCommandParams:
     @pytest.mark.parametrize(
         "command,expected_extractor",
         [
-            ("/ketchup short", "summary"),
-            ("/ketchup long", "summary"),
             ("/ketchup query", "query"),
             ("/ketchup status", "status"),
             ("/ketchup report", "status"),
@@ -114,9 +105,7 @@ class TestExtractCommandParams:
         """Test extract_command_params calls correct extractor and returns params."""
         params = parser.extract_command_params(command, "chan", "C123", response_url="url")
         # The correct extractor should have been called
-        if expected_extractor == "summary":
-            assert self.mock_summary.called
-        elif expected_extractor == "query":
+        if expected_extractor == "query":
             assert self.mock_query.called
         elif expected_extractor == "status":
             assert self.mock_status.called
@@ -136,11 +125,11 @@ class TestExtractCommandParams:
     def test_extract_command_params_extractor_raises(self) -> None:
         """Test extract_command_params propagates ValidationError from extractor."""
         with patch(
-            "packages.slack.command_processing.command_parameters.parser.extract_summary_params",
+            "packages.slack.command_processing.command_parameters.parser.extract_status_report_params",
             side_effect=ValidationError("fail", "user fail"),
         ):
             with pytest.raises(ValidationError) as exc:
-                parser.extract_command_params("/ketchup short", "chan", "C123")
+                parser.extract_command_params("/ketchup status", "chan", "C123")
             assert "fail" in str(exc.value)
 
     def test_extract_command_params_no_extractor(self) -> None:

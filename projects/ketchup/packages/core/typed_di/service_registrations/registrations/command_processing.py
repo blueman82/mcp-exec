@@ -25,7 +25,6 @@ try:
     from packages.slack.command_processing.list_command import SlackListCommand
     from packages.slack.command_processing.metrics_command import MetricsCommand
     from packages.slack.command_processing.query_command import SlackQueryHandler
-    from packages.slack.command_processing.short_long_command import SlackSummaryHandler
     from packages.slack.command_processing.status_report_command import SlackReports
     from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
     from packages.slack.services.metrics_data_collector import MetricsDataCollector
@@ -60,7 +59,6 @@ from ..protocols import (
     OpenAIHandlerProtocol,
     QueryCommandProtocol,
     SecretsManagerProtocol,
-    ShortLongCommandProtocol,
     SlackArchiveCommandProtocol,
     SlackChannelArchiveOpsProtocol,
     SlackChannelMessageOpsProtocol,
@@ -70,7 +68,6 @@ from ..protocols import (
     SlackPostingHandlerProtocol,
     SlackQueryHandlerProtocol,
     SlackReportsProtocol,
-    SlackSummaryHandlerProtocol,
     SlackUserOpsProtocol,
     StatusReportCommandProtocol,
     UserStoreProtocol,
@@ -177,7 +174,6 @@ def _register_command_router(manager: "ServiceRegistrationManager") -> None:
             DependencySpec(SlackListCommandProtocol, optional=True),
             DependencySpec(MetricsCommand, optional=True),
             DependencySpec(SlackQueryHandlerProtocol, optional=True),
-            DependencySpec(SlackSummaryHandlerProtocol, optional=True),
             DependencySpec(SlackReportsProtocol, optional=True),
             DependencySpec(CommandTrackingOperationsProtocol, optional=True),
         ],
@@ -219,12 +215,6 @@ async def _build_command_handlers_dict(resolver) -> dict:
         command_handlers["query"] = await resolver.aget(SlackQueryHandlerProtocol)
     except Exception as e:
         logger.warning("Failed to resolve SlackQueryHandler: %s", e)
-
-    try:
-        command_handlers["short"] = await resolver.aget(SlackSummaryHandlerProtocol)
-        command_handlers["long"] = await resolver.aget(SlackSummaryHandlerProtocol)
-    except Exception as e:
-        logger.warning("Failed to resolve SlackSummaryHandler: %s", e)
 
     try:
         command_handlers["status"] = await resolver.aget(SlackReportsProtocol)
@@ -400,60 +390,6 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
         lifetime="singleton",
     )
 
-    # SlackSummaryHandler
-    async def create_slack_summary_handler(resolver) -> SlackSummaryHandler:
-        """Factory function for SlackSummaryHandler using TypedResolver."""
-        logger.info("Creating SlackSummaryHandler instance via TypedDI")
-
-        channel_info_ops = await resolver.aget(ChannelInfoOpsProtocol)
-        archive_ops = await resolver.aget(SlackChannelArchiveOpsProtocol)
-        openai_handler = await resolver.aget(OpenAIHandlerProtocol)
-        block_kit_builder = await resolver.aget(BlockKitBuilderProtocol)
-        channel_message_ops = await resolver.aget(SlackChannelMessageOpsProtocol)
-        slack_posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
-        user_store = await resolver.aget(UserStoreProtocol)
-
-        # Optional: Resolve channel_restore_ops for archived channel handling
-        channel_restore_ops = None
-        try:
-            channel_restore_ops = await resolver.aget(SlackChannelRestoreOpsProtocol)
-        except Exception as e:
-            logger.info("SlackChannelRestoreOps not available for summary handler: %s", e)
-
-        feedback_reactions_handler = None
-        try:
-            feedback_reactions_handler = await resolver.aget(FeedbackReactionsHandlerProtocol)
-        except Exception as e:
-            logger.info("FeedbackReactionsHandler not available for SlackSummaryHandler: %s", e)
-
-        return SlackSummaryHandler(
-            channel_info_ops=channel_info_ops,
-            archive_ops=archive_ops,
-            openai_handler=openai_handler,
-            block_kit_builder=block_kit_builder,
-            channel_message_ops=channel_message_ops,
-            slack_posting_handler=slack_posting_handler,
-            user_store=user_store,
-            channel_restore_ops=channel_restore_ops,
-            feedback_reactions_handler=feedback_reactions_handler,
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackSummaryHandlerProtocol,
-        concrete_type=SlackSummaryHandler,
-        factory=create_slack_summary_handler,
-        dependencies=[
-            DependencySpec(ChannelInfoOpsProtocol),
-            DependencySpec(SlackChannelArchiveOpsProtocol),
-            DependencySpec(OpenAIHandlerProtocol),
-            DependencySpec(BlockKitBuilderProtocol),
-            DependencySpec(SlackChannelMessageOpsProtocol),
-            DependencySpec(SlackPostingHandlerProtocol),
-            DependencySpec(UserStoreProtocol),
-        ],
-        lifetime="singleton",
-    )
-
 
 def _register_feature_command_services(manager: "ServiceRegistrationManager") -> None:
     """Register feature command and base command services."""
@@ -532,19 +468,6 @@ def _register_feature_command_services(manager: "ServiceRegistrationManager") ->
         service_type=QueryCommandProtocol,
         factory=create_query_command_from_slack,
         dependencies=[DependencySpec(SlackQueryHandlerProtocol)],
-        lifetime="singleton",
-        lazy=True,
-        essential=False,
-    )
-
-    # ShortLongCommandProtocol (generic interface) - delegate to existing SlackSummaryHandlerProtocol
-    async def create_short_long_command_from_slack(resolver) -> SlackSummaryHandler:
-        return await resolver.aget(SlackSummaryHandlerProtocol)
-
-    manager.registry.register(
-        service_type=ShortLongCommandProtocol,
-        factory=create_short_long_command_from_slack,
-        dependencies=[DependencySpec(SlackSummaryHandlerProtocol)],
         lifetime="singleton",
         lazy=True,
         essential=False,

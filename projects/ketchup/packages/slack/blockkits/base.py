@@ -17,7 +17,6 @@ from packages.slack.blockkits.handlers.lookup import LookupMessageHandler
 from packages.slack.blockkits.handlers.query import QueryMessageHandler
 from packages.slack.blockkits.handlers.report import ReportMessageHandler
 from packages.slack.blockkits.handlers.status import StatusMessageHandler
-from packages.slack.blockkits.handlers.summary import SummaryMessageHandler
 
 logger = setup_logger(__name__)
 
@@ -38,7 +37,6 @@ class BlockKitBuilder:
         self._query_handler = QueryMessageHandler()
         self._status_handler = StatusMessageHandler()
         self._report_handler = ReportMessageHandler()
-        self._summary_handler = SummaryMessageHandler()
         self._lookup_handler = LookupMessageHandler()
         self._archive_handler = ArchiveMessageHandler()
 
@@ -77,13 +75,6 @@ class BlockKitBuilder:
         )
 
         self._report_handler.configure(
-            self._posting_handler,
-            self._channel_details_getter,
-            self._get_channel_details_with_fallback,
-            self._build_feedback_blocks,
-        )
-
-        self._summary_handler.configure(
             self._posting_handler,
             self._channel_details_getter,
             self._get_channel_details_with_fallback,
@@ -208,29 +199,6 @@ class BlockKitBuilder:
             query,
             target_channel,
             execution_channel,
-        )
-
-    async def send_ketchup_summary_block_kit(
-        self,
-        combined_command: str,
-        response_url: str,
-        summaries: List[Dict[str, Any]],
-        target_channel: str,
-    ) -> None:
-        """
-        Send summary messages for multiple channels.
-
-        Args:
-            combined_command: The original Slack command
-            response_url: URL to send the response to
-            summaries: List of summaries to process
-            target_channel: The target channel ID
-        """
-        await self._summary_handler.send_message(
-            combined_command=combined_command,
-            response_url=response_url,
-            summaries=summaries,
-            target_channel=target_channel,
         )
 
     async def send_ketchup_archive_block_kit(

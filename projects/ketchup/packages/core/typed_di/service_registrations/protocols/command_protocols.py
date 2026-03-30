@@ -12,11 +12,9 @@ __all__ = [
     "QueryCommandProtocol",
     "VerifyCommandProtocol",
     "StatusReportCommandProtocol",
-    "ShortLongCommandProtocol",
     "SlackArchiveCommandProtocol",
     "SlackListCommandProtocol",
     "SlackQueryHandlerProtocol",
-    "SlackSummaryHandlerProtocol",
     "CommandRouterProtocol",
     "CommandTrackingOperationsProtocol",
     "CommandUsageCSVGeneratorProtocol",
@@ -61,13 +59,6 @@ class StatusReportCommandProtocol(Protocol):
 
 
 @runtime_checkable
-class ShortLongCommandProtocol(Protocol):
-    """Protocol for short/long command operations."""
-
-    pass
-
-
-@runtime_checkable
 class SlackArchiveCommandProtocol(Protocol):
     """Protocol for Slack archive command operations."""
 
@@ -84,13 +75,6 @@ class SlackListCommandProtocol(Protocol):
 @runtime_checkable
 class SlackQueryHandlerProtocol(Protocol):
     """Protocol for Slack query handler operations."""
-
-    pass
-
-
-@runtime_checkable
-class SlackSummaryHandlerProtocol(Protocol):
-    """Protocol for Slack summary handler operations."""
 
     pass
 

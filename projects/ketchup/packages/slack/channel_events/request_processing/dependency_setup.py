@@ -60,7 +60,6 @@ from packages.slack.command_processing.command_router import CommandRouter
 from packages.slack.command_processing.feature_command import FeatureCommand
 from packages.slack.command_processing.list_command import SlackListCommand
 from packages.slack.command_processing.query_command import SlackQueryHandler
-from packages.slack.command_processing.short_long_command import SlackSummaryHandler
 from packages.slack.command_processing.status_report_command import SlackReports
 from packages.slack.interactive_elements.channel_metadata_edit import (
     ChannelMetadataEditHandler,
@@ -133,20 +132,6 @@ def instantiate_command_handlers(
         feedback_reactions_handler=feedback_reactions_handler,
     )
 
-    # Instantiate summary command handler
-    summary_handler = SlackSummaryHandler(
-        channel_info_ops=channel_info_ops,
-        archive_ops=archive_ops,
-        openai_handler=openai_handler,
-        block_kit_builder=block_kit_builder,
-        channel_message_ops=channel_message_ops,
-        slack_posting_handler=slack_posting_handler,
-        user_store=user_store,
-        channel_restore_ops=channel_restore_ops,
-        dynamodb_store=dynamodb_store,
-        feedback_reactions_handler=feedback_reactions_handler,
-    )
-
     # Instantiate status report command handler
     status_report_handler = SlackReports(
         channel_info_ops=channel_info_ops,
@@ -177,8 +162,6 @@ def instantiate_command_handlers(
     command_handlers_dict = {
         CommandType.LIST.value: list_handler,
         CommandType.QUERY.value: query_handler,
-        CommandType.SHORT.value: summary_handler,
-        CommandType.LONG.value: summary_handler,
         CommandType.STATUS.value: status_report_handler,
         CommandType.REPORT.value: status_report_handler,
         CommandType.ARCHIVE.value: archive_handler,
@@ -188,7 +171,6 @@ def instantiate_command_handlers(
         "command_handlers_dict": command_handlers_dict,
         "list_handler": list_handler,
         "query_handler": query_handler,
-        "summary_handler": summary_handler,
         "status_report_handler": status_report_handler,
         "archive_handler": archive_handler,
     }

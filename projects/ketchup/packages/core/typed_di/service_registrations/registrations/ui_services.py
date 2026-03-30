@@ -35,7 +35,6 @@ try:
     from packages.slack.blockkits.handlers.query import QueryMessageHandler
     from packages.slack.blockkits.handlers.report import ReportMessageHandler
     from packages.slack.blockkits.handlers.status import StatusMessageHandler
-    from packages.slack.blockkits.handlers.summary import SummaryMessageHandler
     from packages.slack.channel_operations.slack_message_formatter import SlackMessageFormatter
     from packages.slack.interactive_elements.flag_review.block_builder import BlockBuilder
 
@@ -63,7 +62,6 @@ from ..protocols import (  # Additional UI service protocols
     ShortcutHandlerProtocol,
     SlackMessageFormatterProtocol,
     StatusMessageHandlerProtocol,
-    SummaryMessageHandlerProtocol,
     TrustOperationsProtocol,
 )
 
@@ -206,21 +204,6 @@ def _register_message_handler_services(manager: "ServiceRegistrationManager") ->
         protocol_type=StatusMessageHandlerProtocol,
         concrete_type=StatusMessageHandler,
         factory=create_status_message_handler,
-        dependencies=[],
-        lifetime="singleton",
-    )
-
-    # SummaryMessageHandler
-    async def create_summary_message_handler(resolver) -> SummaryMessageHandler:
-        """Factory function for SummaryMessageHandler using TypedResolver."""
-        logger.info("Creating SummaryMessageHandler instance via TypedDI")
-        # SummaryMessageHandler doesn't take any constructor parameters
-        return SummaryMessageHandler()
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SummaryMessageHandlerProtocol,
-        concrete_type=SummaryMessageHandler,
-        factory=create_summary_message_handler,
         dependencies=[],
         lifetime="singleton",
     )

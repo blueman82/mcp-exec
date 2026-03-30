@@ -23,12 +23,9 @@ class DummyHandler:
 class TestInstantiateCommandHandlers:
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackListCommand")
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackQueryHandler")
-    @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackSummaryHandler")
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackReports")
     @patch("packages.slack.channel_events.request_processing.dependency_setup.SlackArchiveCommand")
-    def test_instantiates_all_handlers(
-        self, mock_archive, mock_reports, mock_summary, mock_query, mock_list
-    ):
+    def test_instantiates_all_handlers(self, mock_archive, mock_reports, mock_query, mock_list):
         handler_clients = {
             "info_ops": MagicMock(),
             "membership_ops": MagicMock(),
@@ -50,7 +47,6 @@ class TestInstantiateCommandHandlers:
         assert "command_handlers_dict" in result
         assert "list_handler" in result
         assert "query_handler" in result
-        assert "summary_handler" in result
         assert "status_report_handler" in result
         assert "archive_handler" in result
 

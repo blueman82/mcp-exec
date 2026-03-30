@@ -19,7 +19,6 @@ __all__ = [
     "QueryMessageHandlerProtocol",
     "ReportMessageHandlerProtocol",
     "StatusMessageHandlerProtocol",
-    "SummaryMessageHandlerProtocol",
     "ParameterMessageHandlerProtocol",
 ]
 
@@ -119,13 +118,6 @@ class StatusMessageHandlerProtocol(Protocol):
     ) -> None:
         """Send a formatted status message to Slack."""
         ...
-
-
-@runtime_checkable
-class SummaryMessageHandlerProtocol(Protocol):
-    """Protocol for summary message handler operations."""
-
-    pass
 
 
 @runtime_checkable

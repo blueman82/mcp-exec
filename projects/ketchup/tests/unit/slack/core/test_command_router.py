@@ -45,8 +45,6 @@ class TestCommandRouter:
             "list": AsyncMock(),
             "archive": AsyncMock(),
             "query": AsyncMock(),
-            "short": AsyncMock(),
-            "long": AsyncMock(),
             "status": AsyncMock(),
             "report": AsyncMock(),
         }
@@ -111,8 +109,6 @@ class TestCommandRouter:
             (CommandType.LIST, "process_list_params", {"ok": True}),
             (CommandType.ARCHIVE, "process_archive_params", {"ok": True}),
             (CommandType.QUERY, "process_query_request", {"ok": True}),
-            (CommandType.SHORT, "process_summary_params", {"ok": True}),
-            (CommandType.LONG, "process_summary_params", {"ok": True}),
             (CommandType.STATUS, "process_status_request", {"ok": True}),
             (CommandType.REPORT, "process_report_request", {"ok": True}),
         ],
@@ -141,10 +137,6 @@ class TestCommandRouter:
         elif cmd_type == CommandType.QUERY:
             handler = self.mock_handlers["query"]
             handler.process_query_request.return_value = expected_result
-            params.target_channel_id = "C1"
-        elif cmd_type in [CommandType.SHORT, CommandType.LONG]:
-            handler = self.mock_handlers[cmd_type.value]
-            handler.process_summary_params.return_value = expected_result
             params.target_channel_id = "C1"
         elif cmd_type == CommandType.STATUS:
             handler = self.mock_handlers["status"]
