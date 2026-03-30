@@ -59,13 +59,6 @@ class StatusReportCommandProtocol(Protocol):
 
 
 @runtime_checkable
-class ShortLongCommandProtocol(Protocol):
-    """Protocol for short/long command operations."""
-
-    pass
-
-
-@runtime_checkable
 class SlackArchiveCommandProtocol(Protocol):
     """Protocol for Slack archive command operations."""
 
