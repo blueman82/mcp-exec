@@ -124,6 +124,9 @@ Focus on facts found in these sources. If information is unavailable, use fallba
 • JIRA Description: Extract key information into 3–5 bullet points
 • JIRA Comments: Summarise to 2–3 lines per comment; focus on work done, findings, solutions
 • If data is missing: use fallbacks listed above
+
+Use Slack inline code (backticks) for: error codes (e.g., `iRc=16384`), process names (e.g., `pipelined@jti_mid_prod6`), PIDs (e.g., `PID 18821`), config keys (e.g., `NmsPipeline_EnrichBatchSize`), instance names (e.g., `jti-mid-prod6-1`), DB lock types (e.g., `RowExclusiveLock`), and error identifiers (e.g., `PIP-680059`).
+Use triple-backtick code blocks for multi-line log excerpts if present.
 </response_guidelines>
 
 <response_structure>
