@@ -59,7 +59,6 @@ from ..protocols import (
     OpenAIHandlerProtocol,
     QueryCommandProtocol,
     SecretsManagerProtocol,
-    ShortLongCommandProtocol,
     SlackArchiveCommandProtocol,
     SlackChannelArchiveOpsProtocol,
     SlackChannelMessageOpsProtocol,
