@@ -239,6 +239,10 @@ Product scope: {product_guidance}
 • No conversational text, explanations, or endings
 </constraints>
 
+<slack_mrkdwn_formatting>
+Use Slack inline code (backticks) sparingly for key error codes and config values only (e.g., `iRc=16384`, `NmsPipeline_EnrichBatchSize`). Don't overuse code formatting — keep the report readable and focused on business-technical balance.
+</slack_mrkdwn_formatting>
+
 <response_structure>
 :traffic_light: *Current Status:*
 • *CSO Phase:* [Phase or "Unknown"]
