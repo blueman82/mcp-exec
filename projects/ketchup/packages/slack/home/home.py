@@ -189,7 +189,7 @@ class HomeTabHandler:
         default_raw_prefs = {
             "product_focus": ["all_products"],
             "detail_level": "technical_details",
-            "time_window": "past_24_hours",
+            "time_window": "all_time",
         }
         raw_user_prefs = default_raw_prefs.copy()
         first_name = "there"

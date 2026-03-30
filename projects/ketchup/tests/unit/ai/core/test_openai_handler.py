@@ -159,6 +159,7 @@ class TestOpenAIHandler:
             passed_channel_id=None,
             channel_name=None,
             query_text=None,
+            oldest_ts="0",
             normalized_user_preferences=None,
         )
 
@@ -204,6 +205,7 @@ class TestOpenAIHandler:
             passed_channel_id=None,
             channel_name=None,
             query_text=None,
+            oldest_ts="0",
             normalized_user_preferences=test_prefs,
         )
 
@@ -308,6 +310,7 @@ class TestOpenAIHandler:
             passed_channel_id=None,
             channel_name=None,
             query_text=None,
+            oldest_ts="0",
             normalized_prefs_for_ai=None,
         )
         handler._token_manager.enforce_token_limit.assert_called_once_with(
@@ -370,6 +373,7 @@ class TestOpenAIHandler:
             passed_channel_id=None,
             channel_name=None,
             query_text=None,
+            oldest_ts="0",
             normalized_prefs_for_ai=test_prefs,
         )
         handler._token_manager.enforce_token_limit.assert_called_once_with(

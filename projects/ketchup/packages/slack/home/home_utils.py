@@ -96,7 +96,7 @@ def normalize_user_preferences(prefs: Dict[str, Any]) -> Dict[str, Any]:
         normalized["detail_level"] = "balanced"
 
     # Normalize time window
-    time_window = prefs.get("time_window", "past_24_hours")
+    time_window = prefs.get("time_window", "all_time")
     if time_window:
         if time_window == "all_time":
             normalized["time_window"] = "complete channel history"
@@ -365,11 +365,11 @@ def build_home_tab_blocks(
                             "text": {
                                 "type": "plain_text",
                                 "text": get_time_window_display_name(
-                                    user_prefs.get("time_window", "past_24_hours")
+                                    user_prefs.get("time_window", "all_time")
                                 ),
                                 "emoji": True,
                             },
-                            "value": user_prefs.get("time_window", "past_24_hours"),
+                            "value": user_prefs.get("time_window", "all_time"),
                         },
                     ),
                 }
@@ -608,8 +608,7 @@ def extract_preferences_from_state(payload: Dict[str, Any]) -> Dict[str, Any]:
         or "balanced"
     )
     time_window = (
-        get_selected_option(state.get("time_window_selection"), "time_window_select")
-        or "past_24_hours"
+        get_selected_option(state.get("time_window_selection"), "time_window_select") or "all_time"
     )
     join_notifications_enabled = (
         get_selected_option(

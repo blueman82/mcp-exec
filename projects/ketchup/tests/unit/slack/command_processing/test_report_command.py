@@ -26,7 +26,7 @@ from packages.slack.config.slack_config import SlackConfig
 DEFAULT_KETCHUP_PREFERENCES = {
     "product_focus": ["all_products"],
     "detail_level": "balanced",
-    "time_window": "past_24_hours",
+    "time_window": "all_time",
 }
 
 
@@ -125,6 +125,7 @@ class TestSlackReports:
             passed_channel_id=channel_id,
             channel_name="incident-chan",
             query_text="generate comprehensive incident report",
+            oldest_ts="0",
             normalized_prefs_for_ai=mock_normalized_prefs,
         )
 
@@ -204,6 +205,7 @@ class TestSlackReports:
             passed_channel_id=channel_id,
             channel_name="no-prefs-chan",
             query_text="generate comprehensive incident report",
+            oldest_ts="0",
             normalized_prefs_for_ai=mock_normalized_default_prefs,
         )
         assert actual_result.status_code == 200  # Check the actual_result
@@ -301,6 +303,7 @@ class TestSlackReports:
             passed_channel_id=channel_id,
             channel_name="incident-chan",
             query_text="generate comprehensive incident report",
+            oldest_ts="0",
             normalized_prefs_for_ai={"detail_level": "high"},
         )
 

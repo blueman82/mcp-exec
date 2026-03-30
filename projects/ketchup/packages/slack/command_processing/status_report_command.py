@@ -6,6 +6,7 @@ This module contains the SlackReports class, which is used to process the `/ketc
 
 from typing import Any, Dict, Optional, Tuple
 
+from packages.ai.core.operations.message_preparation import time_window_to_oldest_ts
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.exceptions import MessagePreparationError
 from packages.core.logging import setup_logger
@@ -267,6 +268,7 @@ class SlackReports(BaseCommandHandler):
         query_text: Optional[str] = None,
         normalized_prefs_for_ai: Optional[Dict[str, Any]] = None,
         user_name: Optional[str] = None,
+        oldest_ts: str = "0",
     ) -> Optional[str]:
         """Calls the OpenAI endpoint and extracts the response content."""
         # Ensure incoming_channel (dm_channel_id) is not None before passing
@@ -283,6 +285,7 @@ class SlackReports(BaseCommandHandler):
                 passed_channel_id=passed_channel_id,
                 channel_name=channel_name,
                 query_text=query_text,
+                oldest_ts=oldest_ts,
                 normalized_prefs_for_ai=normalized_prefs_for_ai,
             )
         except MessagePreparationError as e:
@@ -475,12 +478,19 @@ class SlackReports(BaseCommandHandler):
         default_raw_prefs = {
             "product_focus": ["all_products"],
             "detail_level": "balanced",
-            "time_window": "past_24_hours",
+            "time_window": "all_time",
         }
         raw_preferences = (
             user_data.get("preferences", default_raw_prefs) if user_data else default_raw_prefs
         )
         normalized_prefs_for_ai = normalize_user_preferences(raw_preferences)
+        oldest_ts = time_window_to_oldest_ts(raw_preferences.get("time_window", "all_time"))
+        logger.info(
+            "%s command: oldest_ts=%s (from time_window=%s)",
+            command_type.capitalize(),
+            oldest_ts,
+            raw_preferences.get("time_window", "all_time"),
+        )
         logger.info(
             "%s command: user_id=%s, raw_prefs=%s, normalized_prefs_for_ai=%s",
             command_type.capitalize(),
@@ -500,6 +510,7 @@ class SlackReports(BaseCommandHandler):
             response_url=validated_response_url,
             normalized_prefs_for_ai=normalized_prefs_for_ai,
             user_name=user_name,
+            oldest_ts=oldest_ts,
         )
         if models_response is None:
             await self.slack_posting_handler.post_message(

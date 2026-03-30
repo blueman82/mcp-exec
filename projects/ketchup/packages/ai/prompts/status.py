@@ -1,7 +1,7 @@
 """
 status.py — Status Report Prompt
 
-Generates an adaptive status report prompt based on user preferences (time window, detail level, product focus).
+Generates an adaptive status report prompt based on user preferences (detail level, product focus).
 Uses XML-tagged sections and few-shot examples following the agent_system.py reference pattern.
 
 Note: COMMON_GUIDELINES_PROMPT is prepended at runtime in model_prompts.py.
@@ -18,7 +18,6 @@ def get_status_prompt(user_prefs: Optional[Dict[str, Any]] = None) -> str:
 
     Args:
         user_prefs: Optional dictionary with keys:
-            - time_window: "past_24_hours" (default), "last_week", "past_30_days", "complete_history"
             - detail_level: "minimal", "balanced" (default), "detailed"
             - product_focus: list of product names or ["all_products"] (default)
             - role: user's role description (default: "incident response analyst")
@@ -28,25 +27,9 @@ def get_status_prompt(user_prefs: Optional[Dict[str, Any]] = None) -> str:
     """
     # Extract preferences with sensible defaults
     prefs = user_prefs or {}
-    time_window = prefs.get("time_window", "past_24_hours")
     detail_level = prefs.get("detail_level", "balanced")
     product_focus = prefs.get("product_focus", ["all_products"])
     role = prefs.get("role", "incident response analyst")
-
-    # Determine context: retrospective (historical) vs. current (real-time)
-    is_retrospective = any(x in time_window for x in ["last", "past", "history"])
-
-    # Adaptive time guidance based on context
-    if is_retrospective:
-        time_context = (
-            "Prioritise completed incidents and resolved issues. Summarise trends and lessons learned. "
-            "Use past tense for completed actions."
-        )
-    else:
-        time_context = (
-            "Focus on active incidents and ongoing issues. Highlight immediate blockers. "
-            "Use present tense for current situations."
-        )
 
     # Map detail level to guidance
     detail_map = {
@@ -70,26 +53,13 @@ def get_status_prompt(user_prefs: Optional[Dict[str, Any]] = None) -> str:
         products = ", ".join(product_focus)
         product_guidance = f"Focus on: {products}. Omit other products unless critical."
 
-    # Time window context
-    time_note_map = {
-        "past_24_hours": "Focus on the last 24 hours; use most recent info if gaps exist.",
-        "last_week": "Focus on the last 7 days.",
-        "past_30_days": "Focus on the last 30 days.",
-        "complete_history": "Include all relevant history from channel.",
-    }
-    time_note = time_note_map.get(time_window, "Use most recent and relevant information.")
-
     prompt = r"""
 <role>
 You are a highly skilled incident response analyst creating a status report from Slack channel data and JIRA context.
 Your role: {role}
 
-Adapt your analysis based on context:
-{time_context}
-
 Detail level: {detail_guidance}{technical_section}
 Product scope: {product_guidance}
-Time window: {time_note}
 </role>
 
 <constraints>
@@ -258,11 +228,9 @@ Before output:
 
 """.format(
         role=role,
-        time_context=time_context,
         detail_guidance=detail_guidance,
         technical_section=technical_section,
         product_guidance=product_guidance,
-        time_note=time_note,
     )
 
     # Add JSON schema instruction when feature flag enabled

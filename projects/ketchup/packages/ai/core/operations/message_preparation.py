@@ -6,6 +6,7 @@ including fetching channel history and formatting.
 """
 
 import asyncio
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 from packages.ai.cost_calculator import TokenTracker
@@ -17,6 +18,24 @@ from packages.slack.channel_operations.channel_info_ops import ChannelInfoOps
 from packages.slack.channel_operations.channel_msg_ops import SlackChannelMessageOps
 
 logger = setup_logger(__name__)
+
+
+def time_window_to_oldest_ts(time_window: str) -> str:
+    """Convert a time_window preference to a Slack oldest_ts value.
+
+    Args:
+        time_window: One of "past_2_hours", "past_24_hours", "all_time", "always_ask".
+
+    Returns:
+        A Slack timestamp string. "0" means fetch all messages.
+    """
+    now = time.time()
+    mapping = {
+        "past_2_hours": now - 7200,
+        "past_24_hours": now - 86400,
+    }
+    ts = mapping.get(time_window)
+    return str(ts) if ts else "0"
 
 
 class MessagePreparer:
@@ -48,6 +67,7 @@ class MessagePreparer:
         passed_channel_id: Optional[str] = None,
         channel_name: Optional[str] = None,  # channel_name seems less critical if we fetch details
         query_text: Optional[str] = None,
+        oldest_ts: str = "0",
         normalized_user_preferences: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[Dict[str, str]], Optional[Dict[str, Any]]]:
         """
@@ -62,6 +82,7 @@ class MessagePreparer:
             passed_channel_id: The target channel ID (if provided explicitly).
             channel_name: The name of the channel (potentially unused if lookup succeeds).
             query_text: The query text for specific query commands.
+            oldest_ts: Slack timestamp for filtering messages. "0" means fetch all messages.
             normalized_user_preferences: Optional dictionary of normalized user preferences.
 
         Returns:
@@ -93,11 +114,13 @@ class MessagePreparer:
             if USE_PIPELINE_PROCESSING:
                 fetch_task = self.channel_msg_ops.fetch_channel_messages_collected(
                     channel_id=target_channel_id,
+                    oldest_ts=oldest_ts,
                     use_parallel_pagination=True,
                 )
             else:
                 fetch_task = self.channel_msg_ops.fetch_channel_messages(
                     channel_id=target_channel_id,
+                    oldest_ts=oldest_ts,
                     use_parallel_pagination=True,
                 )
 
