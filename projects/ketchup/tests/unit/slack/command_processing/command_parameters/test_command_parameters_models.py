@@ -29,7 +29,6 @@ from packages.slack.command_processing.command_parameters.models import (
     CommandType,
     QueryCommandParams,
     StatusReportCommandParams,
-    SummaryCommandParams,
 )
 
 
