@@ -62,7 +62,6 @@ from ..protocols import (  # Additional UI service protocols
     ShortcutHandlerProtocol,
     SlackMessageFormatterProtocol,
     StatusMessageHandlerProtocol,
-    SummaryMessageHandlerProtocol,
     TrustOperationsProtocol,
 )
 
