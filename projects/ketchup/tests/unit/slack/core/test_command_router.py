@@ -138,10 +138,6 @@ class TestCommandRouter:
             handler = self.mock_handlers["query"]
             handler.process_query_request.return_value = expected_result
             params.target_channel_id = "C1"
-        elif cmd_type in [CommandType.SHORT, CommandType.LONG]:
-            handler = self.mock_handlers[cmd_type.value]
-            handler.process_summary_params.return_value = expected_result
-            params.target_channel_id = "C1"
         elif cmd_type == CommandType.STATUS:
             handler = self.mock_handlers["status"]
             handler.process_status_request.return_value = expected_result
