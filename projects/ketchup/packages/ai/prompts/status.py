@@ -110,7 +110,9 @@ Product scope: {product_guidance}
 ✓ Bullets use • only
 ✓ Only sections shown in response_structure are present — no Engineers, Timeline, or JIRA sections
 </processing_instructions>
-""".format(role=role, product_guidance=product_guidance)
+""".format(
+        role=role, product_guidance=product_guidance
+    )
 
 
 def _build_technical_status_prompt(role: str, product_guidance: str) -> str:
@@ -203,7 +205,9 @@ Product scope: {product_guidance}
 ✓ JIRA comments are 2–3 lines max, no duplicates across tickets
 ✓ Error codes and system identifiers appear in Key Information and Technical Details
 </processing_instructions>
-""".format(role=role, product_guidance=product_guidance)
+""".format(
+        role=role, product_guidance=product_guidance
+    )
 
 
 def _build_balanced_status_prompt(role: str, product_guidance: str) -> str:
@@ -278,4 +282,6 @@ Product scope: {product_guidance}
 ✓ Bullets use • only
 ✓ JIRA comments are 2–3 lines max, no duplicates across tickets
 </processing_instructions>
-""".format(role=role, product_guidance=product_guidance)
+""".format(
+        role=role, product_guidance=product_guidance
+    )
