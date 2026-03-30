@@ -17,8 +17,6 @@ from packages.slack.blockkits.handlers.lookup import LookupMessageHandler
 from packages.slack.blockkits.handlers.query import QueryMessageHandler
 from packages.slack.blockkits.handlers.report import ReportMessageHandler
 from packages.slack.blockkits.handlers.status import StatusMessageHandler
-from packages.slack.blockkits.handlers.summary import SummaryMessageHandler
-
 logger = setup_logger(__name__)
 
 
