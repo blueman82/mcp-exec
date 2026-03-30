@@ -22,6 +22,7 @@ interface CatalogEntry {
   name: string;
   required: string[];
   optional: string[];
+  types?: Record<string, string>;
   description?: string;
 }
 
@@ -33,13 +34,89 @@ interface ToolCatalog {
 const CATALOG_PATH = join(homedir(), '.meta-mcp', 'tool-catalog.json');
 
 /**
+ * Generate a compact type hint for a single JSON Schema property.
+ * Returns null for primitives (string, number, boolean) since AI guesses those correctly.
+ * Returns compact notation for objects, typed arrays, and enums.
+ */
+function compactTypeHint(propSchema: Record<string, unknown>): string | null {
+  // Handle enum values
+  if (Array.isArray(propSchema.enum)) {
+    const vals = propSchema.enum as unknown[];
+    if (vals.length <= 6) {
+      return vals.map(v => typeof v === 'string' ? `'${v}'` : String(v)).join('|');
+    }
+    return 'enum';
+  }
+
+  // Handle anyOf/oneOf (common for nullable types like string | null)
+  const variants = (propSchema.anyOf ?? propSchema.oneOf) as Record<string, unknown>[] | undefined;
+  if (variants) {
+    const nonNull = variants.filter(v => v.type !== 'null');
+    if (nonNull.length === 1) return compactTypeHint(nonNull[0]);
+  }
+
+  const type = propSchema.type as string | undefined;
+
+  // Primitives — AI defaults correctly, no hint needed
+  if (type === 'string' || type === 'number' || type === 'integer' || type === 'boolean') {
+    return null;
+  }
+
+  // Object with defined properties — show required/optional sub-keys one level deep
+  if (type === 'object' && propSchema.properties) {
+    const props = propSchema.properties as Record<string, Record<string, unknown>>;
+    const required = (propSchema.required as string[]) || [];
+    const keys = Object.keys(props);
+    if (keys.length === 0) return 'object';
+    const parts = keys.map(k => required.includes(k) ? k : k + '?');
+    return `{${parts.join(', ')}}`;
+  }
+
+  // Freeform object — AI must call get_mcp_tool_schema before using
+  if (type === 'object') {
+    return 'object';
+  }
+
+  // Array with typed items
+  if (type === 'array' && propSchema.items) {
+    const items = propSchema.items as Record<string, unknown>;
+    if (items.type === 'object' && items.properties) {
+      const props = items.properties as Record<string, Record<string, unknown>>;
+      const required = (items.required as string[]) || [];
+      const keys = Object.keys(props);
+      const parts = keys.map(k => required.includes(k) ? k : k + '?');
+      return `[{${parts.join(', ')}}]`;
+    }
+    // Simple typed arrays (string[], number[]) — usually obvious
+    return null;
+  }
+
+  return null;
+}
+
+/**
  * Format a single tool as a compact signature: toolName({required, optional?})
+ * Inlines type hints for non-primitive params: comment:{body, visibility?}
  * Single source of truth — used by catalog, FuzzyProxy help, and wrapper-generator.
  */
 export function formatToolSignature(t: ToolLike): string {
   const allProps = Object.keys(t.inputSchema?.properties ?? {});
   const req = t.inputSchema?.required ?? [];
-  const params = [...req, ...allProps.filter(k => !req.includes(k)).map(p => p + '?')];
+  const props = t.inputSchema?.properties as Record<string, Record<string, unknown>> | undefined;
+
+  const formatParam = (name: string, optional: boolean): string => {
+    const suffix = optional ? '?' : '';
+    if (props?.[name]) {
+      const hint = compactTypeHint(props[name]);
+      if (hint) return `${name}${suffix}:${hint}`;
+    }
+    return `${name}${suffix}`;
+  };
+
+  const params = [
+    ...req.map(k => formatParam(k, false)),
+    ...allProps.filter(k => !req.includes(k)).map(k => formatParam(k, true)),
+  ];
   return `${t.name}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
 }
 
@@ -76,10 +153,22 @@ export function updateCatalogForServer(serverName: string, tools: ToolLike[]): v
   catalog.servers[serverName] = tools.map(t => {
     const allProps = Object.keys(t.inputSchema?.properties ?? {});
     const req = t.inputSchema?.required ?? [];
+
+    // Extract type hints for non-primitive parameters
+    const types: Record<string, string> = {};
+    if (t.inputSchema?.properties) {
+      const props = t.inputSchema.properties as Record<string, Record<string, unknown>>;
+      for (const [key, schema] of Object.entries(props)) {
+        const hint = compactTypeHint(schema);
+        if (hint) types[key] = hint;
+      }
+    }
+
     return {
       name: t.name,
       required: req,
       optional: allProps.filter(k => !req.includes(k)),
+      ...(Object.keys(types).length > 0 ? { types } : {}),
       description: t.description || undefined,
     };
   });
@@ -121,7 +210,16 @@ export function buildCatalogString(): string {
   ];
   for (const [server, tools] of servers) {
     const toolStrs = tools.map(t => {
-      const params = [...t.required, ...t.optional.map(p => p + '?')];
+      const formatParam = (name: string, optional: boolean): string => {
+        const suffix = optional ? '?' : '';
+        const hint = t.types?.[name];
+        if (hint) return `${name}${suffix}:${hint}`;
+        return `${name}${suffix}`;
+      };
+      const params = [
+        ...t.required.map(k => formatParam(k, false)),
+        ...t.optional.map(k => formatParam(k, true)),
+      ];
       return `${t.name}(${params.length > 0 ? '{' + params.join(', ') + '}' : ''})`;
     });
     lines.push(`  ${server}: ${toolStrs.join(', ')}`);
