@@ -68,7 +68,6 @@ from ..protocols import (
     SlackPostingHandlerProtocol,
     SlackQueryHandlerProtocol,
     SlackReportsProtocol,
-    SlackSummaryHandlerProtocol,
     SlackUserOpsProtocol,
     StatusReportCommandProtocol,
     UserStoreProtocol,
