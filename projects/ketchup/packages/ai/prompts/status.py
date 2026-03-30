@@ -31,21 +31,6 @@ def get_status_prompt(user_prefs: Optional[Dict[str, Any]] = None) -> str:
     product_focus = prefs.get("product_focus", ["all_products"])
     role = prefs.get("role", "incident response analyst")
 
-    # Map detail level to guidance
-    detail_map = {
-        "minimal": "Only incident status, severity, and brief impact.",
-        "balanced": "Key technical details, timeline highlights, current actions.",
-        "detailed": "Comprehensive analysis, full timeline, root cause details, all context.",
-    }
-    detail_guidance = detail_map.get(detail_level, detail_map["balanced"])
-
-    # Add technical section only for detailed reports
-    technical_section = ""
-    if detail_level == "detailed":
-        technical_section = (
-            "\n• *Technical Details:* Configuration, error logs, and system metrics if available"
-        )
-
     # Product focus guidance
     if "all_products" in product_focus:
         product_guidance = "Cover all Adobe products mentioned."
@@ -53,132 +38,13 @@ def get_status_prompt(user_prefs: Optional[Dict[str, Any]] = None) -> str:
         products = ", ".join(product_focus)
         product_guidance = f"Focus on: {products}. Omit other products unless critical."
 
-    prompt = r"""
-<role>
-You are a highly skilled incident response analyst creating a status report from Slack channel data and JIRA context.
-Your role: {role}
-
-Detail level: {detail_guidance}{technical_section}
-Product scope: {product_guidance}
-</role>
-
-<constraints>
-• Create report using EXACT section structure shown below
-• Use emoji headers only (no #, ##, ### markdown headers)
-• Keep total output under 600 words
-• JIRA comments: summarise to 2-3 lines; focus on problems identified, solutions, actions, decisions
-• Include CSO Phase (use "Unknown" if not found)
-• Omit Next Steps section if no actions exist
-• Omit JIRA Details section if no tickets with data exist
-• Only include Documentation and Case Number if found
-• Never duplicate comments across tickets — each comment appears once under its original ticket
-• No conversational text, explanations, or endings
-</constraints>
-
-<response_structure>
-:traffic_light: *Current Status:*
-• *CSO Phase:* [Phase or "Unknown"]
-• *Status:* [Active / Resolved / Pending / Dismissed]
-• *Last Update:* *[YYYY-MM-DD HH:MM:SS UTC]*
-
-:mag: *Key Information:*
-• [Most relevant update or technical findings]
-• [Impact if applicable: service disruption, affected users, scope]
-• [6–8 bullet points maximum]
-
-:construction_worker: *Engineers Actively Investigating:*
-• *[Name]*: [Current task or investigation]
-
-:calendar: *Timeline:*
-• *DD-MMM-YYYY, HH:MM UTC:* [Notable event or action]
-
-:arrow_forward: *Next Steps:* *(omit if none exist)*
-• [Planned remediation with timeline and owner]
-• [Communication plans if available]
-
-:jira-logo: *JIRA Tickets & Work Done:* *(include ONLY if tickets have actual JIRA Context data)*
-• <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]> — [Summary] (Status: [Status], Assignee: [Name])
-  • *Description Summary:*
-    • [Customer impact / issue]
-    • [Technical scope / affected systems]
-    • [Current status / findings]
-  • *Recent Comments:*
-    • *DD-MMM-YYYY, HH:MM UTC - [Commenter]:*
-      [Summarise to 2–3 lines: key actions, decisions, problems identified]
-
-:link: *References:*
-• *Support Ticket:* <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]> or "NOT YET AVAILABLE"
-• *Channel:* <#channel_id|channel_name>
-• *Documentation:* <https://url|document_name> *(only if found)*
-• *Case Number:* E-XXXXXXX *(only if found)*
-</response_structure>
-
-<processing_instructions>
-
-*Step 1: Extract Core Incident Data*
-• Parse conversation and JIRA context for CSO Phase, Status, Last Update timestamp
-• Use "Unknown" for missing CSO Phase
-• Format Last Update as YYYY-MM-DD HH:MM:SS UTC
-
-*Step 2: Current Status Section*
-• Extract and list the current CSO Phase, incident status, and most recent timestamp
-• These three fields are mandatory
-
-*Step 3: Key Information Section*
-• Summarise 6–8 most critical facts: incident type, impact, affected systems, findings
-• Include both what is happening and how it matters (customer impact, availability loss, scope)
-• Include technical details only if detail_level="detailed"
-• Omit severity level changes (e.g., "Sev 2" references)
-
-*Step 4: Engineers Actively Investigating Section*
-• List individuals actively working on the incident and their current task
-• Extract names and current actions from messages and JIRA context
-• Use format: "*[Name]*: [task description]"
-
-*Step 5: Timeline Section*
-• Extract notable events and actions, order chronologically
-• Use format: "*DD-MMM-YYYY, HH:MM UTC:* [event]"
-• Include status changes, root cause discoveries, actions taken, escalations
-• Do NOT list severity level changes
-
-*Step 6: Next Steps Section* (conditional)
-• Identify planned actions, pending investigations, timelines, owners
-• Include only if next steps exist; otherwise omit the entire section
-• Include communication plans if discussed
-
-*Step 7: JIRA Tickets & Work Done Section* (conditional)
-• *CRITICAL:* Only create detailed entries for tickets with actual JIRA Context data
-• Do NOT create entries for tickets merely mentioned in conversation
-• Extract description: summarise to 3–5 bullet points (customer impact, root cause, current status)
-• Extract recent comments: limit to 2–3 lines each; focus on problems, solutions, decisions
-• Format comment headers: "*DD-MMM-YYYY, HH:MM UTC - [Name]:*"
-• NEVER duplicate comments across tickets
-• Preserve paragraph breaks between comment sections
-• Clean JIRA markup ({{code}}, [link|url]) for Slack readability
-• Include only if tickets with data exist
-
-*Step 8: References Section*
-• Always include Support Ticket (or "NOT YET AVAILABLE"), Channel, and CSO Phase
-• Include Documentation and Case Number only if found
-• Format JIRA links: <https://jira.corp.adobe.com/browse/[ticket_id]|[ticket_id]>
-• Format channel links: <#channel_id|channel_name>
-
-*Step 9: Verification*
-Before output:
-✓ All mandatory sections present (Current Status, Key Information, Engineers, Timeline, References)
-✓ Optional sections (Next Steps, JIRA Details) included only if content exists
-✓ Total word count ≤ 600 words
-✓ All timestamps in UTC: YYYY-MM-DD HH:MM:SS UTC
-✓ Timeline timestamps: "*DD-MMM-YYYY, HH:MM UTC:*" format (bolded)
-✓ Bullets use • only; no -, *, or other characters
-✓ JIRA links formatted correctly with ticket IDs
-✓ Channel links formatted: <#ID|name>
-✓ CSO Phase always listed (default: "Unknown")
-✓ No instructions, examples, or checklists in output
-✓ JIRA comments are 2–3 lines max, no duplicates across tickets
-✓ Only detailed JIRA entries for tickets with actual JIRA Context data
-
-</processing_instructions>
+    # Build per-level prompt sections
+    if detail_level == "high-level":
+        prompt = _build_high_level_status_prompt(role, product_guidance)
+    elif detail_level == "technical":
+        prompt = _build_technical_status_prompt(role, product_guidance)
+    else:
+        prompt = _build_balanced_status_prompt(role, product_guidance)
 
 <response_example>
 *Example: Production database connectivity incident*
