@@ -36,9 +36,6 @@ def builder():
             "packages.slack.blockkits.base.ReportMessageHandler", return_value=MagicMock()
         ) as report_handler,
         patch(
-            "packages.slack.blockkits.base.SummaryMessageHandler", return_value=MagicMock()
-        ) as summary_handler,
-        patch(
             "packages.slack.blockkits.base.LookupMessageHandler", return_value=MagicMock()
         ) as lookup_handler,
         patch(
@@ -51,7 +48,6 @@ def builder():
         b._query_handler = query_handler.return_value
         b._status_handler = status_handler.return_value
         b._report_handler = report_handler.return_value
-        b._summary_handler = summary_handler.return_value
         b._lookup_handler = lookup_handler.return_value
         b._archive_handler = archive_handler.return_value
         return b
@@ -70,9 +66,6 @@ def test_init_wires_handlers() -> None:
             "packages.slack.blockkits.base.ReportMessageHandler", return_value=MagicMock()
         ) as report_handler,
         patch(
-            "packages.slack.blockkits.base.SummaryMessageHandler", return_value=MagicMock()
-        ) as summary_handler,
-        patch(
             "packages.slack.blockkits.base.LookupMessageHandler", return_value=MagicMock()
         ) as lookup_handler,
         patch(
@@ -84,7 +77,6 @@ def test_init_wires_handlers() -> None:
         assert b._query_handler is query_handler.return_value
         assert b._status_handler is status_handler.return_value
         assert b._report_handler is report_handler.return_value
-        assert b._summary_handler is summary_handler.return_value
         assert b._lookup_handler is lookup_handler.return_value
         assert b._archive_handler is archive_handler.return_value
 
