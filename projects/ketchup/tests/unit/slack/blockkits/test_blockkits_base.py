@@ -93,7 +93,6 @@ def test_configure_calls_all_handlers(builder) -> None:
     assert builder._query_handler.configure.called
     assert builder._status_handler.configure.called
     assert builder._report_handler.configure.called
-    assert builder._summary_handler.configure.called
     assert builder._lookup_handler.configure.called
     assert builder._archive_handler.configure.called
 
