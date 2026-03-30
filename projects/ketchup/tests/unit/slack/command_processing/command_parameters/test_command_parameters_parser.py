@@ -66,10 +66,6 @@ class TestExtractCommandParams:
             "packages.slack.command_processing.command_parameters.validation.get_command_context",
             return_value=CommandContext.DIRECT_MESSAGE,
         )
-        self.patcher_summary = patch(
-            "packages.slack.command_processing.command_parameters.parser.extract_summary_params",
-            return_value=MagicMock(spec=CommandParams),
-        )
         self.patcher_query = patch(
             "packages.slack.command_processing.command_parameters.parser.extract_query_params",
             return_value=MagicMock(spec=CommandParams),
