@@ -106,7 +106,6 @@ from .protocols import (  # All other protocols; Critical protocols needed by co
     SlackPostingHandlerProtocol,
     SlackQueryHandlerProtocol,
     SlackReportsProtocol,
-    SlackSummaryHandlerProtocol,
     SlackUserOpsProtocol,
     SlackUserStoreProtocol,
     SQSClientProtocol,
