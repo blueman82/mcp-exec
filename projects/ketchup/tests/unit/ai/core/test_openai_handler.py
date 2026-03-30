@@ -142,7 +142,7 @@ class TestOpenAIHandler:
 
         result, channel_info = await handler._get_or_prepare_messages(
             messages=None,
-            combined_command="/ketchup short",
+            combined_command="/ketchup query",
             user_id="U1_no_prefs",
             incoming_channel="C1_no_prefs",
             passed_channel_id=None,
@@ -153,7 +153,7 @@ class TestOpenAIHandler:
         assert result == [{"role": "user", "content": "ok_no_prefs"}]
         assert channel_info == {"chan": "no_prefs_c"}
         mock_preparer_instance.prepare_messages.assert_called_once_with(
-            combined_command="/ketchup short",
+            combined_command="/ketchup query",
             user_id="U1_no_prefs",
             incoming_channel="C1_no_prefs",
             passed_channel_id=None,
@@ -233,7 +233,7 @@ class TestOpenAIHandler:
         handler._message_preparer = mock_preparer
         result, channel_info = await handler._get_or_prepare_messages(
             messages=None,
-            combined_command="/ketchup short",
+            combined_command="/ketchup query",
             user_id="U1",
             incoming_channel="C1",
             passed_channel_id=None,
@@ -296,7 +296,7 @@ class TestOpenAIHandler:
         )
 
         result = await handler.call_openai_endpoint(
-            combined_command="/ketchup short",
+            combined_command="/ketchup query",
             user_id="U_call_no_prefs",
             incoming_channel="C_call_no_prefs",
             normalized_prefs_for_ai=None,
@@ -304,7 +304,7 @@ class TestOpenAIHandler:
         assert result == {"choices": ["api_resp_no_prefs"]}
         mock_get_msgs.assert_called_once_with(
             messages=None,
-            combined_command="/ketchup short",
+            combined_command="/ketchup query",
             user_id="U_call_no_prefs",
             incoming_channel="C_call_no_prefs",
             passed_channel_id=None,
@@ -320,7 +320,7 @@ class TestOpenAIHandler:
         )
         handler._api_executor.build_openai_payload.assert_called_once_with(
             messages=[{"role": "user", "content": "hi_no_prefs_limited"}],
-            combined_command="/ketchup short",
+            combined_command="/ketchup query",
             normalized_prefs=None,
         )
         handler._api_executor.execute_request.assert_awaited_once_with(
