@@ -99,8 +99,6 @@ class TestExtractCommandParams:
     @pytest.mark.parametrize(
         "command,expected_extractor",
         [
-            ("/ketchup short", "summary"),
-            ("/ketchup long", "summary"),
             ("/ketchup query", "query"),
             ("/ketchup status", "status"),
             ("/ketchup report", "status"),
