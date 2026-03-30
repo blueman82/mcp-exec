@@ -309,7 +309,6 @@ __all__ = [
     "QueryCommandProtocol",
     "VerifyCommandProtocol",
     "StatusReportCommandProtocol",
-    "ShortLongCommandProtocol",
     # Event processor protocols
     "ArchiveProcessorProtocol",
     "CreationProcessorProtocol",
