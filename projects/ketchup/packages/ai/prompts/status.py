@@ -140,6 +140,11 @@ Product scope: {product_guidance}
 • No conversational text, explanations, or endings
 </constraints>
 
+<slack_mrkdwn_formatting>
+Use Slack inline code (backticks) for: error codes (e.g., `iRc=16384`), process names (e.g., `pipelined@jti_mid_prod6`), PIDs (e.g., `PID 18821`), config keys (e.g., `NmsPipeline_EnrichBatchSize`), instance names (e.g., `jti-mid-prod6-1`), DB lock types (e.g., `RowExclusiveLock`), and error identifiers (e.g., `PIP-680059`).
+Use triple-backtick code blocks for multi-line log excerpts if present.
+</slack_mrkdwn_formatting>
+
 <response_structure>
 :traffic_light: *Current Status:*
 • *CSO Phase:* [Phase or "Unknown"]
