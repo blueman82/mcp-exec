@@ -132,20 +132,6 @@ def instantiate_command_handlers(
         feedback_reactions_handler=feedback_reactions_handler,
     )
 
-    # Instantiate summary command handler
-    summary_handler = SlackSummaryHandler(
-        channel_info_ops=channel_info_ops,
-        archive_ops=archive_ops,
-        openai_handler=openai_handler,
-        block_kit_builder=block_kit_builder,
-        channel_message_ops=channel_message_ops,
-        slack_posting_handler=slack_posting_handler,
-        user_store=user_store,
-        channel_restore_ops=channel_restore_ops,
-        dynamodb_store=dynamodb_store,
-        feedback_reactions_handler=feedback_reactions_handler,
-    )
-
     # Instantiate status report command handler
     status_report_handler = SlackReports(
         channel_info_ops=channel_info_ops,
