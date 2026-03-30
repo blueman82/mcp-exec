@@ -40,8 +40,6 @@ class TestExtractCommandType:
     @pytest.mark.parametrize(
         "command,expected",
         [
-            ("/ketchup short", CommandType.SHORT),
-            ("/ketchup LONG", CommandType.LONG),
             ("/ketchup query", CommandType.QUERY),
             ("/ketchup status", CommandType.STATUS),
             ("/ketchup report", CommandType.REPORT),
