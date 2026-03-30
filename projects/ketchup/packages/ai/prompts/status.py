@@ -252,8 +252,8 @@ Use Slack inline code (backticks) sparingly for key error codes and config value
 :mag: *Key Information:*
 • [Most relevant update or technical findings]
 • [Impact: service disruption, affected users, scope]
+• Key error: `[error_code]` on `[instance]` — [description]
 • [6 bullet points maximum]
-*Example formatting:* Error code `iRc=16384` caused pipeline failures on `jti-mid-prod6`
 
 :construction_worker: *Engineers Actively Investigating:*
 • *[Name]*: [Current task or investigation]
