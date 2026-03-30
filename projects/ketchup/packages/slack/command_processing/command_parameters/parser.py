@@ -31,6 +31,7 @@ from packages.slack.command_processing.command_parameters.extractors.status_repo
 from packages.slack.command_processing.command_parameters.models import (
     CommandParams,
     CommandType,
+    StatusReportCommandParams,
 )
 from packages.slack.command_processing.command_parameters.validation import (
     ValidationError,
