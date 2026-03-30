@@ -391,61 +391,6 @@ def _register_slack_command_services(manager: "ServiceRegistrationManager") -> N
         lifetime="singleton",
     )
 
-    # SlackSummaryHandler
-    async def create_slack_summary_handler(resolver) -> SlackSummaryHandler:
-        """Factory function for SlackSummaryHandler using TypedResolver."""
-        logger.info("Creating SlackSummaryHandler instance via TypedDI")
-
-        channel_info_ops = await resolver.aget(ChannelInfoOpsProtocol)
-        archive_ops = await resolver.aget(SlackChannelArchiveOpsProtocol)
-        openai_handler = await resolver.aget(OpenAIHandlerProtocol)
-        block_kit_builder = await resolver.aget(BlockKitBuilderProtocol)
-        channel_message_ops = await resolver.aget(SlackChannelMessageOpsProtocol)
-        slack_posting_handler = await resolver.aget(SlackPostingHandlerProtocol)
-        user_store = await resolver.aget(UserStoreProtocol)
-
-        # Optional: Resolve channel_restore_ops for archived channel handling
-        channel_restore_ops = None
-        try:
-            channel_restore_ops = await resolver.aget(SlackChannelRestoreOpsProtocol)
-        except Exception as e:
-            logger.info("SlackChannelRestoreOps not available for summary handler: %s", e)
-
-        feedback_reactions_handler = None
-        try:
-            feedback_reactions_handler = await resolver.aget(FeedbackReactionsHandlerProtocol)
-        except Exception as e:
-            logger.info("FeedbackReactionsHandler not available for SlackSummaryHandler: %s", e)
-
-        return SlackSummaryHandler(
-            channel_info_ops=channel_info_ops,
-            archive_ops=archive_ops,
-            openai_handler=openai_handler,
-            block_kit_builder=block_kit_builder,
-            channel_message_ops=channel_message_ops,
-            slack_posting_handler=slack_posting_handler,
-            user_store=user_store,
-            channel_restore_ops=channel_restore_ops,
-            feedback_reactions_handler=feedback_reactions_handler,
-        )
-
-    manager.register_protocol_with_concrete_alias(
-        protocol_type=SlackSummaryHandlerProtocol,
-        concrete_type=SlackSummaryHandler,
-        factory=create_slack_summary_handler,
-        dependencies=[
-            DependencySpec(ChannelInfoOpsProtocol),
-            DependencySpec(SlackChannelArchiveOpsProtocol),
-            DependencySpec(OpenAIHandlerProtocol),
-            DependencySpec(BlockKitBuilderProtocol),
-            DependencySpec(SlackChannelMessageOpsProtocol),
-            DependencySpec(SlackPostingHandlerProtocol),
-            DependencySpec(UserStoreProtocol),
-        ],
-        lifetime="singleton",
-    )
-
-
 def _register_feature_command_services(manager: "ServiceRegistrationManager") -> None:
     """Register feature command and base command services."""
 
