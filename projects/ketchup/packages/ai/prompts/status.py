@@ -164,6 +164,12 @@ Use triple-backtick code blocks for multi-line log excerpts if present.
 • *Configuration:* [relevant config changes attempted or needed]
 • *Database/Infrastructure:* [query times, resource usage, capacity issues]
 
+*Example formatting for this section:*
+• *Instance:* `jti-mid-prod6-1` (Adobe Campaign Classic v8)
+• *Error codes:* `iRc=16384` (`PIP-680059`), `iRc=-53`
+• *Affected processes:* `pipelined@jti_mid_prod6` (PID `18821`)
+• *Configuration:* `NmsPipeline_EnrichBatchSize` reduced from 100 to 80
+
 :construction_worker: *Engineers Actively Investigating:*
 • *[Name]*: [Current task or investigation]
 
