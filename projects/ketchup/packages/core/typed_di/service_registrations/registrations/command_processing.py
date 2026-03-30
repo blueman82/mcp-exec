@@ -473,19 +473,6 @@ def _register_feature_command_services(manager: "ServiceRegistrationManager") ->
         essential=False,
     )
 
-    # ShortLongCommandProtocol (generic interface) - delegate to existing SlackSummaryHandlerProtocol
-    async def create_short_long_command_from_slack(resolver) -> SlackSummaryHandler:
-        return await resolver.aget(SlackSummaryHandlerProtocol)
-
-    manager.registry.register(
-        service_type=ShortLongCommandProtocol,
-        factory=create_short_long_command_from_slack,
-        dependencies=[DependencySpec(SlackSummaryHandlerProtocol)],
-        lifetime="singleton",
-        lazy=True,
-        essential=False,
-    )
-
     # StatusReportCommandProtocol (generic interface) - delegate to existing SlackReportsProtocol
     async def create_status_report_command_from_slack(resolver) -> SlackReports:
         return await resolver.aget(SlackReportsProtocol)
