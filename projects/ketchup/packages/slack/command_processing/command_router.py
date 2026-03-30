@@ -29,7 +29,6 @@ from packages.slack.command_processing.command_parameters.models import (
     MetricsCommandParams,
     QueryCommandParams,
     StatusReportCommandParams,
-    SummaryCommandParams,
 )
 from packages.slack.command_processing.verify_command import verify_and_extract_command
 from packages.slack.messages.posting import SlackPostingHandler
