@@ -80,13 +80,6 @@ class SlackQueryHandlerProtocol(Protocol):
 
 
 @runtime_checkable
-class SlackSummaryHandlerProtocol(Protocol):
-    """Protocol for Slack summary handler operations."""
-
-    pass
-
-
-@runtime_checkable
 class CommandRouterProtocol(Protocol):
     """Protocol for command router operations."""
 
