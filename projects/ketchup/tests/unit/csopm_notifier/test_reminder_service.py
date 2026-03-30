@@ -219,7 +219,7 @@ class TestDaysCalculation(unittest.TestCase):
 
     def test_days_old_calculation_naive_datetime(self):
         """Test days calculation handles naive datetime (assumes UTC)."""
-        created_at = datetime.now() - timedelta(days=10)  # Naive datetime
+        created_at = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=10)
         days = self.service._calculate_days_old(created_at)
         self.assertEqual(days, 10)
 

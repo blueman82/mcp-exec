@@ -75,12 +75,12 @@ class TestPromptFunctions:
         prompt = get_status_prompt(user_prefs)
         assert isinstance(prompt, str)
 
-        # Test new sections are present
+        # Test balanced sections are present
         assert "Engineers Actively Investigating" in prompt
         assert ":calendar:" in prompt
         assert ":construction_worker:" in prompt
         assert "*DD-MMM-YYYY, HH:MM UTC:*" in prompt
-        assert "600 words" in prompt  # Updated word limit
+        assert "500 words" in prompt  # Balanced word limit
 
     @pytest.mark.parametrize("report_text", [None, "full report", "minimal"])
     def test_get_report_prompt(self, report_text: str | None) -> None:
@@ -108,13 +108,14 @@ class TestPromptAdaptation:
     def test_status_prompt_user_prefs(self):
         prefs = {
             "role": "SRE",
-            "detail_level": "detailed",
+            "detail_level": "technical",
             "product_focus": ["ketchup"],
         }
         prompt = get_status_prompt(user_prefs=prefs)
-        assert "highly skilled incident response analyst" in prompt
+        assert "senior incident response analyst" in prompt
         assert "ketchup" in prompt
         assert "<role>" in prompt
+        assert "700 words" in prompt
 
     def test_report_prompt_user_prefs(self):
         prefs = {
