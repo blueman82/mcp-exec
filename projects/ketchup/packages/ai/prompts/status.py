@@ -158,17 +158,11 @@ Use triple-backtick code blocks for multi-line log excerpts if present.
 • [6–8 bullet points maximum — include error codes and system identifiers]
 
 :wrench: *Technical Details:*
-• *Instance:* [instance name / environment]
-• *Affected processes:* [process names, PIDs if known]
-• *Error codes:* [specific error codes observed]
-• *Configuration:* [relevant config changes attempted or needed]
-• *Database/Infrastructure:* [query times, resource usage, capacity issues]
-
-*Example formatting for this section:*
-• *Instance:* `jti-mid-prod6-1` (Adobe Campaign Classic v8)
-• *Error codes:* `iRc=16384` (`PIP-680059`), `iRc=-53`
-• *Affected processes:* `pipelined@jti_mid_prod6` (PID `18821`)
-• *Configuration:* `NmsPipeline_EnrichBatchSize` reduced from 100 to 80
+• *Instance:* `[instance_name]` ([environment])
+• *Affected processes:* `[process@instance]` (PID `[pid]`), `[process]` (PID `[pid]`)
+• *Error codes:* `[error_code]` (`[error_id]`), `[error_code]` (`[error_id]`)
+• *Configuration:* `[config_key]` [change description]
+• *Database/Infrastructure:* `[lock_type]` on `[table]`; query durations [metrics]
 
 :construction_worker: *Engineers Actively Investigating:*
 • *[Name]*: [Current task or investigation]
