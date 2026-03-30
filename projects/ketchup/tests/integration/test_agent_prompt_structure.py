@@ -2,7 +2,7 @@
 Integration tests for Agent system prompt — validates LLM response structure
 against the XML-tagged section contracts in agent_system.py.
 
-These tests hit the REAL Azure OpenAI endpoint (gpt-4.1). They are NOT mocked.
+These tests hit the REAL Azure OpenAI endpoint (gpt-5.4-mini). They are NOT mocked.
 Run with: pytest tests/integration/test_agent_prompt_structure.py -v -s
 
 Requires:

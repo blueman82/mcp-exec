@@ -56,6 +56,7 @@ PROD1_ONLY=false
 PROD2_ONLY=false
 ROLLBACK=""
 FORCE=false
+SKIP_DRAIN=false
 VERIFY_ONLY=false
 CHECK_VERSION=false
 SKIP_COMPOSE_SYNC=false
@@ -516,6 +517,7 @@ show_help() {
     echo -e "  -2, --prod2-only          Deploy only to prod2 server"
     echo -e "  -r, --rollback VERSION    Rollback to specified version"
     echo -e "  -f, --force               Skip confirmation prompts"
+    echo -e "  --skip-drain              Deploy to both servers without ALB drain (faster, brief downtime risk)"
     echo -e "      --no-git-commit       Do not commit local docker-compose.yml changes"
     echo -e "  --verify                  Only verify deployment status"
     echo -e "  --check-version           Check current versions in ECR and exit"
@@ -573,8 +575,8 @@ check_preflight() {
     fi
     log_success "AWS credentials are valid"
 
-    # Fetch ALB info for zero-downtime deployment (full deployments only)
-    if [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]]; then
+    # Fetch ALB info for zero-downtime deployment (full deployments only, not skip-drain)
+    if [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]] && [[ "$SKIP_DRAIN" = false ]]; then
         ALB_TARGET_GROUP_ARN=$(fetch_alb_target_group_arn) || exit 1
         log_success "ALB target group: $ALB_TARGET_GROUP_ARN"
 
@@ -992,6 +994,10 @@ while [[ $# -gt 0 ]]; do
             FORCE=true
             shift
             ;;
+        --skip-drain)
+            SKIP_DRAIN=true
+            shift
+            ;;
         --verify)
             VERIFY_ONLY=true
             shift
@@ -1172,9 +1178,19 @@ ensure_ecr_repositories
 push_images
 
 # Deploy to production servers
-if [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]]; then
+if [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]] && [[ "$SKIP_DRAIN" = false ]]; then
     # Full deployment: use zero-downtime rolling deploy with ALB draining
     rolling_deploy_with_drain "$VERSION"
+elif [[ "$PROD1_ONLY" = false ]] && [[ "$PROD2_ONLY" = false ]] && [[ "$SKIP_DRAIN" = true ]]; then
+    # Full deployment without ALB drain: faster but brief downtime risk during container recreation
+    log_warning "Deploying to both servers WITHOUT ALB drain (--skip-drain)"
+    for server in "$PROD1_SERVER" "$PROD2_SERVER"; do
+        if [[ "$SKIP_COMPOSE_SYNC" = false ]]; then
+            sync_env_files_if_changed "$server"
+            sync_docker_compose_if_changed "$server"
+        fi
+        deploy_to_server "$server" "$VERSION"
+    done
 else
     # Single-server deployment: other server handles traffic, no ALB drain needed
     if [[ "$PROD2_ONLY" = false ]]; then

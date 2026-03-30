@@ -151,6 +151,7 @@ From the project root:
 
 ```bash
 ./deploy                         # Deploy to both servers (zero-downtime)
+./deploy --skip-drain            # Deploy to both servers without ALB drain (faster, brief downtime risk)
 ./deploy --prod1-only            # Deploy to prod1 only
 ./deploy --prod2-only            # Deploy to prod2 only
 ./deploy --verify                # Verify deployment status

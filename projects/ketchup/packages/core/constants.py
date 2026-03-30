@@ -32,8 +32,8 @@ AZURE_OPENAI_EMBEDDINGS_ENDPOINT = os.environ.get(
 MAX_PROCESSABLE_TOKENS = 50000  # Maximum number of tokens that can be processed at once
 
 # Token Tracker Configuration
-INPUT_COST_PER_MILLION = 2.75  # $2.75 per 1M tokens
-OUTPUT_COST_PER_MILLION = 10.00  # $10.00 per 1M tokens
+INPUT_COST_PER_MILLION = 0.75  # $0.75 per 1M tokens (gpt-5.4-mini)
+OUTPUT_COST_PER_MILLION = 4.50  # $4.50 per 1M tokens (gpt-5.4-mini)
 
 
 # Slack Configuration

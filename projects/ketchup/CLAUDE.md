@@ -109,6 +109,7 @@ make test-integration # AWS tests (requires AWS_PROFILE)
 
 ```bash
 ./deploy                         # Deploy to both servers (zero-downtime)
+./deploy --skip-drain            # Deploy to both servers without ALB drain (faster, brief downtime risk)
 ./deploy --prod1-only            # Deploy to prod1 only
 ./deploy --prod2-only            # Deploy to prod2 only
 ./deploy --verify                # Verify deployment status
@@ -133,6 +134,8 @@ Full deployments (`./deploy`) use ALB target deregistration for true zero-downti
 5. **Repeat** for PROD2
 
 **Cancellation Safety**: Ctrl+C triggers cleanup trap that re-registers any deregistered targets and restores ALB settings. Safe to cancel mid-deploy.
+
+**Skip-Drain Deploys** (`--skip-drain`): Deploys to both servers sequentially without ALB deregistration. Faster but carries brief downtime risk during container recreation.
 
 **Single-Server Deploys** (`--prod1-only`, `--prod2-only`): Standard deployment without ALB drain since the other server handles traffic.
 
