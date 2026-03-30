@@ -86,7 +86,7 @@ docker-compose logs -f ketchup-app
 - **Infrastructure**: Docker on EC2 with Application Load Balancer
 - **Database**: DynamoDB
 - **Cloud**: AWS (eu-west-1)
-- **AI Services**: Azure OpenAI (GPT-4.1), text-embedding-ada-002
+- **AI Services**: Azure OpenAI (GPT-5.4-mini), text-embedding-ada-002
 - **Container Registry**: ECR (483013340174.dkr.ecr.eu-west-1.amazonaws.com)
 
 ## Architecture

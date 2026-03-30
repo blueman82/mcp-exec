@@ -216,9 +216,9 @@ Variables controlling Azure OpenAI integration and LLM behavior.
 
 ### Azure OpenAI Configuration
 
-- **API Version**: `OPENAI_API_VERSION=2025-01-01-preview`
-- **Endpoint**: `AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview`
-- **Model**: GPT-4.1 (with turbo mode)
+- **API Version**: `OPENAI_API_VERSION=2024-12-01-preview`
+- **Endpoint**: `AZURE_OPENAI_ENDPOINT=https://ketchup-prod1.openai.azure.com/openai/deployments/gpt-5.4-mini/chat/completions?api-version=2024-12-01-preview`
+- **Model**: GPT-5.4-mini
 - **Services**: ketchup-app, ketchup-unified-scheduler
 - **Details**: Azure OpenAI integration for intelligent channel analysis and status generation
 
