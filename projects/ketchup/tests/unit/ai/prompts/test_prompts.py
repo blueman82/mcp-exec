@@ -108,13 +108,14 @@ class TestPromptAdaptation:
     def test_status_prompt_user_prefs(self):
         prefs = {
             "role": "SRE",
-            "detail_level": "detailed",
+            "detail_level": "technical",
             "product_focus": ["ketchup"],
         }
         prompt = get_status_prompt(user_prefs=prefs)
-        assert "highly skilled incident response analyst" in prompt
+        assert "senior incident response analyst" in prompt
         assert "ketchup" in prompt
         assert "<role>" in prompt
+        assert "700 words" in prompt
 
     def test_report_prompt_user_prefs(self):
         prefs = {
