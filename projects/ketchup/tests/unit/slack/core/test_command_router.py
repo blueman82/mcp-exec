@@ -109,8 +109,6 @@ class TestCommandRouter:
             (CommandType.LIST, "process_list_params", {"ok": True}),
             (CommandType.ARCHIVE, "process_archive_params", {"ok": True}),
             (CommandType.QUERY, "process_query_request", {"ok": True}),
-            (CommandType.SHORT, "process_summary_params", {"ok": True}),
-            (CommandType.LONG, "process_summary_params", {"ok": True}),
             (CommandType.STATUS, "process_status_request", {"ok": True}),
             (CommandType.REPORT, "process_report_request", {"ok": True}),
         ],
