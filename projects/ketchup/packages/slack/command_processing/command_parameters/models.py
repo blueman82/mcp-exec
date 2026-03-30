@@ -133,18 +133,6 @@ class ArchiveCommandParams(CommandParams):
 
 
 @dataclass
-class SummaryCommandParams(CommandParams):
-    """
-    Parameters for summary commands (short/long).
-
-    Summary commands generate brief or detailed summaries of channel activity.
-    """
-
-    summary_type: Optional[str] = None  # Required field, must be set (short, long)
-    target_channel_id: Optional[str] = None  # Required field, must be set
-
-
-@dataclass
 class StatusReportCommandParams(CommandParams):
     """
     Parameters for status report commands.
