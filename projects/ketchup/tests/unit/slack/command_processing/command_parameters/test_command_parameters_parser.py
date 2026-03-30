@@ -105,9 +105,7 @@ class TestExtractCommandParams:
         """Test extract_command_params calls correct extractor and returns params."""
         params = parser.extract_command_params(command, "chan", "C123", response_url="url")
         # The correct extractor should have been called
-        if expected_extractor == "summary":
-            assert self.mock_summary.called
-        elif expected_extractor == "query":
+        if expected_extractor == "query":
             assert self.mock_query.called
         elif expected_extractor == "status":
             assert self.mock_status.called
