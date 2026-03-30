@@ -70,6 +70,20 @@ class CommandRouter:
         self._command_tracking_ops = command_tracking_ops
         logger.info("CommandRouter initialized with injected command handlers and user verifier.")
 
+    async def _post_redirect_message(
+        self, message: str, user_id: str, channel_id: str, response_url: str
+    ) -> None:
+        """Post a redirect warning message to the user."""
+        try:
+            await self.slack_posting_handler.post_message(
+                user_id=user_id,
+                channel_id=channel_id,
+                message=message,
+                response_url=response_url,
+            )
+        except Exception as e:
+            logger.error("Failed to post redirect message: %s", str(e))
+
     async def route_command(self, body: Dict[str, Any], response_url: str = "") -> ProcessingResult:
         """
         Route a Slack command to the appropriate handler.
