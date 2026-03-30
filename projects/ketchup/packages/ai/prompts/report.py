@@ -137,6 +137,11 @@ Generate a comprehensive technical incident report with these 10 sections in ord
 3. *Incident Timeline* — Timestamps and major milestones in chronological order (5–8 entries)
 4. *Technical Analysis* — Root cause, systems affected, error patterns with specific codes (4–5 bullets)
 5. *Technical Details* — Instance names, affected processes/PIDs, error codes, config values, DB/infrastructure metrics (4–5 bullets)
+   *Example formatting:*
+   • *Instance:* `jti-mid-prod6-1` (Adobe Campaign Classic v8)
+   • *Error codes:* `iRc=16384` (`PIP-680059`), `iRc=-53`
+   • *Affected processes:* `pipelined@jti_mid_prod6` (PID `18821`)
+   • *Configuration:* `NmsPipeline_EnrichBatchSize` reduced from 100 to 80
 6. *Impact Assessment* — Customer experience, service availability, performance metrics (3 bullets)
 7. *Resolution & Mitigation* — Actions taken, workarounds, permanent fixes with technical specifics (3 bullets)
 8. *JIRA Tickets & Work Done* — Ticket links, status, issue details, summarised comments (include only if tickets found)
