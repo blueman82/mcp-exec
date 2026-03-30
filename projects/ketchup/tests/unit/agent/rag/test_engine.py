@@ -86,3 +86,88 @@ class TestAnswer:
         mock_api_executor.execute_request.return_value = {"choices": []}
         result = await engine.answer("question", "C123", "ts")
         assert "wasn't able to generate" in result.lower()
+
+
+class TestLinkifyJiraTickets:
+    """Tests for _linkify_jira_tickets() function."""
+
+    from packages.agent.rag.engine import _linkify_jira_tickets
+    from packages.core.jira_constants import VALID_JIRA_PROJECTS
+
+    def test_bare_ticket_gets_linkified(self):
+        """Plain JIRA ticket reference should be converted to Slack mrkdwn link."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+
+        text = "See CPGNTT-12345 for details."
+        result = _linkify_jira_tickets(text)
+        assert (
+            result
+            == "See <https://jira.corp.adobe.com/browse/CPGNTT-12345|CPGNTT-12345> for details."
+        )
+
+    def test_already_linked_ticket_unchanged(self):
+        """Ticket already inside a Slack link should not be re-linkified."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+
+        text = "See <https://jira.corp.adobe.com/browse/CPGNTT-123|CPGNTT-123> for details."
+        result = _linkify_jira_tickets(text)
+        assert result == text
+
+    def test_all_valid_projects_linkified(self):
+        """All VALID_JIRA_PROJECTS keys should be linkified."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+        from packages.core.jira_constants import VALID_JIRA_PROJECTS
+
+        for project in VALID_JIRA_PROJECTS:
+            text = f"Reference {project}-999 in the text."
+            result = _linkify_jira_tickets(text)
+            expected = f"Reference <https://jira.corp.adobe.com/browse/{project}-999|{project}-999> in the text."
+            assert result == expected, f"Failed for project {project}"
+
+    def test_invalid_project_not_linkified(self):
+        """Tickets with invalid project prefixes should not be linkified."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+
+        text = "See INVALID-123 and ABC-999 for reference."
+        result = _linkify_jira_tickets(text)
+        assert result == text
+
+    def test_ticket_at_string_boundaries(self):
+        """Tickets at start and end of string should be linkified."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+
+        text = "CPGNTT-111 and more text CPGNTT-222"
+        result = _linkify_jira_tickets(text)
+        expected = "<https://jira.corp.adobe.com/browse/CPGNTT-111|CPGNTT-111> and more text <https://jira.corp.adobe.com/browse/CPGNTT-222|CPGNTT-222>"
+        assert result == expected
+
+    def test_ticket_adjacent_to_punctuation(self):
+        """Tickets adjacent to punctuation should be linkified correctly."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+
+        # Period after ticket
+        text1 = "See CPGNTT-123."
+        result1 = _linkify_jira_tickets(text1)
+        assert result1 == "See <https://jira.corp.adobe.com/browse/CPGNTT-123|CPGNTT-123>."
+
+        # Parentheses around ticket
+        text2 = "(CPGNTT-456)"
+        result2 = _linkify_jira_tickets(text2)
+        assert result2 == "(<https://jira.corp.adobe.com/browse/CPGNTT-456|CPGNTT-456>)"
+
+        # Comma after ticket
+        text3 = "Tickets: CPGNTT-789, and more"
+        result3 = _linkify_jira_tickets(text3)
+        assert (
+            result3
+            == "Tickets: <https://jira.corp.adobe.com/browse/CPGNTT-789|CPGNTT-789>, and more"
+        )
+
+    def test_multiple_tickets_in_text(self):
+        """Text with multiple different tickets should linkify all of them."""
+        from packages.agent.rag.engine import _linkify_jira_tickets
+
+        text = "Fixed in CPGNTT-100, see also NEO-200 and CAMP-300 for context."
+        result = _linkify_jira_tickets(text)
+        expected = "Fixed in <https://jira.corp.adobe.com/browse/CPGNTT-100|CPGNTT-100>, see also <https://jira.corp.adobe.com/browse/NEO-200|NEO-200> and <https://jira.corp.adobe.com/browse/CAMP-300|CAMP-300> for context."
+        assert result == expected

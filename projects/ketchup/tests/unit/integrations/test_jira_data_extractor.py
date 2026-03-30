@@ -299,3 +299,30 @@ class TestJIRADataExtractor:
         result = await extractor.get_jira_context("C123", ["No tickets here"])
 
         assert result is None
+
+    def test_extractor_matches_any_project_key_pattern(
+        self, mock_mcp_client, mock_dynamodb_store, mock_cache
+    ):
+        """Test that extractor matches ANY PROJECT-NUMBER pattern (false positives accepted).
+
+        This test documents intentional behavior: JIRADataExtractor uses a broad regex
+        pattern r"\b([A-Z]{2,10}-[0-9]{1,7}(?![0-9]))\b" that matches any string
+        conforming to PROJECT-NUMBER format, regardless of whether it's a valid JIRA
+        project key.
+
+        Invalid project keys like BOGUS-456 or XYZ-789 will be extracted and
+        passed to the JIRA API, which handles validation downstream. This permissive
+        extraction avoids missing legitimate tickets while letting the API reject invalid ones.
+        """
+        extractor = JIRADataExtractor(mock_mcp_client, mock_dynamodb_store, mock_cache)
+
+        # Mix of valid and invalid (non-existent) project keys
+        # Note: regex is [A-Z]{2,10} so FAKEPROJECT (11 chars) won't match
+        text = "Check CPGNTT-123 (valid) and BOGUS-456 (invalid) and XYZ-789 (unknown)"
+        tickets = extractor.extract_ticket_ids([text])
+
+        # All three are extracted despite BOGUS and XYZ not being real JIRA projects
+        assert len(tickets) == 3
+        assert "CPGNTT-123" in tickets
+        assert "BOGUS-456" in tickets
+        assert "XYZ-789" in tickets

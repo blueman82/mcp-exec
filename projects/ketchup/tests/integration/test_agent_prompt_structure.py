@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
 from packages.core.constants import AZURE_OPENAI_ENDPOINT
+from packages.core.jira_constants import VALID_JIRA_PROJECTS
 from packages.secrets.manager import SecretsManager
 
 # ---------------------------------------------------------------------------
@@ -146,8 +147,9 @@ def assert_has_bullets(text: str):
 def assert_jira_tickets_are_links(text: str):
     """Any JIRA ticket reference should be a clickable <url|label> link."""
     # Find bare ticket references NOT inside a link
+    projects_pattern = "|".join(VALID_JIRA_PROJECTS)
     bare_tickets = re.findall(
-        r"(?<!\|)(?<!browse/)\b(CPGNCX|CPGNREQ|CPGNTT|NEO|PLATIR|CSOPM|AMSE|CPGNPROV)-\d+\b(?![^<]*>)",
+        rf"(?<!\|)(?<!browse/)\b({projects_pattern})-\d+\b(?![^<]*>)",
         text,
     )
     assert not bare_tickets, f"JIRA tickets not formatted as clickable links: {bare_tickets}"
