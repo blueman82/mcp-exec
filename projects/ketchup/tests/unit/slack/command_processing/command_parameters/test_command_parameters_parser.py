@@ -125,11 +125,11 @@ class TestExtractCommandParams:
     def test_extract_command_params_extractor_raises(self) -> None:
         """Test extract_command_params propagates ValidationError from extractor."""
         with patch(
-            "packages.slack.command_processing.command_parameters.parser.extract_summary_params",
+            "packages.slack.command_processing.command_parameters.parser.extract_status_report_params",
             side_effect=ValidationError("fail", "user fail"),
         ):
             with pytest.raises(ValidationError) as exc:
-                parser.extract_command_params("/ketchup short", "chan", "C123")
+                parser.extract_command_params("/ketchup status", "chan", "C123")
             assert "fail" in str(exc.value)
 
     def test_extract_command_params_no_extractor(self) -> None:
