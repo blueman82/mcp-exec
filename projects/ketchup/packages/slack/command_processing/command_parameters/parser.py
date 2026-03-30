@@ -104,13 +104,20 @@ Please use one of the following:
         )
 
     # Map command types to their extraction functions
+    def _extract_deprecated_short_long() -> StatusReportCommandParams:
+        """Extract params for deprecated short/long commands, preserving original command_type."""
+        # Re-use status_report extractor with the equivalent command
+        mapped = "status" if command_type == CommandType.SHORT else "report"
+        rewritten = command.replace(f" {command_type.value} ", f" {mapped} ", 1)
+        params_obj = extract_status_report_params(rewritten, context, incoming_channel)
+        # Override command_type back to SHORT/LONG so the router can detect and redirect
+        params_obj.command_type = command_type  # type: ignore[assignment]
+        params_obj.original_command = command  # Keep original command text
+        return params_obj
+
     extractors: Dict[CommandType, Callable[[], CommandParams]] = {
-        CommandType.SHORT: lambda: extract_status_report_params(
-            command.replace(" short ", " status ", 1), context, incoming_channel
-        ),
-        CommandType.LONG: lambda: extract_status_report_params(
-            command.replace(" long ", " report ", 1), context, incoming_channel
-        ),
+        CommandType.SHORT: _extract_deprecated_short_long,
+        CommandType.LONG: _extract_deprecated_short_long,
         CommandType.QUERY: lambda: extract_query_params(command, context, incoming_channel),
         CommandType.STATUS: lambda: extract_status_report_params(
             command, context, incoming_channel
