@@ -25,7 +25,6 @@ try:
     from packages.slack.command_processing.list_command import SlackListCommand
     from packages.slack.command_processing.metrics_command import MetricsCommand
     from packages.slack.command_processing.query_command import SlackQueryHandler
-    from packages.slack.command_processing.short_long_command import SlackSummaryHandler
     from packages.slack.command_processing.status_report_command import SlackReports
     from packages.slack.interactive_elements.metrics_export_handler import MetricsExportHandler
     from packages.slack.services.metrics_data_collector import MetricsDataCollector
