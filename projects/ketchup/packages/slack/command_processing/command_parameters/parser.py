@@ -28,9 +28,6 @@ from packages.slack.command_processing.command_parameters.extractors.query impor
 from packages.slack.command_processing.command_parameters.extractors.status_report import (
     extract_status_report_params,
 )
-from packages.slack.command_processing.command_parameters.extractors.summary import (
-    extract_summary_params,
-)
 from packages.slack.command_processing.command_parameters.models import (
     CommandParams,
     CommandType,
