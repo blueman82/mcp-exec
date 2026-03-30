@@ -200,29 +200,6 @@ class BlockKitBuilder:
             execution_channel,
         )
 
-    async def send_ketchup_summary_block_kit(
-        self,
-        combined_command: str,
-        response_url: str,
-        summaries: List[Dict[str, Any]],
-        target_channel: str,
-    ) -> None:
-        """
-        Send summary messages for multiple channels.
-
-        Args:
-            combined_command: The original Slack command
-            response_url: URL to send the response to
-            summaries: List of summaries to process
-            target_channel: The target channel ID
-        """
-        await self._summary_handler.send_message(
-            combined_command=combined_command,
-            response_url=response_url,
-            summaries=summaries,
-            target_channel=target_channel,
-        )
-
     async def send_ketchup_archive_block_kit(
         self,
         response_url: str,
