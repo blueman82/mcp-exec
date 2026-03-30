@@ -171,7 +171,6 @@ def instantiate_command_handlers(
         "command_handlers_dict": command_handlers_dict,
         "list_handler": list_handler,
         "query_handler": query_handler,
-        "summary_handler": summary_handler,
         "status_report_handler": status_report_handler,
         "archive_handler": archive_handler,
     }
