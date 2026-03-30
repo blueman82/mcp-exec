@@ -63,7 +63,7 @@ class TestVerifyAndExtractCommand:
         mock_extract.return_value = params
         handler = AsyncMock()
         result = await verify_command.verify_and_extract_command(
-            "/ketchup short C1", "U1", "C1", "url", handler, "chan"
+            "/ketchup query C1", "U1", "C1", "url", handler, "chan"
         )
         assert result is params
         mock_extract.assert_called_once()
@@ -79,7 +79,7 @@ class TestVerifyAndExtractCommand:
         mock_extract.side_effect = ValidationError("fail", "user fail")
         handler = AsyncMock()
         result = await verify_command.verify_and_extract_command(
-            "/ketchup short", "U1", "C1", "url", handler, "chan"
+            "/ketchup query", "U1", "C1", "url", handler, "chan"
         )
         assert result is None
         handler.post_message.assert_awaited_once()
@@ -94,7 +94,7 @@ class TestVerifyAndExtractCommand:
         mock_extract.side_effect = Exception("fail")
         handler = AsyncMock()
         result = await verify_command.verify_and_extract_command(
-            "/ketchup short", "U1", "C1", "url", handler, "chan"
+            "/ketchup query", "U1", "C1", "url", handler, "chan"
         )
         assert result is None
         handler.post_message.assert_awaited_once()
