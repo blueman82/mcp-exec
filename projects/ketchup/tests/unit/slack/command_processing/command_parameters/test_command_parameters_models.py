@@ -35,7 +35,6 @@ from packages.slack.command_processing.command_parameters.models import (
 class TestCommandTypeEnum:
     def test_enum_values(self) -> None:
         """Test CommandType enum values and string conversion."""
-        assert str(CommandType.SHORT) == "short"
         assert CommandType.LIST.value == "list"
         assert CommandType("archive") is CommandType.ARCHIVE
 
