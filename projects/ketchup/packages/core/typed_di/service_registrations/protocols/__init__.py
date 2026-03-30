@@ -43,7 +43,6 @@ from .command_protocols import (
     FeatureServiceProtocol,
     ListCommandProtocol,
     QueryCommandProtocol,
-    ShortLongCommandProtocol,
     SlackArchiveCommandProtocol,
     SlackListCommandProtocol,
     SlackQueryHandlerProtocol,
