@@ -292,6 +292,20 @@ class FeatureFlags:
         return value == "true"
 
     @staticmethod
+    def is_rca_historian_enabled() -> bool:
+        """
+        Check if the RCA Historian feature is enabled.
+
+        When enabled, the agent gains tool-calling capabilities for
+        cross-channel incident investigation using ChromaDB, JIRA, and New Relic.
+
+        Returns:
+            True if RCA Historian is enabled, False otherwise
+        """
+        value = os.environ.get("KETCHUP_RCA_HISTORIAN_ENABLED", "false").lower()
+        return value == "true"
+
+    @staticmethod
     def get_all_flags() -> Dict[str, Any]:
         """
         Get all feature flags and their current values.
