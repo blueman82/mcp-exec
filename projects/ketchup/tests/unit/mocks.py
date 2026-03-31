@@ -4,7 +4,7 @@ Each mock implements the corresponding protocol and tracks call metadata
 for assertion in test cases.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class MockNewRelicClient:
