@@ -5,10 +5,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
-import pytest
 from unittest.mock import AsyncMock
 
-from packages.agent.rag.engine import AgentEngine, RCA_MAX_ITERATIONS
+import pytest
+
+from packages.agent.rag.engine import RCA_MAX_ITERATIONS, AgentEngine
 
 pytestmark = pytest.mark.unit
 
@@ -49,7 +50,9 @@ def mock_tool_executor():
     return te
 
 
-def _make_engine(retriever, context_builder, conversation_store, api_executor, tools=None, tool_executor=None):
+def _make_engine(
+    retriever, context_builder, conversation_store, api_executor, tools=None, tool_executor=None
+):
     return AgentEngine(
         retriever=retriever,
         context_builder=context_builder,
@@ -62,14 +65,18 @@ def _make_engine(retriever, context_builder, conversation_store, api_executor, t
 
 
 @pytest.mark.asyncio
-async def test_single_turn_no_tools(mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor):
+async def test_single_turn_no_tools(
+    mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor
+):
     """Verify single-turn RAG works without tools (existing behavior)."""
     mock_api_executor.execute_request.return_value = {
         "choices": [{"message": {"content": "answer without tools"}}],
         "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
     }
 
-    engine = _make_engine(mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor)
+    engine = _make_engine(
+        mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor
+    )
     result = await engine.answer("test question", "C123", "1234.5678")
 
     assert "answer without tools" in result
@@ -77,20 +84,35 @@ async def test_single_turn_no_tools(mock_retriever, mock_context_builder, mock_c
 
 
 @pytest.mark.asyncio
-async def test_tool_calling_loop(mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor, mock_tool_executor):
+async def test_tool_calling_loop(
+    mock_retriever,
+    mock_context_builder,
+    mock_conversation_store,
+    mock_api_executor,
+    mock_tool_executor,
+):
     """Verify tool-calling loop executes tools and gets final answer."""
     tools = [{"type": "function", "function": {"name": "test_tool"}}]
 
     # First response has tool_calls, second has final answer
     mock_api_executor.execute_request.side_effect = [
         {
-            "choices": [{"message": {
-                "content": None,
-                "tool_calls": [{
-                    "id": "call_1",
-                    "function": {"name": "search_similar_incidents", "arguments": '{"query": "test"}'},
-                }]
-            }}],
+            "choices": [
+                {
+                    "message": {
+                        "content": None,
+                        "tool_calls": [
+                            {
+                                "id": "call_1",
+                                "function": {
+                                    "name": "search_similar_incidents",
+                                    "arguments": '{"query": "test"}',
+                                },
+                            }
+                        ],
+                    }
+                }
+            ],
             "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
         },
         {
@@ -99,28 +121,52 @@ async def test_tool_calling_loop(mock_retriever, mock_context_builder, mock_conv
         },
     ]
 
-    engine = _make_engine(mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor, tools=tools, tool_executor=mock_tool_executor)
+    engine = _make_engine(
+        mock_retriever,
+        mock_context_builder,
+        mock_conversation_store,
+        mock_api_executor,
+        tools=tools,
+        tool_executor=mock_tool_executor,
+    )
     result = await engine.answer("test question", "C123", "1234.5678")
 
     assert "Final RCA answer" in result
     assert mock_api_executor.execute_request.call_count == 2
-    mock_tool_executor.execute.assert_called_once_with("search_similar_incidents", {"query": "test"})
+    mock_tool_executor.execute.assert_called_once_with(
+        "search_similar_incidents", {"query": "test"}
+    )
 
 
 @pytest.mark.asyncio
-async def test_tool_loop_caps_at_max_iterations(mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor, mock_tool_executor):
+async def test_tool_loop_caps_at_max_iterations(
+    mock_retriever,
+    mock_context_builder,
+    mock_conversation_store,
+    mock_api_executor,
+    mock_tool_executor,
+):
     """Verify loop stops at RCA_MAX_ITERATIONS."""
     tools = [{"type": "function", "function": {"name": "test_tool"}}]
 
     # Always return tool_calls (never a final answer)
     tool_response = {
-        "choices": [{"message": {
-            "content": None,
-            "tool_calls": [{
-                "id": "call_1",
-                "function": {"name": "search_similar_incidents", "arguments": '{"query": "test"}'},
-            }]
-        }}],
+        "choices": [
+            {
+                "message": {
+                    "content": None,
+                    "tool_calls": [
+                        {
+                            "id": "call_1",
+                            "function": {
+                                "name": "search_similar_incidents",
+                                "arguments": '{"query": "test"}',
+                            },
+                        }
+                    ],
+                }
+            }
+        ],
         "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
     }
 
@@ -133,7 +179,14 @@ async def test_tool_loop_caps_at_max_iterations(mock_retriever, mock_context_bui
     responses = [tool_response] * RCA_MAX_ITERATIONS + [final_response]
     mock_api_executor.execute_request.side_effect = responses
 
-    engine = _make_engine(mock_retriever, mock_context_builder, mock_conversation_store, mock_api_executor, tools=tools, tool_executor=mock_tool_executor)
+    engine = _make_engine(
+        mock_retriever,
+        mock_context_builder,
+        mock_conversation_store,
+        mock_api_executor,
+        tools=tools,
+        tool_executor=mock_tool_executor,
+    )
     result = await engine.answer("test question", "C123", "1234.5678")
 
     # Should be initial call + RCA_MAX_ITERATIONS retries = RCA_MAX_ITERATIONS + 1

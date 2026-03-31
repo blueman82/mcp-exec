@@ -11,12 +11,12 @@ RCA_TOOLS = [
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Natural language description of the incident to search for"
+                        "description": "Natural language description of the incident to search for",
                     }
                 },
-                "required": ["query"]
-            }
-        }
+                "required": ["query"],
+            },
+        },
     },
     {
         "type": "function",
@@ -28,12 +28,12 @@ RCA_TOOLS = [
                 "properties": {
                     "jql": {
                         "type": "string",
-                        "description": "JQL query to search JIRA (e.g., 'project = CPGNCX AND text ~ \"ORA-01555\" ORDER BY created DESC')"
+                        "description": "JQL query to search JIRA (e.g., 'project = CPGNCX AND text ~ \"ORA-01555\" ORDER BY created DESC')",
                     }
                 },
-                "required": ["jql"]
-            }
-        }
+                "required": ["jql"],
+            },
+        },
     },
     {
         "type": "function",
@@ -45,23 +45,19 @@ RCA_TOOLS = [
                 "properties": {
                     "nrql": {
                         "type": "string",
-                        "description": "NRQL query (e.g., \"SELECT count(*) FROM CampaignHealthCheck SINCE 1 hour ago\")"
+                        "description": 'NRQL query (e.g., "SELECT count(*) FROM CampaignHealthCheck SINCE 1 hour ago")',
                     }
                 },
-                "required": ["nrql"]
-            }
-        }
+                "required": ["nrql"],
+            },
+        },
     },
     {
         "type": "function",
         "function": {
             "name": "get_active_alerts",
             "description": "Get currently active alert violations from New Relic. Use this to check if there are ongoing infrastructure issues.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
+            "parameters": {"type": "object", "properties": {}, "required": []},
+        },
     },
 ]

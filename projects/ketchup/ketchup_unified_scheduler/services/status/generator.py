@@ -426,7 +426,9 @@ class AutoStatusGenerator:
 
         # Use the OpenAI handler's execute_prompt method directly
         response = await self.openai_handler.execute_prompt(
-            messages=messages, reasoning_effort="low", max_tokens=2048  # Status reports need more tokens
+            messages=messages,
+            reasoning_effort="low",
+            max_tokens=2048,  # Status reports need more tokens
         )
 
         return response
@@ -497,20 +499,26 @@ class AutoStatusGenerator:
 
         # Build human-readable source names for disclaimer
         source_names = [
-            name for flag, name in (
+            name
+            for flag, name in (
                 (has_jira_activity, "Jira"),
                 (has_slack_activity, "Slack"),
                 (has_thread_activity, "Slack thread"),
-            ) if flag
+            )
+            if flag
         ]
 
         if not source_names:
             disclaimer = "_This is the initial auto-generated summary for this channel. Please review and validate every detail carefully before using it for CFS, ticketing, or any formal communication._"
         else:
             source_text = (
-                source_names[0] if len(source_names) == 1
-                else f"{source_names[0]} and {source_names[1]}" if len(source_names) == 2
-                else f"{', '.join(source_names[:-1])}, and {source_names[-1]}"
+                source_names[0]
+                if len(source_names) == 1
+                else (
+                    f"{source_names[0]} and {source_names[1]}"
+                    if len(source_names) == 2
+                    else f"{', '.join(source_names[:-1])}, and {source_names[-1]}"
+                )
             )
             disclaimer = (
                 f"_This auto-generated summary is based on {source_text} discussions. "

@@ -20,10 +20,20 @@ cd "$project_dir" || {
 }
 
 # Find modified Python files (both staged and unstaged)
+# git diff --name-only returns paths relative to the git root, which may differ
+# from $project_dir when working in a subdirectory (e.g. a worktree under a monorepo).
+# Resolve each path against the git root so ruff receives valid absolute paths.
+git_root=$(git rev-parse --show-toplevel 2>/dev/null)
 modified_files=$(
     (git diff --name-only --diff-filter=ACMR 2>/dev/null; \
      git diff --cached --name-only --diff-filter=ACMR 2>/dev/null) | \
-    grep '\.py$' | sort -u
+    grep '\.py$' | sort -u | \
+    while IFS= read -r f; do
+        abs="$git_root/$f"
+        if [[ -f "$abs" ]]; then
+            echo "$abs"
+        fi
+    done
 )
 
 # If no modified Python files, exit silently

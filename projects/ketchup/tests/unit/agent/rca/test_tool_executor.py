@@ -6,10 +6,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent))
 
 import json
-import pytest
 from unittest.mock import AsyncMock
 
-from packages.agent.rca.tool_executor import RCAToolExecutor, RCA_TOOL_RESULT_MAX_CHARS
+import pytest
+
+from packages.agent.rca.tool_executor import RCA_TOOL_RESULT_MAX_CHARS, RCAToolExecutor
 
 pytestmark = pytest.mark.unit
 
@@ -63,8 +64,12 @@ async def test_search_jira_history(executor, mock_mcp_client):
 
 @pytest.mark.asyncio
 async def test_query_instance_health(executor, mock_newrelic_client):
-    result = await executor.execute("query_instance_health", {"nrql": "SELECT count(*) FROM Transaction"})
-    mock_newrelic_client.execute_nrql.assert_called_once_with(nrql="SELECT count(*) FROM Transaction")
+    result = await executor.execute(
+        "query_instance_health", {"nrql": "SELECT count(*) FROM Transaction"}
+    )
+    mock_newrelic_client.execute_nrql.assert_called_once_with(
+        nrql="SELECT count(*) FROM Transaction"
+    )
     parsed = json.loads(result)
     assert parsed[0]["count"] == 42
 

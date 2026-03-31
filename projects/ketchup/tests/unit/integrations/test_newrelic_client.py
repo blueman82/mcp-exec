@@ -2,7 +2,7 @@
 
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import orjson
 import pytest
@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
     NewRelicClientProtocol,
 )
-from packages.integrations.async_newrelic_client import AsyncNewRelicClient, NewRelicConfig
+from packages.integrations.async_newrelic_client import AsyncNewRelicClient
 
 pytestmark = pytest.mark.unit
 
@@ -31,9 +31,7 @@ class TestAsyncNewRelicClientProtocolCompliance:
 
         protocol_methods = {
             name
-            for name, _ in inspect.getmembers(
-                NewRelicClientProtocol, predicate=inspect.isfunction
-            )
+            for name, _ in inspect.getmembers(NewRelicClientProtocol, predicate=inspect.isfunction)
             if not name.startswith("_")
         }
 
@@ -43,16 +41,16 @@ class TestAsyncNewRelicClientProtocolCompliance:
             if not name.startswith("_")
         }
 
-        assert protocol_methods.issubset(service_methods), (
-            f"Missing protocol methods: {protocol_methods - service_methods}"
-        )
+        assert protocol_methods.issubset(
+            service_methods
+        ), f"Missing protocol methods: {protocol_methods - service_methods}"
 
     def test_isinstance_check(self):
         """AsyncNewRelicClient must pass isinstance check against runtime-checkable protocol."""
         client = AsyncNewRelicClient(api_key="test-key", account_id="12345")
-        assert isinstance(client, NewRelicClientProtocol), (
-            "AsyncNewRelicClient is not recognised as an instance of NewRelicClientProtocol"
-        )
+        assert isinstance(
+            client, NewRelicClientProtocol
+        ), "AsyncNewRelicClient is not recognised as an instance of NewRelicClientProtocol"
 
 
 class TestExecuteNrql:
@@ -77,13 +75,7 @@ class TestExecuteNrql:
                 "status": 200,
                 "headers": {},
                 "body": _real_orjson_dumps(
-                    {
-                        "data": {
-                            "actor": {
-                                "account": {"nrql": {"results": [{"count": 42}]}}
-                            }
-                        }
-                    }
+                    {"data": {"actor": {"account": {"nrql": {"results": [{"count": 42}]}}}}}
                 ),
                 "content_type": "application/json",
                 "url": url,
@@ -156,13 +148,7 @@ class TestExecuteNrql:
                 "status": 200,
                 "headers": {},
                 "body": _real_orjson_dumps(
-                    {
-                        "data": {
-                            "actor": {
-                                "account": {"nrql": {"results": expected_results}}
-                            }
-                        }
-                    }
+                    {"data": {"actor": {"account": {"nrql": {"results": expected_results}}}}}
                 ),
                 "content_type": "application/json",
                 "url": url,
@@ -209,9 +195,7 @@ class TestExecuteNrqlErrorHandling:
             return {
                 "status": 200,
                 "headers": {},
-                "body": _real_orjson_dumps(
-                    {"data": {"actor": {"account": {}}}}
-                ),
+                "body": _real_orjson_dumps({"data": {"actor": {"account": {}}}}),
                 "content_type": "application/json",
                 "url": url,
             }
@@ -313,9 +297,9 @@ class TestGetActiveAlerts:
 
         await client.get_active_alerts(only_open=True)
 
-        assert captured_params.get("only_open") == "true", (
-            "only_open=True must set query param only_open=true"
-        )
+        assert (
+            captured_params.get("only_open") == "true"
+        ), "only_open=True must set query param only_open=true"
 
     @pytest.mark.asyncio
     async def test_only_open_false_omits_param(self, client, mocker):
@@ -336,9 +320,9 @@ class TestGetActiveAlerts:
 
         await client.get_active_alerts(only_open=False)
 
-        assert "only_open" not in captured_params, (
-            "only_open=False must not include only_open query param"
-        )
+        assert (
+            "only_open" not in captured_params
+        ), "only_open=False must not include only_open query param"
 
     @pytest.mark.asyncio
     async def test_returns_violations_list(self, client, mocker):

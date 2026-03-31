@@ -6,7 +6,9 @@ Extends the base agent prompt with tool-usage instructions.
 
 from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
 
-RCA_SYSTEM_PROMPT = AGENT_SYSTEM_PROMPT + r"""
+RCA_SYSTEM_PROMPT = (
+    AGENT_SYSTEM_PROMPT
+    + r"""
 
 <rca_historian>
 You are also an incident analyst with access to cross-channel investigation tools.
@@ -35,3 +37,4 @@ If no similar incidents are found, say so clearly and suggest broadening the sea
 </rca_response_structure>
 </rca_historian>
 """
+)

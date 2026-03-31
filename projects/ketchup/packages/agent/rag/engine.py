@@ -23,6 +23,8 @@ DEFAULT_MAX_HISTORY = 10
 DEFAULT_REASONING_EFFORT = "medium"
 DEFAULT_MAX_TOKENS = 2048
 
+RCA_MAX_ITERATIONS = 5
+
 
 class AgentEngine:
     """Orchestrates the full RAG pipeline: retrieve → build context → call LLM."""
@@ -34,6 +36,8 @@ class AgentEngine:
         conversation_store,
         api_executor,
         system_prompt: str,
+        tools=None,
+        tool_executor=None,
     ):
         """
         Args:
@@ -42,12 +46,16 @@ class AgentEngine:
             conversation_store: ConversationStore for persisting turns.
             api_executor: ApiExecutor instance for Azure OpenAI calls.
             system_prompt: The agent's system prompt text.
+            tools: Optional list of OpenAI function-calling tool definitions.
+            tool_executor: Optional RCAToolExecutor for dispatching tool calls.
         """
         self._retriever = retriever
         self._context_builder = context_builder
         self._conversation_store = conversation_store
         self._api_executor = api_executor
         self._system_prompt = system_prompt
+        self._tools = tools
+        self._tool_executor = tool_executor
 
         # Load config from env
         self._top_k = int(os.environ.get("KETCHUP_AGENT_TOP_K", str(DEFAULT_TOP_K)))
@@ -71,7 +79,7 @@ class AgentEngine:
         Pipeline:
         1. Retrieve relevant context (single-pass cosine similarity)
         2. Build LLM context window (system prompt + context + history + question)
-        3. Call Azure OpenAI
+        3. Call Azure OpenAI (with optional tool-calling loop for RCA mode)
         4. Store conversation turns (user + assistant) in DynamoDB
         5. Return the response text
 
@@ -127,6 +135,10 @@ class AgentEngine:
         if FeatureFlags.is_structured_json_output_enabled():
             payload["response_format"] = {"type": "json_object"}
 
+        # Add tools for RCA Historian mode
+        if self._tools:
+            payload["tools"] = self._tools
+
         response_data = await self._api_executor.execute_request(
             payload=payload,
             channel_info=None,  # No re-archiving for agent queries
@@ -134,7 +146,57 @@ class AgentEngine:
             incoming_channel=channel_id,
         )
 
-        # Extract response text
+        # Tool-calling loop (for RCA Historian mode)
+        iteration = 0
+        while self._tools and self._tool_executor and iteration < RCA_MAX_ITERATIONS:
+            choices = response_data.get("choices", [])
+            if not choices:
+                break
+
+            message = choices[0].get("message", {})
+            tool_calls = message.get("tool_calls")
+
+            if not tool_calls:
+                break  # No tool calls — model is done, extract response normally
+
+            logger.info(
+                "RCA iteration %d: %d tool calls",
+                iteration + 1,
+                len(tool_calls),
+            )
+
+            # Append assistant message with tool_calls to conversation
+            messages.append(message)
+
+            # Execute each tool call and append results
+            for tc in tool_calls:
+                fn = tc["function"]
+                tool_name = fn["name"]
+                try:
+                    arguments = json.loads(fn["arguments"])
+                except json.JSONDecodeError:
+                    arguments = {}
+
+                result_str = await self._tool_executor.execute(tool_name, arguments)
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": result_str,
+                    }
+                )
+
+            # Rebuild payload with updated messages and call again
+            payload["messages"] = messages
+            response_data = await self._api_executor.execute_request(
+                payload=payload,
+                channel_info=None,
+                user_id=user_id,
+                incoming_channel=channel_id,
+            )
+            iteration += 1
+
+        # Extract response text (works for both single-turn and multi-turn)
         response_text = ""
         choices = response_data.get("choices", [])
         if choices:
