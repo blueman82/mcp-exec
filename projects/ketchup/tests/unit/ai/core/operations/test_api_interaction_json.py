@@ -61,8 +61,8 @@ def test_build_payload_with_json_mode_enabled(executor: ApiExecutor) -> None:
     assert payload["response_format"] == {"type": "json_object"}
     assert payload["messages"] == messages
     assert payload["max_tokens"] == 2048
-    assert payload["temperature"] == 0.1
-    assert payload["top_p"] == 0.9
+    assert payload["reasoning_effort"] == "low"
+    assert "top_p" not in payload
 
 
 @patch.dict(os.environ, {"KETCHUP_STRUCTURED_JSON_OUTPUT": "false"})
@@ -73,8 +73,8 @@ def test_build_payload_with_json_mode_disabled(executor: ApiExecutor) -> None:
     assert "response_format" not in payload
     assert payload["messages"] == messages
     assert payload["max_tokens"] == 2048
-    assert payload["temperature"] == 0.1
-    assert payload["top_p"] == 0.9
+    assert payload["reasoning_effort"] == "low"
+    assert "top_p" not in payload
 
 
 @patch.dict(os.environ, {}, clear=True)
