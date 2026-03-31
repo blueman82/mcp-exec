@@ -5,8 +5,9 @@
 
 set -u
 
-# Extract command from JSON input
-COMMAND=$(jq -r '.tool_input.command // empty' 2>/dev/null)
+# Extract command from JSON input (read stdin first)
+PAYLOAD=$(cat)
+COMMAND=$(echo "$PAYLOAD" | jq -r '.tool_input.command // empty' 2>/dev/null)
 
 if [[ -z "$COMMAND" ]]; then
     exit 0  # Empty or malformed input, let it through
