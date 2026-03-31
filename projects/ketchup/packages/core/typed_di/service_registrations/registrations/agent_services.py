@@ -317,6 +317,64 @@ def register_chromadb_services(manager: ServiceRegistrationManager) -> int:
     return count
 
 
+async def _create_newrelic_client(resolver):
+    """Custom factory for AsyncNewRelicClient — resolves secrets."""
+    from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
+        NewRelicClientProtocol,
+    )
+    from packages.integrations.async_newrelic_client import AsyncNewRelicClient
+
+    # Resolve SecretsManagerProtocol via local import to avoid barrel import
+    from packages.core.typed_di.service_registrations.protocols.core_protocols import (
+        SecretsManagerProtocol,
+    )
+
+    secrets_manager = await resolver.aget(SecretsManagerProtocol)
+    api_key = await secrets_manager.get_new_relic_api_key()
+    account_id = await secrets_manager.get_new_relic_account_id()
+
+    client = AsyncNewRelicClient(api_key=api_key, account_id=account_id)
+    await client.setup()
+    return client
+
+
+def register_rca_services(manager: ServiceRegistrationManager) -> int:
+    """Register RCA Historian services if the feature is enabled.
+
+    Currently registers: NewRelicClient
+    Phase 3 will add: RCAToolExecutor
+
+    Args:
+        manager: The ServiceRegistrationManager instance.
+
+    Returns:
+        Number of services registered.
+    """
+    enabled = os.environ.get("KETCHUP_RCA_HISTORIAN_ENABLED", "false").lower() == "true"
+
+    if not enabled:
+        logger.info("RCA Historian disabled — skipping RCA service registration")
+        return 0
+
+    from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
+        NewRelicClientProtocol,
+    )
+    from packages.integrations.async_newrelic_client import AsyncNewRelicClient
+
+    specs = [
+        ServiceSpec(
+            protocol=NewRelicClientProtocol,
+            concrete=AsyncNewRelicClient,
+            deps={},
+            factory=_create_newrelic_client,
+        ),
+    ]
+
+    count = register_from_specs(manager, specs, "rca_services")
+    logger.info("Registered %d RCA services", count)
+    return count
+
+
 def register_agent_services(manager: ServiceRegistrationManager) -> int:
     """Register agent chat/RAG services if the feature is enabled.
 
