@@ -19,7 +19,7 @@ logger = setup_logger(__name__)
 # Default configuration (overridable via env vars)
 DEFAULT_TOP_K = 20
 DEFAULT_MAX_HISTORY = 10
-DEFAULT_TEMPERATURE = 0.3
+DEFAULT_REASONING_EFFORT = "medium"
 DEFAULT_MAX_TOKENS = 2048
 
 
