@@ -88,6 +88,7 @@ _ROLE_MODULES: dict[str, list[Callable]] = {
         register_csopm_services,
         register_chromadb_services,
         register_agent_services,
+        register_rca_services,
     ],
     # SCHEDULER: drops event_processing, ui_services
     # Includes csopm_services because command_processing → MetricsDataCollector
