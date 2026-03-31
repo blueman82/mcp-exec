@@ -497,22 +497,36 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 <!-- scout-section v=15 chars=2004 hash=499e63201955ae52 -->
 ## Code Search
 
-**ALL agents (main conversation AND subagents) MUST use Scout MCP tools for code search and navigation.** Do NOT use Grep or Glob for code search. Use Read only when you already know the exact file and line range.
+**ALL agents (main conversation AND subagents) MUST use Scout via mcp-exec for code search and navigation.** Prefer Scout over Grep or Glob for code search. Use Read only when you already know the exact file and line range.
 
-Required Scout tools — use these by their full MCP names, not Grep/Glob:
-- `mcp__scout__search` — default search (auto-selects keyword/semantic/regex)
-- `mcp__scout__explain_symbol` — understand any symbol (definition + callers + callees in one call)
-- `mcp__scout__find_references` — all usages of a symbol across the codebase
-- `mcp__scout__go_to_definition` — jump to where a symbol is defined
-- `mcp__scout__call_graph` — trace execution flow (callers/callees up to 5 levels)
-- `mcp__scout__impact` — blast radius of changing a symbol (use before any refactor/addition)
-- `mcp__scout__deep_search` — **use first when exploring unfamiliar code** (architectural map + entry points + call graph)
-- `mcp__scout__file_outline` — see all symbols in a file/directory without reading it
-- `mcp__scout__regex_search` — ONLY when you need actual regex syntax (wildcards, character classes, structural patterns). For piped identifiers like `A|B|C`, use `keyword_search` instead
-- `mcp__scout__keyword_search` — exact identifier/symbol lookups (fastest search tool)
+### How to call Scout tools
+
+Scout is accessed through `mcp__mcp-exec__execute_code_with_wrappers` with `wrappers: ["scout"]`. Inside the code block, call tools as `scout.toolName({params})`.
+
+**Example:**
+```
+tool: mcp__mcp-exec__execute_code_with_wrappers
+wrappers: ["scout"]
+code: |
+  const result = await scout.search({ query: "TypedDI container setup" });
+  console.log(JSON.stringify(result, null, 2));
+```
+
+### Available Scout tools
+
+- `scout.search({query})` — default search (auto-selects keyword/semantic/regex)
+- `scout.explain_symbol({symbol})` — understand any symbol (definition + callers + callees in one call)
+- `scout.find_references({symbol})` — all usages of a symbol across the codebase
+- `scout.go_to_definition({symbol})` — jump to where a symbol is defined
+- `scout.call_graph({symbol, direction, depth})` — trace execution flow (callers/callees up to 5 levels)
+- `scout.impact({symbol})` — blast radius of changing a symbol (use before any refactor/addition)
+- `scout.deep_search({query})` — **use first when exploring unfamiliar code** (architectural map + entry points + call graph)
+- `scout.file_outline({path})` — see all symbols in a file/directory without reading it
+- `scout.regex_search({pattern})` — ONLY when you need actual regex syntax. For piped identifiers like `A|B|C`, use `keyword_search` instead
+- `scout.keyword_search({query})` — exact identifier/symbol lookups (fastest search tool)
 
 **Start with symbol-aware tools — not regex:**
-If you're searching for where a symbol is used, `mcp__scout__find_references` is one call vs. many regex sweeps. If you need to understand a symbol's role, `mcp__scout__explain_symbol` replaces go_to_definition + call_graph + find_references. Do NOT use `regex_search` for plain identifier lookups — `keyword_search` is faster (1 query vs N) and returns ranked results.
+If you're searching for where a symbol is used, `scout.find_references` is one call vs. many regex sweeps. If you need to understand a symbol's role, `scout.explain_symbol` replaces go_to_definition + call_graph + find_references. Do NOT use `regex_search` for plain identifier lookups — `keyword_search` is faster (1 query vs N) and returns ranked results.
 
-**Subagents (Explore, Plan, teammates):** Their default system prompts use Grep/Glob/Bash for code search. When spawning any subagent, restate this rule in the spawn prompt: "Use Scout MCP tools for ALL code search — do NOT use Grep, Glob, or Bash for searching code."
+**Subagents (Explore, Plan, teammates):** When spawning any subagent, restate this rule in the spawn prompt: "Use Scout via mcp-exec for ALL code search — call `mcp__mcp-exec__execute_code_with_wrappers` with `wrappers: [\"scout\"]` and `scout.toolName({params})` syntax."
 <!-- /scout-section -->
