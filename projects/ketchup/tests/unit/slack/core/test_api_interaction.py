@@ -76,11 +76,11 @@ def test_build_openai_payload_none_command(executor: ApiExecutor) -> None:
 def test_build_openai_payload_with_normalized_prefs(executor: ApiExecutor) -> None:
     """Test build_openai_payload respects normalized preferences."""
     messages = [{"role": "user", "content": "foo"}]
-    normalized_prefs = {"temperature": 0.0, "max_tokens": 512, "top_p": 0.95}
+    normalized_prefs = {"reasoning_effort": "high", "max_tokens": 512}
     payload = executor.build_openai_payload(messages, "short", normalized_prefs)
-    assert payload["temperature"] == 0.0
+    assert payload["reasoning_effort"] == "high"
     assert payload["max_tokens"] == 512
-    assert payload["top_p"] == 0.95
+    assert "top_p" not in payload
     assert payload["messages"] == messages
 
 
