@@ -383,6 +383,19 @@ Unit → Integration → E2E → Manual
 
 ## Common Tasks
 
+### Service Registration Checklist
+When adding or modifying any TypedDI service, complete ALL steps:
+1. Define/update protocol in `service_registrations/protocols/`
+2. Implement concrete class
+3. Create ServiceSpec or factory in `service_registrations/registrations/`
+4. Add registration function to role map in `registrations/__init__.py`
+5. Update ALL Mock*/Fake* classes in tests
+6. Add protocol compliance test
+7. Feature-flag gate if conditional (check at registration time)
+8. Import from specific protocol file, never barrel exports (see `.claude/rules/import-conventions.md`)
+
+Canonical example: CSOPM notifier in `ketchup_csopm_notifier/container.py`
+
 ### Adding a New Slash Command
 1. Create command handler in `packages/slack/commands/`
 2. Implement `SlackCommandProtocol` interface
