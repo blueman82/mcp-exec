@@ -33,6 +33,7 @@ __all__ = [
     "AgentSlackHandlerProtocol",
     "AgentThreadManagerProtocol",
     "AgentThreadFilterProtocol",
+    "RCAToolExecutorProtocol",
 ]
 
 
