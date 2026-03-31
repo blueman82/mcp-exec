@@ -261,7 +261,7 @@ class OpenAIHandler(AzureAsyncClient):
         messages: List[Dict[str, str]],
         conversation_history: Optional[List[Dict[str, str]]] = None,
         max_context_messages: int = 10,
-        temperature: float = 0.1,
+        reasoning_effort: str = "low",
         max_tokens: int = 1000,
     ) -> str:
         """
@@ -271,7 +271,7 @@ class OpenAIHandler(AzureAsyncClient):
             messages: Current messages to process
             conversation_history: Optional conversation history
             max_context_messages: Maximum context messages to include
-            temperature: Model temperature setting
+            reasoning_effort: Model reasoning effort setting
             max_tokens: Maximum tokens in response
 
         Returns:
@@ -294,7 +294,7 @@ class OpenAIHandler(AzureAsyncClient):
 
         # Execute the request
         try:
-            normalized_prefs = {"temperature": temperature, "max_tokens": max_tokens}
+            normalized_prefs = {"reasoning_effort": reasoning_effort, "max_tokens": max_tokens}
             response = await self.call_openai_endpoint(
                 messages=full_messages,
                 normalized_prefs_for_ai=normalized_prefs,
