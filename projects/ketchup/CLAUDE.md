@@ -479,15 +479,5 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 ## Recent Major Changes
 
 - **March 2026**: ChromaDB decoupled from agent feature flag — new `KETCHUP_CHROMADB_ENABLED` flag allows handover summary to use ChromaDB pre-indexed messages without requiring the full agent chat/RAG stack. Two-tier service registration: chromadb foundation (4 services) + agent chat (8 services).
-- **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Fresh data collection from Slack, JIRA, and DynamoDB with AI-powered 1-2 bullet summaries per channel. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
-- **January 2026**: LOC reduction initiative - ServiceSpec declarative system and code cleanup removing ~2,600 lines:
-  - PR #165: Dead code audit (-1,460 LOC) - Removed unused handlers, orphan classes, legacy compatibility shims
-  - PR #166: Documentation sync cleanup (-833 LOC) - Architecture diagram cleanup, removed outdated docs
-  - PR #167: Phase 1 LOC reduction (-176 LOC) - `channel_resolver.py` shared utility, eliminated duplicate code
-  - PR #168: Phase 3 ServiceSpec (-125 LOC) - Declarative service registration system in `packages/core/typed_di/service_spec.py`
-- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking. Shared components (blocks, state, actions) moved to `packages/slack/csopm/` for use by both scheduler and main app containers.
-- **January 2026**: Legacy scheduler directories removed - `ketchup_status_updater/`, `jira_reporter/`, `channel_metadata_updater/`, `ketchup_maintenance_fetcher/`, `ketchup_jira_pat_rotator/` all deleted after successful unified scheduler consolidation.
-- **December 2025**: Phase 1 Unified Scheduler Consolidation - 5 scheduler containers consolidated into 1 (`ketchup-unified-scheduler`) with shared TypedDI container, per-task health monitoring, and unified orchestration engine
-- **October 2025**: 300-400% performance optimization complete
-- **September 2025**: TypedDI migration complete (100% coverage)
-- **Architecture Migration**: Lambda → EC2 Docker (cost reduction $450-800/mo → ~$150/mo)
+- **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
+- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons, DynamoDB state tracking. ServiceSpec declarative system (-2,600 LOC cleanup).
