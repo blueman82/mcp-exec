@@ -241,12 +241,14 @@ class AgentConversationStoreProtocol(Protocol):
 class AgentRetrieverProtocol(Protocol):
     """Protocol for embedding queries and retrieving relevant context."""
 
-    async def retrieve(self, query: str, channel_id: str, top_k: int = 20) -> List[Dict[str, Any]]:
+    async def retrieve(
+        self, query: str, channel_id: Optional[str] = None, top_k: int = 20
+    ) -> List[Dict[str, Any]]:
         """Retrieve relevant context using pure semantic similarity.
 
         Args:
             query: The user's question.
-            channel_id: Filter results to this channel.
+            channel_id: Filter results to this channel. None = cross-channel search.
             top_k: Number of results to return.
 
         Returns:
