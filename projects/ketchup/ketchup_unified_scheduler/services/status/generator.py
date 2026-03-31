@@ -426,7 +426,7 @@ class AutoStatusGenerator:
 
         # Use the OpenAI handler's execute_prompt method directly
         response = await self.openai_handler.execute_prompt(
-            messages=messages, temperature=0.1, max_tokens=2048  # Status reports need more tokens
+            messages=messages, reasoning_effort="low", max_tokens=2048  # Status reports need more tokens
         )
 
         return response
