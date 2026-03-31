@@ -289,7 +289,7 @@ async def generate_and_post_handover(container: TypedServiceRegistry) -> Dict[st
                                         ),
                                     },
                                 ],
-                                temperature=0.1,
+                                reasoning_effort="low",
                                 max_tokens=256,
                             )
                             summary = (
