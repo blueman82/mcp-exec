@@ -147,6 +147,9 @@ class SecretsManager:
                     secrets_async.get("authorised_users_ldap_backup"), default=[]
                 ),
                 "SLACK_WEBHOOK_URL": secrets_async.get("slack_webhook_url", ""),
+                # New Relic API credentials (for RCA Historian)
+                "NEW_RELIC_API_KEY": secrets_async.get("new_relic_api_key", ""),
+                "NEW_RELIC_ACCOUNT_ID": secrets_async.get("new_relic_account_id", ""),
             }
 
             # Update cache
