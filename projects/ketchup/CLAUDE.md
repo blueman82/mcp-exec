@@ -325,6 +325,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_CHROMADB_ENABLED=false` - ChromaDB data layer (embeddings, vector store, realtime ingestion)
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
+- `KETCHUP_RCA_HISTORIAN_ENABLED=false` - RCA Historian tool-calling agent (**requires** `KETCHUP_AGENT_ENABLED=true`)
 
 **Source of Truth**: Always check `infrastructure/docker-compose.yml` for current feature flag states.
 
