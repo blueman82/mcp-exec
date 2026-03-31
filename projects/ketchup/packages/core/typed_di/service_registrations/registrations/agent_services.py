@@ -32,24 +32,27 @@ from packages.agent.ingestion.backfill_ingestor import BackfillIngestor
 from packages.agent.ingestion.jira_backfill import JiraBackfillIngestor
 from packages.agent.ingestion.realtime_ingestor import RealtimeIngestor
 
+# Concrete implementations — Agent prompts
+from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
+from packages.agent.prompts.rca_system import RCA_SYSTEM_PROMPT
+
 # Concrete implementations — Agent RAG pipeline
 from packages.agent.rag.context_builder import ContextBuilder
 from packages.agent.rag.engine import AgentEngine
 from packages.agent.rag.retriever import Retriever
 
+# Concrete implementations — RCA Historian
+from packages.agent.rca.tool_executor import RCAToolExecutor
+from packages.agent.rca.tools import RCA_TOOLS
+
 # Concrete implementations — Agent Slack integration
 from packages.agent.slack.handler import AgentSlackHandler
 from packages.agent.slack.isolation import AgentThreadFilter
 from packages.agent.slack.thread_manager import AgentThreadManager
-
-# Concrete implementations — Agent prompts
-from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
-from packages.agent.prompts.rca_system import RCA_SYSTEM_PROMPT
-
-# Concrete implementations — RCA Historian
-from packages.agent.rca.tool_executor import RCAToolExecutor
-from packages.agent.rca.tools import RCA_TOOLS
-from packages.integrations.async_newrelic_client import AsyncNewRelicClient
+from packages.core.logging import setup_logger
+from packages.core.typed_di.service_registrations.manager import (
+    ServiceRegistrationManager,
+)
 
 # Protocols — barrel imports are allowed in registration files
 from packages.core.typed_di.service_registrations.protocols import (
@@ -82,11 +85,8 @@ from packages.core.typed_di.service_registrations.protocols.mcp_protocols import
 from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
     NewRelicClientProtocol,
 )
-from packages.core.logging import setup_logger
-from packages.core.typed_di.service_registrations.manager import (
-    ServiceRegistrationManager,
-)
 from packages.core.typed_di.service_spec import ServiceSpec, register_from_specs
+from packages.integrations.async_newrelic_client import AsyncNewRelicClient
 
 logger = setup_logger(__name__)
 
