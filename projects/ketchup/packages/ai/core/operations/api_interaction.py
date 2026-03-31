@@ -84,6 +84,9 @@ class ApiExecutor:
             "reasoning_effort": reasoning_effort,
         }
 
+        if tools:
+            payload["tools"] = tools
+
         # Add JSON mode when feature flag enabled
         if FeatureFlags.is_structured_json_output_enabled():
             payload["response_format"] = {"type": "json_object"}
