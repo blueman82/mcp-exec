@@ -88,13 +88,13 @@ class AgentVectorStoreProtocol(Protocol):
         ...
 
     async def query(
-        self, query_embedding: List[float], channel_id: str, top_k: int = 15
+        self, query_embedding: List[float], channel_id: Optional[str] = None, top_k: int = 15
     ) -> List[Dict[str, Any]]:
-        """Query for similar documents filtered by channel_id.
+        """Query for similar documents, optionally filtered by channel_id.
 
         Args:
             query_embedding: The query embedding vector.
-            channel_id: Filter results to this channel.
+            channel_id: Filter results to this channel. None = cross-channel search.
             top_k: Number of results to return.
 
         Returns:
