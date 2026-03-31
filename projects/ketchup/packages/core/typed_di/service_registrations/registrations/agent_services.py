@@ -263,9 +263,35 @@ async def _create_backfill_ingestor(resolver):
     )
 
 
+async def _create_rca_tool_executor(resolver):
+    """Custom factory for RCAToolExecutor — resolves retriever, MCP client, NewRelic client."""
+    from packages.agent.rca.tool_executor import RCAToolExecutor
+    from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+        AgentRetrieverProtocol,
+        RCAToolExecutorProtocol,  # noqa: F401 — imported for type reference
+    )
+    from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
+        MCPAsyncClientProtocol,
+    )
+    from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
+        NewRelicClientProtocol,
+    )
+
+    retriever = await resolver.aget(AgentRetrieverProtocol)
+    mcp_client = await resolver.aget(MCPAsyncClientProtocol)
+    newrelic_client = await resolver.aget(NewRelicClientProtocol)
+
+    return RCAToolExecutor(
+        retriever=retriever,
+        mcp_client=mcp_client,
+        newrelic_client=newrelic_client,
+    )
+
+
 async def _create_agent_engine(resolver):
-    """Custom factory for AgentEngine — injects system prompt."""
-    from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
+    """Custom factory for AgentEngine — injects system prompt and optional RCA tools."""
+    import os
+
     from packages.agent.rag.engine import AgentEngine
     from packages.core.typed_di.service_registrations.protocols import (
         AgentContextBuilderProtocol,
@@ -283,12 +309,33 @@ async def _create_agent_engine(resolver):
     conversation_store = await resolver.aget(AgentConversationStoreProtocol)
     api_executor = await resolver.aget(ApiExecutorProtocol)
 
+    rca_enabled = os.environ.get("KETCHUP_RCA_HISTORIAN_ENABLED", "false").lower() == "true"
+
+    if rca_enabled:
+        from packages.agent.prompts.rca_system import RCA_SYSTEM_PROMPT
+        from packages.agent.rca.tools import RCA_TOOLS
+        from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+            RCAToolExecutorProtocol,
+        )
+
+        tool_executor = await resolver.aget(RCAToolExecutorProtocol)
+        system_prompt = RCA_SYSTEM_PROMPT
+        tools = RCA_TOOLS
+    else:
+        from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
+
+        system_prompt = AGENT_SYSTEM_PROMPT
+        tools = None
+        tool_executor = None
+
     return AgentEngine(
         retriever=retriever,
         context_builder=context_builder,
         conversation_store=conversation_store,
         api_executor=api_executor,
-        system_prompt=AGENT_SYSTEM_PROMPT,
+        system_prompt=system_prompt,
+        tools=tools,
+        tool_executor=tool_executor,
     )
 
 
@@ -319,15 +366,11 @@ def register_chromadb_services(manager: ServiceRegistrationManager) -> int:
 
 async def _create_newrelic_client(resolver):
     """Custom factory for AsyncNewRelicClient — resolves secrets."""
-    from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
-        NewRelicClientProtocol,
-    )
-    from packages.integrations.async_newrelic_client import AsyncNewRelicClient
-
     # Resolve SecretsManagerProtocol via local import to avoid barrel import
     from packages.core.typed_di.service_registrations.protocols.core_protocols import (
         SecretsManagerProtocol,
     )
+    from packages.integrations.async_newrelic_client import AsyncNewRelicClient
 
     secrets_manager = await resolver.aget(SecretsManagerProtocol)
     api_key = await secrets_manager.get_new_relic_api_key()
