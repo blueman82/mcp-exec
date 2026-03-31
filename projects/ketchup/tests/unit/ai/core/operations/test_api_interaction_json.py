@@ -60,7 +60,7 @@ def test_build_payload_with_json_mode_enabled(executor: ApiExecutor) -> None:
     assert "response_format" in payload
     assert payload["response_format"] == {"type": "json_object"}
     assert payload["messages"] == messages
-    assert payload["max_tokens"] == 2048
+    assert payload["max_completion_tokens"] == 2048
     assert payload["reasoning_effort"] == "low"
     assert "top_p" not in payload
 
@@ -72,7 +72,7 @@ def test_build_payload_with_json_mode_disabled(executor: ApiExecutor) -> None:
     payload = executor.build_openai_payload(messages, "status")
     assert "response_format" not in payload
     assert payload["messages"] == messages
-    assert payload["max_tokens"] == 2048
+    assert payload["max_completion_tokens"] == 2048
     assert payload["reasoning_effort"] == "low"
     assert "top_p" not in payload
 
@@ -97,7 +97,7 @@ def test_build_payload_json_mode_with_custom_prefs(executor: ApiExecutor) -> Non
     assert "response_format" in payload
     assert payload["response_format"] == {"type": "json_object"}
     assert payload["reasoning_effort"] == "high"
-    assert payload["max_tokens"] == 1500
+    assert payload["max_completion_tokens"] == 1500
     assert "top_p" not in payload
 
 
