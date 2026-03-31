@@ -334,5 +334,6 @@ class FeatureFlags:
             "structured_json_output_enabled": FeatureFlags.is_structured_json_output_enabled(),
             "chromadb_enabled": FeatureFlags.is_chromadb_enabled(),
             "agent_enabled": FeatureFlags.is_agent_enabled(),
+            "rca_historian_enabled": FeatureFlags.is_rca_historian_enabled(),
             # async_mcp_enabled removed - always True (consolidated to AsyncMCPClient)
         }
