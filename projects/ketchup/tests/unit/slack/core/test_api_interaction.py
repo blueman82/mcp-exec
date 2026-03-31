@@ -56,8 +56,8 @@ def test_build_openai_payload_default(executor: ApiExecutor) -> None:
     payload = executor.build_openai_payload(messages, "short")
     assert payload["max_tokens"] == 1024
     assert payload["messages"] == messages
-    assert payload["temperature"] == 0.1
-    assert payload["top_p"] == 0.9
+    assert payload["reasoning_effort"] == "low"
+    assert "top_p" not in payload
 
 
 def test_build_openai_payload_status_report(executor: ApiExecutor) -> None:
