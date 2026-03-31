@@ -6,7 +6,7 @@ are embedded in each document's text, so the LLM reasons about temporal
 relevance naturally from the context it receives.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 
