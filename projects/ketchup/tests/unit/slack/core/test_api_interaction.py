@@ -54,7 +54,7 @@ def test_build_openai_payload_default(executor: ApiExecutor) -> None:
     """Test build_openai_payload returns correct payload for default command."""
     messages = [{"role": "user", "content": "foo"}]
     payload = executor.build_openai_payload(messages, "short")
-    assert payload["max_tokens"] == 1024
+    assert payload["max_completion_tokens"] == 1024
     assert payload["messages"] == messages
     assert payload["reasoning_effort"] == "low"
     assert "top_p" not in payload
@@ -64,13 +64,13 @@ def test_build_openai_payload_status_report(executor: ApiExecutor) -> None:
     """Test build_openai_payload returns double tokens for status/report commands."""
     for cmd in ["status", "report"]:
         payload = executor.build_openai_payload([{"role": "user", "content": "foo"}], cmd)
-        assert payload["max_tokens"] == 2048
+        assert payload["max_completion_tokens"] == 2048
 
 
 def test_build_openai_payload_none_command(executor: ApiExecutor) -> None:
     """Test build_openai_payload handles None as command."""
     payload = executor.build_openai_payload([{"role": "user", "content": "foo"}], None)
-    assert payload["max_tokens"] == 1024
+    assert payload["max_completion_tokens"] == 1024
 
 
 def test_build_openai_payload_with_normalized_prefs(executor: ApiExecutor) -> None:
@@ -79,7 +79,7 @@ def test_build_openai_payload_with_normalized_prefs(executor: ApiExecutor) -> No
     normalized_prefs = {"reasoning_effort": "high", "max_tokens": 512}
     payload = executor.build_openai_payload(messages, "short", normalized_prefs)
     assert payload["reasoning_effort"] == "high"
-    assert payload["max_tokens"] == 512
+    assert payload["max_completion_tokens"] == 512
     assert "top_p" not in payload
     assert payload["messages"] == messages
 
@@ -90,7 +90,7 @@ def test_build_openai_payload_partial_prefs(executor: ApiExecutor) -> None:
     normalized_prefs = {"reasoning_effort": "medium"}  # Only reasoning_effort specified
     payload = executor.build_openai_payload(messages, "status", normalized_prefs)
     assert payload["reasoning_effort"] == "medium"
-    assert payload["max_tokens"] == 2048  # Should still get status command default
+    assert payload["max_completion_tokens"] == 2048  # Should still get status command default
     assert "top_p" not in payload
 
 
