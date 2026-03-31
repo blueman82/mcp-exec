@@ -119,8 +119,7 @@ class AgentEngine:
         payload = {
             "messages": messages,
             "max_completion_tokens": self._max_tokens,
-            "temperature": self._temperature,
-            "top_p": 0.9,
+            "reasoning_effort": self._reasoning_effort,
         }
 
         # Enable JSON mode when feature flag is on (matches ApiExecutor.prepare_payload)
