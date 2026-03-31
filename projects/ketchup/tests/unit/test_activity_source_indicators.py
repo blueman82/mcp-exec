@@ -116,7 +116,5 @@ class TestActivitySourceIndicators:
         assert "Channel: <#C123456|test-channel>" in lines[1]
         assert "Activity source: :slack: :jira-logo:" in lines[2]
         assert "Status checked hourly: Updates posted only when activity detected" in lines[3]
-        assert (
-            "Note: This automated status update is a test feature and may not be final." in lines[4]
-        )
+        assert "This auto-generated summary is based on Jira and Slack discussions." in lines[4]
         assert "─" * 40 in lines[5]

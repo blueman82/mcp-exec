@@ -495,12 +495,34 @@ class AutoStatusGenerator:
         if activity_indicators:
             activity_source_line = f"Activity source: {' '.join(activity_indicators)}\n"
 
+        # Build human-readable source names for disclaimer
+        source_names = [
+            name for flag, name in (
+                (has_jira_activity, "Jira"),
+                (has_slack_activity, "Slack"),
+                (has_thread_activity, "Slack thread"),
+            ) if flag
+        ]
+
+        if not source_names:
+            disclaimer = "_This is the initial auto-generated summary for this channel. Please review and validate every detail carefully before using it for CFS, ticketing, or any formal communication._"
+        else:
+            source_text = (
+                source_names[0] if len(source_names) == 1
+                else f"{source_names[0]} and {source_names[1]}" if len(source_names) == 2
+                else f"{', '.join(source_names[:-1])}, and {source_names[-1]}"
+            )
+            disclaimer = (
+                f"_This auto-generated summary is based on {source_text} discussions. "
+                f"Please review and validate every detail carefully before using it for CFS, ticketing, or any formal communication._"
+            )
+
         header = (
             f"*Ketchup Automated Status Update*\n"
             f"Channel: <#{channel_id}|{channel_name}>\n"
             f"{activity_source_line}"
             f"Status checked hourly: Updates posted only when activity detected\n"
-            f"Note: This automated status update is a test feature and may not be final.\n"
+            f"{disclaimer}\n"
             f"{'─' * 40}\n\n"
         )
 
