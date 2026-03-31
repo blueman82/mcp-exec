@@ -72,9 +72,8 @@ async def _call_agent(api_key: str, question: str) -> str:
 
     payload = {
         "messages": messages,
-        "max_tokens": 2048,
-        "temperature": 0.3,
-        "top_p": 0.9,
+        "max_completion_tokens": 2048,
+        "reasoning_effort": "medium",
     }
 
     async with aiohttp.ClientSession() as session:
