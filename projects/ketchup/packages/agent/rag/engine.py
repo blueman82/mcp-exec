@@ -53,8 +53,8 @@ class AgentEngine:
         self._max_history = int(
             os.environ.get("KETCHUP_AGENT_MAX_HISTORY_TURNS", str(DEFAULT_MAX_HISTORY))
         )
-        self._temperature = float(
-            os.environ.get("KETCHUP_AGENT_TEMPERATURE", str(DEFAULT_TEMPERATURE))
+        self._reasoning_effort = os.environ.get(
+            "KETCHUP_AGENT_REASONING_EFFORT", DEFAULT_REASONING_EFFORT
         )
         self._max_tokens = int(os.environ.get("KETCHUP_AGENT_MAX_TOKENS", str(DEFAULT_MAX_TOKENS)))
 
