@@ -494,3 +494,25 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 - **March 2026**: ChromaDB decoupled from agent feature flag — new `KETCHUP_CHROMADB_ENABLED` flag allows handover summary to use ChromaDB pre-indexed messages without requiring the full agent chat/RAG stack. Two-tier service registration: chromadb foundation (4 services) + agent chat (8 services).
 - **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
 - **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons, DynamoDB state tracking. ServiceSpec declarative system (-2,600 LOC cleanup).
+<!-- scout-section v=15 chars=2004 hash=499e63201955ae52 -->
+## Code Search
+
+**ALL agents (main conversation AND subagents) MUST use Scout MCP tools for code search and navigation.** Do NOT use Grep or Glob for code search. Use Read only when you already know the exact file and line range.
+
+Required Scout tools — use these by their full MCP names, not Grep/Glob:
+- `mcp__scout__search` — default search (auto-selects keyword/semantic/regex)
+- `mcp__scout__explain_symbol` — understand any symbol (definition + callers + callees in one call)
+- `mcp__scout__find_references` — all usages of a symbol across the codebase
+- `mcp__scout__go_to_definition` — jump to where a symbol is defined
+- `mcp__scout__call_graph` — trace execution flow (callers/callees up to 5 levels)
+- `mcp__scout__impact` — blast radius of changing a symbol (use before any refactor/addition)
+- `mcp__scout__deep_search` — **use first when exploring unfamiliar code** (architectural map + entry points + call graph)
+- `mcp__scout__file_outline` — see all symbols in a file/directory without reading it
+- `mcp__scout__regex_search` — ONLY when you need actual regex syntax (wildcards, character classes, structural patterns). For piped identifiers like `A|B|C`, use `keyword_search` instead
+- `mcp__scout__keyword_search` — exact identifier/symbol lookups (fastest search tool)
+
+**Start with symbol-aware tools — not regex:**
+If you're searching for where a symbol is used, `mcp__scout__find_references` is one call vs. many regex sweeps. If you need to understand a symbol's role, `mcp__scout__explain_symbol` replaces go_to_definition + call_graph + find_references. Do NOT use `regex_search` for plain identifier lookups — `keyword_search` is faster (1 query vs N) and returns ranked results.
+
+**Subagents (Explore, Plan, teammates):** Their default system prompts use Grep/Glob/Bash for code search. When spawning any subagent, restate this rule in the spawn prompt: "Use Scout MCP tools for ALL code search — do NOT use Grep, Glob, or Bash for searching code."
+<!-- /scout-section -->
