@@ -15,7 +15,11 @@ from collections.abc import Callable
 from packages.core.logging import setup_logger
 
 # Import all registration functions from focused modules
-from .agent_services import register_agent_services, register_chromadb_services, register_rca_services
+from .agent_services import (
+    register_agent_services,
+    register_chromadb_services,
+    register_rca_services,
+)
 from .ai_operational import register_ai_operational
 from .command_processing import register_command_processing
 from .core_infrastructure import register_core_infrastructure
@@ -48,6 +52,7 @@ __all__ = [
     "register_csopm_services",
     "register_chromadb_services",
     "register_agent_services",
+    "register_rca_services",
     "register_all_focused_services",
     "register_for_role",
 ]
