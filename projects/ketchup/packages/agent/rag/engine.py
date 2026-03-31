@@ -5,6 +5,7 @@ No re-ranking step, no hybrid scoring. The LLM evaluates relevance from the
 context it receives, including timestamps for temporal reasoning.
 """
 
+import json
 import os
 import re
 import time
