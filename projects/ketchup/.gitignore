@@ -23,3 +23,9 @@ tests/benchmarks/
 docs/plans/
 .mypy_cache/
 logs/
+
+# Presentations
+*.pptx
+CSOPM_Presentation_Transcript.md
+csopm_notification_example.png
+projects/ketchup/claude_md_guide.md
