@@ -310,7 +310,7 @@ class OpenAIHandler(AzureAsyncClient):
     async def execute_prompt(
         self,
         messages: List[Dict[str, str]],
-        temperature: float = 0.1,
+        reasoning_effort: str = "low",
         max_tokens: int = 1000,
     ) -> str:
         """
@@ -321,7 +321,7 @@ class OpenAIHandler(AzureAsyncClient):
 
         Args:
             messages: List of message dicts with 'role' and 'content'
-            temperature: Model temperature setting
+            reasoning_effort: Model reasoning effort setting
             max_tokens: Maximum tokens in response
 
         Returns:
@@ -330,7 +330,7 @@ class OpenAIHandler(AzureAsyncClient):
         logger.info("Executing prompt with OpenAI")
 
         try:
-            normalized_prefs = {"temperature": temperature, "max_tokens": max_tokens}
+            normalized_prefs = {"reasoning_effort": reasoning_effort, "max_tokens": max_tokens}
             response = await self.call_openai_endpoint(
                 messages=messages,
                 normalized_prefs_for_ai=normalized_prefs,
