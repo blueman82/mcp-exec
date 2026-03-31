@@ -430,3 +430,17 @@ class AgentThreadFilterProtocol(Protocol):
     def clear_cache(self, channel_id: Optional[str] = None) -> None:
         """Clear the thread lookup cache."""
         ...
+
+
+# =============================================================================
+# RCA Historian Protocols
+# =============================================================================
+
+
+@runtime_checkable
+class RCAToolExecutorProtocol(Protocol):
+    """Protocol for RCA tool execution."""
+
+    async def execute(self, tool_name: str, arguments: Dict[str, Any]) -> str:
+        """Execute a tool call and return the result string."""
+        ...
