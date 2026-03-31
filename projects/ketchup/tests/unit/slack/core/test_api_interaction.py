@@ -87,11 +87,11 @@ def test_build_openai_payload_with_normalized_prefs(executor: ApiExecutor) -> No
 def test_build_openai_payload_partial_prefs(executor: ApiExecutor) -> None:
     """Test build_openai_payload with partial preferences uses defaults for missing values."""
     messages = [{"role": "user", "content": "foo"}]
-    normalized_prefs = {"temperature": 0.3}  # Only temperature specified
+    normalized_prefs = {"reasoning_effort": "medium"}  # Only reasoning_effort specified
     payload = executor.build_openai_payload(messages, "status", normalized_prefs)
-    assert payload["temperature"] == 0.3
+    assert payload["reasoning_effort"] == "medium"
     assert payload["max_tokens"] == 2048  # Should still get status command default
-    assert payload["top_p"] == 0.9  # Should use default
+    assert "top_p" not in payload
 
 
 @pytest.mark.asyncio
