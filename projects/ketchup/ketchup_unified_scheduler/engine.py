@@ -118,13 +118,9 @@ class UnifiedSchedulerEngine:
 
             # If target time has passed today, schedule for tomorrow
             if now >= target_today:
-                target_today = target_today.replace(day=target_today.day + 1)
-                # Handle month/year rollover using timedelta
                 from datetime import timedelta
 
-                target_today = now.replace(
-                    hour=target_hour, minute=target_minute, second=0, microsecond=0
-                ) + timedelta(days=1)
+                target_today = target_today + timedelta(days=1)
 
             seconds_until = (target_today - now).total_seconds()
             return int(seconds_until)
