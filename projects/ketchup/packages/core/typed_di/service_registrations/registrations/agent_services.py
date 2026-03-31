@@ -399,6 +399,14 @@ def register_rca_services(manager: ServiceRegistrationManager) -> int:
         logger.info("RCA Historian disabled — skipping RCA service registration")
         return 0
 
+    agent_enabled = os.environ.get("KETCHUP_AGENT_ENABLED", "false").lower() == "true"
+    if not agent_enabled:
+        logger.warning(
+            "RCA Historian requires KETCHUP_AGENT_ENABLED=true — skipping. "
+            "The RCA feature extends the agent RAG pipeline (retriever, context builder, engine)."
+        )
+        return 0
+
     from packages.agent.rca.tool_executor import RCAToolExecutor
     from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
         RCAToolExecutorProtocol,
