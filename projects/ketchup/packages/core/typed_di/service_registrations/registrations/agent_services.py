@@ -266,9 +266,9 @@ async def _create_backfill_ingestor(resolver):
 async def _create_rca_tool_executor(resolver):
     """Custom factory for RCAToolExecutor — resolves retriever, MCP client, NewRelic client."""
     from packages.agent.rca.tool_executor import RCAToolExecutor
-    from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+    from packages.core.typed_di.service_registrations.protocols.agent_protocols import (  # noqa: F401 — imported for type reference
         AgentRetrieverProtocol,
-        RCAToolExecutorProtocol,  # noqa: F401 — imported for type reference
+        RCAToolExecutorProtocol,
     )
     from packages.core.typed_di.service_registrations.protocols.mcp_protocols import (
         MCPAsyncClientProtocol,
@@ -399,6 +399,10 @@ def register_rca_services(manager: ServiceRegistrationManager) -> int:
         logger.info("RCA Historian disabled — skipping RCA service registration")
         return 0
 
+    from packages.agent.rca.tool_executor import RCAToolExecutor
+    from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+        RCAToolExecutorProtocol,
+    )
     from packages.core.typed_di.service_registrations.protocols.monitoring_protocols import (
         NewRelicClientProtocol,
     )
@@ -410,6 +414,12 @@ def register_rca_services(manager: ServiceRegistrationManager) -> int:
             concrete=AsyncNewRelicClient,
             deps={},
             factory=_create_newrelic_client,
+        ),
+        ServiceSpec(
+            protocol=RCAToolExecutorProtocol,
+            concrete=RCAToolExecutor,
+            deps={},
+            factory=_create_rca_tool_executor,
         ),
     ]
 
