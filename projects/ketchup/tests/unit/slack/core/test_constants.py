@@ -29,6 +29,6 @@ def test_constants_defaults() -> None:
     assert isinstance(c.DYNAMODB_TABLE_NAME, str) and len(c.DYNAMODB_TABLE_NAME) > 0
     assert isinstance(c.AWS_SECRET_NAME, str) and len(c.AWS_SECRET_NAME) > 0
     # These constants are not environment-dependent
-    assert c.OPENAI_API_VERSION == "2025-01-01-preview"
+    assert c.OPENAI_API_VERSION == "2024-12-01-preview"
     assert c.SLACK_API_TIMEOUT.total == 120
     assert c.MAX_RETRIES == 10
