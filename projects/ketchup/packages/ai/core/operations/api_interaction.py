@@ -52,6 +52,7 @@ class ApiExecutor:
         messages: List[Dict[str, str]],
         combined_command: Optional[str],
         normalized_prefs: Optional[Dict[str, Any]] = None,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """
         Builds the payload for the OpenAI API request.
@@ -59,14 +60,15 @@ class ApiExecutor:
         Args:
             messages: The list of message objects for the API.
             combined_command: The command string to determine token limits.
-            normalized_prefs: Optional preferences including temperature and max_tokens.
+            normalized_prefs: Optional preferences including reasoning_effort and max_tokens.
+            tools: Optional list of tool definitions to include in the payload.
 
         Returns:
             The payload dictionary.
         """
         # Extract preferences with defaults
         prefs = normalized_prefs or {}
-        temperature = prefs.get("temperature", 0.1)  # Default to 0.1 if not specified
+        reasoning_effort = prefs.get("reasoning_effort", "low")
 
         # Determine max_tokens based on command or preferences
         if "max_tokens" in prefs:
@@ -79,8 +81,7 @@ class ApiExecutor:
         payload = {
             "messages": messages,
             "max_completion_tokens": max_tokens,
-            "temperature": temperature,
-            "top_p": prefs.get("top_p", 0.9),
+            "reasoning_effort": reasoning_effort,
         }
 
         # Add JSON mode when feature flag enabled
