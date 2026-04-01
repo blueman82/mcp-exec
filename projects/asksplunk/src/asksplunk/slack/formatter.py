@@ -62,7 +62,7 @@ def format_final_query(
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": "✓ You can ask follow-up questions in this thread, or start a new thread for a different topic.",
+                    "text": "✓ You can ask follow-up questions in this thread. Session expires after 30 minutes of inactivity.",
                 }
             ],
         },
