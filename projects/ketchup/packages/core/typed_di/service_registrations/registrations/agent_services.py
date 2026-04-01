@@ -16,6 +16,7 @@ Layer 2 - Agent Chat/RAG (gated by KETCHUP_AGENT_ENABLED):
 
 Layer 3 - RCA Historian (gated by KETCHUP_RCA_HISTORIAN_ENABLED, requires KETCHUP_AGENT_ENABLED):
 - New Relic client, RCA tool executor (incident investigation tools)
+- JIRA bulk indexer (pre-indexes all project tickets for RCA queries)
 
 The two-tier split allows features like handover summaries to use
 ChromaDB foundation services independently of the agent chat feature.
@@ -30,6 +31,7 @@ from packages.agent.embeddings.azure_embeddings_client import AzureEmbeddingsCli
 from packages.agent.embeddings.vector_store import ChromaVectorStore
 from packages.agent.ingestion.backfill_ingestor import BackfillIngestor
 from packages.agent.ingestion.jira_backfill import JiraBackfillIngestor
+from packages.agent.ingestion.jira_bulk_indexer import JiraBulkIndexer
 from packages.agent.ingestion.realtime_ingestor import RealtimeIngestor
 
 # Concrete implementations — Agent prompts
@@ -74,6 +76,7 @@ from packages.core.typed_di.service_registrations.protocols import (
     SlackPostingHandlerProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
+    JiraBulkIndexerProtocol,
     RCAToolExecutorProtocol,
 )
 from packages.core.typed_di.service_registrations.protocols.ai_protocols import (
@@ -386,7 +389,7 @@ def register_rca_services(manager: ServiceRegistrationManager) -> int:
     Requires KETCHUP_AGENT_ENABLED=true because the RCA feature extends
     the agent RAG pipeline (retriever, context builder, engine).
 
-    Registers: NewRelicClient, RCAToolExecutor
+    Registers: NewRelicClient, RCAToolExecutor, JiraBulkIndexer
 
     Args:
         manager: The ServiceRegistrationManager instance.
@@ -420,6 +423,15 @@ def register_rca_services(manager: ServiceRegistrationManager) -> int:
             concrete=RCAToolExecutor,
             deps={},
             factory=_create_rca_tool_executor,
+        ),
+        ServiceSpec(
+            protocol=JiraBulkIndexerProtocol,
+            concrete=JiraBulkIndexer,
+            deps={
+                "embeddings_client": AgentEmbeddingsClientProtocol,
+                "vector_store": AgentVectorStoreProtocol,
+                "mcp_client": MCPAsyncClientProtocol,
+            },
         ),
     ]
 

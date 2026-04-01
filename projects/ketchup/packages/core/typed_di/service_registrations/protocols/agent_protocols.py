@@ -33,6 +33,7 @@ __all__ = [
     "AgentSlackHandlerProtocol",
     "AgentThreadManagerProtocol",
     "AgentThreadFilterProtocol",
+    "JiraBulkIndexerProtocol",
     "RCAToolExecutorProtocol",
 ]
 
@@ -429,6 +430,24 @@ class AgentThreadFilterProtocol(Protocol):
 
     def clear_cache(self, channel_id: Optional[str] = None) -> None:
         """Clear the thread lookup cache."""
+        ...
+
+
+# =============================================================================
+# Bulk Indexing Protocols
+# =============================================================================
+
+
+@runtime_checkable
+class JiraBulkIndexerProtocol(Protocol):
+    """Protocol for bulk-indexing JIRA tickets across all projects into the vector store."""
+
+    async def index_all_projects(self) -> Dict[str, Any]:
+        """Embed and store JIRA tickets from all configured projects.
+
+        Returns:
+            Summary dict with keys such as total_indexed, errors, projects_processed.
+        """
         ...
 
 

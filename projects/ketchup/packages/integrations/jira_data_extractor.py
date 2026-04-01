@@ -186,7 +186,17 @@ class JIRADataExtractor:
                 comments = await self.mcp_client.get_issue_comments(ticket_id)
 
                 # Filter out bot comments
-                bot_users = ["jiradydx", "monserv", "jarvis"]
+                bot_users = [
+                    "jiradydx",
+                    "jira dynamics dx",
+                    "monserv",
+                    "jarvis",
+                    "jarvis automation",
+                    "snowjira",
+                    "jira project auto-assigner",
+                    "agent nexus jira prod user",
+                    "ketchup",
+                ]
                 filtered_comments = []
 
                 for comment in comments:
@@ -300,7 +310,17 @@ class JIRADataExtractor:
                             comments = await self.mcp_client.get_issue_comments(ticket_id)
 
                             # Filter out bot comments
-                            bot_users = ["jiradydx", "monserv", "jarvis"]
+                            bot_users = [
+                                "jiradydx",
+                                "jira dynamics dx",
+                                "monserv",
+                                "jarvis",
+                                "jarvis automation",
+                                "snowjira",
+                                "jira project auto-assigner",
+                                "agent nexus jira prod user",
+                                "ketchup",
+                            ]
                             filtered_comments = []
 
                             for comment in comments:

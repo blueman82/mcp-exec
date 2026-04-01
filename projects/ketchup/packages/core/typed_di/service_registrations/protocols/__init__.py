@@ -26,6 +26,7 @@ from .agent_protocols import (
     AgentThreadFilterProtocol,
     AgentThreadManagerProtocol,
     AgentVectorStoreProtocol,
+    JiraBulkIndexerProtocol,
 )
 from .ai_protocols import (
     ApiExecutorProtocol,
@@ -345,6 +346,7 @@ __all__ = [
     "AgentSlackHandlerProtocol",
     "AgentThreadManagerProtocol",
     "AgentThreadFilterProtocol",
+    "JiraBulkIndexerProtocol",
     # CSOPM notifier protocols (data classes)
     "CSOPMTicket",
     "NotificationRecord",

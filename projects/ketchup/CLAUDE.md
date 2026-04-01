@@ -326,6 +326,8 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
 - `KETCHUP_RCA_HISTORIAN_ENABLED=false` - RCA Historian tool-calling agent (**requires** `KETCHUP_AGENT_ENABLED=true`)
+- `KETCHUP_JIRA_INDEX_MONTHS=6` - Lookback window in months for JIRA bulk indexer (default 6)
+- `KETCHUP_JIRA_INDEX_MONTHS_CSOPM=12` - CSOPM-specific override for JIRA bulk indexer lookback (default 12)
 
 **Source of Truth**: Always check `infrastructure/docker-compose.yml` for current feature flag states.
 
