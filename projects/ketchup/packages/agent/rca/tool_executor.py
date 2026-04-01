@@ -1,7 +1,10 @@
 """RCA Historian tool executor — routes tool_calls to service clients."""
 
+from __future__ import annotations
+
 import json
-from typing import Any, Dict
+from collections.abc import Callable
+from typing import Any
 
 from packages.core.logging import setup_logger
 
@@ -13,7 +16,7 @@ RCA_TOOL_RESULT_MAX_CHARS = 2_000
 class RCAToolExecutor:
     """Executes RCA tool calls by routing to the appropriate service client."""
 
-    def __init__(self, retriever, mcp_client, newrelic_client):
+    def __init__(self, retriever: Any, mcp_client: Any, newrelic_client: Any) -> None:
         """
         Args:
             retriever: AgentRetriever for cross-channel ChromaDB search.
@@ -23,8 +26,14 @@ class RCAToolExecutor:
         self._retriever = retriever
         self._mcp_client = mcp_client
         self._newrelic_client = newrelic_client
+        self._dispatch_table: dict[str, Callable[..., Any]] = {
+            "search_similar_incidents": self._search_similar_incidents,
+            "search_jira_history": self._search_jira_history,
+            "query_instance_health": self._query_instance_health,
+            "get_active_alerts": self._get_active_alerts,
+        }
 
-    async def execute(self, tool_name: str, arguments: Dict[str, Any]) -> str:
+    async def execute(self, tool_name: str, arguments: dict[str, Any]) -> str:
         """Execute a tool call and return the result as a string.
 
         Args:
@@ -47,23 +56,22 @@ class RCAToolExecutor:
 
         return result_str
 
-    async def _dispatch(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
+    async def _dispatch(self, tool_name: str, arguments: dict[str, Any]) -> Any:
         """Route a tool call to the correct client."""
-        if tool_name == "search_similar_incidents":
-            query = arguments["query"]
-            # Cross-channel search: channel_id=None omits the where filter
-            return await self._retriever.retrieve(query=query, channel_id=None)
-
-        elif tool_name == "search_jira_history":
-            jql = arguments["jql"]
-            return await self._mcp_client.search_issues(jql=jql)
-
-        elif tool_name == "query_instance_health":
-            nrql = arguments["nrql"]
-            return await self._newrelic_client.execute_nrql(nrql=nrql)
-
-        elif tool_name == "get_active_alerts":
-            return await self._newrelic_client.get_active_alerts()
-
-        else:
+        handler = self._dispatch_table.get(tool_name)
+        if not handler:
             raise ValueError(f"Unknown RCA tool: {tool_name}")
+        return await handler(arguments)
+
+    async def _search_similar_incidents(self, arguments: dict[str, Any]) -> Any:
+        # Cross-channel search: channel_id=None omits the where filter
+        return await self._retriever.retrieve(query=arguments["query"], channel_id=None)
+
+    async def _search_jira_history(self, arguments: dict[str, Any]) -> Any:
+        return await self._mcp_client.search_issues(jql=arguments["jql"])
+
+    async def _query_instance_health(self, arguments: dict[str, Any]) -> Any:
+        return await self._newrelic_client.execute_nrql(nrql=arguments["nrql"])
+
+    async def _get_active_alerts(self, arguments: dict[str, Any]) -> Any:
+        return await self._newrelic_client.get_active_alerts()
