@@ -47,7 +47,11 @@ env/
 .claude/*
 !.claude/skills/
 !.claude/commands/
-projects/asksplunk/.claude/
+
+# AskSplunk: share full .claude/ config (rules, hooks, agents, skills, settings)
+!projects/asksplunk/.claude/
+# But ignore personal overrides
+projects/asksplunk/.claude/settings.local.json
 
 # Node
 node_modules/

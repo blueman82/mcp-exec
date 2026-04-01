@@ -80,3 +80,4 @@ docs/*
 # Negative excursion: ignore plans directory (local-only notes)
 docs/plans/
 .serena/
+.playwright-mcp/
