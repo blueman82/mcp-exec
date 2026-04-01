@@ -68,6 +68,27 @@ class AgentEngine:
         )
         self._max_tokens = int(os.environ.get("KETCHUP_AGENT_MAX_TOKENS", str(DEFAULT_MAX_TOKENS)))
 
+    async def _execute_tool_calls(
+        self,
+        tool_calls: list[dict[str, Any]],
+    ) -> list[dict[str, str]]:
+        """Execute tool calls in parallel and return tool messages."""
+
+        async def _run_one(tc: dict[str, Any]) -> dict[str, str]:
+            fn = tc["function"]
+            try:
+                arguments = json.loads(fn["arguments"])
+            except (json.JSONDecodeError, KeyError):
+                arguments = {}
+            result_str = await self._tool_executor.execute(fn["name"], arguments)
+            return {
+                "role": "tool",
+                "tool_call_id": tc["id"],
+                "content": result_str,
+            }
+
+        return list(await asyncio.gather(*[_run_one(tc) for tc in tool_calls]))
+
     async def answer(
         self,
         question: str,
@@ -148,46 +169,24 @@ class AgentEngine:
         )
 
         # Tool-calling loop (for RCA Historian mode)
-        iteration = 0
-        while self._tools and self._tool_executor and iteration < RCA_MAX_ITERATIONS:
-            choices = response_data.get("choices", [])
-            if not choices:
+        for _ in range(RCA_MAX_ITERATIONS):
+            if not (self._tools and self._tool_executor):
                 break
 
-            message = choices[0].get("message", {})
-            tool_calls = message.get("tool_calls")
-
-            if not tool_calls:
-                break  # No tool calls — model is done, extract response normally
+            message = _extract_message(response_data)
+            if not message or not message.get("tool_calls"):
+                break
 
             logger.info(
                 "RCA iteration %d: %d tool calls",
-                iteration + 1,
-                len(tool_calls),
+                _ + 1,
+                len(message["tool_calls"]),
             )
 
-            # Append assistant message with tool_calls to conversation
             messages.append(message)
+            tool_results = await self._execute_tool_calls(message["tool_calls"])
+            messages.extend(tool_results)
 
-            # Execute each tool call and append results
-            for tc in tool_calls:
-                fn = tc["function"]
-                tool_name = fn["name"]
-                try:
-                    arguments = json.loads(fn["arguments"])
-                except json.JSONDecodeError:
-                    arguments = {}
-
-                result_str = await self._tool_executor.execute(tool_name, arguments)
-                messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tc["id"],
-                        "content": result_str,
-                    }
-                )
-
-            # Rebuild payload with updated messages and call again
             payload["messages"] = messages
             response_data = await self._api_executor.execute_request(
                 payload=payload,
@@ -195,13 +194,10 @@ class AgentEngine:
                 user_id=user_id,
                 incoming_channel=channel_id,
             )
-            iteration += 1
 
         # Extract response text (works for both single-turn and multi-turn)
-        response_text = ""
-        choices = response_data.get("choices", [])
-        if choices:
-            response_text = choices[0].get("message", {}).get("content", "")
+        final_message = _extract_message(response_data)
+        response_text = (final_message or {}).get("content", "")
 
         # Extract from JSON wrapper when structured output is enabled
         if response_text and FeatureFlags.is_structured_json_output_enabled():
@@ -249,6 +245,14 @@ class AgentEngine:
         )
 
         return _linkify_jira_tickets(response_text)
+
+
+def _extract_message(response_data: dict[str, Any]) -> dict[str, Any] | None:
+    """Extract the first message from an OpenAI response, or None."""
+    choices = response_data.get("choices", [])
+    if not choices:
+        return None
+    return choices[0].get("message")
 
 
 # Valid JIRA project prefixes used across Ketchup
