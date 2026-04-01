@@ -240,3 +240,105 @@ class TestSessionManager:
 
         assert session["thread_id"] == "thread-123"
         mock_dynamodb_table.put_item.assert_called_once()
+
+
+class TestConversationHistory:
+    """Test conversation history management for multi-turn support."""
+
+    @pytest.fixture
+    def mock_dynamodb_table(self):
+        """Mock aioboto3 DynamoDB table resource."""
+        table = AsyncMock()
+        table.put_item = AsyncMock()
+        table.get_item = AsyncMock(return_value={"Item": {}})
+        table.update_item = AsyncMock()
+        table.delete_item = AsyncMock()
+        return table
+
+    @pytest.mark.asyncio
+    async def test_create_session_initializes_empty_conversation_history(self, mock_dynamodb_table):
+        """create_session should include an empty conversation_history list."""
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            session = await manager.create_session("thread-123", "U123", "C456", "test question")
+
+        assert "conversation_history" in session
+        assert session["conversation_history"] == []
+
+    @pytest.mark.asyncio
+    async def test_append_history_adds_entry(self, mock_dynamodb_table):
+        """append_history should atomically append an entry to conversation_history."""
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            await manager.append_history("thread-123", "user", "show me bounces")
+
+        mock_dynamodb_table.update_item.assert_called_once()
+        call_args = mock_dynamodb_table.update_item.call_args[1]
+        assert "list_append" in call_args["UpdateExpression"]
+
+    @pytest.mark.asyncio
+    async def test_append_history_preserves_existing_entries(self, mock_dynamodb_table):
+        """append_history should append without overwriting existing history."""
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            await manager.append_history("thread-123", "user", "first message")
+            await manager.append_history("thread-123", "assistant", "first response")
+
+        assert mock_dynamodb_table.update_item.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_get_history_returns_empty_for_new_session(self, mock_dynamodb_table):
+        """get_history should return empty list when session has no history."""
+        mock_dynamodb_table.get_item = AsyncMock(
+            return_value={"Item": {"thread_id": "thread-123", "conversation_history": []}}
+        )
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            history = await manager.get_history("thread-123")
+
+        assert history == []
+
+    @pytest.mark.asyncio
+    async def test_get_history_returns_existing_entries(self, mock_dynamodb_table):
+        """get_history should return conversation_history from session."""
+        entries = [
+            {"role": "user", "content": "show me bounces"},
+            {"role": "assistant", "content": "Generated SPL: index=campaign_prod"},
+        ]
+        mock_dynamodb_table.get_item = AsyncMock(
+            return_value={"Item": {"thread_id": "thread-123", "conversation_history": entries}}
+        )
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            history = await manager.get_history("thread-123")
+
+        assert len(history) == 2
+        assert history[0]["role"] == "user"
+        assert history[1]["role"] == "assistant"
+
+    @pytest.mark.asyncio
+    async def test_get_history_returns_empty_for_missing_field(self, mock_dynamodb_table):
+        """get_history should return [] if conversation_history field is absent."""
+        mock_dynamodb_table.get_item = AsyncMock(return_value={"Item": {"thread_id": "thread-123"}})
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            history = await manager.get_history("thread-123")
+
+        assert history == []
+
+    @pytest.mark.asyncio
+    async def test_get_history_returns_empty_for_nonexistent_session(self, mock_dynamodb_table):
+        """get_history should return [] if session doesn't exist."""
+        mock_dynamodb_table.get_item = AsyncMock(return_value={})
+        manager = SessionManager(table=mock_dynamodb_table)
+
+        async with manager:
+            history = await manager.get_history("nonexistent")
+
+        assert history == []

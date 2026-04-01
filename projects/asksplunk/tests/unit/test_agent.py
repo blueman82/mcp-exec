@@ -327,6 +327,7 @@ class TestSingleShotQueryGeneration:
         # Arrange
         retriever = MagicMock()
         session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
 
         openai_client = MagicMock()
 
@@ -380,7 +381,7 @@ class TestSingleShotQueryGeneration:
 
         # Assert
         assert result["action"] == "query_generated"
-        assert result["state"] == "COMPLETE"
+        assert result["state"] == "EVALUATE"
         assert "content" in result
         assert result["content"]["spl_query"] == "index=campaign_prod failureType=* earliest=-24h"
         assert result["content"]["plain_explanation"] == "Shows email failures in last 24 hours"
@@ -686,6 +687,7 @@ class TestMultiTurnConversation:
 
         session_manager = MagicMock()
         session_manager.update_session = AsyncMock()
+        session_manager.append_history = AsyncMock()
         session_manager.get_session = AsyncMock(
             return_value={
                 "thread_id": "thread-123",
@@ -885,6 +887,7 @@ class TestMultiTurnConversation:
 
         session_manager = MagicMock()
         session_manager.update_session = AsyncMock()
+        session_manager.append_history = AsyncMock()
         session_manager.get_session = AsyncMock(
             return_value={
                 "thread_id": "thread-123",
@@ -946,7 +949,7 @@ class TestMultiTurnConversation:
 
         # Assert - Should generate query after clarification
         assert result["action"] == "query_generated"
-        assert result["state"] == "COMPLETE"
+        assert result["state"] == "EVALUATE"
         assert "content" in result
         assert result["content"]["spl_query"] == "index=campaign_prod errorType=*"
 
@@ -1016,6 +1019,7 @@ class TestMultiTurnConversation:
 
         session_manager = MagicMock()
         session_manager.update_session = AsyncMock()
+        session_manager.append_history = AsyncMock()
         # Return updated session after refinement
         session_manager.get_session = AsyncMock(
             return_value={
@@ -1119,7 +1123,7 @@ class TestMultiTurnConversation:
 
         # Assert Step 2: Should generate query after clarification
         assert result2["action"] == "query_generated"
-        assert result2["state"] == "COMPLETE"
+        assert result2["state"] == "EVALUATE"
         assert "mta_log" in result2["content"]["spl_query"]
 
         # Verify flow: 1 retrieval (during _handle_wait refinement)
@@ -1152,6 +1156,7 @@ class TestConfidenceEvaluation:
         # Arrange
         retriever = MagicMock()
         session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
 
         openai_client = MagicMock()
 
@@ -1204,7 +1209,7 @@ class TestConfidenceEvaluation:
 
         # Assert
         assert result["action"] == "query_generated"
-        assert result["state"] == "COMPLETE"
+        assert result["state"] == "EVALUATE"
         assert result["content"]["spl_query"] == "index=campaign_prod failureType=*"
         assert openai_client.chat.completions.create.call_count == 2
 
@@ -1317,6 +1322,7 @@ class TestConfidenceEvaluation:
         # Arrange
         retriever = MagicMock()
         session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
 
         openai_client = MagicMock()
 
@@ -1368,7 +1374,7 @@ class TestConfidenceEvaluation:
 
         # Assert
         assert result["action"] == "query_generated"
-        assert result["state"] == "COMPLETE"
+        assert result["state"] == "EVALUATE"
 
     @pytest.mark.asyncio
     async def test_confidence_threshold_boundary_50(self):
@@ -1772,3 +1778,371 @@ class TestSurveyIntentDetection:
 
         assert result["action"] == "blocked"
         assert "not configured" in result["content"]["message"]
+
+
+class TestHistoryAccumulation:
+    """Test Phase 2: History accumulation and message building."""
+
+    @pytest.mark.asyncio
+    async def test_build_messages_with_empty_history(self):
+        """_build_messages_with_history with no history returns [system, user]."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        session = {"conversation_history": []}
+        messages = agent._build_messages_with_history(
+            session, "You are an expert.", "show me bounces"
+        )
+
+        assert len(messages) == 2
+        assert messages[0]["role"] == "system"
+        assert messages[0]["content"] == "You are an expert."
+        assert messages[1]["role"] == "user"
+        assert "show me bounces" in messages[1]["content"]
+
+    @pytest.mark.asyncio
+    async def test_build_messages_with_prior_turns(self):
+        """_build_messages_with_history with history returns [system, hist..., user]."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        session = {
+            "conversation_history": [
+                {"role": "user", "content": "show me bounces"},
+                {"role": "assistant", "content": "Generated SPL: index=campaign_prod"},
+            ]
+        }
+        messages = agent._build_messages_with_history(
+            session, "You are an expert.", "add a time filter"
+        )
+
+        assert len(messages) == 4
+        assert messages[0]["role"] == "system"
+        assert messages[1]["role"] == "user"
+        assert messages[1]["content"] == "show me bounces"
+        assert messages[2]["role"] == "assistant"
+        assert messages[2]["content"] == "Generated SPL: index=campaign_prod"
+        assert messages[3]["role"] == "user"
+        assert "add a time filter" in messages[3]["content"]
+
+    @pytest.mark.asyncio
+    async def test_evaluate_appends_user_message_to_history(self):
+        """_handle_evaluate should append user's question to conversation_history."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
+
+        openai_client = MagicMock()
+        # Mock high confidence → query generation
+        mock_assess_function = MagicMock()
+        mock_assess_function.name = "assess_confidence"
+        mock_assess_function.arguments = '{"confidence": 95}'
+        mock_assess_call = MagicMock()
+        mock_assess_call.function = mock_assess_function
+        mock_assess_message = MagicMock()
+        mock_assess_message.tool_calls = [mock_assess_call]
+        mock_assess_choice = MagicMock()
+        mock_assess_choice.message = mock_assess_message
+
+        mock_gen_function = MagicMock()
+        mock_gen_function.name = "generate_spl_query"
+        mock_gen_function.arguments = '{"spl_query": "index=campaign_prod", "plain_explanation": "Test", "technical_explanation": "Test"}'
+        mock_gen_call = MagicMock()
+        mock_gen_call.function = mock_gen_function
+        mock_gen_message = MagicMock()
+        mock_gen_message.tool_calls = [mock_gen_call]
+        mock_gen_choice = MagicMock()
+        mock_gen_choice.message = mock_gen_message
+
+        openai_client.chat.completions.create = AsyncMock(
+            side_effect=[
+                MagicMock(choices=[mock_assess_choice]),
+                MagicMock(choices=[mock_gen_choice]),
+            ]
+        )
+
+        agent = Agent(retriever, session_manager, openai_client)
+
+        session = {
+            "thread_id": "thread-123",
+            "original_question": "show me failures",
+            "retrieved_docs": [{"content": "Field: failureType", "score": 0.9}],
+            "conversation_history": [],
+        }
+
+        await agent._handle_evaluate(session)
+
+        # Verify user message was appended
+        append_calls = session_manager.append_history.call_args_list
+        user_calls = [c for c in append_calls if c[0][1] == "user"]
+        assert len(user_calls) >= 1
+        assert user_calls[0][0][2] == "show me failures"
+
+    @pytest.mark.asyncio
+    async def test_generate_query_appends_spl_to_history(self):
+        """_generate_query should append generated SPL to conversation_history."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
+
+        openai_client = MagicMock()
+        mock_gen_function = MagicMock()
+        mock_gen_function.name = "generate_spl_query"
+        mock_gen_function.arguments = '{"spl_query": "index=campaign_prod failureType=*", "plain_explanation": "Shows failures", "technical_explanation": "Test"}'
+        mock_gen_call = MagicMock()
+        mock_gen_call.function = mock_gen_function
+        mock_gen_message = MagicMock()
+        mock_gen_message.tool_calls = [mock_gen_call]
+        mock_gen_choice = MagicMock()
+        mock_gen_choice.message = mock_gen_message
+
+        openai_client.chat.completions.create = AsyncMock(
+            return_value=MagicMock(choices=[mock_gen_choice])
+        )
+
+        agent = Agent(retriever, session_manager, openai_client)
+
+        session = {
+            "thread_id": "thread-123",
+            "original_question": "show me failures",
+            "retrieved_docs": [{"content": "Field: failureType", "score": 0.9}],
+            "conversation_history": [],
+        }
+        context = "Field: failureType"
+
+        await agent._generate_query(session, context)
+
+        # Verify assistant (SPL) was appended
+        append_calls = session_manager.append_history.call_args_list
+        assistant_calls = [c for c in append_calls if c[0][1] == "assistant"]
+        assert len(assistant_calls) >= 1
+        assert "index=campaign_prod failureType=*" in assistant_calls[0][0][2]
+
+    @pytest.mark.asyncio
+    async def test_second_turn_includes_first_turn_context(self):
+        """On second turn, GPT messages should include first turn's history."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
+
+        openai_client = MagicMock()
+        mock_gen_function = MagicMock()
+        mock_gen_function.name = "generate_spl_query"
+        mock_gen_function.arguments = '{"spl_query": "index=campaign_prod failureType=* earliest=-1h", "plain_explanation": "Test", "technical_explanation": "Test"}'
+        mock_gen_call = MagicMock()
+        mock_gen_call.function = mock_gen_function
+        mock_gen_message = MagicMock()
+        mock_gen_message.tool_calls = [mock_gen_call]
+        mock_gen_choice = MagicMock()
+        mock_gen_choice.message = mock_gen_message
+
+        openai_client.chat.completions.create = AsyncMock(
+            return_value=MagicMock(choices=[mock_gen_choice])
+        )
+
+        agent = Agent(retriever, session_manager, openai_client)
+
+        # Second turn: session already has history from first turn
+        session = {
+            "thread_id": "thread-123",
+            "original_question": "add a time filter to that",
+            "retrieved_docs": [{"content": "Field: failureType", "score": 0.9}],
+            "conversation_history": [
+                {"role": "user", "content": "show me failures"},
+                {
+                    "role": "assistant",
+                    "content": "Generated SPL: index=campaign_prod failureType=*",
+                },
+            ],
+        }
+        context = "Field: failureType"
+
+        await agent._generate_query(session, context)
+
+        # Verify GPT was called with messages including history
+        call_args = openai_client.chat.completions.create.call_args
+        messages = call_args[1]["messages"]
+        assert len(messages) == 4  # system + 2 history + current user
+        assert messages[1]["role"] == "user"
+        assert messages[1]["content"] == "show me failures"
+        assert messages[2]["role"] == "assistant"
+        assert "index=campaign_prod failureType=*" in messages[2]["content"]
+
+
+class TestSlidingWindowAndPrompts:
+    """Test Phase 3: Sliding window, system prompt updates, TTL handling."""
+
+    def test_sliding_window_caps_at_10_turns(self):
+        """With 12 turns in history, messages should only contain last 10 turns."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        # 12 turns = 24 entries
+        history = []
+        for i in range(12):
+            history.append({"role": "user", "content": f"question {i}"})
+            history.append({"role": "assistant", "content": f"answer {i}"})
+
+        session = {"conversation_history": history}
+        messages = agent._build_messages_with_history(session, "system", "current question")
+
+        # system + 20 history entries (10 turns) + current user = 22
+        assert len(messages) == 22
+        # Oldest entries should be dropped (turns 0 and 1)
+        assert messages[1]["content"] == "question 2"
+
+    def test_sliding_window_preserves_order(self):
+        """Sliding window should keep newest entries, drop oldest."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        history = []
+        for i in range(15):
+            history.append({"role": "user", "content": f"q{i}"})
+            history.append({"role": "assistant", "content": f"a{i}"})
+
+        session = {"conversation_history": history}
+        messages = agent._build_messages_with_history(session, "system", "current")
+
+        # First history entry should be from turn 5 (dropped turns 0-4)
+        assert messages[1]["content"] == "q5"
+        # Last history entry should be from turn 14
+        assert messages[-2]["content"] == "a14"
+
+    def test_under_limit_keeps_all(self):
+        """With 5 turns, all entries should be kept."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        history = []
+        for i in range(5):
+            history.append({"role": "user", "content": f"q{i}"})
+            history.append({"role": "assistant", "content": f"a{i}"})
+
+        session = {"conversation_history": history}
+        messages = agent._build_messages_with_history(session, "system", "current")
+
+        # system + 10 history entries + current user = 12
+        assert len(messages) == 12
+
+    def test_system_prompt_contains_refinement_instruction(self):
+        """Both confidence and query prompts should mention refinement/follow-up."""
+        agent = Agent(MagicMock(), MagicMock(), MagicMock())
+
+        confidence_prompt = agent._get_confidence_system_prompt()
+        query_prompt = agent._get_query_generation_system_prompt()
+
+        assert "refine" in confidence_prompt.lower() or "follow" in confidence_prompt.lower()
+        assert "refine" in query_prompt.lower() or "follow" in query_prompt.lower()
+
+    @pytest.mark.asyncio
+    async def test_expired_session_creates_new(self):
+        """Session with TTL in the past should be treated as expired and recreated."""
+        import time
+
+        retriever = MagicMock()
+        retriever.retrieve = AsyncMock(return_value=[{"content": "doc", "relevance_score": 0.9}])
+
+        session_manager = MagicMock()
+        expired_session = {
+            "thread_id": "thread-123",
+            "agent_state": "EVALUATE",
+            "ttl": int(time.time()) - 3600,  # 1 hour ago = expired
+        }
+        new_session = {
+            "thread_id": "thread-123",
+            "agent_state": "EVALUATE",
+            "original_question": "test",
+            "conversation_history": [],
+            "retrieved_docs": [{"content": "doc"}],
+        }
+        # Call sequence: get_session (expired) → get_session (after init refresh)
+        session_manager.get_session = AsyncMock(side_effect=[expired_session, new_session])
+        session_manager.delete_session = AsyncMock()
+        session_manager.create_session = AsyncMock(
+            return_value={
+                "thread_id": "thread-123",
+                "agent_state": "INITIALIZE",
+                "conversation_history": [],
+            }
+        )
+        session_manager.update_session = AsyncMock()
+        session_manager.append_history = AsyncMock()
+
+        openai_client = MagicMock()
+        mock_choice = MagicMock()
+        mock_choice.message.tool_calls = None
+        openai_client.chat.completions.create = AsyncMock(
+            return_value=MagicMock(choices=[mock_choice])
+        )
+
+        agent = Agent(retriever, session_manager, openai_client)
+
+        await agent.process_question("test", "thread-123", "U123", "C456")
+
+        # Should have deleted the expired session and created a new one
+        session_manager.delete_session.assert_called_once_with("thread-123")
+        session_manager.create_session.assert_called_once()
+
+
+class TestMultiTurnStateLifecycle:
+    """Test Phase 1: State lifecycle changes for multi-turn conversation support."""
+
+    @pytest.mark.asyncio
+    async def test_generate_query_returns_evaluate_state(self):
+        """_generate_query should return EVALUATE state instead of COMPLETE for multi-turn."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        session_manager.append_history = AsyncMock()
+
+        openai_client = MagicMock()
+        mock_gen_function = MagicMock()
+        mock_gen_function.name = "generate_spl_query"
+        mock_gen_function.arguments = '{"spl_query": "index=campaign_prod failureType=*", "plain_explanation": "Shows failures", "technical_explanation": "(Uses failureType)"}'
+
+        mock_gen_call = MagicMock()
+        mock_gen_call.function = mock_gen_function
+
+        mock_gen_message = MagicMock()
+        mock_gen_message.tool_calls = [mock_gen_call]
+
+        mock_gen_choice = MagicMock()
+        mock_gen_choice.message = mock_gen_message
+
+        openai_client.chat.completions.create = AsyncMock(
+            return_value=MagicMock(choices=[mock_gen_choice])
+        )
+
+        agent = Agent(retriever, session_manager, openai_client)
+
+        session = {
+            "thread_id": "thread-123",
+            "original_question": "show me failures",
+            "retrieved_docs": [{"content": "Field: failureType", "score": 0.9}],
+        }
+        context = "Field: failureType"
+
+        result = await agent._generate_query(session, context)
+
+        assert result["action"] == "query_generated"
+        assert result["state"] == "EVALUATE"
+
+    @pytest.mark.asyncio
+    async def test_handle_complete_resets_to_evaluate_not_delete(self):
+        """_handle_complete should reset session to EVALUATE instead of deleting."""
+        retriever = MagicMock()
+        session_manager = MagicMock()
+        session_manager.update_session = AsyncMock(
+            return_value={"thread_id": "thread-123", "agent_state": "EVALUATE"}
+        )
+        session_manager.delete_session = AsyncMock()
+
+        agent = Agent(retriever, session_manager, MagicMock())
+
+        session = {"thread_id": "thread-123", "agent_state": "COMPLETE"}
+
+        result = await agent._handle_complete(session)
+
+        # Should NOT delete session
+        session_manager.delete_session.assert_not_called()
+        # Should update session to EVALUATE state
+        session_manager.update_session.assert_called_once()
+        update_args = session_manager.update_session.call_args[0]
+        assert update_args[0] == "thread-123"
+        assert update_args[1]["agent_state"] == "EVALUATE"
+        assert result["state"] == "EVALUATE"

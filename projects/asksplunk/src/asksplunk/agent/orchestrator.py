@@ -6,7 +6,7 @@ SessionManager, and OpenAI to process natural language questions into SPL querie
 
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -25,6 +25,10 @@ from asksplunk.survey.formatter import format_survey_results
 from asksplunk.usage import UsageTracker
 
 logger = structlog.get_logger()
+
+# Maximum number of conversation turns to retain in GPT messages
+# Each turn = 1 user + 1 assistant = 2 entries, so 10 turns = 20 entries max
+MAX_CONVERSATION_TURNS = 10
 
 
 # GPT-5 function definitions for agent
@@ -87,17 +91,18 @@ AGENT_TOOLS = [
 class AgentState(Enum):
     """Agent state machine states.
 
-    State flow:
-        INITIALIZE → EVALUATE → (CLARIFY → WAIT → REFINE)* → GENERATE → COMPLETE
+    State flow (multi-turn):
+        INITIALIZE → EVALUATE → (CLARIFY → WAIT → REFINE)* → GENERATE → EVALUATE
+        (loops back to EVALUATE for follow-up questions until session TTL expires)
 
     States:
         INITIALIZE: New conversation, retrieve docs
-        EVALUATE: Assess confidence, decide next action
+        EVALUATE: Assess confidence, decide next action (also: ready for next turn)
         CLARIFY: Ask clarifying question (low confidence)
         WAIT: Waiting for user response to clarification
         REFINE: Process user answer, re-retrieve docs
         GENERATE: Generate SPL query (high confidence)
-        COMPLETE: Query sent, session deleted
+        COMPLETE: Terminal state (unused in multi-turn flow)
         UNCERTAIN: Cannot generate query (honest unknown)
     """
 
@@ -365,6 +370,12 @@ class Agent:
         # Get or create session
         session = await self.session_manager.get_session(thread_id)
 
+        # Handle expired sessions (DynamoDB TTL cleanup can take up to 48 hours)
+        if session and session.get("ttl", 0) < int(datetime.now(UTC).timestamp()):
+            logger.info("session_expired", thread_id=thread_id)
+            await self.session_manager.delete_session(thread_id)
+            session = None
+
         if not session:
             # New conversation - INITIALIZE
             logger.info("agent_initializing", thread_id=thread_id)
@@ -563,14 +574,11 @@ class Agent:
             [f"**{doc['content']}**" for doc in session.get("retrieved_docs", [])[:5]]
         )
 
-        # Build messages for GPT-5 confidence assessment
-        messages = [
-            {"role": "system", "content": self._get_confidence_system_prompt()},
-            {
-                "role": "user",
-                "content": f"Question: {session.get('original_question', '')}\n\nAvailable documentation:\n{context}",
-            },
-        ]
+        # Build messages for GPT-5 confidence assessment with conversation history
+        user_content = f"Question: {session.get('original_question', '')}\n\nAvailable documentation:\n{context}"
+        messages = self._build_messages_with_history(
+            session, self._get_confidence_system_prompt(), user_content
+        )
 
         # Step 1: Assess confidence
         await self._send_status(session["thread_id"], ":thinking_face: Evaluating your question...")
@@ -637,6 +645,31 @@ class Agent:
         logger.warning("no_confidence_assessment", thread_id=session["thread_id"])
         return {"action": "need_clarification", "state": AgentState.CLARIFY.value}
 
+    def _build_messages_with_history(
+        self, session: dict[str, Any], system_prompt: str, current_user_content: str
+    ) -> list[dict[str, str]]:
+        """Build GPT messages array with conversation history for multi-turn context.
+
+        Args:
+            session: Current session state (must contain conversation_history)
+            system_prompt: System prompt for GPT
+            current_user_content: Current user message content
+
+        Returns:
+            Messages array: [system, ...history, current_user]
+        """
+        history = session.get("conversation_history", [])
+        # Sliding window: keep last MAX_CONVERSATION_TURNS turns
+        max_entries = MAX_CONVERSATION_TURNS * 2
+        if len(history) > max_entries:
+            history = history[-max_entries:]
+
+        return [
+            {"role": "system", "content": system_prompt},
+            *[{"role": e["role"], "content": e["content"]} for e in history],
+            {"role": "user", "content": current_user_content},
+        ]
+
     async def _generate_query(self, session: dict[str, Any], context: str) -> dict[str, Any]:
         """Generate SPL query with high confidence.
 
@@ -653,20 +686,17 @@ class Agent:
             result = await agent._generate_query(session, context)
             print(result["content"]["spl_query"])
         """
-        # Build messages for query generation
+        # Build messages for query generation with conversation history
         original_question = session.get("original_question", "")
-        messages = [
-            {"role": "system", "content": self._get_query_generation_system_prompt()},
-            {
-                "role": "user",
-                "content": f"""Generate a Splunk query for this question:
+        user_content = f"""Generate a Splunk query for this question:
 
 "{original_question}"
 
 Field documentation:
-{context}""",
-            },
-        ]
+{context}"""
+        messages = self._build_messages_with_history(
+            session, self._get_query_generation_system_prompt(), user_content
+        )
 
         # Call GPT to generate query
         response = await self.openai_client.chat.completions.create(
@@ -697,16 +727,25 @@ Field documentation:
                         "content": {"message": REFUSAL_MESSAGE},
                     }
 
+                spl_query = result.get("spl_query", "")
                 logger.info(
                     "query_generated",
                     thread_id=session["thread_id"],
-                    query_length=len(result.get("spl_query", "")),
+                    query_length=len(spl_query),
+                )
+
+                # Append to conversation history for multi-turn context
+                await self.session_manager.append_history(
+                    session["thread_id"], "user", original_question
+                )
+                await self.session_manager.append_history(
+                    session["thread_id"], "assistant", f"Generated SPL: {spl_query}"
                 )
 
                 return {
                     "action": "query_generated",
                     "content": result,
-                    "state": AgentState.COMPLETE.value,
+                    "state": AgentState.EVALUATE.value,
                     "confidence": 100,  # High confidence path
                 }
 
@@ -944,7 +983,9 @@ Call the assess_confidence function with:
 
 3. missing_info: If off-topic, harmful, or cannot generate query
 
-CRITICAL: If user says "550 hard bounce codes for last hour" - that's 100% confidence. Generate query immediately. Never ask about time range or bounce type if they told you."""
+CRITICAL: If user says "550 hard bounce codes for last hour" - that's 100% confidence. Generate query immediately. Never ask about time range or bounce type if they told you.
+
+MULTI-TURN: When the user's message refines or follows up on a previous query, build on the prior context. When the message is self-contained and unrelated, generate fresh."""
 
     def _get_query_generation_system_prompt(self) -> str:
         """Get system prompt for query generation.
@@ -998,7 +1039,9 @@ TERM INTERPRETATION (Apache logs):
 - "API HTTP errors" = HTTP errors (status>=400), NOT filtering for "api" in URL
 - Only filter request field if user explicitly mentions a specific endpoint like "/interaction/" or "soaprouter.jsp"
 
-Use ONLY fields from the documentation."""
+Use ONLY fields from the documentation.
+
+MULTI-TURN: When the user's message refines or follows up on a previous query, build on the prior context. When the message is self-contained and unrelated, generate fresh."""
 
     def _get_system_prompt(self) -> str:
         """Get system prompt for GPT-5 agent (deprecated).
@@ -1172,32 +1215,25 @@ Use ONLY fields from the documentation."""
         }
 
     async def _handle_complete(self, session: dict[str, Any]) -> dict[str, Any]:
-        """Handle COMPLETE state: Delete session immediately for privacy.
+        """Handle COMPLETE state: Reset session for next turn.
 
-        Called when query generation is complete. Deletes the session from
-        DynamoDB immediately rather than relying on TTL expiration. This
-        ensures user conversation data is not retained.
+        Resets the session to EVALUATE state so the user can ask follow-up
+        questions in the same thread. Sessions persist until TTL expiry.
 
         Args:
             session: Current session state
 
         Returns:
-            Session dict with deletion confirmation
-
-        Note:
-            Privacy requirement: Sessions must be deleted immediately in
-            COMPLETE state, not relying on DynamoDB TTL (30 min backup only).
+            Session dict with reset confirmation
         """
         thread_id = session["thread_id"]
-        logger.info("agent_completing", thread_id=thread_id)
+        logger.info("agent_resetting_for_next_turn", thread_id=thread_id)
 
-        # Delete session immediately for privacy
-        await self.session_manager.delete_session(thread_id)
-
-        logger.info("session_deleted_for_privacy", thread_id=thread_id)
+        await self.session_manager.update_session(
+            thread_id, {"agent_state": AgentState.EVALUATE.value}
+        )
 
         return {
-            "action": "completed",
-            "state": AgentState.COMPLETE.value,
-            "session_deleted": True,
+            "action": "reset_for_next_turn",
+            "state": AgentState.EVALUATE.value,
         }

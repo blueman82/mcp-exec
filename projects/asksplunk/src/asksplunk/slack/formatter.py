@@ -21,7 +21,7 @@ def format_final_query(
     - Plain language explanation for non-technical users
     - SPL query in code block (no language identifier to prevent copy issues)
     - Technical details for experts
-    - Session complete notification for transparency
+    - Follow-up hint for multi-turn conversations
 
     Args:
         plain_explanation: Plain language explanation for non-technical users
@@ -62,7 +62,7 @@ def format_final_query(
             "elements": [
                 {
                     "type": "mrkdwn",
-                    "text": "✓ Session complete - all data cleared. Start a new thread for another query.",
+                    "text": "✓ You can ask follow-up questions in this thread, or start a new thread for a different topic.",
                 }
             ],
         },

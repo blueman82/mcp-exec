@@ -12,7 +12,7 @@ flowchart LR
     end
 
     subgraph Output["📤 Output"]
-        DONE[COMPLETE<br/>Delete session]
+        DONE[COMPLETE<br/>Reset for next turn]
         UNC[UNCERTAIN<br/>Can't help]
     end
 
@@ -24,6 +24,7 @@ flowchart LR
     CLAR --> WAIT
     WAIT --> EVAL
     GEN --> DONE
+    DONE -->|"Multi-turn<br/>follow-up"| EVAL
 
     style Input fill:#E3F2FD,stroke:#1976D2
     style Agent fill:#E8F5E9,stroke:#388E3C

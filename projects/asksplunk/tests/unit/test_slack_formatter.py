@@ -69,26 +69,22 @@ class TestSlackFormatter:
             "campaign_prod index" in elem.get("text", "") for elem in context_blocks[0]["elements"]
         )
 
-    def test_format_final_query_includes_session_complete_message(self):
-        """Final query should include session complete notification."""
+    def test_format_final_query_includes_followup_hint(self):
+        """Final query should include follow-up hint for multi-turn support."""
         blocks = format_final_query(
             plain_explanation="Test",
             spl_query="index=campaign_prod",
             technical_explanation="Test",
         )
 
-        # Find session complete context block
-        session_complete_blocks = [
+        # Find follow-up hint context block
+        followup_blocks = [
             b
             for b in blocks
             if b.get("type") == "context"
-            and any("Session complete" in elem.get("text", "") for elem in b.get("elements", []))
+            and any("follow-up" in elem.get("text", "").lower() for elem in b.get("elements", []))
         ]
-        assert len(session_complete_blocks) == 1
-        assert any(
-            "all data cleared" in elem.get("text", "")
-            for elem in session_complete_blocks[0]["elements"]
-        )
+        assert len(followup_blocks) == 1
 
     def test_format_clarifying_question_with_numbered_list(self):
         """Clarifying question should have numbered options list."""
@@ -216,3 +212,25 @@ class TestSlackFormatter:
         instruction_text = context_blocks[0]["elements"][0]["text"]
         assert "Reply with a number" in instruction_text
         assert "(1, 2, etc.)" in instruction_text
+
+    def test_format_final_query_shows_followup_hint(self):
+        """Final query should show follow-up hint instead of 'session complete' message."""
+        blocks = format_final_query(
+            plain_explanation="Test",
+            spl_query="index=campaign_prod",
+            technical_explanation="Test",
+        )
+
+        # Should NOT have "Session complete" or "all data cleared"
+        all_text = str(blocks)
+        assert "Session complete" not in all_text
+        assert "all data cleared" not in all_text
+
+        # Should have follow-up hint
+        context_blocks = [b for b in blocks if b.get("type") == "context"]
+        followup_found = any(
+            "follow-up" in elem.get("text", "").lower()
+            for block in context_blocks
+            for elem in block.get("elements", [])
+        )
+        assert followup_found, "Expected follow-up hint in context block"

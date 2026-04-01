@@ -12,11 +12,11 @@ AskSplunk: Slack bot translating natural language to Splunk SPL queries using RA
 src/asksplunk/
 ├── main.py              # Entry point with graceful shutdown (SIGTERM/SIGINT)
 ├── secrets.py           # AWS Secrets Manager client (60-min cache)
-├── agent/               # 7-state GPT-5 agent + OWASP content filter
+├── agent/               # Multi-turn GPT-5 agent (7 states) + OWASP content filter
 ├── auth/                # Whitelist-based access control
 ├── indexer/             # Schema -> ChromaDB embeddings (130 chunks)
 ├── retriever/           # Semantic search over indexed docs
-├── session/             # DynamoDB CRUD with 30-min TTL, verified deletion
+├── session/             # DynamoDB CRUD with 30-min TTL, conversation history
 ├── usage/               # Privacy-first usage tracking (timestamp only)
 └── slack/               # Socket Mode client, Block Kit formatters
 ```

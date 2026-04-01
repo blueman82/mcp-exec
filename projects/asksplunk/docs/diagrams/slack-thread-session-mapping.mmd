@@ -8,7 +8,7 @@ flowchart LR
     subgraph Session["💾 DynamoDB"]
         KEY[thread_id = key]
         TTL[30 min TTL]
-        DEL[Delete on complete]
+        DEL[Persists for follow-ups<br/>until TTL]
     end
 
     MSG --> NEW

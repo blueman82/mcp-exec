@@ -4,6 +4,7 @@ Implements async CRUD operations with automatic TTL management.
 Privacy-first design: immediate deletion verification after query generation.
 """
 
+import json
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -31,7 +32,10 @@ class SessionManager:
     """
 
     def __init__(
-        self, table=None, table_name: str = "splunk-bot-sessions", region: str = "eu-west-1"
+        self,
+        table: Any | None = None,
+        table_name: str = "splunk-bot-sessions",
+        region: str = "eu-west-1",
     ):
         """Initialize session manager with DynamoDB table.
 
@@ -136,7 +140,7 @@ class SessionManager:
 
         Note:
             Question stored temporarily in session for agent processing.
-            Session is deleted immediately upon COMPLETE state (privacy).
+            Session persists until TTL expiry (30 min) for multi-turn support.
         """
         table = await self._get_table()
 
@@ -146,6 +150,7 @@ class SessionManager:
             "channel_id": channel_id,
             "agent_state": "INITIALIZE",
             "original_question": question,
+            "conversation_history": [],
             "created_at": datetime.now().isoformat(),
             "ttl": self._calculate_ttl(),
         }
@@ -178,7 +183,7 @@ class SessionManager:
         # Build DynamoDB UpdateExpression with attribute name aliases
         # (ttl is a reserved keyword in DynamoDB)
         expr_names = {f"#{k}": k for k in updates}
-        update_expr = "SET " + ", ".join([f"#{k} = :{k}" for k in updates])
+        update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in updates)
         expr_values = {f":{k}": v for k, v in updates.items()}
 
         await table.update_item(
@@ -253,3 +258,64 @@ class SessionManager:
                 )
 
         logger.info("session_deleted", thread_id=thread_id)
+
+    async def append_history(self, thread_id: str, role: str, content: str) -> None:
+        """Atomically append an entry to conversation_history using DynamoDB list_append.
+
+        Includes a size guard: if the session item would exceed 350KB after appending,
+        removes oldest history entries first (DynamoDB limit is 400KB per item).
+
+        Args:
+            thread_id: Session identifier
+            role: Message role ("user" or "assistant")
+            content: Message content
+        """
+        table = await self._get_table()
+
+        # Size guard: check if session is approaching DynamoDB's 400KB limit
+        session = await self.get_session(thread_id)
+        if session:
+            estimated_size = len(json.dumps(session, default=str).encode("utf-8"))
+            if estimated_size > 350_000:  # 350KB threshold
+                history = session.get("conversation_history", [])
+                # Remove oldest entries (keep last half)
+                trimmed = history[len(history) // 2 :]
+                await table.update_item(
+                    Key={"thread_id": thread_id},
+                    UpdateExpression="SET #ch = :trimmed",
+                    ExpressionAttributeNames={"#ch": "conversation_history"},
+                    ExpressionAttributeValues={":trimmed": trimmed},
+                )
+                logger.info(
+                    "history_trimmed",
+                    thread_id=thread_id,
+                    removed=len(history) - len(trimmed),
+                )
+
+        await table.update_item(
+            Key={"thread_id": thread_id},
+            UpdateExpression="SET #ch = list_append(if_not_exists(#ch, :empty), :entry), #ttl = :ttl",
+            ExpressionAttributeNames={
+                "#ch": "conversation_history",
+                "#ttl": "ttl",
+            },
+            ExpressionAttributeValues={
+                ":entry": [{"role": role, "content": content}],
+                ":empty": [],
+                ":ttl": self._calculate_ttl(),
+            },
+        )
+
+    async def get_history(self, thread_id: str) -> list[dict[str, str]]:
+        """Retrieve conversation_history from session.
+
+        Args:
+            thread_id: Session identifier
+
+        Returns:
+            List of history entries, or empty list if session/field absent
+        """
+        session = await self.get_session(thread_id)
+        if not session:
+            return []
+        return session.get("conversation_history", [])

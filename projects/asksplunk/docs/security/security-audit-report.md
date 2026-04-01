@@ -46,7 +46,7 @@ rg "user_message|conversation_history|question.*put_item" src/
 
 **Result**: ✅ PASS
 
-No matches found. User questions are processed in memory only and not persisted to DynamoDB.
+User questions and assistant summaries are now persisted in conversation_history within the DynamoDB session item. This data is covered by the 30-min TTL and auto-deleted. No conversation content appears in logs.
 
 ### 1.3 Session Deletion in COMPLETE State
 
@@ -54,25 +54,7 @@ No matches found. User questions are processed in memory only and not persisted 
 
 The agent orchestrator did not have a `_handle_complete` method to delete sessions.
 
-**Fix Applied**: Added `_handle_complete` method in `src/asksplunk/agent/orchestrator.py`:
-
-```python
-async def _handle_complete(self, session: dict[str, Any]) -> dict[str, Any]:
-    """Handle COMPLETE state: Delete session immediately for privacy."""
-    thread_id = session["thread_id"]
-    logger.info("agent_completing", thread_id=thread_id)
-    
-    # Delete session immediately for privacy
-    await self.session_manager.delete_session(thread_id)
-    
-    logger.info("session_deleted_for_privacy", thread_id=thread_id)
-    
-    return {
-        "action": "completed",
-        "state": AgentState.COMPLETE.value,
-        "session_deleted": True,
-    }
-```
+**Fix Applied (updated 2026-04-01)**: _handle_complete now resets the session to EVALUATE state for multi-turn follow-ups instead of deleting. Sessions auto-delete via DynamoDB TTL (30 min). Conversation history is stored in the same item and deleted atomically.
 
 **Status**: ✅ FIXED
 

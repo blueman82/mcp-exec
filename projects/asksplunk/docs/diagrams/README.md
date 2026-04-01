@@ -18,13 +18,13 @@ GPT-5 agent workflow with 7 states:
 4. **WAIT** - Parse user's number reply, map to option
 5. **REFINE** - Append to history, re-retrieve docs
 6. **GENERATE** - Create SPL query with explanations (confidence ≥50%)
-7. **COMPLETE** - Send response, DELETE session immediately
+7. **COMPLETE** - Reset session to EVALUATE for follow-up questions
 
 **Key Features**:
 - Loop breaker after 2 clarifications (forces generation)
 - UNCERTAIN state for confidence <30%
 - Status callbacks (🔍 🤔 ✨) during processing
-- Privacy: session deleted on completion
+- Privacy: session persists until 30-min TTL for multi-turn, then auto-deleted
 
 ---
 
@@ -84,7 +84,7 @@ End-to-end message handling:
 
 Block Kit message templates:
 
-**format_final_query()**: Plain explanation + SPL code block + technical details + session complete notice
+**format_final_query()**: Plain explanation + SPL code block + technical details + follow-up hint
 
 **format_clarifying_question()**: Question + numbered options list + "Reply with a number" context
 
@@ -102,7 +102,7 @@ WebSocket connection lifecycle: startup → connected (auto-reconnect) → shutd
 ### 7. Slack Thread-Session Mapping
 **File**: `slack-thread-session-mapping.mmd`
 
-Thread ID logic: new message uses `ts`, reply uses `thread_ts`. Session TTL resets on updates, deleted on COMPLETE.
+Thread ID logic: new message uses `ts`, reply uses `thread_ts`. Session TTL resets on updates, persists for multi-turn follow-ups.
 
 ---
 
