@@ -325,6 +325,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_CHROMADB_ENABLED=false` - ChromaDB data layer (embeddings, vector store, realtime ingestion)
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
+- `KETCHUP_RCA_HISTORIAN_ENABLED=false` - RCA Historian tool-calling agent (**requires** `KETCHUP_AGENT_ENABLED=true`)
 
 **Source of Truth**: Always check `infrastructure/docker-compose.yml` for current feature flag states.
 
@@ -382,6 +383,19 @@ Unit → Integration → E2E → Manual
 **Documentation Maintenance**: During each release cycle, review and update CLAUDE.md and README.md to ensure all references remain accurate and aligned with production docker-compose.yml.
 
 ## Common Tasks
+
+### Service Registration Checklist
+When adding or modifying any TypedDI service, complete ALL steps:
+1. Define/update protocol in `service_registrations/protocols/`
+2. Implement concrete class
+3. Create ServiceSpec or factory in `service_registrations/registrations/`
+4. Add registration function to role map in `registrations/__init__.py`
+5. Update ALL Mock*/Fake* classes in tests
+6. Add protocol compliance test
+7. Feature-flag gate if conditional (check at registration time)
+8. Import from specific protocol file, never barrel exports (see `.claude/rules/import-conventions.md`)
+
+Canonical example: CSOPM notifier in `ketchup_csopm_notifier/container.py`
 
 ### Adding a New Slash Command
 1. Create command handler in `packages/slack/commands/`
@@ -479,15 +493,41 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 ## Recent Major Changes
 
 - **March 2026**: ChromaDB decoupled from agent feature flag — new `KETCHUP_CHROMADB_ENABLED` flag allows handover summary to use ChromaDB pre-indexed messages without requiring the full agent chat/RAG stack. Two-tier service registration: chromadb foundation (4 services) + agent chat (8 services).
-- **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Fresh data collection from Slack, JIRA, and DynamoDB with AI-powered 1-2 bullet summaries per channel. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
-- **January 2026**: LOC reduction initiative - ServiceSpec declarative system and code cleanup removing ~2,600 lines:
-  - PR #165: Dead code audit (-1,460 LOC) - Removed unused handlers, orphan classes, legacy compatibility shims
-  - PR #166: Documentation sync cleanup (-833 LOC) - Architecture diagram cleanup, removed outdated docs
-  - PR #167: Phase 1 LOC reduction (-176 LOC) - `channel_resolver.py` shared utility, eliminated duplicate code
-  - PR #168: Phase 3 ServiceSpec (-125 LOC) - Declarative service registration system in `packages/core/typed_di/service_spec.py`
-- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons for acknowledge/done/snooze actions, and DynamoDB state tracking. Shared components (blocks, state, actions) moved to `packages/slack/csopm/` for use by both scheduler and main app containers.
-- **January 2026**: Legacy scheduler directories removed - `ketchup_status_updater/`, `jira_reporter/`, `channel_metadata_updater/`, `ketchup_maintenance_fetcher/`, `ketchup_jira_pat_rotator/` all deleted after successful unified scheduler consolidation.
-- **December 2025**: Phase 1 Unified Scheduler Consolidation - 5 scheduler containers consolidated into 1 (`ketchup-unified-scheduler`) with shared TypedDI container, per-task health monitoring, and unified orchestration engine
-- **October 2025**: 300-400% performance optimization complete
-- **September 2025**: TypedDI migration complete (100% coverage)
-- **Architecture Migration**: Lambda → EC2 Docker (cost reduction $450-800/mo → ~$150/mo)
+- **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
+- **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons, DynamoDB state tracking. ServiceSpec declarative system (-2,600 LOC cleanup).
+<!-- scout-section v=15 chars=2004 hash=499e63201955ae52 -->
+## Code Search
+
+**ALL agents (main conversation AND subagents) MUST use Scout via mcp-exec for code search and navigation.** Prefer Scout over Grep or Glob for code search. Use Read only when you already know the exact file and line range.
+
+### How to call Scout tools
+
+Scout is accessed through `mcp__mcp-exec__execute_code_with_wrappers` with `wrappers: ["scout"]`. Inside the code block, call tools as `scout.toolName({params})`.
+
+**Example:**
+```
+tool: mcp__mcp-exec__execute_code_with_wrappers
+wrappers: ["scout"]
+code: |
+  const result = await scout.search({ query: "TypedDI container setup" });
+  console.log(JSON.stringify(result, null, 2));
+```
+
+### Available Scout tools
+
+- `scout.search({query})` — default search (auto-selects keyword/semantic/regex)
+- `scout.explain_symbol({symbol})` — understand any symbol (definition + callers + callees in one call)
+- `scout.find_references({symbol})` — all usages of a symbol across the codebase
+- `scout.go_to_definition({symbol})` — jump to where a symbol is defined
+- `scout.call_graph({symbol, direction, depth})` — trace execution flow (callers/callees up to 5 levels)
+- `scout.impact({symbol})` — blast radius of changing a symbol (use before any refactor/addition)
+- `scout.deep_search({query})` — **use first when exploring unfamiliar code** (architectural map + entry points + call graph)
+- `scout.file_outline({path})` — see all symbols in a file/directory without reading it
+- `scout.regex_search({pattern})` — ONLY when you need actual regex syntax. For piped identifiers like `A|B|C`, use `keyword_search` instead
+- `scout.keyword_search({query})` — exact identifier/symbol lookups (fastest search tool)
+
+**Start with symbol-aware tools — not regex:**
+If you're searching for where a symbol is used, `scout.find_references` is one call vs. many regex sweeps. If you need to understand a symbol's role, `scout.explain_symbol` replaces go_to_definition + call_graph + find_references. Do NOT use `regex_search` for plain identifier lookups — `keyword_search` is faster (1 query vs N) and returns ranked results.
+
+**Subagents (Explore, Plan, teammates):** When spawning any subagent, restate this rule in the spawn prompt: "Use Scout via mcp-exec for ALL code search — call `mcp__mcp-exec__execute_code_with_wrappers` with `wrappers: [\"scout\"]` and `scout.toolName({params})` syntax."
+<!-- /scout-section -->

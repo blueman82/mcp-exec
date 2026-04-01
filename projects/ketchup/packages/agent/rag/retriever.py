@@ -6,7 +6,7 @@ are embedded in each document's text, so the LLM reasons about temporal
 relevance naturally from the context it receives.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from packages.core.logging import setup_logger
 
@@ -28,21 +28,21 @@ class Retriever:
     async def retrieve(
         self,
         query: str,
-        channel_id: str,
+        channel_id: Optional[str] = None,
         top_k: int = 20,
     ) -> List[Dict[str, Any]]:
         """Retrieve relevant context for a query using pure semantic similarity.
 
         Pipeline:
         1. Embed the query using ada-002
-        2. Retrieve top_k results from ChromaDB (cosine similarity, filtered by channel)
+        2. Retrieve top_k results from ChromaDB (cosine similarity, optionally filtered by channel)
 
         No re-ranking step — ChromaDB's cosine distance IS the relevance score.
         Timestamps are in each document's text, so the LLM handles temporal reasoning.
 
         Args:
             query: The user's question.
-            channel_id: Filter results to this channel.
+            channel_id: Filter results to this channel. None = cross-channel search.
             top_k: Number of results to return.
 
         Returns:

@@ -105,7 +105,7 @@ h3. Incident Timeline
         mock_openai_handler.execute_prompt.assert_called_once()
         ai_call_args = mock_openai_handler.execute_prompt.call_args
         assert ai_call_args.kwargs["max_tokens"] == 2000
-        assert ai_call_args.kwargs["temperature"] == 0.3
+        assert ai_call_args.kwargs["reasoning_effort"] == "medium"
 
     @pytest.mark.asyncio
     async def test_generate_report_no_messages(

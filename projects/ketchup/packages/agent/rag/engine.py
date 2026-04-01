@@ -5,10 +5,12 @@ No re-ranking step, no hybrid scoring. The LLM evaluates relevance from the
 context it receives, including timestamps for temporal reasoning.
 """
 
+import asyncio
+import json
 import os
 import re
 import time
-from typing import Optional
+from typing import Any, Optional
 
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.jira_constants import VALID_JIRA_PROJECTS
@@ -19,8 +21,10 @@ logger = setup_logger(__name__)
 # Default configuration (overridable via env vars)
 DEFAULT_TOP_K = 20
 DEFAULT_MAX_HISTORY = 10
-DEFAULT_TEMPERATURE = 0.3
+DEFAULT_REASONING_EFFORT = "medium"
 DEFAULT_MAX_TOKENS = 2048
+
+RCA_MAX_ITERATIONS = 5
 
 
 class AgentEngine:
@@ -33,6 +37,8 @@ class AgentEngine:
         conversation_store,
         api_executor,
         system_prompt: str,
+        tools=None,
+        tool_executor=None,
     ):
         """
         Args:
@@ -41,22 +47,47 @@ class AgentEngine:
             conversation_store: ConversationStore for persisting turns.
             api_executor: ApiExecutor instance for Azure OpenAI calls.
             system_prompt: The agent's system prompt text.
+            tools: Optional list of OpenAI function-calling tool definitions.
+            tool_executor: Optional RCAToolExecutor for dispatching tool calls.
         """
         self._retriever = retriever
         self._context_builder = context_builder
         self._conversation_store = conversation_store
         self._api_executor = api_executor
         self._system_prompt = system_prompt
+        self._tools = tools
+        self._tool_executor = tool_executor
 
         # Load config from env
         self._top_k = int(os.environ.get("KETCHUP_AGENT_TOP_K", str(DEFAULT_TOP_K)))
         self._max_history = int(
             os.environ.get("KETCHUP_AGENT_MAX_HISTORY_TURNS", str(DEFAULT_MAX_HISTORY))
         )
-        self._temperature = float(
-            os.environ.get("KETCHUP_AGENT_TEMPERATURE", str(DEFAULT_TEMPERATURE))
+        self._reasoning_effort = os.environ.get(
+            "KETCHUP_AGENT_REASONING_EFFORT", DEFAULT_REASONING_EFFORT
         )
         self._max_tokens = int(os.environ.get("KETCHUP_AGENT_MAX_TOKENS", str(DEFAULT_MAX_TOKENS)))
+
+    async def _execute_tool_calls(
+        self,
+        tool_calls: list[dict[str, Any]],
+    ) -> list[dict[str, str]]:
+        """Execute tool calls in parallel and return tool messages."""
+
+        async def _run_one(tc: dict[str, Any]) -> dict[str, str]:
+            fn = tc["function"]
+            try:
+                arguments = json.loads(fn["arguments"])
+            except (json.JSONDecodeError, KeyError):
+                arguments = {}
+            result_str = await self._tool_executor.execute(fn["name"], arguments)
+            return {
+                "role": "tool",
+                "tool_call_id": tc["id"],
+                "content": result_str,
+            }
+
+        return list(await asyncio.gather(*[_run_one(tc) for tc in tool_calls]))
 
     async def answer(
         self,
@@ -70,7 +101,7 @@ class AgentEngine:
         Pipeline:
         1. Retrieve relevant context (single-pass cosine similarity)
         2. Build LLM context window (system prompt + context + history + question)
-        3. Call Azure OpenAI
+        3. Call Azure OpenAI (with optional tool-calling loop for RCA mode)
         4. Store conversation turns (user + assistant) in DynamoDB
         5. Return the response text
 
@@ -119,13 +150,16 @@ class AgentEngine:
         payload = {
             "messages": messages,
             "max_completion_tokens": self._max_tokens,
-            "temperature": self._temperature,
-            "top_p": 0.9,
+            "reasoning_effort": self._reasoning_effort,
         }
 
         # Enable JSON mode when feature flag is on (matches ApiExecutor.prepare_payload)
         if FeatureFlags.is_structured_json_output_enabled():
             payload["response_format"] = {"type": "json_object"}
+
+        # Add tools for RCA Historian mode
+        if self._tools:
+            payload["tools"] = self._tools
 
         response_data = await self._api_executor.execute_request(
             payload=payload,
@@ -134,11 +168,36 @@ class AgentEngine:
             incoming_channel=channel_id,
         )
 
-        # Extract response text
-        response_text = ""
-        choices = response_data.get("choices", [])
-        if choices:
-            response_text = choices[0].get("message", {}).get("content", "")
+        # Tool-calling loop (for RCA Historian mode)
+        for _ in range(RCA_MAX_ITERATIONS):
+            if not (self._tools and self._tool_executor):
+                break
+
+            message = _extract_message(response_data)
+            if not message or not message.get("tool_calls"):
+                break
+
+            logger.info(
+                "RCA iteration %d: %d tool calls",
+                _ + 1,
+                len(message["tool_calls"]),
+            )
+
+            messages.append(message)
+            tool_results = await self._execute_tool_calls(message["tool_calls"])
+            messages.extend(tool_results)
+
+            payload["messages"] = messages
+            response_data = await self._api_executor.execute_request(
+                payload=payload,
+                channel_info=None,
+                user_id=user_id,
+                incoming_channel=channel_id,
+            )
+
+        # Extract response text (works for both single-turn and multi-turn)
+        final_message = _extract_message(response_data)
+        response_text = (final_message or {}).get("content", "")
 
         # Extract from JSON wrapper when structured output is enabled
         if response_text and FeatureFlags.is_structured_json_output_enabled():
@@ -186,6 +245,14 @@ class AgentEngine:
         )
 
         return _linkify_jira_tickets(response_text)
+
+
+def _extract_message(response_data: dict[str, Any]) -> dict[str, Any] | None:
+    """Extract the first message from an OpenAI response, or None."""
+    choices = response_data.get("choices", [])
+    if not choices:
+        return None
+    return choices[0].get("message")
 
 
 # Valid JIRA project prefixes used across Ketchup

@@ -60,9 +60,9 @@ def test_build_payload_with_json_mode_enabled(executor: ApiExecutor) -> None:
     assert "response_format" in payload
     assert payload["response_format"] == {"type": "json_object"}
     assert payload["messages"] == messages
-    assert payload["max_tokens"] == 2048
-    assert payload["temperature"] == 0.1
-    assert payload["top_p"] == 0.9
+    assert payload["max_completion_tokens"] == 2048
+    assert payload["reasoning_effort"] == "low"
+    assert "top_p" not in payload
 
 
 @patch.dict(os.environ, {"KETCHUP_STRUCTURED_JSON_OUTPUT": "false"})
@@ -72,9 +72,9 @@ def test_build_payload_with_json_mode_disabled(executor: ApiExecutor) -> None:
     payload = executor.build_openai_payload(messages, "status")
     assert "response_format" not in payload
     assert payload["messages"] == messages
-    assert payload["max_tokens"] == 2048
-    assert payload["temperature"] == 0.1
-    assert payload["top_p"] == 0.9
+    assert payload["max_completion_tokens"] == 2048
+    assert payload["reasoning_effort"] == "low"
+    assert "top_p" not in payload
 
 
 @patch.dict(os.environ, {}, clear=True)
@@ -92,13 +92,13 @@ def test_build_payload_json_mode_default(executor: ApiExecutor) -> None:
 def test_build_payload_json_mode_with_custom_prefs(executor: ApiExecutor) -> None:
     """Test build_openai_payload with JSON mode and custom preferences."""
     messages = [{"role": "user", "content": "test"}]
-    normalized_prefs = {"temperature": 0.5, "max_tokens": 1500, "top_p": 0.95}
+    normalized_prefs = {"reasoning_effort": "high", "max_tokens": 1500}
     payload = executor.build_openai_payload(messages, "report", normalized_prefs)
     assert "response_format" in payload
     assert payload["response_format"] == {"type": "json_object"}
-    assert payload["temperature"] == 0.5
-    assert payload["max_tokens"] == 1500
-    assert payload["top_p"] == 0.95
+    assert payload["reasoning_effort"] == "high"
+    assert payload["max_completion_tokens"] == 1500
+    assert "top_p" not in payload
 
 
 @patch.dict(os.environ, {"KETCHUP_STRUCTURED_JSON_OUTPUT": "TRUE"})

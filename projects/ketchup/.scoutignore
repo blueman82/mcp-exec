@@ -1,0 +1,67 @@
+# .scoutignore — Ketchup repo configuration for Scout
+
+# ── IGNORE ─────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.venv/
+tests/setup/.venv/
+node_modules/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Lock files
+uv.lock
+package-lock.json
+
+# Logs and build artifacts
+logs/
+infrastructure/logs/
+*.log
+
+# Plans (large YAML dumps from conductor)
+docs/plans/
+
+# ── DAMPEN ─────────────────────────────────────────────────────────
+
+# Test fixtures and mocks — useful but not primary code
+[dampen:0.4]
+tests/fixtures/
+tests/**/conftest.py
+
+# Infrastructure/deployment — reference, not core logic
+[dampen:0.5]
+infrastructure/
+*.Dockerfile
+Dockerfile.*
+
+# Documentation diagrams — helpful but not code
+[dampen:0.5]
+docs/diagrams/
+
+# Log viewer (separate Node.js app)
+[dampen:0.3]
+ketchup-log-viewer/
+
+# ── BOOST ──────────────────────────────────────────────────────────
+
+# Core shared packages — the heart of the monorepo
+[boost:1.4]
+packages/core/
+packages/slack/
+packages/ai/
+
+# TypedDI system — critical architecture
+[boost:1.5]
+packages/core/typed_di/
+
+# Main app entry point
+[boost:1.3]
+ketchup-app/main.py
+
+# Service entry points
+[boost:1.2]
+ketchup_unified_scheduler/
+ketchup_csopm_notifier/
+ketchup_access_request_monitor/

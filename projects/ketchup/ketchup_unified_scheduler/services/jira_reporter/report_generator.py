@@ -99,7 +99,7 @@ class ReportGenerator:
             # Generate the report using OpenAI
             messages = [{"role": "user", "content": prompt}]
             report_text = await self.openai_handler.execute_prompt(
-                messages=messages, max_tokens=2000, temperature=0.3
+                messages=messages, max_tokens=2000, reasoning_effort="medium"
             )
 
             if not report_text:

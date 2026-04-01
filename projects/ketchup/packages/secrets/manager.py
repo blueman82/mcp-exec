@@ -147,6 +147,9 @@ class SecretsManager:
                     secrets_async.get("authorised_users_ldap_backup"), default=[]
                 ),
                 "SLACK_WEBHOOK_URL": secrets_async.get("slack_webhook_url", ""),
+                # New Relic API credentials (for RCA Historian)
+                "NEW_RELIC_API_KEY": secrets_async.get("new_relic_api_key", ""),
+                "NEW_RELIC_ACCOUNT_ID": secrets_async.get("new_relic_account_id", ""),
             }
 
             # Update cache
@@ -207,6 +210,18 @@ class SecretsManager:
 
         secrets = await self.get_app_secrets()
         return secrets["AZURE_OPENAI_LB_API_KEY"]
+
+    async def get_new_relic_api_key(self):
+        """Get the New Relic API key asynchronously."""
+        logger.info("Starting get_new_relic_api_key function.")
+        secrets = await self.get_app_secrets()
+        return secrets["NEW_RELIC_API_KEY"]
+
+    async def get_new_relic_account_id(self):
+        """Get the New Relic account ID asynchronously."""
+        logger.info("Starting get_new_relic_account_id function.")
+        secrets = await self.get_app_secrets()
+        return secrets["NEW_RELIC_ACCOUNT_ID"]
 
     async def get_bot_slack_user_id_async(self):
         """Get the bot Slack user ID asynchronously."""

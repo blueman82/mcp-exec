@@ -105,14 +105,14 @@ class ChromaVectorStore:
     async def query(
         self,
         query_embedding: List[float],
-        channel_id: str,
+        channel_id: Optional[str] = None,
         top_k: int = 15,
     ) -> List[Dict[str, Any]]:
-        """Query for similar documents filtered by channel_id.
+        """Query for similar documents, optionally filtered by channel_id.
 
         Args:
             query_embedding: The query embedding vector.
-            channel_id: Filter results to this channel.
+            channel_id: Filter results to this channel. None = cross-channel search.
             top_k: Number of results to return.
 
         Returns:
@@ -121,13 +121,18 @@ class ChromaVectorStore:
         if not self._collection:
             raise RuntimeError("Vector store not initialized")
 
+        query_kwargs = {
+            "query_embeddings": [query_embedding],
+            "n_results": top_k,
+            "include": ["documents", "metadatas", "distances"],
+        }
+        if channel_id is not None:
+            query_kwargs["where"] = {"channel_id": channel_id}
+
         try:
             results = await asyncio.to_thread(
                 self._collection.query,
-                query_embeddings=[query_embedding],
-                where={"channel_id": channel_id},
-                n_results=top_k,
-                include=["documents", "metadatas", "distances"],
+                **query_kwargs,
             )
         except Exception as e:
             if "does not exist" in str(e):
@@ -135,10 +140,7 @@ class ChromaVectorStore:
                 await self._ensure_collection()
                 results = await asyncio.to_thread(
                     self._collection.query,
-                    query_embeddings=[query_embedding],
-                    where={"channel_id": channel_id},
-                    n_results=top_k,
-                    include=["documents", "metadatas", "distances"],
+                    **query_kwargs,
                 )
             else:
                 raise

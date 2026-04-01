@@ -33,6 +33,7 @@ __all__ = [
     "AgentSlackHandlerProtocol",
     "AgentThreadManagerProtocol",
     "AgentThreadFilterProtocol",
+    "RCAToolExecutorProtocol",
 ]
 
 
@@ -88,13 +89,13 @@ class AgentVectorStoreProtocol(Protocol):
         ...
 
     async def query(
-        self, query_embedding: List[float], channel_id: str, top_k: int = 15
+        self, query_embedding: List[float], channel_id: Optional[str] = None, top_k: int = 15
     ) -> List[Dict[str, Any]]:
-        """Query for similar documents filtered by channel_id.
+        """Query for similar documents, optionally filtered by channel_id.
 
         Args:
             query_embedding: The query embedding vector.
-            channel_id: Filter results to this channel.
+            channel_id: Filter results to this channel. None = cross-channel search.
             top_k: Number of results to return.
 
         Returns:
@@ -241,12 +242,14 @@ class AgentConversationStoreProtocol(Protocol):
 class AgentRetrieverProtocol(Protocol):
     """Protocol for embedding queries and retrieving relevant context."""
 
-    async def retrieve(self, query: str, channel_id: str, top_k: int = 20) -> List[Dict[str, Any]]:
+    async def retrieve(
+        self, query: str, channel_id: Optional[str] = None, top_k: int = 20
+    ) -> List[Dict[str, Any]]:
         """Retrieve relevant context using pure semantic similarity.
 
         Args:
             query: The user's question.
-            channel_id: Filter results to this channel.
+            channel_id: Filter results to this channel. None = cross-channel search.
             top_k: Number of results to return.
 
         Returns:
@@ -426,4 +429,18 @@ class AgentThreadFilterProtocol(Protocol):
 
     def clear_cache(self, channel_id: Optional[str] = None) -> None:
         """Clear the thread lookup cache."""
+        ...
+
+
+# =============================================================================
+# RCA Historian Protocols
+# =============================================================================
+
+
+@runtime_checkable
+class RCAToolExecutorProtocol(Protocol):
+    """Protocol for RCA tool execution."""
+
+    async def execute(self, tool_name: str, arguments: Dict[str, Any]) -> str:
+        """Execute a tool call and return the result string."""
         ...

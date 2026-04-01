@@ -437,7 +437,7 @@ class UserJoinNotificationService:
             payload = self.openai_handler._api_executor.build_openai_payload(
                 messages=messages,
                 combined_command="status",  # Use status command for token allocation
-                normalized_prefs={"temperature": 0.1},  # Consistent with status command
+                normalized_prefs={"reasoning_effort": "low"},  # Consistent with status command
             )
 
             # Execute request using correct API signature
