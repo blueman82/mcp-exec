@@ -21,9 +21,9 @@ block_command() {
     exit 2
 }
 
-# Block: git push --force (any branch)
-if [[ "$COMMAND" =~ git[[:space:]]+push[[:space:]]+(--force|-f) ]]; then
-    block_command "git push --force is destructive and requires explicit approval"
+# Block: git push --force (any branch), but allow --force-with-lease (safe)
+if [[ "$COMMAND" =~ git[[:space:]]+push[[:space:]].*(--force|-f) && ! "$COMMAND" =~ --force-with-lease ]]; then
+    block_command "git push --force is destructive and requires explicit approval (use --force-with-lease instead)"
 fi
 
 # Block: git reset --hard
