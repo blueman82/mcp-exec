@@ -71,6 +71,9 @@ services:
       - KETCHUP_AGENT_ENABLED=true
       - KETCHUP_AGENT_BACKFILL_ENABLED=true
       - KETCHUP_CHROMADB_ENABLED=true
+      - KETCHUP_RCA_HISTORIAN_ENABLED=true
+      - KETCHUP_JIRA_INDEX_MONTHS=1
+      - KETCHUP_JIRA_INDEX_MONTHS_CSOPM=2
     volumes:
       - ~/.aws:/home/ketchup/.aws:ro
       - ./logs:/var/log
@@ -163,6 +166,9 @@ services:
       - KETCHUP_CHROMADB_ENABLED=true
       - KETCHUP_HANDOVER_SUMMARY_ENABLED=true
       - KETCHUP_HANDOVER_SCHEDULE_TIMES=09:00,17:00
+      - KETCHUP_RCA_HISTORIAN_ENABLED=true
+      - KETCHUP_JIRA_INDEX_MONTHS=1
+      - KETCHUP_JIRA_INDEX_MONTHS_CSOPM=2
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./logs:/var/log
