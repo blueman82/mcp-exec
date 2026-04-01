@@ -79,7 +79,7 @@ if info:
 
 msg = chr(10).join(parts)
 print(json.dumps({'suppressOutput': False, 'systemMessage': msg}))
-" "${WARNINGS[@]}" "---" "${INFO[@]}"
+" ${WARNINGS[@]+"${WARNINGS[@]}"} "---" ${INFO[@]+"${INFO[@]}"}
 fi
 
 exit 0
