@@ -5,11 +5,12 @@ No re-ranking step, no hybrid scoring. The LLM evaluates relevance from the
 context it receives, including timestamps for temporal reasoning.
 """
 
+import asyncio
 import json
 import os
 import re
 import time
-from typing import Optional
+from typing import Any, Optional
 
 from packages.core.config.feature_flags import FeatureFlags
 from packages.core.jira_constants import VALID_JIRA_PROJECTS
