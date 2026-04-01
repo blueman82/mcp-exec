@@ -267,7 +267,11 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         return await self._call_mcp_tool("test_jira_auth", {})
 
     async def search_issues(
-        self, jql: str, fields: Optional[List[str]] = None, max_results: int = 50
+        self,
+        jql: str,
+        fields: Optional[List[str]] = None,
+        max_results: int = 50,
+        start_at: int = 0,
     ) -> Dict[str, Any]:
         """Search JIRA issues via MCP."""
 
@@ -291,7 +295,9 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
                 "Severity from Customer Care",
             ]
 
-        arguments = {"jql": jql, "fields": fields, "maxResults": max_results}
+        arguments: Dict[str, Any] = {"jql": jql, "fields": fields, "maxResults": max_results}
+        if start_at:
+            arguments["startAt"] = start_at
 
         try:
             result = await self._call_mcp_tool("search_jira_issues", arguments)

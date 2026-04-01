@@ -111,8 +111,8 @@ class JiraBulkIndexer:
         Returns:
             Summary dict: {project: {tickets: N, documents: N, linked: N}}
         """
-        default_months = os.environ.get("KETCHUP_JIRA_INDEX_MONTHS", "6")
-        csopm_months = os.environ.get("KETCHUP_JIRA_INDEX_MONTHS_CSOPM", "12")
+        default_months = int(os.environ.get("KETCHUP_JIRA_INDEX_MONTHS", "6"))
+        csopm_months = int(os.environ.get("KETCHUP_JIRA_INDEX_MONTHS_CSOPM", "12"))
 
         summary: dict[str, dict[str, int]] = {}
         # Maps ticket_key -> fields dict for the link-following pass
@@ -120,9 +120,10 @@ class JiraBulkIndexer:
 
         for project in VALID_JIRA_PROJECTS:
             months = csopm_months if project == "CSOPM" else default_months
+            days = months * 30  # JIRA JQL uses -Nd (days), not -Nm (months not supported)
             jql = (
                 f"project = {project} AND status IN (Resolved, Closed, Complete, Done) "
-                f"AND created >= -{months}m ORDER BY updated DESC"
+                f"AND created >= -{days}d ORDER BY updated DESC"
             )
             tickets_indexed, docs_stored = await self._index_project(project, jql, indexed_fields)
             summary[project] = {"tickets": tickets_indexed, "documents": docs_stored, "linked": 0}
@@ -169,9 +170,10 @@ class JiraBulkIndexer:
         while True:
             try:
                 result = await self._mcp_client.search_issues(
-                    jql=f"{jql}&startAt={start_at}",
+                    jql=jql,
                     fields=_BULK_FIELDS,
                     max_results=TICKETS_PER_PAGE,
+                    start_at=start_at,
                 )
             except Exception as exc:
                 logger.error("Search failed for %s at offset %d: %s", project, start_at, exc)
