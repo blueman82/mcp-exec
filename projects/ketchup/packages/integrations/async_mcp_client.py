@@ -38,7 +38,7 @@ class MCPClientConfig:
 class iPaaSRateLimiter:
     """Rate limiter for MCP/iPaaS API calls."""
 
-    def __init__(self, requests_per_minute: int = 60) -> None:
+    def __init__(self, requests_per_minute: int = 120) -> None:
         """Initialise the limiter.
 
         Args:

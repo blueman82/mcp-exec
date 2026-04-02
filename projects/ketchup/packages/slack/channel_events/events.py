@@ -10,7 +10,7 @@ The events are:
 - channel_unarchived
 """
 
-from typing import Optional
+from __future__ import annotations
 
 from packages.core.logging import setup_logger
 from packages.db.dynamodb_store import DynamoDBStore
@@ -68,8 +68,8 @@ class SlackEventHandler:
         channel_restore_ops: SlackChannelRestoreOps,
         block_kit_builder: BlockKitBuilder,
         channel_eligibility_service: ChannelEligibilityService,
-        restore_state_manager: Optional[RestoreStateManager] = None,
-        list_command: Optional[SlackListCommand] = None,
+        restore_state_manager: RestoreStateManager | None = None,
+        list_command: SlackListCommand | None = None,
         feature_service=None,
         user_join_notification_service=None,
         user_store=None,
@@ -108,7 +108,7 @@ class SlackEventHandler:
         self.typed_container = typed_container
         logger.info("SlackEventHandler initialized with injected dependencies.")
 
-    async def handle_channel_created(self, event: dict, response_url: Optional[str] = None):
+    async def handle_channel_created(self, event: dict, response_url: str | None = None):
         """
         Handle channel_created event by dispatching to the standalone handler.
 
@@ -130,7 +130,7 @@ class SlackEventHandler:
             posting_handler=self.posting_handler,
         )
 
-    async def handle_member_joined_channel(self, event: dict, response_url: Optional[str] = None):
+    async def handle_member_joined_channel(self, event: dict, response_url: str | None = None):
         """
         Handle member_joined_channel event by dispatching to the standalone handler.
 
@@ -166,9 +166,11 @@ class SlackEventHandler:
         # Idempotent — checks watermark, skips if already done.
         from packages.core.config.feature_flags import FeatureFlags
 
+        channel_id = event.get("channel")
         bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
         if (
-            event.get("user") == bot_user_id
+            channel_id
+            and event.get("user") == bot_user_id
             and FeatureFlags.is_agent_enabled()
             and self.typed_container
         ):
@@ -178,7 +180,7 @@ class SlackEventHandler:
                 )
 
                 backfill = await self.typed_container.aget(AgentBackfillIngestorProtocol)
-                await backfill.schedule_backfill(event.get("channel"))
+                await backfill.schedule_backfill(channel_id)
             except Exception as e:
                 logger.debug("Agent backfill on join skipped: %s", e)
 
@@ -205,7 +207,8 @@ class SlackEventHandler:
             # Delegate core processing to the imported function
             await process_channel_archive(channel_id=channel_id, dynamodb_store=self.dynamodb_store)
 
-            # ── ChromaDB/Agent cleanup on archive ──
+            # ── Agent session cleanup on archive ──
+            # ChromaDB embeddings are preserved — RCA Historian needs them.
             try:
                 from packages.core.config.feature_flags import FeatureFlags
 
@@ -214,19 +217,15 @@ class SlackEventHandler:
                 ) and self.typed_container:
                     from packages.core.typed_di.service_registrations.protocols.agent_protocols import (
                         AgentConversationStoreProtocol,
-                        AgentVectorStoreProtocol,
                     )
 
                     conversation_store = await self.typed_container.aget(
                         AgentConversationStoreProtocol
                     )
-                    vector_store = await self.typed_container.aget(AgentVectorStoreProtocol)
 
                     from packages.agent.slack.lifecycle import handle_channel_archive_agent_cleanup
 
-                    await handle_channel_archive_agent_cleanup(
-                        channel_id, conversation_store, vector_store
-                    )
+                    await handle_channel_archive_agent_cleanup(channel_id, conversation_store)
             except Exception as e:
                 logger.warning("Agent cleanup on archive failed for %s: %s", channel_id, e)
 
@@ -245,14 +244,12 @@ class SlackEventHandler:
         Args:
             event: Dictionary containing the Slack event data
         """
-        start_message = "Starting handle_channel_unarchive function."
-        logger.info(start_message)
+        logger.info("Starting handle_channel_unarchive function.")
 
-        if not event or not isinstance(event, dict) or "channel" not in event:
-            logger.error("Invalid event data for channel_unarchive event: %s", event)
+        channel_id = event.get("channel")
+        if not channel_id:
+            logger.error("channel_unarchive event missing channel_id: %s", event)
             return
-
-        channel_id = event["channel"]
         logger.info("Checking channel %s in DynamoDB.", channel_id)
 
         try:
@@ -329,6 +326,10 @@ class SlackEventHandler:
         text = event.get("text", "")
         user_id = event.get("user")
 
+        if not channel_id:
+            logger.warning("app_mention event missing channel_id, skipping")
+            return
+
         # Get bot_user_id from secrets using existing method
         bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
 
@@ -346,7 +347,7 @@ class SlackEventHandler:
             jira_ticket = JiraPromptHandler.extract_jira_ticket(text)
 
             if jira_ticket:
-                logger.info(f"Maintenance reply detected: {jira_ticket} in {channel_id}")
+                logger.info("Maintenance reply detected: %s in %s", jira_ticket, channel_id)
                 await self.posting_handler.post_message(
                     user_id=user_id,
                     channel_id=channel_id,
@@ -375,15 +376,10 @@ class SlackEventHandler:
         logger.info("Unhandled app mention from %s in %s", user_id, channel_id)
 
     async def handle_message(self, event: dict):
-        """
-        Handle general message events that might contain bot mentions.
-
-        Args:
-            event: The Slack event data for message
-        """
+        """Handle general message events that might contain bot mentions."""
         logger.info("Handling message event")
 
-        # Get bot user ID
+        channel_id = event.get("channel")
         bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
 
         # Filter out bot's own messages early to prevent unnecessary processing
@@ -393,7 +389,7 @@ class SlackEventHandler:
 
         # Also filter out messages with bot_id (messages from any bot/app)
         if event.get("bot_id"):
-            logger.info(f"Ignoring message from bot/app with bot_id: {event.get('bot_id')}")
+            logger.info("Ignoring message from bot/app with bot_id: %s", event.get("bot_id"))
             return
 
         # ── Agent thread reply detection ──
@@ -401,7 +397,7 @@ class SlackEventHandler:
         # to avoid double-processing the same @Ketchup message.
         thread_ts = event.get("thread_ts")
         text = event.get("text", "")
-        if thread_ts and f"<@{bot_user_id}>" not in text:
+        if channel_id and thread_ts and f"<@{bot_user_id}>" not in text:
             try:
                 from packages.core.config.feature_flags import FeatureFlags
 
@@ -414,9 +410,7 @@ class SlackEventHandler:
                     conversation_store = await self.typed_container.aget(
                         AgentConversationStoreProtocol
                     )
-                    is_agent = await conversation_store.is_agent_thread(
-                        event.get("channel"), thread_ts
-                    )
+                    is_agent = await conversation_store.is_agent_thread(channel_id, thread_ts)
                     if is_agent:
                         agent_handler = await self.typed_container.aget(AgentSlackHandlerProtocol)
                         await agent_handler.handle_thread_reply(event)
@@ -428,14 +422,18 @@ class SlackEventHandler:
         text = event.get("text", "")
         if f"<@{bot_user_id}>" in text:
             logger.info(
-                f"Bot mentioned in message by user {event.get('user')} in channel {event.get('channel')}: {text}"
+                "Bot mentioned in message by user %s in channel %s: %s",
+                event.get("user"),
+                channel_id,
+                text,
             )
-
         else:
-            logger.info(f"Message does not mention bot: {text}")
+            logger.info("Message does not mention bot: %s", text)
 
         # ── ChromaDB real-time ingestion ──
         # Runs when either ChromaDB or full agent is enabled (ingestor is in the chromadb tier)
+        if not channel_id:
+            return
         try:
             from packages.core.config.feature_flags import FeatureFlags
 
@@ -447,20 +445,14 @@ class SlackEventHandler:
                 )
 
                 ingestor = await self.typed_container.aget(AgentRealtimeIngestorProtocol)
-                await ingestor.ingest_message(event.get("channel"), event)
+                await ingestor.ingest_message(channel_id, event)
         except Exception as e:
             logger.warning("ChromaDB ingestion failed: %s", e)
 
     async def handle_message_im(self, event: dict):
-        """
-        Handle direct messages to Ketchup.
-
-        Args:
-            event: The Slack event data for message.im
-        """
+        """Handle direct messages to Ketchup."""
         logger.info("Handling message.im event")
 
-        # Get bot_user_id from secrets
         bot_user_id = await self.secrets_manager.get_bot_slack_user_id_async()
 
         # Filter out bot's own messages early
@@ -470,32 +462,34 @@ class SlackEventHandler:
 
         # Also filter out messages with bot_id
         if event.get("bot_id"):
-            logger.info(f"Ignoring DM from bot/app with bot_id: {event.get('bot_id')}")
+            logger.info("Ignoring DM from bot/app with bot_id: %s", event.get("bot_id"))
             return
 
-        # Additional check: Ignore messages that look like Ketchup responses
+        channel_id = event.get("channel")
+        if not channel_id:
+            logger.warning("message.im event missing channel_id, skipping")
+            return
+
+        # Ignore messages that look like Ketchup responses
         text = event.get("text", "")
-        # Check both plain text and with potential HTML encoding/formatting
-        ketchup_markers = [
+        ketchup_markers = (
             "Ketchup App Analysis Results",
             "Generated by Ketchup",
             "Analyzing your request",
             "Please rate the summary",
-            "bar_chart",  # Emoji marker
-            "ketchup:",  # Emoji marker
-            "Response:",  # Common in Ketchup responses
-            "Query:",  # Common in Ketchup responses
-        ]
+            "bar_chart",
+            "ketchup:",
+            "Response:",
+            "Query:",
+        )
 
         if any(marker in text for marker in ketchup_markers):
             logger.info("Ignoring Ketchup-generated response message to prevent loops")
             return
 
-        # Log the event
-        logger.info(f"Direct message from user {event.get('user')}: {event.get('text')}")
+        logger.info("Direct message from user %s: %s", event.get("user"), event.get("text"))
 
-        # Direct users to slash commands
         await self.posting_handler.post_message(
-            channel_id=event.get("channel"),
+            channel_id=channel_id,
             message="Thanks for your message! Please use `/ketchup` to see available commands.",
         )

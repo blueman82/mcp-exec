@@ -46,10 +46,9 @@ WORKTREE_KETCHUP="$WORKTREE_ABS/projects/ketchup"
 echo -e "${BLUE}[INFO]${NC} Setting up symlinks for build artifacts..."
 
 # Symlink Python venv
-if [ -d "$MAIN_REPO/tests/setup/.venv" ]; then
-    mkdir -p "$WORKTREE_KETCHUP/tests/setup"
-    ln -sf "$MAIN_REPO/tests/setup/.venv" "$WORKTREE_KETCHUP/tests/setup/.venv"
-    echo -e "${GREEN}[SUCCESS]${NC} Symlinked tests/setup/.venv"
+if [ -d "$MAIN_REPO/.venv" ]; then
+    ln -sf "$MAIN_REPO/.venv" "$WORKTREE_KETCHUP/.venv"
+    echo -e "${GREEN}[SUCCESS]${NC} Symlinked .venv"
 else
     echo -e "${RED}[WARN]${NC} No .venv found in main repo - you may need to create it"
 fi

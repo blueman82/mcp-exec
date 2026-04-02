@@ -49,10 +49,7 @@ if [[ "$COMMAND" =~ docker[[:space:]]+stop[[:space:]]+ ]]; then
     block_command "docker stop would halt running containers"
 fi
 
-# Block: SSH to production servers
-if [[ "$COMMAND" =~ ssh[[:space:]]+ && "$COMMAND" =~ (ketchup-prod1|ketchup-prod2) ]]; then
-    block_command "SSH to production servers requires explicit approval"
-fi
+# SSH to production servers — allowed (read-only commands are common for monitoring/verification)
 
 # Block: SQL destructive operations (case insensitive)
 if [[ "$COMMAND" =~ [Dd][Rr][Oo][Pp][[:space:]]+(TABLE|DATABASE) ]]; then

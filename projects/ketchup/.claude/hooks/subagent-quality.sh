@@ -42,7 +42,7 @@ if [[ -z "$modified_files" ]]; then
 fi
 
 # Locate ruff binary
-ruff_bin="${CLAUDE_PROJECT_DIR}/tests/setup/.venv/bin/ruff"
+ruff_bin="${CLAUDE_PROJECT_DIR}/.venv/bin/ruff"
 if [[ ! -x "$ruff_bin" ]]; then
     ruff_bin=$(command -v ruff)
 fi

@@ -233,6 +233,26 @@ packages/slack/
     ├── state.py                  # DynamoDB state tracking
     └── actions.py                # Interactive button action handlers
 
+packages/agent/                    # Agent RAG pipeline & skill library
+├── skills/                        # Manifest-driven agent capabilities
+│   ├── base.py                    # SkillManifest, SkillRegistry, BaseSkillExecutor
+│   ├── router.py                  # SkillRouter (tool call dispatch)
+│   └── rca_historian/             # RCA Historian skill
+│       ├── manifest.md            # YAML frontmatter + prompt + JSON tools
+│       └── executor.py            # Adapter → RCAToolExecutorProtocol
+├── rag/                           # AgentEngine, Retriever, ContextBuilder
+├── rca/                           # RCA tool executor, tool definitions
+└── slack/                         # Agent Slack handler, thread manager, lifecycle
+
+packages/core/typed_di/
+└── service_registrations/
+    └── protocols/
+        └── agent_protocols.py     # Agent protocols including:
+                                   #   SkillRegistryProtocol
+                                   #   SkillRouterProtocol
+                                   #   RCAToolExecutorProtocol
+                                   #   AgentEngineProtocol (+ 10 more)
+
 packages/integrations/
 ├── jira_client.py               # Implement JiraClientProtocol
 ├── ai_client.py                 # Implement AIClientProtocol

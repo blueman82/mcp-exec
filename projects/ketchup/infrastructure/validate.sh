@@ -28,7 +28,7 @@ SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PACKAGES_DIR="${PROJECT_ROOT}/packages"
 TESTS_DIR="${PROJECT_ROOT}/tests"
-VENV_DIR="${PROJECT_ROOT}/tests/setup/.venv"
+VENV_DIR="${PROJECT_ROOT}/.venv"
 
 # All Python source directories to validate
 # Includes shared packages AND all service-specific directories

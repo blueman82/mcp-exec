@@ -26,7 +26,7 @@ logger = setup_logger(__name__)
 
 EMBEDDING_BATCH_SIZE = 16
 INTER_BATCH_DELAY = 0.5  # seconds between embedding batches — matches existing pattern
-TICKETS_PER_PAGE = 50
+TICKETS_PER_PAGE = 150
 
 BOT_AUTHORS = [
     "jiradydx",

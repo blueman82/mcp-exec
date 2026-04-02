@@ -29,7 +29,7 @@ fi
 
 # Resolve project root for tool discovery
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}"
-VENV_BIN="${PROJECT_DIR}/tests/setup/.venv/bin"
+VENV_BIN="${PROJECT_DIR}/.venv/bin"
 
 # Find tools: prefer test venv, fall back to PATH
 find_tool() {

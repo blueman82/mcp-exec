@@ -109,6 +109,43 @@ Feature flags enable/disable functionality across Ketchup services. All flags fo
 - **Dependencies**: MCP JIRA service (mcp-jira), Slack API for DMs
 - **Added**: January 2026
 
+### Agent Feature (RAG Pipeline)
+
+**Purpose**: Enable the conversational AI agent with RAG over channel message history
+
+- **Flag**: `KETCHUP_AGENT_ENABLED`
+- **Current Value**: `false`
+- **Services**: ketchup-app (agent handler, thread manager, backfill ingestor)
+- **Details**: Enables the full agent chat/RAG stack — retriever, context builder, engine, Slack handler. Requires ChromaDB foundation services.
+- **Dependencies**: `KETCHUP_CHROMADB_ENABLED` (or auto-enabled when `KETCHUP_AGENT_ENABLED=true`)
+- **Added**: December 2025
+
+### RCA Historian Skill
+
+**Purpose**: Enable the RCA Historian agent skill for cross-channel incident investigation
+
+- **Flag**: `KETCHUP_RCA_HISTORIAN_ENABLED`
+- **Current Value**: `false`
+- **Services**: ketchup-app (loaded via skill library manifest at engine startup)
+- **Details**: Loaded dynamically by `SkillRegistry` from `packages/agent/skills/rca_historian/manifest.md`. Adds 4 tools: `search_similar_incidents`, `search_jira_history`, `query_instance_health`, `get_active_alerts`. The skill executor delegates to `RCAToolExecutorProtocol` which uses the existing retriever, MCP JIRA client, and New Relic client.
+- **Related Configuration**:
+  - `KETCHUP_JIRA_INDEX_MONTHS=6` - Lookback window for JIRA bulk indexer (default 6)
+  - `KETCHUP_JIRA_INDEX_MONTHS_CSOPM=12` - CSOPM-specific override (default 12)
+- **Dependencies**: `KETCHUP_AGENT_ENABLED=true` (required), MCP JIRA service, New Relic API
+- **Architecture**: Skill library (`packages/agent/skills/`) — new skills are added by dropping a directory with `manifest.md` + executor, no engine changes needed
+- **Added**: March 2026 (extracted to skill library April 2026)
+
+### ChromaDB Data Layer
+
+**Purpose**: Enable ChromaDB vector store for message embeddings independently of the full agent
+
+- **Flag**: `KETCHUP_CHROMADB_ENABLED`
+- **Current Value**: `false`
+- **Services**: ketchup-app (embeddings client, vector store, conversation store, realtime ingestor)
+- **Details**: Provides the data layer used by both agent chat and handover summary features. ChromaDB embeddings are preserved on channel archive (RCA Historian needs historical data).
+- **Dependencies**: Azure OpenAI (ada-002 embeddings)
+- **Added**: March 2026
+
 ---
 
 ## Performance Tuning Variables
@@ -443,6 +480,9 @@ Add reference in the Feature Flags section:
 | KETCHUP_HTTP2_ENABLED | ✅ ENABLED | All | High (Performance) |
 | KETCHUP_KEEPALIVE_ENABLED | ✅ ENABLED | All | Medium (Performance) |
 | KETCHUP_STRUCTURED_JSON_OUTPUT | ✅ ENABLED | Most | Medium (Performance) |
+| KETCHUP_AGENT_ENABLED | ❌ DISABLED | app | High |
+| KETCHUP_CHROMADB_ENABLED | ❌ DISABLED | app | Medium |
+| KETCHUP_RCA_HISTORIAN_ENABLED | ❌ DISABLED | app (via skill library) | High |
 
 ---
 

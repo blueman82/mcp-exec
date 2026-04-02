@@ -57,34 +57,18 @@ Ketchup is a multi-service Slack application providing automated workflows, JIRA
 ## Developer Setup
 
 ### Package Management
-This project uses **uv** for Python dependency management (not pip).
+This project uses **uv** with Python 3.12 for dependency management (matching Docker production).
 
 **First time setup** (run once from project root):
 ```bash
-./setup      # Sets up test venv + git hooks
-uv sync      # Installs project dependencies to .venv/
+./setup      # Checks for uv, creates .venv, installs project + dev dependencies
 ```
 
-### Virtual Environments
-Two venvs exist for different purposes:
-- `.venv/` (root) - Project runtime dependencies, managed by `uv sync`
-- `tests/setup/.venv/` - Linting/testing tools, managed by pip
-
-**When to use each:**
-```bash
-uv sync                    # Install/update project dependencies
-. .venv/bin/activate       # For running project code, imports
-cd tests/setup && make ... # For running tests (uses its own venv)
-```
+All project and development dependencies (linting, testing, type checking) are installed to a single `.venv/` at the project root via `uv sync --extra dev`.
 
 ## Developer Workflow
 
-**Daily workflow is automated via git hooks:**
-- **Pre-commit**: Quick lint check (ruff) ~5s
-- **Pre-push**: Full lint check (ruff, black, isort) ~10s
-- **Deploy**: Validation gate built-in
-
-**You rarely need manual commands.** Just code, commit, and push.
+Code is automatically linted on each commit and push via Claude Code's `format-and-lint.sh` hook. For manual control, use the commands below.
 
 ### Manual Commands (if needed)
 
@@ -104,6 +88,8 @@ make test-parallel   # All unit tests (~15s) - before PR
 make test-typed-di   # TypedDI validation
 make test-integration # AWS tests (requires AWS_PROFILE)
 ```
+
+Makefile commands use the project root `.venv` for all test execution and tooling.
 
 ### Deployment
 
@@ -165,6 +151,17 @@ All Ketchup services share the same repository and the `packages/` directory:
 ```
 ketchup/
 ├── packages/              # Shared code used by ALL services
+│   ├── agent/            # Agent RAG pipeline, skills, RCA tools
+│   │   ├── skills/       # Skill library (manifest-driven agent capabilities)
+│   │   │   ├── base.py   # SkillManifest, SkillRegistry, BaseSkillExecutor
+│   │   │   ├── router.py # SkillRouter (tool call dispatch)
+│   │   │   └── rca_historian/  # RCA Historian skill
+│   │   │       ├── manifest.md # Prompt, tools, feature flag declaration
+│   │   │       └── executor.py # Adapter → RCAToolExecutorProtocol
+│   │   ├── rag/          # AgentEngine, Retriever, ContextBuilder
+│   │   ├── rca/          # RCA tool executor, tool definitions
+│   │   ├── prompts/      # System prompts (base + skill fragments)
+│   │   └── slack/        # Agent Slack handler, thread manager, lifecycle
 │   ├── ai/               # Azure OpenAI integration
 │   ├── core/             # Core utilities, TypedDI, HTTP clients
 │   │   └── schedulers/   # BaseScheduler pattern for background services
@@ -261,6 +258,14 @@ ServiceSpec(
 - Both `register_chromadb_services()` and `register_agent_services()` are explicit entries in the role maps (`__init__.py`)
 - Allows handover summary to use ChromaDB without the full agent stack
 
+#### Skill Library (Agent Capabilities)
+- **Location**: `packages/agent/skills/`
+- Skills are self-contained directories with `manifest.md` (YAML frontmatter + prompt + JSON tools) and an executor class
+- `SkillRegistry` scans for enabled skills by checking each manifest's `feature_flag` env var
+- `SkillRouter` dispatches tool calls to the correct skill executor (same `execute()` interface as `RCAToolExecutorProtocol`)
+- `_create_agent_engine` in `agent_services.py` loads skills dynamically via `importlib` — no hardcoded if/else per skill
+- **Adding a skill**: drop a directory, no engine changes needed
+
 #### Two-Phase Processing
 Slack requires responses within 3 seconds, but AI operations take longer. Solution:
 1. **Quick Response Phase**: FastAPI endpoint immediately acknowledges (HTTP 200)
@@ -325,7 +330,7 @@ All features controlled via environment variables in `docker-compose.yml`:
 - `KETCHUP_CHROMADB_ENABLED=false` - ChromaDB data layer (embeddings, vector store, realtime ingestion)
 - `USE_PIPELINE_PROCESSING=true` (59% performance improvement)
 - `KETCHUP_USE_HTTPX=true` / `KETCHUP_HTTP2_ENABLED=true` (5-8% performance gain)
-- `KETCHUP_RCA_HISTORIAN_ENABLED=false` - RCA Historian tool-calling agent (**requires** `KETCHUP_AGENT_ENABLED=true`)
+- `KETCHUP_RCA_HISTORIAN_ENABLED=false` - RCA Historian skill loaded via manifest (**requires** `KETCHUP_AGENT_ENABLED=true`)
 - `KETCHUP_JIRA_INDEX_MONTHS=6` - Lookback window in months for JIRA bulk indexer (default 6)
 - `KETCHUP_JIRA_INDEX_MONTHS_CSOPM=12` - CSOPM-specific override for JIRA bulk indexer lookback (default 12)
 
@@ -398,6 +403,16 @@ When adding or modifying any TypedDI service, complete ALL steps:
 8. Import from specific protocol file, never barrel exports (see `.claude/rules/import-conventions.md`)
 
 Canonical example: CSOPM notifier in `ketchup_csopm_notifier/container.py`
+
+### Adding a New Agent Skill
+1. Create directory `packages/agent/skills/<skill_name>/`
+2. Write `manifest.md` with YAML frontmatter (name, feature_flag, executor_path), prompt body, and JSON tools block
+3. Implement executor class implementing `BaseSkillExecutor` protocol (`setup(resolver)` + `execute(tool_name, arguments)`)
+4. Add feature flag to `infrastructure/docker-compose.yml`
+5. Register any new backend services the executor needs in `agent_services.py` (e.g., API clients)
+6. Add tests: manifest content verification, executor delegation, registry loading with flag
+
+Canonical example: `packages/agent/skills/rca_historian/`
 
 ### Adding a New Slash Command
 1. Create command handler in `packages/slack/commands/`
@@ -494,6 +509,7 @@ sudo docker-compose -f /opt/ketchup/docker-compose.yml logs -f
 
 ## Recent Major Changes
 
+- **April 2026**: Skill Library — RCA Historian extracted into generic manifest-driven skill system (`packages/agent/skills/`). New skills are added by dropping a directory with `manifest.md` + executor — no engine changes needed. `SkillRegistry` scans for enabled skills, `SkillRouter` dispatches tool calls. AgentEngine unchanged. ChromaDB embeddings preserved on channel archive for RCA cross-channel search.
 - **March 2026**: ChromaDB decoupled from agent feature flag — new `KETCHUP_CHROMADB_ENABLED` flag allows handover summary to use ChromaDB pre-indexed messages without requiring the full agent chat/RAG stack. Two-tier service registration: chromadb foundation (4 services) + agent chat (8 services).
 - **February 2026**: On-Call Handover Summary - Scheduled task posting compact incident summaries to camp-oncall channel at shift handover times. Dynamic scheduling via KETCHUP_HANDOVER_SCHEDULE_TIMES env var.
 - **January 2026**: CSOPM Notifier service - Automated CSOPM ticket assignment notifications via Slack DMs, interactive buttons, DynamoDB state tracking. ServiceSpec declarative system (-2,600 LOC cleanup).

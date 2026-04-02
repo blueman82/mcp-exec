@@ -35,6 +35,8 @@ __all__ = [
     "AgentThreadFilterProtocol",
     "JiraBulkIndexerProtocol",
     "RCAToolExecutorProtocol",
+    "SkillRegistryProtocol",
+    "SkillRouterProtocol",
 ]
 
 
@@ -463,3 +465,22 @@ class RCAToolExecutorProtocol(Protocol):
     async def execute(self, tool_name: str, arguments: Dict[str, Any]) -> str:
         """Execute a tool call and return the result string."""
         ...
+
+
+# =============================================================================
+# Skill Library Protocols
+# =============================================================================
+
+
+@runtime_checkable
+class SkillRegistryProtocol(Protocol):
+    """Protocol for skill registry that discovers and loads skill manifests."""
+
+    def load_enabled_skills(self) -> list: ...
+
+
+@runtime_checkable
+class SkillRouterProtocol(Protocol):
+    """Protocol for skill router that dispatches tool calls to executors."""
+
+    async def execute(self, tool_name: str, arguments: Dict[str, Any]) -> str: ...

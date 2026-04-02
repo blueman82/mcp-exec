@@ -23,7 +23,9 @@ ChromaDB foundation services independently of the agent chat feature.
 All services are registered as singletons.
 """
 
+import importlib
 import os
+from pathlib import Path
 
 # Concrete implementations — ChromaDB foundation
 from packages.agent.conversation.store import ConversationStore
@@ -36,7 +38,6 @@ from packages.agent.ingestion.realtime_ingestor import RealtimeIngestor
 
 # Concrete implementations — Agent prompts
 from packages.agent.prompts.agent_system import AGENT_SYSTEM_PROMPT
-from packages.agent.prompts.rca_system import RCA_SYSTEM_PROMPT
 
 # Concrete implementations — Agent RAG pipeline
 from packages.agent.rag.context_builder import ContextBuilder
@@ -45,7 +46,10 @@ from packages.agent.rag.retriever import Retriever
 
 # Concrete implementations — RCA Historian
 from packages.agent.rca.tool_executor import RCAToolExecutor
-from packages.agent.rca.tools import RCA_TOOLS
+
+# Skill library
+from packages.agent.skills.base import SkillRegistry
+from packages.agent.skills.router import SkillRouter
 
 # Concrete implementations — Agent Slack integration
 from packages.agent.slack.handler import AgentSlackHandler
@@ -142,7 +146,7 @@ async def _create_backfill_ingestor(resolver):
 
 
 async def _create_agent_engine(resolver):
-    """Custom factory for AgentEngine — injects system prompt and optional RCA tools."""
+    """Custom factory for AgentEngine — loads skills from manifest and injects tools."""
     logger.info("Creating AgentEngine instance via TypedDI (custom factory)")
 
     retriever = await resolver.aget(AgentRetrieverProtocol)
@@ -150,12 +154,23 @@ async def _create_agent_engine(resolver):
     conversation_store = await resolver.aget(AgentConversationStoreProtocol)
     api_executor = await resolver.aget(ApiExecutorProtocol)
 
-    rca_enabled = os.environ.get("KETCHUP_RCA_HISTORIAN_ENABLED", "false").lower() == "true"
+    # Load enabled skills from manifest files
+    skills_dir = Path(__file__).resolve().parents[4] / "agent" / "skills"
+    registry = SkillRegistry(skills_dir=skills_dir)
+    active_skills = registry.load_enabled_skills()
 
-    if rca_enabled:
-        tool_executor = await resolver.aget(RCAToolExecutorProtocol)
-        system_prompt = RCA_SYSTEM_PROMPT
-        tools = RCA_TOOLS
+    if active_skills:
+        system_prompt = AGENT_SYSTEM_PROMPT + "\n" + "".join(s.prompt for s in active_skills)
+        tools = [tool for s in active_skills for tool in s.tools]
+        dispatch_table: dict[str, object] = {}
+        for skill in active_skills:
+            module_path, class_name = skill.executor_path.rsplit(".", 1)
+            module = importlib.import_module(module_path)
+            executor = getattr(module, class_name)()
+            await executor.setup(resolver)
+            for tool_def in skill.tools:
+                dispatch_table[tool_def["function"]["name"]] = executor
+        tool_executor = SkillRouter(dispatch_table)
     else:
         system_prompt = AGENT_SYSTEM_PROMPT
         tools = None

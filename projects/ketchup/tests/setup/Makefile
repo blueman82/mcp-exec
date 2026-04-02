@@ -11,7 +11,7 @@
 .PHONY: test test-fast test-parallel test-unit test-integration test-typed-di test-coverage clean help
 ARGS?=
 
-VENV?=.venv
+VENV?=../../.venv
 SHELL := /bin/bash
 export PYTHONDONTWRITEBYTECODE=1
 
