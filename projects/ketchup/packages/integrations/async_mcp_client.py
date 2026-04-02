@@ -104,7 +104,7 @@ class AsyncMCPClient(AsyncClient[MCPClientConfig, Dict[str, Any]]):
         self._last_health_check = 0.0
         self._health_check_interval = 60.0
         self._is_healthy = True
-        self.rate_limiter = iPaaSRateLimiter()
+        self.rate_limiter = iPaaSRateLimiter(requests_per_minute=120)
         logger.info("AsyncMCPClient initialization complete - ready for httpx-based requests")
 
     @property
