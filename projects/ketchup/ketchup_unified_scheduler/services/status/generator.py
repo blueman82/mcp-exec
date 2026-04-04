@@ -274,12 +274,7 @@ class AutoStatusGenerator:
             # Add new messages
             full_user_prompt += f"\n\nChannel Messages to Analyze:\n{prepared_messages}"
 
-            # Debug log to see what messages we're sending to AI
-            logger.info(f"[DEBUG] Prepared messages length: {len(prepared_messages)}")
-            logger.info(f"[DEBUG] Has thread activity: {has_thread_activity}")
-            if has_thread_activity:
-                # Log first 500 chars of messages to see if threads are included
-                logger.info(f"[DEBUG] First 500 chars of messages: {prepared_messages[:500]}")
+            # (generation context logged after full prompt is assembled below)
 
             # Add JIRA comments if available
             if jira_comments_raw:
@@ -317,6 +312,25 @@ class AutoStatusGenerator:
                     full_user_prompt += "\n\nIMPORTANT: There are NO NEW MESSAGES since the last update. Your Overview MUST indicate 'No new activity since the last update' while still providing the current status."
 
             full_user_prompt += "\n\nREMINDER: Output ONLY the Overview and 4 bullet points as specified in the format above. Do NOT include the context sections."
+
+            # Structured observability — single log capturing the AI's full input context
+            generation_context = {
+                "channel_id": channel_id,
+                "channel_name": channel_name,
+                "is_first_run": is_first_run,
+                "since_ts": original_last_message_ts,
+                "has_new_messages": has_new_messages,
+                "has_thread_activity": has_thread_activity,
+                "has_jira_updates": has_jira_updates,
+                "message_count": channel_metadata.get("message_count", 0),
+                "thread_count": channel_metadata.get("thread_count", 0),
+                "prepared_messages_chars": len(prepared_messages),
+                "jira_comments_chars": len(jira_comments_raw) if jira_comments_raw else 0,
+                "has_previous_status": bool(previous_status and not is_first_run),
+                "prompt_chars": len(full_user_prompt),
+                "system_chars": len(system_prompt),
+            }
+            logger.info(f"[STATUS_GENERATION_CONTEXT] {orjson.dumps(generation_context).decode()}")
 
             # Step 8: Call AI directly
             status_content = await self._generate_ai_response(
@@ -391,6 +405,11 @@ class AutoStatusGenerator:
                     # Don't fail the whole operation for counter increment failure
 
                 # Note: auto_status_last_message_ts is already updated by processor after activity check
+                # Reuse generation_context from the log, add timestamp for DynamoDB storage
+                generation_metadata = orjson.dumps(
+                    {**generation_context, "generated_at": datetime.now(timezone.utc).isoformat()}
+                ).decode()
+
                 await self.channel_operations.update_channel_fields(
                     channel_id=channel_id,
                     updates={
@@ -398,6 +417,7 @@ class AutoStatusGenerator:
                         "auto_status_last_jira_comment_ts": latest_jira_ts,
                         "auto_status_last_thread_ts": latest_thread_ts,
                         "auto_status_attempt_count": 0,  # Reset on success
+                        "auto_status_generation_metadata": generation_metadata,
                     },
                 )
 

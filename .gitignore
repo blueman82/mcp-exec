@@ -89,3 +89,5 @@ instance-config.json
 projects/meta-mcp-lazy-agents/
 .serena/
 projects/ketchup/tests/setup/logs/
+projects/ketchup/.playwright-mcp/
+projects/ketchup/feedback-review-channel.png
