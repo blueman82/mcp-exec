@@ -157,9 +157,7 @@ async def test_trust_metadata_storage_respects_channel_enablement(mock_dependenc
         # Test storing metadata for enabled channel
         await generator._store_status_update_metadata(
             channel_id="C123ENABLED",
-            channel_name="test-channel",
             status_update_id="12345_abcd",
-            message_ts="123.456",
             content_hash="hash123",
         )
 

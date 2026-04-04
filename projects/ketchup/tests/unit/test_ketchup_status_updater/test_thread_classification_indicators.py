@@ -239,13 +239,6 @@ async def test_integration_flow_with_thread_classification():
         "auto_status_last_thread_ts": "1736350000.000000",
     }
 
-    # Mock activity check to return thread-only activity
-    activity_check = {
-        "has_activity": True,
-        "has_new_messages": False,  # No channel messages
-        "has_thread_activity": True,  # Only threads
-        "has_jira_updates": False,
-    }
 
     # Mock TypedDI registry to return mock channel_info_ops
     mock_info_ops_3 = AsyncMock(spec=ChannelInfoOpsProtocol)
@@ -288,7 +281,6 @@ async def test_integration_flow_with_thread_classification():
                             channel_id="C091GU7LT6J",
                             channel_name="test-channel",
                             channel_config=channel_config,
-                            activity_check=activity_check,
                         )
 
         # Verify _format_final_message was called with correct flags

@@ -87,12 +87,10 @@ class AutoStatusGenerator:
             )
 
             try:
-                prepared_messages, metadata = (
-                    await message_preparer.prepare_messages_for_auto_status(
-                        channel_id=channel_id,
-                        since_ts=last_message_ts if last_message_ts != "0" else None,
-                        # Bot filtering happens automatically in channel_msg_ops
-                    )
+                _, metadata = await message_preparer.prepare_messages_for_auto_status(
+                    channel_id=channel_id,
+                    since_ts=last_message_ts if last_message_ts != "0" else None,
+                    # Bot filtering happens automatically in channel_msg_ops
                 )
                 # Use the new has_channel_messages field from metadata
                 has_new_messages = metadata.get("has_channel_messages", False)
@@ -168,7 +166,6 @@ class AutoStatusGenerator:
         channel_id: str,
         channel_name: str,
         channel_config: Dict[str, Any],
-        activity_check: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Generate and post status report using direct AI interaction."""
         try:
@@ -374,7 +371,7 @@ class AutoStatusGenerator:
                 has_thread_activity=has_thread_activity,
                 has_jira_activity=has_jira_updates,
             )
-            status_update_id = self._generate_status_update_id(channel_id)
+            status_update_id = self._generate_status_update_id()
 
             post_result = await self._post_to_slack_public(
                 channel_id, final_message, status_update_id
@@ -424,9 +421,7 @@ class AutoStatusGenerator:
                 # Step 12: Store command execution metadata for trust buttons (always store for buttons to work)
                 await self._store_status_update_metadata(
                     channel_id=channel_id,
-                    channel_name=channel_name,
                     status_update_id=post_result["status_update_id"],
-                    message_ts=post_result["message_ts"],
                     content_hash=self._generate_content_hash(corrected_content),
                 )
 
@@ -447,7 +442,7 @@ class AutoStatusGenerator:
         # Use the OpenAI handler's execute_prompt method directly
         response = await self.openai_handler.execute_prompt(
             messages=messages,
-            reasoning_effort="low",
+            reasoning_effort="medium",
             max_tokens=2048,  # Status reports need more tokens
         )
 
@@ -484,7 +479,7 @@ class AutoStatusGenerator:
 
         return content
 
-    def _generate_status_update_id(self, channel_id: str) -> str:
+    def _generate_status_update_id(self) -> str:
         """Generate a unique ID for this status update."""
         timestamp = int(datetime.now(timezone.utc).timestamp())
         unique_suffix = secrets.token_hex(4)  # 8 chars
@@ -785,9 +780,7 @@ class AutoStatusGenerator:
     async def _store_status_update_metadata(
         self,
         channel_id: str,
-        channel_name: str,
         status_update_id: str,
-        message_ts: str,
         content_hash: str,
     ) -> None:
         """Store metadata for trust tracking."""
@@ -870,9 +863,9 @@ class AutoStatusGenerator:
         self,
         channel_id: str,
         channel_config: Dict[str, Any],
-        original_last_message_ts: str = None,
-        original_last_thread_ts: str = None,
-        original_last_jira_ts: str = None,
+        original_last_message_ts: Optional[str] = None,
+        original_last_thread_ts: Optional[str] = None,
+        original_last_jira_ts: Optional[str] = None,
     ) -> bool:
         """
         Strict verification of activity to prevent false positives during container restart.
@@ -1016,13 +1009,13 @@ class AutoStatusGenerator:
                     # Check if it's async or sync
                     try:
                         thread_activity, _, _ = (
-                            await self.channel_msg_ops.check_recent_thread_activity(
+                            await self.channel_msg_ops.check_recent_thread_activity(  # type: ignore[misc]
                                 channel_id, last_thread_ts
                             )
                         )
                     except TypeError:
                         # If await fails, try sync call
-                        thread_activity, _, _ = self.channel_msg_ops.check_recent_thread_activity(
+                        thread_activity, _, _ = self.channel_msg_ops.check_recent_thread_activity(  # type: ignore[misc]
                             channel_id, last_thread_ts
                         )
                 else:

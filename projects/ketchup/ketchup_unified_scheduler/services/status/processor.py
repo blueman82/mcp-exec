@@ -369,8 +369,7 @@ class AutoStatusProcessor:
             success = await generator.generate_and_post_status(
                 channel_id=channel_id,
                 channel_name=channel_name,
-                channel_config=channel,  # Pass the full channel config
-                activity_check=activity_check,  # Pass the activity check results
+                channel_config=channel,
             )
 
             if success:
