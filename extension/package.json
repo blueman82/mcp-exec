@@ -1,0 +1,103 @@
+{
+  "name": "mcp-exec",
+  "displayName": "MCP-Exec",
+  "description": "Configure and manage MCP-Exec server backends with a visual interface",
+  "version": "0.6.1",
+  "publisher": "adobe",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other",
+    "Programming Languages",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onView:mcp-exec-view"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mcp-exec",
+          "title": "MCP-Exec",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "mcp-exec": [
+        {
+          "id": "mcp-exec-view",
+          "name": "MCP-Exec",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "mcp-exec.openView",
+        "title": "Open MCP-Exec"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "MCP-Exec",
+        "properties": {
+          "mcp-exec.serversConfigPath": {
+            "type": "string",
+            "default": "",
+            "description": "Path to custom servers.json configuration file. Leave empty to use default location."
+          },
+          "mcp-exec.mcpExecPath": {
+            "type": "string",
+            "default": "",
+            "description": "Path to mcp-exec dist/index.js for local development."
+          }
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile": "webpack --mode development",
+    "watch": "webpack --watch",
+    "build": "webpack --mode production",
+    "package": "npm run build && vsce package --no-dependencies",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^16.18.126",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.39.4",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.1.6",
+    "typescript-eslint": "^8.58.1",
+    "webpack": "^5.78.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "zod": "^3.25.76"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-exec",
+    "ai",
+    "claude",
+    "cursor",
+    "tools",
+    "gateway",
+    "adobe"
+  ],
+  "galleryBanner": {
+    "color": "#1a1a2e",
+    "theme": "dark"
+  }
+}

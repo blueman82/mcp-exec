@@ -1,0 +1,1768 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - list:
+        - listitem:
+          - link "Skip to sidebar Type 'u' then '8'" [ref=e5] [cursor=pointer]:
+            - /url: ""
+            - text: Skip to sidebar
+        - listitem:
+          - link "Skip to main content" [ref=e6] [cursor=pointer]:
+            - /url: "#main"
+        - listitem:
+          - link "Skip to breadcrumbs" [ref=e7] [cursor=pointer]:
+            - /url: "#breadcrumbs"
+        - listitem:
+          - link "Skip to search" [ref=e8] [cursor=pointer]:
+            - /url: "#quick-search-query"
+      - navigation "Site" [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - button " Linked Applications" [ref=e12] [cursor=pointer]:
+              - generic [ref=e13]:  Linked Applications
+            - text: 
+          - generic [ref=e14]:
+            - link "Confluence home page" [ref=e16] [cursor=pointer]:
+              - /url: /
+              - img "Wiki" [ref=e17]
+              - generic [ref=e18]: Wiki
+            - list [ref=e19]:
+              - listitem [ref=e20]:
+                - button " Spaces" [ref=e21] [cursor=pointer]
+              - listitem [ref=e22]:
+                - link "People" [ref=e23] [cursor=pointer]:
+                  - /url: /browsepeople.action
+                  - generic [ref=e24]: People
+              - listitem [ref=e25]:
+                - link "Questions" [ref=e26] [cursor=pointer]:
+                  - /url: /questions?src=header
+                  - generic [ref=e27]: Questions
+              - listitem [ref=e28]:
+                - link "Calendars" [ref=e29] [cursor=pointer]:
+                  - /url: /calendar/mycalendar.action
+                  - generic [ref=e30]: Calendars
+              - listitem
+              - listitem [ref=e31]:
+                - button "Create blank page Type 'c'" [ref=e32] [cursor=pointer]: Create
+                - button "Create from template" [ref=e33] [cursor=pointer]:
+                  - generic [ref=e34]: 
+          - list [ref=e36]:
+            - listitem [ref=e37]:
+              - generic [ref=e38]:
+                - button "Search" [ref=e39] [cursor=pointer]: 
+                - textbox "Search query Type 'g' then 'g' OR '/'" [ref=e40]:
+                  - /placeholder: Search
+            - listitem [ref=e41]:
+              - button " Help" [ref=e42] [cursor=pointer]:
+                - generic [ref=e43]:  Help
+            - listitem
+            - listitem [ref=e44]:
+              - button "Notifications" [ref=e45] [cursor=pointer]:
+                - generic [ref=e46]: 
+                - generic:
+                  - generic: "0"
+            - listitem [ref=e47]:
+              - button "Your profile and preferences" [ref=e48] [cursor=pointer]
+    - generic [ref=e51]:
+      - complementary "sidebar" [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - link "Adobe Campaign" [ref=e55] [cursor=pointer]:
+              - /url: /spaces/neolane/pages/865289355/Adobe+Campaign
+              - generic "Adobe Campaign" [ref=e61]
+            - text: 
+            - generic:
+              - button "Add to my spaces" [ref=e62] [cursor=pointer]:
+                - generic [ref=e63]: 
+              - text: 
+          - generic [ref=e64]:
+            - generic [ref=e67]:
+              - list [ref=e69]:
+                - listitem [ref=e70]:
+                  - link "Calendars" [ref=e71] [cursor=pointer]:
+                    - /url: /display/neolane/calendars
+                    - generic [ref=e72]: 
+                    - text: Calendars
+                - listitem: 
+              - generic [ref=e73]:
+                - heading "Space shortcuts" [level=2] [ref=e74]
+                - text: 
+                - list [ref=e76]:
+                  - listitem [ref=e77]:
+                    - link "Adobe Campaign Technotes" [ref=e78] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/872426916/Adobe+Campaign+Technotes
+                      - generic [ref=e79]: 
+                      - text: Adobe Campaign Technotes
+                  - listitem [ref=e80]:
+                    - link "Adobe Campaign FAQ" [ref=e81] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/870616370/Adobe+Campaign+FAQ
+                      - generic [ref=e82]: 
+                      - text: Adobe Campaign FAQ
+                  - listitem [ref=e83]:
+                    - link "Adobe Campaign R&D" [ref=e84] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/979362607/Adobe+Campaign+R+D
+                      - generic [ref=e85]: 
+                      - text: Adobe Campaign R&D
+                  - listitem [ref=e86]:
+                    - link "Adobe Campaign Infrastructure Operations" [ref=e87] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/913752083/Adobe+Campaign+Infrastructure+Operations
+                      - generic [ref=e88]: 
+                      - text: Adobe Campaign Infrastructure Operations
+                  - listitem [ref=e89]:
+                    - link "Adobe Customer Solutions (Campaign Consulting Services)" [ref=e90] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/875945360/Adobe+Customer+Solutions+Campaign+Consulting+Services
+                      - generic [ref=e91]: 
+                      - text: Adobe Customer Solutions (Campaign Consulting Services)
+                  - listitem [ref=e92]:
+                    - link "Content Formatting Templates" [ref=e93] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/1569719694/Content+Formatting+Templates
+                      - generic [ref=e94]: 
+                      - text: Content Formatting Templates
+                  - listitem [ref=e95]:
+                    - link "UML Diagrams" [ref=e96] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/1660590167/UML+Diagrams
+                      - generic [ref=e97]: 
+                      - text: UML Diagrams
+                  - listitem [ref=e98]:
+                    - link "DACI register" [ref=e99] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/1732313010/DACI+register
+                      - generic [ref=e100]: 
+                      - text: DACI register
+                  - listitem [ref=e101]:
+                    - link "Meeting notes" [ref=e102] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/2304637918/Meeting+notes
+                      - generic [ref=e103]: 
+                      - text: Meeting notes
+                  - listitem [ref=e104]:
+                    - link "Retrospectives" [ref=e105] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/2713587424/Retrospectives
+                      - generic [ref=e106]: 
+                      - text: Retrospectives
+            - generic [ref=e107]:
+              - heading "Page tree" [level=2] [ref=e109]:  Page tree
+              - list [ref=e114]:
+                - listitem [ref=e115]:
+                  - button "Adobe Campaign Product" [ref=e117] [cursor=pointer]: 
+                  - link "Adobe Campaign Product" [ref=e120] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/984125682/Adobe+Campaign+Product
+                - listitem [ref=e121]:
+                  - button "Adobe Campaign R&D" [ref=e123] [cursor=pointer]: 
+                  - link "Adobe Campaign R&D" [ref=e126] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/979362607/Adobe+Campaign+R+D
+                - listitem [ref=e127]:
+                  - button "Adobe Campaign Program & Roadmap" [ref=e129] [cursor=pointer]: 
+                  - link "Adobe Campaign Program & Roadmap" [ref=e132] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1045793240/Adobe+Campaign+Program+Roadmap
+                - listitem [ref=e133]:
+                  - button "Adobe Campaign Product Management" [ref=e135] [cursor=pointer]: 
+                  - link "Adobe Campaign Product Management" [ref=e138] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1086291973/Adobe+Campaign+Product+Management
+                - listitem [ref=e139]:
+                  - button "Adobe Campaign Infrastructure Operations" [expanded] [ref=e141] [cursor=pointer]: 
+                  - link "Adobe Campaign Infrastructure Operations" [ref=e144] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/913752083/Adobe+Campaign+Infrastructure+Operations
+                  - list [ref=e146]:
+                    - listitem [ref=e147]:
+                      - button "TechOps Team Organization" [ref=e149] [cursor=pointer]: 
+                      - link "TechOps Team Organization" [ref=e152] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1011600783/TechOps+Team+Organization
+                    - listitem [ref=e153]:
+                      - button "TechOps Services" [ref=e155] [cursor=pointer]: 
+                      - link "TechOps Services" [ref=e158] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1045799414/TechOps+Services
+                    - listitem [ref=e159]:
+                      - button "TechOps Processes" [ref=e161] [cursor=pointer]: 
+                      - link "TechOps Processes" [ref=e164] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1045799398/TechOps+Processes
+                    - listitem [ref=e165]:
+                      - button "TechOps Technical documentation" [ref=e167] [cursor=pointer]: 
+                      - link "TechOps Technical documentation" [ref=e170] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1045799421/TechOps+Technical+documentation
+                    - listitem [ref=e171]:
+                      - button "Other Teams Interactions" [ref=e173] [cursor=pointer]: 
+                      - link "Other Teams Interactions" [ref=e176] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1025450738/Other+Teams+Interactions
+                    - listitem [ref=e177]:
+                      - button "Customers" [ref=e179] [cursor=pointer]: 
+                      - link "Customers" [ref=e182] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1025449705/Customers
+                    - listitem [ref=e183]:
+                      - button "Archive" [ref=e185] [cursor=pointer]: 
+                      - link "Archive" [ref=e188] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1045799381/Archive
+                    - listitem [ref=e189]:
+                      - link "Legacy datacenters network configurations" [ref=e194] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1057800665/Legacy+datacenters+network+configurations
+                    - listitem [ref=e195]:
+                      - link "Non-customer instances on Amazon production account" [ref=e200] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1078844066/Non-customer+instances+on+Amazon+production+account
+                    - listitem [ref=e201]:
+                      - link "Zerocrash - environments to upgrade" [ref=e206] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1087932435/Zerocrash+-+environments+to+upgrade
+                    - listitem [ref=e207]:
+                      - link "FBL hand-off to deliverability" [ref=e212] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1089476969/FBL+hand-off+to+deliverability
+                    - listitem [ref=e213]:
+                      - link "Useful links" [ref=e218] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1106044523/Useful+links
+                    - listitem [ref=e219]:
+                      - link "Documentation Server Setup in OR1" [ref=e224] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/984125597/Documentation+Server+Setup+in+OR1
+                    - listitem [ref=e225]:
+                      - link "Campaign TechOps - Using the aText Text Expander on Mac" [ref=e230] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1108995141/Campaign+TechOps+-+Using+the+aText+Text+Expander+on+Mac
+                    - listitem [ref=e231]:
+                      - link "Planning Document - Inventory / SKMS / Nagios updating" [ref=e236] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1117857669/Planning+Document+-+Inventory+SKMS+Nagios+updating
+                    - listitem [ref=e237]:
+                      - button "Devops" [ref=e239] [cursor=pointer]: 
+                      - link "Devops" [ref=e242] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1141179741/Devops
+                    - listitem [ref=e243]:
+                      - link "Splunk installation in Data Centers" [ref=e248] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1155499804/Splunk+installation+in+Data+Centers
+                    - listitem [ref=e249]:
+                      - button "Drafts" [ref=e251] [cursor=pointer]: 
+                      - link "Drafts" [ref=e254] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1155500847/Drafts
+                    - listitem [ref=e255]:
+                      - link "Customer Care and TechOps" [ref=e260] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1304436488/Customer+Care+and+TechOps
+                    - listitem [ref=e261]:
+                      - link "Maintenance plan for Data-Center Infrastructure" [ref=e266] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1314201945/Maintenance+plan+for+Data-Center+Infrastructure
+                    - listitem [ref=e267]:
+                      - button "Run books for speciffic features / services" [ref=e269] [cursor=pointer]: 
+                      - link "Run books for speciffic features / services" [ref=e272] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1339236237/Run+books+for+speciffic+features+services
+                    - listitem [ref=e273]:
+                      - button "Campaign Operations Leadership Transition Plan" [ref=e275] [cursor=pointer]: 
+                      - link "Campaign Operations Leadership Transition Plan" [ref=e278] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1407566554/Campaign+Operations+Leadership+Transition+Plan
+                    - listitem [ref=e279]:
+                      - button "Techops Idea Box" [ref=e281] [cursor=pointer]: 
+                      - link "Techops Idea Box" [ref=e284] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1437962336/Techops+Idea+Box
+                    - listitem [ref=e285]:
+                      - link "Package Deviation Feature - Functional Specifications" [ref=e290] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1439850316/Package+Deviation+Feature+-+Functional+Specifications
+                    - listitem [ref=e291]:
+                      - button "Adobe Campaign New Packages Operational Readiness" [ref=e293] [cursor=pointer]: 
+                      - link "Adobe Campaign New Packages Operational Readiness" [ref=e296] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1451658647/Adobe+Campaign+New+Packages+Operational+Readiness
+                    - listitem [ref=e297]:
+                      - link "Campaign LDAP Groups (WIP)" [ref=e302] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1451666706/Campaign+LDAP+Groups+WIP
+                    - listitem [ref=e303]:
+                      - link "Architecture doc for Package deviations feature" [ref=e308] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1451447993/Architecture+doc+for+Package+deviations+feature
+                    - listitem [ref=e309]:
+                      - link "TechOps CPGNREQ RunBooks" [ref=e314] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1469906216/TechOps+CPGNREQ+RunBooks
+                    - listitem [ref=e315]:
+                      - button "TechOps CPGNREQ & PROV" [ref=e317] [cursor=pointer]: 
+                      - link "TechOps CPGNREQ & PROV" [ref=e320] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1477168312/TechOps+CPGNREQ+PROV
+                    - listitem [ref=e321]:
+                      - link "2018 AMS Hackaton - ACC_elerators" [ref=e326] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1483645072/2018+AMS+Hackaton+-+ACC_elerators
+                    - listitem [ref=e327]:
+                      - button "On-Call Troubleshooting RunBooks" [ref=e329] [cursor=pointer]: 
+                      - link "On-Call Troubleshooting RunBooks" [ref=e332] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1498861788/On-Call+Troubleshooting+RunBooks
+                    - listitem [ref=e333]:
+                      - link "Monitoring, Reporting and Alerting (MRA) Workshop for Adobe Campaign on Platform (ACOP)" [ref=e338] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1500656308/Monitoring+Reporting+and+Alerting+MRA+Workshop+for+Adobe+Campaign+on+Platform+ACOP
+                    - listitem [ref=e339]:
+                      - link "Azure Provisioning Automation Success Criteria" [ref=e344] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1500463637/Azure+Provisioning+Automation+Success+Criteria
+                    - listitem [ref=e345]:
+                      - button "ACOP AMS TechOps Automated Provisioning / Deployment Roadmap" [ref=e347] [cursor=pointer]: 
+                      - link "ACOP AMS TechOps Automated Provisioning / Deployment Roadmap" [ref=e350] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1500464104/ACOP+AMS+TechOps+Automated+Provisioning+Deployment+Roadmap
+                    - listitem [ref=e351]:
+                      - button "New Package Provisioning Automation - AWS" [ref=e353] [cursor=pointer]: 
+                      - link "New Package Provisioning Automation - AWS" [ref=e356] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1500673835/New+Package+Provisioning+Automation+-+AWS
+                    - listitem [ref=e357]:
+                      - link "SSL *.neolane.net Certificate Update Incident - Analysis" [ref=e362] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1244927558/SSL+.neolane.net+Certificate+Update+Incident+-+Analysis
+                    - listitem [ref=e363]:
+                      - link "G12 Tracking Table" [ref=e368] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1554793167/G12+Tracking+Table
+                    - listitem [ref=e369]:
+                      - button "Ishan's Onboarding/Goals for Campaign(DBA/PostgreSQL)" [ref=e371] [cursor=pointer]: 
+                      - link "Ishan's Onboarding/Goals for Campaign(DBA/PostgreSQL)" [ref=e374] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1559644403/Ishan+s+Onboarding+Goals+for+Campaign+DBA+PostgreSQL
+                    - listitem [ref=e375]:
+                      - link "Performance improvement for dynamic reporting cluster" [ref=e380] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1569471301/Performance+improvement+for+dynamic+reporting+cluster
+                    - listitem [ref=e381]:
+                      - link "Deliverability check script" [ref=e386] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1575223845/Deliverability+check+script
+                    - listitem [ref=e387]:
+                      - button "SRE - ACC Source Code Training Plan" [ref=e389] [cursor=pointer]: 
+                      - link "SRE - ACC Source Code Training Plan" [ref=e392] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1575241513/SRE+-+ACC+Source+Code+Training+Plan
+                    - listitem [ref=e393]:
+                      - link "Operation Clean Slate 2018" [ref=e398] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1579299509/Operation+Clean+Slate+2018
+                    - listitem [ref=e399]:
+                      - link "Campaign Glossary" [ref=e404] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1593659920/Campaign+Glossary
+                    - listitem [ref=e405]:
+                      - button "Package Right-Sizing" [ref=e407] [cursor=pointer]: 
+                      - link "Package Right-Sizing" [ref=e410] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1638233588/Package+Right-Sizing
+                    - listitem [ref=e411]:
+                      - link "Copy of AWS Cloning Additional Instances from AMI" [ref=e416] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1645255108/Copy+of+AWS+Cloning+Additional+Instances+from+AMI
+                    - listitem [ref=e417]:
+                      - link "Creating or Cloning an AWS Load Balancer" [ref=e422] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1647821008/Creating+or+Cloning+an+AWS+Load+Balancer
+                    - listitem [ref=e423]:
+                      - link "ACC IMS Service Token configuration for Pipeline" [ref=e428] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1653020765/ACC+IMS+Service+Token+configuration+for+Pipeline
+                    - listitem [ref=e429]:
+                      - link "Azure Resource Utilization Estimates" [ref=e434] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1654932987/Azure+Resource+Utilization+Estimates
+                    - listitem [ref=e435]:
+                      - link "DB Upsizing" [ref=e440] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1654944186/DB+Upsizing
+                    - listitem [ref=e441]:
+                      - link "Azure Resource Utilization Projections" [ref=e446] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1660607728/Azure+Resource+Utilization+Projections
+                    - listitem [ref=e447]:
+                      - link "Summary of Current 1C Escalations" [ref=e452] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1665102008/Summary+of+Current+1C+Escalations
+                    - listitem [ref=e453]:
+                      - link "Manual DC Migrations, Automated Customer Migration Support, DC Exit, Holiday Readiness, Office Move" [ref=e458] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1671183420/Manual+DC+Migrations+Automated+Customer+Migration+Support+DC+Exit+Holiday+Readiness+Office+Move
+                    - listitem [ref=e459]:
+                      - link "DNS degradation case study - a hidden sending speed culprit" [ref=e464] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1687987451/DNS+degradation+case+study+-+a+hidden+sending+speed+culprit
+                    - listitem [ref=e465]:
+                      - link "Requirements for Legacy DC Support" [ref=e470] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1727470984/Requirements+for+Legacy+DC+Support
+                    - listitem [ref=e471]:
+                      - link "Techops Services Current state and impact on provisioning" [ref=e476] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1732302715/Techops+Services+Current+state+and+impact+on+provisioning
+                    - listitem [ref=e477]:
+                      - link "On-call Handover Procedure" [ref=e482] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1740744469/On-call+Handover+Procedure
+                    - listitem [ref=e483]:
+                      - link "Campaign SRE On-Call" [ref=e488] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1744618254/Campaign+SRE+On-Call
+                    - listitem [ref=e489]:
+                      - button "Swimlanes for HTTPS Certificate updates - *.campaign.adobe.com" [ref=e491] [cursor=pointer]: 
+                      - link "Swimlanes for HTTPS Certificate updates - *.campaign.adobe.com" [ref=e494] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1756889106/Swimlanes+for+HTTPS+Certificate+updates+-+.campaign.adobe.com
+                    - listitem [ref=e495]:
+                      - link "Security Requests to achieve customer isolation" [ref=e500] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1756253429/Security+Requests+to+achieve+customer+isolation
+                    - listitem [ref=e501]:
+                      - button "Ops Projects" [ref=e503] [cursor=pointer]: 
+                      - link "Ops Projects" [ref=e506] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1810160336/Ops+Projects
+                    - listitem [ref=e507]:
+                      - button "P2T Escalation ***Update***" [ref=e509] [cursor=pointer]: 
+                      - link "P2T Escalation ***Update***" [ref=e512] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1897374323/P2T+Escalation+Update
+                    - listitem [ref=e513]:
+                      - button "Campaign - FrontLine (Backup On-Call)" [ref=e515] [cursor=pointer]: 
+                      - link "Campaign - FrontLine (Backup On-Call)" [ref=e518] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1903251530/Campaign+-+FrontLine+Backup+On-Call
+                    - listitem [ref=e519]:
+                      - link "Abuse mailbox service" [ref=e524] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1919600416/Abuse+mailbox+service
+                    - listitem [ref=e525]:
+                      - link "Campaign Operational Readiness - In-Flight - Call a workflow with parameters" [ref=e530] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1648040638/Campaign+Operational+Readiness+-+In-Flight+-+Call+a+workflow+with+parameters
+                    - listitem [ref=e531]:
+                      - link "BYOIPs to AWS" [ref=e536] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2022441425/BYOIPs+to+AWS
+                    - listitem [ref=e537]:
+                      - link "Unified Build and Tech Stack Upgrades (CPS ecosystem)" [ref=e542] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2024997556/Unified+Build+and+Tech+Stack+Upgrades+CPS+ecosystem
+                    - listitem [ref=e543]:
+                      - link "Campaign restarting/maintenance best practices" [ref=e548] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2025642480/Campaign+restarting+maintenance+best+practices
+                    - listitem [ref=e549]:
+                      - link "Swimlanes for HTTPS Certificate updates - *.adobe-campaign.com <In-Progress>" [ref=e554] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2187527174/Swimlanes+for+HTTPS+Certificate+updates+-+.adobe-campaign.com+In-Progress
+                    - listitem [ref=e555]:
+                      - button "Squad 1a On-Call Onboarding" [ref=e557] [cursor=pointer]: 
+                      - link "Squad 1a On-Call Onboarding" [ref=e560] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2275758589/Squad+1a+On-Call+Onboarding
+                    - listitem [ref=e561]:
+                      - button "Campaign | Cost Optimization" [ref=e563] [cursor=pointer]: 
+                      - link "Campaign | Cost Optimization" [ref=e566] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2282132430/Campaign+Cost+Optimization
+                    - listitem [ref=e567]:
+                      - link "Troubleshooting Kernel Panic - not syncing in AWS EC2" [ref=e572] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2290385070/Troubleshooting+Kernel+Panic+-+not+syncing+in+AWS+EC2
+                    - listitem [ref=e573]:
+                      - link "Kohls Monthly DB Maintenance" [ref=e578] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2297920545/Kohls+Monthly+DB+Maintenance
+                    - listitem [ref=e579]:
+                      - link "ACS Manual Build Upgrade Guide" [ref=e584] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2347412517/ACS+Manual+Build+Upgrade+Guide
+                    - listitem [ref=e585]:
+                      - link "2021 H2 Planning" [ref=e590] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2349823456/2021+H2+Planning
+                    - listitem [ref=e591]:
+                      - link "ACS Shard Setup Build Upgrade" [ref=e596] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2363484314/ACS+Shard+Setup+Build+Upgrade
+                    - listitem [ref=e597]:
+                      - link "Techops-tools - Proposal" [ref=e602] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2450138664/Techops-tools+-+Proposal
+                    - listitem [ref=e603]:
+                      - link "Security Zones - Manual IP Allowlisting (CC Onboarding)" [ref=e608] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2658360913/Security+Zones+-+Manual+IP+Allowlisting+CC+Onboarding
+                    - listitem [ref=e609]:
+                      - link "SFTP IP Whitelisting - Manually (CC Onboarding)" [ref=e614] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2658362771/SFTP+IP+Whitelisting+-+Manually+CC+Onboarding
+                    - listitem [ref=e615]:
+                      - link "CSR Generation & SSL Installation/Renewal Guide (CC Onboarding)" [ref=e620] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2658362773/CSR+Generation+SSL+Installation+Renewal+Guide+CC+Onboarding
+                    - listitem [ref=e621]:
+                      - link "ALB Creation and SSL Installation Guide (CC Onboarding)" [ref=e626] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2674610694/ALB+Creation+and+SSL+Installation+Guide+CC+Onboarding
+                    - listitem [ref=e627]:
+                      - link "CloudFront Creation and SSL Installation (CC Onboarding)" [ref=e632] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2684535659/CloudFront+Creation+and+SSL+Installation+CC+Onboarding
+                    - listitem [ref=e633]:
+                      - link "MSIOPS - Deliverability Audit Step-by-Step" [ref=e638] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/1903003483/MSIOPS+-+Deliverability+Audit+Step-by-Step
+                    - listitem [ref=e639]:
+                      - link "Campaign Full Tech Stack Upgrade" [ref=e644] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2758269136/Campaign+Full+Tech+Stack+Upgrade
+                    - listitem [ref=e645]:
+                      - 'button "AWS RDS PostgreSQL Parameter Tuning: PostgreSQL v14" [ref=e647] [cursor=pointer]': 
+                      - 'link "AWS RDS PostgreSQL Parameter Tuning: PostgreSQL v14" [ref=e650] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/2758269144/AWS+RDS+PostgreSQL+Parameter+Tuning+PostgreSQL+v14
+                    - listitem [ref=e651]:
+                      - 'link "Jarvis (Techops-tools) : Rundeck Guide" [ref=e656] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/2863462375/Jarvis+Techops-tools+Rundeck+Guide
+                    - listitem [ref=e657]:
+                      - button "Kaufland Momentum Migration" [ref=e659] [cursor=pointer]: 
+                      - link "Kaufland Momentum Migration" [ref=e662] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2888243393/Kaufland+Momentum+Migration
+                    - listitem [ref=e663]:
+                      - link "Campaign Database Backup and Retention Policy" [ref=e668] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2914088354/Campaign+Database+Backup+and+Retention+Policy
+                    - listitem [ref=e669]:
+                      - button "Roadmap Planning - MSIO" [ref=e671] [cursor=pointer]: 
+                      - link "Roadmap Planning - MSIO" [ref=e674] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2931745519/Roadmap+Planning+-+MSIO
+                    - listitem [ref=e675]:
+                      - link "Pandora Media Shard Momentum Migration Guide (Stage Environment)" [ref=e680] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2957834347/Pandora+Media+Shard+Momentum+Migration+Guide+Stage+Environment
+                    - listitem [ref=e681]:
+                      - link "Pandora Media Shard Momentum Migration Guide (Prod Environment)" [ref=e686] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/2966597574/Pandora+Media+Shard+Momentum+Migration+Guide+Prod+Environment
+                    - listitem [ref=e687]:
+                      - link "Inbox Rendering Setup and Troubleshooting Guide" [ref=e692] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3050628239/Inbox+Rendering+Setup+and+Troubleshooting+Guide
+                    - listitem [ref=e693]:
+                      - button "ANZ Mid-Sourcing" [ref=e695] [cursor=pointer]: 
+                      - link "ANZ Mid-Sourcing" [ref=e698] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3091281614/ANZ+Mid-Sourcing
+                    - listitem [ref=e699]:
+                      - button "TLC Migration (Tatts)" [ref=e701] [cursor=pointer]: 
+                      - link "TLC Migration (Tatts)" [ref=e704] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3063550648/TLC+Migration+Tatts
+                    - listitem [ref=e705]:
+                      - link "ACS Upgrade Plan for Sharded Customers [ H&M - Pandoramedia]" [ref=e710] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3098946581/ACS+Upgrade+Plan+for+Sharded+Customers+H+M+-+Pandoramedia
+                    - listitem [ref=e711]:
+                      - link "MSIO 1A /ERT - Escalations Tracker" [ref=e716] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3133145777/MSIO+1A+ERT+-+Escalations+Tracker
+                    - listitem [ref=e717]:
+                      - link "MSIO - FinOps Tasks Tracker" [ref=e722] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3142997609/MSIO+-+FinOps+Tasks+Tracker
+                    - listitem [ref=e723]:
+                      - 'button "ACS Sharded: Pandoramedia - HnM" [ref=e725] [cursor=pointer]': 
+                      - 'link "ACS Sharded: Pandoramedia - HnM" [ref=e728] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/3202554019/ACS+Sharded+Pandoramedia+-+HnM
+                    - listitem [ref=e729]:
+                      - link "Adobe Campaign Infra Security Review (Draft)" [ref=e734] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3257610620/Adobe+Campaign+Infra+Security+Review+Draft
+                    - listitem [ref=e735]:
+                      - button "Project CredCycle" [ref=e737] [cursor=pointer]: 
+                      - link "Project CredCycle" [ref=e740] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3270550053/Project+CredCycle
+                    - listitem [ref=e741]:
+                      - link "Customer Caused CSOs - Monitoring options" [ref=e746] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3311639208/Customer+Caused+CSOs+-+Monitoring+options
+                    - listitem [ref=e747]:
+                      - button "Ketchup" [ref=e749] [cursor=pointer]: 
+                      - link "Ketchup" [ref=e752] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3368780945/Ketchup
+                    - listitem [ref=e753]:
+                      - link "Weekly Management Report Automation Project" [ref=e758] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3414171836/Weekly+Management+Report+Automation+Project
+                    - listitem [ref=e759]:
+                      - link "Security Team Transition" [ref=e764] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3446090728/Security+Team+Transition
+                    - listitem [ref=e765]:
+                      - link "Enhancement tickets triage" [ref=e770] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3450242518/Enhancement+tickets+triage
+                    - listitem [ref=e771]:
+                      - link "Inbox Rendering Setup and Troubleshooting Guide Updated Version" [ref=e776] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3513442033/Inbox+Rendering+Setup+and+Troubleshooting+Guide+Updated+Version
+                    - listitem [ref=e777]:
+                      - link "MSPE Tools (Draft status)" [ref=e782] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3573119706/MSPE+Tools+Draft+status
+                    - listitem [ref=e783]:
+                      - 'button "PostgreSQL Migration: v14 to v17" [ref=e785] [cursor=pointer]': 
+                      - 'link "PostgreSQL Migration: v14 to v17" [ref=e788] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/3597586858/PostgreSQL+Migration+v14+to+v17
+                    - listitem [ref=e789]:
+                      - link "Config Backup" [ref=e794] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3607022009/Config+Backup
+                    - listitem [ref=e795]:
+                      - 'button "SAMSUNG :: v7 to v8 Sub-domain & IP Migration" [ref=e797] [cursor=pointer]': 
+                      - 'link "SAMSUNG :: v7 to v8 Sub-domain & IP Migration" [ref=e800] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/3659438004/SAMSUNG+v7+to+v8+Sub-domain+IP+Migration
+                    - listitem [ref=e801]:
+                      - button "FAC - Campaign Operations Support Documents" [ref=e803] [cursor=pointer]: 
+                      - link "FAC - Campaign Operations Support Documents" [ref=e806] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3728298208/FAC+-+Campaign+Operations+Support+Documents
+                    - listitem [ref=e807]:
+                      - link "Vault Access - Campaign (CE Onboarding)" [ref=e812] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3730908855/Vault+Access+-+Campaign+CE+Onboarding
+                    - listitem [ref=e813]:
+                      - 'link "Solution Analysis – CPGNCX-64397 – #totalenergies-rest-api issue" [ref=e818] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/3743746947/Solution+Analysis+%E2%80%93+CPGNCX-64397+%E2%80%93+totalenergies-rest-api+issue
+                    - listitem [ref=e819]:
+                      - link "Transition of Stephen What I Do" [ref=e824] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3763519054/Transition+of+Stephen+What+I+Do
+                    - listitem [ref=e825]:
+                      - 'link "Campaign : CPU26X26" [ref=e830] [cursor=pointer]':
+                        - /url: /spaces/neolane/pages/3816184812/Campaign+CPU26X26
+                    - listitem [ref=e831]:
+                      - link "mcp-exec" [ref=e836] [cursor=pointer]:
+                        - /url: /spaces/neolane/pages/3843183885/mcp-exec
+                - listitem [ref=e837]:
+                  - button "Adobe Campaign Managed Cloud" [ref=e839] [cursor=pointer]: 
+                  - link "Adobe Campaign Managed Cloud" [ref=e842] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2286970692/Adobe+Campaign+Managed+Cloud
+                - listitem [ref=e843]:
+                  - button "Adobe Campaign GTM Resources" [ref=e845] [cursor=pointer]: 
+                  - link "Adobe Campaign GTM Resources" [ref=e848] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1230604294/Adobe+Campaign+GTM+Resources
+                - listitem [ref=e849]:
+                  - button "Adobe Campaign Technotes" [ref=e851] [cursor=pointer]: 
+                  - link "Adobe Campaign Technotes" [ref=e854] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/872426916/Adobe+Campaign+Technotes
+                - listitem [ref=e855]:
+                  - button "Adobe Customer Solutions (Campaign Consulting Services)" [ref=e857] [cursor=pointer]: 
+                  - link "Adobe Customer Solutions (Campaign Consulting Services)" [ref=e860] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/875945360/Adobe+Customer+Solutions+Campaign+Consulting+Services
+                - listitem [ref=e861]:
+                  - button "Adobe Campaign + AJO Product Help and Documentation" [ref=e863] [cursor=pointer]: 
+                  - link "Adobe Campaign + AJO Product Help and Documentation" [ref=e866] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1056803713/Adobe+Campaign+AJO+Product+Help+and+Documentation
+                - listitem [ref=e867]:
+                  - button "Adobe Campaign Product Marketing" [ref=e869] [cursor=pointer]: 
+                  - link "Adobe Campaign Product Marketing" [ref=e872] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1042677527/Adobe+Campaign+Product+Marketing
+                - listitem [ref=e873]:
+                  - button "Other" [ref=e875] [cursor=pointer]: 
+                  - link "Other" [ref=e878] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2758270481/Other
+                - listitem [ref=e879]:
+                  - link "Adobe Campaign Videos" [ref=e884] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/984132517/Adobe+Campaign+Videos
+                - listitem [ref=e885]:
+                  - button "File Lists" [ref=e887] [cursor=pointer]: 
+                  - link "File Lists" [ref=e890] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/879244630/File+Lists
+                - listitem [ref=e891]:
+                  - button "Neolane to Adobe Migration" [ref=e893] [cursor=pointer]: 
+                  - link "Neolane to Adobe Migration" [ref=e896] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/868129460/Neolane+to+Adobe+Migration
+                - listitem [ref=e897]:
+                  - button "How-to articles" [ref=e899] [cursor=pointer]: 
+                  - link "How-to articles" [ref=e902] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1043507112/How-to+articles
+                - listitem [ref=e903]:
+                  - button "Global Deliverability Knowledge Base" [ref=e905] [cursor=pointer]: 
+                  - link "Global Deliverability Knowledge Base" [ref=e908] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1112594676/Global+Deliverability+Knowledge+Base
+                - listitem [ref=e909]:
+                  - link "Campaign Passwords and Secrets Management" [ref=e914] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1140104055/Campaign+Passwords+and+Secrets+Management
+                - listitem [ref=e915]:
+                  - button "Campaign SWAT Initiative (NOV 2016)" [ref=e917] [cursor=pointer]: 
+                  - link "Campaign SWAT Initiative (NOV 2016)" [ref=e920] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1168874655/Campaign+SWAT+Initiative+NOV+2016
+                - listitem [ref=e921]:
+                  - link "Motorola Production Update Work Plan" [ref=e926] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1197967628/Motorola+Production+Update+Work+Plan
+                - listitem [ref=e927]:
+                  - link "Provisioning KPIs" [ref=e932] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1201314092/Provisioning+KPIs
+                - listitem [ref=e933]:
+                  - link "AGS Audit Documentation" [ref=e938] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1230720150/AGS+Audit+Documentation
+                - listitem [ref=e939]:
+                  - button "[Dynamic reporting]Test plan for role reportAdmin" [ref=e941] [cursor=pointer]: 
+                  - link "[Dynamic reporting]Test plan for role reportAdmin" [ref=e944] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1322231271/Dynamic+reporting+Test+plan+for+role+reportAdmin
+                - listitem [ref=e945]:
+                  - link "GA_Criteria_PostgreSQL" [ref=e950] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1321488398/GA_Criteria_PostgreSQL
+                - listitem [ref=e951]:
+                  - link "Campaign Optimization Strategies" [ref=e956] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1342661137/Campaign+Optimization+Strategies
+                - listitem [ref=e957]:
+                  - link "Importing P2E Template in JIRA" [ref=e962] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1342468228/Importing+P2E+Template+in+JIRA
+                - listitem [ref=e963]:
+                  - link "Deliverability Consulting Client Information repository" [ref=e968] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1346564639/Deliverability+Consulting+Client+Information+repository
+                - listitem [ref=e969]:
+                  - button "IMS Error Logs" [ref=e971] [cursor=pointer]: 
+                  - link "IMS Error Logs" [ref=e974] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1380254361/IMS+Error+Logs
+                - listitem [ref=e975]:
+                  - button "Momentum for Campaign" [ref=e977] [cursor=pointer]: 
+                  - link "Momentum for Campaign" [ref=e980] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1393176966/Momentum+for+Campaign
+                - listitem [ref=e981]:
+                  - button "Share audiences in real time from AAM, improve Visitor ID match rate and optimize integration" [ref=e983] [cursor=pointer]: 
+                  - link "Share audiences in real time from AAM, improve Visitor ID match rate and optimize integration" [ref=e986] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1398579459/Share+audiences+in+real+time+from+AAM+improve+Visitor+ID+match+rate+and+optimize+integration
+                - listitem [ref=e987]:
+                  - link "share files" [ref=e992] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1423425766/share+files
+                - listitem [ref=e993]:
+                  - link "AC Performance Benchmarking - Internal" [ref=e998] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1432796391/AC+Performance+Benchmarking+-+Internal
+                - listitem [ref=e999]:
+                  - link "Micro service canvas" [ref=e1004] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1439840406/Micro+service+canvas
+                - listitem [ref=e1005]:
+                  - link "ACS Email Performance Testing - Momentum" [ref=e1010] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1444397982/ACS+Email+Performance+Testing+-+Momentum
+                - listitem [ref=e1011]:
+                  - button "Adobe Campaign TAM" [ref=e1013] [cursor=pointer]: 
+                  - link "Adobe Campaign TAM" [ref=e1016] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1444596906/Adobe+Campaign+TAM
+                - listitem [ref=e1017]:
+                  - link "Proposal Team" [ref=e1022] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1451665396/Proposal+Team
+                - listitem [ref=e1023]:
+                  - link "Adobe Campaign Offer Engine (aka. Interaction) - Projects and References" [ref=e1028] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1470470315/Adobe+Campaign+Offer+Engine+aka.+Interaction+-+Projects+and+References
+                - listitem [ref=e1029]:
+                  - link "Instruction for Dynamic Reporting Performance Test" [ref=e1034] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1491940925/Instruction+for+Dynamic+Reporting+Performance+Test
+                - listitem [ref=e1035]:
+                  - button "Understanding Campaign Automation" [ref=e1037] [cursor=pointer]: 
+                  - link "Understanding Campaign Automation" [ref=e1040] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1491948332/Understanding%C2%A0Campaign+Automation
+                - listitem [ref=e1041]:
+                  - button "Campaign Engineering Response Team" [ref=e1043] [cursor=pointer]: 
+                  - link "Campaign Engineering Response Team" [ref=e1046] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1500663756/Campaign+Engineering+Response+Team
+                - listitem [ref=e1047]:
+                  - button "Action Team France - Matching Grant - Dons en numéraire" [ref=e1049] [cursor=pointer]: 
+                  - link "Action Team France - Matching Grant - Dons en numéraire" [ref=e1052] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1500473670/Action+Team+France+-+Matching+Grant+-+Dons+en+num%C3%A9raire
+                - listitem [ref=e1053]:
+                  - link "[Campaign Support] Getting Access to CyberArk" [ref=e1058] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1570125555/Campaign+Support+Getting+Access+to+CyberArk
+                - listitem [ref=e1059]:
+                  - button "Current+MTA+workflow" [ref=e1061] [cursor=pointer]: 
+                  - link "Current+MTA+workflow" [ref=e1064] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1503627865/Current+MTA+workflow
+                - listitem [ref=e1065]:
+                  - button "Campaign Next Gen Working Group" [ref=e1067] [cursor=pointer]: 
+                  - link "Campaign Next Gen Working Group" [ref=e1070] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1510000745/Campaign+Next+Gen+Working+Group
+                - listitem [ref=e1071]:
+                  - link "2018-07-23 Meeting notes COP End to End Testing Work Session - Use Case1" [ref=e1076] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1510139270/2018-07-23+Meeting+notes+COP+End+to+End+Testing+Work+Session+-+Use+Case1
+                - listitem [ref=e1077]:
+                  - link "Campaign Solutions Consulting" [ref=e1082] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1514868129/Campaign+Solutions+Consulting
+                - listitem [ref=e1083]:
+                  - link "ACC - Delivery" [ref=e1088] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1515042942/ACC+-+Delivery
+                - listitem [ref=e1089]:
+                  - link "Selenium UI Code Coverage-Instanbul" [ref=e1094] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1509257014/Selenium+UI+Code+Coverage-Instanbul
+                - listitem [ref=e1095]:
+                  - link "Vault Setup for Reporting-consumer" [ref=e1100] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1514882088/Vault+Setup+for+Reporting-consumer
+                - listitem [ref=e1101]:
+                  - button "Campaign Audiences - Reduced time lag while Audience Sharing within Experience Cloud (Long Term Approach)" [ref=e1103] [cursor=pointer]: 
+                  - link "Campaign Audiences - Reduced time lag while Audience Sharing within Experience Cloud (Long Term Approach)" [ref=e1106] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1524736766/Campaign+Audiences+-+Reduced+time+lag+while+Audience+Sharing+within+Experience+Cloud+Long+Term+Approach
+                - listitem [ref=e1107]:
+                  - link "Metrics for UTF to Strive for" [ref=e1112] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1897042123/Metrics+for+UTF+to+Strive+for
+                - listitem [ref=e1113]:
+                  - link "Process to add mpassist account to mail box." [ref=e1118] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1530114882/Process+to+add+mpassist+account+to+mail+box.
+                - listitem [ref=e1119]:
+                  - link "MANUEL CRESPO WIKI SITE" [ref=e1124] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1538268393/MANUEL+CRESPO+WIKI+SITE
+                - listitem [ref=e1125]:
+                  - button "TO DELETE." [ref=e1127] [cursor=pointer]: 
+                  - link "TO DELETE." [ref=e1130] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1542539119/TO+DELETE.
+                - listitem [ref=e1131]:
+                  - link "DRM Certification on Mac firefox and Chrome OS and win10 chrome" [ref=e1136] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1542547040/DRM+Certification+on+Mac+firefox+and+Chrome+OS+and+win10+chrome
+                - listitem [ref=e1137]:
+                  - link "DULE and GDPR for ACOP" [ref=e1142] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1554128031/DULE+and+GDPR+for+ACOP
+                - listitem [ref=e1143]:
+                  - link "Campaign Classic Best Practices Doc" [ref=e1148] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1554804102/Campaign+Classic+Best+Practices+Doc
+                - listitem [ref=e1149]:
+                  - button "Campaign University - Crash Course" [ref=e1151] [cursor=pointer]: 
+                  - link "Campaign University - Crash Course" [ref=e1154] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1559648756/Campaign+University+-+Crash+Course
+                - listitem [ref=e1155]:
+                  - link "Campaign on Platform FAQ" [ref=e1160] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1563197950/Campaign+on+Platform+FAQ
+                - listitem [ref=e1161]:
+                  - link "ACS With Platform FAQ" [ref=e1166] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1563197964/ACS+With+Platform+FAQ
+                - listitem [ref=e1167]:
+                  - link "Pixel Meetings" [ref=e1172] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1562982432/Pixel+Meetings
+                - listitem [ref=e1173]:
+                  - button "Content Formatting Templates" [ref=e1175] [cursor=pointer]: 
+                  - link "Content Formatting Templates" [ref=e1178] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1569719694/Content+Formatting+Templates
+                - listitem [ref=e1179]:
+                  - button "TO DELETE" [ref=e1181] [cursor=pointer]: 
+                  - link "TO DELETE" [ref=e1184] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1096069257/TO+DELETE
+                - listitem [ref=e1185]:
+                  - link "UTF Provisioning Environment Redeployment" [ref=e1190] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2533213144/UTF+Provisioning+Environment+Redeployment
+                - listitem [ref=e1191]:
+                  - button "Knowledge share for Dublin EE's" [ref=e1193] [cursor=pointer]: 
+                  - link "Knowledge share for Dublin EE's" [ref=e1196] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1579447642/Knowledge+share+for+Dublin+EE+s
+                - listitem [ref=e1197]:
+                  - link "Accent Group Migration Plan" [ref=e1202] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1608588031/Accent+Group+Migration+Plan
+                - listitem [ref=e1203]:
+                  - link "Install Gzip" [ref=e1208] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1652679945/Install+Gzip
+                - listitem [ref=e1209]:
+                  - link "Personalization of Mobile Profile based template in In-App Message channel" [ref=e1214] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1614517847/Personalization+of+Mobile+Profile+based+template+in+In-App+Message+channel
+                - listitem [ref=e1215]:
+                  - link "Campaign On-Call Slack Channel Ticket Review" [ref=e1220] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1614754692/Campaign+On-Call+Slack+Channel+Ticket+Review
+                - listitem [ref=e1221]:
+                  - link "How to Lock workflows to prevent simultaneous execution" [ref=e1226] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1615056094/How+to+Lock+workflows+to+prevent+simultaneous+execution
+                - listitem [ref=e1227]:
+                  - link "Screenshots from current ACS campaigns" [ref=e1232] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1615068569/Screenshots+from+current+ACS+campaigns
+                - listitem [ref=e1233]:
+                  - link "How-to, Extract data stored in XML fields to a Campaign Query using NodeValue()" [ref=e1238] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1632408336/How-to+Extract+data+stored+in+XML+fields+to+a+Campaign+Query+using+NodeValue
+                - listitem [ref=e1239]:
+                  - button "Operational Intelligence Tool aka OIT" [ref=e1241] [cursor=pointer]: 
+                  - link "Operational Intelligence Tool aka OIT" [ref=e1244] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1632018359/Operational+Intelligence+Tool+aka+OIT
+                - listitem [ref=e1245]:
+                  - button "Dynamics Integration - Ingress" [ref=e1247] [cursor=pointer]: 
+                  - link "Dynamics Integration - Ingress" [ref=e1250] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1632022244/Dynamics+Integration+-+Ingress
+                - listitem [ref=e1251]:
+                  - button "Cloud Plumbers Sprint Retrospectives" [ref=e1253] [cursor=pointer]: 
+                  - link "Cloud Plumbers Sprint Retrospectives" [ref=e1256] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1638107722/Cloud+Plumbers+Sprint+Retrospectives
+                - listitem [ref=e1257]:
+                  - link "UTF Infra Lifecycle" [ref=e1262] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2373891758/UTF+Infra+Lifecycle
+                - listitem [ref=e1263]:
+                  - link "UTF Approach and Progress" [ref=e1268] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1868696991/UTF+Approach+and+Progress
+                - listitem [ref=e1269]:
+                  - 'link "Operational Readiness : UTF" [ref=e1274] [cursor=pointer]':
+                    - /url: /spaces/neolane/pages/2531035921/Operational+Readiness+UTF
+                - listitem [ref=e1275]:
+                  - button "Microsoft Dynamics CRM O-Auth using Client Credentials(Certificate)" [ref=e1277] [cursor=pointer]: 
+                  - link "Microsoft Dynamics CRM O-Auth using Client Credentials(Certificate)" [ref=e1280] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1652660340/Microsoft+Dynamics+CRM+O-Auth+using+Client+Credentials+Certificate
+                - listitem [ref=e1281]:
+                  - link "UTF Operational Readiness" [ref=e1286] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2279082019/UTF+Operational+Readiness
+                - listitem [ref=e1287]:
+                  - link "ACS Pipeline Producer Performance" [ref=e1292] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1657905291/ACS+Pipeline+Producer+Performance
+                - listitem [ref=e1293]:
+                  - button "Falcon" [ref=e1295] [cursor=pointer]: 
+                  - link "Falcon" [ref=e1298] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1657908941/Falcon
+                - listitem [ref=e1299]:
+                  - link "UML Diagrams" [ref=e1304] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1660590167/UML+Diagrams
+                - listitem [ref=e1305]:
+                  - link "Automating Pre-SubDomain Delegation Checks (Adobe Campaign) - Team Kaizen - Hackathon 2019" [ref=e1310] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1659680298/Automating+Pre-SubDomain+Delegation+Checks+Adobe+Campaign+-+Team+Kaizen+-+Hackathon+2019
+                - listitem [ref=e1311]:
+                  - 'link "FAQ: what''s next on the security zone package" [ref=e1316] [cursor=pointer]':
+                    - /url: /spaces/neolane/pages/1671495957/FAQ+what+s+next+on+the+security+zone+package
+                - listitem [ref=e1317]:
+                  - link "ACC - REST API Integration Automation Tool" [ref=e1322] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1671500860/ACC+-+REST+API+Integration+Automation+Tool
+                - listitem [ref=e1323]:
+                  - link "ANZ Bank NZ ERD Diagram" [ref=e1328] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1671196976/ANZ+Bank+NZ+ERD+Diagram
+                - listitem [ref=e1329]:
+                  - link "Campaign - Open Action Items List" [ref=e1334] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1676817806/Campaign+-+Open+Action+Items+List
+                - listitem [ref=e1335]:
+                  - link "CSO-OnCall ( Understanding a sample case )" [ref=e1340] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1676852804/CSO-OnCall+Understanding+a+sample+case
+                - listitem [ref=e1341]:
+                  - link "Rule engine - Proposed design (Draft version)" [ref=e1346] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1688010064/Rule+engine+-+Proposed+design+Draft+version
+                - listitem [ref=e1347]:
+                  - link "This can be Deleted - Disney" [ref=e1352] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1695008676/This+can+be+Deleted+-+Disney
+                - listitem [ref=e1353]:
+                  - link "Individualization Service" [ref=e1358] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1710592970/Individualization+Service
+                - listitem [ref=e1359]:
+                  - link "Unified Adobe Profile - AEP Dependencies" [ref=e1364] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1710595327/Unified+Adobe+Profile+-+AEP+Dependencies
+                - listitem [ref=e1365]:
+                  - link "AWS Provisioning Automation Diagram" [ref=e1370] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1732709137/AWS+Provisioning+Automation+Diagram
+                - listitem [ref=e1371]:
+                  - link "DACI register" [ref=e1376] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1732313010/DACI+register
+                - listitem [ref=e1377]:
+                  - link "Campaign Vault" [ref=e1382] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1739370677/Campaign+Vault
+                - listitem [ref=e1383]:
+                  - link "ACS Provisioning on Azure" [ref=e1388] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1744908836/ACS+Provisioning+on+Azure
+                - listitem [ref=e1389]:
+                  - link "Quick Resources" [ref=e1394] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1749749170/Quick+Resources
+                - listitem [ref=e1395]:
+                  - link "LON5 Smtp Proxy IP Allotment" [ref=e1400] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1749010107/LON5+Smtp+Proxy+IP+Allotment
+                - listitem [ref=e1401]:
+                  - link "Setting up Reporting Workspace" [ref=e1406] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1756596070/Setting+up+Reporting+Workspace
+                - listitem [ref=e1407]:
+                  - link "Content Authoring KT" [ref=e1412] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1763875748/Content+Authoring+KT
+                - listitem [ref=e1413]:
+                  - link "Using Platform's Flow Service for Campaign" [ref=e1418] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1770226367/Using+Platform+s+Flow+Service+for+Campaign
+                - listitem [ref=e1419]:
+                  - link "Prospect LTV Dashboard" [ref=e1424] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1769749498/Prospect+LTV+Dashboard
+                - listitem [ref=e1425]:
+                  - link "Audience Service Knowledge Sharing" [ref=e1430] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1776233657/Audience+Service+Knowledge+Sharing
+                - listitem [ref=e1431]:
+                  - link "Audience Service Queries" [ref=e1436] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1784078061/Audience+Service+Queries
+                - listitem [ref=e1437]:
+                  - link "ACS Data Model - Updated for a client - Will be deleted" [ref=e1442] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1791174009/ACS+Data+Model+-+Updated+for+a+client+-+Will+be+deleted
+                - listitem [ref=e1443]:
+                  - link "Read Audience And Data Service Knowledge Sharing" [ref=e1448] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1797499786/Read+Audience+And+Data+Service+Knowledge+Sharing
+                - listitem [ref=e1449]:
+                  - link "RSLQ ERD Diagram" [ref=e1454] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1801722085/RSLQ+ERD+Diagram
+                - listitem [ref=e1455]:
+                  - link "PALM related changes in Read Audience, Audience Service" [ref=e1460] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1802410245/PALM+related+changes+in+Read+Audience+Audience+Service
+                - listitem [ref=e1461]:
+                  - link "Inbox rendering setup guide for Adobe Campaign Support" [ref=e1466] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1802981155/Inbox+rendering+setup+guide+for+Adobe+Campaign+Support
+                - listitem [ref=e1467]:
+                  - link "AutomationTeam_Sprint Backlog Data" [ref=e1472] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1802985136/AutomationTeam_Sprint+Backlog+Data
+                - listitem [ref=e1473]:
+                  - link "ACS on Azure performance benchmarks (Dev certification on Adv package)." [ref=e1478] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1811020052/ACS+on+Azure+performance+benchmarks+Dev+certification+on+Adv+package+.
+                - listitem [ref=e1479]:
+                  - link "Architecture for ACwP" [ref=e1484] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1839036494/Architecture+for+ACwP
+                - listitem [ref=e1485]:
+                  - button "Campaign Unified Provisioning Project Page" [ref=e1487] [cursor=pointer]: 
+                  - link "Campaign Unified Provisioning Project Page" [ref=e1490] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1848148739/Campaign+Unified+Provisioning+Project+Page
+                - listitem [ref=e1491]:
+                  - button "Tracking timelines for Performance Tests" [ref=e1493] [cursor=pointer]: 
+                  - link "Tracking timelines for Performance Tests" [ref=e1496] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1847627216/Tracking+timelines+for+Performance+Tests
+                - listitem [ref=e1497]:
+                  - link "Adobe Campaign - Pack Upgrades" [ref=e1502] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1847631919/Adobe+Campaign+-+Pack+Upgrades
+                - listitem [ref=e1503]:
+                  - link "Frontend Architecture" [ref=e1508] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1848161168/Frontend+Architecture
+                - listitem [ref=e1509]:
+                  - button "IP reputation feature" [ref=e1511] [cursor=pointer]: 
+                  - link "IP reputation feature" [ref=e1514] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1892061297/IP+reputation+feature
+                - listitem [ref=e1515]:
+                  - button "E&R Campaigns" [ref=e1517] [cursor=pointer]: 
+                  - link "E&R Campaigns" [ref=e1520] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1903008475/E+R+Campaigns
+                - listitem [ref=e1521]:
+                  - link "Performance investigations on Enterprise Package (AWS)" [ref=e1526] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1912906922/Performance+investigations+on+Enterprise+Package+AWS
+                - listitem [ref=e1527]:
+                  - link "All About Campaign V2" [ref=e1532] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1918960202/All+About+Campaign+V2
+                - listitem [ref=e1533]:
+                  - link "Run offers locally in ACRITE." [ref=e1538] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1938009821/Run+offers+locally+in+ACRITE.
+                - listitem [ref=e1539]:
+                  - link "Unpublishing or closing webApps" [ref=e1544] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1970343522/Unpublishing+or+closing+webApps
+                - listitem [ref=e1545]:
+                  - link "Adobe Campaign Test-book Understandings" [ref=e1550] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1987774665/Adobe+Campaign+Test-book+Understandings
+                - listitem [ref=e1551]:
+                  - link "Adobe Campaign Support Process for handling Phishing Allowlist Issue" [ref=e1556] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1993343885/Adobe+Campaign+Support+Process+for+handling+Phishing+Allowlist+Issue
+                - listitem [ref=e1557]:
+                  - link "Webhooks Prod K8s Migration" [ref=e1562] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1993347560/Webhooks+Prod+K8s+Migration
+                - listitem [ref=e1563]:
+                  - button "Customer Communication Project Plan" [ref=e1565] [cursor=pointer]: 
+                  - link "Customer Communication Project Plan" [ref=e1568] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1987882365/Customer+Communication+Project+Plan
+                - listitem [ref=e1569]:
+                  - link "Extranet Tickets:" [ref=e1574] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1999331041/Extranet+Tickets
+                - listitem [ref=e1575]:
+                  - link "Experience Event Mapping - ACS to XDM" [ref=e1580] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2008525071/Experience+Event+Mapping+-+ACS+to+XDM
+                - listitem [ref=e1581]:
+                  - button "Interns 2020" [ref=e1583] [cursor=pointer]: 
+                  - link "Interns 2020" [ref=e1586] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2008868155/Interns+2020
+                - listitem [ref=e1587]:
+                  - button "DB Remediation Work Estimates" [ref=e1589] [cursor=pointer]: 
+                  - link "DB Remediation Work Estimates" [ref=e1592] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2008872834/DB+Remediation+Work+Estimates
+                - listitem [ref=e1593]:
+                  - link "Pipeline Topic Pooling Service" [ref=e1598] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2021655894/Pipeline+Topic+Pooling+Service
+                - listitem [ref=e1599]:
+                  - link "ACS - Package Installer - DEPRECATED" [ref=e1604] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2024702501/ACS+-+Package+Installer+-+DEPRECATED
+                - listitem [ref=e1605]:
+                  - link "Operational Readiness Webhooks" [ref=e1610] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2024707728/Operational+Readiness+Webhooks
+                - listitem [ref=e1611]:
+                  - link "SSFCU On-Prem Instance Access" [ref=e1616] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2057338038/SSFCU+On-Prem+Instance+Access
+                - listitem [ref=e1617]:
+                  - link "TO DELETE 2020-06-22 11:49" [ref=e1622] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2063774085/TO+DELETE+2020-06-22+11+49
+                - listitem [ref=e1623]:
+                  - button "Tips for working with ACS" [ref=e1625] [cursor=pointer]: 
+                  - link "Tips for working with ACS" [ref=e1628] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2063782459/Tips+for+working+with+ACS
+                - listitem [ref=e1629]:
+                  - link "Pipeline Migration plan for ACS Dynamic Reporting Services" [ref=e1634] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2101858509/Pipeline+Migration+plan+for+ACS+Dynamic+Reporting+Services
+                - listitem [ref=e1635]:
+                  - button "NFL Runbook" [ref=e1637] [cursor=pointer]: 
+                  - link "NFL Runbook" [ref=e1640] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2141092636/NFL+Runbook
+                - listitem [ref=e1641]:
+                  - link "EFS Test Results End To End" [ref=e1646] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2179030221/EFS+Test+Results+End+To+End
+                - listitem [ref=e1647]:
+                  - link "adding Fetched AEM urls to allowed-list urls" [ref=e1652] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2178407774/adding+Fetched+AEM+urls+to+allowed-list+urls
+                - listitem [ref=e1653]:
+                  - button "ACS v4 to v5 SDK migration" [ref=e1655] [cursor=pointer]: 
+                  - link "ACS v4 to v5 SDK migration" [ref=e1658] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2188067527/ACS+v4+to+v5+SDK+migration
+                - listitem [ref=e1659]:
+                  - link "POC - Profile Search Performance Improvement" [ref=e1664] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2197422273/POC+-+Profile+Search+Performance+Improvement
+                - listitem [ref=e1665]:
+                  - button "ACC Inmail deprecation" [ref=e1667] [cursor=pointer]: 
+                  - link "ACC Inmail deprecation" [ref=e1670] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2197430752/ACC+Inmail+deprecation
+                - listitem [ref=e1671]:
+                  - link "Campaign Value Acceleration - Customer Insights & Recommendations" [ref=e1676] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2212343824/Campaign+Value+Acceleration+-+Customer+Insights+Recommendations
+                - listitem [ref=e1677]:
+                  - link "ACC & FFDA KT sessions' recordings" [ref=e1682] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2222929485/ACC+FFDA+KT+sessions+recordings
+                - listitem [ref=e1683]:
+                  - link "Vistaprint 2020 Weekend Monitoring" [ref=e1688] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2222932696/Vistaprint+2020+Weekend+Monitoring
+                - listitem [ref=e1689]:
+                  - link "ACC SMS - \"No SMPP Channel available error\" issue" [ref=e1694] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2227184156/ACC+SMS+-+No+SMPP+Channel+available+error+issue
+                - listitem [ref=e1695]:
+                  - link "ACX - Delivery Progress Alerts" [ref=e1700] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2228363480/ACX+-+Delivery+Progress+Alerts
+                - listitem [ref=e1701]:
+                  - link "Vistaprint 2020 Monitoring archive" [ref=e1706] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2227432481/Vistaprint+2020+Monitoring+archive
+                - listitem [ref=e1707]:
+                  - link "Adobe Campaign - AWS Load Balancer via Terraform (Garage Week 2020)" [ref=e1712] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2243473991/Adobe+Campaign+-+AWS+Load+Balancer+via+Terraform+Garage+Week+2020
+                - listitem [ref=e1713]:
+                  - link "Automating SPF Record Validation (Adobe Campaign) Garage Week 2020" [ref=e1718] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2243262320/Automating+SPF+Record+Validation+Adobe+Campaign+Garage+Week+2020
+                - listitem [ref=e1719]:
+                  - link "Improved performance and added new features to Jira Assigning Automation Script(Garage Week 2020)." [ref=e1724] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2244030886/Improved+performance+and+added+new+features+to+Jira+Assigning+Automation+Script+Garage+Week+2020+.
+                - listitem [ref=e1725]:
+                  - link "ADOBE's own Secure SSL Checker with user friendly interface (Adobe Campaign) Garage Week 2020." [ref=e1730] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2243092094/ADOBE+s+own+Secure+SSL+Checker+with+user+friendly+interface+Adobe+Campaign+Garage+Week+2020.
+                - listitem [ref=e1731]:
+                  - link "Adobe Campaign Support Decision Tree - Demo" [ref=e1736] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2252689770/Adobe+Campaign+Support+Decision+Tree+-+Demo
+                - listitem [ref=e1737]:
+                  - link "ACS Dynamic reporting KPI mismatch with database numbers troubleshooting" [ref=e1742] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2249477109/ACS+Dynamic+reporting+KPI+mismatch+with+database+numbers+troubleshooting
+                - listitem [ref=e1743]:
+                  - link "DB Restore on Azure hosted Campaign Instances" [ref=e1748] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2260017447/DB+Restore+on+Azure+hosted+Campaign+Instances
+                - listitem [ref=e1749]:
+                  - link "Cadillac Fairview - ACS Runbook" [ref=e1754] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2262114163/Cadillac+Fairview+-+ACS+Runbook
+                - listitem [ref=e1755]:
+                  - button "CSO Reduction" [ref=e1757] [cursor=pointer]: 
+                  - link "CSO Reduction" [ref=e1760] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2275768920/CSO+Reduction
+                - listitem [ref=e1761]:
+                  - button "Adobe Campaign Industry Playbook" [ref=e1763] [cursor=pointer]: 
+                  - link "Adobe Campaign Industry Playbook" [ref=e1766] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2286540643/Adobe+Campaign+Industry+Playbook
+                - listitem [ref=e1767]:
+                  - link "Provisioning a new client id for service token" [ref=e1772] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2291280709/Provisioning+a+new+client+id+for+service+token
+                - listitem [ref=e1773]:
+                  - link "Optimizing Data Ingestion Workflow" [ref=e1778] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2297223792/Optimizing+Data+Ingestion+Workflow
+                - listitem [ref=e1779]:
+                  - link "Meeting notes" [ref=e1784] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2304637918/Meeting+notes
+                - listitem [ref=e1785]:
+                  - link "Requirements Document - AC (Full Version)" [ref=e1790] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2311403998/Requirements+Document+-+AC+Full+Version
+                - listitem [ref=e1791]:
+                  - link "ACIST" [ref=e1796] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2321366507/ACIST
+                - listitem [ref=e1797]:
+                  - link "EFS splunk dashboard requirements" [ref=e1802] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2327556043/EFS+splunk+dashboard+requirements
+                - listitem [ref=e1803]:
+                  - link "SSL - Internal Campaign Certificate Rotation" [ref=e1808] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2345360154/SSL+-+Internal+Campaign+Certificate+Rotation
+                - listitem [ref=e1809]:
+                  - link "Retrospective Meeting for ACC relaunch H1" [ref=e1814] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2349813073/Retrospective+Meeting+for+ACC+relaunch+H1
+                - listitem [ref=e1815]:
+                  - link "Requirements Document - AC (Lite Version)" [ref=e1820] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2357912376/Requirements+Document+-+AC+Lite+Version
+                - listitem [ref=e1821]:
+                  - link "Adobe Campaign integration with Email Send Service" [ref=e1826] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2363468362/Adobe+Campaign+integration+with+Email+Send+Service
+                - listitem [ref=e1827]:
+                  - link "HackWeek India 2021" [ref=e1832] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2363968556/HackWeek+India+2021
+                - listitem [ref=e1833]:
+                  - link "Authentication issues updated" [ref=e1838] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2366847814/Authentication+issues+updated
+                - listitem [ref=e1839]:
+                  - link "Authentication+issues" [ref=e1844] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2366848296/Authentication+issues
+                - listitem [ref=e1845]:
+                  - link "LinkMobility transition to SMPP" [ref=e1850] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2363977430/LinkMobility+transition+to+SMPP
+                - listitem [ref=e1851]:
+                  - link "Runbook for Workflow Affinity setup to run rtEventProcessing workflows on all VMs of an instance" [ref=e1856] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2373591786/Runbook+for+Workflow+Affinity+setup+to+run+rtEventProcessing+workflows+on+all+VMs+of+an+instance
+                - listitem [ref=e1857]:
+                  - link "P2T Jira creation process and best practices (For Customer Care)" [ref=e1862] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2373908745/P2T+Jira+creation+process+and+best+practices+For+Customer+Care
+                - listitem [ref=e1863]:
+                  - link "ACS-Analytics KPIs Unique metrics transfer" [ref=e1868] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2383741063/ACS-Analytics+KPIs+Unique+metrics+transfer
+                - listitem [ref=e1869]:
+                  - link "SUM.js and it's integration plan with V8" [ref=e1874] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2383166398/SUM.js+and+it+s+integration+plan+with+V8
+                - listitem [ref=e1875]:
+                  - link "decision tree template_dmarc" [ref=e1880] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2383424858/decision+tree+template_dmarc
+                - listitem [ref=e1881]:
+                  - link "Tech Innovation Forum - ACC Scale Team" [ref=e1886] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2398464340/Tech+Innovation+Forum+-+ACC+Scale+Team
+                - listitem [ref=e1887]:
+                  - link "Planning and Strategy" [ref=e1892] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2408058151/Planning+and+Strategy
+                - listitem [ref=e1893]:
+                  - 'button "POC : ACC integration with Email Send Service" [ref=e1895] [cursor=pointer]': 
+                  - 'link "POC : ACC integration with Email Send Service" [ref=e1898] [cursor=pointer]':
+                    - /url: /spaces/neolane/pages/2410912531/POC+ACC+integration+with+Email+Send+Service
+                - listitem [ref=e1899]:
+                  - button "ACC Core Privacy Service Integration" [ref=e1901] [cursor=pointer]: 
+                  - link "ACC Core Privacy Service Integration" [ref=e1904] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2432239015/ACC+Core+Privacy+Service+Integration
+                - listitem [ref=e1905]:
+                  - button "CDM - Provisioning" [ref=e1907] [cursor=pointer]: 
+                  - link "CDM - Provisioning" [ref=e1910] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2432247470/CDM+-+Provisioning
+                - listitem [ref=e1911]:
+                  - link "Audience Manager (AAM) Improvements" [ref=e1916] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2432067547/Audience+Manager+AAM+Improvements
+                - listitem [ref=e1917]:
+                  - link "Engineering JIRA (P2E) creation process and details - for Customer Care" [ref=e1922] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2438148190/Engineering+JIRA+P2E+creation+process+and+details+-+for+Customer+Care
+                - listitem [ref=e1923]:
+                  - link "ACC - Message Center Setup on Dev Environments" [ref=e1928] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2449644469/ACC+-+Message+Center+Setup+on+Dev+Environments
+                - listitem [ref=e1929]:
+                  - link "Inbound offer Instance Migration From V7 to V8" [ref=e1934] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2450133513/Inbound+offer+Instance+Migration+From+V7+to+V8
+                - listitem [ref=e1935]:
+                  - link "Decommission Containers in USC1 - CMR 472856" [ref=e1940] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2456989651/Decommission+Containers+in+USC1+-+CMR+472856
+                - listitem [ref=e1941]:
+                  - link "Adobe Campaign & Adobe Journey Optimizer Cheat Sheet" [ref=e1946] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2457185643/Adobe+Campaign+Adobe+Journey+Optimizer+Cheat+Sheet
+                - listitem [ref=e1947]:
+                  - link "Decommission Containers in USB2 - CMR 472441" [ref=e1952] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2457645374/Decommission+Containers+in+USB2+-+CMR+472441
+                - listitem [ref=e1953]:
+                  - link "Decommission Containers in USB1 - CMR 472301" [ref=e1958] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2457646687/Decommission+Containers+in+USB1+-+CMR+472301
+                - listitem [ref=e1959]:
+                  - link "Open Reports in dynamic Reporting" [ref=e1964] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2515436507/Open+Reports+in+dynamic+Reporting
+                - listitem [ref=e1965]:
+                  - link "Deliverability Add Ons - Requirements Document - AC (Lite Version)" [ref=e1970] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2516095142/Deliverability+Add+Ons+-+Requirements+Document+-+AC+Lite+Version
+                - listitem [ref=e1971]:
+                  - link "Set up for build 9032" [ref=e1976] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2515881747/Set+up+for+build+9032
+                - listitem [ref=e1977]:
+                  - 'link "Offer Management : Inbound interaction V8 provisioning" [ref=e1982] [cursor=pointer]':
+                    - /url: /spaces/neolane/pages/2520212759/Offer+Management+Inbound+interaction+V8+provisioning
+                - listitem [ref=e1983]:
+                  - link "Ordering feature for Predictive Test Selection on Sensei:" [ref=e1988] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2523478467/Ordering+feature+for+Predictive+Test+Selection+on+Sensei
+                - listitem [ref=e1989]:
+                  - button "ACC Integration with AJO SMS capabilities" [ref=e1991] [cursor=pointer]: 
+                  - link "ACC Integration with AJO SMS capabilities" [ref=e1994] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2528547363/ACC+Integration+with+AJO+SMS+capabilities
+                - listitem [ref=e1995]:
+                  - link "Adobe LCM Architecture - North America Marketing/Mid Servers with Momentum" [ref=e2000] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2530862582/Adobe+LCM+Architecture+-+North+America+Marketing+Mid+Servers+with+Momentum
+                - listitem [ref=e2001]:
+                  - link "Campaign Git Bisector" [ref=e2006] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/2536275286/Campaign+Git+Bisector
+                - listitem [ref=e2007]:
+                  - button "Campaign - UTF" [ref=e2009] [cursor=pointer]: 
+                  - link "Campaign - UTF" [ref=e2012] [cursor=pointer]:
+                    - /url: /spaces/neolane/pages/1748569085/Campaign+-+UTF
+                - listitem [ref=e2013]:
+                  - button "Show all pages" [ref=e2016] [cursor=pointer]
+        - generic [ref=e2017]:
+          - button "ConfigureSpace tools" [ref=e2018] [cursor=pointer]:
+            - generic [ref=e2019]:  Configure
+            - text: Space tools
+          - button "Sidebar" [expanded] [ref=e2021] [cursor=pointer]: 
+        - tooltip "Type '['" [ref=e2022]
+      - main [ref=e2024]:
+        - generic [ref=e2026]:
+          - generic:
+            - generic:
+              - navigation "Breadcrumbs":
+                - list:
+                  - listitem [ref=e2027]:
+                    - link "Pages" [ref=e2029] [cursor=pointer]:
+                      - /url: /collector/pages.action?key=neolane
+                  - listitem [ref=e2030]:
+                    - text: /
+                    - link "Adobe Campaign" [ref=e2032] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/865289355/Adobe+Campaign
+                  - listitem [ref=e2033]:
+                    - text: /
+                    - link "Adobe Campaign Infrastructure Operations" [ref=e2035] [cursor=pointer]:
+                      - /url: /spaces/neolane/pages/913752083/Adobe+Campaign+Infrastructure+Operations
+            - generic:
+              - list:
+                - listitem [ref=e2036]:
+                  - link "Unrestricted" [ref=e2037] [cursor=pointer]:
+                    - /url: ""
+                    - text: 
+                - listitem
+                - listitem [ref=e2038]: 
+            - region "Page tools" [ref=e2039]:
+              - list:
+                - listitem [ref=e2040]:
+                  - button "Edit Type 'e'" [ref=e2041] [cursor=pointer]:
+                    - generic [ref=e2042]:
+                      - generic [ref=e2043]: 
+                      - text: Edit
+                - listitem [ref=e2044]:
+                  - button "View inline comments ('v') Type 'v'" [ref=e2045] [cursor=pointer]:
+                    - generic [ref=e2046]:
+                      - generic [ref=e2047]: 
+                      - text: View inline comments
+                - listitem [ref=e2048]:
+                  - button "Save for later Type 'f'" [ref=e2049] [cursor=pointer]:
+                    - generic [ref=e2050]:
+                      - generic [ref=e2051]: 
+                      - text: Save for later
+                - listitem [ref=e2052]:
+                  - button "Stop watching 'w'" [ref=e2053] [cursor=pointer]:
+                    - generic [ref=e2054]:
+                      - generic [ref=e2055]: 
+                      - text: Watching
+                - listitem [ref=e2056]:
+                  - button "Share this page with others Type 's' OR 'k'" [ref=e2057] [cursor=pointer]:
+                    - generic [ref=e2058]:
+                      - generic [ref=e2059]: 
+                      - text: Share
+                - listitem [ref=e2060]:
+                  - button " Send page" [ref=e2061] [cursor=pointer]
+                - listitem [ref=e2062]:
+                  - link "More options" [ref=e2063] [cursor=pointer]:
+                    - /url: "#"
+                    - button "More options" [ref=e2065]: 
+          - link "mcp-exec" [ref=e2067] [cursor=pointer]:
+            - /url: /spaces/neolane/pages/3843183885/mcp-exec
+            - heading "mcp-exec" [level=1] [ref=e2068]
+        - generic [ref=e2069]:
+          - list [ref=e2071]:
+            - listitem [ref=e2072]:
+              - text: Created by
+              - generic [ref=e2073]:
+                - link "Add your avatar" [ref=e2074] [cursor=pointer]:
+                  - /url: /users/profile/editmyprofilepicture.action
+                  - img "Add your avatar" [ref=e2077]
+                - link "created by Gary Harrison" [ref=e2078] [cursor=pointer]:
+                  - /url: "    /display/~harrison\n"
+                  - text: Gary Harrison
+              - text: ", last updated"
+              - link "modified less than a minute ago, select to show changes" [ref=e2079] [cursor=pointer]:
+                - /url: /pages/diffpagesbyversion.action?pageId=3843183885&selectedPageVersions=1&selectedPageVersions=2
+                - text: less than a minute ago
+              - text: • 3 minute read
+          - generic [ref=e2081]:
+            - 'heading "GitHub: meta-mcp-server | npm: @justanothermldude/mcp-exec Copy link to heading" [level=2] [ref=e2082]':
+              - text: "GitHub:"
+              - link "meta-mcp-server" [ref=e2083] [cursor=pointer]:
+                - /url: https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server
+              - text: "| npm:"
+              - link "@justanothermldude/mcp-exec" [ref=e2084] [cursor=pointer]:
+                - /url: https://www.npmjs.com/package/@justanothermldude/mcp-exec
+              - button "Copy link to heading" [ref=e2086] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2087]: 
+                - text:  
+            - heading "Sandboxed MCP Code Execution for AI Tools — with Adobe MCP Gateway Integration Copy link to heading" [level=2] [ref=e2088]:
+              - generic [ref=e2089]: Sandboxed MCP Code Execution for AI Tools — with Adobe MCP Gateway Integration
+              - button "Copy link to heading" [ref=e2091] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2092]: 
+                - text:  
+            - paragraph
+            - list [ref=e2094]:
+              - listitem [ref=e2095]:
+                - link "GitHub Repository" [ref=e2097] [cursor=pointer]:
+                  - /url: "#mcpexec-GitHubRepository"
+              - listitem [ref=e2098]:
+                - link "npm Package" [ref=e2100] [cursor=pointer]:
+                  - /url: "#mcpexec-npmPackage"
+              - listitem [ref=e2101]:
+                - link "Summary:" [ref=e2103] [cursor=pointer]:
+                  - /url: "#mcpexec-Summary:"
+              - listitem [ref=e2104]:
+                - 'link "STATUS: npm 1.7.3 | Active Development" [ref=e2106] [cursor=pointer]':
+                  - /url: "#mcpexec-STATUS:npm1.7.3|ActiveDevelopment"
+              - listitem [ref=e2107]:
+                - link "Adobe MCP Gateway Integration:" [ref=e2109] [cursor=pointer]:
+                  - /url: "#mcpexec-AdobeMCPGatewayIntegration:"
+              - listitem [ref=e2110]:
+                - link "Architecture:" [ref=e2112] [cursor=pointer]:
+                  - /url: "#mcpexec-Architecture:"
+              - listitem [ref=e2113]:
+                - link "The Three Tools:" [ref=e2115] [cursor=pointer]:
+                  - /url: "#mcpexec-TheThreeTools:"
+              - listitem [ref=e2116]:
+                - link "Setup / Installation:" [ref=e2118] [cursor=pointer]:
+                  - /url: "#mcpexec-Setup/Installation:"
+              - listitem [ref=e2119]:
+                - link "Use Cases:" [ref=e2121] [cursor=pointer]:
+                  - /url: "#mcpexec-UseCases:"
+              - listitem [ref=e2122]:
+                - link "Infrastructure Components:" [ref=e2124] [cursor=pointer]:
+                  - /url: "#mcpexec-InfrastructureComponents:"
+              - listitem [ref=e2125]:
+                - link "Technical Documentation:" [ref=e2127] [cursor=pointer]:
+                  - /url: "#mcpexec-TechnicalDocumentation:"
+            - paragraph
+            - paragraph [ref=e2128]
+            - heading "GitHub Repository Copy link to heading" [level=1] [ref=e2129]:
+              - text: GitHub Repository
+              - button "Copy link to heading" [ref=e2131] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2132]: 
+                - text:  
+            - paragraph [ref=e2133]:
+              - link "OneAdobe/camp-ops-emea → projects/meta-mcp-server" [ref=e2134] [cursor=pointer]:
+                - /url: https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server
+            - heading "npm Package Copy link to heading" [level=1] [ref=e2135]:
+              - text: npm Package
+              - button "Copy link to heading" [ref=e2137] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2138]: 
+                - text:  
+            - paragraph [ref=e2139]:
+              - link "@justanothermldude/mcp-exec" [ref=e2140] [cursor=pointer]:
+                - /url: https://www.npmjs.com/package/@justanothermldude/mcp-exec
+              - text: "— latest: 1.7.3"
+            - generic [ref=e2143]: npx @justanothermldude/mcp-exec
+            - 'heading "Summary: Copy link to heading" [level=1] [ref=e2144]':
+              - text: "Summary:"
+              - button "Copy link to heading" [ref=e2146] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2147]: 
+                - text:  
+            - list [ref=e2148]:
+              - listitem [ref=e2149]: mcp-exec is a local MCP server that lets AI tools (Claude Code, Cursor, etc.) execute sandboxed TypeScript/JavaScript code against a pool of configured backend MCP servers.
+              - listitem [ref=e2150]: It generates typed wrappers (FuzzyProxy, parameter guards, response guards) at call time and maintains a disk-cached tool catalog — so AI agents see API signatures before writing code, saving 87–91% of tokens versus per-call schema fetches.
+              - listitem [ref=e2151]:
+                - text: Integrates with the
+                - strong [ref=e2152]: Adobe MCP Gateway
+                - text: to provide Okta-authenticated access to Jira, GitHub, Glean, and other Adobe tools via a single local process and one shared
+                - code [ref=e2153]: .common.env
+                - text: credential file.
+            - 'heading "STATUS: npm 1.7.3 | Active Development Copy link to heading" [level=1] [ref=e2154]':
+              - text: "STATUS: npm 1.7.3 | Active Development"
+              - button "Copy link to heading" [ref=e2156] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2157]: 
+                - text:  
+            - 'heading "Adobe MCP Gateway Integration: Copy link to heading" [level=1] [ref=e2158]':
+              - text: "Adobe MCP Gateway Integration:"
+              - button "Copy link to heading" [ref=e2160] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2161]: 
+                - text:  
+            - paragraph [ref=e2162]:
+              - text: mcp-exec connects to the Adobe MCP Gateway using
+              - strong [ref=e2163]: two simultaneous MCP connections
+              - text: ":"
+            - table [ref=e2165]:
+              - rowgroup [ref=e2166]:
+                - row "Connection Transport Purpose" [ref=e2167]:
+                  - columnheader "Connection" [ref=e2168] [cursor=pointer]:
+                    - button "Connection" [ref=e2170]:
+                      - paragraph [ref=e2171]:
+                        - strong [ref=e2172]: Connection
+                  - columnheader "Transport" [ref=e2173] [cursor=pointer]:
+                    - button "Transport" [ref=e2175]:
+                      - paragraph [ref=e2176]:
+                        - strong [ref=e2177]: Transport
+                  - columnheader "Purpose" [ref=e2178] [cursor=pointer]:
+                    - button "Purpose" [ref=e2180]:
+                      - paragraph [ref=e2181]:
+                        - strong [ref=e2182]: Purpose
+              - rowgroup [ref=e2187]:
+                - row "mcp-exec stdio (local process) Tool discovery and execution — all actual tool calls" [ref=e2188]:
+                  - cell "mcp-exec" [ref=e2189]:
+                    - paragraph [ref=e2190]:
+                      - strong [ref=e2191]: mcp-exec
+                  - cell "stdio (local process)" [ref=e2192]:
+                    - paragraph [ref=e2193]: stdio (local process)
+                  - cell "Tool discovery and execution — all actual tool calls" [ref=e2194]:
+                    - paragraph [ref=e2195]: Tool discovery and execution — all actual tool calls
+                - 'row "Direct gateway entry streamable-http Okta OAuth login only — X-MCP-Mode: oauth-only header; list_tools returns [], call_tool raises PermissionError" [ref=e2196]':
+                  - cell "Direct gateway entry" [ref=e2197]:
+                    - paragraph [ref=e2198]:
+                      - strong [ref=e2199]: Direct gateway entry
+                  - cell "streamable-http" [ref=e2200]:
+                    - paragraph [ref=e2201]: streamable-http
+                  - 'cell "Okta OAuth login only — X-MCP-Mode: oauth-only header; list_tools returns [], call_tool raises PermissionError" [ref=e2202]':
+                    - paragraph [ref=e2203]:
+                      - text: Okta OAuth login only —
+                      - code [ref=e2204]: "X-MCP-Mode: oauth-only"
+                      - text: header; list_tools returns [], call_tool raises PermissionError
+            - paragraph [ref=e2205]:
+              - text: mcp-exec reads the
+              - code [ref=e2206]: backendAuthEnvFile
+              - text: from
+              - code [ref=e2207]: servers.json
+              - text: "and converts every env var to a lowercase hyphenated HTTP header before forwarding requests to the Gateway:"
+            - table [ref=e2209]:
+              - rowgroup [ref=e2210]:
+                - row ".common.env variable HTTP header sent to Gateway" [ref=e2211]:
+                  - columnheader ".common.env variable" [ref=e2212] [cursor=pointer]:
+                    - button ".common.env variable" [ref=e2214]:
+                      - paragraph [ref=e2215]:
+                        - strong [ref=e2216]: .common.env variable
+                  - columnheader "HTTP header sent to Gateway" [ref=e2217] [cursor=pointer]:
+                    - button "HTTP header sent to Gateway" [ref=e2219]:
+                      - paragraph [ref=e2220]:
+                        - strong [ref=e2221]: HTTP header sent to Gateway
+              - rowgroup [ref=e2225]:
+                - row "JIRA_PAT_TOKEN x-jira-pat-token" [ref=e2226]:
+                  - cell "JIRA_PAT_TOKEN" [ref=e2227]:
+                    - paragraph [ref=e2228]:
+                      - code [ref=e2229]: JIRA_PAT_TOKEN
+                  - cell "x-jira-pat-token" [ref=e2230]:
+                    - paragraph [ref=e2231]:
+                      - code [ref=e2232]: x-jira-pat-token
+                - row "GITHUB_CORP_TOKEN x-github-corp-token" [ref=e2233]:
+                  - cell "GITHUB_CORP_TOKEN" [ref=e2234]:
+                    - paragraph [ref=e2235]:
+                      - code [ref=e2236]: GITHUB_CORP_TOKEN
+                  - cell "x-github-corp-token" [ref=e2237]:
+                    - paragraph [ref=e2238]:
+                      - code [ref=e2239]: x-github-corp-token
+                - row "GITHUB_CLOUD_TOKEN x-github-cloud-token" [ref=e2240]:
+                  - cell "GITHUB_CLOUD_TOKEN" [ref=e2241]:
+                    - paragraph [ref=e2242]:
+                      - code [ref=e2243]: GITHUB_CLOUD_TOKEN
+                  - cell "x-github-cloud-token" [ref=e2244]:
+                    - paragraph [ref=e2245]:
+                      - code [ref=e2246]: x-github-cloud-token
+                - row "GLEAN_API_TOKEN x-glean-api-token" [ref=e2247]:
+                  - cell "GLEAN_API_TOKEN" [ref=e2248]:
+                    - paragraph [ref=e2249]:
+                      - code [ref=e2250]: GLEAN_API_TOKEN
+                  - cell "x-glean-api-token" [ref=e2251]:
+                    - paragraph [ref=e2252]:
+                      - code [ref=e2253]: x-glean-api-token
+            - paragraph [ref=e2254]:
+              - text: The Gateway reads headers per-request and isolates credentials via Python context variables, calling
+              - code [ref=e2255]: clear_auth_context()
+              - text: in a
+              - code [ref=e2256]: finally
+              - text: block after every response — preventing User A's credentials leaking into User B's requests.
+            - 'heading "Architecture: Copy link to heading" [level=1] [ref=e2257]':
+              - text: "Architecture:"
+              - button "Copy link to heading" [ref=e2259] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2260]: 
+                - text:  
+            - img [ref=e2261]
+            - 'heading "The Three Tools: Copy link to heading" [level=1] [ref=e2262]':
+              - text: "The Three Tools:"
+              - button "Copy link to heading" [ref=e2264] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2265]: 
+                - text:  
+            - table [ref=e2267]:
+              - rowgroup [ref=e2268]:
+                - row "Tool Role" [ref=e2269]:
+                  - columnheader "Tool" [ref=e2270] [cursor=pointer]:
+                    - button "Tool" [ref=e2272]:
+                      - paragraph [ref=e2273]:
+                        - strong [ref=e2274]: Tool
+                  - columnheader "Role" [ref=e2275] [cursor=pointer]:
+                    - button "Role" [ref=e2277]:
+                      - paragraph [ref=e2278]:
+                        - strong [ref=e2279]: Role
+              - rowgroup [ref=e2283]:
+                - row "execute_code_with_wrappers Run sandboxed TypeScript/JavaScript with typed MCP wrappers. Generates FuzzyProxy wrappers, updates tool catalog, composes and executes sandbox code." [ref=e2284]:
+                  - cell "execute_code_with_wrappers" [ref=e2285]:
+                    - paragraph [ref=e2286]:
+                      - code [ref=e2287]: execute_code_with_wrappers
+                  - cell "Run sandboxed TypeScript/JavaScript with typed MCP wrappers. Generates FuzzyProxy wrappers, updates tool catalog, composes and executes sandbox code." [ref=e2288]:
+                    - paragraph [ref=e2289]: Run sandboxed TypeScript/JavaScript with typed MCP wrappers. Generates FuzzyProxy wrappers, updates tool catalog, composes and executes sandbox code.
+                - row "list_available_mcp_servers Discover configured backends from servers.json — names, descriptions, tags." [ref=e2290]:
+                  - cell "list_available_mcp_servers" [ref=e2291]:
+                    - paragraph [ref=e2292]:
+                      - code [ref=e2293]: list_available_mcp_servers
+                  - cell "Discover configured backends from servers.json — names, descriptions, tags." [ref=e2294]:
+                    - paragraph [ref=e2295]: Discover configured backends from servers.json — names, descriptions, tags.
+                - row "get_mcp_tool_schema Fetch full JSON schema for a specific tool on a named backend server." [ref=e2296]:
+                  - cell "get_mcp_tool_schema" [ref=e2297]:
+                    - paragraph [ref=e2298]:
+                      - code [ref=e2299]: get_mcp_tool_schema
+                  - cell "Fetch full JSON schema for a specific tool on a named backend server." [ref=e2300]:
+                    - paragraph [ref=e2301]: Fetch full JSON schema for a specific tool on a named backend server.
+            - 'heading "Setup / Installation: Copy link to heading" [level=1] [ref=e2302]':
+              - text: "Setup / Installation:"
+              - button "Copy link to heading" [ref=e2304] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2305]: 
+                - text:  
+            - paragraph [ref=e2306]:
+              - strong [ref=e2307]: "1. Add to your AI tool config (Claude Code — ~/.claude.json):"
+            - generic [ref=e2310]: "{ \"mcpServers\": { \"mcp-exec\": { \"type\": \"stdio\", \"command\": \"npx\", \"args\": [\"-y\", \"@justanothermldude/mcp-exec\"], \"env\": { \"SERVERS_CONFIG\": \"~/.meta-mcp/servers.json\" } } } }"
+            - paragraph [ref=e2311]:
+              - strong [ref=e2312]: "2. Configure ~/.meta-mcp/servers.json for the Adobe MCP Gateway:"
+            - generic [ref=e2315]: "{ \"mcpServers\": { \"adobe-mcp-gateway\": { \"type\": \"streamable-http\", \"url\": \"https://mcp.adobe.io/mcp/\", \"backendAuthEnvFile\": \"/path/to/.common.env\", \"description\": \"Adobe MCP Gateway - Jira, GitHub, Glean tools\", \"tags\": [\"gateway\", \"jira\", \"github\", \"glean\", \"adobe\"] } } }"
+            - paragraph [ref=e2316]:
+              - strong [ref=e2317]: "3. Create .common.env with your tokens:"
+            - generic [ref=e2320]: JIRA_PAT_TOKEN=your-jira-pat-here GITHUB_CORP_TOKEN=your-github-corp-token-here GITHUB_CLOUD_TOKEN=your-github-cloud-token-here GLEAN_API_TOKEN=your-glean-api-token-here
+            - region "Note" [ref=e2321]:
+              - text: 
+              - paragraph [ref=e2323]: The VS Code / Cursor extension (VSIX) provides a GUI for managing servers.json and generating AI tool config snippets — no manual JSON editing required.
+            - 'heading "Use Cases: Copy link to heading" [level=1] [ref=e2324]':
+              - text: "Use Cases:"
+              - button "Copy link to heading" [ref=e2326] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2327]: 
+                - text:  
+            - table [ref=e2329]:
+              - rowgroup [ref=e2330]:
+                - row "# Use Case Description Key Result" [ref=e2331]:
+                  - columnheader "#" [ref=e2332] [cursor=pointer]:
+                    - button "#" [ref=e2334]:
+                      - paragraph [ref=e2335]:
+                        - strong [ref=e2336]: "#"
+                  - columnheader "Use Case" [ref=e2337] [cursor=pointer]:
+                    - button "Use Case" [ref=e2339]:
+                      - paragraph [ref=e2340]:
+                        - strong [ref=e2341]: Use Case
+                  - columnheader "Description" [ref=e2342] [cursor=pointer]:
+                    - button "Description" [ref=e2344]:
+                      - paragraph [ref=e2345]:
+                        - strong [ref=e2346]: Description
+                  - columnheader "Key Result" [ref=e2347] [cursor=pointer]:
+                    - button "Key Result" [ref=e2349]:
+                      - paragraph [ref=e2350]:
+                        - strong [ref=e2351]: Key Result
+              - rowgroup [ref=e2357]:
+                - row "1. Multi-server code execution Execute TypeScript against multiple MCP backends in one sandboxed call 87–91% token savings vs raw schema-per-call pattern" [ref=e2358]:
+                  - cell "1." [ref=e2359]:
+                    - paragraph [ref=e2360]:
+                      - strong [ref=e2361]: "1."
+                  - cell "Multi-server code execution" [ref=e2362]:
+                    - paragraph [ref=e2363]:
+                      - strong [ref=e2364]: Multi-server code execution
+                  - cell "Execute TypeScript against multiple MCP backends in one sandboxed call" [ref=e2365]:
+                    - paragraph [ref=e2366]: Execute TypeScript against multiple MCP backends in one sandboxed call
+                  - cell "87–91% token savings vs raw schema-per-call pattern" [ref=e2367]:
+                    - list [ref=e2368]:
+                      - listitem [ref=e2369]: 87–91% token savings vs raw schema-per-call pattern
+                - row "2. Adobe MCP Gateway access Okta-authenticated access to Jira, GitHub, Glean via a single local process Tokens in one .common.env file; injected automatically per request" [ref=e2370]:
+                  - cell "2." [ref=e2371]:
+                    - paragraph [ref=e2372]:
+                      - strong [ref=e2373]: "2."
+                  - cell "Adobe MCP Gateway access" [ref=e2374]:
+                    - paragraph [ref=e2375]:
+                      - strong [ref=e2376]: Adobe MCP Gateway access
+                  - cell "Okta-authenticated access to Jira, GitHub, Glean via a single local process" [ref=e2377]:
+                    - paragraph [ref=e2378]: Okta-authenticated access to Jira, GitHub, Glean via a single local process
+                  - cell "Tokens in one .common.env file; injected automatically per request" [ref=e2379]:
+                    - list [ref=e2380]:
+                      - listitem [ref=e2381]:
+                        - text: Tokens in one
+                        - code [ref=e2382]: .common.env
+                        - text: file; injected automatically per request
+                - row "3. Tool catalog discovery Disk-persisted catalog of tool signatures embedded in tool description Agents see APIs before writing code; fewer schema fetch round-trips" [ref=e2383]:
+                  - cell "3." [ref=e2384]:
+                    - paragraph [ref=e2385]:
+                      - strong [ref=e2386]: "3."
+                  - cell "Tool catalog discovery" [ref=e2387]:
+                    - paragraph [ref=e2388]:
+                      - strong [ref=e2389]: Tool catalog discovery
+                  - cell "Disk-persisted catalog of tool signatures embedded in tool description" [ref=e2390]:
+                    - paragraph [ref=e2391]: Disk-persisted catalog of tool signatures embedded in tool description
+                  - cell "Agents see APIs before writing code; fewer schema fetch round-trips" [ref=e2392]:
+                    - list [ref=e2393]:
+                      - listitem [ref=e2394]: Agents see APIs before writing code; fewer schema fetch round-trips
+                - row "4. Cross-tenant credential isolation Per-request Python context variables cleared after every Gateway response User A's credentials cannot leak into User B's requests" [ref=e2395]:
+                  - cell "4." [ref=e2396]:
+                    - paragraph [ref=e2397]:
+                      - strong [ref=e2398]: "4."
+                  - cell "Cross-tenant credential isolation" [ref=e2399]:
+                    - paragraph [ref=e2400]:
+                      - strong [ref=e2401]: Cross-tenant credential isolation
+                  - cell "Per-request Python context variables cleared after every Gateway response" [ref=e2402]:
+                    - paragraph [ref=e2403]: Per-request Python context variables cleared after every Gateway response
+                  - cell "User A's credentials cannot leak into User B's requests" [ref=e2404]:
+                    - list [ref=e2405]:
+                      - listitem [ref=e2406]: User A's credentials cannot leak into User B's requests
+                - row "5. VS Code / Cursor extension GUI for servers.json management, AI tool config generation, tool catalog browsing Zero-friction onboarding for new team members" [ref=e2407]:
+                  - cell "5." [ref=e2408]:
+                    - paragraph [ref=e2409]:
+                      - strong [ref=e2410]: "5."
+                  - cell "VS Code / Cursor extension" [ref=e2411]:
+                    - paragraph [ref=e2412]:
+                      - strong [ref=e2413]: VS Code / Cursor extension
+                  - cell "GUI for servers.json management, AI tool config generation, tool catalog browsing" [ref=e2414]:
+                    - paragraph [ref=e2415]: GUI for servers.json management, AI tool config generation, tool catalog browsing
+                  - cell "Zero-friction onboarding for new team members" [ref=e2416]:
+                    - list [ref=e2417]:
+                      - listitem [ref=e2418]: Zero-friction onboarding for new team members
+            - 'heading "Infrastructure Components: Copy link to heading" [level=1] [ref=e2419]':
+              - text: "Infrastructure Components:"
+              - button "Copy link to heading" [ref=e2421] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2422]: 
+                - text:  
+            - table [ref=e2424]:
+              - rowgroup [ref=e2425]:
+                - row "Component Details Purpose" [ref=e2426]:
+                  - columnheader "Component" [ref=e2427] [cursor=pointer]:
+                    - button "Component" [ref=e2429]:
+                      - paragraph [ref=e2430]:
+                        - strong [ref=e2431]: Component
+                  - columnheader "Details" [ref=e2432] [cursor=pointer]:
+                    - button "Details" [ref=e2434]:
+                      - paragraph [ref=e2435]:
+                        - strong [ref=e2436]: Details
+                  - columnheader "Purpose" [ref=e2437] [cursor=pointer]:
+                    - button "Purpose" [ref=e2439]:
+                      - paragraph [ref=e2440]:
+                        - strong [ref=e2441]: Purpose
+              - rowgroup [ref=e2446]:
+                - row "mcp-exec process Local stdio process, npx @justanothermldude/mcp-exec, Node.js v18+, spawned by AI tool on demand Sandboxed code execution and backend MCP proxying" [ref=e2447]:
+                  - cell "mcp-exec process" [ref=e2448]:
+                    - paragraph [ref=e2449]: mcp-exec process
+                  - cell "Local stdio process, npx @justanothermldude/mcp-exec, Node.js v18+, spawned by AI tool on demand" [ref=e2450]:
+                    - paragraph [ref=e2451]:
+                      - text: Local stdio process,
+                      - code [ref=e2452]: npx @justanothermldude/mcp-exec
+                      - text: ", Node.js v18+, spawned by AI tool on demand"
+                  - cell "Sandboxed code execution and backend MCP proxying" [ref=e2453]:
+                    - paragraph [ref=e2454]: Sandboxed code execution and backend MCP proxying
+                - row "servers.json ~/.meta-mcp/servers.json — defines backend servers, transport (stdio/http), auth env files, tags Single source of truth for all backend connections" [ref=e2455]:
+                  - cell "servers.json" [ref=e2456]:
+                    - paragraph [ref=e2457]: servers.json
+                  - cell "~/.meta-mcp/servers.json — defines backend servers, transport (stdio/http), auth env files, tags" [ref=e2458]:
+                    - paragraph [ref=e2459]:
+                      - code [ref=e2460]: ~/.meta-mcp/servers.json
+                      - text: — defines backend servers, transport (stdio/http), auth env files, tags
+                  - cell "Single source of truth for all backend connections" [ref=e2461]:
+                    - paragraph [ref=e2462]: Single source of truth for all backend connections
+                - row "Tool Catalog ~/.meta-mcp/tool-catalog.json — disk-persisted, auto-refreshed on each call, pruned against servers.json on startup Signature cache embedded in tool description; zeroth tier that pre-empts schema fetches" [ref=e2463]:
+                  - cell "Tool Catalog" [ref=e2464]:
+                    - paragraph [ref=e2465]: Tool Catalog
+                  - cell "~/.meta-mcp/tool-catalog.json — disk-persisted, auto-refreshed on each call, pruned against servers.json on startup" [ref=e2466]:
+                    - paragraph [ref=e2467]:
+                      - code [ref=e2468]: ~/.meta-mcp/tool-catalog.json
+                      - text: — disk-persisted, auto-refreshed on each call, pruned against servers.json on startup
+                  - cell "Signature cache embedded in tool description; zeroth tier that pre-empts schema fetches" [ref=e2469]:
+                    - paragraph [ref=e2470]: Signature cache embedded in tool description; zeroth tier that pre-empts schema fetches
+                - row ".common.env User-managed env file with PAT tokens; path set via backendAuthEnvFile in servers.json per backend Centralized credential store; injected as HTTP headers on every outbound Gateway request" [ref=e2471]:
+                  - cell ".common.env" [ref=e2472]:
+                    - paragraph [ref=e2473]: .common.env
+                  - cell "User-managed env file with PAT tokens; path set via backendAuthEnvFile in servers.json per backend" [ref=e2474]:
+                    - paragraph [ref=e2475]:
+                      - text: User-managed env file with PAT tokens; path set via
+                      - code [ref=e2476]: backendAuthEnvFile
+                      - text: in servers.json per backend
+                  - cell "Centralized credential store; injected as HTTP headers on every outbound Gateway request" [ref=e2477]:
+                    - paragraph [ref=e2478]: Centralized credential store; injected as HTTP headers on every outbound Gateway request
+                - row "Adobe MCP Gateway https://mcp.adobe.io/mcp/ — ASGI Python, GatedFastMCP, RequestIDMiddleware, per-request contextvar isolation Aggregates Jira, GitHub, Glean tools behind Okta OAuth" [ref=e2479]:
+                  - cell "Adobe MCP Gateway" [ref=e2480]:
+                    - paragraph [ref=e2481]: Adobe MCP Gateway
+                  - cell "https://mcp.adobe.io/mcp/ — ASGI Python, GatedFastMCP, RequestIDMiddleware, per-request contextvar isolation" [ref=e2482]:
+                    - paragraph [ref=e2483]:
+                      - code [ref=e2484]: https://mcp.adobe.io/mcp/
+                      - text: — ASGI Python, GatedFastMCP, RequestIDMiddleware, per-request contextvar isolation
+                  - cell "Aggregates Jira, GitHub, Glean tools behind Okta OAuth" [ref=e2485]:
+                    - paragraph [ref=e2486]: Aggregates Jira, GitHub, Glean tools behind Okta OAuth
+                - row "VS Code Extension VSIX package; Servers tab, Setup tab (AI tool config snippets), Catalog tab (tool signature browser) GUI for servers.json management and onboarding" [ref=e2487]:
+                  - cell "VS Code Extension" [ref=e2488]:
+                    - paragraph [ref=e2489]: VS Code Extension
+                  - cell "VSIX package; Servers tab, Setup tab (AI tool config snippets), Catalog tab (tool signature browser)" [ref=e2490]:
+                    - paragraph [ref=e2491]: VSIX package; Servers tab, Setup tab (AI tool config snippets), Catalog tab (tool signature browser)
+                  - cell "GUI for servers.json management and onboarding" [ref=e2492]:
+                    - paragraph [ref=e2493]: GUI for servers.json management and onboarding
+            - 'heading "Technical Documentation: Copy link to heading" [level=1] [ref=e2494]':
+              - text: "Technical Documentation:"
+              - button "Copy link to heading" [ref=e2496] [cursor=pointer]:
+                - img "Copy link to heading" [ref=e2497]: 
+                - text:  
+            - paragraph [ref=e2498]:
+              - text: Full documentation is maintained in the
+              - link "GitHub docs folder" [ref=e2499] [cursor=pointer]:
+                - /url: https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server/docs
+              - text: .
+            - table [ref=e2501]:
+              - rowgroup [ref=e2502]:
+                - row "Document Description Audience" [ref=e2503]:
+                  - columnheader "Document" [ref=e2504] [cursor=pointer]:
+                    - button "Document" [ref=e2506]:
+                      - paragraph [ref=e2507]:
+                        - strong [ref=e2508]: Document
+                  - columnheader "Description" [ref=e2509] [cursor=pointer]:
+                    - button "Description" [ref=e2511]:
+                      - paragraph [ref=e2512]:
+                        - strong [ref=e2513]: Description
+                  - columnheader "Audience" [ref=e2514] [cursor=pointer]:
+                    - button "Audience" [ref=e2516]:
+                      - paragraph [ref=e2517]:
+                        - strong [ref=e2518]: Audience
+              - rowgroup [ref=e2523]:
+                - row "Architecture Guide System overview, config lifecycle, request flow, component responsibilities All developers, new team members" [ref=e2524]:
+                  - cell "Architecture Guide" [ref=e2525]:
+                    - paragraph [ref=e2526]:
+                      - link "Architecture Guide" [ref=e2527] [cursor=pointer]:
+                        - /url: https://github.com/OneAdobe/camp-ops-emea/blob/main/projects/meta-mcp-server/docs/ARCHITECTURE.md
+                  - cell "System overview, config lifecycle, request flow, component responsibilities" [ref=e2528]:
+                    - paragraph [ref=e2529]: System overview, config lifecycle, request flow, component responsibilities
+                  - cell "All developers, new team members" [ref=e2530]:
+                    - paragraph [ref=e2531]: All developers, new team members
+                - row "Token Economics Why startup and per-call token costs matter; 87–91% savings breakdown Architects, tech leads" [ref=e2532]:
+                  - cell "Token Economics" [ref=e2533]:
+                    - paragraph [ref=e2534]:
+                      - link "Token Economics" [ref=e2535] [cursor=pointer]:
+                        - /url: https://github.com/OneAdobe/camp-ops-emea/blob/main/projects/meta-mcp-server/docs/diagrams/token-economics.md
+                  - cell "Why startup and per-call token costs matter; 87–91% savings breakdown" [ref=e2536]:
+                    - paragraph [ref=e2537]: Why startup and per-call token costs matter; 87–91% savings breakdown
+                  - cell "Architects, tech leads" [ref=e2538]:
+                    - paragraph [ref=e2539]: Architects, tech leads
+                - row "MCP Gateway Integration Guide Two-connection architecture, token injection path, GatedFastMCP oauth-only gating, security model Developers, operations" [ref=e2540]:
+                  - cell "MCP Gateway Integration Guide" [ref=e2541]:
+                    - paragraph [ref=e2542]:
+                      - link "MCP Gateway Integration Guide" [ref=e2543] [cursor=pointer]:
+                        - /url: https://github.com/OneAdobe/camp-ops-emea/blob/main/projects/meta-mcp-server/docs/mcp-exec-integration.md
+                  - cell "Two-connection architecture, token injection path, GatedFastMCP oauth-only gating, security model" [ref=e2544]:
+                    - paragraph [ref=e2545]: Two-connection architecture, token injection path, GatedFastMCP oauth-only gating, security model
+                  - cell "Developers, operations" [ref=e2546]:
+                    - paragraph [ref=e2547]: Developers, operations
+            - paragraph [ref=e2548]
+          - generic [ref=e2549]:
+            - generic [ref=e2550]:
+              - button "Like" [ref=e2551] [cursor=pointer]:
+                - generic [ref=e2552]: 
+                - text: Like
+              - generic [ref=e2553]: Be the first to like this
+            - list [ref=e2557]:
+              - listitem [ref=e2558]: No labels
+              - listitem [ref=e2559]:
+                - link "Edit Labels Type 'l'" [ref=e2560] [cursor=pointer]:
+                  - /url: "#"
+                  - generic [ref=e2561]:  Edit Labels
+          - generic [ref=e2564]:
+            - paragraph [ref=e2565]:
+              - link "Add your avatar" [ref=e2566] [cursor=pointer]:
+                - /url: /users/profile/editmyprofilepicture.action
+                - img "Add your avatar" [ref=e2569]
+            - button "Write a Comment Type 'm'" [ref=e2572]: Write a comment…
+      - contentinfo [ref=e2573]:
+        - generic [ref=e2574]:
+          - list [ref=e2575]:
+            - listitem [ref=e2576]:
+              - text: Powered by
+              - link "Atlassian Confluence" [ref=e2577] [cursor=pointer]:
+                - /url: https://www.atlassian.com/software/confluence
+              - text: "10.2.7 (node4: 3c232e1c)·"
+            - text: ·
+            - listitem [ref=e2578]:
+              - link "Report a bug" [ref=e2579] [cursor=pointer]:
+                - /url: https://support.atlassian.com/confluence-server/
+              - text: ·
+            - listitem [ref=e2580]:
+              - link "Atlassian News" [ref=e2581] [cursor=pointer]:
+                - /url: https://www.atlassian.com/company
+          - link "Atlassian" [ref=e2583] [cursor=pointer]:
+            - /url: https://www.atlassian.com/
+  - text:                                                        

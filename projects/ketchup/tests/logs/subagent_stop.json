@@ -1,9 +1,0 @@
-[
-  {
-    "session_id": "4f03de65-11f1-4299-9b55-a41d84e8349d",
-    "transcript_path": "/Users/harrison/.claude/projects/-Users-harrison-Documents-Github-camp-ops-tools-emea-ketchup-modular-refactor/4f03de65-11f1-4299-9b55-a41d84e8349d.jsonl",
-    "cwd": "/Users/harrison/Documents/Github/camp-ops-tools-emea/ketchup/modular_refactor/tests",
-    "hook_event_name": "SubagentStop",
-    "stop_hook_active": false
-  }
-]

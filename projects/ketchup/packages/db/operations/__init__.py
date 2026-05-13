@@ -1,3 +1,0 @@
-"""
-Operations for the database.
-"""

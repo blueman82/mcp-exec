@@ -1,0 +1,96 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - list:
+      - listitem:
+        - link "Skip to main content" [ref=e5] [cursor=pointer]:
+          - /url: "#main"
+      - listitem:
+        - link "Skip to search" [ref=e6] [cursor=pointer]:
+          - /url: "#quick-search-query"
+    - navigation "Site" [ref=e7]:
+      - generic [ref=e8]:
+        - button " Linked Applications" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]:  Linked Applications
+        - generic [ref=e12]:
+          - link "Confluence home page" [ref=e14] [cursor=pointer]:
+            - /url: /
+            - img "Wiki" [ref=e15]
+            - generic [ref=e16]: Wiki
+          - list [ref=e17]:
+            - listitem [ref=e18]:
+              - button " Spaces" [ref=e19] [cursor=pointer]
+            - listitem [ref=e20]:
+              - link "People" [ref=e21] [cursor=pointer]:
+                - /url: /browsepeople.action
+                - generic [ref=e22]: People
+            - listitem [ref=e23]:
+              - link "Questions" [ref=e24] [cursor=pointer]:
+                - /url: /questions?src=header
+                - generic [ref=e25]: Questions
+            - listitem [ref=e26]:
+              - link "Calendars" [ref=e27] [cursor=pointer]:
+                - /url: /calendar/mycalendar.action
+                - generic [ref=e28]: Calendars
+            - listitem
+            - listitem [ref=e29]:
+              - button "Create blank page" [ref=e30] [cursor=pointer]: Create
+              - button "Create from template" [ref=e31] [cursor=pointer]:
+                - generic [ref=e32]: 
+        - list [ref=e34]:
+          - listitem [ref=e35]:
+            - generic [ref=e36]:
+              - button "Search" [ref=e37] [cursor=pointer]: 
+              - textbox "Search query" [ref=e38]:
+                - /placeholder: Search
+          - listitem [ref=e39]:
+            - button " Help" [ref=e40] [cursor=pointer]:
+              - generic [ref=e41]:  Help
+          - listitem
+          - listitem [ref=e42]:
+            - button "Notifications" [ref=e43] [cursor=pointer]:
+              - generic [ref=e44]: 
+          - listitem [ref=e45]:
+            - button "Your profile and preferences" [ref=e46] [cursor=pointer]
+  - main [ref=e49]:
+    - generic [ref=e51]:
+      - generic:
+        - generic:
+          - navigation "Breadcrumbs":
+            - list
+      - generic [ref=e52]: Page Not Found
+    - paragraph [ref=e53]: "We can't find that page. This could be because:"
+    - list [ref=e54]:
+      - listitem [ref=e55]: The page doesn't exist.
+      - listitem [ref=e56]: The page exists, but you don't have view permission for that space.
+    - heading "Site Search" [level=3] [ref=e57]
+    - generic [ref=e58]:
+      - textbox [ref=e59]
+      - button "Search" [ref=e60] [cursor=pointer]
+    - paragraph
+    - heading "Go to" [level=3] [ref=e61]
+    - list [ref=e62]:
+      - listitem [ref=e63]:
+        - link "Site Homepage" [ref=e64] [cursor=pointer]:
+          - /url: ""
+      - listitem [ref=e65]:
+        - link "Your Dashboard" [ref=e66] [cursor=pointer]:
+          - /url: /dashboard.action
+    - paragraph
+  - contentinfo [ref=e67]:
+    - generic [ref=e68]:
+      - list [ref=e69]:
+        - listitem [ref=e70]:
+          - text: Powered by
+          - link "Atlassian Confluence" [ref=e71] [cursor=pointer]:
+            - /url: https://www.atlassian.com/software/confluence
+          - text: "10.2.7 (node4: 3c232e1c)·"
+        - text: ·
+        - listitem [ref=e72]:
+          - link "Report a bug" [ref=e73] [cursor=pointer]:
+            - /url: https://support.atlassian.com/confluence-server/
+          - text: ·
+        - listitem [ref=e74]:
+          - link "Atlassian News" [ref=e75] [cursor=pointer]:
+            - /url: https://www.atlassian.com/company
+      - link "Atlassian" [ref=e77] [cursor=pointer]:
+        - /url: https://www.atlassian.com/

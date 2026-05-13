@@ -1,1 +1,0 @@
-"""CSOPM Notifier unit tests."""

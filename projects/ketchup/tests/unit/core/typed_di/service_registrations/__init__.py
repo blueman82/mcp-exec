@@ -1,1 +1,0 @@
-"""TypedDI Service Registration Tests."""

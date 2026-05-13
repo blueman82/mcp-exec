@@ -1,93 +1,29 @@
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-*.swp
-*.swo
-*~
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual environments
-venv/
-ENV/
-env/
-.venv
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Claude Code (ignore all except skills/ and commands/)
-.claude/*
-!.claude/skills/
-!.claude/commands/
-
-# AskSplunk: share full .claude/ config (rules, hooks, agents, skills, settings)
-!projects/asksplunk/.claude/
-# But ignore personal overrides
-projects/asksplunk/.claude/settings.local.json
-
-# Node
 node_modules/
-npm-debug.log
-yarn-error.log
-
-# Environment files
-.env
-.env.test
-.env.local
-.env.*.local
-
-# Logs
-logs/
-*.log
-
-# Test coverage
-.coverage
-.pytest_cache/
-
-# Build artifacts
 dist/
-build/
+*.tsbuildinfo
+.DS_Store
+*.log
+.env
+.env.local
+coverage/
+.vitest/
 
-# Git worktrees
-ketchup-*/
-*-worktree/
-projects/asksplunk-survey/
+docs/*
+!docs/ARCHITECTURE.md
+!docs/diagrams/
+docs/diagrams/*
+docs/diagrams/logs/*
+!docs/diagrams/README.md
+!docs/diagrams/core-mechanics.md
+!docs/diagrams/token-economics.md
 
-# EC2 deployment artifacts
-*-ec2-keypair.pem
-instance-config.json
-.swarm/
-.claude-flow/
-projects/meta-mcp-lazy-agents/
-.serena/
-projects/ketchup/tests/setup/logs/
-projects/ketchup/.playwright-mcp/
-projects/ketchup/feedback-review-channel.png
+# Project-specific
+CONSOLIDATION_ROADMAP.md
+*.code-workspace
+tests/streamable-http-test-server.py
+
+# Transcripts (local artifacts)
+transcripts/
+
+# Local Claude settings (machine-specific)
+.claude/settings.local.json
