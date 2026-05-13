@@ -86,6 +86,14 @@ packages/core/src/
 │   ├── server-pool.ts     # Main pool manager (max 20, 5min idle timeout)
 │   ├── connection.ts      # Wraps MCP client lifecycle
 │   └── stdio-transport.ts # Stdio MCP transport
+├── auth/            # Backend authentication
+│   ├── backend-auth.ts    # Auth orchestration
+│   ├── cursor-token-reader.ts # Reads tokens from Cursor config
+│   ├── gateway-client.ts  # Gateway auth client
+│   ├── pat-matcher.ts     # PAT matching logic
+│   └── index.ts
+├── process/         # Process lifecycle
+│   └── cleanup.ts         # Process cleanup on exit
 └── tools/           # Tool caching
     └── tool-cache.ts      # Per-server tool definition cache
 ```
@@ -102,8 +110,10 @@ packages/mcp-exec/src/
 ├── sandbox/         # Isolated sandbox executor
 ├── bridge/          # HTTP bridge for MCP access from sandbox
 ├── codegen/         # Typed wrapper generation
-│   └── wrapper-generator.ts  # Generates FuzzyProxy wrappers
+│   ├── wrapper-generator.ts  # Generates FuzzyProxy wrappers
+│   └── module-resolver.ts    # Resolves sandbox module paths
 ├── types/           # TypeScript interfaces
+│   └── execution.ts          # Execution request/response types
 └── tools/           # Tool implementations
     ├── list-servers.ts       # list_available_mcp_servers
     ├── get-tool-schema.ts    # get_mcp_tool_schema

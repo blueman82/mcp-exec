@@ -21,7 +21,7 @@ extension/          # VS Code/Cursor extension (VSIX)
 
 ## Problem
 
-When Claude/Droid connects to many MCP servers, it loads all tool schemas upfront - potentially 100+ tools consuming significant context tokens before any work begins.
+When an AI client connects to many MCP servers, it loads all tool schemas upfront - potentially 100+ tools consuming significant context tokens before any work begins.
 
 ## Solution
 
@@ -104,7 +104,6 @@ Remove all existing entries from your AI tool's `mcp.json` and replace with just
 ### Option 2b: Build from Source
 
 ```bash
-cd projects/meta-mcp-server
 npm install
 npm run build
 ```
@@ -128,15 +127,6 @@ All MCP servers are configured in `~/.meta-mcp/servers.json`:
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-server-filesystem", "/path/to/allowed/dir"]
-    },
-    "corp-jira": {
-      "command": "node",
-      "args": ["/path/to/adobe-mcp-servers/servers/corp-jira/dist/index.js"],
-      "env": {
-        "JIRA_URL": "https://jira.example.com",
-        "JIRA_TOKEN": "your-token"
-      },
-      "timeout": 120000
     }
   }
 }
@@ -144,54 +134,11 @@ All MCP servers are configured in `~/.meta-mcp/servers.json`:
 
 > **Note**: The optional `timeout` field sets per-server timeout in milliseconds. This overrides `MCP_DEFAULT_TIMEOUT`.
 
-### Internal MCP Servers
-
-For internal/corporate MCP servers (like corp-jira), the extension handles setup automatically:
-
-1. Click **Add** on an Internal server in the Catalog
-2. If not found locally, choose **Clone Repository** - the extension opens a terminal and runs:
-   ```bash
-   git clone https://github.com/Adobe-AIFoundations/adobe-mcp-servers.git
-   cd adobe-mcp-servers && npm install && npm run build
-   ```
-3. Once built, click **Add** again - the server will be auto-detected via Spotlight (macOS)
-
-**Manual setup** (if needed):
-```json
-{
-  "mcpServers": {
-    "corp-jira": {
-      "command": "node",
-      "args": ["/path/to/adobe-mcp-servers/servers/corp-jira/dist/index.js"],
-      "env": {
-        "JIRA_URL": "https://jira.example.com",
-        "JIRA_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
-
 ### AI Tool Configuration
 
 Add mcp-exec to your AI tool's config file:
 
 **Claude** (`~/.claude.json`):
-```json
-{
-  "mcpServers": {
-    "mcp-exec": {
-      "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"],
-      "env": {
-        "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
-      }
-    }
-  }
-}
-```
-
-**Droid** (`~/.factory/mcp.json`):
 ```json
 {
   "mcpServers": {
@@ -223,7 +170,7 @@ Add mcp-exec to your AI tool's config file:
 
 ### Restart your AI tool
 
-Restart Claude or Droid to load the new configuration.
+Restart your AI tool to load the new configuration.
 
 ## Usage
 
@@ -324,6 +271,14 @@ packages/
 │       │   ├── server-pool.ts
 │       │   ├── connection.ts
 │       │   └── stdio-transport.ts
+│       ├── auth/            # Backend authentication
+│       │   ├── backend-auth.ts
+│       │   ├── cursor-token-reader.ts
+│       │   ├── gateway-client.ts
+│       │   ├── pat-matcher.ts
+│       │   └── index.ts
+│       ├── process/         # Process lifecycle
+│       │   └── cleanup.ts
 │       └── tools/           # Tool caching utilities (tool-cache.ts)
 │
 └── mcp-exec/                # @justanothermldude/mcp-exec - Code execution
@@ -332,7 +287,7 @@ packages/
         ├── server.ts        # MCP server for execute_code tools
         ├── sandbox/         # Sandbox executor with OS-level isolation
         ├── bridge/          # HTTP bridge for MCP access
-        ├── codegen/         # Typed wrapper generator
+        ├── codegen/         # Typed wrapper generator (wrapper-generator.ts, module-resolver.ts)
         ├── types/           # TypeScript interfaces
         └── tools/           # Tool implementations
             ├── list-servers.ts
