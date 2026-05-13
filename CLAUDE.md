@@ -2,10 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## LLM Wiki
-
-Persistent project wiki (Obsidian vault) and maintainer schema: see **`AGENTS.md`** in this repo. Vault path is listed there; read `index.md` in the vault first for wiki-first Q&A.
-
 ## Overview
 
 MCP-Exec provides sandboxed TypeScript/JavaScript code execution with typed access to other MCP tools. The `packages/core` library manages backend MCP server connections (pool, registry, auth).

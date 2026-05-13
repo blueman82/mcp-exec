@@ -2,8 +2,6 @@
 
 Sandboxed code execution for AI tools, with typed access to all your MCP servers. A single MCP entry point that wraps your existing backend servers for token-efficient tool discovery and isolated code execution.
 
-**Wiki**: [mcp-exec — Adobe Campaign Infrastructure Operations](https://wiki.corp.adobe.com/spaces/neolane/pages/3843183885/mcp-exec)
-
 ## Monorepo Structure
 
 This project is organized as a monorepo with the following packages:
@@ -48,52 +46,6 @@ Backend servers are spawned lazily on first access and managed via a connection 
 - **Sandboxed Execution**: Execute code in isolated environments with MCP tool access
 
 ## Quick Start
-
-### Option 1: VS Code/Cursor Extension (Recommended)
-
-**Install:**
-1. Download `meta-mcp-configurator-0.5.0.vsix` from [Releases](https://github.com/OneAdobe/camp-ops-emea/releases)
-2. `Cmd+Shift+P` → "Install from VSIX" → select file → Reload
-
-**Setup (follow in order):**
-
-| Step | Action |
-|------|--------|
-| 1 | Click **Meta-MCP icon** in sidebar to open panel |
-| 2 | **Setup tab** → Click "Install" for mcp-exec |
-| 3 | **Catalog tab** → Click "Add" on a server you want |
-| 4 | **Build** → Popup appears → Click **"Build Server"** → Wait for terminal |
-| 5 | **Install** → Click "Install" (enabled after build completes) |
-| 6 | **Setup tab** → Click "Configure" next to your AI tool |
-| 7 | **Restart** your AI tool (Cursor, VS Code, etc.) |
-
-> **Important:** Step 4 (Build) is required. The Install button stays disabled until the build completes successfully.
-
-**Supported AI Tools:**
-
-| Tool | Config Location |
-|------|-----------------|
-| Claude Code | `~/.claude.json` |
-| Cursor | `~/.cursor/mcp.json` |
-| VS Code | `~/.vscode/mcp.json` |
-| Droid | `~/.factory/mcp.json` |
-| Junie | `~/.junie/mcp/mcp.json` |
-
-<details>
-<summary>Other platforms (Windsurf, Augment, etc.)</summary>
-
-```json
-{
-  "mcpServers": {
-    "mcp-exec": {
-      "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"],
-      "env": { "SERVERS_CONFIG": "~/.meta-mcp/servers.json" }
-    }
-  }
-}
-```
-</details>
 
 ### Option 2: npm
 
