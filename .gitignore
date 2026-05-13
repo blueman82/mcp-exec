@@ -27,3 +27,8 @@ transcripts/
 
 # Local Claude settings (machine-specific)
 .claude/settings.local.json
+
+# Tool-specific workspace dirs (not for public repo)
+.claude/
+.serena/
+.playwright-mcp/

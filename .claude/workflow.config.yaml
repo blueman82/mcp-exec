@@ -1,6 +1,0 @@
-project: meta-mcp-server
-wiki_path: ../meta-mcp-server-wiki    # relative to project dir
-worktree_base: /Users/harrison/Documents/Github/camp-ops-emea  # worktree created at <base>-<desc>
-worktree_script: ./worktree-add   # run from project dir
-jira: null
-strictcode_paths: null    # TypeScript project — Python strictcode paths do not apply
