@@ -15,14 +15,11 @@ Auto-detects your installed AI tools and generates the correct MCP config snippe
 - Augment
 - VS Code / GitHub Copilot
 
-### Catalog tab
-Browse and add MCP servers from the GitHub catalog directly into your `servers.json`.
-
 ## Quick Start
 
 1. Install this extension from VSIX
 2. Open the **MCP-Exec** panel in the activity bar
-3. Go to **Servers** → **+ Add Server** to add your Gateway URL and token env file
+3. Go to **Servers** → **+ Add Server** to add your MCP server configuration
 4. Go to **Setup** → click **Configure** next to your AI tool to inject the mcp-exec config
 
 ## Requirements
@@ -38,5 +35,4 @@ Browse and add MCP servers from the GitHub catalog directly into your `servers.j
 ## Links
 
 - [mcp-exec on npm](https://www.npmjs.com/package/@justanothermldude/mcp-exec-oss)
-- [ADA MCP Gateway](https://mcp.adobe.io)
-- [Source](https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server)
+- [Source](https://github.com/blueman82/mcp-exec)

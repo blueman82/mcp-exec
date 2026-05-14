@@ -213,7 +213,7 @@ export function renderSetupWizard(
                 </button>
                 <div class="wizard-docs">
                     <span class="docs-label">Need help?</span>
-                    <a href="https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server#readme" class="docs-link" data-action="open-docs">
+                    <a href="https://github.com/blueman82/mcp-exec#readme" class="docs-link" data-action="open-docs">
                         📖 View Documentation
                     </a>
                 </div>

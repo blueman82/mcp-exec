@@ -20,33 +20,8 @@ export {
 } from './MessageHandler';
 
 export {
-    fetchCatalog,
-    filterCatalog,
-    clearCatalogCache,
-    type CatalogServer,
-    type McpServerEnvVar,
-} from './GitHubCatalogService';
-
-export {
     parseLocalServer,
     needsBuild,
     type EnvVar,
     type LocalServerMeta,
 } from './LocalServerParser';
-
-export {
-    findRepository,
-    promptForRepository,
-    findOrPromptForRepository,
-    validatePackagePath,
-} from './RepoDetector';
-
-export {
-    downloadRepository,
-    isRepositoryDownloaded,
-    getRepositoryPath,
-    deleteRepository,
-    parseRepoIdentifier,
-    type DownloadProgress,
-    type ProgressCallback,
-} from './GitHubRepoDownloader';
