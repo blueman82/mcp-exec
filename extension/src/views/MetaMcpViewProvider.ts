@@ -164,7 +164,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet, mcpPackages });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[Meta-MCP] Failed to load setup:', errorMsg);
+            console.error('[mcp-exec-oss] Failed to load setup:', errorMsg);
             this.postMessage({ type: 'showError', message: `Failed to detect tools: ${errorMsg}` });
         }
     }
@@ -273,7 +273,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             this.postMessage({ type: 'configureMetaMcpResponse', success: result.success, error: result.error });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[Meta-MCP] Failed to configure:', errorMsg);
+            console.error('[mcp-exec-oss] Failed to configure:', errorMsg);
             this.postMessage({ type: 'configureMetaMcpResponse', success: false, error: errorMsg });
         }
     }
@@ -411,7 +411,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      */
     private sendServerList(): void {
         const servers = this.getServerList();
-        console.log('[Meta-MCP] sendServerList:', servers.length, 'servers');
+        console.log('[mcp-exec-oss] sendServerList:', servers.length, 'servers');
         this.postMessage({ type: 'updateServers', servers });
     }
 
@@ -419,9 +419,9 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Get server list from config
      */
     private getServerList(): ServerListItem[] {
-        console.log('[Meta-MCP] getServerList - configPath:', this.configManager.getConfigPath());
+        console.log('[mcp-exec-oss] getServerList - configPath:', this.configManager.getConfigPath());
         const serverNames = this.configManager.listServers();
-        console.log('[Meta-MCP] getServerList - serverNames:', serverNames);
+        console.log('[mcp-exec-oss] getServerList - serverNames:', serverNames);
         return serverNames.map(name => {
             const config = this.configManager.getServer(name);
             // Mark as "connected" if server has valid command OR url
@@ -472,7 +472,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 await vscode.window.showTextDocument(configDoc, { viewColumn: vscode.ViewColumn.Two, preview: false });
             }
         } catch (err) {
-            console.error('[Meta-MCP] Failed to open config files:', err);
+            console.error('[mcp-exec-oss] Failed to open config files:', err);
         }
     }
 }

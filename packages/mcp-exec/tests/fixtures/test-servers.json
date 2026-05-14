@@ -1,5 +1,5 @@
 {
-  "$schema": "../../node_modules/@meta-mcp/core/servers.schema.json",
+  "$schema": "../../node_modules/@justanothermldude/mcp-exec-oss-core/servers.schema.json",
   "mcpServers": {
     "filesystem": {
       "command": "npx",

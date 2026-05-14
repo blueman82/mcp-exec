@@ -1,7 +1,7 @@
 {
   "name": "@justanothermldude/mcp-exec-oss-core",
   "version": "1.0.0",
-  "description": "Core utilities and shared types for meta-mcp packages",
+  "description": "Core utilities and shared types for mcp-exec-oss packages",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

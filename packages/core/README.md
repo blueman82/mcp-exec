@@ -1,11 +1,11 @@
-# @meta-mcp/core
+# @justanothermldude/mcp-exec-oss-core
 
-Core utilities and shared types for meta-mcp packages.
+Core utilities and shared types for mcp-exec-oss packages.
 
 ## Installation
 
 ```bash
-npm install @meta-mcp/core
+npm install @justanothermldude/mcp-exec-oss-core
 ```
 
 ## Overview
@@ -28,10 +28,10 @@ import type {
   ToolSchema,
   ToolDefinition,
   MCPConnection,
-} from '@meta-mcp/core';
+} from '@justanothermldude/mcp-exec-oss-core';
 
 // Check transport type
-import { isUrlTransport, ConnectionState } from '@meta-mcp/core';
+import { isUrlTransport, ConnectionState } from '@justanothermldude/mcp-exec-oss-core';
 ```
 
 #### ServerConfig
@@ -92,7 +92,7 @@ import {
   listServers,
   clearCache,
   generateManifest,
-} from '@meta-mcp/core';
+} from '@justanothermldude/mcp-exec-oss-core';
 
 // Load manifest from SERVERS_CONFIG env var or default path
 const manifest = loadServerManifest();
@@ -115,7 +115,7 @@ import {
   ConfigNotFoundError,
   ConfigParseError,
   ConfigValidationError,
-} from '@meta-mcp/core';
+} from '@justanothermldude/mcp-exec-oss-core';
 
 try {
   const manifest = loadServerManifest();
@@ -140,13 +140,13 @@ import {
   createConnection,
   closeConnection,
   buildSpawnConfig,
-} from '@meta-mcp/core';
+} from '@justanothermldude/mcp-exec-oss-core';
 
 import type {
   ConnectionFactory,
   PoolConfig,
   SpawnConfig,
-} from '@meta-mcp/core';
+} from '@justanothermldude/mcp-exec-oss-core';
 
 // Create a connection factory
 const connectionFactory: ConnectionFactory = async (serverId: string) => {
@@ -185,7 +185,7 @@ import {
   SpawnError,
   TimeoutError,
   UnexpectedExitError,
-} from '@meta-mcp/core';
+} from '@justanothermldude/mcp-exec-oss-core';
 ```
 
 ### Tools
@@ -193,7 +193,7 @@ import {
 Cache tool definitions per server:
 
 ```typescript
-import { ToolCache } from '@meta-mcp/core';
+import { ToolCache } from '@justanothermldude/mcp-exec-oss-core';
 
 const cache = new ToolCache();
 
@@ -222,16 +222,16 @@ Import specific modules directly:
 
 ```typescript
 // Types only
-import type { ServerConfig, ToolDefinition } from '@meta-mcp/core/types';
+import type { ServerConfig, ToolDefinition } from '@justanothermldude/mcp-exec-oss-core/types';
 
 // Registry only
-import { loadServerManifest, getServerConfig } from '@meta-mcp/core/registry';
+import { loadServerManifest, getServerConfig } from '@justanothermldude/mcp-exec-oss-core/registry';
 
 // Pool only
-import { ServerPool, createConnection } from '@meta-mcp/core/pool';
+import { ServerPool, createConnection } from '@justanothermldude/mcp-exec-oss-core/pool';
 
 // Tools only
-import { ToolCache } from '@meta-mcp/core/tools';
+import { ToolCache } from '@justanothermldude/mcp-exec-oss-core/tools';
 ```
 
 ## Configuration

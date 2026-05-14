@@ -678,31 +678,31 @@ describe('Edge cases', () => {
  */
 describe('normalizeName', () => {
   it('should convert hyphenated names to lowercase without separators', () => {
-    expect(normalizeName('corp-jira')).toBe('corpjira');
+    expect(normalizeName('brave-search')).toBe('bravesearch');
   });
 
   it('should convert underscored names to lowercase without separators', () => {
-    expect(normalizeName('corp_jira')).toBe('corpjira');
+    expect(normalizeName('brave_search')).toBe('bravesearch');
   });
 
   it('should convert camelCase names to lowercase', () => {
-    expect(normalizeName('corpJira')).toBe('corpjira');
+    expect(normalizeName('braveSearch')).toBe('bravesearch');
   });
 
   it('should convert PascalCase names to lowercase', () => {
-    expect(normalizeName('CorpJira')).toBe('corpjira');
+    expect(normalizeName('BraveSearch')).toBe('bravesearch');
   });
 
   it('should handle mixed formats consistently', () => {
     // All variations should normalize to the same string
-    const variations = ['corp-jira', 'corp_jira', 'corpJira', 'CorpJira', 'CORP-JIRA', 'CORP_JIRA'];
+    const variations = ['brave-search', 'brave_search', 'braveSearch', 'BraveSearch', 'BRAVE-SEARCH', 'BRAVE_SEARCH'];
     const normalized = variations.map(normalizeName);
     expect(new Set(normalized).size).toBe(1);
-    expect(normalized[0]).toBe('corpjira');
+    expect(normalized[0]).toBe('bravesearch');
   });
 
   it('should handle already normalized names', () => {
-    expect(normalizeName('corpjira')).toBe('corpjira');
+    expect(normalizeName('bravesearch')).toBe('bravesearch');
   });
 
   it('should handle empty string', () => {
@@ -710,8 +710,8 @@ describe('normalizeName', () => {
   });
 
   it('should handle names with multiple separators', () => {
-    expect(normalizeName('my-corp-jira-server')).toBe('mycorpjiraserver');
-    expect(normalizeName('my_corp_jira_server')).toBe('mycorpjiraserver');
+    expect(normalizeName('my-brave-search-server')).toBe('mybravesearchserver');
+    expect(normalizeName('my_brave_search_server')).toBe('mybravesearchserver');
   });
 
   it('should handle names with numbers', () => {
@@ -740,8 +740,8 @@ describe('generateMcpDictionary', () => {
   });
 
   it('should map original server names to namespace variables', () => {
-    const dictionary = generateMcpDictionary(['corp-jira', 'github']);
-    expect(dictionary).toContain('"corp-jira": corp_jira');
+    const dictionary = generateMcpDictionary(['brave-search', 'github']);
+    expect(dictionary).toContain('"brave-search": brave_search');
     expect(dictionary).toContain('"github": github');
   });
 
@@ -752,9 +752,9 @@ describe('generateMcpDictionary', () => {
   });
 
   it('should include aliases in comments', () => {
-    const dictionary = generateMcpDictionary(['corp-jira']);
+    const dictionary = generateMcpDictionary(['brave-search']);
     expect(dictionary).toContain('Aliases:');
-    expect(dictionary).toContain('corp_jira');
+    expect(dictionary).toContain('brave_search');
   });
 });
 
@@ -790,9 +790,9 @@ describe('generateServerModule Proxy wrapping', () => {
 
   it('should handle server names with hyphens', () => {
     const tools = createSampleTools();
-    const module = generateServerModule(tools, 'corp-jira');
-    expect(module).toContain('const corp_jira_raw = {');
-    expect(module).toContain('const corp_jira = new Proxy(corp_jira_raw');
+    const module = generateServerModule(tools, 'brave-search');
+    expect(module).toContain('const brave_search_raw = {');
+    expect(module).toContain('const brave_search = new Proxy(brave_search_raw');
   });
 });
 

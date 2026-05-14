@@ -970,11 +970,11 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             // Message handling
             window.addEventListener('message', event => {
                 const message = event.data;
-                console.log('[Meta-MCP Webview] Received message:', message.type, message);
+                console.log('[mcp-exec-oss webview] Received message:', message.type, message);
                 switch (message.type) {
                     case 'updateServers':
                         servers = message.servers || [];
-                        console.log('[Meta-MCP Webview] updateServers:', servers.length, 'servers');
+                        console.log('[mcp-exec-oss webview] updateServers:', servers.length, 'servers');
                         renderServerList();
                         break;
                     case 'serverSaved':

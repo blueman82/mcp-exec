@@ -1,6 +1,6 @@
 /**
  * Orphan process cleanup utilities for MCP server processes.
- * Shared by mcp-exec and meta-mcp-server to sweep stale instances on startup.
+ * Shared by mcp-exec-oss components to sweep stale instances on startup.
  */
 import { execSync } from 'child_process';
 
@@ -37,7 +37,7 @@ function getMatchingPids(pattern: string): number[] {
  * Kill all orphaned processes (PPID=1) whose command line matches the given pattern.
  * Call at startup to sweep stale instances left over from crashed/closed parent sessions.
  *
- * @param processPattern - Pattern passed to `pgrep -f` (e.g. 'mcp-exec', 'meta-mcp-server')
+ * @param processPattern - Pattern passed to `pgrep -f` (e.g. 'mcp-exec', 'mcp-exec-oss')
  * @returns Number of processes killed
  */
 export async function cleanupOrphanedProcesses(processPattern: string): Promise<number> {

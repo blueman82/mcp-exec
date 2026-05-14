@@ -1,11 +1,11 @@
-# @meta-mcp/exec
+# @justanothermldude/mcp-exec-oss
 
 MCP execution utilities for sandboxed TypeScript/JavaScript code execution with OS-level isolation.
 
 ## Installation
 
 ```bash
-npm install @meta-mcp/exec
+npm install @justanothermldude/mcp-exec-oss
 ```
 
 ## Overview
@@ -21,7 +21,7 @@ This package provides secure code execution capabilities with:
 ### Basic Code Execution
 
 ```typescript
-import { executeCode } from '@meta-mcp/exec';
+import { executeCode } from '@justanothermldude/mcp-exec-oss';
 
 const result = await executeCode({
   code: 'console.log("Hello from sandbox!")',
@@ -36,10 +36,10 @@ console.log(result.durationMs);  // execution time in ms
 
 ```bash
 # Start the mcp-exec server
-npx @meta-mcp/exec
+npx @justanothermldude/mcp-exec-oss
 
 # Or with specific config
-SERVERS_CONFIG=~/.meta-mcp/servers.json npx @meta-mcp/exec
+SERVERS_CONFIG=~/.meta-mcp/servers.json npx @justanothermldude/mcp-exec-oss
 ```
 
 ## API Reference
@@ -49,7 +49,7 @@ SERVERS_CONFIG=~/.meta-mcp/servers.json npx @meta-mcp/exec
 Execute code in a sandboxed environment.
 
 ```typescript
-import { executeCode } from '@meta-mcp/exec';
+import { executeCode } from '@justanothermldude/mcp-exec-oss';
 
 const result = await executeCode({
   code: string;       // TypeScript/JavaScript code to execute
@@ -69,7 +69,7 @@ interface ExecutionResult {
 Create a custom executor with specific configuration:
 
 ```typescript
-import { SandboxExecutor, createExecutor } from '@meta-mcp/exec';
+import { SandboxExecutor, createExecutor } from '@justanothermldude/mcp-exec-oss';
 
 // Using factory function
 const executor = createExecutor({
@@ -103,8 +103,8 @@ await executor.reset();
 HTTP bridge for MCP tool access from sandboxed code:
 
 ```typescript
-import { MCPBridge } from '@meta-mcp/exec';
-import { ServerPool, createConnection, getServerConfig } from '@meta-mcp/core';
+import { MCPBridge } from '@justanothermldude/mcp-exec-oss';
+import { ServerPool, createConnection, getServerConfig } from '@justanothermldude/mcp-exec-oss-core';
 
 // Create server pool
 const connectionFactory = async (serverId: string) => {
@@ -140,8 +140,8 @@ await bridge.stop();
 Generate type-safe TypeScript wrappers for MCP tools:
 
 ```typescript
-import { generateToolWrapper, generateServerModule } from '@meta-mcp/exec';
-import type { ToolDefinition } from '@meta-mcp/core';
+import { generateToolWrapper, generateServerModule } from '@justanothermldude/mcp-exec-oss';
+import type { ToolDefinition } from '@justanothermldude/mcp-exec-oss-core';
 
 // Generate wrapper for single tool
 const tool: ToolDefinition = {
@@ -202,8 +202,8 @@ export async function read_file(input: ReadFileInput): Promise<unknown> {
 Create the mcp-exec MCP server programmatically:
 
 ```typescript
-import { createMcpExecServer } from '@meta-mcp/exec';
-import { ServerPool, createConnection, getServerConfig } from '@meta-mcp/core';
+import { createMcpExecServer } from '@justanothermldude/mcp-exec-oss';
+import { ServerPool, createConnection, getServerConfig } from '@justanothermldude/mcp-exec-oss-core';
 
 // Create pool
 const connectionFactory = async (serverId: string) => {
@@ -243,7 +243,7 @@ import type {
   MCPBridgeConfig,
   CallRequest,
   CallResponse,
-} from '@meta-mcp/exec';
+} from '@justanothermldude/mcp-exec-oss';
 
 interface ExecuteCodeInput {
   code: string;
@@ -336,7 +336,7 @@ mcp-exec maintains a disk-cached tool catalog at `~/.meta-mcp/tool-catalog.json`
 2. **Every session after:** On startup, mcp-exec reads the catalog and embeds the full API reference in the `execute_code_with_wrappers` tool description. The agent sees all tool names and parameter signatures before writing code:
    ```
    Tool API Reference:
-     adobe-mcp-gateway: glean_search({args, config?}), jira_search({args, config?}), ...
+     github: list_issues({owner, repo, ...}), create_issue({owner, repo, title, ...}), ...
    ```
 
 3. **Self-maintaining:**
@@ -370,11 +370,11 @@ Server and tool names support flexible, case-agnostic access via Proxy-based fuz
 All of these access patterns resolve to the same server:
 
 ```typescript
-// Original server name: "corp-jira"
-mcp['corp-jira']    // Bracket notation with original name
-mcp.corpJira        // camelCase
-mcp.corp_jira       // snake_case
-mcp.corpjira        // Lowercase without separators
+// Original server name: "brave-search"
+mcp['brave-search']    // Bracket notation with original name
+mcp.braveSearch        // camelCase
+mcp.brave_search       // snake_case
+mcp.bravesearch        // Lowercase without separators
 ```
 
 ### Tool Name Resolution
@@ -382,12 +382,12 @@ mcp.corpjira        // Lowercase without separators
 Similarly, tool names within a server support fuzzy matching:
 
 ```typescript
-// Original tool name: "search_jira_issues"
-const server = mcp['corp-jira'];
+// Original tool name: "search_results"
+const server = mcp['brave-search'];
 
-server.search_jira_issues     // Original snake_case
-server.searchJiraIssues       // camelCase
-server.searchjiraissues       // Lowercase
+server.search_results     // Original snake_case
+server.searchResults       // camelCase
+server.searchresults       // Lowercase
 server['search-jira-issues']  // kebab-case via bracket notation
 ```
 
@@ -403,16 +403,16 @@ The resolution uses a two-step approach:
 When a property doesn't match any available option, a `TypeError` is thrown with helpful suggestions:
 
 ```typescript
-const server = mcp['corp-jira'];
+const server = mcp['brave-search'];
 server.nonExistentTool;
-// TypeError: Property "nonExistentTool" not found on corp-jira.
-//            Available: search_jira_issues, create_issue, get_issue, ...
+// TypeError: Property "nonExistentTool" not found on brave-search.
+//            Available: search_results, create_issue, get_issue, ...
 ```
 
 ```typescript
 mcp.unknownServer;
 // TypeError: Property "unknownServer" not found on mcp.
-//            Available: corp-jira, github, filesystem, ...
+//            Available: brave-search, github, filesystem, ...
 ```
 
 This makes it easy to discover available tools and servers when debugging or exploring the API.

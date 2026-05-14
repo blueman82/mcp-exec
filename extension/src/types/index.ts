@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * Zod schema for a single server configuration
- * Matches meta-mcp-server/src/registry/loader.ts
+ * Matches packages/core/src/registry/loader.ts
  * Supports both stdio (command) and HTTP (url) transports
  */
 export const ServerConfigSchema = z.object({

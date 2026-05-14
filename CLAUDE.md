@@ -14,7 +14,7 @@ MCP-Exec provides sandboxed TypeScript/JavaScript code execution with typed acce
 ## Project Structure
 
 ```
-meta-mcp-server/
+mcp-exec/
 ├── packages/               # npm workspaces (publishable)
 │   ├── core/               # @justanothermldude/mcp-exec-oss-core
 │   └── mcp-exec/           # @justanothermldude/mcp-exec-oss
@@ -54,7 +54,6 @@ npm run dev
 - Claude: `~/.claude.json`
 - Droid: `~/.factory/mcp.json`
 
-**Internal servers**: Clone https://github.com/Adobe-AIFoundations/adobe-mcp-servers for corp-jira and other internal MCP servers.
 
 ## Architecture
 

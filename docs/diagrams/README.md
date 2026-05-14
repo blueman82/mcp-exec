@@ -1,6 +1,6 @@
 # Diagrams Index
 
-Technical reference diagrams for Meta-MCP internals.
+Technical reference diagrams for mcp-exec-oss internals.
 
 Main architecture doc: [**../ARCHITECTURE.md**](../ARCHITECTURE.md)
 

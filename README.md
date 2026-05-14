@@ -159,7 +159,7 @@ Add mcp-exec to your AI tool's config file:
   "mcpServers": {
     "mcp-exec": {
       "command": "node",
-      "args": ["/path/to/meta-mcp-server/packages/mcp-exec/dist/index.js"],
+      "args": ["/path/to/mcp-exec/packages/mcp-exec/dist/index.js"],
       "env": {
         "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
       }
@@ -179,16 +179,16 @@ Once configured, the AI will see only 3 tools instead of all backend tools:
 ```
 # AI lists available servers
 list_available_mcp_servers()
-→ [{name: "corp-jira", description: "JIRA integration"}, ...]
+→ [{name: "brave-search", description: "JIRA integration"}, ...]
 
 # AI fetches a specific tool schema on-demand
-get_mcp_tool_schema({server_name: "corp-jira", tool_name: "search_issues"})
+get_mcp_tool_schema({server_name: "brave-search", tool_name: "search_issues"})
 → {name: "search_issues", inputSchema: {...}}
 
 # AI executes code with typed MCP wrappers
 execute_code_with_wrappers({
-  code: 'const issues = await mcp.corpJira.searchIssues({ jql: "..." }); console.log(issues)',
-  wrappers: ["corp-jira"]
+  code: 'const issues = await mcp.braveSearch.searchIssues({ jql: "..." }); console.log(issues)',
+  wrappers: ["brave-search"]
 })
 → {output: [...]}
 ```
@@ -249,7 +249,7 @@ npm test --workspaces
 npx vitest run
 
 # Run real MCP integration tests
-RUN_REAL_MCP_TESTS=true npm test -w @meta-mcp/exec
+RUN_REAL_MCP_TESTS=true npm test -w @justanothermldude/mcp-exec-oss
 ```
 
 ## Architecture

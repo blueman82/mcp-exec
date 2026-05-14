@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * @meta-mcp/exec - MCP execution utilities for sandboxed code execution
+ * @justanothermldude/mcp-exec-oss - MCP execution utilities for sandboxed code execution
  *
  * Entry point for both the MCP server and programmatic API usage.
  */

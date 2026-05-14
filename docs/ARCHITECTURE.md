@@ -61,7 +61,7 @@ When the AI calls `execute_code_with_wrappers()`:
 
 1. **Catalog check**: Reads or builds `~/.meta-mcp/tool-catalog.json` (disk-persisted)
 2. **Wrapper generation**: `packages/mcp-exec/src/codegen/wrapper-generator.ts` generates TypeScript wrappers with:
-   - **FuzzyProxy**: Case-agnostic access to tool names (e.g., `mcp.corpJira` or `mcp.corp_jira`)
+   - **FuzzyProxy**: Case-agnostic access to tool names (e.g., `mcp.braveSearch` or `mcp.brave_search`)
    - **Required parameter guards**: Validates inputs at generation time
    - **Field guards on responses**: Type-safe response field access
 3. **Sandbox execution**: Code runs in isolated sandbox with typed wrappers injected

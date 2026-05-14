@@ -36,7 +36,7 @@ function getProcessesOnPort(port: number): number[] {
 
 /**
  * Attempt to clean up stale mcp-exec processes on a specific port.
- * Kills processes that match mcp-exec/meta-mcp in their command line OR are orphaned (PPID=1).
+ * Kills processes that match mcp-exec-oss in their command line OR are orphaned (PPID=1).
  *
  * @param port - Port number to check for stale processes
  * @returns true if any processes were killed, false otherwise
