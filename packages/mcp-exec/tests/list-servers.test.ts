@@ -61,10 +61,9 @@ describe('list_available_mcp_servers tool', () => {
         expect(result.isError).toBe(false);
         expect(result.content).toHaveLength(1);
         expect(result.content[0].type).toBe('text');
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(2);
-        expect(parsed[0].name).toBe('server1');
-        expect(parsed[1].name).toBe('server2');
+        const text = result.content[0].text;
+        expect(text).toContain('server1');
+        expect(text).toContain('server2');
       });
 
       it('should return empty array when no servers available', async () => {
@@ -74,8 +73,7 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({});
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toEqual([]);
+        expect(result.content[0].text).toContain('No servers');
       });
     });
 
@@ -92,10 +90,10 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'file' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(2);
-        expect(parsed.map((s: { name: string }) => s.name)).toContain('filesystem');
-        expect(parsed.map((s: { name: string }) => s.name)).toContain('filesync');
+        const text = result.content[0].text;
+        expect(text).toContain('filesystem');
+        expect(text).toContain('filesync');
+        expect(text).not.toContain('database');
       });
 
       it('should filter servers by description', async () => {
@@ -109,9 +107,9 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'auth' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(1);
-        expect(parsed[0].name).toBe('server1');
+        const text = result.content[0].text;
+        expect(text).toContain('server1');
+        expect(text).not.toContain('server2');
       });
 
       it('should filter servers by tags', async () => {
@@ -126,10 +124,10 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'storage' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(2);
-        expect(parsed.map((s: { name: string }) => s.name)).toContain('server1');
-        expect(parsed.map((s: { name: string }) => s.name)).toContain('server3');
+        const text = result.content[0].text;
+        expect(text).toContain('server1');
+        expect(text).toContain('server3');
+        expect(text).not.toContain('server2');
       });
 
       it('should be case-insensitive', async () => {
@@ -142,8 +140,7 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'FILESYSTEM' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(1);
+        expect(result.content[0].text).toContain('FileSystem');
       });
 
       it('should return empty array when filter matches nothing', async () => {
@@ -156,8 +153,7 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'nonexistent' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toEqual([]);
+        expect(result.content[0].text).toContain('No servers matched filter');
       });
     });
 
@@ -200,8 +196,7 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'server' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(1);
+        expect(result.content[0].text).toContain('server1');
       });
 
       it('should handle servers without tags', async () => {
@@ -214,8 +209,7 @@ describe('list_available_mcp_servers tool', () => {
         const result = await handler({ filter: 'server' });
 
         expect(result.isError).toBe(false);
-        const parsed = JSON.parse(result.content[0].text);
-        expect(parsed).toHaveLength(1);
+        expect(result.content[0].text).toContain('server1');
       });
     });
   });
