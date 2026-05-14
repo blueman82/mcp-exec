@@ -287,7 +287,7 @@ describe('Error handling', () => {
         }),
       });
 
-      // Server not found returns 404 (not found) instead of 502 (bad gateway)
+      // Server not found returns 404 (not found) instead of 502
       expect(response.status).toBe(404);
       const body = await response.json() as { success: boolean; error: string };
       expect(body.success).toBe(false);

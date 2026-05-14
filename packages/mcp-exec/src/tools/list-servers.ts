@@ -136,8 +136,8 @@ export function createListServersHandler() {
         rows.join('\n') +
         '\n\n' +
         'To use a server, pass its exact name in the `wrappers` array of `execute_code_with_wrappers`.\n' +
-        'Example: `wrappers: ["adobe-mcp-gateway"]`\n\n' +
-        'To see tools on a server: `get_mcp_tool_schema({ server: "adobe-mcp-gateway" })`';
+        'Example: `wrappers: ["github"]`\n\n' +
+        'To see tools on a server: `get_mcp_tool_schema({ server: "github" })`';
 
       return {
         content: [{ type: 'text', text: table }],

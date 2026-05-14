@@ -465,7 +465,7 @@ export class MCPBridge {
               }
             } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden') || errorMsg.includes('PermissionError') || errorMsg.includes('Unauthorized')) {
               this.sendError(res, 403, `Authorization failed calling '${request.tool}' on '${request.server}': ${errorMsg}. Ensure X-MCP-Client header is being sent.`);
-            } else if (errorMsg.includes('503') || errorMsg.includes('504') || errorMsg.includes('Gateway')) {
+            } else if (errorMsg.includes('503') || errorMsg.includes('504')) {
               this.sendError(res, 503, `Server '${request.server}' temporarily unavailable during tool '${request.tool}'. Retry after a short delay.`);
             } else {
               this.sendError(res, 500, `[${request.server}.${request.tool}] Tool execution failed: ${errorMsg}`);
