@@ -7,11 +7,9 @@ import { writeFileSync, unlinkSync } from 'node:fs';
 import { homedir } from 'node:os';
 import {
   resolveBackendAuth,
-  getBackendAuthHeader,
   parseEnvFile,
   EnvVarNotFoundError,
-} from '../../src/auth/index.js';
-import type { ServerConfig } from '../../src/types/index.js';
+} from '../src/auth/backend-auth.js';
 
 describe('backend-auth', () => {
   // Store original env to restore after each test
@@ -101,131 +99,6 @@ describe('backend-auth', () => {
       const result = resolveBackendAuth('Basic ${BASIC_AUTH_CREDS}');
 
       expect(result).toBe('Basic dXNlcjpwYXNz');
-    });
-  });
-
-  describe('getBackendAuthHeader', () => {
-    it('should return resolved auth header for matching server', () => {
-      process.env.JIRA_PAT = 'jira-token-abc';
-
-      const config: ServerConfig = {
-        name: 'gateway',
-        command: 'node',
-        backendAuth: {
-          jira: 'Bearer ${JIRA_PAT}',
-        },
-      };
-
-      const result = getBackendAuthHeader(config, 'jira');
-
-      expect(result).toBe('Bearer jira-token-abc');
-    });
-
-    it('should return undefined for non-matching server name', () => {
-      process.env.JIRA_PAT = 'jira-token';
-
-      const config: ServerConfig = {
-        name: 'gateway',
-        command: 'node',
-        backendAuth: {
-          jira: 'Bearer ${JIRA_PAT}',
-        },
-      };
-
-      const result = getBackendAuthHeader(config, 'confluence');
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined when backendAuth is not configured', () => {
-      const config: ServerConfig = {
-        name: 'simple-server',
-        command: 'node',
-      };
-
-      const result = getBackendAuthHeader(config, 'jira');
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined when backendAuth is empty object', () => {
-      const config: ServerConfig = {
-        name: 'gateway',
-        command: 'node',
-        backendAuth: {},
-      };
-
-      const result = getBackendAuthHeader(config, 'jira');
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should throw EnvVarNotFoundError when auth value references missing env var', () => {
-      delete process.env.MISSING_TOKEN;
-
-      const config: ServerConfig = {
-        name: 'gateway',
-        command: 'node',
-        backendAuth: {
-          jira: 'Bearer ${MISSING_TOKEN}',
-        },
-      };
-
-      expect(() => getBackendAuthHeader(config, 'jira')).toThrow(
-        EnvVarNotFoundError
-      );
-    });
-
-    it('should handle multiple backend auth entries', () => {
-      process.env.JIRA_PAT = 'jira-token';
-      process.env.CONFLUENCE_PAT = 'confluence-token';
-      process.env.GITHUB_PAT = 'github-token';
-
-      const config: ServerConfig = {
-        name: 'gateway',
-        command: 'node',
-        backendAuth: {
-          jira: 'Bearer ${JIRA_PAT}',
-          confluence: 'Bearer ${CONFLUENCE_PAT}',
-          github: 'token ${GITHUB_PAT}',
-        },
-      };
-
-      expect(getBackendAuthHeader(config, 'jira')).toBe('Bearer jira-token');
-      expect(getBackendAuthHeader(config, 'confluence')).toBe(
-        'Bearer confluence-token'
-      );
-      expect(getBackendAuthHeader(config, 'github')).toBe('token github-token');
-    });
-
-    it('should handle static auth values (no env vars)', () => {
-      const config: ServerConfig = {
-        name: 'gateway',
-        command: 'node',
-        backendAuth: {
-          'public-api': 'static-api-key-123',
-        },
-      };
-
-      const result = getBackendAuthHeader(config, 'public-api');
-
-      expect(result).toBe('static-api-key-123');
-    });
-
-    it('should handle config with URL transport', () => {
-      process.env.API_KEY = 'secret-key';
-
-      const config: ServerConfig = {
-        name: 'http-gateway',
-        url: 'https://api.example.com/mcp',
-        backendAuth: {
-          backend: 'ApiKey ${API_KEY}',
-        },
-      };
-
-      const result = getBackendAuthHeader(config, 'backend');
-
-      expect(result).toBe('ApiKey secret-key');
     });
   });
 

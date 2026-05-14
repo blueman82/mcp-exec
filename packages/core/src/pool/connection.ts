@@ -5,7 +5,6 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { ServerConfig, MCPConnection, ToolDefinition } from '../types/index.js';
 import { ConnectionState, isUrlTransport } from '../types/index.js';
 import { buildSpawnConfig } from './stdio-transport.js';
-import { enhanceGatewayConfig, isGatewayServer, type GatewayAuthConfig } from '../auth/gateway-client.js';
 
 export class SpawnError extends Error {
   constructor(
@@ -46,23 +45,13 @@ interface ConnectionInternal extends MCPConnection {
  * Options for connection creation
  */
 export interface CreateConnectionOptions {
-  /** Gateway auth configuration */
-  gatewayAuth?: GatewayAuthConfig;
 }
 
 export async function createConnection(
   config: ServerConfig,
-  options: CreateConnectionOptions = {}
+  _options: CreateConnectionOptions = {}
 ): Promise<MCPConnection> {
-  // Enhance config with Gateway auth if this is a Gateway server
   let enhancedConfig = config;
-  if (isGatewayServer(config)) {
-    enhancedConfig = await enhanceGatewayConfig(
-      config.name,
-      config,
-      options.gatewayAuth
-    );
-  }
   let transport: Transport;
 
   if (isUrlTransport(enhancedConfig)) {

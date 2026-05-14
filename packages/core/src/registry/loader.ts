@@ -38,8 +38,6 @@ const ServerConfigSchema = z.object({
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
   timeout: z.number().optional(), // Tool call timeout in milliseconds (default: 60000)
-  backendAuth: z.record(z.string()).optional(), // Maps backend server names to auth header values
-  backendAuthEnvFile: z.string().optional(), // Path to .env file with backend PATs
 });
 
 const BackendsConfigSchema = z.object({
@@ -60,7 +58,7 @@ function resolveEnvVars(value: string): string {
 }
 
 /**
- * Resolves environment variables in a string record (backendAuth, headers, etc).
+ * Resolves environment variables in a string record (headers, etc).
  */
 function resolveRecordEnvVars(record: Record<string, string> | undefined): Record<string, string> | undefined {
   if (!record) {
@@ -107,12 +105,11 @@ export function loadServerManifest(): ServerManifest {
     throw new ConfigValidationError(result.error.message);
   }
 
-  // Process servers and resolve environment variables in backendAuth and headers
+  // Process servers and resolve environment variables in headers
   const processedServers: Record<string, ServerConfigWithMeta> = {};
   for (const [name, config] of Object.entries(result.data.mcpServers)) {
     processedServers[name] = {
       ...config,
-      backendAuth: resolveRecordEnvVars(config.backendAuth),
       headers: resolveRecordEnvVars(config.headers),
     } as ServerConfigWithMeta;
   }

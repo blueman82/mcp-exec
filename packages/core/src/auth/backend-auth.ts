@@ -1,7 +1,6 @@
 import { readFileSync, existsSync, lstatSync, realpathSync, statSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { homedir } from 'node:os';
-import type { ServerConfig } from '../types/index.js';
 
 /**
  * Maximum file size for .env files (64KB)
@@ -44,47 +43,6 @@ export function resolveBackendAuth(value: string): string {
     }
     return envValue;
   });
-}
-
-/**
- * Looks up and resolves the auth header value for a specific backend server.
- *
- * @param config - Server configuration containing backendAuth mapping
- * @param serverName - Name of the backend server to get auth for
- * @returns Resolved auth header value, or undefined if no mapping exists
- * @throws EnvVarNotFoundError if auth value references undefined env var
- *
- * @example
- * ```ts
- * const config: ServerConfig = {
- *   name: 'gateway',
- *   backendAuth: {
- *     jira: 'Bearer ${JIRA_PAT}',
- *     confluence: 'Bearer ${CONFLUENCE_PAT}'
- *   }
- * };
- *
- * // Returns resolved header value
- * getBackendAuthHeader(config, 'jira') // => "Bearer actual-token"
- *
- * // Returns undefined for unknown server
- * getBackendAuthHeader(config, 'unknown') // => undefined
- * ```
- */
-export function getBackendAuthHeader(
-  config: ServerConfig,
-  serverName: string
-): string | undefined {
-  if (!config.backendAuth) {
-    return undefined;
-  }
-
-  const authValue = config.backendAuth[serverName];
-  if (authValue === undefined) {
-    return undefined;
-  }
-
-  return resolveBackendAuth(authValue);
 }
 
 /**
