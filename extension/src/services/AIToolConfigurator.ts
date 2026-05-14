@@ -254,7 +254,7 @@ export class AIToolConfigurator {
     generateGenericSnippet(): ConfigSnippet {
         const mcpExecEntry = {
             command: 'npx',
-            args: ['-y', '@justanothermldude/mcp-exec'],
+            args: ['-y', '@justanothermldude/mcp-exec-oss'],
             env: { SERVERS_CONFIG: this.serversConfigPath },
         };
 
@@ -285,13 +285,13 @@ export class AIToolConfigurator {
 
         try {
             const mcpExecResult = execSync(
-                'npm list -g @justanothermldude/mcp-exec --depth=0 --json',
+                'npm list -g @justanothermldude/mcp-exec-oss --depth=0 --json',
                 { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] }
             );
             const mcpExecJson = JSON.parse(mcpExecResult);
-            if (mcpExecJson.dependencies?.['@justanothermldude/mcp-exec']) {
+            if (mcpExecJson.dependencies?.['@justanothermldude/mcp-exec-oss']) {
                 status.mcpExecInstalled = true;
-                status.mcpExecVersion = mcpExecJson.dependencies['@justanothermldude/mcp-exec'].version || null;
+                status.mcpExecVersion = mcpExecJson.dependencies['@justanothermldude/mcp-exec-oss'].version || null;
                 status.mcpExecSource = 'global';
             }
         } catch {
@@ -513,7 +513,7 @@ export class AIToolConfigurator {
             // Default: use npx
             entry = {
                 command: 'npx',
-                args: ['-y', '@justanothermldude/mcp-exec'],
+                args: ['-y', '@justanothermldude/mcp-exec-oss'],
                 env: {
                     SERVERS_CONFIG: this.serversConfigPath,
                 },

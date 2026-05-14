@@ -1050,7 +1050,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
                                     \${mcpPackages.mcpExecInstalled ? 'Reinstall' : 'Install via npm'}
                                 </button>
                                 <span class="or-text">or run:</span>
-                                <code class="install-cmd">npm install -g @justanothermldude/mcp-exec</code>
+                                <code class="install-cmd">npm install -g @justanothermldude/mcp-exec-oss</code>
                             </div>
                             <p class="hint-text">Enables AI to write and run code that calls other MCP servers.</p>
                         </div>
@@ -1118,7 +1118,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
   "mcpServers": {
     "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "args": ["-y", "@justanothermldude/mcp-exec-oss"],
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }
@@ -1206,7 +1206,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
   "mcpServers": {
     "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "args": ["-y", "@justanothermldude/mcp-exec-oss"],
       "env": {
         "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
       }

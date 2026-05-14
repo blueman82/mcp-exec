@@ -1,6 +1,6 @@
 # MCP-Exec
 
-A visual interface for configuring and managing [mcp-exec](https://www.npmjs.com/package/@justanothermldude/mcp-exec) — the MCP proxy that connects your AI tools (Claude Code, Cursor, Droid, Augment, VS Code) to backend MCP servers with automatic token injection.
+A visual interface for configuring and managing [mcp-exec](https://www.npmjs.com/package/@justanothermldude/mcp-exec-oss) — the MCP proxy that connects your AI tools (Claude Code, Cursor, Droid, Augment, VS Code) to backend MCP servers with automatic token injection.
 
 ## Features
 
@@ -37,6 +37,6 @@ Browse and add MCP servers from the GitHub catalog directly into your `servers.j
 
 ## Links
 
-- [mcp-exec on npm](https://www.npmjs.com/package/@justanothermldude/mcp-exec)
+- [mcp-exec on npm](https://www.npmjs.com/package/@justanothermldude/mcp-exec-oss)
 - [ADA MCP Gateway](https://mcp.adobe.io)
 - [Source](https://github.com/OneAdobe/camp-ops-emea/tree/main/projects/meta-mcp-server)

@@ -2,8 +2,8 @@
  * execute_code_with_wrappers MCP tool handler
  * Executes code with auto-generated typed wrappers for specified MCP servers
  */
-import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
-import { listServers } from '@justanothermldude/meta-mcp-core';
+import type { ServerPool, MCPConnection } from '@justanothermldude/mcp-exec-oss-core';
+import { listServers } from '@justanothermldude/mcp-exec-oss-core';
 import { generateServerModule, generateMcpDictionaryFromMap, generateFieldGuard, sanitizeIdentifier } from '../codegen/index.js';
 import { SandboxExecutor, type SandboxExecutorConfig } from '../sandbox/index.js';
 import { MCPBridge, type MCPBridgeConfig } from '../bridge/index.js';

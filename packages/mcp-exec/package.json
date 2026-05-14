@@ -1,5 +1,5 @@
 {
-  "name": "@justanothermldude/mcp-exec",
+  "name": "@justanothermldude/mcp-exec-oss",
   "version": "1.7.6",
   "description": "MCP execution utilities for sandboxed code execution with OS-level isolation",
   "type": "module",
@@ -17,11 +17,11 @@
     "test:integration": "vitest run tests/integration.test.ts"
   },
   "bin": {
-    "mcp-exec": "dist/index.js"
+    "mcp-exec-oss": "dist/index.js"
   },
   "dependencies": {
     "@anthropic-ai/sandbox-runtime": "^0.0.19",
-    "@justanothermldude/meta-mcp-core": "^0.1.4",
+    "@justanothermldude/mcp-exec-oss-core": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "esbuild": "^0.25.12",
     "get-port": "^7.1.0"

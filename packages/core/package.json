@@ -1,5 +1,5 @@
 {
-  "name": "@justanothermldude/meta-mcp-core",
+  "name": "@justanothermldude/mcp-exec-oss-core",
   "version": "0.1.9",
   "description": "Core utilities and shared types for meta-mcp packages",
   "type": "module",

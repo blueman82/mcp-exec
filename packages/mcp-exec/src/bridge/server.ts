@@ -1,7 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
 import getPort from 'get-port';
-import type { ServerPool, MCPConnection } from '@justanothermldude/meta-mcp-core';
-import { getServerConfig, listServers } from '@justanothermldude/meta-mcp-core';
+import type { ServerPool, MCPConnection } from '@justanothermldude/mcp-exec-oss-core';
+import { getServerConfig, listServers } from '@justanothermldude/mcp-exec-oss-core';
 import { cleanupStaleProcess } from './port-cleanup.js';
 
 /**

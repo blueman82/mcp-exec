@@ -8,16 +8,16 @@ This project is organized as a monorepo with the following packages:
 
 ```
 packages/
-├── core/           # @justanothermldude/meta-mcp-core - Shared utilities, types, pool, and registry
-└── mcp-exec/       # @justanothermldude/mcp-exec - Sandboxed code execution with typed wrappers
+├── core/           # @justanothermldude/mcp-exec-oss-core - Shared utilities, types, pool, and registry
+└── mcp-exec/       # @justanothermldude/mcp-exec-oss - Sandboxed code execution with typed wrappers
 
 extension/          # VS Code/Cursor extension (VSIX)
 ```
 
 | Package | Description | Install |
 |---------|-------------|---------|
-| [`@justanothermldude/meta-mcp-core`](./packages/core/README.md) | Core utilities: types, connection pool, registry, tool cache | `npm i @justanothermldude/meta-mcp-core` |
-| [`@justanothermldude/mcp-exec`](./packages/mcp-exec/README.md) | Sandboxed code execution with MCP tool access via typed wrappers | `npm i -g @justanothermldude/mcp-exec` |
+| [`@justanothermldude/mcp-exec-oss-core`](./packages/core/README.md) | Core utilities: types, connection pool, registry, tool cache | `npm i @justanothermldude/mcp-exec-oss-core` |
+| [`@justanothermldude/mcp-exec-oss`](./packages/mcp-exec/README.md) | Sandboxed code execution with MCP tool access via typed wrappers | `npm i -g @justanothermldude/mcp-exec-oss` |
 
 ## Problem
 
@@ -52,7 +52,7 @@ Backend servers are spawned lazily on first access and managed via a connection 
 **1. Install mcp-exec:**
 
 ```bash
-npm install -g @justanothermldude/mcp-exec
+npm install -g @justanothermldude/mcp-exec-oss
 ```
 
 **2. Create `~/.meta-mcp/servers.json`:**
@@ -90,7 +90,7 @@ Remove all existing entries from your AI tool's `mcp.json` and replace with just
   "mcpServers": {
     "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "args": ["-y", "@justanothermldude/mcp-exec-oss"],
       "env": {
         "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
       }
@@ -144,7 +144,7 @@ Add mcp-exec to your AI tool's config file:
   "mcpServers": {
     "mcp-exec": {
       "command": "npx",
-      "args": ["-y", "@justanothermldude/mcp-exec"],
+      "args": ["-y", "@justanothermldude/mcp-exec-oss"],
       "env": {
         "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
       }
@@ -209,13 +209,13 @@ npm install
 npm run build --workspaces
 
 # Build specific package
-npm run build -w @justanothermldude/meta-mcp-core
+npm run build -w @justanothermldude/mcp-exec-oss-core
 
 # Run all tests
 npm test --workspaces
 
 # Run tests for specific package
-npm test -w @justanothermldude/mcp-exec
+npm test -w @justanothermldude/mcp-exec-oss
 
 # Type check all packages
 npx tsc --noEmit --workspaces
@@ -263,7 +263,7 @@ For detailed architecture documentation with diagrams, see:
 
 ```
 packages/
-├── core/                    # @justanothermldude/meta-mcp-core - Shared utilities
+├── core/                    # @justanothermldude/mcp-exec-oss-core - Shared utilities
 │   └── src/
 │       ├── types/           # TypeScript interfaces (connection, server-config, tool-definition)
 │       ├── registry/        # Server manifest loading (loader.ts, manifest.ts)
@@ -281,7 +281,7 @@ packages/
 │       │   └── cleanup.ts
 │       └── tools/           # Tool caching utilities (tool-cache.ts)
 │
-└── mcp-exec/                # @justanothermldude/mcp-exec - Code execution
+└── mcp-exec/                # @justanothermldude/mcp-exec-oss - Code execution
     └── src/
         ├── index.ts         # Entry point and public API
         ├── server.ts        # MCP server for execute_code tools

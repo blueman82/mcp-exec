@@ -6,7 +6,7 @@
  */
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createMcpExecServer } from './server.js';
-import { ServerPool, createConnection, getServerConfig, loadServerManifest, cleanupOrphanedProcesses } from '@justanothermldude/meta-mcp-core';
+import { ServerPool, createConnection, getServerConfig, loadServerManifest, cleanupOrphanedProcesses } from '@justanothermldude/mcp-exec-oss-core';
 
 // Export types
 export * from './types/index.js';

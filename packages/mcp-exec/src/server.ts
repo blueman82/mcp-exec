@@ -9,7 +9,7 @@ import {
   CallToolResult,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { ServerPool } from '@justanothermldude/meta-mcp-core';
+import type { ServerPool } from '@justanothermldude/mcp-exec-oss-core';
 import {
   listAvailableMcpServersTool,
   createListServersHandler,

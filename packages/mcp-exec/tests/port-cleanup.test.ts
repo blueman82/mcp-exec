@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MCPBridge } from '../src/bridge/server.js';
 import { isPortInUse } from '../src/bridge/port-cleanup.js';
-import type { ServerPool } from '@justanothermldude/meta-mcp-core';
+import type { ServerPool } from '@justanothermldude/mcp-exec-oss-core';
 
 function createMockPool(): ServerPool {
   return {

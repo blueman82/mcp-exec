@@ -4,8 +4,8 @@
  * ./servers/<name>/<tool>.ts paths.
  */
 
-import type { ToolDefinition, ServerManifest } from '@justanothermldude/meta-mcp-core';
-import { loadServerManifest } from '@justanothermldude/meta-mcp-core';
+import type { ToolDefinition, ServerManifest } from '@justanothermldude/mcp-exec-oss-core';
+import { loadServerManifest } from '@justanothermldude/mcp-exec-oss-core';
 import { generateToolWrapper } from './wrapper-generator.js';
 
 /**

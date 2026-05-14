@@ -16,8 +16,8 @@ MCP-Exec provides sandboxed TypeScript/JavaScript code execution with typed acce
 ```
 meta-mcp-server/
 ├── packages/               # npm workspaces (publishable)
-│   ├── core/               # @justanothermldude/meta-mcp-core
-│   └── mcp-exec/           # @justanothermldude/mcp-exec
+│   ├── core/               # @justanothermldude/mcp-exec-oss-core
+│   └── mcp-exec/           # @justanothermldude/mcp-exec-oss
 ├── extension/              # VS Code/Cursor extension
 └── servers.json            # Backend MCP server config
 ```
@@ -96,8 +96,8 @@ Tests in `packages/mcp-exec/tests/` use vitest.
 **NPM Packages** (in `packages/`):
 | Package | npm Name | Purpose |
 |---------|----------|---------|
-| `packages/core` | `@justanothermldude/meta-mcp-core` | Shared types/utils |
-| `packages/mcp-exec` | `@justanothermldude/mcp-exec` | Code execution MCP server |
+| `packages/core` | `@justanothermldude/mcp-exec-oss-core` | Shared types/utils |
+| `packages/mcp-exec` | `@justanothermldude/mcp-exec-oss` | Code execution MCP server |
 
 **Publish workflow:**
 ```bash

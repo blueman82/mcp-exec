@@ -10,8 +10,8 @@ import {
   type ExecuteWithWrappersInput,
 } from '../src/tools/execute-with-wrappers.js';
 import { generateToolWrapper, generateServerModule, generateMcpDictionary, normalizeName } from '../src/codegen/index.js';
-import type { ServerPool, ToolDefinition } from '@justanothermldude/meta-mcp-core';
-import { ConnectionState } from '@justanothermldude/meta-mcp-core';
+import type { ServerPool, ToolDefinition } from '@justanothermldude/mcp-exec-oss-core';
+import { ConnectionState } from '@justanothermldude/mcp-exec-oss-core';
 
 /**
  * Create a mock ServerPool for testing

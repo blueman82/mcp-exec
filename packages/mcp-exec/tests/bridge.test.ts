@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MCPBridge, type CallRequest, type CallResponse } from '../src/bridge/server.js';
-import type { ServerPool } from '@justanothermldude/meta-mcp-core';
+import type { ServerPool } from '@justanothermldude/mcp-exec-oss-core';
 
 // Helper to create mock pool
 function createMockPool(overrides: Partial<ServerPool> = {}): ServerPool {

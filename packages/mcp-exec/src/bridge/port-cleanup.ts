@@ -3,7 +3,7 @@
  * Orphan process cleanup (PPID=1) is handled by cleanupOrphanedProcesses in core.
  */
 import { execSync } from 'child_process';
-import { isOrphanedProcess } from '@justanothermldude/meta-mcp-core';
+import { isOrphanedProcess } from '@justanothermldude/mcp-exec-oss-core';
 
 /**
  * Check if a process is an mcp-exec process by examining its command line

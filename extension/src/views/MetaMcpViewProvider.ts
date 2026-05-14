@@ -454,7 +454,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     private async handleInstallMcpExec(): Promise<void> {
         const terminal = vscode.window.createTerminal('mcp-exec install');
         terminal.show();
-        terminal.sendText('npm install -g @justanothermldude/mcp-exec');
+        terminal.sendText('npm install -g @justanothermldude/mcp-exec-oss');
 
         await vscode.window.showInformationMessage(
             'Installing mcp-exec... Click "Refresh" when installation completes.',
