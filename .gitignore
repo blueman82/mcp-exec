@@ -1,0 +1,31 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+*.log
+.env
+.env.local
+coverage/
+.vitest/
+.remember/
+
+docs/*
+!docs/ARCHITECTURE.md
+!docs/diagrams/
+docs/diagrams/*
+docs/diagrams/logs/*
+!docs/diagrams/README.md
+!docs/diagrams/core-mechanics.md
+!docs/diagrams/token-economics.md
+
+# Project-specific
+CONSOLIDATION_ROADMAP.md
+*.code-workspace
+tests/streamable-http-test-server.py
+
+# Transcripts (local artifacts)
+transcripts/
+
+# Local Claude Code settings (machine-specific permissions)
+.claude/settings.json
+.claude/scheduled_tasks.lock

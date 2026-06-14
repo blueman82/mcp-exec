@@ -1,0 +1,26 @@
+{
+  "name": "mcp-exec-monorepo",
+  "version": "0.6.0",
+  "private": true,
+  "description": "MCP-Exec monorepo - Sandboxed code execution with typed MCP tool access",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.53.3",
+    "@types/node": "^20.10.6",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.14"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-darwin-arm64": "^4.53.3"
+  }
+}
