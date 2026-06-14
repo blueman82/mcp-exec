@@ -58,7 +58,7 @@ npm run build
 
 This builds `packages/core` then `packages/mcp-exec`. The runnable server lands at `packages/mcp-exec/dist/index.js`.
 
-### Create `~/.meta-mcp/servers.json`
+### Create `~/.mcp-exec/servers.json`
 
 List every backend MCP server you want mcp-exec to manage. Standard MCP config format:
 
@@ -88,7 +88,7 @@ Replace your AI tool's `mcpServers` with a single entry that runs mcp-exec over 
       "command": "node",
       "args": ["/path/to/mcp-exec/packages/mcp-exec/dist/index.js"],
       "env": {
-        "SERVERS_CONFIG": "$HOME/.meta-mcp/servers.json"
+        "SERVERS_CONFIG": "$HOME/.mcp-exec/servers.json"
       }
     }
   }
@@ -109,7 +109,7 @@ Restart your AI tool to load the new configuration.
 
 ### servers.json
 
-All MCP servers are configured in `~/.meta-mcp/servers.json` (path overridable via `SERVERS_CONFIG`). STDIO backends use `command`/`args`/`env`; HTTP/SSE backends use a `url`.
+All MCP servers are configured in `~/.mcp-exec/servers.json` (path overridable via `SERVERS_CONFIG`). STDIO backends use `command`/`args`/`env`; HTTP/SSE backends use a `url`.
 
 ```json
 {
@@ -259,7 +259,7 @@ packages/
 
 | Environment Variable | Default | Description |
 |---------------------|---------|-------------|
-| `SERVERS_CONFIG` | `~/.meta-mcp/servers.json` | Path to backends configuration |
+| `SERVERS_CONFIG` | `~/.mcp-exec/servers.json` | Path to backends configuration |
 | `MAX_CONNECTIONS` | `20` | Maximum concurrent server connections |
 | `IDLE_TIMEOUT_MS` | `300000` | Idle connection cleanup timeout (5 min) |
 | `MCP_DEFAULT_TIMEOUT` | none | Global timeout for MCP tool calls (ms). Per-server `timeout` takes precedence. |

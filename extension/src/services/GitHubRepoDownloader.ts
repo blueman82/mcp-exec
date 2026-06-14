@@ -5,7 +5,7 @@ import * as os from 'os';
 import { execSync } from 'child_process';
 import { Octokit } from '@octokit/rest';
 
-const REPOS_DIR = path.join(os.homedir(), '.meta-mcp', 'repos');
+const REPOS_DIR = path.join(os.homedir(), '.mcp-exec', 'repos');
 
 export interface DownloadProgress {
     stage: 'authenticating' | 'downloading' | 'extracting' | 'complete' | 'error';

@@ -59,7 +59,7 @@ MCP-Exec exposes three tools to AI clients:
 
 When the AI calls `execute_code_with_wrappers()`:
 
-1. **Catalog check**: Reads or builds `~/.meta-mcp/tool-catalog.json` (disk-persisted)
+1. **Catalog check**: Reads or builds `~/.mcp-exec/tool-catalog.json` (disk-persisted)
 2. **Wrapper generation**: `packages/mcp-exec/src/codegen/wrapper-generator.ts` generates TypeScript wrappers with:
    - **FuzzyProxy**: Case-agnostic access to tool names (e.g., `mcp.issueTracker` or `mcp.issue_tracker`)
    - **Required parameter guards**: Validates inputs at generation time
@@ -99,8 +99,8 @@ packages/core/src/
 ```
 packages/mcp-exec/src/
 ├── server.ts        # MCP server exposing 3 tools with dynamic catalog
-├── sandbox/         # Isolated sandbox executor
-├── bridge/          # HTTP bridge for MCP access from sandbox
+├── sandbox/         # Isolated sandbox executor + fd-pipe transport (fd 3/4)
+├── bridge/          # Transport-agnostic tool dispatch (driven by the fd-pipe transport)
 ├── codegen/         # Typed wrapper generation
 │   └── wrapper-generator.ts  # Generates FuzzyProxy wrappers
 ├── types/           # TypeScript interfaces
@@ -116,7 +116,7 @@ packages/mcp-exec/src/
 
 **Startup**: ~1.9k tokens (3 mcp-exec tool schemas loaded once)
 
-**Tool catalog**: ~800-1000 tokens (tool names + param signatures, loaded once per session from `~/.meta-mcp/tool-catalog.json`)
+**Tool catalog**: ~800-1000 tokens (tool names + param signatures, loaded once per session from `~/.mcp-exec/tool-catalog.json`)
 
 | Tool | Per-call cost |
 |------|---------------|
@@ -155,7 +155,7 @@ sequenceDiagram
   AI->>Exec: execute_code_with_wrappers({code: "...", servers: ["jira"]})
   Exec->>Exec: Generate typed wrappers (FuzzyProxy)
   Exec->>Pool: Get jira connection
-  Exec->>Backend: Execute code via bridge
+  Exec->>Backend: Sandbox calls tool over fd-pipe (fd 3 request / fd 4 response)
   Backend-->>Exec: results
   Exec-->>AI: {output: "..."}
 ```
@@ -184,7 +184,7 @@ stateDiagram-v2
 
 ## Configuration
 
-**servers.json** (`~/.meta-mcp/servers.json`):
+**servers.json** (`~/.mcp-exec/servers.json`):
 ```json
 {
   "mcpServers": {
@@ -199,7 +199,7 @@ stateDiagram-v2
 
 **Environment variables**:
 ```bash
-SERVERS_CONFIG=~/.meta-mcp/servers.json
+SERVERS_CONFIG=~/.mcp-exec/servers.json
 MCP_DEFAULT_TIMEOUT=30000
 ```
 

@@ -196,7 +196,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             this.postMessage({ type: 'updateSetup', tools, snippets, genericSnippet, mcpPackages });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[Meta-MCP] Failed to load setup:', errorMsg);
+            console.error('[mcp-exec] Failed to load setup:', errorMsg);
             this.postMessage({ type: 'showError', message: `Failed to detect tools: ${errorMsg}` });
         }
     }
@@ -426,7 +426,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
     }
 
     /**
-     * Handle configure meta-mcp for a specific tool
+     * Handle configure mcp-exec for a specific tool
      * Now also migrates existing servers to servers.json
      */
     private async handleConfigureMetaMcp(payload: { toolId: string }): Promise<void> {
@@ -463,7 +463,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             this.postMessage({ type: 'configureMetaMcpResponse', success: result.success, error: result.error });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[Meta-MCP] Failed to configure:', errorMsg);
+            console.error('[mcp-exec] Failed to configure:', errorMsg);
             this.postMessage({ type: 'configureMetaMcpResponse', success: false, error: errorMsg });
         }
     }
@@ -483,7 +483,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
             this.postMessage({ type: 'updateCatalog', catalog });
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : String(err);
-            console.error('[Meta-MCP] Failed to load catalog:', errorMsg);
+            console.error('[mcp-exec] Failed to load catalog:', errorMsg);
             this.postMessage({ type: 'catalogError', message: `Failed to load catalog: ${errorMsg}` });
         }
     }
@@ -621,7 +621,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      */
     private sendServerList(): void {
         const servers = this.getServerList();
-        console.log('[Meta-MCP] sendServerList:', servers.length, 'servers');
+        console.log('[mcp-exec] sendServerList:', servers.length, 'servers');
         this.postMessage({ type: 'updateServers', servers });
     }
 
@@ -629,9 +629,9 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
      * Get server list from config
      */
     private getServerList(): ServerListItem[] {
-        console.log('[Meta-MCP] getServerList - configPath:', this.configManager.getConfigPath());
+        console.log('[mcp-exec] getServerList - configPath:', this.configManager.getConfigPath());
         const serverNames = this.configManager.listServers();
-        console.log('[Meta-MCP] getServerList - serverNames:', serverNames);
+        console.log('[mcp-exec] getServerList - serverNames:', serverNames);
         return serverNames.map(name => {
             const config = this.configManager.getServer(name);
             // Mark as "connected" if server has valid command OR url
@@ -682,7 +682,7 @@ export class MetaMcpViewProvider implements vscode.WebviewViewProvider {
                 await vscode.window.showTextDocument(configDoc, { viewColumn: vscode.ViewColumn.Two, preview: false });
             }
         } catch (err) {
-            console.error('[Meta-MCP] Failed to open config files:', err);
+            console.error('[mcp-exec] Failed to open config files:', err);
         }
     }
 }

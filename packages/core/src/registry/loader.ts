@@ -78,7 +78,7 @@ function getConfigPath(): string {
     // Expand ~ in env var if present
     return process.env.SERVERS_CONFIG.replace(/^~/, os.homedir());
   }
-  return path.join(os.homedir(), '.meta-mcp', 'servers.json');
+  return path.join(os.homedir(), '.mcp-exec', 'servers.json');
 }
 
 export function loadServerManifest(): ServerManifest {

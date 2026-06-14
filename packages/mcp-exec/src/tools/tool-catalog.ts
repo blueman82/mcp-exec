@@ -31,7 +31,7 @@ interface ToolCatalog {
   updatedAt: string;
 }
 
-const CATALOG_PATH = join(homedir(), '.meta-mcp', 'tool-catalog.json');
+const CATALOG_PATH = join(homedir(), '.mcp-exec', 'tool-catalog.json');
 
 /**
  * Generate a compact type hint for a single JSON Schema property.

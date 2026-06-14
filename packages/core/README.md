@@ -235,7 +235,7 @@ import { ToolCache } from 'mcp-exec-core/tools';
 The registry loads server configurations from:
 
 1. Path specified in `SERVERS_CONFIG` environment variable
-2. Default: `~/.meta-mcp/servers.json`
+2. Default: `~/.mcp-exec/servers.json`
 
 ### servers.json Format
 

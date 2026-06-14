@@ -1120,7 +1120,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
       "command": "npx",
       "args": ["-y", "mcp-exec"],
       "env": {
-        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
+        "SERVERS_CONFIG": "~/.mcp-exec/servers.json"
       }
     }
   }
@@ -1208,7 +1208,7 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
       "command": "npx",
       "args": ["-y", "mcp-exec"],
       "env": {
-        "SERVERS_CONFIG": "~/.meta-mcp/servers.json"
+        "SERVERS_CONFIG": "~/.mcp-exec/servers.json"
       }
     }
   }
@@ -1389,11 +1389,11 @@ export function getWebviewContent(options: WebviewTemplateOptions): string {
             // Message handling
             window.addEventListener('message', event => {
                 const message = event.data;
-                console.log('[Meta-MCP Webview] Received message:', message.type, message);
+                console.log('[mcp-exec Webview] Received message:', message.type, message);
                 switch (message.type) {
                     case 'updateServers':
                         servers = message.servers || [];
-                        console.log('[Meta-MCP Webview] updateServers:', servers.length, 'servers');
+                        console.log('[mcp-exec Webview] updateServers:', servers.length, 'servers');
                         renderServerList();
                         break;
                     case 'updateCatalog':

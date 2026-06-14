@@ -35,7 +35,7 @@ console.log(result.durationMs);  // execution time in ms
 node packages/mcp-exec/dist/index.js
 
 # Or with specific config
-SERVERS_CONFIG=~/.meta-mcp/servers.json node packages/mcp-exec/dist/index.js
+SERVERS_CONFIG=~/.mcp-exec/servers.json node packages/mcp-exec/dist/index.js
 ```
 
 ## API Reference
@@ -249,7 +249,7 @@ user code never calls it directly.
 
 ## Tool Catalog
 
-mcp-exec maintains a disk-cached tool catalog at `~/.meta-mcp/tool-catalog.json` that stores tool names and parameter signatures for every server the agent has used.
+mcp-exec maintains a disk-cached tool catalog at `~/.mcp-exec/tool-catalog.json` that stores tool names and parameter signatures for every server the agent has used.
 
 ### How it works
 
@@ -350,7 +350,7 @@ This makes it easy to discover available tools and servers when debugging or exp
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SERVERS_CONFIG` | `~/.meta-mcp/servers.json` | Path to servers configuration |
+| `SERVERS_CONFIG` | `~/.mcp-exec/servers.json` | Path to servers configuration |
 | `MCP_DEFAULT_TIMEOUT` | none | Global timeout for MCP tool calls (ms) |
 
 ## License

@@ -89,7 +89,7 @@ Usage:
 
 Environment:
   SERVERS_CONFIG    Path to servers.json config file
-                    Default: ~/.meta-mcp/servers.json
+                    Default: ~/.mcp-exec/servers.json
 `);
   process.exit(0);
 }

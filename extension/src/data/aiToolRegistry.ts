@@ -61,13 +61,6 @@ export const AI_TOOL_REGISTRY: AIToolDefinition[] = [
 ];
 
 /**
- * Legacy config key. The meta-mcp package has been removed, but existing
- * user configs may still contain a "meta-mcp" entry. This constant is used
- * only to detect and filter out those legacy entries during migration.
- */
-export const META_MCP_SERVER_NAME = 'meta-mcp';
-
-/**
  * Gets tool definition by ID
  */
 export function getToolById(id: string): AIToolDefinition | undefined {

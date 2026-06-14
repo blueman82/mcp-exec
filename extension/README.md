@@ -5,7 +5,7 @@ A visual interface for configuring and managing mcp-exec — the local MCP proxy
 ## Features
 
 ### Servers tab
-Add, edit, and remove backend MCP servers from `~/.meta-mcp/servers.json`. Each entry shows live connection status.
+Add, edit, and remove backend MCP servers from `~/.mcp-exec/servers.json`. Each entry shows live connection status.
 
 ### Setup tab
 Auto-detects your installed AI tools and generates the correct MCP config snippet for each one. Supports:
@@ -27,9 +27,9 @@ Browse a curated list of public MCP servers and add them directly into your `ser
 
 - Node.js 18+
 - A local mcp-exec build (`npm install && npm run build` at the repo root)
-- A `~/.meta-mcp/servers.json` file (created automatically on first use)
+- A `~/.mcp-exec/servers.json` file (created automatically on first use)
 
 ## Extension Settings
 
-- `mcp-exec.serversConfigPath` — path to a custom `servers.json` (default: `~/.meta-mcp/servers.json`)
+- `mcp-exec.serversConfigPath` — path to a custom `servers.json` (default: `~/.mcp-exec/servers.json`)
 - `mcp-exec.mcpExecPath` — path to a local mcp-exec build (`packages/mcp-exec/dist/index.js`)

@@ -48,5 +48,5 @@ export function getServersConfigPath(): string {
         return setting;
     }
 
-    return path.join(os.homedir(), '.meta-mcp', 'servers.json');
+    return path.join(os.homedir(), '.mcp-exec', 'servers.json');
 }

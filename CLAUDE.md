@@ -51,7 +51,7 @@ npm run dev
 
 ## Configuration
 
-**servers.json** (`~/.meta-mcp/servers.json`): Defines all backend MCP servers mcp-exec manages. Standard MCP config format. Path overridable via `SERVERS_CONFIG`.
+**servers.json** (`~/.mcp-exec/servers.json`): Defines all backend MCP servers mcp-exec manages. Standard MCP config format. Path overridable via `SERVERS_CONFIG`.
 
 **Backend auth**: For HTTP/SSE backends, `${VAR_NAME}` references inside a `headers` value are resolved from the process environment at connection time (see `packages/core/src/auth/backend-auth.ts`).
 
@@ -64,7 +64,7 @@ npm run dev
 - **Timeouts**: `MCP_DEFAULT_TIMEOUT` env var sets global timeout (ms). Per-server `timeout` in servers.json takes precedence.
 
 ### mcp-exec Components (`packages/mcp-exec/src/`)
-- `tools/tool-catalog.ts` - Disk-persisted tool catalog (`~/.meta-mcp/tool-catalog.json`). Auto-populates on first tool call, refreshes on every call, prunes against `servers.json` on startup. Embedded in tool description so the agent sees API signatures before writing code.
+- `tools/tool-catalog.ts` - Disk-persisted tool catalog (`~/.mcp-exec/tool-catalog.json`). Auto-populates on first tool call, refreshes on every call, prunes against `servers.json` on startup. Embedded in tool description so the agent sees API signatures before writing code.
 - `tools/execute-with-wrappers.ts` - Main execution handler. Generates typed wrappers, updates catalog, composes sandbox code, dispatches tool calls over the fd-pipe bridge.
 - `codegen/wrapper-generator.ts` - Generates TypeScript wrappers with FuzzyProxy (case-agnostic access, helpful errors on wrong names), required param guards, and field guards on responses.
 - `server.ts` - MCP server exposing `execute_code_with_wrappers`, `list_available_mcp_servers`, `get_mcp_tool_schema`. Tool description rebuilt dynamically on each `tools/list` request to include latest catalog.

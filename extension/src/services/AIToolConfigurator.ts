@@ -6,7 +6,6 @@ import { execSync } from 'child_process';
 import {
     AI_TOOL_REGISTRY,
     AIToolDefinition,
-    META_MCP_SERVER_NAME,
     getToolById,
 } from '../data/aiToolRegistry';
 import { getServersConfigPath } from '../utils/environment';
@@ -81,7 +80,7 @@ export class AIToolConfigurator {
             const configExists = fs.existsSync(configFullPath);
             const configured = configExists && this.isMetaMcpConfigured(tool);
             
-            // Check for existing servers (excluding meta-mcp)
+            // Check for existing servers (excluding mcp-exec)
             const existingServers = this.getExistingServers(tool);
             const hasExistingServers = existingServers.length > 0;
             const existingServerCount = existingServers.length;
@@ -91,17 +90,17 @@ export class AIToolConfigurator {
     }
     
     /**
-     * Get existing server names from a tool's config (excluding meta-mcp)
+     * Get existing server names from a tool's config (excluding mcp-exec)
      */
     getExistingServers(tool: AIToolDefinition): string[] {
         const configPath = this.resolveConfigPath(tool.configPath);
         if (!fs.existsSync(configPath)) return [];
-        
+
         try {
             const content = fs.readFileSync(configPath, 'utf-8');
             const config = JSON.parse(content);
             const servers = config[tool.configKey] || {};
-            return Object.keys(servers).filter(name => name !== META_MCP_SERVER_NAME);
+            return Object.keys(servers).filter(name => name !== 'mcp-exec');
         } catch {
             return [];
         }
@@ -136,9 +135,9 @@ export class AIToolConfigurator {
             const config = JSON.parse(content);
             const servers = config[tool.configKey] || {};
             
-            // Find servers to migrate (excluding meta-mcp)
+            // Find servers to migrate (excluding mcp-exec)
             const serversToMigrate = Object.entries(servers)
-                .filter(([name]) => name !== META_MCP_SERVER_NAME);
+                .filter(([name]) => name !== 'mcp-exec');
             
             if (serversToMigrate.length === 0) {
                 return { success: true, migratedCount: 0, configPath, serversConfigPath: this.serversConfigPath, toolName: tool.name };
@@ -196,7 +195,7 @@ export class AIToolConfigurator {
     }
 
     /**
-     * Check if meta-mcp is already configured in a tool's config
+     * Check if mcp-exec is already configured in a tool's config
      */
     isMetaMcpConfigured(tool: AIToolDefinition): boolean {
         const configPath = this.resolveConfigPath(tool.configPath);
@@ -208,7 +207,7 @@ export class AIToolConfigurator {
             const content = fs.readFileSync(configPath, 'utf-8');
             const config = JSON.parse(content);
             const servers = config[tool.configKey];
-            return servers && (META_MCP_SERVER_NAME in servers || 'mcp-exec' in servers);
+            return servers && 'mcp-exec' in servers;
         } catch {
             return false;
         }
@@ -336,7 +335,7 @@ export class AIToolConfigurator {
             };
         }
 
-        // Ensure servers.json exists (needed for meta-mcp and for migration)
+        // Ensure servers.json exists (needed for mcp-exec and for migration)
         this.ensureServersConfig();
 
         const tool = getToolById(toolId);
@@ -372,10 +371,10 @@ export class AIToolConfigurator {
         // Get existing servers from tool config
         const existingServers = (existingConfig[tool.configKey] as Record<string, unknown>) ?? {};
 
-        // Identify servers to migrate (everything except meta-mcp and mcp-exec)
+        // Identify servers to migrate (everything except mcp-exec)
         const serversToMigrate: [string, unknown][] = [];
         for (const [name, config] of Object.entries(existingServers)) {
-            if (name !== META_MCP_SERVER_NAME && name !== 'mcp-exec') {
+            if (name !== 'mcp-exec') {
                 serversToMigrate.push([name, config]);
             }
         }
