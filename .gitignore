@@ -29,3 +29,4 @@ transcripts/
 # Local Claude Code settings (machine-specific permissions)
 .claude/settings.json
 .claude/scheduled_tasks.lock
+logs/
