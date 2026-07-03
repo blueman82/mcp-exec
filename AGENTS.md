@@ -4,6 +4,15 @@
 
 `/Users/harrison/Github/mcp-exec-wiki/`
 
+## Git
+
+```yaml
+git:
+  worktree: false
+```
+
+Personal wiki — no PR ceremony. Ingest/lint/query write directly to the vault and commit there.
+
 ## Three layers
 
 1. **Raw sources** — immutable input: the `mcp-exec` codebase, git history, commits/PRs,
