@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Wiki Knowledge Base
+
+**At the start of every conversation**, read `AGENTS.md` in this directory for wiki maintenance protocols. The mcp-exec wiki is a persistent, compounding knowledge base maintained by Claude and browsed by Gary in Obsidian. The wiki vault lives at `/Users/harrison/Github/mcp-exec-wiki`.
+
 ## Overview
 
 mcp-exec provides sandboxed TypeScript/JavaScript code execution with typed access to other MCP tools. The `packages/core` library manages backend MCP server connections (pool, registry, auth). It is a private, local-only, STDIO MCP server — not published to any registry.
